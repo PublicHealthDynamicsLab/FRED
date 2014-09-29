@@ -14,7 +14,7 @@ FRED was compiled using gcc which is not C++11 by default, so the file src/Place
 typedef std::tr1::unordered_map<string, int> LabelMapT;
 
 //Should be changed to
-include <unordered_map>
+#include <unordered_map>
 //...
 typedef std::unordered_map<string, int> LabelMapT;
 ```
