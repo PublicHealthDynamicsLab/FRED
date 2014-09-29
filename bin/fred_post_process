@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+$| = 1;  # AUTO_FLUSH
+
+# File: fred_post_process
+# Author: John Grefenstette
+# Created: Aug 07, 2012
+
+my ($out, $tables, $reports) = @ARGV;
+$out = "OUT" if not $out;
+die "fred_post_process: $out not found\n" if not -d $out;
+$tables = "TABLES" if not $tables;
+mkdir $tables if not -d $tables;
+die "fred_post_process: $tables not found\n" if not -d $tables;
+$reports = "REPORTS" if not $reports;
+mkdir $reports if not -d $reports;
+die "fred_post_process: $reports not found\n" if not -d $reports;
+
+my $FRED = $ENV{FRED_HOME};
+die "fred_post_process: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+# create tables for each variable
+system "$FRED/bin/fred_get_tables $out $tables";
+
+# process tables
+
+# get the list of files
+my $dir = "$tables";
+opendir DIR, $dir or die "ERROR OPENING DIRECTORY $dir\n";
+my @files = ();
+while (my $file = readdir(DIR)) {
+  next if ($file =~ /^\./);
+  next if ($file !~ /_daily/);
+  push @files, "$dir/$file";
+}
+closedir DIR;
+
+# get the list of variables
+my %vars = ();
+for my $file (@files) {
+  my ($var) = ($file =~/.*\/(.*)_daily-\d+\.txt/);
+  $vars{$var} = 1;
+}
+
+for my $key (sort keys %vars) {
+  my $dir = "$tables";
+  system "$FRED/bin/fred_get_stats $dir/$key\_daily-*.txt > $reports/$key\_daily.dat";
+  system "$FRED/bin/fred_get_stats $dir/$key\_weekly-*.txt > $reports/$key\_weekly.dat";
+}
+
+
+
+
+
+
+  

@@ -1,0 +1,78 @@
+Timestep Maps in FRED
+
+=====================
+
+The Timestep_Map classes handle the parsing of timestep files containing schedules for seeding events, vaccine delivery, and seasonal changes.
+
+The seeding schedule is handled by the Multistrain_Timestep_Map class.
+
+The expected format is flexible and in the simplest case, only the number of seeds and the timing to be specified for each disease.
+
+Optional fields allow:
+  specification of the particular strain of the disease to be seeded
+  stochasticity in the number of seeds introduced
+  enforcement of a strict minimum in the number of seeds introduced at a given time step
+  control over the geographic location of seed introduction
+
+=====================
+
+Multistrain Timestep Map input format:
+
+"#line_format"
+
+The first line of the timestep map file specifies the format to be used.  Currently "#line_format" is the only supported format.  Future work may allow for some type of structered (key = value) format to permit more detailed specification of seeding behavior.  
+
+Any line beginning with "#" is interpreted as a comment and ignored.  Every other line is interpreted as a seeding instruction and expected to follow the format:
+
+  start end attempts [ strain [ prob [ min [ lat lon radius ] ] ] ]
+
+Mandatory Fields:
+----------------
+
+Where the first three fields (start, end, attempts) are mandatory.  The others are optional, but, if
+present, must be given in the order above.
+
+The "start" and "end" fields are indexed from zero and can be used to specify a range of days beginning on "start" and continuing to "end" (inclusive).  To specify seeding on a single day, set "start" equal to "end".
+
+The "attempts" field determines the number of seeding attempts for the given range of time steps.  If no further fields are present, this number of individuals are randomly chosen with replacement from the entire population and transmission of the disease is attempted.  Note that sampling includes individuals who may already be infected; in this case the actual number of new seeds may be less than the number specified by "attempts".
+
+Optional Fields:
+---------------
+
+The "strain" field gives the numeric id of the strain to be seeded for this timestep.  If the strain field is not given, all seeds be will strain "0".
+
+The "prob" field can be used to introduce some randmoness into the number of seeding events attempted at the time step.  With probability 1-"prob" each of the attempts specified by "attempt" will be skipped.
+
+The "min" field can be used to ensure that a minimum number of attempts actually result in transmission.  If specified, individuals will continue (1000 additional times) to be selected from the population until "min" number of successful transmissions have been created.  If 1000 additional selections from the population are insufficient to create the specified minimum number of transmissions, a warning is given and execution of the program continues.
+
+The geographic area from which individuals are selected can be specified by giving the coordinates of a point ("lat", "lon") and a "radius" specified in kilometers.  When enabled, random sampling is restricted t0 only those individuals whose households are located within the specified area. 
+
+Additional Notes:
+----------------
+
+Each line in the time step file is processed independently.  That is, if two lines in the file contains seeding instructions for a given day, the resulting behavior is to introduce the number of seeds specified in the first applicable line and then, additionally, to introduce the number of seeds specified in the second applicable line.
+
+Examples:
+--------
+
+Seed 100 individuals on day zero only.
+
+  0 0 100
+
+Seed 10 individuals each day, beginning at day zero and continuing for one year.
+
+  0 365 10
+
+Seed 10 individuals on days 0 through 10; seed 20 individuals on day 5.
+
+  0 10 10
+  5 5 10
+
+Make 100 seeding attempts of strain 0 on day 0, 
+each with attempt probabilty of 1, requiring a minimum of 100 transmissions,
+all selected randomly from people whose households are within 100km of
+the specified point.
+
+  0 0 100 0 1 100 40.44181 -80.01278 100
+
+

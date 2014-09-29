@@ -1,0 +1,125 @@
+
+This document shows how to run large numbers of small jobs (that is,
+with population size up to 8 million people) on Blacklight.
+
+If you have not already done so, please read
+how-to-run-parameter-sweeps.
+
+1. Create a parameter file to include parameters that are common to all
+runs. You might want to call this file params.base, to remind yourself
+that is in the base for the parameter sweep.
+
+2. Create a configuration files that names the base params file and
+specifies the values for the sweep parameters. Let's assume that you
+save this file as "config" and edit it to you needs.
+
+3. Create the individual parameter files by running fred_make_params on
+the config file:
+
+% fred_make_params -f config
+
+4. Create a list of tasks, one for each parameter file, selecting values
+for the following options:
+
+% fred_make_tasks -n <N> -d 0 --threads <threads>
+
+where
+<N> is the number of runs desired for each task.
+
+<threads> is the number of threads to use, between 1 and 16. Defaul
+value is 1. Probably 4 to 8 is optimal, but try it yourself.
+
+The option "-d 0" says not to run fred_delete before fred_job. This is
+the appropriate option here because we are creating a fresh RESULTS
+directory in the working directory every time.
+
+5. Create a qsub jobfile:
+
+% fred_make_qsub -c <CORES> -t <T>
+
+where
+<CORES> is the number of cores requested. Must be a multiple of
+16.
+
+<T> is the time in HH:MM:SS, e.g. 8:00:00 for 8 hours.  Rule of thumb:
+figure 5 minutes per million population, but you might double this
+initially and cut back based on the initial runs.  Then figure the total
+time for each fred_job (based on <N>) and the number of tasks per
+core. 
+
+For example, if the number of tasks is 100, with each task consisting of
+20 runs, and each run takes about 30 minutes (because popsize is about 6
+million), then we expected to use a total of
+
+100*20*30 minutes 60000 minutes = 1000 cpu hours.  
+
+This could be run as:
+
+-c 128 -t 8:00:00, or
+-c 256 -t 4:00:00, or 
+-c 512 -t 2:00:00
+
+The default is to put the RESULTS directory in the current working
+directory.
+
+The output of fred_make_qsub is a jobfile called fred.qsub that needs to
+be submitted via qsub:
+
+% qsub -m abe -M <your-email> fred.qsub
+
+6. Make an executable file called METHODS to automatic the process.  For
+example,
+
+% cat METHODS
+#!/bin/csh
+fred_make_params -f config
+fred_make_tasks -n 20 -d 0 --threads 8
+fred_make_qsub -c 256 -t 6:00:00
+qsub -m abe -M gref@pitt.edu fred.qsub
+
+7. Go get some dinner while FRED runs through the tasks.  You can check
+the status of the queue as follows:
+
+% qstat -a
+
+8. To plot results, go to the working directory and do:
+
+% setenv FRED_RESULTS `pwd`/RESULTS
+% fred_plot -k <KEY> -v <VAR> ...
+
+================================================================
+
+Hints about parameter settings for multiple jobs:
+
+------------------------------------------------
+
+If there are many jobs accessing the same data files, you might want to
+have each job make a local copy of the population and household files,
+to reduce file contention:
+
+enable_copy_files = 1
+
+------------------------------------------------
+
+If you want to sweep over a set of locations, use the file capability in
+the config file. For example, the following config file will run the
+base parameters over all counties in the US. The file fips_codes.txt
+should be copied from the $FRED_HOME/input_files directory to the
+current working directory.
+
+% cat config
+Baseline Parameter File: params.base
+
+Sweep Parameters:
+Name: fips File: fips_codes.txt
+
+------------------------------------------------
+
+For locations outside the continental US, it's a good idea to use the
+mean latitude of the region for the geographic projection:
+
+use_mean_latitude = 1
+
+
+
+

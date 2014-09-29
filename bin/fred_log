@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my %options = ();
+getopts("k:o:", \%options);
+my $mykey = "";
+$mykey = $options{k} if exists $options{k};
+die "usage: fred_log -k key\n" if not $mykey;
+my $o = "";
+$o = "-$options{o}" if exists $options{o};
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $dir = "$FREDRESULTS";
+die "Can't find directory $dir\n" if not -d $dir;
+
+my $id = get_id($mykey);
+die "NOT_FOUND\n" if $id eq "";
+
+print "STARTED:  ";
+system "cat $dir/JOB/$id/META/START";
+print "FINISHED: ";
+system "cat $dir/JOB/$id/META/FINISHED";
+if (-e "$dir/JOB/$id/DATA/OUT/LOG1") {
+  print "tail $o LOG1:\n";
+  system "tail $o $dir/JOB/$id/DATA/OUT/LOG1";
+}
+if (-e "$dir/JOB/$id/META/LOG.1") {
+  print "tail $o LOG.1:\n";
+  system "tail $o $dir/JOB/$id/META/LOG.1";
+}
+
+exit;
+
+sub get_id {
+  my $mykey = shift;
+  open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    if (defined $key and $key eq $mykey) {
+      close FH;
+      return $id;
+    }
+  }
+  close FH;
+  return "";
+}

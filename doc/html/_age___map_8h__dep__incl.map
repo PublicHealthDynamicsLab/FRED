@@ -1,0 +1,13 @@
+<map id="G" name="G">
+<area shape="rect" href="$_age___map_8cc.html" title="Age_Map.cc" alt="" coords="28,84,135,111"/>
+<area shape="rect" href="$_demographics_8cc.html" title="Demographics.cc" alt="" coords="159,84,305,111"/>
+<area shape="rect" href="$_vaccine___dose_8h.html" title="Vaccine_Dose.h" alt="" coords="329,84,463,111"/>
+<area shape="rect" href="$_vaccines_8cc.html" title="Vaccines.cc" alt="" coords="581,161,685,188"/>
+<area shape="rect" href="$_person_8cc.html" title="Person.cc" alt="" coords="537,84,625,111"/>
+<area shape="rect" href="$_population_8cc.html" title="Population.cc" alt="" coords="649,84,767,111"/>
+<area shape="rect" href="$_strain_8cc.html" title="Strain.cc" alt="" coords="791,84,873,111"/>
+<area shape="rect" href="$_health_8cc.html" title="Health.cc" alt="" coords="5,161,93,188"/>
+<area shape="rect" href="$_vaccine_8cc.html" title="Vaccine.cc" alt="" coords="117,161,216,188"/>
+<area shape="rect" href="$_vaccine___dose_8cc.html" title="Vaccine_Dose.cc" alt="" coords="240,161,381,188"/>
+<area shape="rect" href="$_vaccine___health_8cc.html" title="Vaccine_Health.cc" alt="" coords="405,161,557,188"/>
+</map>

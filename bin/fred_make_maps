@@ -1,0 +1,249 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $usage = "usage: $0 -k key [ -i 1 | -d disease_id | -r run | -t title | -T term | -p parallel_batch | -m max | -C country | -c census_tracts]";
+
+my %options = ();
+getopts("c:C:m:d:i:k:r:t:T:p:", \%options);
+
+my $key = "";
+$key = $options{k} if exists $options{k};
+die "$usage\n" if not $key;
+
+my $census_tracts = 0;
+$census_tracts = $options{c} if exists $options{c};
+
+my $dis = 0;
+$dis = $options{d} if exists $options{d};
+
+my $inc = 0;
+$inc = $options{i} if exists $options{i};
+# print "$0: inc = $inc\n";
+
+my $max = 10;
+$max = $options{m} if exists $options{m};
+
+my $country = "usa";
+$country = $options{C} if exists $options{C};
+
+my $run = 1;
+$run = $options{r} if exists $options{r};
+
+my $parallel_batch = 1;
+$parallel_batch = $options{p} if exists $options{p};
+
+my $term = "png";
+$term = $options{T} if exists $options{T};
+
+my $title = "FRED Allegheny County";
+$title = $options{t} if exists $options{t};
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $bindir = "$FRED/bin";
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+chdir $outdir;
+my $days = `wc -l out1.txt`;
+chomp $days;
+$days--;
+$parallel_batch = $days if ($days < $parallel_batch);
+
+my $vis = "$outdir/VIS/run$run/dis$dis";
+chdir $vis;
+
+system "mkdir -p MAPS";
+
+# get the population for each fips code
+my @fips = ();
+my %pop = ();
+my $fipspopfile ="$FRED/input_files/countries/$country/fips_pop.txt";
+open IN,$fipspopfile or die "ERROR: no file $fipspopfile\n";
+while (<IN>) {
+  chomp;
+  my ($fips,$n) = split " ";
+  $pop{$fips} = $n;
+}
+close IN;
+
+my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
+my $max_pct = 0.0;
+if ($country eq "usa" and $census_tracts eq 1) {
+  make_census_tract_map_data();
+  $shapefiledir = "$vis/MAPS/SHAPES";
+}
+else {
+  make_county_map_data($run);
+}
+print "max_pct = $max_pct\n";
+chdir "MAPS";
+system "rm -f map.* .done.* fred_make_maps.log";
+
+my $shapedir = "$FRED/SHAPEFILES/2010";
+my $shapefile = "x";
+if ($country eq "usa" and $census_tracts eq 1) {
+  if (not -d "SHAPES") {
+    # get county
+    open FH, "FIPS";
+    my $county = <FH>;
+    close FH;
+    $county = substr($county,0,5);
+    $shapefile = "tl_2010_$county\_tract10";
+    system "unzip $shapedir/$shapefile >> fred_make_maps.log ";
+    system "mkdir -p SHAPES";
+    system "$bindir/fred_read_shapefile $shapefile SHAPES >> fred_make_maps.log";
+  }
+}
+
+print "making maps ";
+my $started = 0;
+my @cmds = ();
+for my $day (0..$days) {
+  my $longtitle = sprintf("{/Arial=14 %s}\\n{/Arial=10 Day %3d}", $title, $day);
+  my $mapname = sprintf("map%04d.$term",$day);
+  my $loadfile = "load-run=$run-dis=$dis-day=$day.plt";
+  open LD, ">$loadfile";
+  print LD "my_title = \"$longtitle\"\n";
+  print LD "terminal = '$term'\n";
+  print LD "mapname = '$mapname'\n";
+  print LD "incidence = $inc\n";
+  print LD "max = $max\n";
+  print LD "household_locations = '$vis/households.txt'\n";
+  print LD "household_incidence = '$vis/C/households-$day.txt'\n";
+  print LD "infectious_households = '$vis/I/households-$day.txt'\n";
+  print LD "recovered_households = '$vis/R/households-$day.txt'\n";
+  print LD "fipsfile = '$vis/MAPS/FIPS'\n";
+  print LD "rawfile = '$vis/MAPS/RAW-$dis.$day'\n";
+  print LD "pctfile = '$vis/MAPS/PCT-$dis.$day'\n";
+  print LD "shapefile_dir = '$shapefiledir'\n";
+  close LD;
+
+  my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
+  system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";
+  system("($cmd; touch .done.$day)&");
+  # print "$mapname\n";
+  print ".";
+  $started++;
+  if ($started eq $parallel_batch) {
+    for my $d (0..$day) {
+      while (not -e ".done.$d") { sleep 1; }
+    }
+    $started = 0;
+  }
+}
+for my $d (0..$days) {
+  while (not -e ".done.$d") { sleep 1; }
+}
+# system "rm -rf PCT* RAW* SHAPES load* .done* $shapefile.*";
+print " done\n";
+exit;
+
+
+##################################################
+
+sub make_county_map_data {
+  my $run = shift;
+  my $filename = "$outdir/out$run.txt";
+  die "$0: outfile $filename not found\n" if not -e "$filename";
+
+  @fips = ();
+  open FH, $filename or die "ERROR: $0 can't open file $filename\n";
+  while (<FH>) {
+    chomp;
+    my @a = split " ";
+    my $day = $a[1];
+    my @values_0 = ();
+    my @values_1 = ();
+    my @values_2 = ();
+    my @values_3 = ();
+    while (@a) {
+      my $key = shift @a;
+      my $val = shift @a;
+      if ($key =~ /^County_/) {
+	my ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
+	push @fips, $code if $dis == 0 && $day == 0;
+	push @values_0, $val if $dis == 0;
+	push @values_1, $val if $dis == 1;
+	push @values_2, $val if $dis == 2;
+	push @values_3, $val if $dis == 3;
+      }
+    }
+    exit if not @fips;
+    if ($day == 0) {
+      my $outfile = "MAPS/FIPS";
+      open OUT,">$outfile";
+      for my $i (0..$#fips) {
+	my $f = sprintf("%05d", $fips[$i]);
+	print OUT "$f\n" for @fips;
+      }
+      close OUT;
+    }
+    write_values_to_file(0,$day, @values_0);
+    write_values_to_file(1,$day, @values_1);
+    write_values_to_file(2,$day, @values_2);
+    write_values_to_file(3,$day, @values_3);
+  }
+  close FH;
+  return;
+}
+
+sub write_values_to_file {
+  my ($dis,$day, @values) = @_;
+  return if not @values;
+  my $rawfile = "RAW-$dis.$day";
+  my $pctfile = "PCT-$dis.$day";
+  open RAW,">MAPS/$rawfile";
+  open PCT,">MAPS/$pctfile";
+  for my $i (0..$#values) {
+    my $f = sprintf("%05d", $fips[$i]);
+    die "$0: cant find pop for fips = |$fips[$i]|\n" if not exists $pop{$f};
+    die "$0: zero pop for fips = |$fips[$i]|\n" if not $pop{$f};
+    my $pct = 100.0 * $values[$i] / $pop{$f};
+    $max_pct = $pct if $pct > $max_pct;
+    print RAW "$values[$i] $pop{$f}\n";
+    print PCT "$pct\n";
+  }
+  close RAW;
+  close PCT;
+}
+
+sub make_census_tract_map_data {
+  open FIPS,">MAPS/FIPS";
+  for my $day (0..$days) {
+    my $file = "C/census_tracts-$day.txt";
+    die "$0: ERROR file $file not found\n" if not -e $file;
+    open CT,$file or die "$0: ERROR reading file $file\n";
+    my $rawfile = "RAW-$dis.$day";
+    my $pctfile = "PCT-$dis.$day";
+    open RAW,">MAPS/$rawfile";
+    open PCT,">MAPS/$pctfile";
+    my $line = <CT>; # skip header line
+    while ($line = <CT>) {
+      chomp $line;
+      my ($tract,$count,$pop) = split " ", $line;
+      my $format = "\%05d\n";
+      my $str = "x$tract";
+      $format = "\%011d\n" if length($str) > 6;
+      my $pct = 100.0 * $count / $pop;
+      $max_pct = $pct if $pct > $max_pct;
+      print RAW "$count $pop\n";
+      print PCT "$pct\n";
+      printf FIPS $format, $tract if $day == 0;
+    }
+    close CT;
+    close RAW;
+    close PCT;
+  }
+  close FIPS;
+  return;
+}

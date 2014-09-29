@@ -1,0 +1,187 @@
+#!/usr/local/bin/gnuplot
+
+# default parameters
+
+if (!exists("my_title")) {
+   my_title = "FRED Allegheny County, PA"
+}
+if (!exists("terminal")) {
+  terminal = "png"
+}
+if (!exists("mapname")) {
+  mapname = "map" . teminal
+}
+if (!exists("incidence")) {
+  incidence = 1
+}
+if (!exists("max")) {
+  max = 10
+}
+print sprintf("max = %f", max);
+
+if (!exists("household_locations")) {
+  household_locations = "households.txt"
+}
+if (!exists("household_incidence")) {
+  household_incidence = "household_incidence.txt"
+}
+if (!exists("infectious_households")) {
+  infectious_households = "infectious_households.txt"
+}
+if (!exists("recovered_households")) {
+  recovered_households = "recovered_households.txt"
+}
+if (!exists("fipsfile")) {
+  fipsfile = "FIPS"
+}
+if (!exists("rawfile")) {
+  valuefile = "RAW"
+}
+if (!exists("pctfile")) {
+  valuefile = "PCT"
+}
+if (!exists("shapefile_dir")) {
+  shapefile_dir = "SHAPES"
+}
+print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
+
+set palette maxcolors 10
+set palette defined ( 0 "blue", 1 "skyblue", 2 "sea-green", 3 "green", 4 "greenyellow", 5 "yellow", 6 "orange", 7 "orange-red", 8 "red", 9 "red")
+
+set style line 1 lc rgb "blue" lt 1 lw 0.2
+set style line 2 lc rgb "skyblue" lt 1 lw 0.2
+set style line 3 lc rgb "sea-green" lt 1 lw 0.2
+set style line 4 lc rgb "green" lt 1 lw 0.2
+set style line 5 lc rgb "greenyellow" lt 1 lw 0.2
+set style line 6 lc rgb "yellow" lt 1 lw 0.2
+set style line 7 lc rgb "orange" lt 1 lw 0.2
+set style line 8 lc rgb "orange-red" lt 1 lw 0.2
+set style line 9 lc rgb "red" lt 1 lw 0.2
+set style line 10 lc rgb "red" lt 1 lw 0.2
+set style line 11 lc rgb "red" lt 1 lw 0.2
+
+set style line 999 lc rgb 'white' lt 1 lw 1
+set style line 99 lc rgb 'gray' lt 1 lw 1
+set style line 98 lc rgb 'gray10' lt 1 lw 1
+
+# read in a list of FIPS codes
+fips = system("cat " . fipsfile)
+# print "fips = " . fips
+
+# associate a county with each FIPS code
+county(n) = word(fips,n);
+
+# name of the file containing boundaries for county
+filename(n) = sprintf("%s/%s.txt", shapefile_dir, county(n))
+
+values = ""
+if (!incidence) {
+  cmd = "cat " . pctfile
+  print cmd
+  values = system(cmd)
+}
+# print values
+
+# get the line style associate with a FIPS code
+get_raw(n) =  1 + int(10.0*word(values,n)/max)
+get_ls(n) = (get_raw(n) <= 10) ? get_raw(n) : 10
+
+set grid back
+set xlabel "Longitude\n" offset 0,0
+set ylabel "\nLatitude" offset 1.5,0
+set xtics font "arial,10"
+set ytics font "arial,10"
+
+set colorbox
+whole_max = sprintf("%.2f", max);
+half_max = sprintf("%.2f", max / 2.0);
+no_max = "0.00"
+print "whole_max = " . whole_max . "  half_max = " . half_max
+set cbtics axis nomirror out scale 0.5 (no_max . "%%" -10, half_max."%%" 0, whole_max."%%" 10) font "arial,10"
+
+# create a fake plot in order to gather the x and y ranges
+set term unknown
+plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+
+# initialize the new x and y boundaries
+xmin = GPVAL_DATA_X_MIN
+xmax = GPVAL_DATA_X_MAX
+ymin = GPVAL_DATA_Y_MIN
+ymax = GPVAL_DATA_Y_MAX
+
+# find the x and y ranges in the data
+xrng = xmax - xmin
+yrng = ymax - ymin
+
+# mean latitude
+mean_lat = (ymax + ymin) / 2.0
+
+# earth geometry
+km_per_deg_lat = 111.325
+km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
+
+lat_lon_ratio = 50.0 / km_per_deg_lat
+
+# print sprintf("mean latitude = %0.5f", mean_lat)
+# print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
+# print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
+# print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
+
+# adjust the x range if too small
+xtarg = yrng / lat_lon_ratio
+xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+xmin = xmin - xxtra
+xmax = xmax + xxtra
+
+# adjust the y range if too small
+ytarg = lat_lon_ratio * xrng
+yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ymin = ymin - yxtra
+ymax = ymax + yxtra
+
+# get the updated ranges
+xrng = xmax - xmin
+yrng = ymax - ymin
+
+# add 5% on each side
+xmin = xmin - 0.05*xrng
+xmax = xmax + 0.05*xrng
+ymin = ymin - 0.05*yrng
+ymax = ymax + 0.05*yrng
+
+# set the ranges for the axes
+set xrange [ xmin:xmax ]
+set yrange [ ymin:ymax ]
+
+# ready for the actual plot:
+# set term pngcairo enhanced font "Helvetica, 12"
+if (incidence) {
+#  set term pdf enhanced font "Helvetica, 12" size 6,4.5
+   set term pngcairo enhanced font "arial,12"
+}
+else {
+#  set term pdf enhanced font "Helvetica, 12" size 6.8,4.5
+   set term pngcairo enhanced font "arial,12" size 720,480
+}
+set title my_title offset 0,0.5
+set output mapname
+
+set multiplot
+if (incidence) {
+  plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 999 w filledcurve
+  replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l ls 99 lw 0.5
+  replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
+  replot recovered_households u 2:1 t '' wi po ls 4 pt 5 ps 0.2
+  replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.2
+  replot household_incidence u 2:1 t '' wi po ls 9 pt 5 ps 0.2
+}
+else {
+  plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls get_ls(n) w filledcurve, \
+       '' u 1:2:3 t '' w p palette ps 0 pt 5
+  replot for [n=1:words(fips)] filename(n) u 2:1 t '' w li ls 99
+#  replot household_incidence u 2:1 t '' wi po ls 999 pt 5 ps 0.1
+}
+
+unset multiplot
+# system("open " . outfile);
+exit

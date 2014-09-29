@@ -1,0 +1,14 @@
+#!/bin/csh
+#
+# Sample METHODS.debug file
+#
+rm -rf PARAMDIR TASKDIR BATCHDIR OUT 
+
+# MAKE TASKS FILE
+fred_experiment_space -n 1 -m 1 -c 0 -d 0 -f config.debug
+
+# MAKE BATCHESFILE and QSUB FILE
+fred_make_qsub --task tasks.debug --debug
+
+# SUBMIT TO QUEUE
+qsub fred.debug > qsub.out

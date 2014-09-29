@@ -1,0 +1,13 @@
+
+fred_plot -h
+
+fred_plot --pdf 1 --out seir-R0=1.5.pdf --title "Punxsutawney, PA\nR0 = 1.5" -k tut-R0=1.5 -v S -v E -v I -v R --norm 
+
+fred_plot --pdf 1 --out incidence-R0=1.5.pdf --title "Punxsutawney, PA\nR0 = 1.5" -k tut-R0=1.5 -v C -v Cs --norm
+
+fred_plot --pdf 1 --out compare_C.pdf --title "Punxsutawney, PA" -k tut-R0=1.2 -k tut-R0=1.5 -k tut-R0=2.0 -v C --norm -X 60
+
+fred_plot --pdf 1 --out compare_AR.pdf --title "Punxsutawney, PA" -k tut-R0=1.2 -k tut-R0=1.5 -k tut-R0=2.0 -v AR -X 60
+
+
+

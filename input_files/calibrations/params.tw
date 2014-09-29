@@ -1,0 +1,25 @@
+#########################################
+#
+# File: README_params.txt
+#
+# These parameters have been calibrated for the
+# Taiwan synthetic population.
+#
+days = 120
+synthetic_population_directory = $FRED_HOME/populations
+synthetic_population_id = tw
+assign_teachers = 0
+# school_classroom_size = 0
+office_size = 0
+use_mean_latitude = 1
+R0_a = 0.0374098
+R0_b = 0.609201
+
+###  CALIBRATION PHASE II STEP 2 at Sun Oct  7 01:54:17 2012
+###  runs = 10  cores = 2
+household_contacts[0] = 0.127529
+neighborhood_contacts[0] = 40.371167
+school_contacts[0] = 15.458980
+workplace_contacts[0] = 3.533044
+classroom_contacts[0] = -1
+office_contacts[0] = -1

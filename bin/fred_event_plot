@@ -1,0 +1,138 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my %options = ();
+getopts("ek:v:z:x:X:y:Y:t:", \%options);
+my $key = "";
+my $year = "0";
+$year = $options{z} if exists $options{z};
+my $xmin = $year;
+my $xmax = "*";
+my $ymin = "0";
+my $ymax = "*";
+$xmin = $options{x} if exists $options{x};
+$xmax = $options{X} if exists $options{X};
+$ymin = $options{y} if exists $options{y};
+$ymax = $options{Y} if exists $options{Y};
+my $errorbars = exists $options{e};
+$key = $options{k} if exists $options{k};
+die "usage: fred_event_plot -k key [-e]\n" if not $key;
+my $v = "";
+$v = $options{v} if exists $options{v};
+my $tics = 1;
+$tics = $options{t} if exists $options{t};
+my $mtics = 1;
+$mtics = $options{m} if exists $options{m};
+
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+
+my $bindir = "$FRED/bin";
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "fred_plot: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+my $status = `$bindir/fred_status -k $key`;
+chomp $status;
+$status =~ s/\s.*//;
+if ($status !~ /FINISHED/) {
+  # print "fred_plot: bad status: $status\n";
+  # exit;
+}
+
+my $gnuplot = $ENV{FRED_GNUPLOT};
+if (not $gnuplot or (not -x $gnuplot)) {
+  system "cat gnuplot not found";
+  exit;
+}
+
+my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+chdir $outdir or die "Can't find OUT directory: $outdir\n";
+my $datafile = make_data($v, $outdir);
+my $pltfile = "sim-$key-$$.plt";
+my $pngfile = "report-$key-$$.png";
+open FH, ">$pltfile";
+print FH <<"EOF";
+set title \"FRED: Allegheny County Model\"
+set terminal png font \"Arial Bold\" 12
+set output \'$pngfile\'
+set grid
+set xrange [$xmin:$xmax]
+set yrange [$ymin:$ymax]
+set xlabel \'Days\' 0,0.5
+set ylabel \'Individuals\' 1.2,0
+set xtics out
+EOF
+if ($year) {
+  print FH "set xlabel 'Year' 0,0.5\n";
+  print FH "set xtics rotate by 90 $tics\n";
+  print FH "set mxtics 4\n";
+}
+if ($v eq "a") {
+  print FH "set ylabel 'Age at Infection' 1.2,0\n";
+}
+my $title;
+$title = "Age at Infections" if $v eq "a";
+my $xval = 1;
+$xval = "($year + (\$1/365))" if $year;
+print FH "plot ";
+print FH "\"$datafile\" using $xval:2:3 notitle with errorbars lw 1 lt 1, \\\n" if $errorbars;
+print FH "\"$datafile\" using $xval:2 title \"$title\" with lines lw 1 lt 1";
+print FH "\n";
+close FH;
+system ($gnuplot,$pltfile);
+print "$outdir/$pngfile\n";
+# unlink $datafile;
+exit;
+
+sub make_data {
+  my ($v, $dir) = @_;
+  my $tmpfile = "$dir/event_$v.txt";
+  return $tmpfile if (-e $tmpfile);
+  my $eventfile = "$dir/infections1.txt";
+  open FH, $eventfile;
+  my $field = 7;
+  $field = 7 if $v eq "a";
+  open OUT, ">$tmpfile";
+  my $day = 0;
+  my $x = 0;
+  my $old_day = 0;
+  my $n = 0;
+  my $tot = 0;
+  my $ave = 0;
+  while (my $line = <FH>) {
+    chomp $line;
+    my @a = split " ",$line;
+    ($day, $x) = ($a[1], $a[$field]);
+    if ($day > $old_day) {
+      $ave = 0;
+      $ave = $tot/$n if $n;
+      # print "$old_day $ave $n\n";
+      print OUT "$old_day $ave $n\n";
+      $old_day = $day;
+      $tot = $x;
+      $n = 1;
+    }
+    else {
+      $tot += $x;
+      $n++;
+    }
+  }
+  $ave = 0;
+  $ave = $tot/$n if $n;
+  # print "$old_day $ave $n\n";
+  print OUT "$old_day $ave $n\n";
+  close FH;
+  close OUT;
+  return $tmpfile;
+}
+
+

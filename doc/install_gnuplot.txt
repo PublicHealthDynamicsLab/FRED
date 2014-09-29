@@ -1,0 +1,18 @@
+#!/bin/csh
+echo Checking for gnuplot
+set gplt = `which gnuplot`
+if ($#gplt == 1) then
+ echo gnuplot found
+else
+ echo gnuplot not found
+ if (-e /usr/local/bin/brew) then
+  brew install gnuplot --cairo --pdf
+  rehash
+  cd
+ else
+  echo Make sure that xcode command line tools are installed.
+  echo Make sure that /usr/bin/local preceeds /usr/bin in your path.
+  echo Then install homebrew.
+  exit
+ endif
+endif

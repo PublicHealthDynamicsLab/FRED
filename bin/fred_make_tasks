@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $usage = 
+'% fred_make_tasks [--help][-k keybase][-n runs][-m simulatenous_runs][-o outfile][-r results_dir][-d delete][other options]
+  --help	  print out this help message.
+  -d <int>	  if set, run fred_delete before each job to clear previous results.
+     		  if -d 2, also run fred_delete after running collect_task_data.
+  -k or --key	  base of fred_key. the sweep parameters are appended to this to get the FRED key.
+  -m <int>	  the number of simulatenous runs to allow (default = 1)
+  -M <int>	  when running under pbs, allocate this many cpus to each jobs. (default = 1)
+  -n <int>   	  the number of simulation replications to run (default = 20)
+  -o outfile	  the name of the tasks file. (default = tasks).
+  -r results_dir  the location of the RESULTS directory.
+  --threads <int> the number of threads to use for each job (default = 1)';
+
+my $n = 20;
+my $m = 1;
+my $outfile = "tasks";
+my $keybase = "";
+my $results = "RESULTS";
+my $copy = 0;
+my $delete = 1;
+my $multiple_cpus = 0;
+my $threads = 0;
+my $help = 0;
+
+my $opt_result = GetOptions(
+			    "copy=i" => \$copy,
+			    "c=i" => \$copy,
+			    "d=i" => \$delete,
+			    "help" => \$help,
+			    "h" => \$help,
+			    "n=i" => \$n,
+			    "m=i" => \$m,
+			    "M=i" => \$multiple_cpus,
+			    "k=s" => \$keybase,
+			    "o=s" => \$outfile,
+			    "r=s" => \$results,
+			    "outfile=s" => \$outfile,
+			    "taskfile=s" => \$outfile,
+			    "results=s" => \$results,
+			    "threads=i" => \$threads,
+			   );
+
+
+if ($help) {
+  print "$usage\n";
+  exit;
+}
+
+my $dir = `pwd`;
+chomp $dir;
+$results = "$dir/$results";
+system "mkdir -p $results/JOB" if $copy;
+system "mkdir -p TASKDIR";
+
+open TASKS,">$outfile";
+
+# create empty TASKDIR
+system "mkdir -p TASKDIR";
+die "$0: ERROR CREATING DIRECTORY TASKDIR\n" if not -d "TASKDIR";
+system "rm -rf TASKDIR/*";
+
+# get lists of params files;
+opendir DIR,"PARAMDIR" or die "$0: FAILED TO OPEN PARAMDIR\n";
+while (my $file = readdir(DIR)) {
+  next if $file !~ /^params[\.\-]/;
+  my ($key) = $file =~ /params.(\S+)/;
+  # print "key = $key\n";
+  make_task_file($key);
+}
+close TASKS;
+system "chmod +x $outfile";
+exit;
+
+sub make_task_file {
+  my $key = shift;
+  my $params = "PARAMDIR/params.$key";
+  my $taskfile = "TASKDIR/task.$key";
+  open TASK,">$taskfile";
+  print TASK<<"EOF";
+\#!/bin/csh -f
+echo -n "task.$key STARTED "
+date
+EOF
+  if ($delete) {
+    print TASK "fred_delete -f -k $key\n";
+  }
+  my $cmd = "fred_job -k $key -p $params -n $n ";
+  if ($multiple_cpus > 0) {
+    $cmd .= " -M $multiple_cpus";
+  }
+  else {
+    $cmd .= " -m $m";
+  }
+  if ($threads > 0) {
+    $cmd .= " -t $threads";
+  }
+  print TASK "$cmd\n";
+  if ( $copy ) {
+    print TASK "set id = `fred_id $key`\n";
+    print TASK "cp -R \$FRED_RESULTS/JOB/\$id $results/JOB\n";
+  }
+  print TASK<<"EOF";
+if ( -e collect_task_data ) then
+./collect_task_data $key
+endif
+EOF
+  if ($delete > 1) {
+    print TASK "fred_delete -f -k $key\n";
+  }
+  print TASK<<"EOF";
+echo -n "task.$key FINISHED "
+date
+EOF
+  close TASK;
+  system "chmod +x $taskfile";
+  print TASKS "$taskfile > $taskfile.out\n";
+}

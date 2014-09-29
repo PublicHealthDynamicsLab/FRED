@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+use Fcntl qw(:flock);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my %options = ();
+getopts("k:r:", \%options);
+
+my $resultsdir = "";
+$resultsdir = $options{r} if exists $options{r};
+die "usage: $0 -r resultsdir [ -k key ]\n" if not -d $resultsdir;
+
+my $key = "";
+$key = $options{k} if exists $options{k};
+
+if ($key) {
+  merge_results($resultsdir,$key);
+}
+else {
+  # merge all jobs from resultsdir
+  $key = "x";
+  while ($key) {
+    open FH,"$resultsdir/KEY";
+    my $line = <FH>;
+    close FH;
+    if ($line) {
+      ($key) = split " ", $line;
+      if ($key) {
+	# print "merge_results($resultsdir, $key)\n";
+	merge_results($resultsdir, $key);
+      }
+    }
+    else {
+      $key = "";
+    }
+  }
+}
+exit;
+
+sub merge_results {
+  my ($resultsdir, $key) = @_;
+  my $old_id = "UNKNOWN";
+  open FH, "$resultsdir/KEY" or die "fred_id: Can't find $resultsdir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($xkey, $xid) = split;
+    if (defined $xkey and $xkey eq $key) {
+      $old_id = $xid;
+      last;
+    }
+  }
+  close FH;
+  if ($old_id eq "UNKNOWN") {
+    die "$0: $key not found in $resultsdir/KEY\n";
+  }
+  # print "$0: $key $old_id\n";
+
+  if (not -d "$resultsdir/JOB/$old_id") {
+    die "$0: JOB/$old_id not found in $resultsdir\n";
+  }
+
+  system "fred_delete -f -k $key";
+
+  # set locking semaphore
+  my $SEMAPHORE = "$FREDRESULTS/.results.lck";
+  open(SEM, ">$SEMAPHORE") || die "$0 failed to obtain semaphore: ($!)\n";
+  flock(SEM, LOCK_EX);
+  
+  # get id for this job and update counter
+  open FH, "$FREDRESULTS/ID";
+  my $id = <FH>;
+  chomp $id;
+  # print "id = |$id|\n";
+  close FH;
+  my $new_id = $id + 1;
+  open FH, ">$FREDRESULTS/ID";
+  print FH "$new_id\n";
+  close FH;
+  
+  # add key-id pair
+  `echo $key $id >> $FREDRESULTS/KEY`;
+  
+  # move the JOB directory
+  system "mv $resultsdir/JOB/$old_id $FREDRESULTS/JOB/$id";
+  
+  # release semaphore
+  close SEM;
+
+  # delete key on old results dir
+  delete_key($resultsdir,$key);
+
+  print "$key ";
+  system "fred_id $key";
+}
+  
+sub delete_key {
+  my ($dir,$mykey) = @_;
+
+  # set locking semaphore
+  my $SEMAPHORE = "$dir/.results.lck";
+  open(SEM, ">$SEMAPHORE") || die "$0: failed to obtain semaphore: ($!)\n";
+  flock(SEM, LOCK_EX);
+
+  open FH, "$dir/KEY" or (close SEM and die "$0: Can't find $dir/KEY\n");
+  my $file = "$dir/tmp$$";
+  open TMP, ">$file" or (close SEM and die "$0: Can't open temp file $dir/$file\n");
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    print TMP "$key $id\n" if (defined $key and $key ne $mykey);
+  }
+  close FH;
+  close TMP;
+  system "mv $file $dir/KEY";
+
+  # release semaphore
+  close SEM;
+}

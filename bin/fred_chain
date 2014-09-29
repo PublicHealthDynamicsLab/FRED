@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $bindir = "$FRED/bin";
+
+my %opts = ();
+getopts("k:r:a:d:", \%opts);
+my $key = $opts{k} or die "usage: fred_chain -k key -r run -a agent -d depth\n";
+my $run = $opts{r} or die "usage: fred_chain -k key -r run -a agent -d depth\n";
+my $agent = $opts{a} or die "usage: fred_chain -k key -r run -a agent -d depth\n";
+my $maxdepth = $opts{d} or die "usage: fred_chain -k key -r run -a agent -d depth\n";
+
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "get_plot: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+my $status = `$bindir/fred_status -k $key`;
+chomp $status;
+$status =~ s/\s.*//;
+die "fred_chain: bad status: $status\n" if $status ne "FINISHED";
+
+my $reports = "$FREDRESULTS/JOB/$id/DATA/REPORTS";
+my $file = "$reports/chain-$run-$agent-$maxdepth.txt";
+if (not -e $file) {
+
+  chdir $reports or die "Can't find REPORTS directory: $reports\n";
+  my $out = "$FREDRESULTS/RESULTS/JOB/$id/DATA/OUT";
+  open IN, "$out/trace$run.txt" or die "fred_chain: can't find $out/trace$run.txt\n";
+  my %infects = ();
+  my %line = ();
+  while (my $trace = <IN>) {
+    my @a = split " ", $trace;
+    my $n = $a[3];
+    my $infector = $a[21];
+    $infects{$infector} = "" if not exists $infects{$infector};
+    $infects{$infector} .= " $n";
+    $line{$n} = $trace;
+  }
+  close IN;
+
+  open OUT, ">$file" or die "fred_chain: can't create $file\n";
+  my %depth = ();
+  $depth{$agent} = 0;
+  print OUT $line{$agent};
+  if (exists $infects{$agent}) {
+    my @r = split (" ",$infects{$agent});
+    my @q = ();
+    for my $x (@r) {
+      next if $x eq "";
+      push @q, $x;
+      $depth{$x} = 1;
+    }
+    while (@q) {
+      my $z = shift @q;
+      next if $z eq "";
+      print OUT $line{$z};
+      next if not exists $infects{$z};
+      my @r = split (" ",$infects{$z});
+      for my $x (@r) {
+	next if $x eq "";
+	$depth{$x} = $depth{$z}+1;
+	push @q, $x if $depth{$x} <= $maxdepth;
+      }
+    }
+  }
+  close OUT;
+}
+print "$file\n";
+exit;
+
+

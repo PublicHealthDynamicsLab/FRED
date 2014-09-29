@@ -1,0 +1,9 @@
+# Fixed Parameters:
+days = 10
+rotate_start_date = 1
+verbose = 0
+quality_control = 0
+enable_copy_files = 1
+synthetic_population_directory = /brashear/projects/midas/FRED_INPUTS
+fips = 42
+

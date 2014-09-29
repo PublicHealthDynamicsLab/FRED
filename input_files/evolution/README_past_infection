@@ -1,0 +1,30 @@
+strains.txt
+========
+line 1: number of strains in the file
+line 2+: one strain per line. 17 numbers. 1st number is strain ID which is unique for all strains in the file. Next 16 numbers are the genotype/codon values (same format as in your SQLite database).
+
+hosts.txt
+========
+line 1: number of hosts in the file (currently 1.2 million but will be 100 million for the final version)
+for each host:
+   line N: two numbers, host age in days and number of times the host has been infected
+      line N+1+: one line for each time this host has been infected. two numbers: ID of the strain that the host was infected with and the age of the host in days when they were infected with that strain. In my code, the host is still infected if the host's age is <= 6 days after the infection age. (The infection is set to last 6 days, of which the first 2 are considered latent and the next 4 are considered infectious. Anything after 6 days is recovered.)
+
+      Here's a tiny hypothetical example:
+      strains.txt
+      ========
+      2
+      111 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+      222 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+
+      hosts.txt
+      ========
+      2
+      36500 2
+      111 365
+      222 36495
+      365 0
+
+      Explanation: There are two strains here "111" and "222". 111 has genotype AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA and 222 has genotype AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU. There are 2 hosts here. The first one is exactly 100 years old and has been infected twice in his lifetime. The first infection was by strain 111 when the host was exactly 1 year old. The second infection was by strain 222 when the host was almost 100 years old. This infection with 222 is still active because the date difference is less than 6: 36500 - 36495 = 5. The second host is exactly 1 year old and has never been infected before.
+
+

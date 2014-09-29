@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Std;
+
+my %options = ();
+getopts("k:", \%options);
+my $key = "";
+$key = $options{k} if exists $options{k};
+die "usage: $0 -k key\n" if not $key;
+
+my $dir = `fred_cd -k $key`;
+chomp $dir;
+$dir =~ s/cd //;
+$dir =~ s/DATA.OUT/META/;
+
+system "grep COUNTY_ID $dir/LOG.1 > county_id.txt";
+my @id;
+open FH, "county_id.txt";
+while (<FH>) {
+  my ($x,$y,$fips) = split " ";
+  push @id, $fips;
+}
+close FH;
+# print "@id\n";
+my $ids = scalar @id;
+
+my $run = 1;
+while (-e $dir/LOG.$run) {
+  system "grep 'COUNTY_INC' $dir/LOG.$run > county_inc-$run";
+
+  my %data = ();
+  open FH, "county_inc-$run";
+  my $days = 0;
+  while (<FH>) {
+    my ($x,$day,@a) = split " ";
+    for my $i (0..$ids-1) {
+      $data{$id[$i]} = [] if not exists $data{$id[$i]};
+      push @{$data{$id[$i]}}, $a[$i];
+    }
+    $days++;
+  }
+  close FH;
+
+  for my $key (sort keys %data) {
+    open OUT,">$key-$run";
+    print OUT "DAY County_inc\n";
+    for my $day (0..$days-1) {
+      my $val = ${$data{$key}}[$day];
+      print OUT "$day $val\n";
+    }
+    close OUT;
+  }
+  $run++;
+}
+
+
+

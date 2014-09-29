@@ -1,0 +1,19 @@
+#!/bin/csh
+echo Downloading FRED ...
+cd ~
+curl "fred.publichealth.pitt.edu/FRED-BIOS2098.tgz" > FRED-BIOS2098.tgz
+
+echo Unpacking FRED ...
+tar xzf FRED-BIOS2098.tgz
+
+echo Compiling  FRED ...
+cd FRED
+make
+rehash
+
+echo Testing FRED ...
+rt_all
+
+
+
+

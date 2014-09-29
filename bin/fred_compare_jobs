@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+use Statistics::TTest;
+$| = 1;  # AUTO_FLUSH
+
+#####################################
+#
+# File: fred_compare_job
+# Author: John Grefenstette
+# Created: Dec 11, 2012
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $usage = "usage: $0 [ -h | -j key1 -k key2 -N N -v var]\n";
+my $help = "";
+my $key1 = "";
+my $key2 = "";
+my $v = "";
+my $N = 0;
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "j=s" => \$key1,
+			    "k=s" => \$key2,
+			    "N=i" => \$N,
+			    "v=s" => \$v,
+			   );
+die $usage if $help;
+die $usage if not $key1;
+die $usage if not $key2;
+# die $usage if not $N;
+die $usage if not $v;
+# die "$0: Help! N = $N < 1\n" if $N < 1;
+
+my $fred_results = "$FREDRESULTS";
+if (not -d $fred_results) {
+  die "Can't find RESULTS directory $fred_results\n";
+}
+
+open OUT, ">$key1-$key2-$v.out";
+if ($N > 0) {
+  for my $n (1..$N) {
+    my $kA = "$key1-$n";
+    my $resultsA = `fred_plot --data -k $kA -v $v | tail -1 | awk '{print \$2, \$3}' `;
+    chomp $resultsA;
+    # print "key = $kA resultsA = |$resultsA|\n";
+    my ($meanA, $stdA) = split " ", $resultsA;
+  
+    my $kB = "$key2-$n";
+    my $resultsB = `fred_plot --data -k $kB -v $v | tail -1 | awk '{print \$2, \$3}' `;
+    chomp $resultsB;
+    # print "key = $kB resultsB = |$resultsB|\n";
+    my ($meanB, $stdB) = split " ", $resultsB;
+  
+    my $Z = 0;
+    $Z = ($meanB - $meanA)/$stdA if $stdA > 0;
+    printf OUT "A = $key1-$n B = $key2-$n output = $v mean_A = $meanA std_A = %0.5f mean_B = $meanB std_B = %0.5f Z = %0.2f\n", $stdA, $stdB, $Z;
+  }
+}
+else {
+  print "N=0\n";
+  my $kA = "$key1";
+  my $resultsA = `fred_plot --data -k $kA -v $v | tail -1 | awk '{print \$2, \$3}' `;
+  chomp $resultsA;
+  # print "key = $kA resultsA = |$resultsA|\n";
+  my ($meanA, $stdA) = split " ", $resultsA;
+  
+  my $kB = "$key2";
+  my $resultsB = `fred_plot --data -k $kB -v $v | tail -1 | awk '{print \$2, \$3}' `;
+  chomp $resultsB;
+  # print "key = $kB resultsB = |$resultsB|\n";
+  my ($meanB, $stdB) = split " ", $resultsB;
+  
+  my $Z = 0;
+  $Z = ($meanB - $meanA)/$stdA if $stdA > 0;
+  printf OUT "A = $key1 B = $key2 output = $v mean_A =$meanA std_A = %0.5f mean_B = $meanB std_B = %0.5f Z = %0.2f\n", $stdA, $stdB, $Z;
+}
+
+close OUT;

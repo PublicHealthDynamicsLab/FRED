@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+print <<"EOF"
+This is the fred_help command.
+
+To get help for any specific command, try:
+   <fred_command> --help
+
+Some important fred command are:
+
+## Setting up
+     ch
+     fred_calibrate
+     fred_get_fips
+     fred_make_params
+     fred_make_qsub
+     fred_make_tasks
+
+## Job control
+     fred_clear_all_results
+     fred_delete
+     fred_job
+     fred_jobs
+
+## Retrieving information from a FRED job
+     fred_find
+     fred_log
+     fred_status
+     fred_AR
+     fred_CAR
+     fred_R0
+     fred_cd
+     fred_csv
+     fred_density
+     fred_get_places
+     fred_id
+     fred_plot
+     fred_tail
+
+## Making maps and movies
+     fred_make_map
+     fred_make_maps
+     fred_make_movie
+     
+EOF
+     

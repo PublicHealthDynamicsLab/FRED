@@ -1,0 +1,21 @@
+<map id="G" name="G">
+<area shape="rect" href="$class_person.html" title="Person" alt="" coords="205,199,275,225"/>
+<area shape="rect" href="$class_behavior.html" title="Behavior" alt="" coords="197,508,283,535"/>
+<area shape="rect" href="$class_population.html" title="Population" alt="" coords="693,297,792,324"/>
+<area shape="rect" href="$class_health.html" title="Health" alt="" coords="44,604,113,631"/>
+<area shape="rect" href="$class_infection.html" title="Infection" alt="" coords="363,508,448,535"/>
+<area shape="rect" href="$class_place.html" title="Place" alt="" coords="431,412,489,439"/>
+<area shape="rect" href="$class_strain.html" title="Strain" alt="" coords="640,412,704,439"/>
+<area shape="rect" href="$class_manager.html" title="Manager" alt="" coords="1121,412,1207,439"/>
+<area shape="rect" href="$class_epidemic.html" title="Epidemic" alt="" coords="628,508,716,535"/>
+<area shape="rect" href="$class_age___map.html" title="Age_Map" alt="" coords="1164,199,1249,225"/>
+<area shape="rect" href="$class_timestep___map.html" title="Timestep_Map" alt="" coords="821,412,947,439"/>
+<area shape="rect" href="$class_vaccine___manager.html" title="Vaccine_Manager" alt="" coords="1256,508,1405,535"/>
+<area shape="rect" href="$class_a_v___manager.html" title="AV_Manager" alt="" coords="1419,700,1528,727"/>
+<area shape="rect" href="$class_policy.html" title="Policy" alt="" coords="1169,508,1231,535"/>
+<area shape="rect" href="$class_antivirals.html" title="Antivirals" alt="" coords="1575,604,1660,631"/>
+<area shape="rect" href="$class_antiviral.html" title="Antiviral" alt="" coords="1340,604,1420,631"/>
+<area shape="rect" href="$class_vaccines.html" title="Vaccines" alt="" coords="1260,412,1345,439"/>
+<area shape="rect" href="$class_cognition.html" title="Cognition" alt="" coords="329,103,420,129"/>
+<area shape="rect" href="$class_cognitive___model.html" title="Cognitive_Model" alt="" coords="304,7,445,33"/>
+</map>

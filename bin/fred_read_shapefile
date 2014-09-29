@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Geo::ShapeFile;
+# use Geo::Proj4;
+use Getopt::Long;
+
+my $usage = "usage: $0 shapefile outdir\n"; 
+my ($file, $outdir) = @ARGV;
+die $usage if not $file;
+die $usage if not $outdir;
+my $shapefile = new Geo::ShapeFile($file) or die "ERROR reading file $file\n";
+system "mkdir -p $outdir";
+(-d $outdir) or die "ERROR no directory $outdir\n";
+
+for(1 .. $shapefile->shapes()) {
+  my $shape = $shapefile->get_shp_record($_);
+  # see Geo::ShapeFile::Shape docs for what to do with $shape
+  my %dbf = $shapefile->get_dbf_record($_);
+  # print_fields(%dbf);
+  my $fips = $dbf{'GEOID10'};
+  open SHAPE_OUTPUT,">$outdir/$fips.txt";
+  print_shape($shape);
+  close SHAPE_OUTPUT;
+}
+exit;
+
+sub print_fields{
+  my %dbf = @_;
+  for my $key (sort keys %dbf) {
+    print "KEY=|$key| VAL=|$dbf{$key}|\n";
+  }
+  print "\n";
+}
+
+sub print_shape {
+  my $shape = shift;
+  for my $n_part (1..$shape->num_parts){
+    my @part = $shape->get_part($n_part);
+    foreach my $this_part (@part){
+      my $x = $this_part->X;
+      my $y = $this_part->Y;
+      printf SHAPE_OUTPUT "$y $x\n";
+    }
+  }
+}

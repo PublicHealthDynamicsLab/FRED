@@ -1,0 +1,310 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use MIME::Lite;
+$| = 1;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+print "\n=======================================================\n";
+print "fred_run_request started at ", `date`, "\n";
+
+my %fips = ();
+open FH, "/home/gref/FRED/populations/fips_to_state.txt";
+while (<FH>) {
+  chomp;
+  my ($f,$s) = split;
+  $fips{$f} = $s;
+}
+close FH;
+
+my ($dir, $req) = @ARGV;
+  
+my $jobid = `cat $dir/$req/JOBID`;
+chomp $jobid;
+die "No JOBID\n" if not $jobid;
+
+my ($fipscode) = $jobid =~ /(\d+)/;
+my $state = $fips{$fipscode};
+
+my $loc = `cat $dir/$req/LOC`;
+chomp $loc;
+die "No LOC\n" if not $loc;
+
+my $email = "NONE";
+if (-e "$dir/$req/EMAIL") {
+  $email = `cat $dir/$req/EMAIL`;
+  chomp $email;
+  $email = "NONE" if not $email;
+}
+
+my $mobile = 0;
+$mobile = 1 if -e "$dir/$req/MOBILE";
+if ($mobile) {
+  $email = `cat $dir/$req/MOBILE`;
+  chomp $email;
+  $email = "NONE" if not $email;
+  # system "echo $email > $dir/$req/EMAIL";
+}
+
+system "date";
+system "echo JOBID: ;cat $dir/$req/JOBID";
+system "echo LOC: ; cat $dir/$req/LOC";
+system "echo EMAIL: ; cat $dir/$req/EMAIL" if -e "$dir/$req/EMAIL";
+system "echo POPSIZE: ";
+system "cat $dir/$req/POPSIZE" if -e "$dir/$req/POPSIZE";
+system "echo UNKNOWN" if not -e "$dir/$req/POPSIZE";
+
+open FH, "$dir/$req/params" or die "Can\'t open params file |$dir/$req/params|\n";
+#my $paramstr = "";
+# while (my $line = <FH> ) {
+#   next if $line =~ /print_gaia/;
+#   next if $line =~ /primary_cases/;
+#   next if $line =~ /rotate_start_date/;
+#   $paramstr .= "$line";
+# }
+
+close FH;
+
+my $popsize = -1;
+$popsize = `cat $dir/$req/POPSIZE` if -e "$dir/$req/POPSIZE";
+chomp $popsize;
+
+my $out = "/var/www/html/results/US/$state/$fipscode/$jobid";
+my $urlmobile = "http://fred.publichealth.pitt.edu/mobile/results.php?path=US/$state/$fipscode/$jobid";
+
+# create results directory if doesn't exist
+if( not -d $out) {
+  mkdir $out,0775 or die "Can\'t create directory $out";
+  system "chmod 775 $out";
+}
+
+if (not -e "$out/params") {
+  # copy meta data
+  system "cp $dir/$req/JOBID $out";
+  system "cp $dir/$req/LOC $out";
+  system "echo $popsize > $out/POPSIZE";
+  system "cp $dir/$req/params $out/params";
+}
+run_fred_job($jobid, $out, $loc);
+
+# send the requester a report
+
+# wait until the attack rate plot exists
+my $attempts = 0;
+while (not -e "$out/attack_rate.png") {
+  sleep 2;
+  $attempts++;
+}
+
+if ($email ne "NONE") {
+  send_mail($jobid, $out, $email);
+  print "email sent at ", scalar localtime, "\n";
+}
+print "$req finished at ", scalar localtime, "\n\n";
+exit;
+
+sub run_fred_job {
+  my ($key, $out, $loc) = @_;
+  my $title = "Influenza in $loc";
+
+  print "run_fred_job at ", scalar localtime, "\n";
+
+  chdir $out or die "Can't chdir to directory $out\n";
+  my $paramsfile = "$out/params";
+  my $cores = 4;
+  my $runs = 10;
+
+  # reduce cores for large populations
+  my $popsize = -1;
+  $popsize = `cat $out/POPSIZE` if -e "$out/POPSIZE";
+  chomp $popsize;
+  if ($popsize > -1) {
+    $cores = 3 if $popsize > 2000000;
+    $cores = 2 if $popsize > 3500000;
+    $cores = 1 if $popsize > 4000000;
+  }
+  $runs = $cores;
+
+  # try to find a baseline for comparison
+  my $baseline = $key;
+  my ($R0) = $baseline =~ /R0=(...)/;
+  if ($baseline =~ /R0=..._/) {
+    $baseline =~ s/R0=.*/R0=$R0/;
+    my $baseid = `fred_id $baseline`;
+    chomp $baseid;
+    if ($baseid =~ /UNKNOWN/) { $baseline = ""; }
+  }
+  else {
+    $baseline = "";
+  }
+
+  if (not -e "$out/prevalence_map.png") {
+    # record start time
+    system "date > $out/STARTED";
+    
+    # remove any previous FRED job associated with this request
+    print "fred_delete -f -k $key\n";
+    system "fred_delete -f -k $key";
+
+    # run FRED on this request
+    print "fred_job -k $key -p $paramsfile -n $runs -m $cores\n";
+    system "fred_job -k $key -p $paramsfile -n $runs -m $cores";
+
+    print "fred_job completed at ", scalar localtime, "\n";
+
+    # copy meta data
+    system "fred_popsize -k $key > $out/POPSIZE";
+
+    # create an attack rate plot
+    my $options = "-v AR --font giant --name -s 1";
+    if ($baseline) { $options .= " -k $baseline"; }
+    print "\nfred_plot $options -k $key -T '$title\\nFRED Simulation'\n";
+    my $arfile = `fred_plot $options -k $key -T "Influenza in $loc\\nFRED Simulation" `;
+    chomp $arfile;
+    print "arfile = |$arfile|\n";
+    if (-e $arfile) {
+      print "mv $arfile $out/attack_rate.png\n";
+      system "mv $arfile $out/attack_rate.png";
+    }
+    else {
+      die "AR file |$arfile| not found\n";
+    }
+
+    # create an incidence curve
+    $options = "-v C --norm --week --font giant --name -s 1";
+    if ($baseline) { $options .= " -k $baseline"; }
+    print "\nfred_plot $options -k $key -T '$title\\nFRED Simulation'\n";
+    my $incfile = `fred_plot $options -k $key -T "Influenza in $loc\\nFRED Simulation" `;
+    chomp $incfile;
+    print "incfile = |$incfile|\n";
+    if (-e $incfile) {
+      print "mv $incfile $out/incidence.png\n";
+      system "mv $incfile $out/incidence.png";
+    }
+    else {
+      die "Incidence file |$incfile| not found\n";
+    }
+    
+    # create a prevalence curve
+    $options = "-v P --norm --week --font giant --name -s 1";
+    if ($baseline) { $options .= " -k $baseline"; }
+    print "\nfred_plot $options -k $key -T '$title\\nFRED Simulation'\n";
+    my $prevfile = `fred_plot $options -k $key -T "Influenza in $loc\\nFRED Simulation" `;
+    chomp $prevfile;
+    print "prevfile = |$prevfile|\n";
+    if (-e $prevfile) {
+      print "mv $prevfile $out/prevalence.png\n";
+      system "mv $prevfile $out/prevalence.png";
+    }
+    else {
+      die "Prevalence file |$prevfile| not found\n";
+    }
+
+    # fetch csv files
+    system "fred_csv -k $key -v Cs > $out/symptomatic_incidence.csv";
+    system "fred_csv -k $key -v C > $out/incidence.csv";
+
+    print "fred_plot completed at ", scalar localtime, "\n";
+
+    # make a gaia map and movie
+    my $log =  "$FRED/bin/fred_web_gaia.log";
+    print "fred_web_gaia $key $out $title -- started in bakground\n";
+    my $cmd = `fred_web_gaia $key $out $title 1>>$log 2>>$log &`;
+    
+    # record finish time
+    print "run_fred_job finished at ", scalar localtime, "\n";
+    system "date > $out/FINISHED";
+  }
+}
+
+
+sub send_mail {
+  my ($jobid, $out, $email) = @_;
+
+  my $text = "FRED results for request $jobid\n\n";
+  $text .= "Parameters:\n\n";
+  $text .= `cat $out/params`;
+  $text .= "\n";
+  $text .= "FRED started:   ";
+  $text .= `cat $out/STARTED`;
+  $text .= "FRED finished:  ";
+  $text .= `cat $out/FINISHED`;
+  $text .= "\nSee attached files.\n";
+
+  if ($mobile) {
+    $text = "Your FRED simulation results are now available:\n\n";
+    $text .= "$urlmobile\n\n";
+    $text .= "Thanks for using the FRED mobile app from the\nUniversity of Pittsburgh\nPublic Health Dynamics Lab.\n\n";
+    print "$text";
+  }
+
+  ### Create the multipart "container":
+  my $msg = MIME::Lite->new(
+			    From    =>"fredreq\@pitt.edu",
+			    To      =>"$email",
+			    Cc      =>"$ENV{USER}\@pitt.edu",
+			    Subject =>"FRED Results for $jobid",
+			    Type    =>'multipart/mixed'
+			   );
+  
+  ### Add the text message part:
+  ### (Note that "attach" has same arguments as "new"):
+  $msg->attach(Type     =>'TEXT',
+	       Data     =>$text
+	      );
+  
+  if (not $mobile) {
+
+    if (-e "$out/prevalence_movie.mov") {
+      ### Add the image part:
+      $msg->attach(Type     =>'video/mpeg',
+		   Path     =>"$out/prevalence_movie.mov",
+		   Filename =>"$out/prevalence_movie.mov",
+		   Disposition => 'attachment'
+		  );
+    }
+
+    if (-e "$out/incidence_map.png") {
+      ### Add the image part:
+      $msg->attach(Type     =>'image/png',
+		   Path     =>"$out/incidence_map.png",
+		   Filename =>"$out/incidence_map.png",
+		   Disposition => 'attachment'
+		  );
+    }
+  
+    if (-e "$out/incidence.png") {
+      ### Add the image part:
+      $msg->attach(Type     =>'image/png',
+		   Path     =>"$out/incidence.png",
+		   Filename =>"$out/incidence.png",
+		   Disposition => 'attachment'
+		  );
+    }
+  
+    if (-e "$out/prevalence.png") {
+      ### Add the image part:
+      $msg->attach(Type     =>'image/png',
+		   Path     =>"$out/prevalence.png",
+		   Filename =>"$out/prevalence.png",
+		   Disposition => 'attachment'
+		  );
+    }
+  
+    if (-e "$out/attack_rate.png") {
+      ### Add the image part:
+      $msg->attach(Type     =>'image/png',
+		   Path     =>"$out/attack_rate.png",
+		   Filename =>"$out/attack_rate.png",
+		   Disposition => 'attachment'
+		  );
+    }
+  }
+
+  $msg->send();
+}
+
+

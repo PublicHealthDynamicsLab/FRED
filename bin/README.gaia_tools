@@ -1,0 +1,67 @@
+file: README.gaia_tools
+Date: 13 Jan. 2013
+
+Requisites: Python 2.x
+
+% fred_gaia_inputs.py [--help][-k key][-v variable][-o operation][-t vis_type][other options]
+    -k or --key       Fred Key (no default)
+    -r or --run       (Not Working) The run number of vizualize
+    -v or --variable   The variable from FRED you would like to plot.
+                       Available variables are actually determined by FRED but here are some
+		       examples:
+		       N - Populaton Density
+		       C - Newly exposed persons
+		       P - Prevalence
+		       I - Number of people infectious
+                       (default: C)
+    -t or --type       Type of GAIA visualization
+                       static = a static image
+		       animated = a ogg movie of the visualization
+                       (default: static)
+    -o or --op         Operation to perform on the data (only for static)
+                       sum = will sum up all of the data over days of simulation
+		       max = will only take the maximum value for each grid over days of simulation
+		       (Note if -v is set to N and -t is set to static, this is always max).
+                       (default: sum)
+    -m or --movformat  Format you would like the movie in (only for -t animated)
+                       mov - produces quicktime movie
+		       mp4 - produces mp4 movie
+		       ogg - procudes ogg movie (default)
+    -T or --title      Title for the visualization
+    -p or --percents   If set, will plot the percentage of the value in each grid cell. (default: off) 
+    -l or --loc        FRED Location file to use (if blank will try to use the one from input)
+
+
+Running this script will take the information in the $FRED_RESULTS directory for the particular
+key and calls the GAIA webservice to return visualizations.  This program is meant to be run after 
+a fred_job execution is complete, as post processing.
+
+FRED_HOME must be defined for this script to work, and FRED has to have been run for the particular key.
+
+Once run, the visualizations will appear in the current directory with the name 
+fred_gaia_<key>_<realizaton>.<viz>.
+
+Notes:
+
+Currently, this is not optimal for large simulation runs.  If you are going to run these with large 
+data sets, please make sure that you have a decent amount of memory.  
+
+
+PyPy
+
+	If one would like to improve performance of these scripts significantly (about 10x), 
+	please install pypy.  You can download this software at:
+
+	http://pypy.org/
+
+	If you are on OS X, it is recommended to download the nightly snapshot, as the latest 
+	stable release is defective on Snow Leopard (may work on Lion).
+
+	To install PyPy, just download the program, unzip it some where, and then place the pypy 
+	program before the fred_gaia_inputs.py in the command line.
+
+	So...
+
+	<PyPy location>/bin/pypy fred_gaia_inputs.py [--help][-k key][-r realization][-t vis_type][other options]
+
+

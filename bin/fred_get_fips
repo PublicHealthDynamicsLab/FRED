@@ -1,0 +1,104 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $help = "";
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "help" => \$help,
+			   );
+
+my $usage = <<EOH;
+usage: $0 location [ options ], where options include:
+       -h: print this help message.
+       location: can be a state abbreviation, a city, or county.
+       Here are some examples (commas are optional):
+             state:  "PA"
+             county: "Allegheny County, PA"
+             city:   "Pittsburgh, PA"
+
+output: the fips code for the specified location.
+
+EOH
+
+die $usage if $help;
+
+my $fipsfile = "$FRED/input_files/countries/usa/US_counties.txt";
+open FH, $fipsfile or die "$0: Can't find $fipsfile\n";
+
+my ($loc) = join " ", @ARGV;
+$loc =~ s/,/ /g;
+
+# strip leading and trailing blanks
+$loc =~ s/^\s+//;
+$loc =~ s/\s+$//;
+
+if (length $loc == 2) {
+  # assume a state abbreviation
+  my $state = $loc;
+  $state = uc $state;
+  while (<FH>) {
+    chomp;
+    my @a = split "\t";
+    if ($a[1] =~ /^$state$/i) {
+      my ($fips) = $a[3] =~ /(\d{2})/;
+      print "$fips\t$a[1]\n";
+      exit;
+    }
+  }
+  print "UNKNOWN\n";
+  exit;
+}
+
+if ($loc !~ /\s/) {
+  # assume a state name
+  print "UNKNOWN UNKNOWN\n";
+  exit;
+}
+
+if ($loc =~ /\scounty\s/i) {
+  # assume a county name
+  my $county = $loc;
+  my ($state) = $county =~ /(..)$/;
+  $state = uc $state;
+  $county =~ s/\s+county\s*\S\S$//i;
+
+  while (<FH>) {
+    chomp;
+    my @a = split "\t";
+    if ($a[2] =~ /^$county$/i and $a[1] =~ /^$state$/i) {
+      my ($fips) = $a[3] =~ /(\d{5})/;
+      # print "loc_to_fips: state = |$a[1]| county = |$a[2]| fips = |$fips|\n";
+      print "$fips\t$a[2] County\t$a[1]\n";
+      exit;
+    }
+  }
+  print "UNKNOWN\n";
+  exit;
+}
+
+# assume "city state_abbr"
+my $city = $loc;
+my ($state) = $city =~ /(..)$/;
+$state = uc $state;
+$city =~ s/\s*\S\S$//;
+# print "city = |$city| state = |$state|\n";
+
+while (<FH>) {
+  chomp;
+  my @a = split "\t";
+  if ($a[0] =~ /^$city$/i and $a[1] =~ /^$state$/i) {
+    # print "$city, $state  county = $a[2]  fips = $a[3]\n";
+    my ($fips) = $a[3] =~ /(\d{5})/;
+    # print "city_to_fips: city = |$a[0]| state = |$a[1]| county = |$a[2]| fips = |$fips|\n";
+    print "$fips\t$a[0]\t$a[2] County\t$a[1]\n";
+    exit;
+  }
+}
+print "UNKNOWN\n";
+exit;

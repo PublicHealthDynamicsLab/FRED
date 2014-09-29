@@ -1,0 +1,18 @@
+<map id="G" name="G">
+<area shape="rect" href="$_a_v___decisions_8h.html" title="AV_Decisions.h" alt="" coords="123,84,251,111"/>
+<area shape="rect" href="$_a_v___policies_8h.html" title="AV_Policies.h" alt="" coords="157,161,269,188"/>
+<area shape="rect" href="$_manager_8h.html" title="Manager.h" alt="" coords="376,239,475,265"/>
+<area shape="rect" href="$_a_v___manager_8h.html" title="AV_Manager.h" alt="" coords="477,161,600,188"/>
+<area shape="rect" href="$_antivirals_8h.html" title="Antivirals.h" alt="" coords="616,239,715,265"/>
+<area shape="rect" href="$_antiviral_8h.html" title="Antiviral.h" alt="" coords="499,239,592,265"/>
+<area shape="rect" href="$_random_8h.html" title="Random.h" alt="" coords="675,84,771,111"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="1121,84,1204,111"/>
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="987,161,1069,188"/>
+<area shape="rect" href="$_decision_8h.html" title="Decision.h" alt="" coords="5,239,101,265"/>
+<area shape="rect" href="$_policy_8h.html" title="Policy.h" alt="" coords="176,239,251,265"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="1200,393,1280,420"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="1373,316,1472,343"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="1200,316,1299,343"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="989,239,1067,265"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="923,316,1024,343"/>
+</map>

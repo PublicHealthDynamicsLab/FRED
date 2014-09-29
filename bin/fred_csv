@@ -1,0 +1,131 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $help = "";
+my $key = "";
+my $var = "";
+my $run = -1;
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "var=s" => \$var,
+			    "v=s" => \$var,
+			    "run=i" => \$run,
+			    "r=i" => \$run,
+			    "n=i" => \$run,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | -k key [-v variable ][-n run_number]
+    -k or --key   the key for a FRED job (no default)
+    -v or --var   if set, the variable to be reported. default: report all variables.
+    -n or --run   if set, report a specific run number. default: report mean and std over all runs.
+EOH
+
+die $usage if $help;
+die $usage if not $key;
+
+my $bindir = "$FRED/bin";
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+if ($var ne "") {
+  if ($run > 0) {
+    my $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
+    my $datafile = "$dir/$var\_0_daily-$run.txt";
+    die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
+    open FH, $datafile or die "$0: ERROR READING $datafile\n";
+    <FH>;
+    print "Day,Popsize,$var\n";
+    while (my $line = <FH>) {
+      my ($day, $val, $pop) = split " ",$line;
+      print "$day,$pop,$val\n",
+    }
+    close FH;
+  } else {
+    my $dir = "$FREDRESULTS/JOB/$id/DATA/REPORTS";
+    my $datafile = "$dir/$var\_0_daily.dat";
+    die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
+    open FH, $datafile or die "$0: ERROR READING $datafile\n";
+    <FH>;
+    print "Day,Popsize,$var,$var\_std\n";
+    while (my $line = <FH>) {
+      my ($day, $mean, $std, $pop) = split " ",$line;
+      print "$day,$pop,$mean,$std\n",
+    }
+    close FH;
+  }
+}
+else {
+  if ($run > 0) {
+    my $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
+    my $files = `ls $dir/*_0_daily-$run.txt`;
+    chomp $files;
+    my @datafiles = split " ", $files;
+    my @out = ();
+    $out[0] = "Day,Popsize";
+    my $vars = 0;
+    for my $datafile (@datafiles) {
+      die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
+      ($var) = $datafile =~ /.*\/(.*)_0_daily-$run.txt/;
+      open FH, $datafile or die "$0: ERROR READING $datafile\n";
+      <FH>;
+      $out[0] .= ",$var";
+      $vars++;
+      my $i = 1;
+      while (my $line = <FH>) {
+	my ($day, $val, $pop) = split " ",$line;
+	if ($vars == 1) {
+	  $out[$i] = "$day,$pop,$val";
+	}
+	else {
+	  $out[$i] .= ",$val";
+	}
+	$i++;
+      }
+      close FH;
+    }
+    print "$_\n" for @out;
+  } else {
+    my $dir = "$FREDRESULTS/JOB/$id/DATA/REPORTS";
+    my $files = `ls $dir/*_0_daily.dat`;
+    chomp $files;
+    my @datafiles = split " ", $files;
+    my @out = ();
+    $out[0] = "Day,Popsize";
+    my $vars = 0;
+    for my $datafile (@datafiles) {
+      die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
+      ($var) = $datafile =~ /.*\/(.*)_0_daily.dat/;
+      open FH, $datafile or die "$0: ERROR READING $datafile\n";
+      <FH>;
+      $out[0] .= ",$var,$var\_std";
+      $vars++;
+      my $i = 1;
+      while (my $line = <FH>) {
+	my ($day, $mean, $std, $pop) = split " ",$line;
+	if ($vars == 1) {
+	  $out[$i] = "$day,$pop,$mean,$std";
+	}
+	else {
+	  $out[$i] .= ",$mean,$std";
+	}
+	$i++;
+      }
+      close FH;
+    }
+    print "$_\n" for @out;
+  }
+}

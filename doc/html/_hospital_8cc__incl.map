@@ -1,0 +1,14 @@
+<map id="G" name="G">
+<area shape="rect" href="$_hospital_8h.html" title="Hospital.h" alt="" coords="576,84,669,111"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="1071,393,1151,420"/>
+<area shape="rect" href="$_params_8h.html" title="Params.h" alt="" coords="161,84,249,111"/>
+<area shape="rect" href="$_random_8h.html" title="Random.h" alt="" coords="456,84,552,111"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="693,84,776,111"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="896,239,973,265"/>
+<area shape="rect" href="$_place_8h.html" title="Place.h" alt="" coords="537,239,609,265"/>
+<area shape="rect" href="$_population_8h.html" title="Population.h" alt="" coords="735,316,847,343"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="1213,239,1312,265"/>
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="724,161,807,188"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="755,239,853,265"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="921,316,1023,343"/>
+</map>

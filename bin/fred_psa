@@ -1,0 +1,352 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+# File: fred_psa
+# Author: John Grefenstette
+# Created: Dec 11, 2012
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $usage = "usage: $0 [-f config_file | -h | -c | -b ]\n";
+
+# create RESULTS directory if needed
+my $fred_results = "$FREDRESULTS";
+if (not -d $fred_results) {
+ mkdir "$fred_results" or die "Can't create RESULTS directory $fred_results\n";
+}
+
+# create PARAMS directory if needed
+if (not -d "PARAMS_DIR") {
+ mkdir "PARAMS_DIR" or die "Can't create PARAMS_DIR directory\n";
+}
+
+# get command line arguments
+my %options = ();
+getopts("bhcf:", \%options);
+if (exists $options{h}) {
+  print "$usage";
+  print "Try:\n$0 -c\nto get a sample configuration file.\n";
+  exit;
+}
+
+# print sample file and exit if given -s
+if (exists $options{c}) {
+  print_sample_file();
+  exit;
+}
+
+# read config file
+my $config_file = $options{f};
+die $usage if (not $config_file) or (not -e $config_file);
+open FH, $config_file or die "Can't open $config_file\n";
+my $line;
+
+# find the title line
+get_next_line(1);
+die "$0: expecting title line\n" if $line !~ /FRED Probabilistic Sensitivity Analysis Title:/;
+my ($title) = $line =~ /Title:\s*(.*)/;
+die "$0: bad title format\n" if not $title;
+$title =~ s/\s/_/g;
+
+# create baseline params file
+my $paramsbase = "PARAMS_DIR/params.psa-$title-base";
+open PAR, ">$paramsbase";
+print PAR "# Probabilistic Sensitivity Analysis Title: $title\n";
+print PAR "# Created: ", scalar localtime, "\n\n";
+
+# get the fixed parameters
+get_next_line(1);
+die "$0: expecting \"Fixed Parameters:\"\n" if $line !~ /Fixed Parameters:/;
+print PAR "# Fixed Parameters:\n";
+get_next_line(1);
+while ($line !~ /Sampling Directory:/) {
+  print PAR "$line\n";
+  get_next_line(1);
+}
+
+# get the sampling directory
+my $sampling_dir;
+get_next_line(1);
+while ($line !~ /Sampling Method:/) {
+  chomp $line;
+  ($sampling_dir) = $line =~ /Sampling Directory = (\S+)/;
+  get_next_line(1);
+  # print "line = |$line|\n";
+}
+
+# get the sampling method
+my $sampling;
+get_next_line(1);
+while ($line !~ /Output Variables:/) {
+  chomp $line;
+  ($sampling) = $line =~ /Sampling Method = (\S+)/;
+  get_next_line(1);
+  # print "line = |$line|\n";
+}
+
+# get the output variables
+# print PAR "\n# Output Variables:\n";
+my @outvars = ();
+get_next_line(1);
+while ($line !~ /Number of Samples:/) {
+  chomp $line;
+  push @outvars, $line if $line;
+  # print PAR "# $line\n";
+  get_next_line(1);
+}
+# print "@outvars\n";
+print PAR "\n# Control  Parameters:\n";
+close PAR;
+
+# get the number of samples
+my ($N) = $line =~ /Samples: (\d+)/;
+die "$0:Bad number of samples\n" if not $N > 0;
+
+get_next_line(1);
+die "$0: expecting \"Experimental Conditions:\"\n" if $line !~ /Experimental Conditions:/;
+
+get_next_line(1);
+die "$0: expecting \"Condition Name:\"\n" if $line !~ /Condition Name:/;
+
+my @condnames = ();
+my %condition = ();
+while ($line =~ /Condition Name:/) {
+  my ($name) = $line =~ /Condition Name:\s*(\S+)/;
+  die "$0: bad Condition Name on line:\n$line\n" if not $name;
+  push @condnames, $name;
+  # print "\n@condnames\n";
+  $condition{$name} = "";
+
+  # get the control parameters
+  get_next_line(0);
+  while ($line !~ /Condition Name:/) {
+    chomp $line;
+    $condition{$name} .= "$line;";
+    # print "cond: #$condition{$name}#\n";
+    get_next_line(0);
+    last if ($line =~ /EOF/);
+  }
+  last if ($line =~ /EOF/);
+}
+close FH;
+
+print "OK\n";
+
+# run make_params
+print "fred_psa_make_params $sampling_dir/$N-samples $sampling\n";
+system "fred_psa_make_params $sampling_dir/$N-samples $sampling";
+
+# create parameter files
+for my $paramset (1..$N) {
+  my $paramsfile = "PARAMS_DIR/params.psa-$title-$paramset";
+  system "cp $paramsbase $paramsfile";
+  my $sampling_params = "$sampling_dir/$N-samples/Params-$sampling/params.$sampling-$paramset";
+  die "Can't find sampling params $sampling_params\n" if (not -e $sampling_params);
+  system "cat $sampling_params >> $paramsfile";
+
+  # create a parameter file for each condition
+  for my $i (0..$#condnames) {
+    my $condname = $condnames[$i];
+    my $condfile = "PARAMS_DIR/params.psa-$title-$condname-$sampling-$paramset";
+    system "cp $paramsfile $condfile";
+    my $parlist = $condition{$condname};
+    my @pars = split ";", $parlist;
+    for my $par (@pars) {
+      # print "cond = $condname parlist = |$parlist| par = |$par|\n";
+      my ($name, $value) = $par =~ /(\S+)\s*=\s*(.*\S)/;
+      # print "name = |$name| value = |$value|\n";
+      system "ch \'$name\' \'$value\' $condfile";
+    }
+    system "echo >> $condfile";
+  }
+  unlink $paramsfile;
+}
+
+# make script to run sensitivity analysis
+my $exec = "run_psa.$title-$sampling";
+open EXEC, ">$exec";
+my $date = scalar localtime;
+my $n = 20;
+my $m = 20;
+print EXEC <<EOF;
+#!/bin/sh
+# File: $exec
+# Created: $date
+
+# run a job for each parameter set
+
+EOF
+
+for my $i (0..$#condnames) {
+  my $condname = $condnames[$i];
+  for my $paramset (1..$N) {
+    my $key = "psa-$title-$condname-$sampling-$paramset";
+    my $paramsfile = "PARAMS_DIR/params.$key";
+    print EXEC <<EOF2;
+date
+echo fred_delete -f -k $key
+fred_delete -f -k $key
+echo fred_job -k $key -p $paramsfile -n $n -m $m
+fred_job -k $key -p $paramsfile -n $n -m $m
+echo
+
+EOF2
+  }
+  # compare all condition pairs
+  for (my $j = 0; $j < $i; $j++) {
+    for my $outvar (@outvars) {
+      print EXEC "fred_compare_jobs -j psa-$title-$condnames[$j] -k psa-$title-$condname -N $N -v $outvar\n\n";
+    }
+  }
+}
+print EXEC "date\n";
+close EXEC;
+
+# run script
+system "chmod +x $exec";
+# system "$exec >& psa_$title.out";
+
+exit;
+
+
+sub get_next_line {
+  my $no_eof = shift;
+  $line = "";
+  while (not $line) {
+    $line = <FH>; 
+    if (not defined $line) {
+      if ($no_eof > 0) {
+	die "$0: unexpected end of file\n";
+      }
+      else {
+	$line = "EOF";
+      }
+    }
+    chomp $line;
+    $line = "" if $line =~ /^#/;
+  }
+}
+
+
+sub select_value {
+  my ($type,$next) = @_;
+
+  if ($type eq "gaussian") {
+    my ($mean, $std, $xmin, $xmax) = split " ", $next;
+    chomp $xmax;
+    my $x = $xmin - 1;
+    while ($x < $xmin or $x > $xmax) {
+      $x = gaussian($mean, $std);
+    }
+    return $x;
+  }
+
+  if ($type eq "uniform") {
+    my ($xmin, $xmax) = split " ", $next;
+    chomp $xmax;
+    my $x = $xmin + ($xmax - $xmin) * rand(1.0);
+    return $x;
+  }
+
+  die "$0: unrecognized distribution type: $type\n";
+}
+
+sub gaussian {
+  my ($mean, $std) = @_;
+  return $mean + $std * gaussian_rand();
+}
+
+
+# The Perl Cookbook provides this code:
+# (found on http://www.perlmonks.org/?node_id=26889 )
+
+sub gaussian_rand {
+    my ($u1, $u2);  # uniformly distributed random numbers
+    my $w;          # variance, then a weight
+    my ($g1, $g2);  # gaussian-distributed numbers
+
+    do {
+        $u1 = 2 * rand() - 1;
+        $u2 = 2 * rand() - 1;
+        $w = $u1*$u1 + $u2*$u2;
+    } while ( $w >= 1 );
+
+    $w = sqrt( (-2 * log($w))  / $w );
+    $g2 = $u1 * $w;
+    $g1 = $u2 * $w;
+    # return both if wanted, else just one
+    return wantarray ? ($g1, $g2) : $g1;
+}
+
+
+
+sub print_sample_file {
+  print <<EOF;
+############################################################
+# Sample FRED Probabilistic Sensitivity Analysis config file
+#
+# Lines that starts with # are ignored.
+# Lines containing colon (:) are required.
+# All other lines are optional.
+#
+
+FRED Probabilistic Sensitivity Analysis Title: School_closure_test
+
+#######################################
+
+Fixed Parameters:
+R0 = 1.5
+school_closure_threshold = 1.0
+
+#######################################
+
+Variable Parameters:
+weekend_contact_rate[0] = 1.5 uniform 1.0 2.0
+sick_day_prob = 0.5 gaussian 0.5 0.2 0 1.0
+symp[0] = 0.67 gaussian 0.67 0.1 0 1.0
+
+#######################################
+
+Output Variables:
+AR
+
+#######################################
+
+Number of Samples: 100
+
+#######################################
+
+Parameters for Experimental Conditions:
+
+# Note: condition names must not contain any spaces
+
+Condition Name: No_closure
+school_closure_policy = none
+
+Condition Name: Weeks=2
+school_closure_policy = individual
+Weeks = 2
+Cases = 10
+
+Condition Name: Weeks=4
+school_closure_policy = individual
+Weeks = 4
+Cases = 10
+
+#######################################
+
+EOF
+}
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+<map id="G" name="G">
+<area shape="rect" href="$_manager_8h.html" title="Manager.h" alt="" coords="259,84,357,111"/>
+<area shape="rect" href="$_policy_8h.html" title="Policy.h" alt="" coords="109,84,184,111"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="461,84,544,111"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="648,393,728,420"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="751,316,849,343"/>
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="540,161,623,188"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="657,239,756,265"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="543,239,620,265"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="524,316,625,343"/>
+</map>

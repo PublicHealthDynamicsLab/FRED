@@ -1,0 +1,35 @@
+#!/bin/bash
+echo diff -b OUT.TEST/out1.txt OUT.RT/out1.txt
+diff -b OUT.TEST/out1.txt OUT.RT/out1.txt
+
+echo diff -b OUT.TEST/out2.txt OUT.RT/out2.txt
+diff -b OUT.TEST/out2.txt OUT.RT/out2.txt
+
+echo cmp OUT.TEST/infections1.txt OUT.RT/infections1.txt
+cmp OUT.TEST/infections1.txt OUT.RT/infections1.txt
+
+echo cmp OUT.TEST/infections2.txt OUT.RT/infections2.txt
+cmp OUT.TEST/infections2.txt OUT.RT/infections2.txt
+
+
+## these files produce a large amount of output and for the moment
+## are excluded from the regression test
+
+#echo cmp OUT.TEST/immunity1.txt OUT.RT/immunity1.txt
+#cmp OUT.TEST/immunity1.txt OUT.RT/immunity1.txt
+
+#echo cmp OUT.TEST/immunity2.txt OUT.RT/immunity2.txt
+#cmp OUT.TEST/immunity2.txt OUT.RT/immunity2.txt
+
+#echo cmp OUT.TEST/strains1.txt OUT.RT/strains1.txt
+#cmp OUT.TEST/strains1.txt OUT.RT/strains1.txt
+
+#echo cmp OUT.TEST/strains2.txt OUT.RT/strains2.txt
+#cmp OUT.TEST/strains2.txt OUT.RT/strains2.txt
+
+#echo cmp OUT.TEST/transmissions1.txt OUT.RT/transmissions1.txt
+#cmp OUT.TEST/transmissions1.txt OUT.RT/transmissions1.txt
+
+#echo cmp OUT.TEST/transmissions2.txt OUT.RT/transmissions2.txt
+#cmp OUT.TEST/transmissions2.txt OUT.RT/transmissions2.txt
+

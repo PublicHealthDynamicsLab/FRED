@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Env;
+use Getopt::Std;
+
+my $usage = "usage: $0 -k key [ -d delay ]\n";
+
+my %options = ();
+getopts("k:d:", \%options);
+
+my $key = "";
+$key = $options{k} if exists $options{k};
+
+my $delay = 10;
+$delay = $options{d} if exists $options{d};
+
+if ($key eq "") {
+  ($key, $delay) = @ARGV;
+}
+
+die $usage if (not $key) or (not $delay);
+
+my $day = $delay+2;
+my $result = `fred_plot --data -k $key -v RR | head -$day | tail -1`;
+chomp $result;
+
+my ($x, $r0, $std) = split " ", $result;
+print "$r0 $std\n";
+exit;
+
+
+
+
+
+
+

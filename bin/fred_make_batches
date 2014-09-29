@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+#
+# File: fred_make_batches
+# John Grefenstette
+# Aug 22, 2013
+#
+# usage: fred_make_batches -n batches -f taskfile [-o outfile]
+#
+my $usage = "$0 [-h|-n batches|-f taskfile|-o outfile|--batchfile batchfile|--debug|--wide]";
+
+my $dir = `pwd`;
+chomp $dir;
+my $batches = 1;
+my $taskfile = "tasks";
+my $batchfile = "batches";
+my $blacklight = 1;
+my $debug = 0;
+my $wide = 0;
+my $help = 0;
+my $opt_result = GetOptions(
+			    "debug" => \$debug,
+			    "d" => \$debug,
+			    "w" => \$wide,
+			    "wide" => \$wide,
+			    "batches=i" => \$batches,
+			    "n=i" => \$batches,
+			    "taskfile=s" => \$taskfile,
+			    "tasksfile=s" => \$taskfile,
+			    "t=s" => \$taskfile,
+			    "batchfile=s" => \$batchfile,
+			    "b=s" => \$batchfile,
+			    "blacklight=i" => \$blacklight,
+			    "h" => \$help,
+			   );
+die "$usage\n" if $help;
+die "$usage\n" if not $batches;
+die "$usage\n" if not $taskfile;
+die "$usage\n" if not -e $taskfile;
+die "$usage\n" if not $batchfile;
+
+my $results = "RESULTS.$batches";
+$results = "RESULTS.debug" if $debug;
+
+mkdir "BATCHDIR" if not -d "BATCHDIR";
+open FH, $taskfile or die "$usage\n";
+
+open RUN,">$batchfile" or die "Can't write file $batchfile\n";
+
+print RUN "\#!/bin/csh -f\n";
+
+my $n = 0;
+my $batch_number = 0;
+while (my $line = <FH>) {
+  $batch_number++;
+  $batch_number = 1 if $batches < $batch_number;
+  my $batch = "BATCHDIR/batch.$batch_number";
+  $batch = "$batch-debug" if $debug;
+  if ($n < $batches) {
+    open OUT,">$batch";
+    print OUT "\#!/bin/csh -f\n";
+    close OUT;
+    system "chmod u+x $batch";
+    # print RUN "mpirun -np 1 -nt \$OMP_NUM_THREADS ";
+    if ($blacklight) {
+      if ($wide) {
+	print RUN "$batch >& $batch.out &\n";
+      }
+      else {
+	print RUN "dplace -e -c $n -o OUT/dplace.$n $batch >& $batch.out &\n";
+      }
+    }
+    else {
+      print RUN "$batch >& $batch.out &\n";
+    }
+  }
+  open OUT,">>$batch";
+  print OUT $line;
+  close OUT;
+  $n++;
+}
+print RUN "wait\n";
+close RUN;
+close FH;
+system "chmod u+x $batchfile";
+exit;

@@ -1,0 +1,177 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+# File: fred_make_params
+# Author: John Grefenstette
+# Created: Nov 22, 2013
+
+my $config_file = "make_params.config";
+my $help = "";
+my $sample = 0;
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "help" => \$help,
+			    "s" => \$sample,
+			    "f=s" => \$config_file,
+			   );
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+       -f config.file: config.file contains specification of sweep parameters.
+       -h: print this help message.
+       -s: print a sample config file.
+EOH
+
+die $usage if $help;
+
+if ($sample) {
+  print_sample_file();
+  exit;
+}
+die "$0: config file not found\n$usage" if (not $config_file) or (not -e $config_file);
+
+# create empty PARAMS directory
+my $params_dir = "PARAMDIR";
+system "mkdir -p $params_dir";
+if (not -d $params_dir) {
+ mkdir "$params_dir" or die "$0: ERROR CREATING DIRECTORY $params_dir\n";
+}
+system "rm -rf $params_dir/*";
+
+# read config file
+open FH, $config_file or die "$0: ERROR OPENING CONFIG FILE $config_file\n";
+my $line;
+
+# get the baseline parameter file
+get_next_line();
+$line =~ /Baseline Parameter File:/i or die "$0: BAD BASELINE FORMAT\n";
+my ($paramsfile) = $line =~ /File:\s*(\S+)/i;
+die "$0: BAD BASELINE FORMAT\n" if not $paramsfile;
+die "$0: NO SUCH BASELINE PARAM FILE\n" if not -e $paramsfile;
+
+# get the sweep parameters
+my @names = ();
+my @values = ();
+my $name;
+
+get_next_line();
+$line =~ /Sweep Parameters:/i or die "$0: BAD SWEEP FORMAT\n";
+
+get_next_line();
+while ($line =~ /^\s*Name:/i) {
+  my @pval = ();
+  my ($min, $max, $inc, $value, $fmt, $file);
+  if ($line =~ /Min:/i) {
+    ($name, $min, $max, $inc, $fmt) = $line =~ /Name:\s*(\S+)\s+Min:\s*(\S+)\s+Max:\s*(\S+)\s+Inc:\s*(\S+)\s+Format:\s*(\S+)/i;
+    for (my $x = $min; $x <= $max; $x += $inc) { my $s = sprintf ("$fmt", $x); push @pval, $s; }
+  }
+  elsif ($line =~ /Values:/i){
+    ($name, $value) = $line =~ /Name:\s+(\S+)\s+Values:\s*\[(.*)\]/i;
+    $value =~ s/\s//g;
+    @pval = split "," , $value;
+  }
+  elsif ($line =~ /File:/i) {
+    ($name, $file) = $line =~ /Name:\s+(\S+)\s+File:\s*(\S*)/i;
+    open VALUES,"$file" or die "$0: ERROR OPENING FILE $file FOR PARAM $name\n";
+    my @data = <VALUES>;
+    close VALUES;
+    my $str = join " ", @data;
+    @data = split " ", $str;
+    for my $item (@data) {
+      push @pval, $item;
+    }
+  }
+  else {
+    die "$0: BAD FORMAT FOR SWEEP PARAMETER: $line\n";
+  }
+  push @names, $name;
+  push @values, join " ", @pval;
+  get_next_line();
+}
+
+# make parameter files for all combinations
+make_combinations("",0);
+
+exit;
+
+sub make_combinations {
+  my ($s, $n) = @_;
+  if ($n eq $#names) {
+    my $pvals = $values[$n];
+    my @pval = split " ", $pvals;
+    for my $v (@pval) {
+      my $my_value = "$names[$n]=$v";
+      $my_value = "$s-$my_value" if $s;
+      add_params_file($my_value);
+    }
+  }
+  else {
+    my $pvals = $values[$n];
+    my @pval = split " ", $pvals;
+    for my $v (@pval) {
+      my $my_value = "$names[$n]=$v";
+      $my_value = "$s-$my_value" if $s;
+      make_combinations($my_value,$n+1);
+    }
+  }
+}
+
+sub add_params_file {
+  my $key = shift;
+  my $newkey = $key;
+  $newkey =~ s/\[/_/g;
+  $newkey =~ s/\]//g;
+  my $newparams = "$params_dir/params.$newkey";
+
+  system "cp $paramsfile $newparams";
+  my @pars = split "-", $key;
+  for my $par_val (@pars) {
+    my ($param, $value) = split "=", $par_val;
+    if (-e "change_params") {
+      system "change_params $param $value $newparams";
+    }
+    else {
+      system "ch '$param' $value $newparams > /dev/null";
+    }
+  }
+}
+
+sub get_next_line {
+  $line = "";
+  while (not $line) {
+    $line = <FH>; 
+    if (not defined $line) {
+      $line = "";
+      last;
+    }
+    chomp $line;
+    $line = "" if $line =~ /^#/;
+  }
+}
+
+sub print_sample_file {
+  print <<"EOF";
+################################################# 
+# Sample fred_make_params config file
+# Lines that starts with # are ignored.
+#
+Baseline Parameter File: params.base
+
+Sweep Parameters:
+# the following illustrates a loop using min, max and increment:
+# name: R0 min: 1.0 max: 2.5 inc: 0.5  format: %0.1f
+#
+# the following uses a comma-separated list of values,
+# which may be strings (with no spaces)
+# name: Weeks values: [0, 1, 2, 4, 6, 8]
+#
+# the following read in a file of values, one per line
+# name: test file: my_test_values.txt
+#
+name: R0 min: 1.0 max: 2.5 inc: 0.5  format: %0.1f
+name: fips values: [42003, 42065]
+EOF
+}
+

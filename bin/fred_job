@@ -1,0 +1,515 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Cwd;
+use Fcntl qw(:flock);
+use Getopt::Long qw(:config no_ignore_case bundling);
+use POSIX qw/ceil/;
+$| = 1;  # AUTO_FLUSH
+
+#####################################
+#
+# File: fred_job
+# Author: John Grefenstette
+# Created: Jan 12, 2010
+# Updated: Feb 11, 2014 
+
+# get current working directory
+my $cwd = getcwd();
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $usage = "usage: $0 [ -h | -k key | -p paramsfile | -s start_run_number | -n end_run_number | -P | -m cores | -M multiple_cpus | -t threads]\n";
+my $help = "";
+my $cache = "";
+my $cores = "";
+my $force = "";
+my $key = "";
+my $paramsfile = "";
+my $zip = "";
+my $parallel = "";
+my $start_run = "";
+my $end_run = "";
+my $threads = 1;
+my $multiple_cpus = 1;
+my $opt_result = GetOptions(
+			    "c" => \$cache,
+			    "f" => \$force,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "k=s" => \$key,
+			    "m=i" => \$cores,
+			    "n=i" => \$end_run,
+			    "p=s" => \$paramsfile,
+			    "P" => \$parallel,
+			    "s=i" => \$start_run,
+			    "t=i" => \$threads,
+			    "M=i" => \$multiple_cpus,
+			    "z" => \$zip
+);
+die $usage if $help;
+
+# set default parameter values:
+$paramsfile = "params" if not $paramsfile;
+die $usage if not -e $paramsfile;
+$start_run = 1 if $start_run eq "";
+$end_run = $start_run if $end_run eq "";
+$end_run = $start_run if $end_run < $start_run;
+my $runs = $end_run - $start_run + 1;
+
+$parallel = 1 if ($multiple_cpus > 1);
+
+# get the base of the params file name
+my $params_base = $paramsfile;
+$params_base =~ s/.*\/// if $params_base =~ /\//;
+my @a = ();
+
+# declare these in package
+my $cpus;
+my $using_pbs;
+
+# if using parallel mode, determine how many cpus to use for parallel runs
+if ($parallel) {
+  # are we running in the context of a PBS batch job?
+  my $using_pbs = (exists $ENV{PBS_RUNID}) ? 1 : 0;
+
+  # intialize cpu count
+  $cpus = 0;
+  if ($using_pbs) {
+    # if using PBS, look up how many cores have been requested
+    if (exists $ENV{PBS_NODEFILE} && -f $ENV{PBS_NODEFILE}) {
+      open FH, $ENV{PBS_NODEFILE};
+      $cpus++ while (<FH>);
+      close FH;
+    }
+  } elsif (-f "/proc/cpuinfo") {
+    # not using PBS so see if we can get a core count from /proc/cpuinfo
+    # TODO: watch out for Intel Hyper-threading cpus
+    open FH, "/proc/cpuinfo";
+    while (<FH>) {
+      $cpus++ if /^processor\s*:/;
+    }
+    close FH;
+  } else {
+    # cannot determine how many cpus are available so force serial mode
+    $parallel = 0;
+  }
+}
+
+if ($cores) {
+  $parallel = 1;
+  $using_pbs = 0;
+  $cpus = $cores;
+}
+
+# get the file parameters from the params files
+my $diseases = get_param_value("diseases", $paramsfile);
+# print "diseases = $diseases\n";
+
+my $primary = get_param_value("primary_cases_file",$paramsfile);
+my $primary_cases_base = $primary;
+$primary_cases_base =~ s/.*\/// if $primary_cases_base =~ /\//;
+
+my $mortality_rate_file =  get_param_value("yearly_mortality_rate_file",$paramsfile);
+my $birth_rate_file =  get_param_value("yearly_birth_rate_file",$paramsfile);
+my $seasonality_file = get_param_value("seasonality_timestep_file",$paramsfile);
+
+my $mortality_rate_file_base = $mortality_rate_file;
+$mortality_rate_file_base =~ s/.*\/// if $mortality_rate_file_base =~ /\//;
+my $birth_rate_file_base = $birth_rate_file;
+$birth_rate_file_base =~ s/.*\/// if $birth_rate_file_base =~ /\//;
+my $seasonality_file_base = $seasonality_file;
+$seasonality_file_base =~ s/.*\/// if $seasonality_file_base =~ /\//;
+
+# NOTE: the next part of the script runs in the FRED_HOME directory
+chdir $FRED or die "Can't change to FRED directory $FRED\n";
+
+# compile FRED if necessary
+# system "cd src; make -s";
+
+# set locking semaphore
+my $SEMAPHORE = ".results.lck";
+open(SEM, ">$SEMAPHORE") || die "fred_job failed to obtain semaphore: ($!)\n";
+flock(SEM, LOCK_EX);
+
+# create RESULTS directory if needed
+my $fred_results = "$FREDRESULTS";
+if (not -d $fred_results) {
+ mkdir "$fred_results" or (close SEM and die "Can't create RESULTS directory $fred_results\n");
+}
+
+# create RESULTS/JOB directory if needed
+if (not -d "$fred_results/JOB") {
+ mkdir "$fred_results/JOB" or (close SEM and die "Can't create $fred_results/JOB directory\n");
+}
+
+# create $fred_results/ID file if needed
+if (not -e "$fred_results/ID") {
+ open FH, ">$fred_results/ID" or (close SEM and die "Can't create file $fred_results/ID\n");
+ print FH "1\n";
+ close FH;
+}
+
+# create $fred_results/KEY file if needed
+if (not -e "$fred_results/KEY") {
+ open FH, ">$fred_results/KEY" or (close SEM and die "Can't create file $fred_results/KEY\n");
+ close FH;
+}
+
+# determine if key is unique. if not, terminate unless force (-f) in effect
+my $old_id = "-1";
+if ($key) {
+  open FH, "$fred_results/KEY";
+  while (<FH>) {
+    chomp;
+    my ($k, $i) = split;
+    if ($k eq $key and not $force) {
+      if ($force) {
+	$old_id = $i;
+	last;
+      }
+      else {
+	close SEM and close FH and die "fred_job: key $key already used.\n";
+      }
+    }
+  }
+  close FH;
+}
+
+if ($key and $cache) {
+  # see if we have already used these params before.
+  # if so, just return the id of the previous request
+  open FH, "$fred_results/KEY";
+  while (<FH>) {
+    chomp;
+    my ($k, $id) = split;
+    if (same_params("$cwd/$paramsfile", "$fred_results/JOB/$id/META/PARAMS")) {
+      close FH;
+      
+      # add key-id pair
+      `echo $key $id >> $fred_results/KEY`;
+
+      # release semaphore
+      close SEM;
+
+      # return to original directory
+      chdir $cwd;
+      print "$key $id\n";
+      exit;
+    }
+  }
+  close FH;
+}
+
+# set the job id
+my $id = "";
+if ($old_id > -1) {
+  # use old id
+  $id = $old_id;
+  # remove the old directory
+  system "rm -rf $fred_results/JOB/$id";
+  # use job id unless given command line key
+  $key = $id if $key eq "";
+}
+else {
+  # get id for this job and update counter
+  open FH, "$fred_results/ID";
+  $id = <FH>;
+  chomp $id;
+  # print "id = |$id|\n";
+  close FH;
+  my $new_id = $id + 1;
+  open FH, ">$fred_results/ID";
+  print FH "$new_id\n";
+  close FH;
+  # use job id as key unless given command line key
+  $key = $id if $key eq "";
+  # add key-id pair
+  `echo $key $id >> $fred_results/KEY`;
+}
+
+# release semaphore
+close SEM;
+
+# make main directory for this job
+my $dir = "$fred_results/JOB/$id";
+# die "fred_job: ID $id already used\n" if -d $dir;
+if (not -d $dir) {
+  mkdir $dir or die "Can't make directory $dir\n";
+}
+
+# return run_key association
+print "$key $id\n";
+
+# make working directory
+my $work = "$dir/WORK";
+if (not -d $work) {
+  mkdir $work or die "Can't make directory $work\n";
+}
+
+# make directories for output
+my $data = "$dir/DATA";
+if (not -d $data) {
+  mkdir $data or die "Can't make directory $data\n";
+}
+
+my $out = "$data/OUT";
+if (not -d $out) {
+  mkdir $out or die "Can't make directory $out\n";
+}
+
+my $tables = "$data/TABLES";
+if (not -d $tables) {
+  mkdir $tables or die "Can't make directory $tables\n";
+}
+
+my $reports = "$data/REPORTS";
+if (not -d $reports) {
+  mkdir $reports or die "Can't make directory $reports\n";
+}
+
+# record meta data about this run
+my $meta = "$dir/META";
+if (not -d $meta) {
+  mkdir $meta or die "Can't make directory $meta\n";
+}
+
+# update job status
+`echo SETUP > $meta/STATUS`;
+my $t = localtime();
+`echo $t > $meta/START`;
+
+# record number of runs
+`echo $runs > $meta/RUNS`;
+
+# record the KEY
+`echo $key > $meta/KEY`;
+
+# record the time and date
+`date > $meta/DATE`; 
+
+# record the user
+`echo $ENV{USER} > $meta/USER`;
+
+# record the host
+`hostname > $meta/WHERE`;
+
+# record the original FRED command
+# `echo ./FRED $paramsfile > $meta/COMMAND`; 
+
+# create the LOG file
+my $logfile = "$meta/LOG";
+
+# copy the params file for future reference
+`cp $cwd/$paramsfile $meta/PARAMS`;
+`cp $FRED/input_files/params.default $meta/DEFAULT`;
+
+# copy source code
+my $version = "$meta/VERSION";
+mkdir $version or die "Can't make directory $version\n";
+`cp -p $FRED/src/FRED.tar.gz $version`;
+`ls -l $FRED/populations > ${version}/POPULATIONS`;
+`ls -l $FRED/input_files > ${version}/INPUT_FILES`;
+
+# return to original directory
+chdir $cwd;
+
+# copy the input files to working directory
+`cp $FRED/input_files/params.default $work/params.default`;
+my $params = "$work/$params_base";
+`cp $paramsfile $params`;
+`cp $mortality_rate_file "$work/$mortality_rate_file_base"` if $mortality_rate_file ne "none";
+`cp $birth_rate_file "$work/$birth_rate_file_base"` if $birth_rate_file ne "none";
+`cp $seasonality_file "$work/$seasonality_file_base"` if $seasonality_file ne "none";
+`cp $primary "$work/$primary_cases_base"`;
+`$FRED/bin/ch primary_cases_file $primary_cases_base $params 1 >> $logfile`;
+
+# redirect output parameters
+`$FRED/bin/ch outdir $out $params >> $logfile`;
+`$FRED/bin/ch yearly_mortality_rate_file $mortality_rate_file_base $params >> $logfile` if $mortality_rate_file ne "none";
+`$FRED/bin/ch yearly_birth_rate_file $birth_rate_file_base $params >> $logfile` if $birth_rate_file ne "none";
+`$FRED/bin/ch seasonality_timestep_file $seasonality_file_base $params >> $logfile` if $seasonality_file ne "none";
+
+# update run status
+`echo RUNNING > $meta/STATUS`;
+
+# finally, run FRED
+if (not $parallel) {
+  # NOTE: the next part of the script runs in the WORK directory
+  chdir $work or die "Can't change to FRED directory $work\n";
+  # print "serial mode: $FRED/bin/run_fred -p $params -d $out -s $start_run -n $end_run -t $threads\n";
+  system "$FRED/bin/run_fred -p $params -d $out -s $start_run -n $end_run -t $threads";
+} else {
+  # parallel run
+
+  # number of single cpu fred runs
+  my $runs_remaining = $runs;
+
+  # break down runs into sets of "$cpus" each
+  my $num_run_sets = ceil( (1.0*$runs*$multiple_cpus) / (1.0*$cpus));
+
+  # create the LOG file for parallel run information
+  my $logfile_parallel = "$meta/LOGP";
+
+  # initialize parallel log to record activity
+  open LP, ">$logfile_parallel";
+  print LP "runs=$runs\n";
+  print LP "cpus=$cpus\n";
+  print LP "number of sets=$num_run_sets\n";
+  print LP "multiple_cpus=$multiple_cpus\n";
+  close LP;
+
+  # iterate over the number of sets of runs
+  for (my $run_set = 0; $run_set < $num_run_sets; $run_set++) {
+    # distribute fred runs accross cpus for this set
+    my $run_instance = 0;
+    my $selected_cpu = $run_instance * $multiple_cpus;
+    while ($selected_cpu < $cpus && $runs_remaining > 0) {
+      # set fred instance (1 through $runs)
+      my $fred_instance = $runs - $runs_remaining + 1;
+
+      # log parallel activity
+      open LP, ">>$logfile_parallel";
+      print LP "Starting fred instance $fred_instance in set $run_set, instance $run_instance selected_cpu $selected_cpu at ", `date`;
+      close LP;
+
+      # create instance-specific log file
+      my $logfilep = "$meta/LOG.$fred_instance";
+
+      # create child process
+      if (fork() == 0) {
+        # child
+        if ($using_pbs) {
+          # run on remote node
+          # exec "pbsdsh -n $run_instance /bin/sh -c \"cd $work && $FRED/bin/FRED $params $fred_instance > $logfilep\"\n";
+          exec "pbsdsh -n $selected_cpu /bin/sh -c \"cd $work && $FRED/bin/FRED $params $fred_instance > $logfilep\"\n";
+        } else {
+          # run on localhost
+          exec "cd $work && (export OMP_NUM_THREADS=$threads; $FRED/bin/FRED $params $fred_instance > $logfilep)" ;
+        }
+      }
+      $runs_remaining--;
+      $run_instance++;
+      $selected_cpu = $run_instance * $multiple_cpus;
+    } # while run_instance
+
+    # wait for all child processes to finish from current set
+    while (wait() != -1) {}
+    open LP, ">>$logfile_parallel";
+    print LP "run_set $run_set completed at ", `date`, "\n";
+    close LP;
+
+  } #for run_set
+  open LP, ">>$logfile_parallel";
+  print LP "All run_sets completed at ", `date`;
+  close LP;
+
+} # if serial
+
+# check for errors
+my $errfiles = `ls $out`;
+chomp $errfiles;
+# print "errfiles = |$errfiles|\n";
+# if ($errfiles =~ /err\d+.txt/) {
+#   print "FRED terminated with errors:\n";
+#   system "cat $out/err*";
+#   die "\nfred_job: abnormal termination.\n";
+# }
+
+# record the POPULATION file used (in case it was altered by parameters)
+my $log1 = $parallel ? "$meta/LOG.1" : "$out/LOG1";
+`grep POPULATION_FILE $log1 | awk \'{print \$2}\' > $meta/POPULATION`; 
+
+# record the FIPS codes
+open POP,"$meta/POPULATION" or die "fred_job: ERROR opening $meta/POPULATION\n";
+while (my $line = <POP>) {
+  if ($line =~ /_ver._/) {
+    my ($fips)=$line=~/_ver._(\d+)/;
+    system "echo $fips >> $meta/FIPS";
+  }
+}
+close POP;
+
+# record the pop size and density
+`grep convex_density $log1 | awk \'{print \$4}\' > $meta/POPSIZE`; 
+`grep convex_density $log1 | awk \'{print \$11}\' > $meta/DENSITY`; 
+
+# make reports
+`$FRED/bin/fred_post_process $out $tables $reports`;
+
+# gzip files to save space
+if ($zip) {
+  system "cd $out; tar czf out.tgz out*.txt; rm out*.txt";
+  system "cd $meta; tar czf LOG.tgz LOG*[0-9]; rm LOG*[0-9]";
+  if (-d "$out/GAIA") {
+    system "cd $out; tar czf gaia.tgz GAIA";
+  }
+}
+
+# update run status
+`echo FINISHED > $meta/STATUS`;
+$t = localtime();
+`echo $t > $meta/FINISHED`;
+
+# return to original directory
+chdir $cwd;
+
+exit;
+
+sub same_params {
+  my ($p1, $p2) = @_;
+  my $vac_file_line;
+  my ($name, $vac_file1, $vac_file2);
+  #  return 0;
+  my $diff = `diff -b -B -q $p1 $p2`;
+  return 1 if $diff eq "";
+
+  #try the diff but ignore lines with vaccination_capacity_file
+  $diff = `diff -b -B -q -I "vaccination_capacity_file" $p1 $p2`;
+  return 0 if !($diff eq "");
+}
+
+
+sub get_param_value {
+  my ($param, $paramsfile) = @_;
+  # print "get_param_value: $param $paramsfile\n";
+
+  # find params.default file
+  my $params_default = "params.default";
+  if (not -e $params_default) {
+    $params_default = "$FRED/input_files/params.default";
+  }
+  if (not -e $params_default) {
+    die "$0: could not find params.default file\n";
+  }
+
+  # add escape characters so that grep work for indexed parameters
+  $param =~ s/\[/\\[/g;
+  $param =~ s/\-/\\-/g;
+
+  my $val = "";
+  open PAR,"$params_default" or die "$0: ERROR READING $params_default\n";
+  while (my $line = <PAR>) {
+    if ($line =~ /^$param\s*=/) {
+      ($val) = $line =~ /=\s*(.*?)\s*$/; 
+    }
+  }
+  close PAR;
+
+  open PAR,"$paramsfile" or die "$0: ERROR READING $paramsfile\n";
+  while (my $line = <PAR>) {
+    if ($line =~ /^$param\s*=/) {
+      ($val) = $line =~ /=\s*(.*?)\s*$/; 
+    }
+  }
+  close PAR;
+  # print "$param val = |$val|\n";
+  return $val;
+}
+
+

@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $usage = "usage: $0 -k key [ -i 1 | -r run | -d disease_id | -t title | -m max | -T ps | -M mov | -C usa | -p parallelism | -c census_tracts]";
+
+my %options = ();
+getopts("c:C:m:d:i:k:r:t:T:M:p:", \%options);
+
+my $key = "";
+$key = $options{k} if exists $options{k};
+die "$usage\n" if not $key;
+
+my $census_tracts = 0;
+$census_tracts = $options{c} if exists $options{c};
+
+my $dis = 0;
+$dis = $options{d} if exists $options{d};
+
+my $inc = 1;
+$inc = $options{i} if exists $options{i};
+
+my $max = 10;
+$max = $options{m} if exists $options{m};
+
+my $run = 1;
+$run = $options{r} if exists $options{r};
+
+my $term = "png";
+$term = $options{T} if exists $options{T};
+
+my $country = "usa";
+$country = $options{C} if exists $options{C};
+
+my $parallel_batch = 10;
+$parallel_batch = $options{p} if exists $options{p};
+
+my $movie_format = "mp4";
+$movie_format = $options{M} if exists $options{M};
+
+my $title = "FRED Allegheny County";
+$title = $options{t} if exists $options{t};
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $cwd = `pwd`;
+chomp $cwd;
+
+my $bindir = "$FRED/bin";
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+chdir $outdir;
+
+# print "fred_make_maps -k $key -r $run -t \'$title\' -i $inc\n";
+system "fred_make_maps -k $key -r $run -m $max -t \'$title\' -i $inc -T $term -p $parallel_batch -C $country -c $census_tracts";
+
+chdir "VIS/run$run/dis$dis/MAPS";
+if (-s "FIPS") {
+  system "rm -f $cwd/$key.$movie_format";
+  # system "ffmpeg -r 5 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
+  system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
+  system "cp movie.$movie_format $cwd/$key.$movie_format";
+  chdir $cwd;
+  system "open $key.$movie_format";
+}
+else {
+  die "$0: map data not found\n";
+}
+

@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" href="$_epidemic_8cc.html" title="Epidemic.cc" alt="" coords="5,84,112,111"/>
+<area shape="rect" href="$_strain_8cc.html" title="Strain.cc" alt="" coords="136,84,219,111"/>
+<area shape="rect" href="$_timestep___map_8cc.html" title="Timestep_Map.cc" alt="" coords="243,84,389,111"/>
+<area shape="rect" href="$_vaccine___manager_8cc.html" title="Vaccine_Manager.cc" alt="" coords="413,84,581,111"/>
+</map>

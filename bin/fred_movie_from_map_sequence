@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+# File: fred_image_sequence
+# Author: John Grefenstette
+# Created: 7-Mar-2014
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $imgdir = `pwd`; chomp $imgdir;
+my $movie = "fred.mov";
+unlink($movie);
+my $opt_result = GetOptions(
+			    "d=s" => \$imgdir,
+			   );
+
+chdir $imgdir;
+my $filelist = `ls map-*`;
+chomp $filelist;
+my @list = split " ", $filelist;
+my $n = scalar @list;
+my $first = $list[0];
+my ($suf) = $first =~ /.*\.(\S+)/;
+# print "$n map image files with suffix $suf\n";
+my $images = "map-1.$suf";
+for my $i (2..$n) {
+  $images .= "|map-$i.$suf";
+}
+# One frame per second
+#print "$FRED/bin/imgsequence -mov $movie -sort 0 -ts 1.0 -tv 1.0 -imgs '$images'\n";
+# system "$FRED/bin/imgsequence -mov $movie -sort 0 -ts 1.0 -tv 1.0 -imgs '$images'";
+
+# 2 frames per second
+# print "$FRED/bin/imgsequence -mov $movie -sort 0 -ts 1.0 -tv 2.0 -imgs '$images'\n";
+system "$FRED/bin/imgsequence -mov $movie -sort 0 -ts 1.0 -tv 2.0 -imgs '$images'";
+
+
+
+
+
+
+

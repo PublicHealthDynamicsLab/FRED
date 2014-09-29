@@ -1,0 +1,22 @@
+#!/bin/csh
+
+echo Checking for gcc 4.2.1 compiler
+set gcc = `g++ --version | grep 4.2.1`
+if ($#gcc) then
+ echo g++ 4.2.1 found
+else
+ echo g++ 4.2.1 not found
+ if (-e /usr/local/bin/brew) then
+  brew install apple-gcc42
+  cd /usr/local/bin
+  ln -s g++-4.2 g++
+  ln -s gcc-4.2 gcc
+  rehash
+  cd
+ else
+  echo Make sure that xcode command line tools are install.
+  echo Make sure that /usr/bin/local occurs before /usr/bin in your path.
+  echo Then install homebrew.
+  exit
+ endif
+endif

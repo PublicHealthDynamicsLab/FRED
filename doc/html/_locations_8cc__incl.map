@@ -1,0 +1,21 @@
+<map id="G" name="G">
+<area shape="rect" href="$_locations_8h.html" title="Locations.h" alt="" coords="5,84,109,111"/>
+<area shape="rect" href="$_population_8h.html" title="Population.h" alt="" coords="864,393,976,420"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="661,471,741,497"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="760,316,837,343"/>
+<area shape="rect" href="$_place_8h.html" title="Place.h" alt="" coords="716,161,788,188"/>
+<area shape="rect" href="$_school_8h.html" title="School.h" alt="" coords="453,84,536,111"/>
+<area shape="rect" href="$_classroom_8h.html" title="Classroom.h" alt="" coords="560,84,669,111"/>
+<area shape="rect" href="$_workplace_8h.html" title="Workplace.h" alt="" coords="693,84,803,111"/>
+<area shape="rect" href="$_office_8h.html" title="Office.h" alt="" coords="827,84,904,111"/>
+<area shape="rect" href="$_community_8h.html" title="Community.h" alt="" coords="928,84,1045,111"/>
+<area shape="rect" href="$_neighborhood_8h.html" title="Neighborhood.h" alt="" coords="1069,84,1208,111"/>
+<area shape="rect" href="$_household_8h.html" title="Household.h" alt="" coords="1283,84,1395,111"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="1277,161,1360,188"/>
+<area shape="rect" href="$_hospital_8h.html" title="Hospital.h" alt="" coords="285,84,379,111"/>
+<area shape="rect" href="$_params_8h.html" title="Params.h" alt="" coords="1480,161,1568,188"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="739,393,840,420"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="637,316,736,343"/>
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="1181,239,1264,265"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="1000,393,1099,420"/>
+</map>

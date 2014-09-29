@@ -1,0 +1,149 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+# File: fred_get_tables
+
+my ($out, $tables) = @ARGV;
+$out = "OUT" if not $out;
+die "$0: Can't find OUT directory $out\n" if  not -d $out;
+$tables = "TABLES" if not $tables;
+mkdir $tables if not -e $tables;
+die "$0: Can't find directory $tables\n" if  not -d $tables;
+
+# get the outfiles
+opendir DIR, $out or die "ERROR OPENING DIRECTORY $out\n";
+my @outfiles = ();
+while (my $file = readdir(DIR)) {
+  next if ($file =~ /^\./);
+  push @outfiles, "$out/$file" if $file =~ /^out/;
+}
+closedir DIR;
+# print "@outfiles\n"; exit;
+
+my %var_index = ();
+my $next = 0;
+
+# the list of plottable variables
+my $firstfile = $outfiles[0];
+open FH, $firstfile or die "$0: Can't open file $firstfile\n";
+my $line = <FH>;
+chomp $line;
+# print "line: $line\n";
+my @fields = split " ", $line;
+close FH;
+
+for my $key (@fields) {
+  # print "key = |$key|\n";
+  shift @fields;
+  next if $key eq "Day";
+  next if $key eq "Week";
+  next if $key eq "WkDay";
+  next if $key eq "Year";
+  next if $key eq "N";
+  next if $key eq "Str";
+  next if $key eq "Date";
+  $var_index{$key} = $next++ if not exists $var_index{$key};
+}
+# for my $key (sort keys %var_index) { print "$key $var_index{$key}\n"; } exit;
+
+# how many runs?
+my $runs = scalar @outfiles;
+
+my @vartable = ();
+
+# process each outfile
+my @files = @outfiles;
+for my $file (@files) {
+  # print "$file\n";
+  open FH, $file or die "Can't open file $file\n";
+  my ($run) = ($file =~/(\d+)\.txt/);
+  # print "run = $run\n";
+  while (my $line = <FH>) {
+    chomp $line;
+    my ($day) = $line =~ /\bDay\s+(\S+)/;
+    my ($week) = $line =~ /\bWeek\s+(\S+)/;
+    my ($year) = $line =~ /\bYear\s+(\S+)/;
+    my ($date) = $line =~ /\bDate\s+(\S+)/;
+    my ($n) = $line =~ /\bN\s+(\S+)/;
+    
+    # add line to hash for each var value pair
+    my @fields = split " ", $line;
+    for my $var (@fields) {
+      # print "var = |$var|\n";
+      shift @fields;
+      next if $var eq "Day";
+      next if $var eq "Week";
+      next if $var eq "WkDay";
+      next if $var eq "Year";
+      next if $var eq "N";
+      next if $var eq "Str";
+      next if $var eq "Date";
+      my ($val) = $line =~ /\b$var\s+(\S+)\b/;
+
+      # get the county population of the variable is County_xxxxx
+      if ($var =~ /^County_/) {
+	# get the fips code
+	my ($fips) = $var =~ /County_(\d+)/;
+	# get the population
+	($n) = $line =~ /\bN_$fips\_0\s+(\d+)\b/;
+      }
+
+      $vartable[$var_index{$var}][$run][$day] = "$day $week $year $date $n $val";
+    }
+  }
+  close FH;
+}
+
+# make the tables
+for my $var (sort keys %var_index) {
+  for my $run (1..$runs) {
+    my $wfile = "$tables/$var\_weekly-$run.txt";
+    open WEEK, ">$wfile";
+    print WEEK "SIMWEEK $var POP DATE WEEK YEAR WKDAYS\n";
+      
+    my $dfile = "$tables/$var\_daily-$run.txt";
+    open DAY, ">$dfile";
+    print DAY "DAY $var POP DATE WEEK YEAR\n";
+      
+    my $sum = 0;
+    my $size = 0;
+    my $lineno = 1;
+    my $oldweek = -1;
+    my $oldyear = -1;
+    my $day;
+    my $week;
+    my $year;
+    my $n;
+    my $val;
+    my $date;
+
+    my $days = scalar @{$vartable[$var_index{$var}][$run]};
+    # print "run = $run var = |$var| days = $days\n";
+
+    for my $i (0..$days-1) {
+      my $line = $vartable[$var_index{$var}][$run][$i];
+      # print "$line\n";
+      ($day, $week, $year, $date, $n, $val) = split " ", $line;
+      print DAY "$day $val $n $date $week $year\n";
+      if ($week ne $oldweek) {
+	if ($size > 0) {
+	  print WEEK "$lineno $sum $n $date $oldweek $oldyear $size \n";
+	  $lineno++;
+	}
+	$sum = $val;
+	$size = 1;
+	$oldweek = $week;
+	$oldyear = $year;
+      } 
+      else {
+	$sum = $sum + $val;
+	$size++;
+      }
+    }
+    print WEEK "$lineno $sum $n $date $oldweek $oldyear $size \n";
+    close WEEK;
+  }
+}
+exit;
+

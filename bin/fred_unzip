@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+# File: fred_unzip
+# Author: John Grefenstette
+# Created: May 31, 2013
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+# get command line arguments
+my %options = ();
+getopts("k:", \%options);
+my $mykey = "";
+$mykey = $options{k} if exists $options{k};
+die "usage: $0 -k key \n" if not $mykey;
+
+my $dir = "$FREDRESULTS";
+die "$0 ERROR: Can't find directory $dir\n" if not -d $dir;
+
+# get the id for the FRED key
+my $id = get_id($mykey);
+die "NOT_FOUND\n" if $id eq "";
+
+my $meta = "$dir/JOB/$id/META";
+exit if (not -e "$meta/ZIPPED");
+chdir $meta or die "$0 ERROR: can't cd to dir $meta\n";
+system "rm ZIPPED; tar xzf LOG.tgz; rm LOG.tgz";
+system "cd $dir/JOB/$id; tar xzf DATA.tgz; rm DATA.tgz";
+exit;
+
+sub get_id {
+  my $mykey = shift;
+  open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    if (defined $key and $key eq $mykey) {
+      close FH;
+      return $id;
+    }
+  }
+  close FH;
+  return "";
+}
+

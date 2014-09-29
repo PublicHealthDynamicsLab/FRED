@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Scalar::Util qw(looks_like_number);
+#
+# File: fred_stats
+# Purpose: Simple report generator
+# Author: John Grefenstette
+#
+# Report the mean and std of each numeric column in a set of files.
+#
+# Each file MUST have the same format; that is, each corresponding line
+# must have the same sequence of string and numeric data types.
+#
+# It is assumed that all string data are labels that are the same in
+# all files.
+#
+
+die "usage: fred_stats file ...\n" if not @ARGV;
+my @files = @ARGV;
+
+# 2-dim array containing the sum for each numeric field
+# and the value in the LAST file for each non-numeric field
+my @data = ();
+
+# 2-dim array of sum of squares (for numeric fields)
+my @sumsq = ();
+
+# read in each file and record data for mean and stdev for each numeric field
+my $rows = 0;
+for my $file (@files) {
+  open FH, $file or die "Can't read $file\n";
+  my $i = 0;
+  while (my $line = <FH>) {
+    chomp $line;
+    my @a = split " ", $line;
+    for my $j (0..$#a) {
+      if (looks_like_number($a[$j])) {
+	$data[$i][$j] = 0 if not defined $data[$i][$j];
+	$sumsq[$i][$j] = 0 if not defined $sumsq[$i][$j];
+	$data[$i][$j] += $a[$j];
+	$sumsq[$i][$j] += $a[$j]*$a[$j];
+      }
+      else {
+	$data[$i][$j] = $a[$j];
+      }
+    }
+    $i++;
+  }
+  $rows = $i;
+  close FH;
+}
+
+# output has string value for each non-numeric field and
+# <mean, std> for each numeric field
+my $n = scalar @files;
+for my $i (0..$rows-1) {
+  my $cols = scalar(@{$data[$i]});
+  for my $j (0..$cols-1) {
+    if (looks_like_number($data[$i][$j])) {
+      # mean
+      my $mean = 0;
+      $mean = $data[$i][$j]/$n if $n;
+      # std dev
+      my $stdev = 0;
+      my $square = 0;
+      $square = (($n*$sumsq[$i][$j] - $data[$i][$j]*$data[$i][$j])/($n*($n-1))) if $n>1;
+      $stdev = sqrt($square) if $square > 0.000000001;
+      print "$mean $stdev ";
+    }
+    else {
+      print "$data[$i][$j] ";
+    }
+  }
+  print "\n";
+}
+exit;

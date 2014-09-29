@@ -1,0 +1,237 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+# File: fred_experiment_space
+# Author: John Grefenstette
+# Created: Sep 28, 2012
+# Modified: Nov 14, 2013
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $usage = "usage: $0 -f config_file | --noclean -h | -s | [-n n | -m m | -c copy | -d delete | -r results | --wide]\n";
+
+my $config_file = "";
+my $n = 10;
+my $m = 10;
+my $copy = 0;
+my $delete = 1;
+my $results = "";
+my $help = 0;
+my $sample = 0;
+my $noclean = 0;
+my $wide = 0;
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "s" => \$sample,
+			    "f=s" => \$config_file,
+			    "r=s" => \$results,
+			    "n=i" => \$n,
+			    "m=i" => \$m,
+			    "c=i" => \$copy,
+			    "d=i" => \$delete,
+			    "noclean" => \$noclean,
+			    "wide" => \$wide,
+			    "w" => \$wide,
+			   );
+if ($help) {
+  print "$usage";
+  print "Try:\n$0 -s\nto get a sample configuration file.\n";
+  exit;
+}
+
+if ($sample) {
+  print_sample_file();
+  exit;
+}
+
+die "$0: config file not found\n$usage" if (not $config_file) or (not -e $config_file);
+
+# create PARAMS directory if needed
+my $params_dir = "PARAMDIR";
+system "rm -rf $params_dir" unless $noclean;
+system "rm -rf TASKDIR" unless $noclean;
+if (not -d $params_dir) {
+ mkdir "$params_dir" or die "$0: ERROR CREATING DIRECTORY $params_dir\n";
+}
+
+open FH, $config_file or die "$0: ERROR OPENING CONFIG FILE $config_file\n";
+my $task_number = 1;
+my $line;
+
+# find the title line
+get_next_line();
+$line =~ /FRED Experiment Space Title:/ or die "$0: BAD TITLE LINE FORMAT\n";
+my ($title) = $line =~ /Title:\s*(.*)/;
+die "Bad title format\n" if not $title;
+$title =~ s/\s/_/g;
+
+# get the baseline parameter file
+get_next_line();
+$line =~ /Baseline Parameter File:/ or die "$0: BAD BASELINE FORMAT\n";
+my ($paramsfile) = $line =~ /File:\s*(.*)/;
+die "$0: BAD BASELINE FORMAT\n" if not $paramsfile;
+$paramsfile =~ s/\s//g;
+die "$0: BAD PARAMSFILE FORMAT\n" if not $paramsfile;
+die "$0: NO SUCH BASELINE PARAM FILE\n" if not -e $paramsfile;
+
+# make FRED Navigator config file
+my $fred_nav = "$title.txt";
+open NAV, ">$fred_nav";
+print NAV "## File: $fred_nav\n";
+print NAV "## Created: ", scalar localtime, "\n";
+print NAV "Title: $title\n";
+
+# get the sweep parameters
+my @names = ();
+my @values = ();
+my $name;
+
+get_next_line();
+$line =~ /Sweep Parameters:/ or die "$0: BAD SWEEP FORMAT\n";
+
+get_next_line();
+while ($line =~ /^\s*Name:/i) {
+  my @pval = ();
+  my ($min, $max, $inc, $value, $fmt, $file);
+  if ($line =~ /Min:/i) {
+    ($name, $min, $max, $inc, $fmt) = $line =~ /Name:\s*(\S+)\s+Min:\s*(\S+)\s+Max:\s*(\S+)\s+Inc:\s*(\S+)\s+Format:\s*(\S+)/i;
+    for (my $x = $min; $x <= $max; $x += $inc) { my $s = sprintf ("$fmt", $x); push @pval, $s; }
+  }
+  elsif ($line =~ /Values:/i){
+    ($name, $value) = $line =~ /Name:\s+(\S+)\s+Values: \[(.*)\]/i;
+    $value =~ s/\s//g;
+    @pval = split "," , $value;
+  }
+  elsif ($line =~ /File:/i) {
+    ($name, $file) = $line =~ /Name:\s+(\S+)\s+File:\s*(\S*)/i;
+    open VALUES,"$file" or die "$0: ERROR OPENING FILE $file FOR PARAM $name\n";
+    my @data = <VALUES>;
+    close VALUES;
+    my $str = join " ", @data;
+    @data = split " ", $str;
+    for my $item (@data) {
+      push @pval, $item;
+    }
+  }
+  else {
+    die "$0: BAD FORMAT FOR SWEEP PARAMETER: $line\n";
+  }
+  push @names, $name;
+  push @values, join " ", @pval;
+  print NAV "$name \[@pval]\n";
+
+  get_next_line();
+}
+print NAV "##\n";
+
+# pass output variables to fred navigator config file
+while ($line = <FH>) {
+  print NAV $line unless $line =~/^#/;
+}
+print NAV "##\n";
+close FH;
+
+# make script to run experiment space 
+my $set = "$title";
+my $tasks = "tasks.$title";
+$results = "RESULTS.$title" if $results eq "";
+recurse($set,0);
+
+system "fred_make_tasks -c $copy -d $delete -p -n $n -m $m -o $tasks -r $results --wide $wide";
+
+print NAV "##\n";
+close NAV;
+
+exit;
+
+sub recurse {
+  my ($s, $n) = @_;
+  if ($n eq $#names) {
+    my $pvals = $values[$n];
+    my @pval = split " ", $pvals;
+    for my $v (@pval) {
+      my $my_value = "$names[$n]=$v";
+      $my_value = "$s-$my_value" if $s;
+      # print "$my_value\n";
+      add_experiment($my_value);
+    }
+  }
+  else {
+    my $pvals = $values[$n];
+    my @pval = split " ", $pvals;
+    for my $v (@pval) {
+      my $my_value = "$names[$n]=$v";
+      $my_value = "$s-$my_value" if $s;
+      recurse($my_value,$n+1);
+    }
+  }
+}
+
+sub add_experiment {
+  my $key = shift;
+  my $newkey = $key;
+  $newkey =~ s/\[/_/g;
+  $newkey =~ s/\]//g;
+  my $newparams = "$params_dir/params.$newkey";
+
+  system "cp $paramsfile $newparams";
+  my @pars = split "-", $key;
+  # remove ES title from the list
+  shift @pars;
+  for my $par_val (@pars) {
+    my ($param, $value) = split "=", $par_val;
+    if (-e "change_params") {
+      system "change_params $param $value $newparams";
+    }
+    else {
+      system "ch '$param' $value $newparams > /dev/null";
+    }
+  }
+  $task_number++;
+}
+
+sub get_next_line {
+  $line = "";
+  while (not $line) {
+    $line = <FH>; 
+    if (not defined $line) {
+      $line = "";
+      last;
+    }
+    chomp $line;
+    $line = "" if $line =~ /^#/;
+  }
+}
+
+sub print_sample_file {
+  print <<"EOF";
+################################################# 
+# Sample FRED Experiment Space config file
+#
+# Lines that starts with # are ignored.
+# Otherwise, only change text after the first ":" on each line.
+#
+# (Title should not contains spaces or hyphens)
+FRED Experiment Space Title: School_Closure
+Baseline Parameter File: params.school_closure
+
+Sweep Parameters:
+#
+# the following illustrates a loop using min, max and increment:
+# Name: R0 Min: 1.0 Max: 2.1 Inc: 0.5  Format: %0.1f
+#
+# the following uses a comma-separated list of values,
+# which may be strings (with no spaces)
+# Name: Weeks Values: [0, 1, 2, 4, 6, 8]
+#
+Name: R0 Min: 1.0 Max: 3.5 Inc: 0.5  Format: %0.1f
+Name: Cases Values: [1, 5, 10]
+Name: Weeks Values: [0, 1, 2, 4, 6, 8]
+
+EOF
+}
+

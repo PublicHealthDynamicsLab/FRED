@@ -1,0 +1,12 @@
+#!/bin/csh
+
+echo Checking for homebrew
+set brew = `which brew`
+if ($#brew == 1) then
+ echo brew found
+else
+ echo brew not found
+ echo please run:
+ echo 'sh < ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"'
+ exit
+endif

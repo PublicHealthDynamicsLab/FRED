@@ -1,0 +1,156 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $usage = "$0 [-c cores | -t time | -d dir | -r RESULTS_DIR |--debug | --wide | --taskfile taskfile]";
+my $cores = 128;
+my $wtime = "8:00:00";
+my $dir = `pwd`;
+chomp $dir;
+my $basename = `basename $dir`;
+chomp $basename;
+my $jobfile = "$basename";
+my $debug = 0;
+my $tasks = "";
+my $batchesfile = "";
+my $number_batches = 0;
+my $wide = 0;
+my $results = "";
+my $ramdisk = 0;
+my $help = "";
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "help" => \$help,
+			    "cpus=i" => \$cores,
+			    "c=i" => \$cores,
+			    "n=i" => \$number_batches,
+			    "time=s" => \$wtime,
+			    "t=s" => \$wtime,
+			    "dir=s" => \$dir,
+			    "d=s" => \$dir,
+			    "jobfile=s" => \$jobfile,
+			    "taskfile=s" => \$tasks,
+			    "batchesfile=s" => \$batchesfile,
+			    "j=s" => \$jobfile,
+			    "debug" => \$debug,
+			    "wide" => \$wide,
+			    "w" => \$wide,
+			    "ramdisk" => \$ramdisk,
+			    "r=s" => \$results,
+			   );
+die "$usage\n" if $help;
+die "$usage\n" if not $cores;
+die "$usage\n" if not $wtime;
+die "$usage\n" if not -d $dir;
+$number_batches = $cores if not $number_batches;
+
+my $queue = "";
+
+if ($debug) {
+  $tasks = "tasks.debug" if $tasks eq "";
+  $batchesfile = "batches.debug";
+  $cores = 16;
+  $number_batches = 16 if $wide == 0;
+  $number_batches = 1 if $wide == 1;
+  $wtime = "0:30:00";
+  $queue = "debug";
+  $jobfile = "fred.debug" if $debug;
+  $results = "RESULTS.debug";
+  $ramdisk = 0;
+}
+
+$tasks = "tasks" if $tasks eq "";
+$batchesfile = "batches" if $batchesfile eq "";
+$queue = "batch" if $queue eq "";
+$results = "RESULTS" if $results eq "";
+
+# change to working directory
+chdir $dir or die "Can't cd to directory $dir\n";
+
+# mkdir OUT if necessary
+mkdir "$dir/OUT" if not -d "$dir/OUT";
+die "Can't make directory $dir/OUT\n" if not -d "$dir/OUT";
+
+# must have a tasks file in this directory
+die "$0: Can't find tasks file $tasks\n" if not -e "$dir/$tasks";
+
+if (not $wide) {
+  # create the batches file
+  my $args = "--taskfile $tasks -n $number_batches -b $batchesfile";
+  $args = "$args --debug" if ($debug);
+  $args = "$args --wide" if ($wide);
+  `fred_make_batches $args`;
+  die "$0: Can't file batches file $batchesfile\n" if not -e "$dir/$batchesfile";
+}
+
+open OUT,">$jobfile";
+print OUT <<"EOF";
+#!/bin/csh -f
+#PBS -l ncpus=$cores
+#PBS -l walltime=$wtime
+#PBS -j oe
+#PBS -N $jobfile
+#PBS -q $queue
+
+# start the job accounting system
+ja
+
+# change to the working directory
+cd $dir
+
+# print out the start time
+echo -n "$jobfile STARTED " > $jobfile.out
+date >> $jobfile.out
+
+# clear the RESULTS
+# rm -rf $dir/$results
+mkdir -p $dir/$results
+mv $dir/$results $dir/$results-`date +\%F-\%T`
+mkdir $dir/$results
+mkdir $dir/$results/JOB
+echo 1 > $dir/$results/ID
+touch $dir/$results/KEY
+
+EOF
+if ( $ramdisk )  {
+  print OUT "# use RAMDISK RESULTS database\n";
+  print OUT "setenv FRED_RESULTS \$SCRATCH_RAMDISK\n";
+}
+else {
+  print OUT "# use the local  RESULTS database\n";
+  print OUT "setenv FRED_RESULTS $dir/$results\n";
+}
+
+print OUT "echo FRED_RESULTS = \$FRED_RESULTS >> $jobfile.out\n";
+
+if ($wide) {
+  # run the tasks
+  print OUT "\necho $tasks >> $jobfile.out\n";
+  print OUT "./$tasks\n";
+}
+else {
+  # run the batches file
+  print OUT "\necho $batchesfile >> $jobfile.out\n";
+  print OUT "./$batchesfile\n";
+}
+if ( $ramdisk )  {
+  print OUT "\n# save RESULTS\n";
+  print OUT "cp -pr \${FRED_RESULTS}/* $dir/$results\n";
+  # print OUT "cp \${FRED_RESULTS}/KEY $dir/$results\n";
+  # print OUT "cp \${FRED_RESULTS}/ID $dir/$results\n\n";
+}
+print OUT <<"EOF";
+# get accounting info
+ja -chlst
+
+# final data collection
+if ( -e collect_job_data ) then
+./collect_job_data
+endif
+
+# print time finished
+echo -n "$jobfile FINISHED " >> $jobfile.out
+date >> $jobfile.out
+EOF

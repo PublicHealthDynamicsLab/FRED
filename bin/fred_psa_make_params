@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($dir, $sampling) = @ARGV;
+
+my $outfile = "$dir/$sampling" . "SamplingOutput";
+my $asympfile = "$dir/asympCDF-$sampling" . "Sampling";
+my $sympfile = "$dir/sympCDF-$sampling" . "Sampling";
+my $latentfile = "$dir/latentCDF-$sampling" . "Sampling";
+
+open FH, $outfile or die "ERROR: Can't open file $outfile\n";
+open AS, $asympfile or die "ERROR: Can't open file $asympfile\n";
+open SY, $sympfile or die "ERROR: Can't open file $sympfile\n";
+open LA, $latentfile or die "ERROR: Can't open file $latentfile\n";
+
+
+my $line = <FH>;
+$line = <AS>;
+$line = <SY>;
+$line = <LA>;
+my $n = 0;
+while ($line = <FH>) {
+  $n++;
+  my $paramsdir = "$dir/PARAMS-$sampling";
+  mkdir $paramsdir if not -d $paramsdir;
+  my $paramsfile = "$paramsdir/params.$sampling-$n";
+  chomp $line;
+  my ($symprate, $x1, $x2, $x3, $sick_day_prob) = split " ", $line; 
+  my $days_asymp = <AS>;
+  my $days_symp = <SY>;
+  my $days_latent = <LA>;
+  open PAR, ">$paramsfile" or die "Can't write to file $paramsfile\n";
+  print PAR "days_latent[0] = 3 $days_latent";
+  print PAR "days_asymp[0] = 7 $days_asymp";
+  print PAR "days_symp[0] = 7 $days_symp";
+  print PAR "sick_day_prob = $sick_day_prob\n";
+  print PAR "symp[0] = $symprate\n";
+  close PAR;
+}
+close FH;
+close AS;
+close SY;
+close LA;

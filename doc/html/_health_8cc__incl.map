@@ -1,0 +1,22 @@
+<map id="G" name="G">
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="1228,161,1311,188"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="1332,239,1431,265"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="1584,393,1664,420"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="1231,239,1308,265"/>
+<area shape="rect" href="$_place_8h.html" title="Place.h" alt="" coords="805,239,877,265"/>
+<area shape="rect" href="$_population_8h.html" title="Population.h" alt="" coords="941,316,1053,343"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="1428,84,1511,111"/>
+<area shape="rect" href="$_antiviral_8h.html" title="Antiviral.h" alt="" coords="540,239,633,265"/>
+<area shape="rect" href="$_random_8h.html" title="Random.h" alt="" coords="88,316,184,343"/>
+<area shape="rect" href="$_manager_8h.html" title="Manager.h" alt="" coords="657,239,756,265"/>
+<area shape="rect" href="$_a_v___manager_8h.html" title="AV_Manager.h" alt="" coords="640,161,763,188"/>
+<area shape="rect" href="$_a_v___health_8h.html" title="AV_Health.h" alt="" coords="83,239,189,265"/>
+<area shape="rect" href="$_vaccine_8h.html" title="Vaccine.h" alt="" coords="1507,316,1597,343"/>
+<area shape="rect" href="$_vaccine___dose_8h.html" title="Vaccine_Dose.h" alt="" coords="1823,161,1956,188"/>
+<area shape="rect" href="$_vaccine___health_8h.html" title="Vaccine_Health.h" alt="" coords="319,239,465,265"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="1229,316,1331,343"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="1579,161,1677,188"/>
+<area shape="rect" href="$_antivirals_8h.html" title="Antivirals.h" alt="" coords="360,316,459,343"/>
+<area shape="rect" href="$_age___map_8h.html" title="Age_Map.h" alt="" coords="1983,239,2081,265"/>
+<area shape="rect" href="$_params_8h.html" title="Params.h" alt="" coords="2077,316,2165,343"/>
+</map>

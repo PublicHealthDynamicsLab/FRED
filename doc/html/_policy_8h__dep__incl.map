@@ -1,0 +1,14 @@
+<map id="G" name="G">
+<area shape="rect" href="$_a_v___policies_8h.html" title="AV_Policies.h" alt="" coords="192,84,304,111"/>
+<area shape="rect" href="$_a_v___policies_8cc.html" title="AV_Policies.cc" alt="" coords="188,239,308,265"/>
+<area shape="rect" href="$_a_v___manager_8cc.html" title="AV_Manager.cc" alt="" coords="285,161,416,188"/>
+<area shape="rect" href="$_decision_8cc.html" title="Decision.cc" alt="" coords="491,84,592,111"/>
+<area shape="rect" href="$_manager_8cc.html" title="Manager.cc" alt="" coords="616,84,720,111"/>
+<area shape="rect" href="$_policy_8cc.html" title="Policy.cc" alt="" coords="744,84,824,111"/>
+<area shape="rect" href="$_vaccine___manager_8cc.html" title="Vaccine_Manager.cc" alt="" coords="696,161,864,188"/>
+<area shape="rect" href="$_vaccine___priority___policies_8h.html" title="Vaccine_Priority_Policies.h" alt="" coords="899,84,1107,111"/>
+<area shape="rect" href="$_vaccine___priority___policies_8cc.html" title="Vaccine_Priority_Policies.cc" alt="" coords="1141,161,1355,188"/>
+<area shape="rect" href="$_a_v___decisions_8h.html" title="AV_Decisions.h" alt="" coords="83,161,211,188"/>
+<area shape="rect" href="$_a_v___decisions_8cc.html" title="AV_Decisions.cc" alt="" coords="5,239,139,265"/>
+<area shape="rect" href="$_vaccine___priority___decisions_8cc.html" title="Vaccine_Priority_Decisions.cc" alt="" coords="888,161,1117,188"/>
+</map>

@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+$| = 1;
+
+my @states = qw(Alabama Alaska Arizona Arkansas California Colorado Connecticut
+Delaware District_of_Columbia Florida Georgia Hawaii Idaho Illinois Indiana Iowa
+Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota
+Mississippi Missouri Montana Nebraska Nevada New_Hampshire New_Jersey New_Mexico
+New_York North_Carolina North_Dakota Ohio Oklahoma Oregon Pennsylvania Rhode_Island
+South_Carolina South_Dakota Tennessee Texas Utah Vermont Virginia Washington
+West_Virginia Wisconsin Wyoming);
+
+my $FRED = $ENV{FRED_HOME};
+die "run_fred: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+make_params();
+
+open LOG, ">STATES.LOG";
+for my $st (@states) {
+  print LOG "$st\n";
+  print scalar(localtime), "\n";
+  print "$st\n";
+  system "rm -rf OUT.$st/*";
+  system "run_fred -p params.$st";
+  system "get_distr OUT.$st > OUT.$st/get_distr.out";
+  # system "gzip OUT.$st/degree.txt";
+  system "gzip -f OUT.$st/infections1.txt";
+}
+close LOG;
+print scalar(localtime), "\n";
+
+
+sub make_params {
+  for my $st (@states) {
+    open PAR, ">params.$st";
+    print PAR "days = 100\n";
+    print PAR "popdir = $FRED/region\n";
+    print PAR "popfile = pop_$st.txt\n";
+    print PAR "locfile = loc_$st.txt\n";
+    print PAR "enable_large_grid = 1\n";
+    print PAR "enable_travel = 1\n";
+    print PAR "outdir = OUT.$st\n";
+    close PAR;
+  }
+}
+

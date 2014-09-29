@@ -1,0 +1,94 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+use Fcntl qw(:flock);
+
+# File: fred_delete
+# Author: John Grefenstette
+# Created: Sep 28, 2010
+# Modified: Oct 22, 2013
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $usage = "usage: fred_delete [-f] -k key [ -h ]\n";
+
+# get command line arguments
+my %options = ();
+getopts("hfk:", \%options);
+my $help = exists $options{h};
+die $usage if $help;
+my $force = exists $options{f};
+my $key = "";
+$key = $options{k} if exists $options{k};
+die "$usage" if $key eq "";
+my $dir = "$FREDRESULTS";
+die "$0: Can't find directory $dir\n" if not -d $dir;
+my $id = get_id($key);
+exit if $id eq "" and $force;
+die "$0: KEY $key NOT FOUND\n" if $id eq "";
+print "$0: KEY = $key  JOB = $id\n";
+my $response;
+if ($force) {
+  $response = "yes";
+}
+else {
+  print "You are about to delete $dir/JOB/$id. This cannot be undone.\n";
+  print "Proceed? yes/no [no]\n";
+  $response = <>;
+}
+if ($response =~ /^y|yes/i) {
+  delete_key($key);
+  system "rm -rf $dir/JOB/$id";
+  print "$0: $dir/JOB/$id deleted\n";
+}
+else {
+  print "$0: cancelled\n";
+}
+exit;
+
+sub get_id {
+  my $mykey = shift;
+  open FH, "$dir/KEY" or die "$0: Can't find $dir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    if (defined $key and $key eq $mykey) {
+      close FH;
+      return $id;
+    }
+  }
+  close FH;
+  return "";
+}
+
+sub delete_key {
+  my $mykey = shift;
+
+  # set locking semaphore
+  my $SEMAPHORE = "$dir/.results.lck";
+  open(SEM, ">$SEMAPHORE") || die "$0: failed to obtain semaphore: ($!)\n";
+  flock(SEM, LOCK_EX);
+
+  open FH, "$dir/KEY" or (close SEM and die "$0: Can't find $dir/KEY\n");
+  my $file = "$dir/tmp$$";
+  open TMP, ">$file" or (close SEM and die "$0: Can't open temp file $dir/$file\n");
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    print TMP "$key $id\n" if (defined $key and $key ne $mykey);
+  }
+  close FH;
+  close TMP;
+  system "mv $file $dir/KEY";
+
+  # release semaphore
+  close SEM;
+}
+
+

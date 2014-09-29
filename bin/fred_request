@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use MIME::Lite;
+$| = 1;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+while (1) {
+  my $dir = "/var/www/fred_requests";
+  my %old = ();
+  open OLD, "$dir/LOG" or die "Can't open $dir/LOG\n";
+  while (<OLD>) {
+    chomp;
+    $old{$_} = 1;
+  }
+  close OLD;
+  opendir(my $dh, $dir) || die;
+  while(my $req = readdir $dh) {
+    next if not $req =~ /^REQ/;
+    my $status = exists $old{$req}? "OLD" : "NEW";
+    if ($status eq "NEW") {
+      print "request $req started at ", scalar localtime, "\n";
+
+      # add to OLD request list
+      open OLD, ">>$dir/LOG" or die "Can't update $dir/LOG\n";
+      print OLD "$req\n";
+      close OLD;
+
+      my $log = "$FRED/bin/fred_run_request.log";
+      my $cmd = `fred_run_request $dir $req 1>>$log 2>>$log`;
+      print "request $req finished at ", scalar localtime, "\n\n";
+    }
+    else {
+      # print "OLD: $req\n";
+    }
+  }
+  closedir $dh;
+  # system "fred_background_request >> background.out";
+  sleep 2;
+}
+
+
+
+

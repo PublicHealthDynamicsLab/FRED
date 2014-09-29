@@ -1,0 +1,23 @@
+<map id="G" name="G">
+<area shape="rect" href="$class_vaccine.html" title="Vaccine" alt="" coords="844,103,921,129"/>
+<area shape="rect" href="$class_health.html" title="Health" alt="" coords="1308,103,1377,129"/>
+<area shape="rect" href="$class_person.html" title="Person" alt="" coords="1277,199,1347,225"/>
+<area shape="rect" href="$class_demographics.html" title="Demographics" alt="" coords="1184,297,1309,324"/>
+<area shape="rect" href="$class_behavior.html" title="Behavior" alt="" coords="1401,508,1487,535"/>
+<area shape="rect" href="$class_population.html" title="Population" alt="" coords="797,297,896,324"/>
+<area shape="rect" href="$class_infection.html" title="Infection" alt="" coords="1207,508,1292,535"/>
+<area shape="rect" href="$class_place.html" title="Place" alt="" coords="1135,412,1193,439"/>
+<area shape="rect" href="$class_strain.html" title="Strain" alt="" coords="937,412,1001,439"/>
+<area shape="rect" href="$class_manager.html" title="Manager" alt="" coords="85,412,171,439"/>
+<area shape="rect" href="$class_epidemic.html" title="Epidemic" alt="" coords="880,508,968,535"/>
+<area shape="rect" href="$class_age___map.html" title="Age_Map" alt="" coords="973,199,1059,225"/>
+<area shape="rect" href="$class_timestep___map.html" title="Timestep_Map" alt="" coords="628,412,753,439"/>
+<area shape="rect" href="$class_vaccine___manager.html" title="Vaccine_Manager" alt="" coords="376,508,525,535"/>
+<area shape="rect" href="$class_a_v___manager.html" title="AV_Manager" alt="" coords="47,700,156,727"/>
+<area shape="rect" href="$class_policy.html" title="Policy" alt="" coords="51,508,112,535"/>
+<area shape="rect" href="$class_antivirals.html" title="Antivirals" alt="" coords="125,604,211,631"/>
+<area shape="rect" href="$class_antiviral.html" title="Antiviral" alt="" coords="21,604,101,631"/>
+<area shape="rect" href="$class_vaccines.html" title="Vaccines" alt="" coords="459,412,544,439"/>
+<area shape="rect" href="$class_cognition.html" title="Cognition" alt="" coords="1168,103,1259,129"/>
+<area shape="rect" href="$class_cognitive___model.html" title="Cognitive_Model" alt="" coords="1143,7,1284,33"/>
+</map>

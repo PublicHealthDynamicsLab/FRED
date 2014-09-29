@@ -1,0 +1,22 @@
+<map id="G" name="G">
+<area shape="rect" href="$class_place.html" title="Place" alt="" coords="47,89,105,116"/>
+<area shape="rect" href="$class_behavior.html" title="Behavior" alt="" coords="303,160,388,187"/>
+<area shape="rect" href="$class_infection.html" title="Infection" alt="" coords="1435,219,1520,245"/>
+<area shape="rect" href="$class_population.html" title="Population" alt="" coords="791,393,889,420"/>
+<area shape="rect" href="$class_strain.html" title="Strain" alt="" coords="1067,393,1131,420"/>
+<area shape="rect" href="$class_person.html" title="Person" alt="" coords="529,208,599,235"/>
+<area shape="rect" href="$class_manager.html" title="Manager" alt="" coords="1056,563,1141,589"/>
+<area shape="rect" href="$class_epidemic.html" title="Epidemic" alt="" coords="1433,441,1521,468"/>
+<area shape="rect" href="$class_age___map.html" title="Age_Map" alt="" coords="521,465,607,492"/>
+<area shape="rect" href="$class_timestep___map.html" title="Timestep_Map" alt="" coords="1036,504,1161,531"/>
+<area shape="rect" href="$class_vaccine___manager.html" title="Vaccine_Manager" alt="" coords="1403,680,1552,707"/>
+<area shape="rect" href="$class_demographics.html" title="Demographics" alt="" coords="777,199,903,225"/>
+<area shape="rect" href="$class_health.html" title="Health" alt="" coords="1673,135,1743,161"/>
+<area shape="rect" href="$class_cognition.html" title="Cognition" alt="" coords="300,317,391,344"/>
+<area shape="rect" href="$class_cognitive___model.html" title="Cognitive_Model" alt="" coords="5,431,147,457"/>
+<area shape="rect" href="$class_a_v___manager.html" title="AV_Manager" alt="" coords="1889,556,1999,583"/>
+<area shape="rect" href="$class_policy.html" title="Policy" alt="" coords="1447,584,1508,611"/>
+<area shape="rect" href="$class_antivirals.html" title="Antivirals" alt="" coords="1665,635,1751,661"/>
+<area shape="rect" href="$class_antiviral.html" title="Antiviral" alt="" coords="1668,584,1748,611"/>
+<area shape="rect" href="$class_vaccines.html" title="Vaccines" alt="" coords="1056,757,1141,784"/>
+</map>

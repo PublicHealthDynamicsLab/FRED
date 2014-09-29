@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($region) = @ARGV;
+die "usage: $0 region\n" if not $region;
+
+# create empty files
+system "unlink ${region}_schools.txt" if -e "${region}_schools.txt";
+system "unlink ${region}_synth_gq.txt" if -e "${region}_synth_gq.txt";
+system "unlink ${region}_synth_gq_people.txt" if -e "${region}_synth_gq_people.txt";
+system "unlink ${region}_synth_households.txt" if -e "${region}_synth_households.txt";
+system "unlink ${region}_synth_people.txt" if -e "${region}_synth_people.txt";
+system "unlink ${region}_workplaces.txt" if -e "${region}_workplaces.txt";
+
+system "touch ${region}_schools.txt";
+system "touch ${region}_synth_gq.txt";
+system "touch ${region}_synth_gq_people.txt";
+system "touch ${region}_synth_households.txt";
+system "touch ${region}_synth_people.txt";
+system "touch ${region}_workplaces.txt";
+
+# make_households $region
+system "grep H loc_$region.txt > households";
+open OUT, ">$region\_synth_households.txt";
+print OUT "hh_id,serialno,stcotrbg,hh_race,hh_income,hh_size,hh_age,latitude,longitude\n";
+open FH, "households";
+while (my $line = <FH>) {
+  chomp $line;
+  my ($id,$type,$lat,$lon) = split " ", $line;
+  print OUT "$id,0,0,1,0,0,0,$lat,$lon\n";
+}
+close FH;
+close OUT;
+unlink "households";
+
+# make_schools $region
+system "grep S loc_$region.txt > schools";
+open OUT, ">$region\_schools.txt";
+print OUT "school_id,name,stabbr,address,city,county,zip,zip4,nces_id,total,prek,kinder,gr01-gr12,ungraded,latitude,longitude,source,stco\n";
+open FH, "schools";
+while (my $line = <FH>) {
+  chomp $line;
+  my ($id,$type,$lat,$lon) = split " ", $line;
+  print OUT "$id,,,,,,,,,,,,,,$lat,$lon,X,X\n";
+}
+close FH;
+close OUT;
+unlink "schools";
+
+# make_workplaces $region
+system "grep W loc_$region.txt > workplaces";
+open OUT, ">$region\_workplaces.txt";
+print OUT "workplace_id,num_workers_assigned,latitude,longitude\n";
+open FH, "workplaces";
+while (my $line = <FH>) {
+  chomp $line;
+  my ($id,$type,$lat,$lon) = split " ", $line;
+  print OUT "$id,0,$lat,$lon\n";
+}
+close FH;
+unlink "workplaces";
+
+# make_pop $region
+my @newrel = qw/13 0 1 2 2 2 3 4 5 6 6 7 6 7 7 7 7 8 9 10 11 13/;
+open FH, "pop_$region.txt";
+open OUT, ">pop.tmp";
+while (my $line = <FH>) {
+  chomp $line;
+  my ($id,$age,$sex,$mar,$occ,$hhid,$sid,$wid,$rel) = split " ", $line;
+  print OUT "$id,$hhid,0,0,$age,",($sex eq 'M'?1:0),",1,0,",$newrel[$rel],",$sid,$wid\n";
+}
+close FH;
+close OUT;
+system "echo p_id,hh_id,serialno,stcotrbg,age,sex,race,sporder,relate,school_id,workplace_id > $region\_synth_people.txt";
+system "sort pop.tmp >> $region\_synth_people.txt";
+unlink "pop.tmp";
+

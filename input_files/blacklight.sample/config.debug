@@ -1,0 +1,9 @@
+################################################# 
+# Sample FRED Experiment Space config file
+#
+FRED Experiment Space Title: debug
+Baseline Parameter File: params.debug
+
+Sweep Parameters:
+name: R0 Min: 1.0 max: 3.5 inc: 0.5  format: %0.1f
+

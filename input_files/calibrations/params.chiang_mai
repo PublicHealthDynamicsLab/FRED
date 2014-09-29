@@ -1,0 +1,26 @@
+#########################################
+#
+# File: README_params.txt
+#
+# These parameters have been calibrated for the
+# chiang_mai synthetic population
+#
+days = 120
+synthetic_population_directory = $FRED_HOME/populations
+synthetic_population_id = chiang_mai
+
+assign_teachers = 0
+# school_classroom_size = 0
+# office_size = 0
+use_mean_latitude = 1
+R0_a = 0.0508098
+R0_b = 0.576036
+
+###  CALIBRATION PHASE II STEP 8 at Sat Oct  6 22:49:58 2012
+###  runs = 20  cores = 10
+household_contacts[0] = 0.117203
+neighborhood_contacts[0] = 41.113463
+school_contacts[0] = 16.631924
+workplace_contacts[0] = 1.435201
+classroom_contacts[0] = -1
+office_contacts[0] = -1

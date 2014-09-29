@@ -1,0 +1,13 @@
+<map id="G" name="G">
+<area shape="rect" href="$_perceptions_8h.html" title="Perceptions.h" alt="" coords="592,84,709,111"/>
+<area shape="rect" href="$_person_8h.html" title="Person.h" alt="" coords="609,239,692,265"/>
+<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="825,393,903,420"/>
+<area shape="rect" href="$_household_8h.html" title="Household.h" alt="" coords="267,161,379,188"/>
+<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="820,548,900,575"/>
+<area shape="rect" href="$_place_8h.html" title="Place.h" alt="" coords="287,393,359,420"/>
+<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="535,471,636,497"/>
+<area shape="rect" href="$_population_8h.html" title="Population.h" alt="" coords="660,471,772,497"/>
+<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="927,316,1025,343"/>
+<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="572,316,655,343"/>
+<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="619,393,717,420"/>
+</map>

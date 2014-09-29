@@ -1,0 +1,8 @@
+#!/bin/csh
+if (x$1 == "x" || $1 == '-h' || $1 == '--help') then
+echo usage: $0 substring
+echo == find all parameters that include the given substring
+exit
+endif
+
+grep "$1.* = " $FRED_HOME/input_files/params.default
