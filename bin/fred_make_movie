@@ -60,7 +60,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-# print "fred_make_maps -k $key -r $run -t \'$title\' -i $inc\n";
+print "fred_make_maps -k $key -r $run -t \'$title\' -i $inc -T $term -p $parallel_batch -C $country -c $census_tracts\n";
 system "fred_make_maps -k $key -r $run -m $max -t \'$title\' -i $inc -T $term -p $parallel_batch -C $country -c $census_tracts";
 
 chdir "VIS/run$run/dis$dis/MAPS";

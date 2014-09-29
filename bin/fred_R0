@@ -11,6 +11,7 @@ getopts("k:d:", \%options);
 
 my $key = "";
 $key = $options{k} if exists $options{k};
+die "usage: $0 -k key\n" if not $key;
 
 my $delay = 10;
 $delay = $options{d} if exists $options{d};
@@ -22,11 +23,10 @@ if ($key eq "") {
 die $usage if (not $key) or (not $delay);
 
 my $day = $delay+2;
-my $result = `fred_plot --data -k $key -v RR | head -$day | tail -1`;
+my $result = `fred_csv -k $key -v RR | head -$day | tail -1`;
 chomp $result;
-
-my ($x, $r0, $std) = split " ", $result;
-print "$r0 $std\n";
+my ($mean,$std) = $result =~ /.*,.*,(.*),(.*)/;
+print "$mean $std\n";
 exit;
 
 
