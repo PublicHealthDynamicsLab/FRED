@@ -65,6 +65,7 @@ while ($line =~ /^\s*Name:/i) {
   my ($min, $max, $inc, $value, $fmt, $file);
   if ($line =~ /Min:/i) {
     ($name, $min, $max, $inc, $fmt) = $line =~ /Name:\s*(\S+)\s+Min:\s*(\S+)\s+Max:\s*(\S+)\s+Inc:\s*(\S+)\s+Format:\s*(\S+)/i;
+    $max += 0.5*$inc; # avoid round-off errors
     for (my $x = $min; $x <= $max; $x += $inc) { my $s = sprintf ("$fmt", $x); push @pval, $s; }
   }
   elsif ($line =~ /Values:/i){
