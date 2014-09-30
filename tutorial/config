@@ -1,0 +1,19 @@
+#################################################                      
+# Sample fred_make_params config file                                  
+# Lines that starts with # are ignored.                                
+#                                                                      
+Baseline Parameter File: params.base
+
+Sweep Parameters:
+# the following illustrates a loop using min, max and increment:       
+# name: R0 min: 1.0 max: 2.5 inc: 0.5  format: %0.1f                   
+#                                                                      
+# the following uses a comma-separated list of values,                 
+# which may be strings (with no spaces)                                
+# name: Weeks values: [0, 1, 2, 4, 6, 8]                               
+#                                                                      
+# the following read in a file of values, one per line                 
+# name: test file: my_test_values.txt                                  
+#                                                                      
+Name: Immunization Min: 0.0 Max: 0.3 Inc: 0.1 Format: %0.1f
+#################################################                      

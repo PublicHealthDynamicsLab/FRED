@@ -1,0 +1,53 @@
+FRED Exercises
+
+6. PLOTTING RESULTS: THE fred_plot COMMAND
+
+NOTE: The fred_plot command requires that you have gnuplot installed on
+your computer.
+
+The fred_plot create plots of one or more FRED output variables, from
+one or more fred_jobs.  For example, the following command will produce
+a plot of the attack rate AR for job ex4:
+
+fred_plot -k ex4 -v AR
+
+You can plot several variable at once:
+
+fred_plot -k ex4 -v S -v E -v I -v R
+
+You can alter the title:
+
+fred_plot -k ex4 -v S -v E -v I -v R -T "Influenza in Punxsutawney"
+
+You can include errorbars:
+
+fred_plot -k ex4 -v S -v E -v I -v R -T "Influenza in Punxsutawney" -e
+
+You can normalize to the population size, use plot using weekly bar charts:
+
+fred_plot -k ex4 -v C -T "Influenza in Punxsutawney" --norm --hist --week
+
+The fred_plot command include several other options:
+
+fred_plot -k key -v var [ options ], where options include:
+       -h: print this help message.
+       -e: include errorbars on plot.
+       -f fontsize: specify "small", "medium", "large" or "giant" font.
+       -k key [ -k key ... ]: keys of jobs to plot
+       -s: save the gnuplot command file and the PNG file
+       -T title: Title to appear on plot.
+       -v var [ -v var ... ]: variable to be plotted.
+       -x xmin: min value for x-axis.
+       -X xmax: max value for x-axis.
+       -y ymin: min value for y-axis.
+       -Y ymax: max value for y-axis.
+       -o outfile: send output image to indicated file.
+       --pdf: make pdf file if set (default)
+       --data: print x,y values to standard output.
+       --epi: label weeks by epi week numbers instead of simulation weeks.
+       --histogram: plot histograms instead of curves.
+       --name: return the name of the plot file only.
+       --normalize: scale y-axis to show counts per 100,000 people.
+       --weekly: plot variables averaged over epi weeks, with a smooth spline curve.
+
+NOTES:

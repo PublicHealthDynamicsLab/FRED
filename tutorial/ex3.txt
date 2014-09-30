@@ -1,0 +1,34 @@
+FRED Exercises
+
+3. THE run_fred COMMAND
+
+Run FRED using the command
+
+% run_fred -p params
+
+This will create a directory called OUT and write some output files
+there.  All FRED output files are plain text files. Use a text editor to
+examine the files out1.txt and LOG1.  The file out1.txt contains a daily
+report on the epidemic, incluidng the current values of several output
+variables.  The file LOG1 contains log messages that show the progress
+of FRED as it runs.  You can get a sense of the steps taken by FRED by
+examining the LOG file. This file also contains any warnings or error
+messages.
+
+You can performed multiple runs of FRED using the same parameters. Each
+run uses a different seed for the FRED random number generator,
+providing different initial starting conditions for each epidemic.  For
+example, the initial cases are selected at random from the population.
+An example of multiple runs is as follows:
+
+% run_fred -p params -n 5
+
+The OUT directory now contians multiple out<n>.txt, one for each run.
+
+You will not normally use run_fred directly; instead, you will use
+fred_job (below) which uses run_fred and also creates additional files
+that help you manage your work.  But it is a good idea to use run_fred
+when initially developing or debugging models.  If you have errors,
+check the LOG files.
+
+NOTES:
