@@ -10,14 +10,15 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $FREDRESULTS = $ENV{FRED_RESULTS};
 $FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
 
-my $dir = "$FREDRESULTS";
-die "Can't find directory $dir\n" if not -d $dir;
-
 my $usage = "$0 [ --help ]\nThis command lists all jobs in $FREDRESULTS\n";
 my ($help) = @ARGV;
 die $usage if $help;
 
-open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+my $dir = "$FREDRESULTS";
+system "mkdir -p $dir; touch $dir/KEY" if not -d $dir;
+die "$0: ERROR FINDING $dir\n" if not -d $dir;
+
+open FH, "$dir/KEY" or die "$0: Can't find $dir/KEY\n";
 while (<FH>) {
   chomp;
   my ($key, $id) = split;
