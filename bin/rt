@@ -77,10 +77,21 @@ fi
 
 echo
 echo comparing results ...
-./compare
+./compare > compare.test
+# test if files are the same
+cmp -s compare.test compare.out
+if [ $? -eq 0 ]; then
+    echo regression test passed.
+    echo
+else
+    echo regression test failed with output:
+    cat compare.test
+    echo
+fi
+
 
 # done
-echo regression test finished.
+# echo regression test finished.
 
 
 cd $pwd
