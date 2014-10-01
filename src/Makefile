@@ -109,16 +109,14 @@ DSFMT_HDR = $(DSFMT_DIR)/dSFMT.h $(DSFMT_DIR)/dSFMT-params19937.h
 # CPPFLAGS = -pg $(M64) -O2 -DNDEBUG  -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(LOGGING_PRESET_3) -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls -fno-omit-frame-pointer
 
 ## Use this to run with multiple threads
-CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+# CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 ## Use this to make reproducible serial runs
-# Note: MacOS 10.9 (Mavericks) uses clang/LLVM as its compiler. Clang does not currently support openMP
-# You could try changing your compiler to use gcc/g++, you could try to use one of openMP's 
-# clang/LLVM recompiles that understands openMP, or you could just try compiling without openMP
-# as below.
-# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+# Note: this is recommended if using clang/LLVM on MacOS 10.9 (Mavericks),
+# since clang does not currently support openMP.
+CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 
 
