@@ -9,6 +9,6 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 die "$0: FRED home directory $FRED not found\n" if not -d $FRED;
 chdir $FRED;
 system "git pull origin; make";
-print "Please quit and restart your terminal application.";
+print "Please quit and restart your terminal application.\n";
 exit;
      
