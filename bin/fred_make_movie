@@ -2,46 +2,68 @@
 use strict;
 use warnings;
 use Env;
-use Getopt::Std;
-
-my $usage = "usage: $0 -k key [ -i 1 | -r run | -d disease_id | -t title | -m max | -T ps | -M mov | -C usa | -p parallelism | -c census_tracts]";
-
-my %options = ();
-getopts("c:C:m:d:i:k:r:t:T:M:p:", \%options);
-
-my $key = "";
-$key = $options{k} if exists $options{k};
-die "$usage\n" if not $key;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $census_tracts = 0;
-$census_tracts = $options{c} if exists $options{c};
-
-my $dis = 0;
-$dis = $options{d} if exists $options{d};
-
-my $inc = 1;
-$inc = $options{i} if exists $options{i};
-
-my $max = 10;
-$max = $options{m} if exists $options{m};
-
-my $run = 1;
-$run = $options{r} if exists $options{r};
-
-my $term = "png";
-$term = $options{T} if exists $options{T};
-
 my $country = "usa";
-$country = $options{C} if exists $options{C};
-
-my $parallel_batch = 10;
-$parallel_batch = $options{p} if exists $options{p};
-
-my $movie_format = "mp4";
-$movie_format = $options{M} if exists $options{M};
-
+my $disease_id = 0;
+my $filled = 0;
+my $help = 0;
+my $key = "";
+my $max = 10;
+my $parallelism = 1;
+my $run = 1;
+my $term = "png";
 my $title = "FRED Allegheny County";
-$title = $options{t} if exists $options{t};
+my $show_dots = 1;
+my $show_incidence = 1;
+my $show_infectious = 1;
+my $show_recovered = 1;
+my $movie_format = "mp4";
+
+my $opt_result = GetOptions(
+			    "census_tracts" => \$census_tracts,
+			    "country=s" => \$country,
+			    "disease=i" => \$disease_id,
+			    "filled=i" => \$filled,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "max=s" => \$max,
+			    "parallelism=i" => \$parallelism,
+			    "run=i" => \$run,
+			    "term=s" => \$term,
+			    "title=s" => \$title,
+			    "dots=i" => \$show_dots,
+			    "incidence=i" => \$show_incidence,
+			    "infectious=i" => \$show_infectious,
+			    "recovered=i" => \$show_recovered,
+			    "movieformat=s" => \$movie_format,
+			   );
+
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+  movie_format <str> : use the specified movie format.
+  census_tracts 0/1: plot census tracts
+  country <name> : plot the named country
+  disease <id> : plot results for the disease id
+  filled <0/1>:  if set, plot filled curves
+  help: print this help message
+  key <id> : plot the job with given id 
+  max <val> : use the given value as the maximum for color plots
+  parallelism <n> : plot n maps in parallel
+  run <n> : plot results of run n
+  term <type> : plot using the specified terminal type
+  title <str> : title for each map
+  dots <0/1> : if set plot dots
+  incidence <0/1> : if set and dots is set, plot households with incidence
+  infectious <0/1> : if set and dots is set, plot households with infectious members
+  recovered <0/1> :  if set and dots is set, plot households with recovered members
+EOH
+
+die $usage if $help;
+die $usage if not $key;
 
 my $FRED = $ENV{FRED_HOME};
 die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
@@ -60,10 +82,13 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-print "fred_make_maps -k $key -r $run -t \'$title\' -i $inc -T $term -p $parallel_batch -C $country -c $census_tracts\n";
-system "fred_make_maps -k $key -r $run -m $max -t \'$title\' -i $inc -T $term -p $parallel_batch -C $country -c $census_tracts";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered";
 
-chdir "VIS/run$run/dis$dis/MAPS";
+# print "$command\n"; exit;
+
+system $command;
+
+chdir "VIS/run$run/dis$disease_id/MAPS";
 if (-s "FIPS") {
   system "rm -f $cwd/$key.$movie_format";
   # system "ffmpeg -r 5 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";

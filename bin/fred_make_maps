@@ -2,44 +2,64 @@
 use strict;
 use warnings;
 use Env;
-use Getopt::Std;
-
-my $usage = "usage: $0 -k key [ -i 1 | -d disease_id | -r run | -t title | -T term | -p parallel_batch | -m max | -C country | -c census_tracts]";
-
-my %options = ();
-getopts("c:C:m:d:i:k:r:t:T:p:", \%options);
-
-my $key = "";
-$key = $options{k} if exists $options{k};
-die "$usage\n" if not $key;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $census_tracts = 0;
-$census_tracts = $options{c} if exists $options{c};
-
-my $dis = 0;
-$dis = $options{d} if exists $options{d};
-
-my $inc = 0;
-$inc = $options{i} if exists $options{i};
-# print "$0: inc = $inc\n";
-
-my $max = 10;
-$max = $options{m} if exists $options{m};
-
 my $country = "usa";
-$country = $options{C} if exists $options{C};
-
+my $disease_id = 0;
+my $filled = 0;
+my $help = 0;
+my $key = "";
+my $max = 10;
+my $parallelism = 1;
 my $run = 1;
-$run = $options{r} if exists $options{r};
-
-my $parallel_batch = 1;
-$parallel_batch = $options{p} if exists $options{p};
-
 my $term = "png";
-$term = $options{T} if exists $options{T};
-
 my $title = "FRED Allegheny County";
-$title = $options{t} if exists $options{t};
+my $show_dots = 1;
+my $show_incidence = 1;
+my $show_infectious = 1;
+my $show_recovered = 1;
+
+my $opt_result = GetOptions(
+			    "census_tracts=i" => \$census_tracts,
+			    "country=s" => \$country,
+			    "disease=i" => \$disease_id,
+			    "filled=i" => \$filled,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "key=s" => \$key,
+			    "max=s" => \$max,
+			    "parallelism=i" => \$parallelism,
+			    "run=i" => \$run,
+			    "term=s" => \$term,
+			    "title=s" => \$title,
+			    "dots=i" => \$show_dots,
+			    "incidence=i" => \$show_incidence,
+			    "infectious=i" => \$show_infectious,
+			    "recovered=i" => \$show_recovered,
+			   );
+
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+  census_tracts 0/1: plot census tracts
+  country <name> : plot the named country
+  disease <id> : plot results for the disease id
+  filled <0/1>:  if set, plot filled curves
+  help: print this help message
+  key <id> : plot the job with given id 
+  max <val> : use the given value as the maximum for color plots
+  parallelism <n> : plot n maps in parallel
+  run <n> : plot results of run n
+  term <type> : plot using the specified terminal type
+  title <str> : title for each map
+  dots <0/1> : if set plot dots
+  incidence <0/1> : if set and dots is set, plot households with incidence
+  infectious <0/1> : if set and dots is set, plot households with infectious members
+  recovered <0/1> :  if set and dots is set, plot households with recovered members
+EOH
+
+die $usage if $help;
+die $usage if not $key;
 
 my $FRED = $ENV{FRED_HOME};
 die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
@@ -57,9 +77,9 @@ chdir $outdir;
 my $days = `wc -l out1.txt`;
 chomp $days;
 $days--;
-$parallel_batch = $days if ($days < $parallel_batch);
+$parallelism = $days if ($days < $parallelism);
 
-my $vis = "$outdir/VIS/run$run/dis$dis";
+my $vis = "$outdir/VIS/run$run/dis$disease_id";
 chdir $vis;
 
 system "mkdir -p MAPS";
@@ -111,20 +131,24 @@ my @cmds = ();
 for my $day (0..$days) {
   my $longtitle = sprintf("{/Arial=14 %s}\\n{/Arial=10 Day %3d}", $title, $day);
   my $mapname = sprintf("map%04d.$term",$day);
-  my $loadfile = "load-run=$run-dis=$dis-day=$day.plt";
+  my $loadfile = "load-run=$run-dis=$disease_id-day=$day.plt";
   open LD, ">$loadfile";
   print LD "my_title = \"$longtitle\"\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";
-  print LD "incidence = $inc\n";
+  print LD "show_dots = $show_dots\n";
+  print LD "show_incidence = $show_incidence\n";
+  print LD "show_infectious = $show_infectious\n";
+  print LD "show_recovered = $show_recovered\n";
+  print LD "filled = $filled\n";
   print LD "max = $max\n";
   print LD "household_locations = '$vis/households.txt'\n";
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
-  print LD "rawfile = '$vis/MAPS/RAW-$dis.$day'\n";
-  print LD "pctfile = '$vis/MAPS/PCT-$dis.$day'\n";
+  print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
+  print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
   close LD;
 
@@ -134,7 +158,7 @@ for my $day (0..$days) {
   # print "$mapname\n";
   print ".";
   $started++;
-  if ($started eq $parallel_batch) {
+  if ($started eq $parallelism) {
     for my $d (0..$day) {
       while (not -e ".done.$d") { sleep 1; }
     }
@@ -206,7 +230,7 @@ sub write_values_to_file {
   open PCT,">MAPS/$pctfile";
   for my $i (0..$#values) {
     my $f = sprintf("%05d", $fips[$i]);
-    die "$0: cant find pop for fips = |$fips[$i]|\n" if not exists $pop{$f};
+    die "$0: can't find pop for fips = |$fips[$i]|\n" if not exists $pop{$f};
     die "$0: zero pop for fips = |$fips[$i]|\n" if not $pop{$f};
     my $pct = 100.0 * $values[$i] / $pop{$f};
     $max_pct = $pct if $pct > $max_pct;
@@ -223,8 +247,8 @@ sub make_census_tract_map_data {
     my $file = "C/census_tracts-$day.txt";
     die "$0: ERROR file $file not found\n" if not -e $file;
     open CT,$file or die "$0: ERROR reading file $file\n";
-    my $rawfile = "RAW-$dis.$day";
-    my $pctfile = "PCT-$dis.$day";
+    my $rawfile = "RAW-$disease_id.$day";
+    my $pctfile = "PCT-$disease_id.$day";
     open RAW,">MAPS/$rawfile";
     open PCT,">MAPS/$pctfile";
     my $line = <CT>; # skip header line
