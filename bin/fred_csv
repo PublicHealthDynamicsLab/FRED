@@ -51,7 +51,7 @@ if ($var ne "") {
     print "Day,Popsize,$var\n";
     while (my $line = <FH>) {
       my ($day, $val, $pop) = split " ",$line;
-      print "$day,$pop,$val\n",
+      print "$day,$pop,",cleanup($val),"\n",
     }
     close FH;
   } else {
@@ -63,7 +63,7 @@ if ($var ne "") {
     print "Day,Popsize,$var,$var\_std\n";
     while (my $line = <FH>) {
       my ($day, $mean, $std, $pop) = split " ",$line;
-      print "$day,$pop,$mean,$std\n",
+      print "$day,$pop,",cleanup($mean),",",cleanup($std),"\n";
     }
     close FH;
   }
@@ -117,10 +117,10 @@ else {
       while (my $line = <FH>) {
 	my ($day, $mean, $std, $pop) = split " ",$line;
 	if ($vars == 1) {
-	  $out[$i] = "$day,$pop,$mean,$std";
+	  $out[$i] = "$day,$pop," . cleanup($mean) . "," .cleanup($std);
 	}
 	else {
-	  $out[$i] .= ",$mean,$std";
+	  $out[$i] .= "," . cleanup($mean) . "," . cleanup($std);
 	}
 	$i++;
       }
@@ -128,4 +128,12 @@ else {
     }
     print "$_\n" for @out;
   }
+}
+
+sub cleanup {
+  my $x1 = shift;
+  my $x = sprintf("%0.5f", $x1);
+  $x =~ s/0*$//;
+  $x =~ s/\.$//;
+  return $x;
 }
