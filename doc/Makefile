@@ -3,7 +3,7 @@
 # FRED Makefile
 #
 
-all: FRED_UserGuide.pdf FRED_web_analytics.pdf FRED_web_simulation.pdf FRED_mobile.pdf
+all: FRED_UserGuide.pdf # FRED_web_analytics.pdf FRED_web_simulation.pdf FRED_mobile.pdf
 	
 
 FRED_UserGuide.pdf: FRED_UserGuide.rst FRED.css
