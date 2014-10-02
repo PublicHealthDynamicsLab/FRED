@@ -19,6 +19,11 @@ my $show_dots = 1;
 my $show_incidence = 1;
 my $show_infectious = 1;
 my $show_recovered = 1;
+my $linewidth = 2;
+my $xmin = "-99999";
+my $xmax = "-99999";
+my $ymin = "-99999";
+my $ymax = "-99999";
 
 my $opt_result = GetOptions(
 			    "census_tracts=i" => \$census_tracts,
@@ -37,25 +42,34 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "lw=s" => \$linewidth,
+			    "x=f" => \$xmin,
+			    "X=f" => \$xmax,
+			    "y=f" => \$ymin,
+			    "Y=f" => \$ymax,
 			   );
 
 my $usage = <<EOH;
 usage: $0 [ options ], where options include:
-  census_tracts 0/1: plot census tracts
-  country <name> : plot the named country
-  disease <id> : plot results for the disease id
-  filled <0/1>:  if set, plot filled curves
-  help: print this help message
-  key <id> : plot the job with given id 
-  max <val> : use the given value as the maximum for color plots
-  parallelism <n> : plot n maps in parallel
-  run <n> : plot results of run n
-  term <type> : plot using the specified terminal type
-  title <str> : title for each map
-  dots <0/1> : if set plot dots
-  incidence <0/1> : if set and dots is set, plot households with incidence
-  infectious <0/1> : if set and dots is set, plot households with infectious members
-  recovered <0/1> :  if set and dots is set, plot households with recovered members
+  --census_tracts 0/1: plot census tracts
+  --country <name> : plot the named country
+  --disease <id> : plot results for the disease id
+  --filled <0/1>:  if set, plot filled curves
+  --help: print this help message
+  --key <id> : plot the job with given id 
+  --max <val> : use the given value as the maximum for color plots
+  --parallelism <n> : plot n maps in parallel
+  --run <n> : plot results of run n
+  --term <type> : plot using the specified terminal type
+  --title <str> : title for each map
+  --dots <0/1> : if set plot dots
+  --incidence <0/1> : if set and dots is set, plot households with incidence
+  --infectious <0/1> : if set and dots is set, plot households with infectious members
+  --recovered <0/1> :  if set and dots is set, plot households with recovered members
+  -x <xmin> : min value for x axis
+  -X <xmax> : max value for x axis
+  -y <ymin> : min value for y axis
+  -Y <xmax> : max value for x axis
 EOH
 
 die $usage if $help;
@@ -107,7 +121,7 @@ else {
 }
 print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f map.* .done.* fred_make_maps.log";
+system "rm -f map.* .done.* fred_make_maps.log; echo foo = 0 > RANGES.plt";
 
 my $shapedir = "$FRED/SHAPEFILES/2010";
 my $shapefile = "x";
@@ -150,6 +164,11 @@ for my $day (0..$days) {
   print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
   print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
+  print LD "linewidth = '$linewidth'\n";
+  print LD "xmin = $xmin\n";
+  print LD "xmax = $xmax\n";
+  print LD "ymin = $ymin\n";
+  print LD "ymax = $ymax\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
