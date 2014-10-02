@@ -11,8 +11,8 @@ if (!exists("terminal")) {
 if (!exists("mapname")) {
   mapname = "map" . terminal
 }
-if (!exists("show_all")) {
-  show_all = 0
+if (!exists("show_all_households")) {
+  show_all_households = 0
 }
 if (!exists("show_dots")) {
   show_dots = 1
@@ -232,9 +232,10 @@ if (show_dots) {
      replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l ls 99 lw linewidth
   }
   else {
+     # draw outlines
      plot for [n=1:words(fips)] filename(n) u 2:1 t '' w l ls 99 lw linewidth
   }
-  if (show_all) {
+  if (show_all_households) {
     replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
   }
   if (show_recovered) {

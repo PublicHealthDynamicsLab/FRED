@@ -7,7 +7,7 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 my $census_tracts = 0;
 my $country = "usa";
 my $disease_id = 0;
-my $filled = 0;
+my $filled = 1;
 my $help = 0;
 my $key = "";
 my $max = 10;
@@ -15,12 +15,13 @@ my $parallelism = 1;
 my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
-my $show_dots = 1;
-my $show_incidence = 1;
-my $show_infectious = 1;
-my $show_recovered = 1;
+my $show_dots = 0;
+my $show_all_households = 0;
+my $show_incidence = 0;
+my $show_infectious = 0;
+my $show_recovered = 0;
 my $movie_format = "mp4";
-my $linewidth = 2;
+my $linewidth = 1;
 my $xmin = "-99999";
 my $xmax = "-99999";
 my $ymin = "-99999";
@@ -41,11 +42,12 @@ my $opt_result = GetOptions(
 			    "term=s" => \$term,
 			    "title=s" => \$title,
 			    "dots=i" => \$show_dots,
+			    "households=i" => \$show_all_households,
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
 			    "movieformat=s" => \$movie_format,
-			    "lw=s" => \$linewidth,
+			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
 			    "y=f" => \$ymin,
@@ -96,7 +98,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax";
 
 # print "$command\n"; exit;
 
