@@ -87,7 +87,7 @@ if __name__ == '__main__':
 	concString = ""
 	m5hash = ""
     ### create a string of the concatenated input files
-	exclusionList = ['dbfile.txt','params.default']
+	exclusionList = ['dbfile.txt','defaults']
 	fred_work_dir = fred_run.run_work_dir
 	if os.path.exists(fred_work_dir) is True:
 	    workingFiles = glob.glob(fred_work_dir + "/*")

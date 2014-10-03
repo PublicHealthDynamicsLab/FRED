@@ -32,13 +32,13 @@ my ($param, $param_value, $params_file, $nocheck) = @ARGV;
 $params_file = "params" if not $params_file;
 # print "param = |$param|\n";
 
-# make sure given param is in the params.default file
-my $params_default = "params.default";
-if (not -e $params_default) {
-  $params_default = "$FRED/input_files/params.default";
+# make sure given param is in the defaults file
+my $defaults = "defaults";
+if (not -e $defaults) {
+  $defaults = "$FRED/input_files/defaults";
 }
-if (not -e $params_default) {
-  die "$0: could not find params.default file\n";
+if (not -e $defaults) {
+  die "$0: could not find defaults file\n";
 }
 
 my $x="$param = ";
@@ -46,7 +46,7 @@ $x =~ s/\[/\\[/g;
 $x =~ s/\-/\\-/g;
 $x =~ s/\./\\./g;
 # print "x = |$x|\n";
-my $line = `grep '^$x' $params_default`;
+my $line = `grep '^$x' $defaults`;
 die "$0: $param not a valid parameter\n" if (not $line and not $nocheck);
 
 # set locking semaphore

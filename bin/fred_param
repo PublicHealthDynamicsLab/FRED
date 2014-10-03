@@ -5,4 +5,4 @@ echo == find all parameters that include the given substring
 exit
 endif
 
-grep "$1.* = " $FRED_HOME/input_files/params.default
+grep "$1.* = " $FRED_HOME/input_files/defaults

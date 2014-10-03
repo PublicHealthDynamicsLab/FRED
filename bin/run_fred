@@ -66,21 +66,21 @@ for my $n ($start_run .. $end_run) {
 sub get_param_value {
   my ($param, $paramsfile) = @_;
 
-  # find params.default file
-  my $params_default = "params.default";
-  if (not -e $params_default) {
-    $params_default = "$FRED/input_files/params.default";
+  # find defaults file
+  my $defaults = "defaults";
+  if (not -e $defaults) {
+    $defaults = "$FRED/input_files/defaults";
   }
-  if (not -e $params_default) {
-    die "$0: could not find params.default file\n";
+  if (not -e $defaults) {
+    die "$0: could not find defaults file\n";
   }
 
   # add escape characters so that grep work for indexed parameters
   $param =~ s/\[/\\[/g;
   $param =~ s/\-/\\-/g;
 
-  # get last line from params.default that starts with the given parameter
-  my $dval = `grep '^$param =' $params_default`;
+  # get last line from defaults that starts with the given parameter
+  my $dval = `grep '^$param =' $defaults`;
   chomp $dval;
   # retrieve the value portion
   if ($dval) {

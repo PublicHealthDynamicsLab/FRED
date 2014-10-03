@@ -307,7 +307,7 @@ my $logfile = "$meta/LOG";
 
 # copy the params file for future reference
 `cp $cwd/$paramsfile $meta/PARAMS`;
-`cp $FRED/input_files/params.default $meta/DEFAULT`;
+`cp $FRED/input_files/defaults $meta/DEFAULT`;
 
 # copy source code
 my $version = "$meta/VERSION";
@@ -320,7 +320,7 @@ mkdir $version or die "Can't make directory $version\n";
 chdir $cwd;
 
 # copy the input files to working directory
-`cp $FRED/input_files/params.default $work/params.default`;
+`cp $FRED/input_files/defaults $work/defaults`;
 my $params = "$work/$params_base";
 `cp $paramsfile $params`;
 `cp $mortality_rate_file "$work/$mortality_rate_file_base"` if $mortality_rate_file ne "none";
@@ -479,13 +479,13 @@ sub get_param_value {
   my ($param, $paramsfile) = @_;
   # print "get_param_value: $param $paramsfile\n";
 
-  # find params.default file
-  my $params_default = "params.default";
-  if (not -e $params_default) {
-    $params_default = "$FRED/input_files/params.default";
+  # find defaults file
+  my $defaults = "defaults";
+  if (not -e $defaults) {
+    $defaults = "$FRED/input_files/defaults";
   }
-  if (not -e $params_default) {
-    die "$0: could not find params.default file\n";
+  if (not -e $defaults) {
+    die "$0: could not find defaults file\n";
   }
 
   # add escape characters so that grep work for indexed parameters
@@ -493,7 +493,7 @@ sub get_param_value {
   $param =~ s/\-/\\-/g;
 
   my $val = "";
-  open PAR,"$params_default" or die "$0: ERROR READING $params_default\n";
+  open PAR,"$defaults" or die "$0: ERROR READING $defaults\n";
   while (my $line = <PAR>) {
     if ($line =~ /^$param\s*=/) {
       ($val) = $line =~ /=\s*(.*?)\s*$/; 

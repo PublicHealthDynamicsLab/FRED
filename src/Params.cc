@@ -158,7 +158,7 @@ int Params::read_parameters(char *paramfile) {
   char filename[MAX_PARAM_SIZE];
   Params::param_count = 0;
   
-  strcpy(filename, "$FRED_HOME/input_files/params.default");
+  strcpy(filename, "$FRED_HOME/input_files/defaults");
   read_parameter_file(filename);
   read_parameter_file(paramfile);
   Params::get_param_from_string("psa_method", Global::PSA_Method);
