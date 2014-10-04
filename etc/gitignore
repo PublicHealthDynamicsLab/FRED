@@ -1,0 +1,49 @@
+# copy this file to $FRED_HOME/.gitignore
+
+# exclude everything other than FRED core directories
+/*
+!LICENSE
+!Makefile
+!README.md
+!/bin/
+!/doc/
+!/etc/
+!/input_files/
+!/src/
+!/tests/
+!/tutorial/
+
+# include only sample populations
+populations/*
+!/populations/2010_synth_pop_ver1_quickstart.pdf
+!/populations/2010_ver1_42003.zip
+!/populations/2010_ver1_42065.zip
+!/populations/Makefile
+
+#exclude country data other than USA
+input_files/countries/*
+!input_files/countries/usa
+
+# exclude RESULTS
+RESULTS/**
+
+# exclude FRED executables
+src/FRED
+bin/FRED
+
+# exclude DEPENDS file created by make
+src/DEPENDS
+
+# ignore file that start with period
+**/\.*
+
+# ignore file that end with tilde
+**/*~
+
+# ignore .o files
+**/*.o
+
+# ignore all CVS directories
+**/CVS/
+
+
