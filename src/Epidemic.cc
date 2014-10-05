@@ -113,7 +113,7 @@ Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
   this->symptomatic_attack_rate = 0.0;
 
   this->total_serial_interval = 0.0;
-  this->total_people_ever_infected_excluding_index_cases = 0;
+  this->total_secondary_cases = 0;
 
   this->N_init = 0;
   this->N = 0;
@@ -626,25 +626,20 @@ void Epidemic::report_age_of_infection(int day) {
 
 void Epidemic::report_serial_interval(int day) {
 
-  int daily_index_case_count = 0; // Don't want to include the index cases in our calculations
   for(int i = 0; i < this->people_becoming_infected_today; i++) {
     Person * infectee = this->daily_infections_list[i];
-    if(infectee->get_infected_place_type(id) != 'X') {
+    Person * infector = infectee->get_infector(id);
+    if(infector != NULL) {
       int serial_interval = infectee->get_exposure_date(this->id)
-          - infectee->get_infector(this->id)->get_exposure_date(this->id);
+	- infector->get_exposure_date(this->id);
       this->total_serial_interval += (double) serial_interval;
-    } else {
-      daily_index_case_count++;
+      this->total_secondary_cases++;
     }
   }
 
-  this->total_people_ever_infected_excluding_index_cases += this->people_becoming_infected_today
-      - daily_index_case_count;
-
   double mean_serial_interval = 0.0;
-  if(this->total_people_ever_infected_excluding_index_cases != 0) {
-    mean_serial_interval = this->total_serial_interval
-      / (double) this->total_people_ever_infected_excluding_index_cases;
+  if(this->total_secondary_cases > 0) {
+    mean_serial_interval = this->total_serial_interval / (double) this->total_secondary_cases;
   }
 
   //Write to log file

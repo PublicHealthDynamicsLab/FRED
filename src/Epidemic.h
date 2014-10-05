@@ -267,7 +267,7 @@ private:
 
   // serial interval
   double total_serial_interval;
-  int total_people_ever_infected_excluding_index_cases;
+  int total_secondary_cases;
 
   // used for maintining quantities from previous day;
   int incidence;
