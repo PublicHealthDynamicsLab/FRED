@@ -382,17 +382,18 @@ void Infection::report_infection(int day) const {
       infStrS << " census_tract " << census_tract;
     }
     
-    infStrS << "| PERIODS  latent " << this->latent_period << " asymp " << this->asymptomatic_period
+    infStrS << " | PERIODS  latent " << this->latent_period << " asymp " << this->asymptomatic_period
 	    << " symp " << this->symptomatic_period << " recovery " << this->recovery_period;
+    infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
   }
 
   if(Global::Track_infection_events > 2)
-    infStrS << "| DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
+    infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
         << get_symptomatic_date() << " rec " << get_recovery_date() << " sus "
         << get_susceptible_date();
 
   if(Global::Track_infection_events > 3)
-    infStrS << "| will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
+    infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
         << " infect " << this->infectivity << " inf_multp " << infectivity_multp << " sympts "
         << this->symptoms;
 
