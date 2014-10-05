@@ -641,23 +641,19 @@ void Epidemic::report_serial_interval(int day) {
   this->total_people_ever_infected_excluding_index_cases += this->people_becoming_infected_today
       - daily_index_case_count;
 
+  double mean_serial_interval = 0.0;
   if(this->total_people_ever_infected_excluding_index_cases != 0) {
-    double mean_serial_interval = this->total_serial_interval
-          / (double) this->total_people_ever_infected_excluding_index_cases;
-    //Write to log file
-    Utils::fred_log("\nday %d SERIAL_INTERVAL:", day);
-    Utils::fred_log("\n ser_int %.2f", mean_serial_interval);
-    //Store for daily output file
-    Global::Daily_Tracker->set_index_key_pair(day,"ser_int", mean_serial_interval);
-  } else {
-    //Write to log file
-    Utils::fred_log("\nday %d SERIAL_INTERVAL:", day);
-    Utils::fred_log("\n ser_int %.2f", 0.0);
-    //Store for daily output file
-    Global::Daily_Tracker->set_index_key_pair(day,"ser_int", 0.0);
+    mean_serial_interval = this->total_serial_interval
+      / (double) this->total_people_ever_infected_excluding_index_cases;
   }
-  Utils::fred_log("\n");
 
+  //Write to log file
+  Utils::fred_log("\nday %d SERIAL_INTERVAL:", day);
+  Utils::fred_log("\n ser_int %.2f\n", mean_serial_interval);
+
+  //Store for daily output file
+  Global::Daily_Tracker->set_index_key_pair(day,"ser_int", mean_serial_interval);
+  Global::Daily_Tracker->set_index_key_pair(day,"Gen", mean_serial_interval);
 }
 
 void Epidemic::report_transmission_by_age_group(int day) {
