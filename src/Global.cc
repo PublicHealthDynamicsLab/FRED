@@ -113,7 +113,7 @@ bool Global::Report_Serial_Interval = false;
 bool Global::Report_Incidence_By_County = false;
 bool Global::Report_Incidence_By_Census_Tract = false;
 bool Global::Assign_Teachers = false;
-bool Global::Enable_Household_Isolation = 0;
+bool Global::Enable_Household_Shelter = 0;
 char Global::PSA_Method[FRED_STRING_SIZE];
 char Global::PSA_List_File[FRED_STRING_SIZE];
 int Global::PSA_Sample_Size = 0;
@@ -267,8 +267,8 @@ void Global::get_global_parameters() {
   Global::Report_Incidence_By_County = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_incidence_by_census_tract",&temp_int);
   Global::Report_Incidence_By_Census_Tract = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("enable_household_isolation", &temp_int);
-  Global::Enable_Household_Isolation = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_household_shelter", &temp_int);
+  Global::Enable_Household_Shelter = (temp_int == 0 ? false : true);
 
   // Sanity Checks
   if ( Global::Diseases > Global::MAX_NUM_DISEASES ) {

@@ -52,8 +52,8 @@ Household::Household() {
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->isolated = false;
-  this->isolation_start_day = 0;
-  this->isolation_end_day = 0;
+  this->shelter_start_day = 0;
+  this->shelter_end_day = 0;
   this->county_index = -1;
   this->census_tract_index = -1;
   this->deme_id = ' ';
@@ -67,8 +67,8 @@ Household::Household(const char * lab, fred::place_subtype _subtype, fred::geo l
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->isolated = false;
-  this->isolation_start_day = 0;
-  this->isolation_end_day = 0;
+  this->shelter_start_day = 0;
+  this->shelter_end_day = 0;
   this->county_index = -1;
   this->census_tract_index = -1;
   this->deme_id = ' ';

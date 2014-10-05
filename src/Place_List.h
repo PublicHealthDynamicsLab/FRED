@@ -99,7 +99,7 @@ public:
   void setup_offices();
   Place * get_random_workplace();
   void print_household_size_distribution(char * dir, char * date_string, int run);
-  void report_isolation_stats(int day);
+  void report_shelter_stats(int day);
   void end_of_run();
 
   int get_number_of_demes() {
@@ -206,16 +206,16 @@ private:
   static int Military_fixed_staff;
   static double Military_resident_to_staff_ratio;
 
-  // the following support household isolation:
+  // the following support household shelter:
   static int Enable_copy_files;
-  static int Isolation_duration_mean;
-  static int Isolation_duration_std;
-  static int Isolation_delay_mean;
-  static int Isolation_delay_std;
+  static int Shelter_duration_mean;
+  static int Shelter_duration_std;
+  static int Shelter_delay_mean;
+  static int Shelter_delay_std;
   static double Pct_households_isolated;
   static bool High_income_households_isolated;
-  static double Early_isolation_rate;
-  static double Isolation_decay_rate;
+  static double Early_shelter_rate;
+  static double Shelter_decay_rate;
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
@@ -229,7 +229,7 @@ private:
   int first_quartile_household_income;
   int third_quartile_household_income;
   void report_household_incomes();
-  void select_households_for_isolation();
+  void select_households_for_shelter();
   void isolate_household(Household * h);
 
   // For hospitalization

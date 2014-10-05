@@ -285,7 +285,7 @@ public:
     this->census_tract_index = _census_tract_index;
   }
 
-  void set_isolation(bool _isolated) {
+  void set_shelter(bool _isolated) {
     this->isolated = _isolated;
   }
 
@@ -294,23 +294,23 @@ public:
   }
 
   bool is_isolated_today (int day) {
-    return (this->isolation_start_day <= day && day < this->isolation_end_day);
+    return (this->shelter_start_day <= day && day < this->shelter_end_day);
   }
 
-  void set_isolation_start_day(int start_day) {
-    this->isolation_start_day = start_day;
+  void set_shelter_start_day(int start_day) {
+    this->shelter_start_day = start_day;
   }
 
-  void set_isolation_end_day(int end_day) {
-    this->isolation_end_day = end_day;
+  void set_shelter_end_day(int end_day) {
+    this->shelter_end_day = end_day;
   }
 
-  int get_isolation_start_day() {
-    return this->isolation_start_day;
+  int get_shelter_start_day() {
+    return this->shelter_start_day;
   }
 
-  int get_isolation_end_day() {
-    return this->isolation_end_day;
+  int get_shelter_end_day() {
+    return this->shelter_end_day;
   }
 
   int get_household_income_code() const {
@@ -368,8 +368,8 @@ private:
   bool isolated;
   unsigned char deme_id;	      // deme == synthetic population id
   int group_quarters_units;
-  int isolation_start_day;
-  int isolation_end_day;
+  int shelter_start_day;
+  int shelter_end_day;
   int household_income;		      // household income
   int household_income_code;
   int county_index;

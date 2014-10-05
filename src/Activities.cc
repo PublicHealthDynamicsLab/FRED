@@ -421,7 +421,7 @@ void Activities::update_schedule(Person * self, int day) {
     this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
 
     // decide if my household is isolated
-    if(Global::Enable_Household_Isolation) {
+    if(Global::Enable_Household_Shelter) {
       Household * h = (Household *) self->get_household();
       if(h->is_isolated_today(day)) {
 	      FRED_STATUS(1, "update_schedule on day %d\n%s\n", day,

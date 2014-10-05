@@ -71,14 +71,14 @@ double Place_List::Military_resident_to_staff_ratio = 0;
 int Place_List::School_fixed_staff = 0;
 double Place_List::School_student_teacher_ratio = 0;
 
-int Place_List::Isolation_duration_mean = 0;
-int Place_List::Isolation_duration_std = 0;
-int Place_List::Isolation_delay_mean = 0;
-int Place_List::Isolation_delay_std = 0;
+int Place_List::Shelter_duration_mean = 0;
+int Place_List::Shelter_duration_std = 0;
+int Place_List::Shelter_delay_mean = 0;
+int Place_List::Shelter_delay_std = 0;
 double Place_List::Pct_households_isolated = 0;
 bool Place_List::High_income_households_isolated = 0;
-double Place_List::Early_isolation_rate = 0.0;
-double Place_List::Isolation_decay_rate = 0.0;
+double Place_List::Early_shelter_rate = 0.0;
+double Place_List::Shelter_decay_rate = 0.0;
 bool Place_List::Household_hospital_map_file_exists = false;
 int Place_List::Hospital_fixed_staff = 1.0;
 double Place_List::Hospital_worker_to_bed_ratio = 1.0;
@@ -131,17 +131,17 @@ void Place_List::get_parameters() {
   Params::get_param_from_string("military_fixed_staff", &Place_List::Military_fixed_staff);
   Params::get_param_from_string("military_resident_to_staff_ratio", &Place_List::Military_resident_to_staff_ratio);
 
-  // household isolation parameters
-  Params::get_param_from_string("iso_duration_mean", &Place_List::Isolation_duration_mean);
-  Params::get_param_from_string("iso_duration_std", &Place_List::Isolation_duration_std);
-  Params::get_param_from_string("iso_delay_mean", &Place_List::Isolation_delay_mean);
-  Params::get_param_from_string("iso_delay_std", &Place_List::Isolation_delay_std);
-  Params::get_param_from_string("iso_pct", &Place_List::Pct_households_isolated);
+  // household shelter parameters
+  Params::get_param_from_string("shelter_duration_mean", &Place_List::Shelter_duration_mean);
+  Params::get_param_from_string("shelter_duration_std", &Place_List::Shelter_duration_std);
+  Params::get_param_from_string("shelter_delay_mean", &Place_List::Shelter_delay_mean);
+  Params::get_param_from_string("shelter_delay_std", &Place_List::Shelter_delay_std);
+  Params::get_param_from_string("shelter_pct", &Place_List::Pct_households_isolated);
   int temp_int;
-  Params::get_param_from_string("iso_income", &temp_int);
+  Params::get_param_from_string("shelter_income", &temp_int);
   Place_List::High_income_households_isolated = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("iso_early_rate", &Place_List::Early_isolation_rate);
-  Params::get_param_from_string("iso_decay_rate", &Place_List::Isolation_decay_rate);
+  Params::get_param_from_string("shelter_early_rate", &Place_List::Early_shelter_rate);
+  Params::get_param_from_string("shelter_decay_rate", &Place_List::Shelter_decay_rate);
 
   // population parameters
   Params::get_param_from_string("synthetic_population_directory",
@@ -546,7 +546,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
       }
       h->set_county((*itr).county);
       h->set_census_tract_index((*itr).census_tract_index);
-      h->set_isolation(false);
+      h->set_shelter(false);
       this->households.push_back(h);
       if(Global::Enable_Visualization_Layer) {
 	long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
@@ -1305,8 +1305,8 @@ void Place_List::setup_households() {
 
   report_household_incomes();
 
-  if(Global::Enable_Household_Isolation) {
-    select_households_for_isolation();
+  if(Global::Enable_Household_Shelter) {
+    select_households_for_shelter();
   }
 
   // initialize the vector layer in proportion to the household population
@@ -1656,8 +1656,8 @@ void Place_List::report_household_incomes() {
 
 }
 
-void Place_List::select_households_for_isolation() {
-  FRED_VERBOSE(0, "select_households_for_isolation entered.\n");
+void Place_List::select_households_for_shelter() {
+  FRED_VERBOSE(0, "select_households_for_shelter entered.\n");
   FRED_VERBOSE(0, "pct_households_isolated = %f\n", Place_List::Pct_households_isolated);
   FRED_VERBOSE(0, "num_households = %d\n", this->households.size());
   int num_isolated = 0.5 + Place_List::Pct_households_isolated * this->households.size();
@@ -1687,49 +1687,49 @@ void Place_List::select_households_for_isolation() {
       this->isolate_household(tmp[i]);
     }
   }
-  FRED_VERBOSE(0, "select_households_for_isolation finished.\n");
+  FRED_VERBOSE(0, "select_households_for_shelter finished.\n");
 }
 
 void Place_List::isolate_household(Household * h) {
-  h->set_isolation(true);
+  h->set_shelter(true);
 
-  // set isolation delay
-  int iso_start_day  = 0.4999999 + draw_normal(Place_List::Isolation_delay_mean, Place_List::Isolation_delay_std);
-  if (Place_List::Early_isolation_rate > 0.0) {
+  // set shelter delay
+  int shelter_start_day  = 0.4999999 + draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
+  if (Place_List::Early_shelter_rate > 0.0) {
     double r = RANDOM();
-    while (iso_start_day > 0 && r < Place_List::Early_isolation_rate) {
-      iso_start_day--;
+    while (shelter_start_day > 0 && r < Place_List::Early_shelter_rate) {
+      shelter_start_day--;
       r = RANDOM();
     }
   }
-  if (iso_start_day < 0) { iso_start_day = 0; }
-  h->set_isolation_start_day(iso_start_day);
+  if (shelter_start_day < 0) { shelter_start_day = 0; }
+  h->set_shelter_start_day(shelter_start_day);
 
-  // set isolation duration
-  int iso_duration  = 0.4999999 + draw_normal(Place_List::Isolation_duration_mean, Place_List::Isolation_duration_std);
-  if (iso_duration < 1) { iso_duration = 1; }
+  // set shelter duration
+  int shelter_duration  = 0.4999999 + draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
+  if (shelter_duration < 1) { shelter_duration = 1; }
 
-  if (Place_List::Isolation_decay_rate > 0.0) {
+  if (Place_List::Shelter_decay_rate > 0.0) {
     double r = RANDOM();
     if (r < 0.5) {
-      iso_duration = 1;
+      shelter_duration = 1;
       r = RANDOM();
-      while (iso_duration < Place_List::Isolation_duration_mean && Place_List::Isolation_decay_rate < r) {
-	iso_duration++;
+      while (shelter_duration < Place_List::Shelter_duration_mean && Place_List::Shelter_decay_rate < r) {
+	shelter_duration++;
 	r = RANDOM();
       }
     }
   }
-  h->set_isolation_end_day(iso_start_day + iso_duration);
+  h->set_shelter_end_day(shelter_start_day + shelter_duration);
 
   FRED_VERBOSE(1, "ISOLATE household %s size %d income %d ", h->get_label(),
 	       h->get_size(), h->get_household_income());
-  FRED_VERBOSE(1, "start_day %d end_day %d duration %d ", h->get_isolation_start_day(),
-	       h->get_isolation_end_day(), h->get_isolation_end_day()-h->get_isolation_start_day());
+  FRED_VERBOSE(1, "start_day %d end_day %d duration %d ", h->get_shelter_start_day(),
+	       h->get_shelter_end_day(), h->get_shelter_end_day()-h->get_shelter_start_day());
 }
 
 
-void Place_List::report_isolation_stats(int day) {
+void Place_List::report_shelter_stats(int day) {
   int isolated_households = 0;
   int isolated_pop = 0;
   int isolated_total_pop = 0;
@@ -1785,7 +1785,7 @@ void Place_List::end_of_run() {
           place->get_last_day_infectious());
     }
   }
-  if (Global::Enable_Household_Isolation) {
+  if (Global::Enable_Household_Shelter) {
     int households_iso = 0;
     int households_not_iso = 0;
     int pop_iso = 0;

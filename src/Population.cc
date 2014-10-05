@@ -824,7 +824,7 @@ void Population::Update_Population_Behaviors::operator() (Person & p) {
 
 void Population::report(int day) {
 
-  if (Global::Enable_Household_Isolation) {
+  if (Global::Enable_Household_Shelter) {
     // update infection counters for places
     for(int d = 0; d < Global::Diseases; d++) {
       for(int i = 0; i < this->get_index_size(); ++i) {

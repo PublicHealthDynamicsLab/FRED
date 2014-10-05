@@ -506,8 +506,8 @@ void Epidemic::print_stats(int day) {
     report_household_income_stratified_results(day);
   }
 
-  if (Global::Enable_Household_Isolation) {
-    Global::Places.report_isolation_stats(day);
+  if (Global::Enable_Household_Shelter) {
+    Global::Places.report_shelter_stats(day);
   }
 
   //Only report AR and ARs on last day
