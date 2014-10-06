@@ -80,6 +80,7 @@ Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
   this->removed_people = 0;
   this->immune_people = 0;
   this->vaccinated_people = 0;
+  this->report_generation_time = false;
 
   this->people_becoming_infected_today = 0;
   this->people_becoming_symptomatic_today = 0;
@@ -142,6 +143,9 @@ Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
 
 void Epidemic::setup() {
   using namespace Utils;
+  int temp;
+  Params::get_param_from_string("report_generation_time", &temp);
+  this->report_generation_time = (temp > 0);
   Params::get_param_from_string("advanced_seeding", this->seeding_type_name);
   if(!strcmp(this->seeding_type_name, "random")) {
     this->seeding_type = SEED_RANDOM;
@@ -497,7 +501,7 @@ void Epidemic::print_stats(int day) {
     report_incidence_by_census_tract(day);
   }
 
-  if(Global::Report_Serial_Interval) {
+  if(this->report_generation_time || Global::Report_Serial_Interval) {
     report_serial_interval(day);
   }
   
@@ -642,12 +646,15 @@ void Epidemic::report_serial_interval(int day) {
     mean_serial_interval = this->total_serial_interval / (double) this->total_secondary_cases;
   }
 
-  //Write to log file
-  Utils::fred_log("\nday %d SERIAL_INTERVAL:", day);
-  Utils::fred_log("\n ser_int %.2f\n", mean_serial_interval);
+  if(Global::Report_Serial_Interval) {
+    //Write to log file
+    Utils::fred_log("\nday %d SERIAL_INTERVAL:", day);
+    Utils::fred_log("\n ser_int %.2f\n", mean_serial_interval);
+    
+    //Store for daily output file
+    Global::Daily_Tracker->set_index_key_pair(day,"ser_int", mean_serial_interval);
+  }
 
-  //Store for daily output file
-  Global::Daily_Tracker->set_index_key_pair(day,"ser_int", mean_serial_interval);
   track_value(day, (char *)"Gen", mean_serial_interval);
 }
 

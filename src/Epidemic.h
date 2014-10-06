@@ -206,6 +206,8 @@ private:
   int N;          // current population size
   int N_init;     // initial population size
   
+  bool report_generation_time;
+
   Timestep_Map* primary_cases_map;
 
   // valid seeding types are:
