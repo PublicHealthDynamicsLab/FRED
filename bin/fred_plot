@@ -52,6 +52,7 @@ my $with = "lines";
 my $title = "FRED: Allegheny County Model";
 my $period = "daily";
 my $weekly;
+my $ensemble;
 # my $fontsize = "giant";
 # my $fontsize = "large";
 my $fontsize = "medium";
@@ -71,6 +72,7 @@ my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "help" => \$help,
 			    "e" => \$errorbars,
+			    "ensemble" => \$ensemble,
 			    "f=s" => \$fontsize,
 			    "s=i" => \$save,
 			    "save=i" => \$save,
@@ -85,6 +87,7 @@ my $opt_result = GetOptions(
 			    "epi" => \$epi,
 			    "errorbars" => \$errorbars,
 			    "font=s" => \$fontsize,
+			    "bar" => \$hist,
 			    "histogram" => \$hist,
 			    "keys=s" => \@keys,
 			    "legend=s" => \$legend,
@@ -151,6 +154,10 @@ for my $v (@varlist) {
 # histogram overides smoothing
 $smooth = 0 if $hist;
 
+#ensemble overides epi and errorbars
+$epi = 0 if $ensemble;
+$errorbars = 0 if $ensemble;
+
 $period = "weekly" if $weekly or $smooth;
 $with = "lines" if not $with;
 die $usage if not @keys;
@@ -192,19 +199,26 @@ if (not $outfile) {
 
 for my $v (@varlist) {
   for my $key (@keys) {
-    # my $datafile = "fred_plot_data.key='$key'-var=$v-$$";
-    my $datafile = "data-$v-key=$key.txt";
-    get_data($key, $v, $datafile);
-    if ($dataonly) {
-      system "cat $datafile";
-      $save = 0;
-      cleanup();
-      exit;
+    if ($ensemble) {
+      my $runs = get_runs($key);
+      for my $run (1..$runs) {
+	my $datafile = "data-$v-key=$key-run=$run.txt";
+	get_csv_data($key, $v, $run, $datafile);
+      }
+    }
+    else {
+      my $datafile = "data-$v-key=$key.txt";
+      get_data($key, $v, $datafile);
+      if ($dataonly) {
+	system "cat $datafile";
+	$save = 0;
+	cleanup();
+	exit;
+      }
     }
   }
 }
 
-my $n = 0;
 open FH, ">$pltfile";
 my $terminal = "png $fontsize";
 $terminal = "pdf font 'Helvetica,18' linewidth 3 size 11.75,8.25" if $pdf;
@@ -240,6 +254,9 @@ if ($ylabel) {
   print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
 }
 
+if ($ensemble) {
+  print FH "set datafile separator ','\n";
+}
 
 for my $v (@varlist) {
  if ($v =~ /AR/) {  
@@ -268,17 +285,31 @@ if ($weekly or $epi) {
 print FH "set xtics $xtics\n" if $xtics;
 print FH "set key $legend\n" if $legend;
 
+my $n = 0;
 for my $v (@varlist) {
   my $titlevar = $v;
   $titlevar = $titles{$v} if exists $titles{$v};
   for my $key (@keys) {
     my $ptitle = "$titlevar";
     $ptitle = "$ptitle-$key" if scalar @keys > 1;
-    print FH ($n == 0)? "plot " : ",\\\n";
+    my $plotcmd = ($n == 0);
     $n++;
-    # my $datafile = "fred_plot_data.key=$key-var=$v-$$";
-    my $datafile = "data-$v-key=$key.txt";
-    print FH plot_spec($datafile,$ptitle,$n);
+    if ($ensemble) {
+      my $runs = get_runs($key);
+      for my $run (1..$runs) {
+	$ptitle = "$ptitle";
+	my $datafile = "data-$v-key=$key-run=$run.txt";
+	print FH $plotcmd? "plot " : ",\\\n";
+	print FH plot_spec($datafile,$ptitle,$n,$run);
+	$plotcmd = 0;
+	$n++;
+      }
+    }
+    else {
+      my $datafile = "data-$v-key=$key.txt";
+      print FH $plotcmd? "plot " : ",\\\n";
+      print FH plot_spec($datafile,$ptitle,$n,1);
+    }
   }
 }
 print FH "\n";
@@ -319,6 +350,10 @@ sub get_data {
   }
 }
 
+sub get_csv_data {
+  my ($key, $var, $run, $file) = @_;
+  system "fred_csv -k $key -v $var -r $run > $file";
+}
 
 
 sub cleanup {
@@ -339,7 +374,7 @@ sub cleanup {
 
 
 sub plot_spec {
-  my ($datafile,$ptitle,$n) = @_;
+  my ($datafile,$ptitle,$n,$run) = @_;
   $smooth = 0 if $weekly;
   my $x = "(\$1):";
   $x = "(7*\$1-3.5):" if $smooth;
@@ -349,13 +384,18 @@ sub plot_spec {
   my $y = "$mult\$2";
   $y = "$mult\$2/\$8" if $smooth;
   $y = "$mult\$2" if $hist;
+  if ($ensemble) {
+    $y = "$mult\$3";
+  }
   my $e = "";
   $e = "$mult\$3" if $errorbars;
   $e = "$mult\$3/\$8" if $errorbars and $smooth;
   my $xtic = "";
   $xtic = ":xtic(6)" if $epi;
   my $title = "title '$ptitle'";
+  $title = "notitle" if $run > 1;
   my $style = "lw 3 lt $n";
+  $style = "lw 0.5 lt $n" if $ensemble;
   my $file = "'$datafile'";
   my $w = "with lines";
   $w = "smooth csplines" if $smooth or $weekly;
@@ -365,4 +405,12 @@ sub plot_spec {
   $spec = "$file using $x($y):($e)$xtic notitle wi errorbars $style, \\\n" if $errorbars;
   $spec .= "$file using $x($y)$xtic $title $w $style";
   return $spec;
+}
+
+sub get_runs {
+  my $key = shift;
+  my $id = $id_of_key{$key};
+  my $runs = `cat $FREDRESULTS/JOB/$id/META/RUNS`;
+  chomp $runs;
+  return $runs;
 }
