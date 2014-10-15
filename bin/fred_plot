@@ -49,56 +49,53 @@ my $xmin = "0";
 my $xmax = "*";
 my $ymin = "0";
 my $ymax = "*";
+my $display = 1;
 my $errorbars;
-my $nameonly;
-my $dataonly;
-my $with = "lines";
 my $title = "FRED Simulation";
-my $period = "daily";
 my $weekly;
 my $ensemble;
-my $fontsize = "medium";
-my $epi;
-my $hist;
+my $font = "Helvetica";
+my $fontsize = "12";
+my $boxes;
 my $normalize;
 my $scale = 100000;
 my $smooth;
 my $xtics;
 my $legend;
-my $xlabel;
-my $ylabel;
+my $xlabel = "Days";
+my $ylabel = "Individuals";
 my $outfile = "";
 my $help = "";
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "help" => \$help,
+			    "d=i" => \$display,
+			    "display=i" => \$display,
 			    "e" => \$errorbars,
 			    "ensemble" => \$ensemble,
-			    "f=s" => \$fontsize,
+			    "f=s" => \$font,
 			    "k=s" => \@keys,
 			    "T=s" => \$title,
+			    "t=s" => \$title,
 			    "v=s" => \@varlist,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
 			    "y=f" => \$ymin,
 			    "Y=f" => \$ymax,
-			    "data" => \$dataonly,
-			    "epi" => \$epi,
 			    "errorbars" => \$errorbars,
-			    "font=s" => \$fontsize,
-			    "bar" => \$hist,
-			    "histogram" => \$hist,
+			    "font=s" => \$font,
+			    "fsize=f" => \$fontsize,
+			    "bars" => \$boxes,
+			    "boxes" => \$boxes,
+			    "histogram" => \$boxes,
 			    "keys=s" => \@keys,
 			    "legend=s" => \$legend,
-			    "name" => \$nameonly,
 			    "normalize" => \$normalize,
 			    "scale=f" => \$scale,
-			    "period=s" => \$period,
 			    "smooth" => \$smooth,
 			    "title=s" => \$title,
 			    "var=s" => \@varlist,
 			    "weekly" => \$weekly,
-			    "with=s" => \$with,
 			    "xtics=i" => \$xtics,
 			    "xmin=i" => \$xmin,
 			    "xmax=i" => \$xmax,
@@ -115,21 +112,23 @@ my $opt_result = GetOptions(
 my $usage = <<EOH;
 usage: fred_plot -k key -v var [ options ], where options include:
        -h: print this help message.
+       -d 0/1 : display the image file (default = 1).
        -e: include errorbars on plot.
-       -f fontsize: specify font size
+       -f font : use the named font
+       --fs fontsize: specify font size
        -k key [ -k key ... ]: keys of jobs to plot
-       -T title: Title to appear on plot.
+       -t title: Title to appear on plot.
        -v var [ -v var ... ]: variable to be plotted.
        -x xmin: min value for x-axis.
        -X xmax: max value for x-axis.
        -y ymin: min value for y-axis.
        -Y ymax: max value for y-axis.
        -o outfile: send output image to indicated file.
-       --epi: label weeks by epi week numbers instead of simulation weeks.
-       --histogram: plot histograms instead of curves.
-       --name: return the name of the plot file only.
-       --normalize: scale y-axis to show counts per 100,000 people.
-       --weekly: plot variables averaged over epi weeks, with a smooth spline curve.
+       --bar: plot bar charts instead of curves.
+       --ensemble: show individual runs.
+       --normalize: scale y-axis to show counts per <s> people.
+       --scale s : scale factor for normalization
+       --weekly: plot variables averaged over epi weeks.
 EOH
 
 die $usage if $help;
@@ -145,14 +144,9 @@ for my $v (@varlist) {
  }
 }
 
-# histogram overides smoothing
-$smooth = 0 if $hist;
+# bar charts overides smoothing
+$smooth = 0 if $boxes;
 
-#ensemble overides epi
-$epi = 0 if $ensemble;
-
-$period = "weekly" if $weekly or $smooth;
-$with = "lines" if not $with;
 die $usage if not @keys;
 die $usage if not @varlist;
 
@@ -195,9 +189,10 @@ for my $v (@varlist) {
 }
 
 my $date = scalar localtime;
+my $titlefontsize = $fontsize + 4;
 
 open FH, ">$pltfile";
-my $terminal = "pdf font 'Helvetica,18' linewidth 3 size 11.75,8.25";
+my $terminal = "pdf font '$font,$fontsize' linewidth 3 size 7,5";
 my $setkey = "set key at graph 0.96, graph 0.96 right";
 
 print FH <<"EOF";
@@ -210,63 +205,56 @@ print FH <<"EOF";
 # $commandline
 #
 set terminal $terminal
-set title \"$title\"
+set title \"$title\" font \"$font,$titlefontsize\"
 set output \"$outfile\"
 $setkey
 set grid
-set xrange [$xmin:$xmax]
-set yrange [$ymin:$ymax]
-set xlabel \"Days\" offset 0,0.5
-set ylabel \"Individuals\" offset 1.2,0
-set datafile separator ','
 EOF
 
 if ($normalize) {
   if ($scale == 1) {
-    print FH "set ylabel \"Fraction of Population\" offset 1.2,0\n";
+    $ylabel = "Fraction of Population";
   }
   elsif ($scale == 100) {
-    print FH "set ylabel \"Percent\" offset 1.2,0\n";
+    $ylabel = "Percent";
   }
   else {
-    print FH "set ylabel \"Per $scale\" offset 1.2,0\n";
+    $ylabel = "Per $scale";
   }
-}
-
-if ($xlabel) {
-  print FH "set xlabel \"$xlabel\" offset 0,0.5\n";
-}
-
-if ($ylabel) {
-  print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
 }
 
 for my $v (@varlist) {
  if ($v =~ /AR/) {  
-   print FH "set ylabel 'Percent Infected' offset 1.2,0\n";
+   $ylabel = "Percent Infected";
    $ymax = 100 if $ymax eq "*";
-   print FH "set yrange [0:$ymax]\n";
+   $ymin = 0;
  }
 }
 
-if ($hist) {
-  # print FH "set boxwidth 1.0\n";
-  print FH "set style data histogram\n";
-  print FH "set style fill solid border\n";
-  if ($errorbars) {
-    print FH "set style histogram errorbars linewidth 1\n";
-    print FH "set style fill solid 0.3\n";
-    print FH "set bars front\n";
-  }
-}
+$xlabel = "Weeks" if $weekly;
 
-if ($weekly or $epi) {
-  print FH "set xlabel \"Week\" offset 0,0\n";
-
-}
-
+print FH "set xrange [$xmin:$xmax]\n";
+print FH "set yrange [$ymin:$ymax]\n";
+print FH "set datafile separator ','\n";
+print FH "set xlabel \"$xlabel\" offset 0,0.5\n";
+print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
 print FH "set xtics $xtics\n" if $xtics;
 print FH "set key $legend\n" if $legend;
+print FH "set bars 5.0 front\n" if $boxes;
+print FH "set bars 2.0 front\n" if not $boxes;
+
+if ($boxes) {
+  my $vn = scalar @varlist;
+  print FH "\n# set up boxes\n";
+  print FH "vars = $vn\n";
+  print FH "total_relative_boxwidths = 0.8\n";
+  print FH "dx = total_relative_boxwidths/(1.0*vars)\n";
+  print FH "set boxwid (total_relative_boxwidths/(1.0*vars)) relative\n";
+  print FH "set style fill solid 1.0 border 0\n";
+  print FH "get_shift(n) = dx*(n-0.5*vars-0.5)\n";
+  # print FH "set xtics offset graph (-1.0*get_shift(1)), 0\n";
+  print FH "\n";
+}
 
 my $n = 0;
 for my $v (@varlist) {
@@ -277,30 +265,25 @@ for my $v (@varlist) {
     $ptitle = "$ptitle-$key" if scalar @keys > 1;
     my $plotcmd = ($n == 0);
     $n++;
-    print FH $plotcmd? "plot " : ",\\\n";
+    print FH "plot " if $plotcmd;
     print FH plot_spec($ptitle,$n,0);
     $plotcmd = 0;
     if ($ensemble) {
       my $runs = get_runs($key);
       for my $run (1..$runs) {
-	print FH $plotcmd? "plot " : ",\\\n";
 	print FH plot_spec("",$n,$run);
       }
     }
   }
 }
-print FH "\n";
+print FH "\n\n";
 print FH "$_\n" for @data;
 print FH "\n";
 close FH;
 system "chmod +x $pltfile";
 system ($pltfile);
-if ($nameonly) {
-  print "$outfile\n";
-}
-else {
-  system ("open $outfile");
-}
+print "$0: $outfile created. Edit $pltfile if any formatting changes are needed.\n";
+system ("open $outfile") if $display;
 exit;
 
 sub get_data {
@@ -333,7 +316,7 @@ sub plot_spec {
 
   # x-axis value
   my $x = "(\$1):";
-  $x = "" if $hist;
+  $x = "(\$0+get_shift($n)):" if $boxes;
 
   # y-axis value
   my $y = $weekly ? "\$6" : "\$9";
@@ -356,7 +339,7 @@ sub plot_spec {
 
   # xtics
   my $xtic = "";
-  $xtic = ":xtic(1)" if $epi;
+  $xtic = ":xtic(1)" if $weekly and $n == 1;
 
   # title
   my $title = "title '$ptitle'";
@@ -365,15 +348,16 @@ sub plot_spec {
   # line width
   my $lw = "lw 5";
   $lw = "lw 0.5" if $run > 0;
+  $lw = "" if $boxes;
 
   # plot with lines?
   my $w = "with lines";
   # $w = "smooth csplines" if $smooth or $weekly;
-  $w = "" if $hist;
+  $w = "with boxes" if $boxes;
 
   my $spec = "";
-  $spec = "'-' using $x($y):($e)$xtic notitle wi errorbars lt -1 $lw, \\\n" if $errorbars and $run == 0;
-  $spec .= "'-' using $x($y)$xtic $title $w lt $n $lw";
+  $spec = "'-' using $x($y)$xtic $title $w lt $n $lw, \\\n";
+  $spec .= "'-' using $x($y):($e) notitle wi errorbars lt -1 lw 2, \\\n" if $errorbars and $run == 0;
   return $spec;
 }
 
