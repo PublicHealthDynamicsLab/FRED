@@ -1321,20 +1321,35 @@ void Epidemic::get_infectious_samples(vector<Person *> &samples, double prob = 1
 }
 
 void Epidemic::track_value(int day, char * key, int value) {
-  char key_subscript[80];
-  sprintf(key_subscript, "%s_%d", key, this->id);
-  Global::Daily_Tracker->set_index_key_pair(day, key_subscript, value);
+  char key_str[80];
+  if (this->id == 0) {
+    sprintf(key_str, "%s", key);
+  }
+  else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
 }
 
 void Epidemic::track_value(int day, char * key, double value) {
-  char key_subscript[80];
-  sprintf(key_subscript, "%s_%d", key, this->id);
-  Global::Daily_Tracker->set_index_key_pair(day, key_subscript, value);
+  char key_str[80];
+  if (this->id == 0) {
+    sprintf(key_str, "%s", key);
+  }
+  else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
 }
 
 void Epidemic::track_value(int day, char * key, string value) {
-  char key_subscript[80];
-  sprintf(key_subscript, "%s_%d", key, this->id);
-  Global::Daily_Tracker->set_index_key_pair(day, key_subscript, value);
+  char key_str[80];
+  if (this->id == 0) {
+    sprintf(key_str, "%s", key);
+  }
+  else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
 }
 

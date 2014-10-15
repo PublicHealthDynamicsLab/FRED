@@ -14,6 +14,8 @@ my $help = "";
 my $key = "";
 my $var = "";
 my $run = -1;
+my $dir = "";
+my $weekly = "";
 my $opt_result = GetOptions(
 			    "help" => \$help,
 			    "h" => \$help,
@@ -24,6 +26,9 @@ my $opt_result = GetOptions(
 			    "run=i" => \$run,
 			    "r=i" => \$run,
 			    "n=i" => \$run,
+			    "d=s" => \$dir,
+			    "weekly" => \$weekly,
+			    "w" => \$weekly,
 );
 
 my $usage = <<EOH;
@@ -34,101 +39,194 @@ usage: $0 --help | -k key [-v variable ][-n run_number]
 EOH
 
 die $usage if $help;
-die $usage if not $key;
 
-my $bindir = "$FRED/bin";
-my $id = `$bindir/fred_id $key`;
-chomp $id;
-die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
-
-if ($var ne "") {
-  if ($run > 0) {
-    my $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
-    my $datafile = "$dir/$var\_0_daily-$run.txt";
-    die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
-    open FH, $datafile or die "$0: ERROR READING $datafile\n";
-    <FH>;
-    print "Day,Popsize,$var\n";
-    while (my $line = <FH>) {
-      my ($day, $val, $pop) = split " ",$line;
-      print "$day,$pop,",cleanup($val),"\n",
-    }
-    close FH;
-  } else {
-    my $dir = "$FREDRESULTS/JOB/$id/DATA/REPORTS";
-    my $datafile = "$dir/$var\_0_daily.dat";
-    die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
-    open FH, $datafile or die "$0: ERROR READING $datafile\n";
-    <FH>;
-    print "Day,Popsize,$var,$var\_std\n";
-    while (my $line = <FH>) {
-      my ($day, $mean, $std, $pop) = split " ",$line;
-      print "$day,$pop,",cleanup($mean),",",cleanup($std),"\n";
-    }
-    close FH;
+if ($dir eq "") {
+  die $usage if not $key;
+  my $id = `fred_id $key`;
+  chomp $id;
+  die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+  $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
+  if (not -e "$dir/VARS" or not -e "$dir/Weekly-1.txt") {
+    system "fred_post_process $FREDRESULTS/JOB/$id/DATA/OUT $FREDRESULTS/JOB/$id/DATA/TABLES $FREDRESULTS/JOB/$id/DATA/REPORTS";
   }
+}
+
+my @vars = ();
+if ($var ne "") {
+  push @vars, $var;
 }
 else {
+  open FH,"$dir/VARS" or die "$0: ERROR OPENING $dir/VARS\n";
+  while (<FH>) {
+    chomp;
+    push @vars, $_;
+  }
+  close FH;
+}
+
+my @line = ();
+my $datafile;
+
+if ($weekly) {
+
+  $weekly = "Weekly_";
+
+  # Add Week column
+  $datafile = "$dir/Weekly-1.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  my $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] = "$_";
+  }
+
+  # Add Pop column
+  $datafile = "$dir/Weekly_N.txt";
+  $datafile = "$dir/Weekly_N-$run.txt" if $run > 0;
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    if ($run > 0) {
+      if ($i == 0) {
+	$line[$i++] .= " Run N";
+      }
+      else {
+	$line[$i++] .= " $run $_";
+      }
+    }
+    else {
+      my ($mean,$std,$runs) = split " ", $_;
+      if ($i > 0) {
+	$mean = cleanup($mean);
+	$std = cleanup($std);
+      }
+      $line[$i++] .= " $runs $mean $std";
+    }
+  }
+
+}
+else {
+
+  # Add Day column
+  $datafile = "$dir/Day.txt";
+  die "$0: ERROR FINDING Day file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  my $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] = $_;
+  }
+  
+  # Add WkDay column
+  $datafile = "$dir/WkDay.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] .= " $_";
+  }
+
+  # Add Date column
+  $datafile = "$dir/Date.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] .= " $_";
+  }
+
+  # Add Week column
+  $datafile = "$dir/Week.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] .= " $_";
+  }
+
+  # Add Year column
+  $datafile = "$dir/Year.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    $line[$i++] .= " $_";
+  }
+
+# Add Pop column
+  $datafile = "$dir/N.txt";
+  $datafile = "$dir/N-$run.txt" if $run > 0;
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  $i = 0;
+  while (<FH>) {
+    chomp; 
+    if ($run > 0) {
+      if ($i == 0) {
+	$line[$i++] .= " Run N";
+      } else {
+	$line[$i++] .= " $run $_";
+      }
+    } else {
+      my ($mean,$std,$runs) = split " ", $_;
+      if ($i > 0) {
+	$mean = cleanup($mean);
+	$std = cleanup($std);
+      }
+      $line[$i++] .= " $runs $mean $std";
+    }
+  }
+
+}
+
+for my $v (@vars) {
+  next if $v eq "Day" or $v eq "Date" or $v eq "Week" or $v eq "Year" or $v eq "WkDay" or $v eq "N";
+  # print "v = |$v|\n";
   if ($run > 0) {
-    my $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
-    my $files = `ls $dir/*_0_daily-$run.txt`;
-    chomp $files;
-    my @datafiles = split " ", $files;
-    my @out = ();
-    $out[0] = "Day,Popsize";
-    my $vars = 0;
-    for my $datafile (@datafiles) {
-      die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
-      ($var) = $datafile =~ /.*\/(.*)_0_daily-$run.txt/;
-      open FH, $datafile or die "$0: ERROR READING $datafile\n";
-      <FH>;
-      $out[0] .= ",$var";
-      $vars++;
-      my $i = 1;
-      while (my $line = <FH>) {
-	my ($day, $val, $pop) = split " ",$line;
-	if ($vars == 1) {
-	  $out[$i] = "$day,$pop,$val";
-	}
-	else {
-	  $out[$i] .= ",$val";
-	}
-	$i++;
-      }
-      close FH;
+    $datafile = "$dir/$weekly$v-$run.txt";
+    $datafile = "$dir/$weekly$v\_0-$run.txt" if not -e $datafile;
+  }
+  else {
+    $datafile = "$dir/$weekly$v.txt";
+    $datafile = "$dir/$weekly$v\_0.txt" if not -e $datafile;
+  }
+
+  # Add data column
+  die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  my $i = 0;
+  while (my $in = <FH>) {
+    chomp $in; 
+    if ($run > 0) {
+      $line[$i++] .= " $in";
     }
-    print "$_\n" for @out;
-  } else {
-    my $dir = "$FREDRESULTS/JOB/$id/DATA/REPORTS";
-    my $files = `ls $dir/*_0_daily.dat`;
-    chomp $files;
-    my @datafiles = split " ", $files;
-    my @out = ();
-    $out[0] = "Day,Popsize";
-    my $vars = 0;
-    for my $datafile (@datafiles) {
-      die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
-      ($var) = $datafile =~ /.*\/(.*)_0_daily.dat/;
-      open FH, $datafile or die "$0: ERROR READING $datafile\n";
-      <FH>;
-      $out[0] .= ",$var,$var\_std";
-      $vars++;
-      my $i = 1;
-      while (my $line = <FH>) {
-	my ($day, $mean, $std, $pop) = split " ",$line;
-	if ($vars == 1) {
-	  $out[$i] = "$day,$pop," . cleanup($mean) . "," .cleanup($std);
-	}
-	else {
-	  $out[$i] .= "," . cleanup($mean) . "," . cleanup($std);
-	}
-	$i++;
+    else {
+      my ($mean, $std) = split " ", $in;
+      if ($i > 0) {
+	$mean = cleanup($mean);
+	$std = cleanup($std);
       }
-      close FH;
+      $line[$i++] .= " $mean $std";
     }
-    print "$_\n" for @out;
   }
 }
+  
+# replace spaces with commas
+for (my $i = 0; $i < scalar @line; $i++) {
+  $line[$i] =~ s/ /,/g;
+}
+
+# print lines
+print "$_\n" for @line;
+exit;
+
 
 sub cleanup {
   my $x1 = shift;

@@ -327,13 +327,13 @@ my $params = "$work/$params_base";
 `cp $birth_rate_file "$work/$birth_rate_file_base"` if $birth_rate_file ne "none";
 `cp $seasonality_file "$work/$seasonality_file_base"` if $seasonality_file ne "none";
 `cp $primary "$work/$primary_cases_base"`;
-`$FRED/bin/ch primary_cases_file $primary_cases_base $params 1 >> $logfile`;
+`$FRED/bin/fred_set primary_cases_file $primary_cases_base $params 1 >> $logfile`;
 
 # redirect output parameters
-`$FRED/bin/ch outdir $out $params >> $logfile`;
-`$FRED/bin/ch yearly_mortality_rate_file $mortality_rate_file_base $params >> $logfile` if $mortality_rate_file ne "none";
-`$FRED/bin/ch yearly_birth_rate_file $birth_rate_file_base $params >> $logfile` if $birth_rate_file ne "none";
-`$FRED/bin/ch seasonality_timestep_file $seasonality_file_base $params >> $logfile` if $seasonality_file ne "none";
+`$FRED/bin/fred_set outdir $out $params >> $logfile`;
+`$FRED/bin/fred_set yearly_mortality_rate_file $mortality_rate_file_base $params >> $logfile` if $mortality_rate_file ne "none";
+`$FRED/bin/fred_set yearly_birth_rate_file $birth_rate_file_base $params >> $logfile` if $birth_rate_file ne "none";
+`$FRED/bin/fred_set seasonality_timestep_file $seasonality_file_base $params >> $logfile` if $seasonality_file ne "none";
 
 # update run status
 `echo RUNNING > $meta/STATUS`;

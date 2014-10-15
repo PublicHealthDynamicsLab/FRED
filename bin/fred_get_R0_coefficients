@@ -31,9 +31,9 @@ for (my $tr = 0.6; $tr <= 4.0; $tr += 0.2) {
   my $label = "get_coeff-$dir-tr=$tr";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "ch '$disease\_trans' $tr $params";
-  system "ch days 11 $params";
-  system "ch track_infection_events 0 $params";
+  system "fred_set '$disease\_trans' $tr $params";
+  system "fred_set days 11 $params";
+  system "fred_set track_infection_events 0 $params";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {
@@ -86,8 +86,8 @@ chomp $c;
 my $d = `grep 'd *=' gnuplot.out | tail -1 | awk '{print \$3}'`;
 chomp $d;
 print "d = $d c = $c\n";
-system "ch R0_a $c $oldparams";
-system "ch R0_b $d $oldparams";
+system "fred_set R0_a $c $oldparams";
+system "fred_set R0_b $d $oldparams";
 
 # run test of specifying input R0
 open FH, ">R0-test.txt";
@@ -96,9 +96,9 @@ for (my $r = 1.0; $r <= 6; $r += 0.5) {
   my $label = "get_coeff-$dir-R0=$r";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "ch 'R0' $r $params";
-  system "ch days 11 $params";
-  system "ch track_infection_events 0 $params";
+  system "fred_set 'R0' $r $params";
+  system "fred_set days 11 $params";
+  system "fred_set track_infection_events 0 $params";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {
@@ -119,9 +119,9 @@ for (my $r = 11.0; $r <= 10.0; $r += 1.0) {
   my $label = "get_coeff-$dir-R0=$r";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "ch 'R0' $r $params";
-  system "ch days 11 $params";
-  system "ch track_infection_events 0 $params";
+  system "fred_set 'R0' $r $params";
+  system "fred_set days 11 $params";
+  system "fred_set track_infection_events 0 $params";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {

@@ -1,0 +1,6 @@
+#!/bin/bash
+fred_rt -p base
+fred_rt -p antivirals
+fred_rt -p vaccine
+fred_rt -p vaccine_ACIP
+fred_rt -p multi_dose

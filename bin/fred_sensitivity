@@ -102,7 +102,7 @@ for $name (@names) {
   my $hi = shift @values;
   my $paramsfile = "params_sa.$title-$name";
   system "cp $saparams $paramsfile";
-  system "ch \'$name\' $hi $paramsfile";
+  system "fred_set \'$name\' $hi $paramsfile";
   push @parfiles, $paramsfile;
 }
 

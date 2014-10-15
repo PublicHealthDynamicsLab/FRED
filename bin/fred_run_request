@@ -12,7 +12,7 @@ print "\n=======================================================\n";
 print "fred_run_request started at ", `date`, "\n";
 
 my %fips = ();
-open FH, "/home/gref/FRED/populations/fips_to_state.txt";
+open FH, "$FRED/populations/fips_to_state.txt";
 while (<FH>) {
   chomp;
   my ($f,$s) = split;

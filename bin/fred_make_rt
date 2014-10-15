@@ -38,4 +38,4 @@ rm -f OUT.RT/LOG*
 rm -f OUT.RT/*.txt
 
 cp -rp OUT.TEST/* OUT.RT
-rt $dir
+fred_rt $dir

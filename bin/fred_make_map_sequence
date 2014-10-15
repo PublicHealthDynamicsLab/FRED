@@ -85,10 +85,10 @@ while ($day <= $days) {
     if (fork() == 0) {
       # print "making map $day/$days\n";
       if ($agents) {
-	exec "Rscript /Users/gref/FRED/bin/fred_map_agents.R $pwd $day >& /dev/null";
+	exec "Rscript $FRED/bin/fred_map_agents.R $pwd $day >& /dev/null";
       }
       else {
-	exec "Rscript /Users/gref/FRED/bin/fred_make_map.R $pwd $fips $day >& /dev/null";
+	exec "Rscript $FRED/bin/fred_make_map.R $pwd $fips $day >& /dev/null";
       }
     }
     $day++;

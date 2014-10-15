@@ -162,7 +162,7 @@ for my $paramset (1..$N) {
       # print "cond = $condname parlist = |$parlist| par = |$par|\n";
       my ($name, $value) = $par =~ /(\S+)\s*=\s*(.*\S)/;
       # print "name = |$name| value = |$value|\n";
-      system "ch \'$name\' \'$value\' $condfile";
+      system "fred_set \'$name\' \'$value\' $condfile";
     }
     system "echo >> $condfile";
   }

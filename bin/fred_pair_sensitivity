@@ -109,10 +109,10 @@ for my $name1 (@names1) {
     my $paramsfile = "params_sa_pair.$title-$name1-$name2";
     system "echo cp $saparams $paramsfile";
     system "cp $saparams $paramsfile";
-    system "echo ch \'$name1\' $hi1 $paramsfile";
-    system "ch \'$name1\' $hi1 $paramsfile";
-    system "echo ch \'$name2\' $hi2 $paramsfile";
-    system "ch \'$name2\' $hi2 $paramsfile";
+    system "echo fred_set \'$name1\' $hi1 $paramsfile";
+    system "fred_set \'$name1\' $hi1 $paramsfile";
+    system "echo fred_set \'$name2\' $hi2 $paramsfile";
+    system "fred_set \'$name2\' $hi2 $paramsfile";
     push @parfiles, $paramsfile;
   }
 }
