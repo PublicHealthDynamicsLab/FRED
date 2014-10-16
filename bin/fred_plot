@@ -60,12 +60,13 @@ my $boxes;
 my $normalize;
 my $scale = 100000;
 my $smooth;
-my $xtics;
 my $legend;
 my $xlabel = "Days";
 my $ylabel = "Individuals";
+my $xtics = "";
 my $outfile = "";
 my $help = "";
+my $show_year = "1";
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "help" => \$help,
@@ -96,7 +97,6 @@ my $opt_result = GetOptions(
 			    "title=s" => \$title,
 			    "var=s" => \@varlist,
 			    "weekly" => \$weekly,
-			    "xtics=i" => \$xtics,
 			    "xmin=i" => \$xmin,
 			    "xmax=i" => \$xmax,
 			    "Xmax=i" => \$xmax,
@@ -105,6 +105,8 @@ my $opt_result = GetOptions(
 			    "Ymax=i" => \$ymax,
 			    "ylabel=s" => \$ylabel,
 			    "xlabel=s" => \$xlabel,
+			    "xtics=i" => \$xtics,
+			    "year=i" => \$show_year,
 			    "o=s" => \$outfile,
 			    "output=s" => \$outfile,
 			   );
@@ -209,6 +211,8 @@ set title \"$title\" font \"$font,$titlefontsize\"
 set output \"$outfile\"
 $setkey
 set grid
+set xtics nomirror out $xtics
+set ytics out nomirror
 EOF
 
 if ($normalize) {
@@ -231,17 +235,16 @@ for my $v (@varlist) {
  }
 }
 
-$xlabel = "Weeks" if $weekly;
+$xlabel = "Week" if $weekly;
 
 print FH "set xrange [$xmin:$xmax]\n";
 print FH "set yrange [$ymin:$ymax]\n";
 print FH "set datafile separator ','\n";
 print FH "set xlabel \"$xlabel\" offset 0,0.5\n";
 print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
-print FH "set xtics $xtics\n" if $xtics;
+print FH "set xtics rotate by 270\n" if $weekly;
 print FH "set key $legend\n" if $legend;
-print FH "set bars 5.0 front\n" if $boxes;
-print FH "set bars 2.0 front\n" if not $boxes;
+print FH "set bars 2.0 front\n";
 
 if ($boxes) {
   my $vn = scalar @varlist;
@@ -256,6 +259,15 @@ if ($boxes) {
   print FH "\n";
 }
 
+if ($weekly) {
+  $xtics = 1 if not $xtics;
+  my $xlab_start = 6;
+  $xlab_start = 0 if $show_year;
+  print FH "get_xlabel(s) = (((s[6:*]+0)\%$xtics)==0)?sprintf('\%s',s[$xlab_start:*]):''\n";
+  print FH "unset grid\n" if $xtics > 1;
+  print FH "\n";
+}
+
 my $n = 0;
 for my $v (@varlist) {
   my $titlevar = $v;
@@ -265,24 +277,24 @@ for my $v (@varlist) {
     $ptitle = "$ptitle-$key" if scalar @keys > 1;
     my $plotcmd = ($n == 0);
     $n++;
-    print FH "plot " if $plotcmd;
-    print FH plot_spec($ptitle,$n,0);
+    print FH "plot \\\n" if $plotcmd;
+    print FH plot_command($ptitle,$n,0);
     $plotcmd = 0;
     if ($ensemble) {
       my $runs = get_runs($key);
       for my $run (1..$runs) {
-	print FH plot_spec("",$n,$run);
+	print FH plot_command("",$n,$run);
       }
     }
   }
 }
-print FH "\n\n";
+print FH "\n";
 print FH "$_\n" for @data;
 print FH "\n";
 close FH;
 system "chmod +x $pltfile";
 system ($pltfile);
-print "$0: $outfile created. Edit $pltfile if any formatting changes are needed.\n";
+print "fred_plot: source_file = $pltfile  image_file = $outfile\n";
 system ("open $outfile") if $display;
 exit;
 
@@ -293,9 +305,12 @@ sub get_data {
   $week = "--weekly" if $weekly;
   if ($run > 0) {
     system "fred_csv -k $key -v $var -r $run $week > $tmpfile";
+    die "$0: error in get_data\n" if not -s $tmpfile;
   }
   else {
     system "fred_csv -k $key -v $var $week > $tmpfile";
+    die "$0: error in get_data\n" if not -s $tmpfile;
+
   }
   my @tmpdata = ();
   open IN, $tmpfile;
@@ -310,12 +325,13 @@ sub get_data {
   unlink $tmpfile;
 }
 
-sub plot_spec {
+sub plot_command {
   my ($ptitle,$n,$run) = @_;
   $smooth = 0 if $weekly;
 
   # x-axis value
   my $x = "(\$1):";
+  $x = "(\$0):" if $weekly;
   $x = "(\$0+get_shift($n)):" if $boxes;
 
   # y-axis value
@@ -339,7 +355,7 @@ sub plot_spec {
 
   # xtics
   my $xtic = "";
-  $xtic = ":xtic(1)" if $weekly and $n == 1;
+  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if $weekly and $n == 1;
 
   # title
   my $title = "title '$ptitle'";

@@ -123,10 +123,13 @@ sub get_weekly_tables {
     my ($run) = $file =~ /\-(\d+).txt/;
     my @week = ();
     open FH, "$tables/Week-$run.txt";
+    open YR, "$tables/Year-$run.txt";
     <FH>;
-    while (<FH>) {
-      chomp;
-      push @week, $_;
+    <YR>;
+    while (my $wk = <FH>) {
+      chomp $wk;
+      my $yr = <YR>;
+      push @week, "$wk $yr";
     }
     close FH;
 
@@ -139,23 +142,25 @@ sub get_weekly_tables {
     open FH,"$tables/$file";
     my $head = <FH>;
     chomp $head;
-    print WEEK "Week Days\n";
+    print WEEK "Week Year Days\n";
     print OUT "$head\n";
     my $i = 0;
-    my $wk = $week[0];
+    my ($wk, $yr) = split " ", $week[0];
     my $sum = 0;
     my $days = 0;
     while (my $x = <FH>) {
       chomp $x;
-      if ($week[$i] ne $wk) {
-	print WEEK "$wk $days\n";
+      my ($w, $y) = split " ", $week[$i];
+      if ($w ne $wk) {
+	print WEEK "$wk $yr $days\n";
 	if ($print_sum) {
 	  print OUT "$sum\n";
 	}
 	else {
 	  print OUT (1.0*$sum)/(1.0*$days), "\n";
 	}
-	$wk = $week[$i];
+	$wk = $w;
+	$yr = $y;
 	$sum = $x;
 	$days = 1;
       } else {
@@ -164,7 +169,7 @@ sub get_weekly_tables {
       }
       $i++;
     }
-    print WEEK "$wk $days\n";
+    print WEEK "$wk $yr $days\n";
     if ($print_sum) {
       print OUT "$sum\n";
     }

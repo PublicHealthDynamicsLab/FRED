@@ -66,47 +66,21 @@ else {
 
 my @line = ();
 my $datafile;
+my $i = 0;
 
 if ($weekly) {
-
   $weekly = "Weekly_";
 
-  # Add Week column
+  # Add Week column in format YYYY-WK DAYS
   $datafile = "$dir/Weekly-1.txt";
   die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
   open FH, $datafile or die "$0: ERROR READING $datafile\n";
   my $i = 0;
   while (<FH>) {
     chomp; 
-    $line[$i++] = "$_";
+    my ($wk,$yr,$days) = split " ";
+    $line[$i++] = "$yr.$wk $days";
   }
-
-  # Add Pop column
-  $datafile = "$dir/Weekly_N.txt";
-  $datafile = "$dir/Weekly_N-$run.txt" if $run > 0;
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    if ($run > 0) {
-      if ($i == 0) {
-	$line[$i++] .= " Run N";
-      }
-      else {
-	$line[$i++] .= " $run $_";
-      }
-    }
-    else {
-      my ($mean,$std,$runs) = split " ", $_;
-      if ($i > 0) {
-	$mean = cleanup($mean);
-	$std = cleanup($std);
-      }
-      $line[$i++] .= " $runs $mean $std";
-    }
-  }
-
 }
 else {
 
@@ -160,30 +134,30 @@ else {
     $line[$i++] .= " $_";
   }
 
-# Add Pop column
-  $datafile = "$dir/N.txt";
-  $datafile = "$dir/N-$run.txt" if $run > 0;
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    if ($run > 0) {
-      if ($i == 0) {
-	$line[$i++] .= " Run N";
-      } else {
-	$line[$i++] .= " $run $_";
-      }
-    } else {
-      my ($mean,$std,$runs) = split " ", $_;
-      if ($i > 0) {
-	$mean = cleanup($mean);
-	$std = cleanup($std);
-      }
-      $line[$i++] .= " $runs $mean $std";
-    }
-  }
+}
 
+# Add Pop column
+$datafile = "$dir/${weekly}N.txt";
+$datafile = "$dir/${weekly}N-$run.txt" if $run > 0;
+die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+open FH, $datafile or die "$0: ERROR READING $datafile\n";
+$i = 0;
+while (<FH>) {
+  chomp; 
+  if ($run > 0) {
+    if ($i == 0) {
+      $line[$i++] .= " Run N";
+    } else {
+      $line[$i++] .= " $run $_";
+    }
+  } else {
+    my ($mean,$std,$runs) = split " ", $_;
+    if ($i > 0) {
+      $mean = cleanup($mean);
+      $std = cleanup($std);
+    }
+    $line[$i++] .= " $runs $mean $std";
+  }
 }
 
 for my $v (@vars) {
