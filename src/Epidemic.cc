@@ -655,7 +655,7 @@ void Epidemic::report_serial_interval(int day) {
     Global::Daily_Tracker->set_index_key_pair(day,"ser_int", mean_serial_interval);
   }
 
-  track_value(day, (char *)"Gen", mean_serial_interval);
+  track_value(day, (char *)"Tg", mean_serial_interval);
 }
 
 void Epidemic::report_transmission_by_age_group(int day) {
