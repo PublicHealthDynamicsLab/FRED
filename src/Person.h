@@ -302,6 +302,10 @@ public:
     return this->health.is_symptomatic();
   }
 
+  int get_days_symptomatic() {
+    return this->health.get_days_symptomatic();
+  }
+
   bool is_immune(Disease * dis) {
     return this->health.is_immune(dis);
   }

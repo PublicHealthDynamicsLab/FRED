@@ -573,6 +573,7 @@ private:
   bool is_traveling_outside;                 // true if traveling outside modeled area
   char profile;                              // activities profile type
   bool is_hospitalized;
+  bool is_isolated;
   int sim_day_hospitalization_ends;
   int grade;
 

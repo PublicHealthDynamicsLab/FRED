@@ -255,6 +255,9 @@ class Global {
     static bool Report_Incidence_By_Census_Tract;
     static bool Assign_Teachers;
     static bool Enable_Household_Shelter;
+    static bool Enable_Isolation;
+    static int Isolation_Delay;
+    static double Isolation_Rate;
     static char PSA_Method[];
     static char PSA_List_File[];
     static int PSA_Sample_Size;

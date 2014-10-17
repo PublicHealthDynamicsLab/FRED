@@ -177,6 +177,7 @@ Health::Health() {
   this->wears_face_mask_today = false;
   this->days_wearing_face_mask = 0;
   this->washes_hands = false;
+  this->days_symptomatic = 0;
 }
 
 Health::Health(Person * person) {
@@ -237,6 +238,7 @@ void Health::setup(Person * self) {
     }
   }
 
+  this->days_symptomatic = 0;
   this->vaccine_health = NULL;
   this->av_health = NULL;
   this->checked_for_av = NULL;
@@ -457,7 +459,7 @@ void Health::update(Person * self, int day) {
         // collect the susceptible date and delete the Infection object
         if(this->recovered_today.test(disease_id)) {
           this->susceptible_date[disease_id] =
-              this->infection[disease_id]->get_susceptible_date();
+	    this->infection[disease_id]->get_susceptible_date();
           this->evaluate_susceptibility.set(disease_id);
           if(infection[disease_id]->provides_immunity()) {
             std::vector<int> strains;
@@ -467,18 +469,33 @@ void Health::update(Person * self, int day) {
               int strain = *itr;
               int recovery_date = this->infection[disease_id]->get_recovery_date();
               int age_at_exposure =
-                  this->infection[disease_id]->get_age_at_exposure();
+		this->infection[disease_id]->get_age_at_exposure();
               this->past_infections[disease_id].push_back(
-                  Past_Infection(strain, recovery_date, age_at_exposure));
+		     Past_Infection(strain, recovery_date, age_at_exposure));
             }
           }
           delete this->infection[disease_id];
           this->active_infections.reset(disease_id);
           this->infection[disease_id] = NULL;
-        }
+	}
+	else {
+	  // update days_symptomatic if needed
+	  if (this->is_symptomatic(disease_id)) {
+	    int days_symp_disease = (day - this->get_symptomatic_date(disease_id));
+	    if (days_symp_disease > this->days_symptomatic) {
+	      this->days_symptomatic = days_symp_disease;
+	    }
+	  }
+	}
       }
     }
   }
+
+  // see if we have symptoms
+  if (this->is_symptomatic() == false) {
+    this->days_symptomatic = 0;
+  }
+
   // First check to see if we need to evaluate susceptibility
   // for any diseases; if so check for susceptibility due to loss of immunity
   // The evaluate_susceptibility bit for that disease will be reset in the

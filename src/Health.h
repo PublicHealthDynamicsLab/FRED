@@ -209,6 +209,8 @@ public:
     return this->symptomatic.test(disease_id);
   }
 
+  int get_days_symptomatic() { return days_symptomatic; }
+
   /**
    * Is the agent immune to a given disease
    *
@@ -703,6 +705,8 @@ private:
 
   // living or not?
   bool alive;
+
+  int days_symptomatic;
 
   // TODO (JVD): The infection vector & bitset should be combined into a little 
   // helper class to make sure that they're always synched up.

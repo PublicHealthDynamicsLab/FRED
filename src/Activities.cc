@@ -111,6 +111,7 @@ Activities::Activities() {
   this->is_traveling_outside = false;
   this->is_hospitalized = false;
   this->sim_day_hospitalization_ends = -1;
+  this->is_isolated = false;
   this->grade = 0;
 }
 
@@ -320,6 +321,28 @@ void Activities::update(int day) {
 
 void Activities::update_activities_of_infectious_person(Person * self, int day) {
 
+  if (Global::Enable_Isolation) {
+    if (this->is_isolated) {
+      // once isolated, remain isolated
+      update_schedule(self, day);
+      return;
+    }
+    else {
+      // enter isolation if symptomatic, with a given probability
+      if(self->is_symptomatic()) {
+	// are we passed the isolation delay period?
+	if (Global::Isolation_Delay <= self->get_days_symptomatic()) {
+	  // decide whether to enter isolation
+	  if (RANDOM() < Global::Isolation_Rate) {
+	    this->is_isolated = true;
+	    update_schedule(self, day);
+	    return;
+	  }
+	}
+      }
+    }
+  }
+
   // skip scheduled activities if traveling abroad
   if(this->is_traveling_outside) {
     return;
@@ -408,6 +431,11 @@ void Activities::update_schedule(Person * self, int day) {
   this->schedule_updated = day;
   this->on_schedule.reset();
 
+  // if isolated, visit nowhere today
+  if (this->is_isolated) {
+    return;
+  }
+
   if(Global::Enable_Hospitals && this->is_hospitalized && !(this->sim_day_hospitalization_ends == day)) {
     // only visit the hospital
     this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
@@ -416,7 +444,7 @@ void Activities::update_schedule(Person * self, int day) {
     if(Global::Enable_Hospitals && this->is_hospitalized && (this->sim_day_hospitalization_ends == day)) {
       end_hospitalization(self);
     }
-
+    
     // always visit the household
     this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
 
@@ -430,7 +458,7 @@ void Activities::update_schedule(Person * self, int day) {
       }
     }
 
-    // decide whether to visit the nieghborhood
+    // decide whether to visit the neighborhood
     if (this->profile == PRISONER_PROFILE || this->profile == NURSING_HOME_RESIDENT_PROFILE) {
       // prisoners and nursing home residents stay indoors
       this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = false;

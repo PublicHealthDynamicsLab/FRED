@@ -431,6 +431,18 @@ flu_days = 0
 
 ##########################################################
 #
+# ISOLATION OF SYMPTOMATICS  
+#
+##########################################################
+
+enable_isolation = 0
+# days after becoming symptomatic when isolation may occur:
+isolation_delay = 1
+# daily probability of entering isolation if symptomatic:
+isolation_rate = 1.0
+
+##########################################################
+#
 # BEHAVIORAL PARAMETERS (OPTIONAL)
 #
 ##########################################################
