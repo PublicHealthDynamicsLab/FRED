@@ -250,11 +250,13 @@ if ($boxes) {
   my $vn = scalar @varlist;
   print FH "\n# set up boxes\n";
   print FH "vars = $vn\n";
+  print FH "fredkeys = ", scalar @keys, "\n";
+  print FH "nplots = vars * fredkeys\n";
   print FH "total_relative_boxwidths = 0.8\n";
-  print FH "dx = total_relative_boxwidths/(1.0*vars)\n";
-  print FH "set boxwid (total_relative_boxwidths/(1.0*vars)) relative\n";
+  print FH "dx = total_relative_boxwidths/(1.0*nplots)\n";
+  print FH "set boxwid (total_relative_boxwidths/(1.0*nplots)) relative\n";
   print FH "set style fill solid 1.0 border 0\n";
-  print FH "get_shift(n) = dx*(n-0.5*vars-0.5)\n";
+  print FH "get_shift(n) = dx*(n-0.5*nplots-0.5)\n";
   # print FH "set xtics offset graph (-1.0*get_shift(1)), 0\n";
   print FH "\n";
 }
