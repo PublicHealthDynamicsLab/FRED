@@ -128,7 +128,7 @@ sub add_params_file {
   my $newkey = $key;
   $newkey =~ s/\[/_/g;
   $newkey =~ s/\]//g;
-  $newkey = "$keybase-$newkey" if $keybase;
+  $newkey = "$keybase\_$newkey" if $keybase;
   my $newparams = "$params_dir/params.$newkey";
 
   system "cp $paramsfile $newparams";
