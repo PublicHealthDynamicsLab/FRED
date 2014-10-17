@@ -1019,15 +1019,15 @@ influenza_seasonality_multiplier_Ka = -180
 #
 ##########################################################
 
-enable_household_shelter = 0
-shelter_duration_mean = 0
-shelter_duration_std = 0.0
-shelter_delay_mean = 0
-shelter_delay_std = 0
-shelter_pct = 0
-shelter_early_rate = 0.0
-shelter_decay_rate = 0.0
-shelter_income = 0
+enable_shelter_in_place = 0
+shelter_in_place_duration_mean = 0
+shelter_in_place_duration_std = 0.0
+shelter_in_place_delay_mean = 0
+shelter_in_place_delay_std = 0
+shelter_in_place_compliance = 0
+shelter_in_place_early_rate = 0.0
+shelter_in_place_decay_rate = 0.0
+shelter_in_place_by_income = 0
 
 ##########################################################
 #

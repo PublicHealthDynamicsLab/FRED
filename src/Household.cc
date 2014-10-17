@@ -51,7 +51,7 @@ Household::Household() {
   get_parameters(Global::Diseases);
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
-  this->isolated = false;
+  this->sheltering = false;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->county_index = -1;
@@ -66,7 +66,7 @@ Household::Household(const char * lab, fred::place_subtype _subtype, fred::geo l
   get_parameters(Global::Diseases);
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
-  this->isolated = false;
+  this->sheltering = false;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->county_index = -1;

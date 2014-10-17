@@ -75,8 +75,8 @@ int Place_List::Shelter_duration_mean = 0;
 int Place_List::Shelter_duration_std = 0;
 int Place_List::Shelter_delay_mean = 0;
 int Place_List::Shelter_delay_std = 0;
-double Place_List::Pct_households_isolated = 0;
-bool Place_List::High_income_households_isolated = 0;
+double Place_List::Pct_households_sheltering = 0;
+bool Place_List::High_income_households_sheltering = 0;
 double Place_List::Early_shelter_rate = 0.0;
 double Place_List::Shelter_decay_rate = 0.0;
 bool Place_List::Household_hospital_map_file_exists = false;
@@ -114,35 +114,6 @@ void Place_List::get_parameters() {
   Params::get_param_from_string("counties_file", Place_List::Counties_file);
   Params::get_param_from_string("states_file", Place_List::States_file);
 
-  // group quarter parameters
-  Params::get_param_from_string("college_dorm_mean_size", &Place_List::College_dorm_mean_size);
-  Params::get_param_from_string("military_barracks_mean_size", &Place_List::Military_barracks_mean_size);
-  Params::get_param_from_string("prison_cell_mean_size", &Place_List::Prison_cell_mean_size);
-  Params::get_param_from_string("nursing_home_room_mean_size", &Place_List::Nursing_home_room_mean_size);
-
-  Params::get_param_from_string("school_fixed_staff", &Place_List::School_fixed_staff);
-  Params::get_param_from_string("school_student_teacher_ratio", &Place_List::School_student_teacher_ratio);
-  Params::get_param_from_string("college_fixed_staff", &Place_List::College_fixed_staff);
-  Params::get_param_from_string("college_resident_to_staff_ratio", &Place_List::College_resident_to_staff_ratio);
-  Params::get_param_from_string("prison_fixed_staff", &Place_List::Prison_fixed_staff);
-  Params::get_param_from_string("prison_resident_to_staff_ratio", &Place_List::Prison_resident_to_staff_ratio);
-  Params::get_param_from_string("nursing_home_fixed_staff", &Place_List::Nursing_home_fixed_staff);
-  Params::get_param_from_string("nursing_home_resident_to_staff_ratio", &Place_List::Nursing_home_resident_to_staff_ratio);
-  Params::get_param_from_string("military_fixed_staff", &Place_List::Military_fixed_staff);
-  Params::get_param_from_string("military_resident_to_staff_ratio", &Place_List::Military_resident_to_staff_ratio);
-
-  // household shelter parameters
-  Params::get_param_from_string("shelter_duration_mean", &Place_List::Shelter_duration_mean);
-  Params::get_param_from_string("shelter_duration_std", &Place_List::Shelter_duration_std);
-  Params::get_param_from_string("shelter_delay_mean", &Place_List::Shelter_delay_mean);
-  Params::get_param_from_string("shelter_delay_std", &Place_List::Shelter_delay_std);
-  Params::get_param_from_string("shelter_pct", &Place_List::Pct_households_isolated);
-  int temp_int;
-  Params::get_param_from_string("shelter_income", &temp_int);
-  Place_List::High_income_households_isolated = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("shelter_early_rate", &Place_List::Early_shelter_rate);
-  Params::get_param_from_string("shelter_decay_rate", &Place_List::Shelter_decay_rate);
-
   // population parameters
   Params::get_param_from_string("synthetic_population_directory",
       Global::Synthetic_population_directory);
@@ -154,6 +125,39 @@ void Place_List::get_parameters() {
   Params::get_param_from_string("state", Global::US_state);
   Params::get_param_from_string("fips", Global::FIPS_code);
   Params::get_param_from_string("msa", Global::MSA_code);
+
+  if(Global::Enable_Group_Quarters) {
+    // group quarter parameters
+    Params::get_param_from_string("college_dorm_mean_size", &Place_List::College_dorm_mean_size);
+    Params::get_param_from_string("military_barracks_mean_size", &Place_List::Military_barracks_mean_size);
+    Params::get_param_from_string("prison_cell_mean_size", &Place_List::Prison_cell_mean_size);
+    Params::get_param_from_string("nursing_home_room_mean_size", &Place_List::Nursing_home_room_mean_size);
+    
+    Params::get_param_from_string("school_fixed_staff", &Place_List::School_fixed_staff);
+    Params::get_param_from_string("school_student_teacher_ratio", &Place_List::School_student_teacher_ratio);
+    Params::get_param_from_string("college_fixed_staff", &Place_List::College_fixed_staff);
+    Params::get_param_from_string("college_resident_to_staff_ratio", &Place_List::College_resident_to_staff_ratio);
+    Params::get_param_from_string("prison_fixed_staff", &Place_List::Prison_fixed_staff);
+    Params::get_param_from_string("prison_resident_to_staff_ratio", &Place_List::Prison_resident_to_staff_ratio);
+    Params::get_param_from_string("nursing_home_fixed_staff", &Place_List::Nursing_home_fixed_staff);
+    Params::get_param_from_string("nursing_home_resident_to_staff_ratio", &Place_List::Nursing_home_resident_to_staff_ratio);
+    Params::get_param_from_string("military_fixed_staff", &Place_List::Military_fixed_staff);
+    Params::get_param_from_string("military_resident_to_staff_ratio", &Place_List::Military_resident_to_staff_ratio);
+  }
+
+  // household shelter parameters
+  if(Global::Enable_Household_Shelter) {
+    Params::get_param_from_string("shelter_in_place_duration_mean", &Place_List::Shelter_duration_mean);
+    Params::get_param_from_string("shelter_in_place_duration_std", &Place_List::Shelter_duration_std);
+    Params::get_param_from_string("shelter_in_place_delay_mean", &Place_List::Shelter_delay_mean);
+    Params::get_param_from_string("shelter_in_place_delay_std", &Place_List::Shelter_delay_std);
+    Params::get_param_from_string("shelter_in_place_compliance", &Place_List::Pct_households_sheltering);
+    int temp_int;
+    Params::get_param_from_string("shelter_in_place_by_income", &temp_int);
+    Place_List::High_income_households_sheltering = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("shelter_in_place_early_rate", &Place_List::Early_shelter_rate);
+    Params::get_param_from_string("shelter_in_place_decay_rate", &Place_List::Shelter_decay_rate);
+  }
 
   if(Global::Enable_Hospitals) {
     char map_file_name[FRED_STRING_SIZE];
@@ -1658,21 +1662,21 @@ void Place_List::report_household_incomes() {
 
 void Place_List::select_households_for_shelter() {
   FRED_VERBOSE(0, "select_households_for_shelter entered.\n");
-  FRED_VERBOSE(0, "pct_households_isolated = %f\n", Place_List::Pct_households_isolated);
+  FRED_VERBOSE(0, "pct_households_sheltering = %f\n", Place_List::Pct_households_sheltering);
   FRED_VERBOSE(0, "num_households = %d\n", this->households.size());
-  int num_isolated = 0.5 + Place_List::Pct_households_isolated * this->households.size();
-  FRED_VERBOSE(0, "num_isolated = %d\n", num_isolated);
-  FRED_VERBOSE(0, "high_income = %d\n", Place_List::High_income_households_isolated?1:0);
+  int num_sheltering = 0.5 + Place_List::Pct_households_sheltering * this->households.size();
+  FRED_VERBOSE(0, "num_sheltering = %d\n", num_sheltering);
+  FRED_VERBOSE(0, "high_income = %d\n", Place_List::High_income_households_sheltering?1:0);
 
   int num_households = this->households.size();
 
-  if (Place_List::High_income_households_isolated) {
+  if (Place_List::High_income_households_sheltering) {
     // this assumes that household have been sorted in increasing income
     // in setup_households()
-    for(int i = 0; i < num_isolated; i++) {
+    for(int i = 0; i < num_sheltering; i++) {
       int j = num_households - 1 - i;
       Household * h = get_household_ptr(j);
-      isolate_household(h);
+      shelter_household(h);
     }
   } else {
     // select households randomly
@@ -1683,14 +1687,14 @@ void Place_List::select_households_for_shelter() {
     }
     // randomly shuffle households
     FYShuffle<Household *>(tmp);
-    for(int i = 0; i < num_isolated; i++) {
-      this->isolate_household(tmp[i]);
+    for(int i = 0; i < num_sheltering; i++) {
+      this->shelter_household(tmp[i]);
     }
   }
   FRED_VERBOSE(0, "select_households_for_shelter finished.\n");
 }
 
-void Place_List::isolate_household(Household * h) {
+void Place_List::shelter_household(Household * h) {
   h->set_shelter(true);
 
   // set shelter delay
@@ -1730,46 +1734,46 @@ void Place_List::isolate_household(Household * h) {
 
 
 void Place_List::report_shelter_stats(int day) {
-  int isolated_households = 0;
-  int isolated_pop = 0;
-  int isolated_total_pop = 0;
-  int isolated_new_infections = 0;
-  int isolated_total_infections = 0;
-  int non_isolated_total_infections = 0;
-  int non_isolated_pop = 0;
-  int non_isolated_new_infections = 0;
+  int sheltering_households = 0;
+  int sheltering_pop = 0;
+  int sheltering_total_pop = 0;
+  int sheltering_new_infections = 0;
+  int sheltering_total_infections = 0;
+  int non_sheltering_total_infections = 0;
+  int non_sheltering_pop = 0;
+  int non_sheltering_new_infections = 0;
   int num_households = this->households.size();
-  double isolated_ar = 0.0;
-  double non_isolated_ar = 0.0;
+  double sheltering_ar = 0.0;
+  double non_sheltering_ar = 0.0;
   for(int i = 0; i < num_households; i++) {
     Household * h = this->get_household_ptr(i);
-    if(h->is_isolated()) {
-      isolated_new_infections += h->get_new_infections(0);
-      isolated_total_infections += h->get_total_infections(0);
-      isolated_total_pop += h->get_size();
+    if(h->is_sheltering()) {
+      sheltering_new_infections += h->get_new_infections(0);
+      sheltering_total_infections += h->get_total_infections(0);
+      sheltering_total_pop += h->get_size();
     } else {
-      non_isolated_pop += h->get_size();
-      non_isolated_new_infections += h->get_new_infections(0);
-      non_isolated_total_infections += h->get_total_infections(0);
+      non_sheltering_pop += h->get_size();
+      non_sheltering_new_infections += h->get_new_infections(0);
+      non_sheltering_total_infections += h->get_total_infections(0);
     }
-    if(h->is_isolated_today(day)) {
-      isolated_households++;
-      isolated_pop += h->get_size();
+    if(h->is_sheltering_today(day)) {
+      sheltering_households++;
+      sheltering_pop += h->get_size();
     }
   }
-  if(isolated_total_pop > 0) {
-    isolated_ar = 100.0 * (double) isolated_total_infections / (double) isolated_total_pop;
+  if(sheltering_total_pop > 0) {
+    sheltering_ar = 100.0 * (double) sheltering_total_infections / (double) sheltering_total_pop;
   }
-  if(non_isolated_pop > 0) {
-    non_isolated_ar = 100.0 * (double) non_isolated_total_infections / (double) non_isolated_pop;
+  if(non_sheltering_pop > 0) {
+    non_sheltering_ar = 100.0 * (double) non_sheltering_total_infections / (double) non_sheltering_pop;
   }
-  Global::Daily_Tracker->set_index_key_pair(day,"H_iso",isolated_households);
-  Global::Daily_Tracker->set_index_key_pair(day,"N_iso",isolated_pop);
-  Global::Daily_Tracker->set_index_key_pair(day,"C_iso",isolated_new_infections);
-  Global::Daily_Tracker->set_index_key_pair(day,"AR_iso",isolated_ar);
-  Global::Daily_Tracker->set_index_key_pair(day,"N_noniso",non_isolated_pop);
-  Global::Daily_Tracker->set_index_key_pair(day,"C_noniso",non_isolated_new_infections);
-  Global::Daily_Tracker->set_index_key_pair(day,"AR_noniso",non_isolated_ar);
+  Global::Daily_Tracker->set_index_key_pair(day,"H_sheltering",sheltering_households);
+  Global::Daily_Tracker->set_index_key_pair(day,"N_sheltering",sheltering_pop);
+  Global::Daily_Tracker->set_index_key_pair(day,"C_sheltering",sheltering_new_infections);
+  Global::Daily_Tracker->set_index_key_pair(day,"AR_sheltering",sheltering_ar);
+  Global::Daily_Tracker->set_index_key_pair(day,"N_noniso",non_sheltering_pop);
+  Global::Daily_Tracker->set_index_key_pair(day,"C_noniso",non_sheltering_new_infections);
+  Global::Daily_Tracker->set_index_key_pair(day,"AR_noniso",non_sheltering_ar);
 }
 
 void Place_List::end_of_run() {
@@ -1786,42 +1790,42 @@ void Place_List::end_of_run() {
     }
   }
   if (Global::Enable_Household_Shelter) {
-    int households_iso = 0;
-    int households_not_iso = 0;
-    int pop_iso = 0;
-    int pop_not_iso = 0;
-    int infections_iso = 0;
-    int infections_not_iso = 0;
-    double ar_iso = 0.0;
-    double ar_not_iso = 0.0;
+    int households_sheltering = 0;
+    int households_not_sheltering = 0;
+    int pop_sheltering = 0;
+    int pop_not_sheltering = 0;
+    int infections_sheltering = 0;
+    int infections_not_sheltering = 0;
+    double ar_sheltering = 0.0;
+    double ar_not_sheltering = 0.0;
     int num_households = this->households.size();
     for(int i = 0; i < num_households; i++) {
       Household * h = this->get_household_ptr(i);
-      if(h->is_isolated()) {
-	      pop_iso += h->get_size();
-	      infections_iso += h->get_total_infections(0);
-	      households_iso++;
+      if(h->is_sheltering()) {
+	      pop_sheltering += h->get_size();
+	      infections_sheltering += h->get_total_infections(0);
+	      households_sheltering++;
       } else {
-	      pop_not_iso += h->get_size();
-	      infections_not_iso += h->get_total_infections(0);
-	      households_not_iso++;
+	      pop_not_sheltering += h->get_size();
+	      infections_not_sheltering += h->get_total_infections(0);
+	      households_not_sheltering++;
       }
     }
 
-    if(pop_iso > 0) {
-      ar_iso = (double) infections_iso / (double) pop_iso;
+    if(pop_sheltering > 0) {
+      ar_sheltering = (double) infections_sheltering / (double) pop_sheltering;
     }
 
-    if(pop_not_iso > 0) {
-      ar_not_iso = (double) infections_not_iso / (double) pop_not_iso;
+    if(pop_not_sheltering > 0) {
+      ar_not_sheltering = (double) infections_not_sheltering / (double) pop_not_sheltering;
     }
 
     fprintf(Global::Statusfp,
-	    "ISOLATION REPORT: households_iso %d pop_iso %d infections_iso %d ar_iso %f ",
-	    households_iso, pop_iso, infections_iso, ar_iso);
+	    "ISOLATION REPORT: households_sheltering %d pop_sheltering %d infections_sheltering %d ar_sheltering %f ",
+	    households_sheltering, pop_sheltering, infections_sheltering, ar_sheltering);
     fprintf(Global::Statusfp,
-	    "households_not_iso %d pop_not_iso %d infections_not_iso %d ar_not_iso %f\n",
-	    households_not_iso, pop_not_iso, infections_not_iso, ar_not_iso);
+	    "households_not_sheltering %d pop_not_sheltering %d infections_not_sheltering %d ar_not_sheltering %f\n",
+	    households_not_sheltering, pop_not_sheltering, infections_not_sheltering, ar_not_sheltering);
     fflush(Global::Statusfp);
   }
 }

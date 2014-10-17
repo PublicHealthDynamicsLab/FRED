@@ -285,15 +285,15 @@ public:
     this->census_tract_index = _census_tract_index;
   }
 
-  void set_shelter(bool _isolated) {
-    this->isolated = _isolated;
+  void set_shelter(bool _sheltering) {
+    this->sheltering = _sheltering;
   }
 
-  bool is_isolated() {
-    return this->isolated;
+  bool is_sheltering() {
+    return this->sheltering;
   }
 
-  bool is_isolated_today (int day) {
+  bool is_sheltering_today (int day) {
     return (this->shelter_start_day <= day && day < this->shelter_end_day);
   }
 
@@ -365,7 +365,7 @@ private:
   static int Cat_VI_Max_Income;
 
   Place * group_quarters_workplace;
-  bool isolated;
+  bool sheltering;
   unsigned char deme_id;	      // deme == synthetic population id
   int group_quarters_units;
   int shelter_start_day;

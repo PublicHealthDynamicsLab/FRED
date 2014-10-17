@@ -267,7 +267,7 @@ void Global::get_global_parameters() {
   Global::Report_Incidence_By_County = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_incidence_by_census_tract",&temp_int);
   Global::Report_Incidence_By_Census_Tract = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("enable_household_shelter", &temp_int);
+  Params::get_param_from_string("enable_shelter_in_place", &temp_int);
   Global::Enable_Household_Shelter = (temp_int == 0 ? false : true);
 
   // Sanity Checks
