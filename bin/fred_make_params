@@ -11,9 +11,12 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 my $config_file = "make_params.config";
 my $help = "";
 my $sample = 0;
+my $keybase = "";
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "help" => \$help,
+			    "k=s" => \$keybase,
+			    "key=s" => \$keybase,
 			    "s" => \$sample,
 			    "f=s" => \$config_file,
 			   );
@@ -22,6 +25,7 @@ usage: $0 [ options ], where options include:
        -f config.file: config.file contains specification of sweep parameters.
        -h: print this help message.
        -s: print a sample config file.
+       -k keystring : use string "keystring" as the base for the job key
 EOH
 
 die $usage if $help;
@@ -124,6 +128,7 @@ sub add_params_file {
   my $newkey = $key;
   $newkey =~ s/\[/_/g;
   $newkey =~ s/\]//g;
+  $newkey = "$keybase-$newkey" if $keybase;
   my $newparams = "$params_dir/params.$newkey";
 
   system "cp $paramsfile $newparams";
@@ -131,7 +136,7 @@ sub add_params_file {
   for my $par_val (@pars) {
     my ($param, $value) = split "=", $par_val;
     if (-e "change_params") {
-      system "change_params $param $value $newparams";
+      system "change_params $param $value $newparams > /dev/null";
     }
     else {
       system "fred_set '$param' $value $newparams > /dev/null";

@@ -5,7 +5,7 @@ use Env;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $usage = 
-'% fred_make_tasks [--help][-k keybase][-n runs][-m simulatenous_runs][-o outfile][-r results_dir][-d delete][other options]
+'% fred_make_tasks [--help][-n runs][-m simulatenous_runs][-o outfile][-r results_dir][-d delete][other options]
   --help	  print out this help message.
   -d <int>	  if set, run fred_delete before each job to clear previous results.
      		  if -d 2, also run fred_delete after running collect_task_data.
@@ -20,7 +20,6 @@ my $usage =
 my $n = 20;
 my $m = 1;
 my $outfile = "tasks";
-my $keybase = "";
 my $results = "RESULTS";
 my $copy = 0;
 my $delete = 1;
@@ -37,7 +36,6 @@ my $opt_result = GetOptions(
 			    "n=i" => \$n,
 			    "m=i" => \$m,
 			    "M=i" => \$multiple_cpus,
-			    "k=s" => \$keybase,
 			    "o=s" => \$outfile,
 			    "r=s" => \$results,
 			    "outfile=s" => \$outfile,
