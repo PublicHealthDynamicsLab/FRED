@@ -16,7 +16,7 @@ my @ave = ();
 my $n = 0;
 
 for my $j (0..6) {
-  my $p = "$places[$j]_0";
+  my $p = "$places[$j]";
   my $pcount = 0;
   for my $i (1..100) {
     my $outfile = "$dir/out$i.txt";
