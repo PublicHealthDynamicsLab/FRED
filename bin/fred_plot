@@ -89,6 +89,7 @@ my $opt_result = GetOptions(
 			    "Y=f" => \$ymax,
 			    "errorbars" => \$errorbars,
 			    "font=s" => \$font,
+			    "F=f" => \$fontsize,
 			    "fsize=f" => \$fontsize,
 			    "keys=s" => \@keys,
 			    "legend=s" => \$legend,
