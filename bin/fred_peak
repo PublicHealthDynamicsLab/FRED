@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $usage = "usage: $0 -k key\n";
+
+my %options = ();
+getopts("k:", \%options);
+my $key = "";
+$key = $options{k} if exists $options{k};
+die $usage if not $key;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+die "$0: error finding results directory $FREDRESULTS\n" if not (-d $FREDRESULTS);
+
+my $runs = get_runs($key);
+# print "runs = $runs\n";
+my @peakday = ();
+my @peakht = ();
+for my $run (1..$runs) {
+  my ($day, $ht) = get_peak($key, $run);
+  push @peakday, $day;
+  push @peakht, $ht;
+}
+
+my ($mean, $std) = get_mean_std(@peakday);
+printf "%0.2f %0.2f ",$mean, $std;
+($mean, $std) = get_mean_std(@peakht);
+printf "%0.2f %0.2f\n",$mean, $std;
+
+exit;
+
+sub get_mean_std {
+  my @a = @_;
+  my $sum = 0;
+  my $sumsq = 0;
+  my $n = scalar @a;
+  for my $x (@a) {
+    $sum += $x;
+    $sumsq += $x*$x;
+  }
+  my $mean = 0;
+  $mean = (1.0*$sum)/$n if $n;
+  my $stdev = 0;
+  my $square = 0;
+  $square = (($n*$sumsq - $sum*$sum)/($n*($n-1))) if $n>1;
+  $stdev = sqrt($square) if $square > 0.000000001;
+  return ($mean, $stdev);
+}
+
+sub get_runs {
+  my $key = shift;
+  my $id = `fred_id $key`;
+  chomp $id;
+  my $runs = `cat $FREDRESULTS/JOB/$id/META/RUNS`;
+  chomp $runs;
+  return $runs;
+}
+
+sub get_peak {
+  my ($key, $run) = @_;
+  my $tmpfile = ".tmpfile";
+  system "fred_csv -k $key -v C -r $run > $tmpfile";
+  die "$0: error in get_data\n" if not -s $tmpfile;
+  my $peakday = -1;
+  my $peak = -1;
+  my @tmpdata = ();
+  open IN, $tmpfile;
+  <IN>;
+  while (<IN>) {
+    chomp;
+    my @a = split ',', $_;
+    my ($day, $inc) = ($a[0], $a[7]);
+    # print "$day $inc\n";
+    if ($inc > $peak) {
+      $peak = $inc;
+      $peakday = $day;
+    }
+  }
+  close IN;
+  # unlink $tmpfile;
+  return ($peakday, $peak);
+}

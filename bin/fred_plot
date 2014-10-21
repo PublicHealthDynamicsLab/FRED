@@ -44,7 +44,6 @@ my %titles = ( AR => "Attack Rate",
 
 my @keys = ();
 my @varlist = ();
-my $year = "0";
 my $xmin = "0";
 my $xmax = "*";
 my $ymin = "0";
@@ -66,7 +65,7 @@ my $ylabel = "Individuals";
 my $xtics = "";
 my $outfile = "";
 my $help = "";
-my $show_year = "1";
+my $show_year = 0;
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "help" => \$help,
@@ -169,13 +168,16 @@ for my $key (@keys) {
   $id_of_key{$key} = $id;
 }
 
+# create a good name for the plt and pdf files
 my $varstr = join "-", @varlist;
-my $plotstr = "plot-$varstr";
-
-my $pltfile = "$plotstr.plt";
-my $pdffile = "$plotstr.pdf";
+my $pltfile = "plot-$varstr.plt";
 if (not $outfile) {
-  $outfile = $pdffile;
+  # user did not supply a name as -o option
+  $outfile = "plot-$varstr.pdf";
+}
+else {
+  $pltfile = "plot-$outfile.plt";
+  $outfile = "$outfile.pdf";
 }
 
 for my $v (@varlist) {
@@ -307,11 +309,11 @@ sub get_data {
   $week = "--weekly" if $weekly;
   if ($run > 0) {
     system "fred_csv -k $key -v $var -r $run $week > $tmpfile";
-    die "$0: error in get_data\n" if not -s $tmpfile;
+    print "$0: error in get_data\n" if not -s $tmpfile;
   }
   else {
     system "fred_csv -k $key -v $var $week > $tmpfile";
-    die "$0: error in get_data\n" if not -s $tmpfile;
+    print "$0: error in get_data\n" if not -s $tmpfile;
 
   }
   my @tmpdata = ();
