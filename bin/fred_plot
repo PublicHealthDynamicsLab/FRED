@@ -52,7 +52,7 @@ my $display = 1;
 my $errorbars;
 my $title = "FRED Simulation";
 my $weekly;
-my $ensemble;
+my $all;
 my $font = "Helvetica";
 my $fontsize = "12";
 my $boxes;
@@ -67,12 +67,17 @@ my $outfile = "";
 my $help = "";
 my $show_year = 0;
 my $opt_result = GetOptions(
+			    "a" => \$all,
+			    "all" => \$all,
+			    "b" => \$boxes,
+			    "bars" => \$boxes,
+			    "boxes" => \$boxes,
+			    "histogram" => \$boxes,
 			    "h" => \$help,
 			    "help" => \$help,
 			    "d=i" => \$display,
 			    "display=i" => \$display,
 			    "e" => \$errorbars,
-			    "ensemble" => \$ensemble,
 			    "f=s" => \$font,
 			    "k=s" => \@keys,
 			    "T=s" => \$title,
@@ -85,16 +90,16 @@ my $opt_result = GetOptions(
 			    "errorbars" => \$errorbars,
 			    "font=s" => \$font,
 			    "fsize=f" => \$fontsize,
-			    "bars" => \$boxes,
-			    "boxes" => \$boxes,
-			    "histogram" => \$boxes,
 			    "keys=s" => \@keys,
 			    "legend=s" => \$legend,
+			    "n" => \$normalize,
 			    "normalize" => \$normalize,
+			    "s=f" => \$scale,
 			    "scale=f" => \$scale,
 			    "smooth" => \$smooth,
 			    "title=s" => \$title,
 			    "var=s" => \@varlist,
+			    "w" => \$weekly,
 			    "weekly" => \$weekly,
 			    "xmin=i" => \$xmin,
 			    "xmax=i" => \$xmax,
@@ -126,7 +131,7 @@ usage: fred_plot -k key -v var [ options ], where options include:
        -Y ymax: max value for y-axis.
        -o outfile: send output image to indicated file.
        --bar: plot bar charts instead of curves.
-       --ensemble: show individual runs.
+       --all: show individual runs.
        --normalize: scale y-axis to show counts per <s> people.
        --scale s : scale factor for normalization
        --weekly: plot variables averaged over epi weeks.
@@ -183,7 +188,7 @@ else {
 for my $v (@varlist) {
   for my $key (@keys) {
     get_data($key, $v, 0);
-    if ($ensemble) {
+    if ($all) {
       my $runs = get_runs($key);
       for my $run (1..$runs) {
 	get_data($key, $v, $run);
@@ -284,7 +289,7 @@ for my $v (@varlist) {
     print FH "plot \\\n" if $plotcmd;
     print FH plot_command($ptitle,$n,0);
     $plotcmd = 0;
-    if ($ensemble) {
+    if ($all) {
       my $runs = get_runs($key);
       for my $run (1..$runs) {
 	print FH plot_command("",$n,$run);
