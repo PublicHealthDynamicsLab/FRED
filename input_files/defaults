@@ -443,246 +443,6 @@ isolation_rate = 1.0
 
 ##########################################################
 #
-# BEHAVIORAL PARAMETERS (OPTIONAL)
-#
-##########################################################
-
-#### INDIVIDUAL BEHAVIORS (EXPERIMENTAL!)
-enable_behaviors = 0
-stay_home_when_sick_enabled = 0
-keep_child_home_when_sick_enabled = 0
-accept_vaccine_enabled = 0
-accept_vaccine_dose_enabled = 0
-accept_vaccine_for_child_enabled = 0
-accept_vaccine_dose_for_child_enabled = 0
-# let individuals decide whether to take sick leave if available
-take_sick_leave_enabled = 0
-
-#### PERCEPTION (EXPERIMENTAL)
-memory_decay = 2 0 0 
-
-#### SICK LEAVE BEHAVIOR
-
-## default sick behavior:
-# if set, use sick_day_prob and overide other sick leave behavior
-enable_default_sick_behavior = 1
-
-# each agent withdraws to the household with sick_day_prob
-# on each day the agent is symptomatic
-sick_day_prob = 0.5
-
-## behavior if sick leave is available (SLA)
-SLA_absent_prob = 0.72
-SLA_mean_sick_days_absent = 2.7
-
-## behavior if sick leave is unavailable (SLU)
-SLU_absent_prob = 0.52
-SLU_mean_sick_days_absent = 2.7
-
-work_absenteeism = 0.0
-school_absenteeism = 0.0
-
-#### BEHAVIOR MARKET SEGMENTS (EXPERIMENTAL!)
-#
-# BEHAVIOR_CHANGE_MODEL 0 = ALWAYS REFUSE
-# BEHAVIOR_CHANGE_MODEL 1 = ALWAYS ACCEPT
-# BEHAVIOR_CHANGE_MODEL 2 = FLIP WEIGHTED COIN FOR EACH DECISION
-# BEHAVIOR_CHANGE_MODEL 3 = IMITATE PREVALENCE
-# BEHAVIOR_CHANGE_MODEL 4 = IMITATE CONSENSUS
-# BEHAVIOR_CHANGE_MODEL 5 = IMITATE COUNT
-# BEHAVIOR_CHANGE_MODEL 6 = HEALTH BELIEF MODEL
-#
-# Each behavior_change_model_distribution should add up to 100
-stay_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
-keep_child_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
-accept_vaccine_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
-accept_vaccine_dose_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
-accept_vaccine_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
-accept_vaccine_dose_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
-take_sick_leave_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
-
-##### FLIP/IMITATE INITIAL PROBS AND DECISION FREQUENCY
-stay_home_when_sick_prob = -1.0
-stay_home_when_sick_min_prob = 0
-stay_home_when_sick_max_prob = 1
-stay_home_when_sick_frequency = 1
-
-keep_child_home_when_sick_prob = -1.0
-keep_child_home_when_sick_min_prob = 0
-keep_child_home_when_sick_max_prob = 1
-keep_child_home_when_sick_frequency = 1
-
-accept_vaccine_prob = -1.0
-accept_vaccine_min_prob = 0
-accept_vaccine_max_prob = 1
-accept_vaccine_frequency = 1
-  
-accept_vaccine_dose_prob = -1.0
-accept_vaccine_dose_min_prob = 0
-accept_vaccine_dose_max_prob = 1
-accept_vaccine_dose_frequency = 1
-
-accept_vaccine_for_child_prob = -1.0
-accept_vaccine_for_child_min_prob = 0
-accept_vaccine_for_child_max_prob = 1
-accept_vaccine_for_child_frequency = 1
-  
-accept_vaccine_dose_for_child_prob = -1.0
-accept_vaccine_dose_for_child_min_prob = 0
-accept_vaccine_dose_for_child_max_prob = 1
-accept_vaccine_dose_for_child_frequency = 1
-
-take_sick_leave_prob = -1.0
-take_sick_leave_min_prob = 0
-take_sick_leave_max_prob = 1
-take_sick_leave_frequency = 1
-
-#### IMITATION THRESHOLDS
-
-stay_home_when_sick_imitate_consensus_threshold = 0
-take_sick_leave_imitate_consensus_threshold = 0
-keep_child_home_when_sick_imitate_consensus_threshold = 0
-accept_vaccine_imitate_consensus_threshold = 0
-accept_vaccine_dose_imitate_consensus_threshold = 0
-accept_vaccine_for_child_imitate_consensus_threshold = 0
-accept_vaccine_dose_for_child_imitate_consensus_threshold = 0
-
-stay_home_when_sick_imitate_count_threshold = 0
-take_sick_leave_imitate_count_threshold = 0
-keep_child_home_when_sick_imitate_count_threshold = 0
-accept_vaccine_imitate_count_threshold = 0
-accept_vaccine_dose_imitate_count_threshold = 0
-accept_vaccine_for_child_imitate_count_threshold = 0
-accept_vaccine_dose_for_child_imitate_count_threshold = 0
-
-##### WEIGHTS FOR IMITATION
-## ORDER IS HOUSEHOLD NEIGHBORHOOD SCHOOL WORK ALL
-## Weights can be any real number.
-##
-stay_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
-take_sick_leave_imitate_prevalence_weights = 5 0 0 0 0 1
-keep_child_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
-accept_vaccine_imitate_prevalence_weights = 5 0 0 0 0 1
-accept_vaccine_dose_imitate_prevalence_weights = 5 0 0 0 0 1
-accept_vaccine_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
-accept_vaccine_dose_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
-
-stay_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
-take_sick_leave_imitate_consensus_weights = 5 0 0 0 0 1
-keep_child_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
-accept_vaccine_imitate_consensus_weights = 5 0 0 0 0 1
-accept_vaccine_dose_imitate_consensus_weights = 5 0 0 0 0 1
-accept_vaccine_for_child_imitate_consensus_weights = 5 0 0 0 0 1
-accept_vaccine_dose_for_child_imitate_consensus_weights = 5 0 0 0 0 1
-
-stay_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
-take_sick_leave_imitate_count_weights = 5 0 0 0 0 1
-keep_child_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
-accept_vaccine_imitate_count_weights = 5 0 0 0 0 1
-accept_vaccine_dose_imitate_count_weights = 5 0 0 0 0 1
-accept_vaccine_for_child_imitate_count_weights = 5 0 0 0 0 1
-accept_vaccine_dose_for_child_imitate_count_weights = 5 0 0 0 0 1
-
-#### IMITATE PREVALENCE UPDATE RATE
-stay_home_when_sick_imitate_prevalence_update_rate = 0.1
-take_sick_leave_imitate_prevalence_update_rate = 0.1
-keep_child_home_when_sick_imitate_prevalence_update_rate = 0.1
-accept_vaccine_imitate_prevalence_update_rate = 0.1
-accept_vaccine_dose_imitate_prevalence_update_rate = 0.1
-accept_vaccine_for_child_imitate_prevalence_update_rate = 0.1
-accept_vaccine_dose_for_child_imitate_prevalence_update_rate = 0.1
-
-#### IMITATE CONSENSUS UPDATE RATE
-stay_home_when_sick_imitate_consensus_update_rate = 0.1
-take_sick_leave_imitate_consensus_update_rate = 0.1
-keep_child_home_when_sick_imitate_consensus_update_rate = 0.1
-accept_vaccine_imitate_consensus_update_rate = 0.1
-accept_vaccine_dose_imitate_consensus_update_rate = 0.1
-accept_vaccine_for_child_imitate_consensus_update_rate = 0.1
-accept_vaccine_dose_for_child_imitate_consensus_update_rate = 0.1
-
-#### IMITATE COUNT UPDATE RATE
-stay_home_when_sick_imitate_count_update_rate = 0.1
-take_sick_leave_imitate_count_update_rate = 0.1
-keep_child_home_when_sick_imitate_count_update_rate = 0.1
-accept_vaccine_imitate_count_update_rate = 0.1
-accept_vaccine_dose_imitate_count_update_rate = 0.1
-accept_vaccine_for_child_imitate_count_update_rate = 0.1
-accept_vaccine_dose_for_child_imitate_count_update_rate = 0.1
-
-##### HBM 
-stay_home_when_sick_susceptibility_threshold = 2 0 0
-stay_home_when_sick_severity_threshold = 2 0 0
-stay_home_when_sick_benefits_threshold = 2 0 0
-stay_home_when_sick_barriers_threshold = 2 0 0 
-stay_home_when_sick_base_odds_ratio = 1
-stay_home_when_sick_susceptibility_odds_ratio = 1
-stay_home_when_sick_severity_odds_ratio = 1
-stay_home_when_sick_benefits_odds_ratio = 1
-stay_home_when_sick_barriers_odds_ratio = 1
-
-take_sick_leave_susceptibility_threshold = 2 0 0
-take_sick_leave_severity_threshold = 2 0 0
-take_sick_leave_benefits_threshold = 2 0 0
-take_sick_leave_barriers_threshold = 2 0 0 
-take_sick_leave_base_odds_ratio = 1
-take_sick_leave_susceptibility_odds_ratio = 1
-take_sick_leave_severity_odds_ratio = 1
-take_sick_leave_benefits_odds_ratio = 1
-take_sick_leave_barriers_odds_ratio = 1
-
-keep_child_home_when_sick_susceptibility_threshold = 2 0 0
-keep_child_home_when_sick_severity_threshold = 2 0 0
-keep_child_home_when_sick_benefits_threshold = 2 0 0
-keep_child_home_when_sick_barriers_threshold = 2 0 0 
-keep_child_home_when_sick_base_odds_ratio = 1
-keep_child_home_when_sick_susceptibility_odds_ratio = 1
-keep_child_home_when_sick_severity_odds_ratio = 1
-keep_child_home_when_sick_benefits_odds_ratio = 1
-keep_child_home_when_sick_barriers_odds_ratio = 1
-
-accept_vaccine_susceptibility_threshold = 2 0 0
-accept_vaccine_severity_threshold = 2 0 0
-accept_vaccine_benefits_threshold = 2 0 0
-accept_vaccine_barriers_threshold = 2 0 0 
-accept_vaccine_base_odds_ratio = 0.35
-accept_vaccine_susceptibility_odds_ratio = 3.0
-accept_vaccine_severity_odds_ratio = 1.93
-accept_vaccine_benefits_odds_ratio = 1.0
-accept_vaccine_barriers_odds_ratio = 0.65
-
-accept_vaccine_dose_susceptibility_threshold = 2 0 0
-accept_vaccine_dose_severity_threshold = 2 0 0
-accept_vaccine_dose_benefits_threshold = 2 0 0
-accept_vaccine_dose_barriers_threshold = 2 0 0 
-accept_vaccine_dose_base_odds_ratio = 1
-accept_vaccine_dose_susceptibility_odds_ratio = 1
-accept_vaccine_dose_severity_odds_ratio = 1
-accept_vaccine_dose_benefits_odds_ratio = 1
-accept_vaccine_dose_barriers_odds_ratio = 1
-
-accept_vaccine_for_child_susceptibility_threshold = 2 0 0
-accept_vaccine_for_child_severity_threshold = 2 0 0
-accept_vaccine_for_child_benefits_threshold = 2 0 0
-accept_vaccine_for_child_barriers_threshold = 2 0 0 
-accept_vaccine_for_child_base_odds_ratio = 1
-accept_vaccine_for_child_susceptibility_odds_ratio = 1
-accept_vaccine_for_child_severity_odds_ratio = 1
-accept_vaccine_for_child_benefits_odds_ratio = 1
-accept_vaccine_for_child_barriers_odds_ratio = 1
-
-accept_vaccine_dose_for_child_susceptibility_threshold = 2 0 0
-accept_vaccine_dose_for_child_severity_threshold = 2 0 0
-accept_vaccine_dose_for_child_benefits_threshold = 2 0 0
-accept_vaccine_dose_for_child_barriers_threshold = 2 0 0 
-accept_vaccine_dose_for_child_base_odds_ratio = 1
-accept_vaccine_dose_for_child_susceptibility_odds_ratio = 1
-accept_vaccine_dose_for_child_severity_odds_ratio = 1
-accept_vaccine_dose_for_child_benefits_odds_ratio = 1
-accept_vaccine_dose_for_child_barriers_odds_ratio = 1
-
-##########################################################
-#
 # DISEASE PARAMETERS
 #
 ##########################################################
@@ -699,58 +459,62 @@ disease_names = 1 influenza
 #
 ##########################################################
 
-### Each disease model requires the following natural history parameters
+# uncomment this line to specify the desease name
+# disease_names = 1 <disease_name>
+
+### REQUIRED NATURAL HISTORY PARAMETERS
 
 ### transmission coefficient:
-# <disease_name>_trans = 1.0
+<disease_name>_trans = 1.0
 
 ### symptomatic rate:
-# <disease_name>_symp = 0.11
+<disease_name>_symp = 0.67
 
-# <disease_name>_symp_infectivity = 1.0
-# <disease_name>_asymp_infectivity = 0.5
-# <disease_name>_days_latent = 11 0 0 0.0001 0.0176 0.1782 0.4944 0.7687 0.9168 0.9727 0.9938 1.0
-# <disease_name>_days_asymp = 7   0.0  0.0 0.1 0.4 0.8 0.9 1.0
-# <disease_name>_days_symp = 7   0.0  0.0 0.1 0.4 0.8 0.9 1.0
+### multipliers for infectivity
+<disease_name>_symp_infectivity = 1.0
+<disease_name>_asymp_infectivity = 0.5
 
-### probability of an infection causing immunity (by age):
-# <disease_name>_infection_immunity_prob_ages = 2 0 110
-# <disease_name>_infection_immunity_prob_values = 1 1.0
+### latent and infectious period CDFs
+<disease_name>_days_latent = 3       0.0 0.8 1.0
+<disease_name>_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+<disease_name>_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 
-### Transmission probabilities per contact.
-### The following are used for influenza:
-# <disease_name>_household_prob = 4 0.6 0.3 0.3 0.4
-# <disease_name>_workplace_prob = 1 0.0575
-# <disease_name>_office_prob = 1 0.0575
-# <disease_name>_hospital_prob = 0
-# <disease_name>_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-# <disease_name>_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-# <disease_name>_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
+### IMMUNITY
+<disease_name>_immunity_loss_rate = 0
+<disease_name>_residual_immunity_ages = 0
+<disease_name>_residual_immunity_values = 0
+<disease_name>_infection_immunity_prob_ages = 2 0 110
+<disease_name>_infection_immunity_prob_values = 1 1.0
 
-# <disease_name>_weekend_contact_rate = 1.5
+### PLACE-SPECIFIC CONTACTS
+<disease_name>_weekend_contact_rate = 1.5
+<disease_name>_household_contacts = 0.202
+<disease_name>_neighborhood_contacts = 3.98e+01
+<disease_name>_school_contacts = 17.6
+<disease_name>_workplace_contacts = 1.6
+<disease_name>_classroom_contacts = -1
+<disease_name>_office_contacts = -1
+<disease_name>_hospital_contacts = 0
 
-### The following are for influenza, and set by fred_calibration:
-# <disease_name>_household_contacts = 0.202
-# <disease_name>_neighborhood_contacts = 3.98e+01
-# <disease_name>_school_contacts = 17.6
-# <disease_name>_workplace_contacts = 1.6
-# <disease_name>_classroom_contacts = -1
-# <disease_name>_office_contacts = -1
-# <disease_name>_hospital_contacts = 0
+### PLACE-SPECIFIC TRANSMISSION MATRICES
+<disease_name>_household_prob = 4 0.6 0.3 0.3 0.4
+<disease_name>_workplace_prob = 1 0.0575
+<disease_name>_office_prob = 1 0.0575
+<disease_name>_hospital_prob = 0
+<disease_name>_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+<disease_name>_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+<disease_name>_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 
+### OPTIONAL FEATURES
 ### The following settings disable optional features unless needed:
-# <disease_name>_immunity_loss_rate = 0
-# <disease_name>_enable_case_fatality = 0
-# <disease_name>_residual_immunity_ages = 0
-# <disease_name>_residual_immunity_values = 0
-# <disease_name>_at_risk_ages = 0
-# <disease_name>_at_risk_values = 0
-# <disease_name>_intra_host_model = 0
-# <disease_name>_infection_model = 0
-# <disease_name>_infectivity_threshold = 0
-# <disease_name>_symptomaticity_threshold = 0
-# <disease_name>_evolution = 0
-
+<disease_name>_enable_case_fatality = 0
+<disease_name>_at_risk_ages = 0
+<disease_name>_at_risk_values = 0
+<disease_name>_intra_host_model = 0
+<disease_name>_infection_model = 0
+<disease_name>_infectivity_threshold = 0
+<disease_name>_symptomaticity_threshold = 0
+<disease_name>_evolution = 0
 
 ##########################################################
 #
@@ -760,15 +524,76 @@ disease_names = 1 influenza
 
 ### REQUIRED NATURAL HISTORY PARAMETERS
 
+### transmission coefficient:
 influenza_trans = 1.0
+
+### symptomatic rate:
 influenza_symp = 0.67
+
+### multipliers for infectivity
 influenza_symp_infectivity = 1.0
 influenza_asymp_infectivity = 0.5
+
+### latent and infectious period CDFs
 influenza_days_latent = 3       0.0 0.8 1.0
 influenza_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 influenza_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+
+### IMMUNITY
+influenza_immunity_loss_rate = 0
+influenza_residual_immunity_ages = 0
+influenza_residual_immunity_values = 0
 influenza_infection_immunity_prob_ages = 2 0 110
 influenza_infection_immunity_prob_values = 1 1.0
+Immunization = -1
+
+### PLACE-SPECIFIC CONTACTS
+# The following contacts are calibrated for Allegheny County
+# for a 33% clinical attack rate
+# using the bifurcating SEIR model (SEiIR = 0)
+#
+### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
+###  CALIBRATION PHASE II STEP 5 at Tue Sep 23 16:07:36 2014
+###  runs = 10  cores = 10
+influenza_household_contacts = 0.202
+influenza_neighborhood_contacts = 3.98e+01
+influenza_school_contacts = 17.6
+influenza_workplace_contacts = 1.6
+
+## value of -1 for classroom means that
+## 2/3 of the school contacts occur within the classroom
+influenza_classroom_contacts = -1
+
+## value of -1 for office means that
+## 2/3 of the workplace contacts occur within the office
+influenza_office_contacts = -1
+
+### values fitted for transformation to R0
+R0_a = 0.0950671
+R0_b = 0.492996
+R0 = -1.0
+
+# community contacts increase on weekends
+influenza_weekend_contact_rate = 1.5
+
+### PLACE-SPECIFIC TRANSMISSION MATRICES
+
+# groups = children adults
+influenza_household_prob = 4 0.6 0.3 0.3 0.4
+
+# groups = adult_workers
+influenza_workplace_prob = 1 0.0575
+influenza_office_prob = 1 0.0575
+
+# groups = patients HCWs
+influenza_hospital_prob = 4 0.0 0.01 0.01 0.0575
+
+# groups = elem_students mid_students high_students teachers
+influenza_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+
+# groups = children adults
+influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 
 ### OPTIONAL FEATURES
 
@@ -783,39 +608,14 @@ influenza_case_fatality_age_factor_ages = 2 0 120
 influenza_case_fatality_age_factor_values = 1 1.0
 influenza_case_fatality_prob_by_day = 4 0.0000715 0.0000715 0.0000715 0.0000715
 
-### IMMUNITY
-influenza_immunity_loss_rate = 0
-influenza_residual_immunity_ages = 0
-influenza_residual_immunity_values = 0
-Immunization = -1
-
 ### AT-RISK POPULATIONS:
 # influenza_at_risk_ages = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
 # influenza_at_risk_values = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
 influenza_at_risk_ages = 0
 influenza_at_risk_values = 0
 
-### PLACE-SPECIFIC CONTACTS
 
-# community contacts increase on weekends
-influenza_weekend_contact_rate = 1.5
-
-# The following contacts are calibrated for Allegheny County
-# for a 33% clinical attack rate
-# using the bifurcating SEIR model (SEiIR = 0)
-#
-### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
-###  CALIBRATION PHASE II STEP 5 at Tue Sep 23 16:07:36 2014
-###  runs = 10  cores = 10
-influenza_household_contacts = 0.202
-influenza_neighborhood_contacts = 3.98e+01
-influenza_school_contacts = 17.6
-influenza_workplace_contacts = 1.6
-influenza_classroom_contacts = -1
-influenza_office_contacts = -1
-R0_a = 0.0950671
-R0_b = 0.492996
-R0 = -1.0
+######### OPTIONAL EXPERIMENT_SPECIFIC PARAMETERS ######################
 
 #########################################################
 ##
@@ -841,33 +641,8 @@ density_transmission_maximum_infectees = 10
 # R0_a = 0.0947465
 # R0_b = 0.520016
 
-## value of -1 for classroom means that
-## 2/3 of the school contacts occur within the classroom
-influenza_classroom_contacts = -1
-
-## value of -1 for office means that
-## 2/3 of the workplace contacts occur within the office
-influenza_office_contacts = -1
-
 ## experimental:
 influenza_hospital_contacts = 0
-
-# groups = children adults
-influenza_household_prob = 4 0.6 0.3 0.3 0.4
-
-# groups = adult_workers
-influenza_workplace_prob = 1 0.0575
-influenza_office_prob = 1 0.0575
-
-# groups = patients HCWs
-influenza_hospital_prob = 4 0.0 0.01 0.01 0.0575
-
-# groups = elem_students mid_students high_students teachers
-influenza_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-
-# groups = children adults
-influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 
 # for ODEIntraHost
 viral_titer_scaling = 20;
@@ -1111,4 +886,244 @@ heart_disease_case_fatality_prob_mult_ages = 2 0 120
 heart_disease_case_fatality_prob_mult_values = 1 1.0
 pregnancy_case_fatality_prob_mult_ages = 2 0 120
 pregnancy_case_fatality_prob_mult_values = 1 1.0
+
+##########################################################
+#
+# BEHAVIORAL PARAMETERS (OPTIONAL)
+#
+##########################################################
+
+#### INDIVIDUAL BEHAVIORS (EXPERIMENTAL!)
+enable_behaviors = 0
+stay_home_when_sick_enabled = 0
+keep_child_home_when_sick_enabled = 0
+accept_vaccine_enabled = 0
+accept_vaccine_dose_enabled = 0
+accept_vaccine_for_child_enabled = 0
+accept_vaccine_dose_for_child_enabled = 0
+# let individuals decide whether to take sick leave if available
+take_sick_leave_enabled = 0
+
+#### PERCEPTION (EXPERIMENTAL)
+memory_decay = 2 0 0 
+
+#### SICK LEAVE BEHAVIOR
+
+## default sick behavior:
+# if set, use sick_day_prob and overide other sick leave behavior
+enable_default_sick_behavior = 1
+
+# each agent withdraws to the household with sick_day_prob
+# on each day the agent is symptomatic
+sick_day_prob = 0.5
+
+## behavior if sick leave is available (SLA)
+SLA_absent_prob = 0.72
+SLA_mean_sick_days_absent = 2.7
+
+## behavior if sick leave is unavailable (SLU)
+SLU_absent_prob = 0.52
+SLU_mean_sick_days_absent = 2.7
+
+work_absenteeism = 0.0
+school_absenteeism = 0.0
+
+#### BEHAVIOR MARKET SEGMENTS (EXPERIMENTAL!)
+#
+# BEHAVIOR_CHANGE_MODEL 0 = ALWAYS REFUSE
+# BEHAVIOR_CHANGE_MODEL 1 = ALWAYS ACCEPT
+# BEHAVIOR_CHANGE_MODEL 2 = FLIP WEIGHTED COIN FOR EACH DECISION
+# BEHAVIOR_CHANGE_MODEL 3 = IMITATE PREVALENCE
+# BEHAVIOR_CHANGE_MODEL 4 = IMITATE CONSENSUS
+# BEHAVIOR_CHANGE_MODEL 5 = IMITATE COUNT
+# BEHAVIOR_CHANGE_MODEL 6 = HEALTH BELIEF MODEL
+#
+# Each behavior_change_model_distribution should add up to 100
+stay_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+keep_child_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+accept_vaccine_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+accept_vaccine_dose_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+accept_vaccine_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+accept_vaccine_dose_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+take_sick_leave_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+
+##### FLIP/IMITATE INITIAL PROBS AND DECISION FREQUENCY
+stay_home_when_sick_prob = -1.0
+stay_home_when_sick_min_prob = 0
+stay_home_when_sick_max_prob = 1
+stay_home_when_sick_frequency = 1
+
+keep_child_home_when_sick_prob = -1.0
+keep_child_home_when_sick_min_prob = 0
+keep_child_home_when_sick_max_prob = 1
+keep_child_home_when_sick_frequency = 1
+
+accept_vaccine_prob = -1.0
+accept_vaccine_min_prob = 0
+accept_vaccine_max_prob = 1
+accept_vaccine_frequency = 1
+  
+accept_vaccine_dose_prob = -1.0
+accept_vaccine_dose_min_prob = 0
+accept_vaccine_dose_max_prob = 1
+accept_vaccine_dose_frequency = 1
+
+accept_vaccine_for_child_prob = -1.0
+accept_vaccine_for_child_min_prob = 0
+accept_vaccine_for_child_max_prob = 1
+accept_vaccine_for_child_frequency = 1
+  
+accept_vaccine_dose_for_child_prob = -1.0
+accept_vaccine_dose_for_child_min_prob = 0
+accept_vaccine_dose_for_child_max_prob = 1
+accept_vaccine_dose_for_child_frequency = 1
+
+take_sick_leave_prob = -1.0
+take_sick_leave_min_prob = 0
+take_sick_leave_max_prob = 1
+take_sick_leave_frequency = 1
+
+#### IMITATION THRESHOLDS
+
+stay_home_when_sick_imitate_consensus_threshold = 0
+take_sick_leave_imitate_consensus_threshold = 0
+keep_child_home_when_sick_imitate_consensus_threshold = 0
+accept_vaccine_imitate_consensus_threshold = 0
+accept_vaccine_dose_imitate_consensus_threshold = 0
+accept_vaccine_for_child_imitate_consensus_threshold = 0
+accept_vaccine_dose_for_child_imitate_consensus_threshold = 0
+
+stay_home_when_sick_imitate_count_threshold = 0
+take_sick_leave_imitate_count_threshold = 0
+keep_child_home_when_sick_imitate_count_threshold = 0
+accept_vaccine_imitate_count_threshold = 0
+accept_vaccine_dose_imitate_count_threshold = 0
+accept_vaccine_for_child_imitate_count_threshold = 0
+accept_vaccine_dose_for_child_imitate_count_threshold = 0
+
+##### WEIGHTS FOR IMITATION
+## ORDER IS HOUSEHOLD NEIGHBORHOOD SCHOOL WORK ALL
+## Weights can be any real number.
+##
+stay_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
+take_sick_leave_imitate_prevalence_weights = 5 0 0 0 0 1
+keep_child_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
+accept_vaccine_imitate_prevalence_weights = 5 0 0 0 0 1
+accept_vaccine_dose_imitate_prevalence_weights = 5 0 0 0 0 1
+accept_vaccine_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
+accept_vaccine_dose_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
+
+stay_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
+take_sick_leave_imitate_consensus_weights = 5 0 0 0 0 1
+keep_child_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
+accept_vaccine_imitate_consensus_weights = 5 0 0 0 0 1
+accept_vaccine_dose_imitate_consensus_weights = 5 0 0 0 0 1
+accept_vaccine_for_child_imitate_consensus_weights = 5 0 0 0 0 1
+accept_vaccine_dose_for_child_imitate_consensus_weights = 5 0 0 0 0 1
+
+stay_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
+take_sick_leave_imitate_count_weights = 5 0 0 0 0 1
+keep_child_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
+accept_vaccine_imitate_count_weights = 5 0 0 0 0 1
+accept_vaccine_dose_imitate_count_weights = 5 0 0 0 0 1
+accept_vaccine_for_child_imitate_count_weights = 5 0 0 0 0 1
+accept_vaccine_dose_for_child_imitate_count_weights = 5 0 0 0 0 1
+
+#### IMITATE PREVALENCE UPDATE RATE
+stay_home_when_sick_imitate_prevalence_update_rate = 0.1
+take_sick_leave_imitate_prevalence_update_rate = 0.1
+keep_child_home_when_sick_imitate_prevalence_update_rate = 0.1
+accept_vaccine_imitate_prevalence_update_rate = 0.1
+accept_vaccine_dose_imitate_prevalence_update_rate = 0.1
+accept_vaccine_for_child_imitate_prevalence_update_rate = 0.1
+accept_vaccine_dose_for_child_imitate_prevalence_update_rate = 0.1
+
+#### IMITATE CONSENSUS UPDATE RATE
+stay_home_when_sick_imitate_consensus_update_rate = 0.1
+take_sick_leave_imitate_consensus_update_rate = 0.1
+keep_child_home_when_sick_imitate_consensus_update_rate = 0.1
+accept_vaccine_imitate_consensus_update_rate = 0.1
+accept_vaccine_dose_imitate_consensus_update_rate = 0.1
+accept_vaccine_for_child_imitate_consensus_update_rate = 0.1
+accept_vaccine_dose_for_child_imitate_consensus_update_rate = 0.1
+
+#### IMITATE COUNT UPDATE RATE
+stay_home_when_sick_imitate_count_update_rate = 0.1
+take_sick_leave_imitate_count_update_rate = 0.1
+keep_child_home_when_sick_imitate_count_update_rate = 0.1
+accept_vaccine_imitate_count_update_rate = 0.1
+accept_vaccine_dose_imitate_count_update_rate = 0.1
+accept_vaccine_for_child_imitate_count_update_rate = 0.1
+accept_vaccine_dose_for_child_imitate_count_update_rate = 0.1
+
+##### HBM 
+stay_home_when_sick_susceptibility_threshold = 2 0 0
+stay_home_when_sick_severity_threshold = 2 0 0
+stay_home_when_sick_benefits_threshold = 2 0 0
+stay_home_when_sick_barriers_threshold = 2 0 0 
+stay_home_when_sick_base_odds_ratio = 1
+stay_home_when_sick_susceptibility_odds_ratio = 1
+stay_home_when_sick_severity_odds_ratio = 1
+stay_home_when_sick_benefits_odds_ratio = 1
+stay_home_when_sick_barriers_odds_ratio = 1
+
+take_sick_leave_susceptibility_threshold = 2 0 0
+take_sick_leave_severity_threshold = 2 0 0
+take_sick_leave_benefits_threshold = 2 0 0
+take_sick_leave_barriers_threshold = 2 0 0 
+take_sick_leave_base_odds_ratio = 1
+take_sick_leave_susceptibility_odds_ratio = 1
+take_sick_leave_severity_odds_ratio = 1
+take_sick_leave_benefits_odds_ratio = 1
+take_sick_leave_barriers_odds_ratio = 1
+
+keep_child_home_when_sick_susceptibility_threshold = 2 0 0
+keep_child_home_when_sick_severity_threshold = 2 0 0
+keep_child_home_when_sick_benefits_threshold = 2 0 0
+keep_child_home_when_sick_barriers_threshold = 2 0 0 
+keep_child_home_when_sick_base_odds_ratio = 1
+keep_child_home_when_sick_susceptibility_odds_ratio = 1
+keep_child_home_when_sick_severity_odds_ratio = 1
+keep_child_home_when_sick_benefits_odds_ratio = 1
+keep_child_home_when_sick_barriers_odds_ratio = 1
+
+accept_vaccine_susceptibility_threshold = 2 0 0
+accept_vaccine_severity_threshold = 2 0 0
+accept_vaccine_benefits_threshold = 2 0 0
+accept_vaccine_barriers_threshold = 2 0 0 
+accept_vaccine_base_odds_ratio = 0.35
+accept_vaccine_susceptibility_odds_ratio = 3.0
+accept_vaccine_severity_odds_ratio = 1.93
+accept_vaccine_benefits_odds_ratio = 1.0
+accept_vaccine_barriers_odds_ratio = 0.65
+
+accept_vaccine_dose_susceptibility_threshold = 2 0 0
+accept_vaccine_dose_severity_threshold = 2 0 0
+accept_vaccine_dose_benefits_threshold = 2 0 0
+accept_vaccine_dose_barriers_threshold = 2 0 0 
+accept_vaccine_dose_base_odds_ratio = 1
+accept_vaccine_dose_susceptibility_odds_ratio = 1
+accept_vaccine_dose_severity_odds_ratio = 1
+accept_vaccine_dose_benefits_odds_ratio = 1
+accept_vaccine_dose_barriers_odds_ratio = 1
+
+accept_vaccine_for_child_susceptibility_threshold = 2 0 0
+accept_vaccine_for_child_severity_threshold = 2 0 0
+accept_vaccine_for_child_benefits_threshold = 2 0 0
+accept_vaccine_for_child_barriers_threshold = 2 0 0 
+accept_vaccine_for_child_base_odds_ratio = 1
+accept_vaccine_for_child_susceptibility_odds_ratio = 1
+accept_vaccine_for_child_severity_odds_ratio = 1
+accept_vaccine_for_child_benefits_odds_ratio = 1
+accept_vaccine_for_child_barriers_odds_ratio = 1
+
+accept_vaccine_dose_for_child_susceptibility_threshold = 2 0 0
+accept_vaccine_dose_for_child_severity_threshold = 2 0 0
+accept_vaccine_dose_for_child_benefits_threshold = 2 0 0
+accept_vaccine_dose_for_child_barriers_threshold = 2 0 0 
+accept_vaccine_dose_for_child_base_odds_ratio = 1
+accept_vaccine_dose_for_child_susceptibility_odds_ratio = 1
+accept_vaccine_dose_for_child_severity_odds_ratio = 1
+accept_vaccine_dose_for_child_benefits_odds_ratio = 1
+accept_vaccine_dose_for_child_barriers_odds_ratio = 1
 
