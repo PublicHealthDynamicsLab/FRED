@@ -27,21 +27,22 @@ void FixedIntraHost::setup(Disease *disease) {
   IntraHost::setup(disease);
 
   char s[80];
+  char disease_name[80];
   int numProfiles;
-  int id = disease->get_id();
+  strcpy(disease_name, disease->get_disease_name());
 
-  sprintf(s, "infectivity_profile_probabilities[%d]", id);
+  sprintf(s, "%s_infectivity_profile_probabilities", disease_name);
   Params::get_param(s, &numProfiles);
   Params::get_param_vector(s, probabilities);
 
   for(int i = 0; i < numProfiles; i++) {
     vector<double> infProfile;
-    sprintf(s, "fixed_infectivity_profile[%d][%d]", id, i);
+    sprintf(s, "%s_fixed_infectivity_profile[%d]", disease_name, i);
     Params::get_param_vector(s, infProfile);
     infLibrary.push_back(infProfile);
 
     vector<double> sympProfile;
-    sprintf(s, "fixed_symptomaticity_profile[%d][%d]", id, i);
+    sprintf(s, "%s_fixed_symptomaticity_profile[%d]", disease_name, i);
     Params::get_param_vector(s, sympProfile);
     sympLibrary.push_back(sympProfile);
   }
