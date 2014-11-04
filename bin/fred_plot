@@ -118,24 +118,28 @@ my $opt_result = GetOptions(
 
 my $usage = <<EOH;
 usage: fred_plot -k key -v var [ options ], where options include:
-       -h: print this help message.
+       -a: show individual runs.
+       -b: plot bar charts instead of curves.
        -d 0/1 : display the image file (default = 1).
        -e: include errorbars on plot.
        -f font : use the named font
-       --fs fontsize: specify font size
+       -F fontsize: specify font size
+       -h: print this help message.
        -k key [ -k key ... ]: keys of jobs to plot
+       -n: scale y-axis to show counts per <s> people.
+       -o outfile: send output image to indicated file.
+       -s <s> : scale factor for normalization
        -t title: Title to appear on plot.
        -v var [ -v var ... ]: variable to be plotted.
+       -w: plot variables averaged over epi weeks.
        -x xmin: min value for x-axis.
        -X xmax: max value for x-axis.
        -y ymin: min value for y-axis.
        -Y ymax: max value for y-axis.
-       -o outfile: send output image to indicated file.
-       --bar: plot bar charts instead of curves.
-       --all: show individual runs.
-       --normalize: scale y-axis to show counts per <s> people.
-       --scale s : scale factor for normalization
-       --weekly: plot variables averaged over epi weeks.
+       --xtics <n>: put xtics every <n> units
+       --xlabel <s>: label the x axis with "s"
+       --ylabel <s>: label the y axis with "s"
+       --year 1: show year in xtics
 EOH
 
 die $usage if $help;
