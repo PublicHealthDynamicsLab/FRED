@@ -66,6 +66,7 @@ my $xtics = "";
 my $outfile = "";
 my $help = "";
 my $show_year = 0;
+my $show_vars = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
@@ -83,6 +84,7 @@ my $opt_result = GetOptions(
 			    "T=s" => \$title,
 			    "t=s" => \$title,
 			    "v=s" => \@varlist,
+			    "V" => \$show_vars,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
 			    "y=f" => \$ymin,
@@ -131,6 +133,7 @@ usage: fred_plot -k key -v var [ options ], where options include:
        -s <s> : scale factor for normalization
        -t title: Title to appear on plot.
        -v var [ -v var ... ]: variable to be plotted.
+       -V : show available plottabel variables.
        -w: plot variables averaged over epi weeks.
        -x xmin: min value for x-axis.
        -X xmax: max value for x-axis.
@@ -143,6 +146,8 @@ usage: fred_plot -k key -v var [ options ], where options include:
 EOH
 
 die $usage if $help;
+die $usage if not @keys;
+die $usage if not @varlist;
 
 # resolve conflicting options
 
@@ -157,9 +162,6 @@ for my $v (@varlist) {
 
 # bar charts overides smoothing
 $smooth = 0 if $boxes;
-
-die $usage if not @keys;
-die $usage if not @varlist;
 
 # check keys
 my $bindir = "$FRED/bin";
@@ -177,6 +179,8 @@ for my $key (@keys) {
   die "$0 bad status: $status\n" if $status ne "FINISHED";
   $id_of_key{$key} = $id;
 }
+
+show_vars() if $show_vars;
 
 # create a good name for the plt and pdf files
 my $varstr = join "-", @varlist;
@@ -397,4 +401,23 @@ sub get_runs {
   my $runs = `cat $FREDRESULTS/JOB/$id/META/RUNS`;
   chomp $runs;
   return $runs;
+}
+
+sub show_vars {
+  my %plotvars = ();
+  for my $key (@keys) {
+    my $id = $id_of_key{$key};
+    my $outpath = "$FREDRESULTS/JOB/$id/DATA/OUT/";
+    my $head = `head $outpath/out1.txt`;
+    $head =~ s/\n.*//s;
+    # print "$head\n";
+    my @a = split " ", $head;
+    for (my $i = 0; $i < scalar @a; $i = $i + 2) {
+      $plotvars{$a[$i]} = 1;
+    }
+  }
+  for my $v (sort keys %plotvars) {
+    print "$v\n";
+  }
+  exit;
 }
