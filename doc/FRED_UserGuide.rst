@@ -9,6 +9,8 @@
 
 **30 Aug 2013**
 
+**Revised: 13 Nov 2014**
+
 .. image:: whitespace.pdf
    :width: 3in
    :height: 0.25in
@@ -119,83 +121,23 @@ specific implementation details.
 Synthetic Population
 ====================
 
-For studies of regions within the United States, FRED uses the 2005-2009
-U.S. Synthetic Population Database (Version 2) from RTI International
-(Wheaton, 2012). The RTI Synthetic Population uses an iterative fitting
-method developed in (Beckman et al, 1996) to generate an agent
-population from the US Census Bureau's Public Use Microdata files (PUMs)
-and aggregated data from the 2005-2009 American Community Survey (ACS)
-5-year sample. The database contains geographically located synthetic
-households and household residents for the United States, as well as
-group quarters locations and residents, schools and assignments of
-students to schools, and workplaces and assignments of workers to
-workplaces. Each household, school and workplace is mapped to a specific
-geographic location, reflecting the actual spatial distribution of the
-area and the distance travelled by individuals to work or to school
-(Cajka et al, 2010, Wheaton et al, 2009). Each agent has associated
-demographic information (e.g., age, sex) and locations for social
-activities (household, and possibly school or workplace).
-
-The remainder of this section is based on the Supplemental Materials
-from (Cooley et al, 2011).
-
-Assignment of students to Schools
--------------------------------------
-
-The synthetic population represented schools and assigned persons
-of school age to schools using methods described in (Cajka et al.,
-2010). Using information from the National Center for Education
-Statistics (NCES) a database of all public and private schools in the US
-was developed, including each schools geolocation and age-specific
-capacity. A set of heuristics were developed to assign each school-age
-child to a specific age-appropriate school, using several assumptions
-including:
-
--  Geographic proximity is a major criterion for making assignments.
-
--  Students are assigned to a school on the basis of distance along a
-   network (roads) rather than distance along a straight line.
-
--  Students attend school only in their county of residence.
-
--  Students are assigned to a school according to the school's capacity
-   for their grade.
-
--  No special allowances are made to assign siblings to the same school,
-   other than the fact that they shared the same geographic location and
-   therefore should be assigned to the closest school that had capacity
-   for their grade levels.
-
-Workplace Data and Allocation Model
------------------------------------
-
-The RTI synthetic population also assigned employees to workplaces,
-taking into account:
-
--  the number of persons who lived in one Census tract but worked in
-   another and
-
--  the number of workplaces by size by the same Census tract.
-
-Based on the number of firms by firm size category and Census block
-group, synthetic workplaces were created and located at the centroid of
-the block group indicated by the workplace's address. Workers were then
-assigned to those workplaces so that workers who reported working in a
-specific block group were assigned at random to a firm located within
-that block group. The workplaces also included schools, hospitals and
-other types of institutions that could be used to specifically track
-special synthetic agents such as teachers, health care workers, and
-others.
-
-One important issue in the Census data (STP64) used for this assignment
-of workers is how the Census asks the question that is the source of the 
-commuting estimate. Respondents were asked to identify the place they spent 
-the most time working at *in the previous week*. This means that the US 
-dataset contains data on regular commutes to the individual's typical 
-workplace as well as occasional work-related trips. As work trips lasting 
-most of a week can be expected to involve longer distances than a typical 
-commute, one might attribute the greater than expected number of very long 
-distance commutes to such occasional work-related travel.
+For studies of regions within the United States, FRED uses the 2010
+U.S. Synthetic Population Database (Version 1) from RTI
+International. This synthetic population uses the 2010 Decennial census
+and the 2007-2011 American Community Survey (ACS) as its sources of
+population counts and characteristics. The database contains
+geographically located synthetic households and household residents for
+the United States. This version also uses the Integrated Climate and
+Land Use System (ICLUS) gridded population dataset to place households
+across the landscape. As with past synthetic populations (Wheaton,
+2012), students are assigned to schools, workers are assigned to
+workplaces and group quarters locations and residents are included. The
+2010 U.S. Synthetic Population Ver. 1 QuickStart guide contains
+additional information about new data sources and processing used to
+develop the data. The 2010 U.S. Synthetic Population Ver. 1 data can be
+downloaded by state or county from the download section on
+https://www.epimodels.org/midas/Rpubsyntdata1.do. Please contact Bill
+Wheaton (wdw@rti.org) for more information.
 
 .. raw:: pdf
 
@@ -315,10 +257,10 @@ See ``Activities.cc`` for more details.
 Behaviors
 ---------
 
-FRED is designed to include any number of health-related behaviors. New
-behaviors can be added with minimal programming effort. Each behavior
-involves a decision on the willingness of the agent to perform the
-behavior. The current set of behaviors includes:
+FRED can be extended to include any number of health-related behaviors
+with minimal programming effort. Each behavior involves a decision on
+the willingness of the agent to perform the behavior. The current set of
+behaviors includes:
 
 #. **Stay home when sick**: If an adult is symptomatic, is that person
    willing to stay home? If so, the agent withdraws to the household,
@@ -610,15 +552,6 @@ patterns produced an epidemic designed to be similar in transmissibility
 to the 1957-58 epidemic with an AR of 33% and a basic reproductive rate
 (R0) of approximately 1.4.
 
-The calibration process using the Allegheny County synthetic population
-results in the following default parameters:
-
-   ``neighborhood_contacts[0] = 42.478577``
-   
-   ``school_contacts[0] = 14.320478``
-   
-   ``workplace_contacts[0] = 1.589467``
-
 By default, the contact rates for classrooms are double those for the
 school in general.  Likewise, the contact rates for offices are double
 those for workplaces in general.  These heuristic are based on the idea
@@ -639,10 +572,8 @@ household contacts were treated differently than other locations.
 Following (Cooley at al, 2011), we assumed that each pair of agents
 within a household make contact each day with a specified probability.
 This probability is tuned as part of the calibration step to achieve
-the 30-70 target distribution. The resulting contact probability for
-Allegheny County is:
+the 30-70 target distribution.
 
-	  ``household_contacts[0] = 0.198226``
 
 .. raw:: pdf
 
@@ -866,8 +797,6 @@ The parameters governing the interpretation of the values given in the
 
 Run-time Parameters
 ===================
-
-
 
 The run-time parameters for FRED are contained in two parameter files.
 The first file is ``$FRED_HOME/input_files/params.default`` and

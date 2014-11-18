@@ -24,6 +24,7 @@ NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
 else ifeq ($(OS),Darwin)
 NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 = -m64
+OSX = $(shell sw_vers -productVersion | sed 's/10.//' | sed 's/\..*//')
 endif
 # NCPU = 1
 
@@ -114,9 +115,10 @@ DSFMT_HDR = $(DSFMT_DIR)/dSFMT.h $(DSFMT_DIR)/dSFMT-params19937.h
 FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 ## Use this to make reproducible serial runs
-# Note: this is recommended if using clang/LLVM on MacOS 10.9 (Mavericks),
-# since clang does not currently support openMP.
-CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+
+## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
+CPPFLAGS = -stdlib=libstdc++ -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 
 
