@@ -24,7 +24,10 @@ NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
 else ifeq ($(OS),Darwin)
 NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 = -m64
-OSX = $(shell sw_vers -productVersion | sed 's/10.//' | sed 's/\..*//')
+OSX_VERSION = $(shell sw_vers -productVersion | sed 's/10.//' | sed 's/\..*//')
+ifeq ($(OSX_VERSION),10)
+USE_STDLIB = -stdlib=libstdc++
+endif
 endif
 # NCPU = 1
 
@@ -118,7 +121,7 @@ FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(N
 # CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 ## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
-CPPFLAGS = -stdlib=libstdc++ -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 
 
@@ -189,7 +192,7 @@ sqlite3.o:
 	cp sqlite3.o $(SRC_DIR)
 
 DEPENDS: $(SRC) $(HDR)
-	$(CPP) -MM $(SRC) -I$(DSFMT_DIR) > DEPENDS
+	$(CPP) $(USE_STDLIB) -MM $(SRC) -I$(DSFMT_DIR) > DEPENDS
 
 include DEPENDS
 

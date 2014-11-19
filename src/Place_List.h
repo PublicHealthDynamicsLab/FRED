@@ -22,14 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#ifdef  _LIBCPP_VERSION
-//  libc++ specific code here
-#include <unordered_map>
-#else
-//  generic code here
 #include <tr1/unordered_map>
-#endif
-
 
 #include "Place.h"
 #include "Utils.h"
