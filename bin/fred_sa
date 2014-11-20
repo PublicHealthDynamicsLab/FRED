@@ -214,26 +214,18 @@ sub print_sample_file {
 #
 # Lines that starts with # are ignored.
 #
-FRED Sensitivity Analysis Title: foo
+FRED Sensitivity Analysis Title: baseline
 
 Fixed Parameters:
 R0 = 1.5
+days = 100
 
 Variable Parameters:
-weekend_contact_rate[0] = 1.5, 5%
 sick_day_prob = 0.5, 5%
-household_contacts[0] = 0.198226, 5%
-neighborhood_contacts[0] = 42.478577, 5%
-school_contacts[0] = 14.320478, 5%
-workplace_contacts[0] = 1.589467, 5%
-community_distance = 20, 5%
-community_prob = 0.1, 5%
-home_neighborhood_prob = 0.5, 5%
-symp[0] = 0.67, 5%
+influenza_symp = 0.67, 5%
+influenza_weekend_contact_rate = 1.5, 5%
 school_classroom_size = 40, 5%
 office_size = 50, 5%i
-sick_day_prob = 0.5, 5%
-
 
 Output Variables:
 AR
