@@ -249,6 +249,9 @@ for my $v (@varlist) {
    $ymax = 100 if $ymax eq "*";
    $ymin = 0;
  }
+ if ($v =~ /Age/) {
+   $ylabel = "Per 100,000";
+ }
 }
 
 $xlabel = "Week" if $weekly;
