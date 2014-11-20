@@ -928,6 +928,17 @@ void Population::quality_control() {
     }
   }
 
+  // record age-specific popsize
+  for (int a = 0; a <= 120; a++) {
+    Global::Popsize_by_age[a] = 0;
+  }
+  for(int p = 0; p < this->get_index_size(); p++) {
+    Person * person = get_person_by_index(p);
+    if (person == NULL) continue;
+    int a = person->get_age();
+    Global::Popsize_by_age[a]++;
+  }
+
   if(Global::Verbose > 0) {
     int n0, n5, n18, n65;
     int count[20];

@@ -544,19 +544,27 @@ void Epidemic::report_age_of_infection(int day) {
   int young_adults = 0;
   int adults = 0;
   int elderly = 0;
-  int age_count[21];				// age group counts
+  int age_count[Global::MAX_AGE+1];				// age group counts
   double mean_age = 0.0;
   int count_infections = 0;
-  for(int i = 0; i < 21; i++)
+  for(int i = 0; i <= Global::MAX_AGE; i++) {
     age_count[i] = 0;
+  }
+
   for(int i = 0; i < this->people_becoming_infected_today; i++) {
     Person * infectee = this->daily_infections_list[i];
     int age = infectee->get_age();
     mean_age += age;
     count_infections++;
     int age_group = age / 5;
-    if(age_group > 20)
+    if(age_group > 20) {
       age_group = 20;
+    }
+    if (Global::Report_Age_Of_Infection > 2) {
+      age_group = age;
+      if (age_group > Global::MAX_AGE) { age_group = Global::MAX_AGE; }
+    }
+
     age_count[age_group]++;
     double real_age = infectee->get_real_age();
     if (Global::Report_Age_Of_Infection == 1) {
@@ -611,18 +619,31 @@ void Epidemic::report_age_of_infection(int day) {
     track_value(day,(char *)"Adults", adults);
     track_value(day,(char *)"Elderly", elderly);
   }
-
-  if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
-    report_transmission_by_age_group(day);
-  }
-  if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
-    for(int i = 0; i <= 20; i++) {
+  if (Global::Report_Age_Of_Infection == 3) {
+    for(int i = 0; i <= Global::MAX_AGE; i++) {
       char temp_str[10];
-      //Write to log file
-      sprintf(temp_str, "A%d", i * 5);
-      //Store for daily output file
+      sprintf(temp_str, "A%d", i);
       track_value(day,temp_str, age_count[i]);
-      Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
+      sprintf(temp_str, "Age%d", i);
+      track_value(day,temp_str, 
+		  Global::Popsize_by_age[i] ?
+		  (100000.0*age_count[i]/(double)Global::Popsize_by_age[i])
+		  : 0.0);
+    }
+  }
+  else {
+    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
+      report_transmission_by_age_group(day);
+    }
+    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
+      for(int i = 0; i <= 20; i++) {
+	char temp_str[10];
+	//Write to log file
+	sprintf(temp_str, "A%d", i * 5);
+	//Store for daily output file
+	track_value(day,temp_str, age_count[i]);
+	Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
+      }
     }
   }
   Utils::fred_log("\n");

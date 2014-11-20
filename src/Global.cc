@@ -71,6 +71,7 @@ bool Global::Report_Mean_Household_Size_Per_School = false;
 bool Global::Report_Mean_Household_Distance_From_School = false;
 bool Global::Report_Mean_Household_Stats_Per_Income_Category = false;
 bool Global::Report_Epidemic_Data_By_Census_Tract = false;
+int Global::Popsize_by_age[Global::MAX_AGE+1];
 
 int Global::Verbose = 0;
 int Global::Debug = 0;
