@@ -14,10 +14,9 @@
 
 #include "DefaultIntraHost.h"
 #include "Disease.h"
-#include "Infection.h"
-#include "Trajectory.h"
 #include "Params.h"
 #include "Random.h"
+#include "Person.h"
 
 DefaultIntraHost::DefaultIntraHost() {
   prob_symptomatic = -1.0;
@@ -39,12 +38,18 @@ DefaultIntraHost::~DefaultIntraHost() {
 
 void DefaultIntraHost::setup(Disease *disease) {
   char disease_name[80];
+  char paramstr[80];
   IntraHost::setup(disease);
 
   strcpy(disease_name, disease->get_disease_name());
   Params::get_indexed_param(disease_name,"symp",&prob_symptomatic);
   Params::get_indexed_param(disease_name,"symp_infectivity",&symp_infectivity);
   Params::get_indexed_param(disease_name,"asymp_infectivity",&asymp_infectivity);
+
+  // age specific probablility of symptoms
+  this->age_specific_prob_symptomatic = new Age_Map("Prob Symptomatic");
+  sprintf(paramstr, "%s_prob_symp", disease_name);
+  this->age_specific_prob_symptomatic->read_from_input(paramstr);
 
   int n;
   Params::get_indexed_param(disease_name,"days_latent",&n);
@@ -67,7 +72,8 @@ Trajectory * DefaultIntraHost::get_trajectory( Infection *infection, Transmissio
   Trajectory * trajectory = new Trajectory();
   int sequential = get_infection_model();
 
-  int will_be_symptomatic = get_symptoms();
+  int age = infection->get_host()->get_age();
+  int will_be_symptomatic = will_have_symptoms(age);
 
   int days_latent = get_days_latent();
   int days_incubating;
@@ -131,7 +137,8 @@ int DefaultIntraHost::get_days_susceptible() {
   return 0;
 }
 
-int DefaultIntraHost::get_symptoms() {
-  return (RANDOM() < prob_symptomatic);
+int DefaultIntraHost::will_have_symptoms(int age) {
+  double prob = get_prob_symptomatic(age);
+  return (RANDOM() < prob);
 }
 

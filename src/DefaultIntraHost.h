@@ -19,6 +19,7 @@
 #include "Infection.h"
 #include "Trajectory.h"
 #include "Transmission.h"
+#include "Age_Map.h"
 
 class Infection;
 class Trajectory;
@@ -66,9 +67,9 @@ class DefaultIntraHost : public IntraHost {
     int get_days_susceptible();
 
     /**
-     * @return the symptoms
+     * @return if infectee will become symptomatic
      */
-    int get_symptoms();
+    int will_have_symptoms(int age);
 
     /**
      * @return the infectivity if asymptomatic
@@ -91,6 +92,15 @@ class DefaultIntraHost : public IntraHost {
       return prob_symptomatic;
     }
 
+    double get_prob_symptomatic(int age) {
+      if (age_specific_prob_symptomatic->is_empty()) {
+	return prob_symptomatic;
+      }
+      else {
+	return age_specific_prob_symptomatic->find_value(age);
+      }
+    }
+
     /**
      * @return the infection_model
      */
@@ -109,6 +119,7 @@ class DefaultIntraHost : public IntraHost {
     double *days_asymp;
     double *days_symp;
     double prob_symptomatic;
+    Age_Map *age_specific_prob_symptomatic;
   };
 
 #endif

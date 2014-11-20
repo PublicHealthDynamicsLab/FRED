@@ -469,6 +469,8 @@ disease_names = 1 influenza
 
 ### symptomatic rate:
 <disease_name>_symp = 0.67
+<disease_name>_prob_symp_ages = 0
+<disease_name>_prob_symp_values = 0
 
 ### multipliers for infectivity
 <disease_name>_symp_infectivity = 1.0
@@ -529,6 +531,8 @@ influenza_trans = 1.0
 
 ### symptomatic rate:
 influenza_symp = 0.67
+influenza_prob_symp_ages = 0
+influenza_prob_symp_values = 0
 
 ### multipliers for infectivity
 influenza_symp_infectivity = 1.0
