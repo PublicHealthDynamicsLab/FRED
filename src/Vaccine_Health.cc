@@ -25,7 +25,7 @@
 #include "Person.h"
 #include "Global.h"
 
-Vaccine_Health::Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, int _age, 
+Vaccine_Health::Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _age, 
              Person * _person, Vaccine_Manager* _vaccine_manager){
   
   vaccine               = _vaccine;
@@ -55,12 +55,12 @@ void Vaccine_Health::print() const {
 }
 
 void Vaccine_Health::printTrace() const {
-  fprintf(Global::VaccineTracefp," vaccday %5d age %3d iseff %2d effday %5d currentdose %3d",vaccination_day,
-    person->get_age(),is_effective(), vaccination_effective_day, current_dose);
+  fprintf(Global::VaccineTracefp," vaccday %5d age %5.1f iseff %2d effday %5d currentdose %3d",vaccination_day,
+    person->get_real_age(),is_effective(), vaccination_effective_day, current_dose);
   fflush(Global::VaccineTracefp);
 }
 
-void Vaccine_Health::update(int day, int age){
+void Vaccine_Health::update(int day, double age){
   // First check for immunity 
   if (is_effective() && (day == vaccination_effective_day)) {
     // Going out to Person, so that activities can be accessed
@@ -109,7 +109,7 @@ void Vaccine_Health::update(int day, int age){
   }
 }
 
-void Vaccine_Health::update_for_next_dose(int day, int age){
+void Vaccine_Health::update_for_next_dose(int day, double age){
   vaccination_day = day;
   if(!is_effective()){
     double efficacy = vaccine->get_dose(current_dose)->get_efficacy(age);

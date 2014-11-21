@@ -80,7 +80,6 @@ private:
   int id;                              // Which in the number of vaccines is it
   int disease;                          // Which Disease is this vaccine for
   int number_doses;                    // How many doses does the vaccine need.
-  //int ages[2];                         // Applicable Ages
   vector < Vaccine_Dose* > doses;       // Data structure to hold the efficacy of each dose.
   
   int initial_stock;                   // How much available at the beginning

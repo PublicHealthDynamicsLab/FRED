@@ -124,21 +124,21 @@ void Health::initialize_static_variables() {
   }
 }
 
-double Health::get_chronic_condition_case_fatality_prob_mult(int age, int cond_idx) {
+double Health::get_chronic_condition_case_fatality_prob_mult(double real_age, int cond_idx) {
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
     assert(cond_idx >= 0);
     assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(cond_idx) {
       case Chronic_condition_index::ASTHMA:
-        return Health::asthma_case_fatality_prob_mult->find_value(age);
+        return Health::asthma_case_fatality_prob_mult->find_value(real_age);
       case Chronic_condition_index::COPD:
-        return Health::COPD_case_fatality_prob_mult->find_value(age);
+        return Health::COPD_case_fatality_prob_mult->find_value(real_age);
       case Chronic_condition_index::CHRONIC_RENAL_DISEASE:
-        return Health::chronic_renal_disease_case_fatality_prob_mult->find_value(age);
+        return Health::chronic_renal_disease_case_fatality_prob_mult->find_value(real_age);
       case Chronic_condition_index::DIABETES:
-        return Health::diabetes_case_fatality_prob_mult->find_value(age);
+        return Health::diabetes_case_fatality_prob_mult->find_value(real_age);
       case Chronic_condition_index::HEART_DISEASE:
-        return Health::heart_disease_case_fatality_prob_mult->find_value(age);
+        return Health::heart_disease_case_fatality_prob_mult->find_value(real_age);
       default:
         return 1.0;
     }
@@ -146,21 +146,21 @@ double Health::get_chronic_condition_case_fatality_prob_mult(int age, int cond_i
   return 1.0;
 }
 
-double Health::get_chronic_condition_hospitalization_prob_mult(int age, int cond_idx) {
+double Health::get_chronic_condition_hospitalization_prob_mult(double real_age, int cond_idx) {
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
     assert(cond_idx >= 0);
     assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(cond_idx) {
       case Chronic_condition_index::ASTHMA:
-        return Health::asthma_hospitalization_prob_mult->find_value(age);
+        return Health::asthma_hospitalization_prob_mult->find_value(real_age);
       case Chronic_condition_index::COPD:
-        return Health::COPD_hospitalization_prob_mult->find_value(age);
+        return Health::COPD_hospitalization_prob_mult->find_value(real_age);
       case Chronic_condition_index::CHRONIC_RENAL_DISEASE:
-        return Health::chronic_renal_disease_hospitalization_prob_mult->find_value(age);
+        return Health::chronic_renal_disease_hospitalization_prob_mult->find_value(real_age);
       case Chronic_condition_index::DIABETES:
-        return Health::diabetes_hospitalization_prob_mult->find_value(age);
+        return Health::diabetes_hospitalization_prob_mult->find_value(real_age);
       case Chronic_condition_index::HEART_DISEASE:
-        return Health::heart_disease_hospitalization_prob_mult->find_value(age);
+        return Health::heart_disease_hospitalization_prob_mult->find_value(real_age);
       default:
         return 1.0;
     }
@@ -231,7 +231,7 @@ void Health::setup(Person * self) {
     become_susceptible(self, disease_id);
     Disease * disease = Global::Pop.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
-      double at_risk_prob = disease->get_at_risk()->find_value(self->get_age());
+      double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
       if(RANDOM() < at_risk_prob) { // Now a probability <=1.0
         declare_at_risk(disease);
       }
@@ -250,19 +250,19 @@ void Health::setup(Person * self) {
 
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
     double prob = 0.0;
-    prob = Health::asthma_prob->find_value(self->get_age());
+    prob = Health::asthma_prob->find_value(self->get_real_age());
     set_is_asthmatic((RANDOM() < prob));
 
-    prob = Health::COPD_prob->find_value(self->get_age());
+    prob = Health::COPD_prob->find_value(self->get_real_age());
     set_has_COPD((RANDOM() < prob));
 
-    prob = Health::chronic_renal_disease_prob->find_value(self->get_age());
+    prob = Health::chronic_renal_disease_prob->find_value(self->get_real_age());
     set_has_chronic_renal_disease((RANDOM() < prob));
 
-    prob = Health::diabetes_prob->find_value(self->get_age());
+    prob = Health::diabetes_prob->find_value(self->get_real_age());
     set_is_diabetic((RANDOM() < prob));
 
-    prob = Health::heart_disease_prob->find_value(self->get_age());
+    prob = Health::heart_disease_prob->find_value(self->get_real_age());
     set_has_heart_disease((RANDOM() < prob));
   }
 }
@@ -550,7 +550,7 @@ void Health::update_interventions(Person * self, int day) {
     if(this->intervention_flags[Intervention_flag::TAKES_VACCINE]) {
       int size = (int)(this->vaccine_health->size());
       for(int i = 0; i < size; i++)
-        (*this->vaccine_health)[i]->update(day, self->get_age());
+        (*this->vaccine_health)[i]->update(day, self->get_real_age());
     }
     // update antiviral status
     if(this->intervention_flags[Intervention_flag::TAKES_AV]) {
@@ -762,7 +762,7 @@ void Health::modify_develops_symptoms(int disease_id, bool symptoms, int cur_day
 void Health::take_vaccine(Person * self, Vaccine* vaccine, int day,
     Vaccine_Manager* vm) {
   // Compliance will be somewhere else
-  int age = self->get_age();
+  double real_age = self->get_real_age();
   // Is this our first dose?
   Vaccine_Health * vaccine_health_for_dose = NULL;
 
@@ -777,10 +777,10 @@ void Health::take_vaccine(Person * self, Vaccine* vaccine, int day,
   }
 
   if(vaccine_health_for_dose == NULL) { // This is our first dose of this vaccine
-    this->vaccine_health->push_back(new Vaccine_Health(day, vaccine, age, self, vm));
+    this->vaccine_health->push_back(new Vaccine_Health(day, vaccine, real_age, self, vm));
     this->intervention_flags[Intervention_flag::TAKES_VACCINE] = true;
   } else { // Already have a dose, need to take the next dose
-    vaccine_health_for_dose->update_for_next_dose(day, age);
+    vaccine_health_for_dose->update_for_next_dose(day, real_age);
   }
 
   if(Global::VaccineTracefp != NULL) {

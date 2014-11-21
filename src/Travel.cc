@@ -236,7 +236,7 @@ void Travel::update_travel(int day) {
 	        // select a random member of the source hub's user group
 	        int v = IRAND(0,hubs[i].users.size()-1);
 	        visitor = hubs[i].users[v];
-	        double prob_travel_by_age = travel_age_prob->find_value(visitor->get_age());
+	        double prob_travel_by_age = travel_age_prob->find_value(visitor->get_real_age());
 	        if(prob_travel_by_age < RANDOM()) {
 	          visitor = NULL;
 	        }
@@ -249,7 +249,7 @@ void Travel::update_travel(int day) {
 	          // select a random member of the destination hub's user group
 	          int v = IRAND(0,hubs[j].users.size()-1);
 	          host = hubs[j].users[v];
-	          double prob_travel_by_age = travel_age_prob->find_value(host->get_age());
+	          double prob_travel_by_age = travel_age_prob->find_value(host->get_real_age());
 	          if(prob_travel_by_age < RANDOM()) {
 	            host = NULL;
 	          }

@@ -610,8 +610,8 @@ void Activities::decide_whether_to_seek_healthcare(Person * self, int day) {
 
     //First check to see if agent will visit an outpatient healthcare provider
     double rand = RANDOM();
-    double hospitalization_prob = Activities::Hospitalization_prob->find_value(self->get_age());
-    double seek_healthcare_prob = Activities::Outpatient_healthcare_prob->find_value(self->get_age());
+    double hospitalization_prob = Activities::Hospitalization_prob->find_value(self->get_real_age());
+    double seek_healthcare_prob = Activities::Outpatient_healthcare_prob->find_value(self->get_real_age());
 
     // If the agent has chronic conditions, multiply the probability by the appropriate modifiers
     if(Global::Enable_Chronic_Condition) {

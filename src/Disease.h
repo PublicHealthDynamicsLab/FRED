@@ -239,7 +239,7 @@ public:
     this->epidemic->increment_cohort_infectee_count(day);
   }
  
-  bool gen_immunity_infection(int age);
+  bool gen_immunity_infection(double real_age);
 
   int add_strain(Strain * child_strain, double transmissibility, int parent_strain_id);
   int add_strain(Strain * child_strain, double transmissibility);
@@ -287,7 +287,7 @@ public:
     return this->face_mask_plus_hand_washing_susceptibility_efficacy;
   }
 
-  bool is_fatal(int age, double symptoms, int days_symptomatic);
+  bool is_fatal(double real_age, double symptoms, int days_symptomatic);
   bool is_fatal(Person * per, double symptoms, int days_symptomatic);
   bool is_case_fatality_enabled() {
     return this->enable_case_fatality;

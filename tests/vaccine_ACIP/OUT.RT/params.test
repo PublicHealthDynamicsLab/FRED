@@ -7,10 +7,10 @@ track_infection_events = 1
 # enable behaviors must be set
 enable_behaviors = 1
 
-pregnancy_prob_ages = 8 0 18 19 24 25 49 50 110
+pregnancy_prob_upper_ages = 4 19 25 50 110
 pregnancy_prob_values = 4 0.0 0.0576 0.0314 0.0
 
-influenza_at_risk_ages = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
+influenza_at_risk_upper_ages = 7 2 5 19 25 50 65 110
 influenza_at_risk_values = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
 
 enable_vaccination = 1
@@ -30,10 +30,10 @@ vaccine_starting_day[0]       = 0
 
 #### Vaccine #0 Dose #0
 vaccine_next_dosage_day[0][0] = 0
-vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100
+vaccine_dose_efficacy_upper_ages[0][0] = 2 5 100
 vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
 
-vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_delay_upper_ages[0][0] = 1 100
 vaccine_dose_efficacy_delay_values[0][0] = 1 14
 
 # these are the strain ids that the vaccine will

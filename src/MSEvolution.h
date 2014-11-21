@@ -60,8 +60,8 @@ class MSEvolution : public Evolution {
 
  protected:
   virtual double residual_immunity( Person * person, int challenge_strain, int day );
-  virtual double prob_inf_blocking( int old_strain, int new_strain, int time, int age );
-  virtual double prob_vac_blocking( int old_strain, int new_strain, int time, int age );
+  virtual double prob_inf_blocking( int old_strain, int new_strain, int time, double real_age );
+  virtual double prob_vac_blocking( int old_strain, int new_strain, int time, double real_age );
   virtual double prob_blocking( int old_strain, int new_strain, int time, double halflife, double prob_blocking );
   virtual double prob_past_infections( Person * infectee, int new_strain, int day );
   virtual double prob_past_vaccinations( Person * infectee, int new_strain, int day );

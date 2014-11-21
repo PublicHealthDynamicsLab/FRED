@@ -41,8 +41,10 @@ void Vaccine_Dose::print() const {
   efficacy_delay->print();
 }
 
-bool Vaccine_Dose::is_within_age(int age) const {
-  if(efficacy->find_value(age) != 0.0){
+bool Vaccine_Dose::is_within_age(double real_age) const {
+  double eff = efficacy->find_value(real_age);
+  // printf("age = %.1f  eff = %f\n", real_age, eff);
+  if(eff != 0.0){
     return true;
   }
   return false;

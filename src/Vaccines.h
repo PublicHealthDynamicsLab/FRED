@@ -29,8 +29,8 @@ public:
   
   Vaccine *get_vaccine(int i) const { return vaccines[i];}
   
-  vector <int> which_vaccines_applicable(int age) const;
-  int pick_from_applicable_vaccines(int age) const;
+  vector <int> which_vaccines_applicable(double real_age) const;
+  int pick_from_applicable_vaccines(double real_age) const;
   int get_total_vaccines_avail_today() const;
   
   

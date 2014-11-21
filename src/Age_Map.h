@@ -33,10 +33,10 @@ using namespace std;
  * Class used to map a range of ages to a given value.  These often come from the parameters file and are structured
  * like in the following example:<br />
  *
- * vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100<br />
- * vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83<br />
+ * vaccine_dose_efficacy_upper_ages = 2 4 120<br />
+ * vaccine_dose_efficacy_values = 2 0.70 0.83<br />
  *
- * In this example, the ages 0 - 4 would map to value 0.70 and ages 5 - 100 would map to 0.83
+ * In this example, the ages [0,4) would map to value 0.70 and ages [4,120) would map to 0.83
  *
  */
 class Age_Map {
@@ -55,24 +55,7 @@ public:
   Age_Map(string name);
 
   /**
-   * @return the size of the age range vector
-   */
-  int get_num_ages() const {
-    return this->ages.size();
-  }
-
-  /**
-   * @return the minimum age in the age range vector
-   */
-  int get_minimum_age() const;
-
-  /**
-   * @return the maximum age in the age range vector
-   */
-  int get_maximum_age() const;
-
-  /**
-   * @return whether or not the age range vector is empty
+   * @return whether or not the age group vector is empty
    */
   bool is_empty() const {
     return this->ages.empty();
@@ -101,47 +84,16 @@ public:
    */
   void read_from_input(string input, int i, int j);
 
-  void read_table(string input);
-
-  /**
-   * Add a value to the Age_Map
-   *
-   * @param lower_age the lower bound for the key
-   * @param upper_age the upper bound for the key
-   * @param val what value should be returned
-   */
-  void add_value(int lower_age, int upper_age, double val);
-
-  /**
-   * Set a value in the Age_Map
-   *
-   * @param age the age to use for the key
-   * @param val what value should be returned
-   */
-  void set_value(int age, double val);
-
   void set_all_values(double val);
 
   // Operations
   /**
-   * Tries to find a value given an age.  If the age falls within an lower and upper bound for a given age range, then
-   * the associated value is returned.  Will return 0.0 if no matching range is found.
+   * Find a value given an age. Will return 0.0 if no matching range is found.
    *
-   * @param age the age to find
+   * @param (double) age the age to find
    * @return the found value
    */
-  double find_value(int age) const;
-
-  // Operations
-  /**
-   * Tries to find a value in a table indexed by age ranges.
-   * If the age falls within an lower and upper bound for a given age range, then
-   * the associated value is returned.  Will return 0.0 if no matching range is found.
-   *
-   * @param age the age to find
-   * @return the found value
-   */
-  double find_value(int age1, int age2) const;
+  double find_value(double age) const;
 
   // Utility functions
   /**
@@ -150,17 +102,15 @@ public:
   void print() const;
 
   /**
-   * Perform validation on the Age_Map. First check to see there are a proper number of values for each age.
-   * Next checks that the ages groups are correct, the low and high ages are right.  Last, makes sure the age
+   * Perform validation on the Age_Map, making sure the age
    * groups are mutually exclusive.
    */
   bool quality_control() const;
 
 private:
   string name;
-  vector<vector<int> > ages;  // vector to hold the age ranges
-  vector<double> values;       // vector to hold the values for each age range
-  vector<double *> table;	// table to hold the values indexed by age range
+  vector<double> ages; // vector to hold the upper age for each age group
+  vector<double> values; // vector to hold the values for each age range
 };
 
 #endif

@@ -1,4 +1,4 @@
-Day 0 Date 2012-01-02 WkDay Mon C 10 College 0 Cs 0 E 10 GQ 0 I 0 Is 0 M 0 Military 0 N 45318 Nursing_Home 0 P 10 Prison 0 R 0 S 45308 ScCl 0 V 0 Va 0 Vr 45316 Vs 0 Week 1 Year 2012 AR 0.02 ARs 0.00 RR 0.00
+Day 0 Date 2012-01-02 WkDay Mon C 10 College 0 Cs 0 E 10 GQ 0 I 0 Is 0 M 0 Military 0 N 45318 Nursing_Home 0 P 10 Prison 0 R 0 S 45308 ScCl 0 V 0 Va 0 Vr 45314 Vs 0 Week 1 Year 2012 AR 0.02 ARs 0.00 RR 0.00
 Day 1 Date 2012-01-03 WkDay Tue C 3 College 0 Cs 7 E 5 GQ 0 I 8 Is 7 M 0 Military 0 N 45318 Nursing_Home 0 P 13 Prison 0 R 0 S 45305 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 1 Year 2012 AR 0.03 ARs 0.02 RR 0.00
 Day 2 Date 2012-01-04 WkDay Wed C 9 College 0 Cs 3 E 10 GQ 0 I 12 Is 10 M 0 Military 0 N 45318 Nursing_Home 0 P 22 Prison 0 R 0 S 45296 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 1 Year 2012 AR 0.05 ARs 0.02 RR 0.00
 Day 3 Date 2012-01-05 WkDay Thu C 20 College 0 Cs 8 E 22 GQ 0 I 20 Is 18 M 0 Military 0 N 45318 Nursing_Home 0 P 42 Prison 0 R 0 S 45276 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 1 Year 2012 AR 0.09 ARs 0.04 RR 0.00

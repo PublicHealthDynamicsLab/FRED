@@ -104,9 +104,6 @@ class Global {
     // MAX_NUM_THREADS is used, FRED will abort the run.
     static const int MAX_NUM_THREADS = NCPU;
 
-    // maximum age
-    static const int MAX_AGE = 120;
-
     // race codes (ver 2)
     static const int WHITE = 1;
     static const int AFRICAN_AMERICAN = 2;

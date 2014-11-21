@@ -646,19 +646,19 @@ public:
     set_has_chronic_condition(Chronic_condition_index::HEART_DISEASE, has_cond);
   }
 
-  static double get_chronic_condition_case_fatality_prob_mult(int age, int cond_idx);
-  static double get_chronic_condition_hospitalization_prob_mult(int age, int cond_idx);
+  static double get_chronic_condition_case_fatality_prob_mult(double real_age, int cond_idx);
+  static double get_chronic_condition_hospitalization_prob_mult(double real_age, int cond_idx);
 
-  static double get_pregnancy_case_fatality_prob_mult(int age) {
+  static double get_pregnancy_case_fatality_prob_mult(double real_age) {
     if(Global::Enable_Chronic_Condition && Health::is_initialized) {
-      return Health::pregnancy_case_fatality_prob_mult->find_value(age);
+      return Health::pregnancy_case_fatality_prob_mult->find_value(real_age);
     }
     return 1.0;
   }
 
-  static double get_pregnancy_hospitalization_prob_mult(int age) {
+  static double get_pregnancy_hospitalization_prob_mult(double real_age) {
     if(Global::Enable_Chronic_Condition && Health::is_initialized) {
-      return Health::pregnancy_hospitalization_prob_mult->find_value(age);
+      return Health::pregnancy_hospitalization_prob_mult->find_value(real_age);
     }
     return 1.0;
   }

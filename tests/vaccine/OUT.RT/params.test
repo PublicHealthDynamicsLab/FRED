@@ -25,10 +25,10 @@ vaccine_starting_day[0]       = 0
 
 #### Vaccine #0 Dose #0
 vaccine_next_dosage_day[0][0] = 0
-vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100
+vaccine_dose_efficacy_upper_ages[0][0] = 2 5 100
 vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
 
-vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_delay_ages[0][0] = 1 100
 vaccine_dose_efficacy_delay_values[0][0] = 1 14
 
 # these are the strain ids that the vaccine will

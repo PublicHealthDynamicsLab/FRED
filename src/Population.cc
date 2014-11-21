@@ -983,7 +983,7 @@ void Population::quality_control() {
 
     // Print out At Risk distribution
     for(int d = 0; d < Global::Diseases; d++) {
-      if(this->disease[d].get_at_risk()->get_num_ages() > 0) {
+      if(this->disease[d].get_at_risk()->is_empty() == false) {
         Disease* dis = &this->disease[d];
         int rcount[20];
         for(int c = 0; c < 20; c++) {

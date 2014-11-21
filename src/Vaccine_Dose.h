@@ -32,11 +32,11 @@ public:
   Age_Map* get_efficacy_map()       const { return efficacy;}
   Age_Map* get_efficacy_delay_map() const { return efficacy_delay;}
   
-  double  get_efficacy(int age)         const { return efficacy->find_value(age);  }
-  double  get_efficacy_delay(int age)   const { return efficacy_delay->find_value(age); }
+  double  get_efficacy(double real_age) const { return efficacy->find_value(real_age);  }
+  double  get_efficacy_delay(double real_age)   const { return efficacy_delay->find_value(real_age); }
   int     get_days_between_doses()  const { return days_between_doses; }
   
-  bool    is_within_age(int age) const;
+  bool    is_within_age(double real_age) const;
   
   //Utility Functions... no need for update or reset.
   void print() const;

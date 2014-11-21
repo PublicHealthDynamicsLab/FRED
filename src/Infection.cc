@@ -82,7 +82,7 @@ Infection::Infection(Disease* disease, Person* infector, Person* host, Place* pl
   this->recovery_period = disease->get_days_recovered();
 
   // Determine if this infection produces an immune response
-  this->immune_response = disease->gen_immunity_infection(host->get_age());
+  this->immune_response = disease->gen_immunity_infection(host->get_real_age());
 }
 
 Infection::~Infection() {
@@ -199,7 +199,7 @@ void Infection::update(int today) {
         return;
       }
     } else {
-      if(this->disease->is_fatal(this->host->get_age(), this->symptoms, days_symptomatic)) {
+      if(this->disease->is_fatal(this->host->get_real_age(), this->symptoms, days_symptomatic)) {
         set_fatal_infection();
         return;
       }

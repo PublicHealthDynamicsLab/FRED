@@ -544,10 +544,10 @@ void Epidemic::report_age_of_infection(int day) {
   int young_adults = 0;
   int adults = 0;
   int elderly = 0;
-  int age_count[Global::MAX_AGE+1];				// age group counts
+  int age_count[Demographics::MAX_AGE+1];				// age group counts
   double mean_age = 0.0;
   int count_infections = 0;
-  for(int i = 0; i <= Global::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
     age_count[i] = 0;
   }
 
@@ -562,7 +562,7 @@ void Epidemic::report_age_of_infection(int day) {
     }
     if (Global::Report_Age_Of_Infection > 2) {
       age_group = age;
-      if (age_group > Global::MAX_AGE) { age_group = Global::MAX_AGE; }
+      if (age_group > Demographics::MAX_AGE) { age_group = Demographics::MAX_AGE; }
     }
 
     age_count[age_group]++;
@@ -620,7 +620,7 @@ void Epidemic::report_age_of_infection(int day) {
     track_value(day,(char *)"Elderly", elderly);
   }
   if (Global::Report_Age_Of_Infection == 3) {
-    for(int i = 0; i <= Global::MAX_AGE; i++) {
+    for(int i = 0; i <= Demographics::MAX_AGE; i++) {
       char temp_str[10];
       sprintf(temp_str, "A%d", i);
       track_value(day,temp_str, age_count[i]);

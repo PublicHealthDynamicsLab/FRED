@@ -273,10 +273,10 @@ large_workplace_size = 500
 ##########################################################
 
 enable_hospitals = 0
-hospitalization_prob_ages = 2 0 120
-hospitalization_prob_values = 1 0.0
-outpatient_healthcare_prob_ages = 2 0 120
-outpatient_healthcare_prob_values = 1 0.0
+hospitalization_prob_upper_ages = 0
+hospitalization_prob_values = 0
+outpatient_healthcare_prob_upper_ages = 0
+outpatient_healthcare_prob_values = 0
 prob_of_visiting_hospitalized_housemate = 0.0
 hospital_fixed_staff = 20
 hospital_worker_to_bed_ratio = 1.0
@@ -315,7 +315,7 @@ enable_travel = 0
 travel_duration = 9 0 0.2 0.4 0.6 0.67 0.74 0.81 0.9 1.0
 
 # for travel age map
-travel_age_prob_ages = 18 0 15 16 24 25 34 35 44 45 54 55 64 65 74 75 84 85 110
+travel_age_prob_upper_ages = 9 16 25 35 45 55 65 75 85 120
 travel_age_prob_values = 9 0.05 0.12 0.10 0.30 0.17 0.14 0.07 0.05 0.00
 
 # distance threshold for overnight trips (in km)
@@ -414,9 +414,9 @@ vaccine_starting_day[0] = 0
 
 #### Sample Vaccine #0 Dose #0
 vaccine_next_dosage_day[0][0] = 0
-vaccine_dose_efficacy_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_upper_ages[0][0] = 1 100
 vaccine_dose_efficacy_values[0][0] = 1 0.70
-vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_delay_upper_ages[0][0] = 1 100
 vaccine_dose_efficacy_delay_values[0][0] = 1 14
 vaccine_strains[0] = 0
 
@@ -469,7 +469,7 @@ disease_names = 1 influenza
 
 ### symptomatic rate:
 <disease_name>_symp = 0.67
-<disease_name>_prob_symp_ages = 0
+<disease_name>_prob_symp_upper_ages = 0
 <disease_name>_prob_symp_values = 0
 
 ### multipliers for infectivity
@@ -483,9 +483,9 @@ disease_names = 1 influenza
 
 ### IMMUNITY
 <disease_name>_immunity_loss_rate = 0
-<disease_name>_residual_immunity_ages = 0
+<disease_name>_residual_immunity_upper_ages = 0
 <disease_name>_residual_immunity_values = 0
-<disease_name>_infection_immunity_prob_ages = 2 0 110
+<disease_name>_infection_immunity_prob_upper_ages = 1 120
 <disease_name>_infection_immunity_prob_values = 1 1.0
 
 ### PLACE-SPECIFIC CONTACTS
@@ -510,7 +510,7 @@ disease_names = 1 influenza
 ### OPTIONAL FEATURES
 ### The following settings disable optional features unless needed:
 <disease_name>_enable_case_fatality = 0
-<disease_name>_at_risk_ages = 0
+<disease_name>_at_risk_upper_ages = 0
 <disease_name>_at_risk_values = 0
 <disease_name>_intra_host_model = 0
 <disease_name>_infection_model = 0
@@ -531,7 +531,7 @@ influenza_trans = 1.0
 
 ### symptomatic rate:
 influenza_symp = 0.67
-influenza_prob_symp_ages = 0
+influenza_prob_symp_upper_ages = 0
 influenza_prob_symp_values = 0
 
 ### multipliers for infectivity
@@ -545,9 +545,9 @@ influenza_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 
 ### IMMUNITY
 influenza_immunity_loss_rate = 0
-influenza_residual_immunity_ages = 0
+influenza_residual_immunity_upper_ages = 0
 influenza_residual_immunity_values = 0
-influenza_infection_immunity_prob_ages = 2 0 110
+influenza_infection_immunity_prob_upper_ages = 1 120
 influenza_infection_immunity_prob_values = 1 1.0
 Immunization = -1
 
@@ -608,14 +608,14 @@ influenza_transmissibility = 1
 ### CASE FATALITY
 influenza_enable_case_fatality = 0
 influenza_min_symptoms_for_case_fatality = 1.0
-influenza_case_fatality_age_factor_ages = 2 0 120
+influenza_case_fatality_age_factor_upper_ages = 1 120
 influenza_case_fatality_age_factor_values = 1 1.0
 influenza_case_fatality_prob_by_day = 4 0.0000715 0.0000715 0.0000715 0.0000715
 
 ### AT-RISK POPULATIONS:
-# influenza_at_risk_ages = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
+# influenza_at_risk_upper_ages = 7 2 5 19 25 50 65 120
 # influenza_at_risk_values = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
-influenza_at_risk_ages = 0
+influenza_at_risk_upper_ages = 0
 influenza_at_risk_values = 0
 
 
@@ -852,43 +852,43 @@ enable_chronic_condition = 0
 
 # If chronic conditions are enabled, then the age map data for the
 # various conditions will be used
-asthma_prob_ages = 2 0 120
-asthma_prob_values = 1 0.0
-COPD_prob_ages = 2 0 120
-COPD_prob_values = 1 0.0
-chronic_renal_disease_prob_ages = 2 0 120
-chronic_renal_disease_prob_values = 1 0.0
-diabetes_prob_ages = 2 0 120
-diabetes_prob_values = 1 0.0
-heart_disease_prob_ages = 2 0 120
-heart_disease_prob_values = 1 0.0
+asthma_prob_upper_ages = 0
+asthma_prob_values = 0
+COPD_prob_upper_ages = 0
+COPD_prob_values = 0
+chronic_renal_disease_prob_upper_ages = 0
+chronic_renal_disease_prob_values = 0
+diabetes_prob_upper_ages = 0
+diabetes_prob_values = 0
+heart_disease_prob_upper_ages = 0
+heart_disease_prob_values = 0
 
 # Chronic condition hospitalization multipliers
-asthma_hospitalization_prob_mult_ages = 2 0 120
+asthma_hospitalization_prob_mult_upper_ages = 1 120
 asthma_hospitalization_prob_mult_values = 1 1.0
-COPD_hospitalization_prob_mult_ages = 2 0 120
+COPD_hospitalization_prob_mult_upper_ages = 1 120
 COPD_hospitalization_prob_mult_values = 1 1.0
-chronic_renal_disease_hospitalization_prob_mult_ages = 2 0 120
+chronic_renal_disease_hospitalization_prob_mult_upper_ages = 1 120
 chronic_renal_disease_hospitalization_prob_mult_values = 1 1.0
-diabetes_hospitalization_prob_mult_ages = 2 0 120
+diabetes_hospitalization_prob_mult_upper_ages = 1 120
 diabetes_hospitalization_prob_mult_values = 1 1.0
-heart_disease_hospitalization_prob_mult_ages = 2 0 120
+heart_disease_hospitalization_prob_mult_upper_ages = 1 120
 heart_disease_hospitalization_prob_mult_values = 1 1.0
-pregnancy_hospitalization_prob_mult_ages = 2 0 120
+pregnancy_hospitalization_prob_mult_upper_ages = 1 120
 pregnancy_hospitalization_prob_mult_values = 1 1.0
 
 # Chronic condition case fatality multipliers
-asthma_case_fatality_prob_mult_ages = 2 0 120
+asthma_case_fatality_prob_mult_upper_ages = 1 120
 asthma_case_fatality_prob_mult_values = 1 1.0
-COPD_case_fatality_prob_mult_ages = 2 0 120
+COPD_case_fatality_prob_mult_upper_ages = 1 120
 COPD_case_fatality_prob_mult_values = 1 1.0
-chronic_renal_disease_case_fatality_prob_mult_ages = 2 0 120
+chronic_renal_disease_case_fatality_prob_mult_upper_ages = 1 120
 chronic_renal_disease_case_fatality_prob_mult_values = 1 1.0
-diabetes_case_fatality_prob_mult_ages = 2 0 120
+diabetes_case_fatality_prob_mult_upper_ages = 1 120
 diabetes_case_fatality_prob_mult_values = 1 1.0
-heart_disease_case_fatality_prob_mult_ages = 2 0 120
+heart_disease_case_fatality_prob_mult_upper_ages = 1 120
 heart_disease_case_fatality_prob_mult_values = 1 1.0
-pregnancy_case_fatality_prob_mult_ages = 2 0 120
+pregnancy_case_fatality_prob_mult_upper_ages = 1 120
 pregnancy_case_fatality_prob_mult_values = 1 1.0
 
 ##########################################################

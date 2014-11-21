@@ -185,7 +185,7 @@ void Disease::get_parameters(int disease) {
   double immunization_rate;
   Params::get_param_from_string("Immunization", &immunization_rate);
   if(immunization_rate >= 0.0) {
-    this->residual_immunity->set_value(0, immunization_rate);
+    this->residual_immunity->set_all_values(immunization_rate);
   }
 
   if(this->residual_immunity->is_empty() == false) {
@@ -305,8 +305,8 @@ Transmission::Loads * Disease::get_primary_loads(int day, int strain) {
   return this->evol->get_primary_loads(day, strain);
 }
 
-bool Disease::gen_immunity_infection(int age) {
-  double prob = this->infection_immunity_prob->find_value(age);
+bool Disease::gen_immunity_infection(double real_age) {
+  double prob = this->infection_immunity_prob->find_value(real_age);
   return (RANDOM() <= prob);
 }
 
@@ -363,9 +363,9 @@ void Disease::initialize_evolution_reporting_grid(Regional_Layer * grid) {
 void Disease::init_prior_immunity() {
   this->evol->init_prior_immunity(this);
 }
-bool Disease::is_fatal(int age, double symptoms, int days_symptomatic) {
+bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
-      double age_prob = this->case_fatality_age_factor->find_value(age);
+      double age_prob = this->case_fatality_age_factor->find_value(real_age);
       double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
       return (RANDOM() < age_prob * day_prob);
   }
@@ -375,7 +375,7 @@ bool Disease::is_fatal(int age, double symptoms, int days_symptomatic) {
 bool Disease::is_fatal(Person * per, double symptoms, int days_symptomatic) {
   if(Global::Enable_Chronic_Condition && this->enable_case_fatality) {
     if(per->has_chronic_condition()) {
-      double age_prob = this->case_fatality_age_factor->find_value(per->get_age());
+      double age_prob = this->case_fatality_age_factor->find_value(per->get_real_age());
       double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
       if(per->is_asthmatic()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::ASTHMA);

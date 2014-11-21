@@ -99,11 +99,11 @@ void Vaccines::reset() {
 }
 
 
-int Vaccines::pick_from_applicable_vaccines(int age) const {
+int Vaccines::pick_from_applicable_vaccines(double real_age) const {
   vector <int> app_vaccs;
   for(unsigned int i=0;i<vaccines.size();i++){
     // if first dose is applicable, add to vector.
-    if(vaccines[i]->get_dose(0)->is_within_age(age) &&
+    if(vaccines[i]->get_dose(0)->is_within_age(real_age) &&
        vaccines[i]->get_current_stock() > 0){
       app_vaccs.push_back(i);
     }

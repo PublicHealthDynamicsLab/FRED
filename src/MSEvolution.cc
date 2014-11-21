@@ -89,15 +89,15 @@ double MSEvolution::antigenic_distance( int strain1, int strain2 ) {
   else return 10.0;
 }
 
-double MSEvolution::prob_inf_blocking( int old_strain, int new_strain, int time, int age ) {
-  FRED_VERBOSE( 3, "Prob Blocking %f old strain %d new strain %d time %d halflife %f age %d init prot inf %f\n",
-      prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( age ), init_prot_inf ),
-       old_strain, new_strain, time, halflife_inf->find_value( age ), age, init_prot_inf );
-  return prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( age ), init_prot_inf ); 
+double MSEvolution::prob_inf_blocking( int old_strain, int new_strain, int time, double real_age ) {
+  FRED_VERBOSE( 3, "Prob Blocking %f old strain %d new strain %d time %d halflife %f age %.2f init prot inf %f\n",
+      prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ),
+       old_strain, new_strain, time, halflife_inf->find_value( real_age ), real_age, init_prot_inf );
+  return prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ); 
 }
 
-double MSEvolution::prob_vac_blocking( int old_strain, int new_strain, int time, int age ) {
-  return prob_blocking( old_strain, new_strain, time, halflife_vac->find_value( age ), init_prot_vac ); 
+double MSEvolution::prob_vac_blocking( int old_strain, int new_strain, int time, double real_age ) {
+  return prob_blocking( old_strain, new_strain, time, halflife_vac->find_value( real_age ), init_prot_vac ); 
 }
 
 double MSEvolution::prob_blocking( int old_strain, int new_strain, int time, double halflife, double init_prot ) {

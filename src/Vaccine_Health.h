@@ -34,7 +34,7 @@ class Vaccine_Health {
 public:
   //Creation Operations
   Vaccine_Health();
-  Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, int _age, 
+  Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _age, 
      Person * _person, Vaccine_Manager* _vaccine_manager);
   
   // Access Members
@@ -60,8 +60,8 @@ public:
   //Utility Functions
   void print() const;
   void printTrace() const;
-  void update(int day, int age);
-  void update_for_next_dose(int day, int age);
+  void update(int day, double age);
+  void update_for_next_dose(int day, double age);
   
 private:
   int vaccination_day;              // On which day did you get the vaccine

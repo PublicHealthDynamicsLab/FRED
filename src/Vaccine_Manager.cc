@@ -92,7 +92,7 @@ Vaccine_Manager::Vaccine_Manager(Population *_pop) :
            << this->vaccine_priority_age_high << "\n";
     } else {
       this->vaccine_priority_age_low = 0;
-      this->vaccine_priority_age_high = 110;
+      this->vaccine_priority_age_high = Demographics::MAX_AGE;
     }
   }
 
@@ -335,7 +335,8 @@ void Vaccine_Manager::vaccinate(int day) {
   while(ip != this->priority_queue.end()) {
     Person* current_person = *ip;
 
-    int vacc_app = this->vaccine_package->pick_from_applicable_vaccines(current_person->get_age());
+    int vacc_app = this->vaccine_package->pick_from_applicable_vaccines((double)(current_person->get_age()));
+    // printf("person = %d age = %.1f vacc_app = %d\n", current_person->get_id(), current_person->get_real_age(), vacc_app);
     if(vacc_app > -1) {
       bool accept_vaccine = false;
       // STB need to refactor to work with multiple diseases
@@ -363,7 +364,7 @@ void Vaccine_Manager::vaccinate(int day) {
         ip = this->priority_queue.erase(ip);  // remove a vaccinated person
       } else {
         reject_count++;
-        // printf("vaccine rejected by person %d age %d\n", current_person->get_id(), current_person->get_age());
+        // printf("vaccine rejected by person %d age %.1f\n", current_person->get_id(), current_person->get_real_age());
         // skip non-compliant person under HBM
         // if(strcmp(Global::Behavior_model_type,"HBM") == 0) ++ip;
         if(0) {
@@ -374,9 +375,9 @@ void Vaccine_Manager::vaccinate(int day) {
         }
       }
     } else {
-      if(Global::Verbose > 1) {
+      if(Global::Verbose > 0) {
         cout << "Vaccine not applicable for agent " << current_person->get_id() << " "
-            << current_person->get_age() << "\n";
+            << current_person->get_real_age() << "\n";
       }
       ++ip;
     }
@@ -422,7 +423,7 @@ void Vaccine_Manager::vaccinate(int day) {
   ip = this->queue.begin();
   while(ip != this->queue.end()) {
     Person* current_person = *ip;
-    int vacc_app = this->vaccine_package->pick_from_applicable_vaccines(current_person->get_age());
+    int vacc_app = this->vaccine_package->pick_from_applicable_vaccines(current_person->get_real_age());
     if(vacc_app > -1) {
       bool accept_vaccine = true;
       if((this->vaccinate_symptomatics == true)
@@ -430,17 +431,17 @@ void Vaccine_Manager::vaccinate(int day) {
           && (day >= current_person->get_health()->get_symptomatic_date(0))) {
         accept_vaccine = false;
         reject_state_count++;
-        // printf("vaccine rejected by person %d age %d -- ALREADY SYMPTOMATIC\n", current_person->get_id(), current_person->get_age());
+        // printf("vaccine rejected by person %d age %0.1f -- ALREADY SYMPTOMATIC\n", current_person->get_id(), current_person->get_real_age());
       } else {
         if(current_person->get_health()->is_vaccinated()) {
-          // printf("vaccine rejected by person %d age %d -- ALREADY VACCINATED\n", current_person->get_id(), current_person->get_age());
+          // printf("vaccine rejected by person %d age %0.1f -- ALREADY VACCINATED\n", current_person->get_id(), current_person->get_real_age());
           accept_vaccine = current_person->acceptance_of_another_vaccine_dose();
         } else {
           accept_vaccine = current_person->acceptance_of_vaccine();
         }
       }
       if(accept_vaccine == true) {
-        // printf("vaccine accepted by person %d age %d\n", current_person->get_id(), current_person->get_age());
+        // printf("vaccine accepted by person %d age %0.1f\n", current_person->get_id(), current_person->get_real_age());
         accept_count++;
         number_vaccinated++;
         this->current_vaccine_capacity--;
@@ -451,7 +452,7 @@ void Vaccine_Manager::vaccinate(int day) {
         current_person->take_vaccine(vacc, day, this);
         ip = this->queue.erase(ip);  // remove a vaccinated person
       } else {
-        // printf("vaccine rejected by person %d age %d\n", current_person->get_id(), current_person->get_age());
+        // printf("vaccine rejected by person %d age %0.1f\n", current_person->get_id(), current_person->get_real_age());
         reject_count++;
         // skip non-compliant person under HBM
         // if(strcmp(Global::Behavior_model_type,"HBM") == 0) ip++;
