@@ -1,0 +1,9 @@
+PARAM NAME: reseed_day
+DEFAULT VALUE: -1
+TYPE: int
+
+DEFINITION: If reseed_day > -1, start each run with the same random seed
+and then reset the seed at day reseed_day. The effect is that the
+initial days will follow the same trajectory, but the simulations will
+follow independent trajectories starting on reseed_day. This permits
+estimation of conditional variance.

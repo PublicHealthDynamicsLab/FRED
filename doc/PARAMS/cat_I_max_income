@@ -1,0 +1,4 @@
+PARAM NAME: cat_I_max_income
+DEFAULT VALUE: 10000
+TYPE: int
+DEFINITION:

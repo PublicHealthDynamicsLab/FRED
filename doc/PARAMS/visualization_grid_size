@@ -1,0 +1,4 @@
+PARAM NAME: visualization_grid_size
+DEFAULT VALUE: 250
+TYPE: int
+DEFINITION:

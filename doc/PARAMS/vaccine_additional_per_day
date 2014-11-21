@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_additional_per_day[0]
+DEFAULT VALUE: 1000000
+TYPE: int
+DEFINITION:

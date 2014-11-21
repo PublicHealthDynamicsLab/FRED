@@ -1,0 +1,4 @@
+PARAM NAME: report_mean_household_distance_from_school
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

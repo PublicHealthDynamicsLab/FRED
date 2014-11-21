@@ -1,0 +1,4 @@
+PARAM NAME: stay_home_when_sick_behavior_change_model_distribution
+DEFAULT VALUE: 7 50 50 0 0 0 0 0
+TYPE: int
+DEFINITION:

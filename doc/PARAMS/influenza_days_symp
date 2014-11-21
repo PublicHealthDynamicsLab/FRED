@@ -1,0 +1,4 @@
+PARAM NAME: influenza_days_symp
+DEFAULT VALUE: 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+TYPE: int
+DEFINITION:

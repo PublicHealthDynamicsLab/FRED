@@ -1,0 +1,4 @@
+PARAM NAME: stay_home_when_sick_prob
+DEFAULT VALUE: -1.0
+TYPE: int
+DEFINITION:

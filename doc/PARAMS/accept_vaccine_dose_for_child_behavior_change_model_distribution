@@ -1,0 +1,4 @@
+PARAM NAME: accept_vaccine_dose_for_child_behavior_change_model_distribution
+DEFAULT VALUE: 7 40 60 0 0 0 0 0
+TYPE: int
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: school_closure_day
+DEFAULT VALUE: 10
+TYPE: int
+DEFINITION:

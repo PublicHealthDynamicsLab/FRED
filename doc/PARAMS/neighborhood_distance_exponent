@@ -1,0 +1,4 @@
+PARAM NAME: neighborhood_distance_exponent
+DEFAULT VALUE: 3.0
+TYPE: int
+DEFINITION:

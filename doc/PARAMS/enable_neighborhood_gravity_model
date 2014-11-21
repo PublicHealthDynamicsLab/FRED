@@ -1,0 +1,4 @@
+PARAM NAME: enable_neighborhood_gravity_model
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

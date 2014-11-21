@@ -1,0 +1,4 @@
+PARAM NAME: pop_outfile
+DEFAULT VALUE: pop_out
+TYPE: string
+DEFINITION: Name of population dump file.

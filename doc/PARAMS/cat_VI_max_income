@@ -1,0 +1,4 @@
+PARAM NAME: cat_VI_max_income
+DEFAULT VALUE: 100001
+TYPE: int
+DEFINITION:

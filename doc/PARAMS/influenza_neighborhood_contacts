@@ -1,0 +1,4 @@
+PARAM NAME: influenza_neighborhood_contacts
+DEFAULT VALUE: 3.98e+01
+TYPE: int
+DEFINITION:

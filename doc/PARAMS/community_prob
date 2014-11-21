@@ -1,0 +1,5 @@
+PARAM NAME: community_prob
+DEFAULT VALUE: 0.1
+TYPE: int    
+DEFINITION: Used when deciding where to spend an agent's neighborhood
+time.

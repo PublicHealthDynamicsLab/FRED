@@ -1,0 +1,4 @@
+PARAM NAME: neighborhood_population_exponent
+DEFAULT VALUE: 1.0
+TYPE: int
+DEFINITION:

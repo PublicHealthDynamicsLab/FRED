@@ -1,0 +1,4 @@
+PARAM NAME: neighborhood_max_destinations
+DEFAULT VALUE: 100
+TYPE: int
+DEFINITION:

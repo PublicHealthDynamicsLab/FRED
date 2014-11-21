@@ -1,0 +1,4 @@
+PARAM NAME: influenza_intra_host_model
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

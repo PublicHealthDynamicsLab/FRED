@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_priority_age_high
+DEFAULT VALUE: 100
+TYPE: int
+DEFINITION:

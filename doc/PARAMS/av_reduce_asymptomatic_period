@@ -1,0 +1,4 @@
+PARAM NAME: av_reduce_asymptomatic_period[0]
+DEFAULT VALUE: 0.0
+TYPE: int
+DEFINITION:

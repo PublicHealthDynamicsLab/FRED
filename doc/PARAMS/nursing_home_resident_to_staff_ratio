@@ -1,0 +1,4 @@
+PARAM NAME: nursing_home_resident_to_staff_ratio
+DEFAULT VALUE: 10.0
+TYPE: int
+DEFINITION:

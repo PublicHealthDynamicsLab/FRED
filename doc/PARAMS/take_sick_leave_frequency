@@ -1,0 +1,4 @@
+PARAM NAME: take_sick_leave_frequency
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

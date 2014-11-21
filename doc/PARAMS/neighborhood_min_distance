@@ -1,0 +1,4 @@
+PARAM NAME: neighborhood_min_distance
+DEFAULT VALUE: 4.0
+TYPE: int
+DEFINITION:

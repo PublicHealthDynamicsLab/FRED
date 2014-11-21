@@ -1,0 +1,4 @@
+PARAM NAME: influenza_workplace_prob
+DEFAULT VALUE: 1 0.0575
+TYPE: int
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: enable_face_mask_usage
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

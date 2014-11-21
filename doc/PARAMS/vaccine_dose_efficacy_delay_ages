@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_dose_efficacy_delay_ages[0][0]
+DEFAULT VALUE: 2 0 100
+TYPE: int
+DEFINITION:

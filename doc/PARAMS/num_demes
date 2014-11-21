@@ -1,0 +1,5 @@
+PARAM NAME: num_demes
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION: Deme is a local population of people whose households are
+contained in the same bounded geographic region. See explanation below.

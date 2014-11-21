@@ -1,0 +1,4 @@
+PARAM NAME: enable_density_transmission_maximum_infectees
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

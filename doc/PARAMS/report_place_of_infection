@@ -1,0 +1,16 @@
+PARAM NAME: report_place_of_infection
+DEFAULT VALUE: 0
+TYPE: int
+
+DEFINITION: If set to 1, the output file contains the daily incidence
+count by place of infection, including the following:
+
+X: number of people externally infected (seeds).
+H: number of people infected in households.
+Nbr: number of people infected in neighborhoods.
+Sch: number of people infected in schools.
+Cls: number of people infected in classrooms.
+Wrk: number of people infected in workplaces.
+Off: number of people infected in offices.
+Hosp: number of people infected in hospitals.
+

@@ -1,0 +1,4 @@
+PARAM NAME: flu_days
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

@@ -1,0 +1,12 @@
+PARAM NAME: report_generation time
+DEFAULT VALUE: 0
+TYPE: int
+
+DEFINITION: If set to 1, the output file contains the mean generation
+time for all infections occurring on the given day.  The generation time
+(or serial interval) is defined as the number of days between the
+infection of the infector and the current infectee.
+
+The output variable for gneration time is "Tg".
+
+

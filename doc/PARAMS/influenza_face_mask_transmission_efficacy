@@ -1,0 +1,4 @@
+PARAM NAME: influenza_face_mask_transmission_efficacy
+DEFAULT VALUE: 0.26
+TYPE: int
+DEFINITION:

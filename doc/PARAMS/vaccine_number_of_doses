@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_number_of_doses[0]
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

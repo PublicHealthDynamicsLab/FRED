@@ -1,0 +1,4 @@
+PARAM NAME: sick_day_prob
+DEFAULT VALUE: 0.5
+TYPE: int
+DEFINITION:

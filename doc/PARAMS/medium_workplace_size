@@ -1,0 +1,4 @@
+PARAM NAME: medium_workplace_size
+DEFAULT VALUE: 100
+TYPE: int
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: accept_vaccine_frequency
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

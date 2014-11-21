@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_dose_efficacy_values[0][0]
+DEFAULT VALUE: 1 0.70
+TYPE: int
+DEFINITION:

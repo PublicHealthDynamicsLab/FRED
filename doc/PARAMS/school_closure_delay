@@ -1,0 +1,4 @@
+PARAM NAME: school_closure_delay
+DEFAULT VALUE: 2
+TYPE: int
+DEFINITION:

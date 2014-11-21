@@ -1,0 +1,4 @@
+PARAM NAME: av_additional_per_day[0]
+DEFAULT VALUE: 100
+TYPE: int
+DEFINITION:

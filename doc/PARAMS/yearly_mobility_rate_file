@@ -1,0 +1,4 @@
+PARAM NAME: yearly_mobility_rate_file
+DEFAULT VALUE: none
+TYPE: string
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: av_total_avail[0]
+DEFAULT VALUE: 1000
+TYPE: int
+DEFINITION:

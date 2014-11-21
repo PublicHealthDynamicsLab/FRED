@@ -1,0 +1,4 @@
+PARAM NAME: enable_neighborhood_density_transmission
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

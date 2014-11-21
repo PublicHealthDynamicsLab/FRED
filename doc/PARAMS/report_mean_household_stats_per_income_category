@@ -1,0 +1,4 @@
+PARAM NAME: report_mean_household_stats_per_income_category
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

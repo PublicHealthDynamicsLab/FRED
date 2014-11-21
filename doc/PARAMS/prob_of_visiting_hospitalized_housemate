@@ -1,0 +1,4 @@
+PARAM NAME: prob_of_visiting_hospitalized_housemate
+DEFAULT VALUE: 0.0
+TYPE: int
+DEFINITION:

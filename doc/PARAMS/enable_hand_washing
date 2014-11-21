@@ -1,0 +1,4 @@
+PARAM NAME: enable_hand_washing
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

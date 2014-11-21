@@ -1,0 +1,4 @@
+PARAM NAME: grid_cell_size
+DEFAULT VALUE: 1.0
+TYPE: float
+DEFINITION: Size of normal grid cells in km.

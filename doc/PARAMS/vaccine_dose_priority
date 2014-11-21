@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_dose_priority
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

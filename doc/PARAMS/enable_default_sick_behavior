@@ -1,0 +1,4 @@
+PARAM NAME: enable_default_sick_behavior
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

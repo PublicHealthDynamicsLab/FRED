@@ -1,0 +1,4 @@
+PARAM NAME: enable_climate
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

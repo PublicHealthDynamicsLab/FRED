@@ -1,0 +1,4 @@
+PARAM NAME: SLU_mean_sick_days_absent
+DEFAULT VALUE: 2.7
+TYPE: int
+DEFINITION:

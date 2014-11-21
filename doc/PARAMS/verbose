@@ -1,0 +1,6 @@
+PARAM NAME: verbose
+DEFAULT VALUE: 1
+TYPE: int
+
+DEFINITION: If set, print information for monitoring system progress to
+the LOG file. Higher values produce more (probably too much) output.

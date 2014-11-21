@@ -1,0 +1,4 @@
+PARAM NAME: household_hospital_map_file
+DEFAULT VALUE: none
+TYPE: int
+DEFINITION:

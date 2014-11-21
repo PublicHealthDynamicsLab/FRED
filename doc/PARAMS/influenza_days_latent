@@ -1,0 +1,4 @@
+PARAM NAME: influenza_days_latent
+DEFAULT VALUE: 3       0.0 0.8 1.0
+TYPE: int
+DEFINITION:

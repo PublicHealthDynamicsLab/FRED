@@ -1,0 +1,4 @@
+PARAM NAME: report_epidemic_data_by_census_tract
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

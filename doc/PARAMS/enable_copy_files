@@ -1,0 +1,4 @@
+PARAM NAME: enable_copy_files
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: primary_cases_file
+DEFAULT VALUE: $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
+TYPE: int
+DEFINITION:

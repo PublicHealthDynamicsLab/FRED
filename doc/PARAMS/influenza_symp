@@ -1,0 +1,4 @@
+PARAM NAME: influenza_symp
+DEFAULT VALUE: 0.67
+TYPE: int
+DEFINITION:

@@ -1,0 +1,5 @@
+PARAM NAME: enable_local_workplace_assignment
+DEFAULT VALUE: 0
+TYPE: int    
+DEFINITION: If set, then all workers who have a workplace outside the
+ location file are assigned a random workplace in the location file.

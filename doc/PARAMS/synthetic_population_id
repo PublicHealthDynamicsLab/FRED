@@ -1,0 +1,10 @@
+PARAM NAME: synthetic_population_id
+DEFAULT VALUE: 2005_2009_ver2_42003
+TYPE:  string
+DEFINITION: string Defaults to Allegheny County Population (RTI Ver 2).
+The synthetic_population_id parameter is the default determinant of the
+population files used in FRED.  The parameters "fips", "city", "county",
+and "state", if set, will override the default, in that order of
+precedence.  That is, a FIPS code overrides a city name, which overrides
+county and so on.  In all cases, the name is ultimately transformed into
+a FIPS code.

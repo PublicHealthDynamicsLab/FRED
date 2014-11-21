@@ -1,0 +1,4 @@
+PARAM NAME: small_workplace_size
+DEFAULT VALUE: 50
+TYPE: int
+DEFINITION:

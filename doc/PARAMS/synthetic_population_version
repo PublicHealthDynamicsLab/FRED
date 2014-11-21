@@ -1,0 +1,5 @@
+PARAM NAME: synthetic_population_version
+DEFAULT VALUE: 2005_2009_ver2
+TYPE: string 
+DEFINITION: The synthetic_population_version will be prepended to the
+FIPS code to generate the synthetic_population_id.

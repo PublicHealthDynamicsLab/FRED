@@ -1,0 +1,5 @@
+PARAM NAME: community_distance
+DEFAULT VALUE: 20
+TYPE: int    
+DEFINITION: Used when deciding where to spend an agent's neighborhood
+time, see explanation below.

@@ -1,0 +1,4 @@
+PARAM NAME: neighborhood_max_distance
+DEFAULT VALUE: 25
+TYPE: int
+DEFINITION:

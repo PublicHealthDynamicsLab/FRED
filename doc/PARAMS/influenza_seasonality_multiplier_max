@@ -1,0 +1,4 @@
+PARAM NAME: influenza_seasonality_multiplier_max
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

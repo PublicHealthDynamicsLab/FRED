@@ -1,0 +1,6 @@
+PARAM NAME: print_household_locations
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION: If set, a file called households.txt is printed in the
+output directory with format:HOUSE_LABEL LON LAT X Y ID GRID_ROW
+GRID_COL GRID_HOUSE_NUMBER

@@ -1,0 +1,4 @@
+PARAM NAME: psa_sample
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

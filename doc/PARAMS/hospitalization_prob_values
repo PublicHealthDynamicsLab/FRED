@@ -1,0 +1,4 @@
+PARAM NAME: hospitalization_prob_values
+DEFAULT VALUE: 1 0.0
+TYPE: int
+DEFINITION:

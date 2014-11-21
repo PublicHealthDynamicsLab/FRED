@@ -1,0 +1,4 @@
+PARAM NAME: school_classroom_size
+DEFAULT VALUE: 40
+TYPE: int
+DEFINITION:

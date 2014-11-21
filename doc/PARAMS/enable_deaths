@@ -1,0 +1,5 @@
+PARAM NAME: enable_deaths
+DEFAULT VALUE: 0
+TYPE: int    
+DEFINITION: If set, agents are removed from the population based on
+age-specific mortality.

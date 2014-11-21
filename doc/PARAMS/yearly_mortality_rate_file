@@ -1,0 +1,4 @@
+PARAM NAME: yearly_mortality_rate_file
+DEFAULT VALUE: none
+TYPE: string
+DEFINITION: File of age-specific mortality rates.

@@ -1,0 +1,13 @@
+PARAM NAME: track_infection_events
+DEFAULT VALUE: 0
+TYPE: int
+
+DEFINITION: If set, then a file called infections<n>.txt is created for
+run <n>.  This file contains one line per disease transmission event,
+showing the id of the infector, the infectee, and various other
+information.  The format for the infections file is:
+
+DAY DISEASE_ID HOST_ID HOST_AGE INFECTOR_ID INFECTOR_AGE PLACE_ID
+
+If track_infection_events > 1, additional data is written on each line.
+For further details, see: Infection.cc.

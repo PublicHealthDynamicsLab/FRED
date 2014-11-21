@@ -1,0 +1,4 @@
+PARAM NAME: yearly_birth_rate_file
+DEFAULT VALUE: none
+TYPE: string
+DEFINITION: File of age-specific rate at which female agents give birth.

@@ -1,0 +1,4 @@
+PARAM NAME: vaccinate_symptomatics
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

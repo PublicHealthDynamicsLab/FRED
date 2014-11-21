@@ -1,0 +1,4 @@
+PARAM NAME: cat_III_max_income
+DEFAULT VALUE: 25001
+TYPE: int
+DEFINITION:

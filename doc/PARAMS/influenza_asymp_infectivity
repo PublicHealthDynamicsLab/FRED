@@ -1,0 +1,4 @@
+PARAM NAME: influenza_asymp_infectivity
+DEFAULT VALUE: 0.5
+TYPE: int
+DEFINITION:

@@ -1,0 +1,8 @@
+PARAM NAME: test
+DEFAULT VALUE: 0
+TYPE: int
+
+DEFINITION: This is a dummy parameter that has no effort on the
+code. Used primarily while debugging new features.
+
+

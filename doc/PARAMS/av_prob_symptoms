@@ -1,0 +1,4 @@
+PARAM NAME: av_prob_symptoms[0]
+DEFAULT VALUE: 0.677
+TYPE: int
+DEFINITION:

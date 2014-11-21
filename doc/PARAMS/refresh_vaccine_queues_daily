@@ -1,0 +1,4 @@
+PARAM NAME: refresh_vaccine_queues_daily
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

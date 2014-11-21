@@ -1,0 +1,9 @@
+PARAM NAME: use_mean_latitude
+DEFAULT VALUE: 0
+TYPE: int
+
+DEFINITION: If use_mean_latitude = 1, then the mean latitude in the
+households file is used for the planar projection from
+(longitude,latitude) to (x,y) coordinates.  This is recommended for
+regions substantially North or South from the US mean latitude.  If set
+to 0 (the default), then the mean US latitude is used.

@@ -1,0 +1,4 @@
+PARAM NAME: influenza_face_mask_plus_hand_washing_susceptibility_efficacy
+DEFAULT VALUE: 0.33
+TYPE: int
+DEFINITION:

@@ -1,0 +1,8 @@
+PARAM NAME: outdir
+DEFAULT VALUE: OUT
+TYPE: string
+
+DEFINITION: The directory containing the output files. If the string
+beings with "/" it is interpreted as an absolute path. If it begins with
+"$FRED_HOME/", it is relative the ${FRED_HOME} directory. Otherwise, it
+is relative to the current working directory.

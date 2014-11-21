@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_total_avail[0]
+DEFAULT VALUE: 1000000000
+TYPE: int
+DEFINITION:

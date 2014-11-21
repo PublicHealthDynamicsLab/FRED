@@ -1,0 +1,4 @@
+PARAM NAME: military_barracks_mean_size
+DEFAULT VALUE: 8.0
+TYPE: int
+DEFINITION:

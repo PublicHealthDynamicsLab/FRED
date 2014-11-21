@@ -1,0 +1,4 @@
+PARAM NAME: school_summer_end
+DEFAULT VALUE: 08-31
+TYPE: int
+DEFINITION:

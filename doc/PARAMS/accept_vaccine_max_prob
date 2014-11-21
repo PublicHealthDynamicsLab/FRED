@@ -1,0 +1,4 @@
+PARAM NAME: accept_vaccine_max_prob
+DEFAULT VALUE: 1
+TYPE: int
+DEFINITION:

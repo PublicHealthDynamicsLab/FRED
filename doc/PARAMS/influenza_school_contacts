@@ -1,0 +1,4 @@
+PARAM NAME: influenza_school_contacts
+DEFAULT VALUE: 17.6
+TYPE: int
+DEFINITION:

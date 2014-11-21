@@ -1,0 +1,4 @@
+PARAM NAME: birth_rate_multiplier
+DEFAULT VALUE: 1
+TYPE: int    
+DEFINITION:

@@ -1,0 +1,4 @@
+PARAM NAME: msa_file
+DEFAULT VALUE: $FRED_HOME/input_files/countries/usa/US_msa.txt
+TYPE: int
+DEFINITION:

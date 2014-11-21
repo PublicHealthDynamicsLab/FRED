@@ -1,0 +1,4 @@
+PARAM NAME: report_incidence_by_county
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

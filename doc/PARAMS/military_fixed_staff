@@ -1,0 +1,4 @@
+PARAM NAME: military_fixed_staff
+DEFAULT VALUE: 5
+TYPE: int
+DEFINITION:

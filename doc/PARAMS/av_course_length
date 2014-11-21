@@ -1,0 +1,4 @@
+PARAM NAME: av_course_length[0]
+DEFAULT VALUE: 10
+TYPE: int
+DEFINITION:

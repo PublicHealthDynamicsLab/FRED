@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_tracefile
+DEFAULT VALUE: none
+TYPE: int
+DEFINITION:

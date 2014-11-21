@@ -1,0 +1,4 @@
+PARAM NAME: visit_home_neighborhood_unless_infectious
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

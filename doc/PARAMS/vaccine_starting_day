@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_starting_day[0]
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

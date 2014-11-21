@@ -1,26 +1,52 @@
 #!/usr/bin/perl
 
-print <<"EOF"
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $help;
+my $param;
+my $opt_result = GetOptions(
+			    "h" => \$help,
+			    "p=s" => \$param,
+);
+
+if ($help or not $param) {
+  print <<"EOF"
 This is the fred_help command.
+
+To get help for any specific parameters, try:
+   fred_help -p parameter
 
 To get help for any specific command, try:
    <fred_command> --help
 
 Some important fred command are:
 
+## Documentation
+    fred_help -- this program
+    fred_param <substr> -- search for parameters that contain substring
+
 ## Setting up
-     ch
+     fred_set
      fred_calibrate
      fred_get_fips
      fred_make_params
      fred_make_qsub
      fred_make_tasks
+     fred_make_rt
+     fred_rt
 
 ## Job control
      fred_clear_all_results
      fred_delete
      fred_job
      fred_jobs
+     fred_sa
 
 ## Retrieving information from a FRED job
      fred_find
@@ -34,6 +60,7 @@ Some important fred command are:
      fred_density
      fred_get_places
      fred_id
+     fred_peak
      fred_plot
      fred_tail
 
@@ -43,4 +70,19 @@ Some important fred command are:
      fred_make_movie
      
 EOF
+  ;
+  exit;
+}
      
+my $docfile = "$FRED/doc/PARAMS/$param";
+if (-e $docfile) {
+  print "========================================================================\n";
+  print "FRED HELP\n\n";
+  system "cat $docfile";
+  print "\n========================================================================\n\n";
+}
+else {
+  print "No documentation found for parameter \"$param\"\n\n";
+  print "Trying to find related strings in the default file ...\n\n";
+  system "fred_param $param";
+}

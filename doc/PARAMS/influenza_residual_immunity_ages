@@ -1,0 +1,4 @@
+PARAM NAME: influenza_residual_immunity_ages
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

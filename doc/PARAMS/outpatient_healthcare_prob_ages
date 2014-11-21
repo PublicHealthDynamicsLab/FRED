@@ -1,0 +1,4 @@
+PARAM NAME: outpatient_healthcare_prob_ages
+DEFAULT VALUE: 2 0 120
+TYPE: int
+DEFINITION:

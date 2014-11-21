@@ -1,0 +1,4 @@
+PARAM NAME: influenza_symptomaticity_threshold
+DEFAULT VALUE: 0.0
+TYPE: int
+DEFINITION:

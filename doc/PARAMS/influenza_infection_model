@@ -1,0 +1,4 @@
+PARAM NAME: influenza_infection_model
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

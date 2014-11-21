@@ -1,0 +1,4 @@
+PARAM NAME: gaia_visualization_mode
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

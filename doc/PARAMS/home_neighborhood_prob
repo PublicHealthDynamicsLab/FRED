@@ -1,0 +1,5 @@
+PARAM NAME: home_neighborhood_prob
+DEFAULT VALUE: 0.5
+TYPE: int    
+DEFINITION: Used when deciding where to spend an agent's neighborhood
+time.

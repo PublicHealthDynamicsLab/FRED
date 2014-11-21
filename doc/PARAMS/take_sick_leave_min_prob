@@ -1,0 +1,4 @@
+PARAM NAME: take_sick_leave_min_prob
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:

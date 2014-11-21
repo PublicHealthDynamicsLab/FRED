@@ -1,0 +1,8 @@
+PARAM NAME: tracefile
+DEFAULT VALUE: none
+TYPE: string
+
+DEFINITION: If set, the file may contain detailed trace
+information. DEPRECATED.
+
+

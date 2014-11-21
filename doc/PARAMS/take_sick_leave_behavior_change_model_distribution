@@ -1,0 +1,4 @@
+PARAM NAME: take_sick_leave_behavior_change_model_distribution
+DEFAULT VALUE: 7 50 50 0 0 0 0 0
+TYPE: int
+DEFINITION:

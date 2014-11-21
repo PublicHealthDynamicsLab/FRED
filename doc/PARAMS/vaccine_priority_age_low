@@ -1,0 +1,4 @@
+PARAM NAME: vaccine_priority_age_low
+DEFAULT VALUE: 0
+TYPE: int
+DEFINITION:
