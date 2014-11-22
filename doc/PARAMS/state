@@ -1,6 +1,7 @@
 PARAM NAME: state
 DEFAULT VALUE: none
 TYPE: string
+
 DEFINITION: The state format can be the state name or abbreviation, such
 as: state = New York or state = NY.  The synthetic_population_id
 parameter is the default determinant of the population files used in
@@ -8,3 +9,7 @@ FRED.  The parameters "fips", "city", "county", and "state", if set,
 will override the default, in that order of precedence.  That is, a FIPS
 code overrides a city name, which overrides county and so on.  In all
 cases, the name is ultimately transformed into a FIPS code.
+
+Example:
+
+state = PA
