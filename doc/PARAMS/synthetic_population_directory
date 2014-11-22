@@ -1,4 +1,5 @@
 PARAM NAME: synthetic_population_directory
 DEFAULT VALUE: $FRED_HOME/populations
 TYPE:  string
-DEFINITION: string Location of the synthetic population files.
+
+DEFINITION: Location of the synthetic population files.

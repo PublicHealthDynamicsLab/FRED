@@ -1,4 +1,9 @@
 PARAM NAME: report_incidence_by_county
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, the putput file contains a daily report of incidence
+based on the household of each infected person.  The ourpur variable is
+"County_NNNNN", where NNNNN is the five digit FIPS code for the county.
+For example, County_42003 for the incidence of Allegheny County, PA.
+

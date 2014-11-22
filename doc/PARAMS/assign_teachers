@@ -1,4 +1,7 @@
 PARAM NAME: assign_teachers
 DEFAULT VALUE: 1
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, teachers are assigned to schools by finding nearby
+workplaces and re-assigning the workers to be teachers at the school.
+
