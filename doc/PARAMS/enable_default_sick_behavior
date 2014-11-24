@@ -1,4 +1,10 @@
 PARAM NAME: enable_default_sick_behavior
 DEFAULT VALUE: 1
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, use sick_day_prob and overide other sick leave
+behavior.
+
+
+
+

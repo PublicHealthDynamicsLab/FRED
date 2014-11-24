@@ -1,4 +1,11 @@
 PARAM NAME: sick_day_prob
 DEFAULT VALUE: 0.5
 TYPE: int
-DEFINITION:
+
+DEFINITION: Each symptomatic agent withdraws to the household with
+sick_day_prob.  Note: each agent makes its decision just once, at the
+start of its symptomatic period. The decision applies for the entire
+illness.
+
+
+

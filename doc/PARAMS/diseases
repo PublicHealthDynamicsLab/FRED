@@ -1,6 +1,7 @@
 PARAM NAME: diseases
 DEFAULT VALUE: 1
 TYPE: int
+
 DEFINITION: The number of diseases circulating in the population. Any
 number of diseases is allowed.  Runtime and memory required is
 proportional to the number of diseases.

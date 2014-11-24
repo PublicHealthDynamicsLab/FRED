@@ -1,4 +1,5 @@
 PARAM NAME: enable_births
 DEFAULT VALUE: 0
 TYPE: int    
+
 DEFINITION: If set, new agents are added to the population as births.

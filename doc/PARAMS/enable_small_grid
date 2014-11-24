@@ -1,4 +1,0 @@
-PARAM NAME: enable_small_grid
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION: If set, enables the high resolution geographical grid.

@@ -1,4 +1,42 @@
 PARAM NAME: enable_travel
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, enable overnight travel.
+
+When an agent is on overnight travel, the traveling agent (called the
+"visitor") resides in the household associated with another agent
+(called the "visited agent"). The visitor interacts with agents in the
+visited agent's household and neighborhood. If the visitor is employed,
+then the visitor also interacts with the visited agent's office and
+workplace. Visitors do not attend school while traveling.
+
+Trip duration is controlled by the travel_duration parameter, a CDF
+variable whose values were drawn from the U.S Department of
+Transportation National Household Survey.  See the travel_duration
+parameter description.
+
+Frequency of travel of individual agents is based upon their ages. This
+frequency is derived from the National Household Survey and is
+controlled by the travel_age_prob_upper_ages and travel_age_prob_values
+parameters. These parameters are used to create a mapping of age to
+frequency of travel.
+
+If travel is enabled, two additional input files are required, a
+travel_hub_file and a trips_per_day_file.  The travel_hub_file contains
+a list of travel nodes (e.g. airports) along with their latitude and
+longitude and the population of the surrounding metropolitan area.  The
+trips_per_file conating a matrix showing the expected number of trips
+between hub i and hub j per day.
+
+Each agent is assigned the travel hub in its county, if one exists.  The
+number of travelers for each day is selected base don the
+trips_per_day_file. Specific agents are selected to travel based on
+their assigned travel hubs and their individual travel frequency.
+
+The minimum overnight travel distance is controlled by the parameter
+min_travel_distance.
+
+
+
+
