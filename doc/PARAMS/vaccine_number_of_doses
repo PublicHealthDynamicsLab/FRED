@@ -1,4 +1,7 @@
-PARAM NAME: vaccine_number_of_doses[0]
+PARAM NAME: vaccine_number_of_doses[X]
 DEFAULT VALUE: 1
 TYPE: int
-DEFINITION:
+
+DEFINITION: Specifies the number of doses needed for vaccine X. There
+needs to be a dose specification for each dose indicated, or the
+simulation will end in error.

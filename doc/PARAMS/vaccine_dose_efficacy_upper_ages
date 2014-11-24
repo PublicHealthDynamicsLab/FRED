@@ -1,6 +1,6 @@
-PARAM NAME: vaccine_dose_efficacy_values[X][Y]
-DEFAULT VALUE: 1 0.70
-TYPE: vector, one value per age group
+PARAM NAME: vaccine_dose_efficacy_upper_ages[X][Y]
+DEFAULT VALUE: 1 100
+TYPE: vector, one value per age group.
 
 DEFINITION: These parameters specify the age map for defining the
 efficacy of vaccine X, dose Y. The values should be probabilities
@@ -10,3 +10,4 @@ age will become immune after taking this dose of vaccine.
 Defaults:
       vaccine_dose_efficacy_upper_ages[0][0] = 1 100
       vaccine_dose_efficacy_values[0][0] = 1 0.70
+

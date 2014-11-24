@@ -1,4 +1,11 @@
-PARAM NAME: vaccine_next_dosage_day[0][0]
+PARAM NAME: vaccine_next_dosage_day[X][Y]
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: Specifies the day of the dosage schedule that the next dose
+should be taken. For instance, if the 2nd dose of vaccine X is to be taken
+7 days after the first dose, then this parameter would be:
+
+vaccine_next_dosage_day[X][1] = 7
+
+The last dose of a vaccine is always 0.

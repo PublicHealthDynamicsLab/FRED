@@ -1,4 +1,15 @@
 PARAM NAME: vaccine_dose_priority
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If there are multi-dose vaccines, this parameter defines
+prioritization of people getting multiple doses vs. people getting
+their first dose. Possible values:
+
+0: No Priority, first come first serve
+
+1: Place people getting subsequent dose at the beginning of the queue
+
+2: Mix in people getting subsequent dose with other priority vaccinations randomly
+
+3: Place people getting subsequent dose at the end of the queue

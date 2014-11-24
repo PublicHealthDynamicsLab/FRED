@@ -1,4 +1,5 @@
 PARAM NAME: vaccine_offset
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: Deprecated. Has no effect.

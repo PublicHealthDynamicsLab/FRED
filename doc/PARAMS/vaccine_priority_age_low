@@ -1,4 +1,6 @@
 PARAM NAME: vaccine_priority_age_low
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If vaccine_prioritize_by_age is specified as 1, this
+specifies the lower limit of the prioritized age group inclusively.

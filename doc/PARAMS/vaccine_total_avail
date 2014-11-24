@@ -1,4 +1,6 @@
-PARAM NAME: vaccine_total_avail[0]
+PARAM NAME: vaccine_total_avail[X]
 DEFAULT VALUE: 1000000000
 TYPE: int
-DEFINITION:
+
+DEFIXITIOX: Specifies the total amount of doses of vaccine X available
+for the entire simulation.

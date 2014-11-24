@@ -1,5 +1,5 @@
-PARAM NAME: vaccine_dose_efficacy_delay_values[X][Y]
-DEFAULT VALUE: 1 14
+PARAM NAME: vaccine_dose_efficacy_delay_ages[0][0]
+DEFAULT VALUE: 1 100
 TYPE: vector, one value per age group.
 
 DEFINITION: These parameters specify the age map for defining the delay
@@ -9,5 +9,3 @@ days by age.
 Defaults:
       vaccine_dose_efficacy_delay_upper_ages[0][0] = 1 100
       vaccine_dose_efficacy_delay_values[0][0] = 1 14
-
-

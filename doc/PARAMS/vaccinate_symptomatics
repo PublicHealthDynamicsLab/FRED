@@ -1,4 +1,6 @@
 PARAM NAME: vaccinate_symptomatics
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, then vaccination may be applied to people who have
+had symptomatic infections.

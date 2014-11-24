@@ -1,4 +1,8 @@
 PARAM NAME: refresh_vaccine_queues_daily
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: If set, then vaccination queues are refreshed daily, instead
+of having everyone placed into a queue on day 0.  This is required if
+vaccination behaviors are enabled, so that people can decide whether to
+accept vaccines on a daily basis.

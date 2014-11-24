@@ -1,4 +1,9 @@
 PARAM NAME: vaccine_prioritize_acip
 DEFAULT VALUE: 0
 TYPE: int
-DEFINITION:
+
+DEFINITION: Enable prioritization of vaccination by ACIP
+recommendations. This includes persons aged 0-24, people deemed at risk
+for complications for influenza (see at_risk_ages and at_risk_values
+parameters), pregnant women (see pregnancy_prob_ages and
+pregnancy_prob_values parameters), and people over age 64.
