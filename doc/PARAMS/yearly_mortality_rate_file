@@ -1,4 +1,9 @@
 PARAM NAME: yearly_mortality_rate_file
 DEFAULT VALUE: none
 TYPE: string
-DEFINITION: File of age-specific mortality rates.
+
+DEFINITION: File of age-specific mortality rates. If population_dynamics
+is enabled, then on each agent's birthday, it is decided whether that
+agent will die during the coming year using age-specific mortality rates
+provided in the yearly_mortality_rate_file. When an agent dies, it is
+removed from the population.
