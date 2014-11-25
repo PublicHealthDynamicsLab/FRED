@@ -22,11 +22,13 @@
 using namespace std;
 
 #include "Vaccine_Dose.h"
+#include "Random.h"
 
 Vaccine_Dose::Vaccine_Dose(Age_Map* _efficacy, Age_Map* _efficacy_delay, 
-                           int _days_between_doses){
+			   Age_Map* _efficacy_duration, int _days_between_doses){
   efficacy = _efficacy;
   efficacy_delay = _efficacy_delay;
+  efficacy_duration = _efficacy_duration;
   days_between_doses = _days_between_doses;
 }
 
@@ -39,6 +41,7 @@ void Vaccine_Dose::print() const {
   cout << "Time Between Doses:\t " << days_between_doses << "\n";
   efficacy->print();
   efficacy_delay->print();
+  efficacy_duration->print();
 }
 
 bool Vaccine_Dose::is_within_age(double real_age) const {
@@ -48,4 +51,15 @@ bool Vaccine_Dose::is_within_age(double real_age) const {
     return true;
   }
   return false;
+}
+
+
+double Vaccine_Dose::get_duration_of_immunity(double real_age) {
+  double expected_duration = efficacy_duration->find_value(real_age);
+  // select a value from an exponential distribution with mean expected_duration
+  double actual_duration = 0.0;
+  if (expected_duration > 0.0) {
+    actual_duration = draw_exponential(1.0 / expected_duration);
+  }
+  return actual_duration;
 }

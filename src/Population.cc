@@ -273,6 +273,18 @@ void Population::setup() {
   this->av_manager->reset();
   this->vacc_manager->reset();
 
+  // record age-specific popsize
+  for (int age = 0; age <= Demographics::MAX_AGE; age++) {
+    Global::Popsize_by_age[age] = 0;
+  }
+  for(int p = 0; p < this->get_index_size(); p++) {
+    Person * person = get_person_by_index(p);
+    if (person == NULL) continue;
+    int age = person->get_age();
+    if (age > Demographics::MAX_AGE) age = Demographics::MAX_AGE;
+    Global::Popsize_by_age[age]++;
+  }
+
   FRED_STATUS(0, "population setup finished\n", "");
 }
 
@@ -926,17 +938,6 @@ void Population::quality_control() {
       fprintf(Global::Statusfp, "Help! Person %d has no home.\n", person->get_id());
       person->print(Global::Statusfp, 0);
     }
-  }
-
-  // record age-specific popsize
-  for (int a = 0; a <= 120; a++) {
-    Global::Popsize_by_age[a] = 0;
-  }
-  for(int p = 0; p < this->get_index_size(); p++) {
-    Person * person = get_person_by_index(p);
-    if (person == NULL) continue;
-    int a = person->get_age();
-    Global::Popsize_by_age[a]++;
   }
 
   if(Global::Verbose > 0) {

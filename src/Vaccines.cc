@@ -46,6 +46,8 @@ void Vaccines::setup(void) {
     Params::get_indexed_param("vaccine_total_avail",iv,&ta);
     Params::get_indexed_param("vaccine_additional_per_day",iv,&apd);
     Params::get_indexed_param("vaccine_starting_day",iv,&std);
+    Age_Map* efficacy_duration_map = new Age_Map("Vaccine Efficacy Duration");
+    efficacy_duration_map->read_from_input("vaccine_efficacy_duration",iv);
 
     int nstrains;
     Params::get_indexed_param((char *)"vaccine_strains", iv, &nstrains);
@@ -62,7 +64,7 @@ void Vaccines::setup(void) {
       Params::get_double_indexed_param("vaccine_next_dosage_day",iv,id,&tbd);
       efficacy_map->read_from_input("vaccine_dose_efficacy",iv,id);
       efficacy_delay_map->read_from_input("vaccine_dose_efficacy_delay",iv,id);
-      vaccines[iv]->add_dose(new Vaccine_Dose(efficacy_map,efficacy_delay_map,tbd));
+      vaccines[iv]->add_dose(new Vaccine_Dose(efficacy_map,efficacy_delay_map,efficacy_duration_map,tbd));
     }
   }
 }  

@@ -66,6 +66,7 @@ public:
 private:
   int vaccination_day;              // On which day did you get the vaccine
   int vaccination_effective_day;    // On which day is the vaccine effective
+  int vaccination_immunity_loss_day;  // On which day does the vaccine lose effectiveness
   Vaccine* vaccine;                 // Which vaccine did you take
   int current_dose;                 // Current Dose that the agent is on
   int days_to_next_dose;            // How long between doses

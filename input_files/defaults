@@ -394,7 +394,7 @@ av_course_start_day[0] = 1 1.00000
 ##########################################################
 
 enable_vaccination = 0
-number_of_vaccine,D,e = 0
+number_of_vaccines = 0
 #vaccine_tracefile = vacctr
 vaccine_tracefile = none
 vaccine_prioritize_acip = 0
@@ -411,6 +411,8 @@ vaccine_number_of_doses[0] = 1
 vaccine_total_avail[0] = 1000000000
 vaccine_additional_per_day[0] = 1000000
 vaccine_starting_day[0] = 0
+vaccine_efficacy_duration_upper_ages[0] = 1 120
+vaccine_efficacy_duration_values[0] = 1 99999
 
 #### Sample Vaccine #0 Dose #0
 vaccine_next_dosage_day[0][0] = 0
