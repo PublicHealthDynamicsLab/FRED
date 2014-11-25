@@ -121,6 +121,8 @@ public:
 
   void become_susceptible(Person * self, Disease * disease);
 
+  void become_susceptible_by_vaccine_waning(Person * self, Disease * disease);
+
   /**
    * Agent is unsusceptible to the disease
    *

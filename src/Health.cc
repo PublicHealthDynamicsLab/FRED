@@ -311,6 +311,26 @@ void Health::become_susceptible(Person * self, Disease * disease) {
   become_susceptible(self, disease->get_id());
 }
 
+void Health::become_susceptible_by_vaccine_waning(Person * self, Disease * disease) {
+  int disease_id = disease->get_id();
+  if(this->susceptible.test(disease_id))
+    return;
+  if (!this->active_infections.test(disease_id)) {
+    // not already infected
+    this->susceptibility_multp[disease_id] = 1.0;
+    this->susceptible.set(disease_id);
+    this->evaluate_susceptibility.reset(disease_id);
+    Disease * disease = Global::Pop.get_disease(disease_id);
+    disease->become_susceptible(self);
+    FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
+		self->get_id(), disease_id);
+  }
+  else {
+    FRED_STATUS(1, "person %d had no vaccine waning because was already infected with disease %d\n",
+		self->get_id(), disease_id);
+  }
+}
+
 void Health::become_exposed(Person * self, Disease *disease,
     Transmission & transmission) {
   int disease_id = disease->get_id();

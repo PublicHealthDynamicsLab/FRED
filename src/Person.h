@@ -132,6 +132,10 @@ public:
     this->health.become_susceptible(this, disease);
   }
 
+  void become_susceptible_by_vaccine_waning(Disease * disease) {
+    this->health.become_susceptible_by_vaccine_waning(this, disease);
+  }
+
   void update_household_counts(int day, int disease_id) {
     this->health.update_place_counts(this, day, disease_id, get_household());
   }

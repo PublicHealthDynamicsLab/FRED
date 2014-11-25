@@ -37,11 +37,12 @@ Vaccine_Health::Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _
   vaccine_manager       = _vaccine_manager;
   vaccination_immunity_loss_day = -1;
   vaccination_effective_day = -1;
+  effective = false;
 
   // decide on efficacy
   if(RANDOM() < efficacy) {
     vaccination_effective_day = vaccination_day + efficacy_delay;
-    vaccination_immunity_loss_day = vaccination_effective_day + efficacy_duration;
+    vaccination_immunity_loss_day = vaccination_effective_day + 1 + efficacy_duration;
   }
 
   current_dose =0;
@@ -71,23 +72,32 @@ void Vaccine_Health::update(int day, double age){
   if (is_effective()) {
     if (day == vaccination_effective_day) {
       Disease* disease = Global::Pop.get_disease(0);
-      person->become_immune(disease);
-      effective = true;
-      if(Global::Verbose > 0) {
-	cout << "Agent " << person->get_id() 
-	     << " has become immune from dose "<< current_dose 
-	     << "on day " << day << "\n";
+      if (person->is_infected(disease->get_id())==false) {
+	person->become_immune(disease);
+	effective = true;
+	if(Global::Verbose > 0) {
+	  cout << "Agent " << person->get_id() 
+	       << " has become immune from dose "<< current_dose 
+	       << " on day " << day << "\n";
+	}
+      }
+      else {
+	if(Global::Verbose > 0) {
+	  cout << "Agent " << person->get_id() 
+	       << " was already infected so did not become immune from dose "<< current_dose 
+	       << " on day " << day << "\n";
+	}
       }
     }
     if (day == vaccination_immunity_loss_day) {
-      Disease* disease = Global::Pop.get_disease(0);
-      person->become_susceptible(disease);
-      effective = false;
       if(Global::Verbose > 0) {
 	cout << "Agent " << person->get_id() 
-	     << " has lost immunity from dose "<< current_dose 
-	     << "on day " << day << "\n";
+	     << " became immune on day "<< vaccination_effective_day
+	     << " and lost immunity on day " << day << "\n";
       }
+      Disease* disease = Global::Pop.get_disease(0);
+      person->become_susceptible_by_vaccine_waning(disease);
+      effective = false;
     }
   }
   
