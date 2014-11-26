@@ -1,0 +1,1221 @@
+FRED started Wed Nov 26 13:44:51 2014
+param file = params.test
+fred_open_file: opening file /Users/gref/FRED/input_files/defaults for reading
+FRED reading parameter file /Users/gref/FRED/input_files/defaults
+fred_open_file: opening file params.test for reading
+FRED reading parameter file params.test
+PARAMS: debug = 1
+PARAMS: test = 0
+PARAMS: quality_control = 0
+PARAMS: rr_delay = 10
+PARAMS: days = 20
+PARAMS: seed = 123456
+PARAMS: epidemic_offset = 0
+PARAMS: vaccine_offset = 0
+PARAMS: start_date = 2012-01-02
+PARAMS: rotate_start_date = 0
+PARAMS: reseed_day = -1
+PARAMS: outdir = OUT.TEST
+PARAMS: tracefile = none
+PARAMS: track_infection_events = 1
+PARAMS: vaccine_tracefile = none
+PARAMS: trace_headers = 0
+PARAMS: diseases = 1
+PARAMS: immunity_file = none
+PARAMS: seasonality_timestep_file = none
+PARAMS: work_absenteeism = 0.000000
+PARAMS: school_absenteeism = 0.000000
+PARAMS: seed_age_lower_bound = 0
+PARAMS: seed_age_upper_bound = 120
+PARAMS: enable_behaviors = 0
+PARAMS: track_age_distribution = 0
+PARAMS: track_household_distribution = 0
+PARAMS: track_network_stats = 0
+PARAMS: track_residual_immunity = 0
+PARAMS: report_mean_household_income_per_school = 0
+PARAMS: report_mean_household_size_per_school = 0
+PARAMS: report_mean_household_distance_from_school = 0
+PARAMS: enable_new_transmission_model = 0
+PARAMS: report_mean_household_stats_per_income_category = 0
+PARAMS: visit_home_neighborhood_unless_infectious = 0
+PARAMS: report_epidemic_data_by_census_tract = 0
+PARAMS: enable_hospitals = 0
+PARAMS: enable_group_quarters = 1
+PARAMS: enable_visualization_layer = 0
+PARAMS: enable_vector_layer = 0
+PARAMS: enable_vector_transmission = 0
+PARAMS: enable_population_dynamics = 0
+PARAMS: enable_travel = 0
+PARAMS: enable_local_workplace_assignment = 0
+PARAMS: enable_seasonality = 0
+PARAMS: enable_climate = 0
+PARAMS: enable_chronic_condition = 0
+PARAMS: seed_by_age = 0
+PARAMS: enable_vaccination = 0
+PARAMS: enable_antivirals = 0
+PARAMS: use_mean_latitude = 0
+PARAMS: print_household_locations = 0
+PARAMS: assign_teachers = 1
+PARAMS: report_age_of_infection = 0
+PARAMS: age_of_infection_log_level = 0
+PARAMS: report_place_of_infection = 0
+PARAMS: report_distance_of_infection = 0
+PARAMS: report_presenteeism = 0
+PARAMS: report_serial_interval = 0
+PARAMS: report_incidence_by_county = 0
+PARAMS: report_incidence_by_census_tract = 0
+PARAMS: enable_shelter_in_place = 0
+PARAMS: enable_isolation = 0
+PARAMS: isolation_delay = 1
+PARAMS: isolation_rate = 1.000000
+PARAMS: enable_copy_files = 0
+PARAMS: output_population = 0
+PARAMS: disease_names = 1 influenza
+disease 0 = influenza
+disease 0 influenza read_parameters entered
+PARAMS: R0 = -1.000000
+PARAMS: R0_a = 0.095067
+PARAMS: R0_b = 0.492996
+PARAMS: influenza_trans = 1.000000
+PARAMS: influenza_immunity_loss_rate = 0.000000
+PARAMS: influenza_enable_case_fatality = 0
+PARAMS: enable_face_mask_usage = 0
+PARAMS: enable_hand_washing = 0
+PARAMS: influenza_residual_immunity_upper_ages = 0
+PARAMS: influenza_residual_immunity_values = 0
+PARAMS: Immunization = -1.000000
+PARAMS: influenza_infection_immunity_prob_upper_ages = 1 120
+PARAMS: influenza_infection_immunity_prob_values = 1 1.0
+PARAMS: influenza_at_risk_upper_ages = 0
+PARAMS: influenza_at_risk_values = 0
+disease 0 influenza read_parameters finished
+get_parameters took 0 seconds
+Overridden from command line: Output_directory = OUT.TEST
+year = 2012, month = 1, day_of_month = 2
+Date = [2012-01-02]
+year = 2012, month = 1, day_of_month = 2
+Date = [2012-01-02]
+seed = 12345601
+RNG setup took 0 seconds
+
+FRED run 2 started Wed Nov 26 13:44:51 2014
+PARAMS: enable_copy_files = 0
+PARAMS: msa_file = $FRED_HOME/input_files/countries/usa/US_msa.txt
+PARAMS: counties_file = $FRED_HOME/input_files/countries/usa/US_counties.txt
+PARAMS: states_file = $FRED_HOME/input_files/countries/usa/US_states.txt
+PARAMS: synthetic_population_directory = $FRED_HOME/populations
+PARAMS: synthetic_population_id = 2010_ver1_42003
+PARAMS: synthetic_population_version = 2010_ver1
+PARAMS: city = none
+PARAMS: county = none
+PARAMS: state = none
+PARAMS: fips = 42065
+PARAMS: msa = none
+PARAMS: college_dorm_mean_size = 2.500000
+PARAMS: military_barracks_mean_size = 8.000000
+PARAMS: prison_cell_mean_size = 1.500000
+PARAMS: nursing_home_room_mean_size = 1.500000
+PARAMS: school_fixed_staff = 5
+PARAMS: school_student_teacher_ratio = 15.500000
+PARAMS: college_fixed_staff = 2
+PARAMS: college_resident_to_staff_ratio = 5.000000
+PARAMS: prison_fixed_staff = 5
+PARAMS: prison_resident_to_staff_ratio = 10.000000
+PARAMS: nursing_home_fixed_staff = 5
+PARAMS: nursing_home_resident_to_staff_ratio = 10.000000
+PARAMS: military_fixed_staff = 5
+PARAMS: military_resident_to_staff_ratio = 10.000000
+fred_open_file: opening file /Users/gref/FRED/input_files/countries/usa/US_counties.txt for reading
+FOUND a county = |Jefferson County PA| for fips = |42065|
+Validating synthetic population identifiers before reading.
+Using population directory: $FRED_HOME/populations
+FRED defines a "deme" to be a local population of people whose households are contained in the same bounded geographic region.
+No Synthetic Population ID may have more than one Deme ID, but a Deme ID may contain many Synthetic Population IDs.
+PARAMS: num_demes = 1
+Split ID string "2010_ver1_42065" into 1 token using delimiter: ' '
+Deme 0 comprises 1 synthetic population id:
+--> Deme 0, Synth. Pop. ID 0: 2010_ver1_42065
+
+FRED read_places started Wed Nov 26 13:44:51 2014
+Reading Places for Deme 0:
+read places entered
+POPULATION_FILE: $FRED_HOME/populations/2010_ver1_42065
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_households.txt for reading
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_workplaces.txt for reading
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_schools.txt for reading
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450111632 S 41.090195 -78.884384 name |C G JOHNSON EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110845 S 41.167229 -79.085846 name |BROOKVILLE JSHS|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450057407 S 40.761837 -78.877518 name |HILLSDALE MENNONITE SCHOOL|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450132458 S 40.949352 -78.968361 name |JENKS HILL EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450063600 S 0.000000 0.000000 name |OAK HILL CHRISTIAN SCHOOL|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450066817 S 40.621510 -79.152191 name |SEEDS OF FAITH CHRISTIAN ACADEMY|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450151186 S 40.702717 -79.100594 name |RAYNE EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450108468 S 40.947170 -78.923691 name |BELL TWP EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450129160 S 41.167313 -79.085922 name |HICKORY GROVE EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450120306 S 41.472626 -79.121872 name |EAST FOREST EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450139177 S 40.958000 -79.064140 name |MAPLEVIEW EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450102519 S 40.468769 -79.917847 name |PITTSBURGH DILWORTH K-5|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450145390 S 41.163204 -79.080902 name |NORTHSIDE EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450150577 S 40.949955 -78.978790 name |PUNXSUTAWNEY AREA HS|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450147805 S 41.001377 -78.963455 name |PARKVIEW EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450134109 S 41.230118 -79.532967 name |KEYSTONE EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110702 S 41.250828 -78.803185 name |BROCKWAY AREA JSHS|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450054184 S 41.116528 -78.735611 name |DU BOIS CHRISTIAN SCHOOLS|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450067304 S 0.000000 0.000000 name |SOUTH BOSTON CATHOLIC ACADEMY|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450067582 S 40.943066 -78.984756 name |SS COSMAS & DAMIAN ELEMENTARY SCHOOL|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450054192 S 41.146370 -78.785706 name |DUBOIS AREA CATHOLIC SCHOOL|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110701 S 41.252022 -78.808578 name |BROCKWAY AREA ELEMENTARY SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450149079 S 41.148979 -79.027283 name |PINECREEK EL SCH|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450066968 S 0.000000 0.000000 name |SHEEPSCOT VALLEY CHILDREN'S HOUSE|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450132231 S 41.110996 -78.893578 name |JEFFERSON COUNTY-DUBOIS AVTS|
+FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450150578 S 40.964355 -78.979256 name |PUNXSUTAWNEY AREA MS|
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq.txt for reading
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450004650 size 148 40.947395 -78.988083
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450004651 size 20 40.942013 -78.971413
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450008460 size 79 41.168175 -79.054878
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450022046 size 17 41.162342 -79.011703
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450030495 size 141 41.153702 -79.095482
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450030496 size 189 41.162769 -79.056969
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450036345 size 34 40.944145 -78.968697
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450040313 size 45 41.245991 -78.787567
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450042411 size 33 40.942699 -78.976860
+FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450047487 size 18 41.197739 -78.834473
+COUNTIES[0] = 42065
+CENSUS_TRACTS[0] = 42065950100
+CENSUS_TRACTS[1] = 42065950200
+CENSUS_TRACTS[2] = 42065950300
+CENSUS_TRACTS[3] = 42065950400
+CENSUS_TRACTS[4] = 42065950500
+CENSUS_TRACTS[5] = 42065950600
+CENSUS_TRACTS[6] = 42065950700
+CENSUS_TRACTS[7] = 42065950800
+CENSUS_TRACTS[8] = 42065950900
+CENSUS_TRACTS[9] = 42065951000
+CENSUS_TRACTS[10] = 42065951100
+CENSUS_TRACTS[11] = 42065951200
+CENSUS_TRACTS[12] = 42065951300
+PARAMS: influenza_household_contacts = 0.202000
+PARAMS: influenza_household_prob = 4
+PARAMS: influenza_household_prob = 4 0.6 0.3 0.3 0.4
+PARAMS: cat_I_max_income = 10000
+PARAMS: cat_II_max_income = 15001
+PARAMS: cat_III_max_income = 25001
+PARAMS: cat_IV_max_income = 35001
+PARAMS: cat_V_max_income = 50001
+PARAMS: cat_VI_max_income = 100001
+PARAMS: influenza_school_contacts = 17.600000
+PARAMS: influenza_school_prob = 16
+PARAMS: influenza_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+PARAMS: school_classroom_size = 40
+PARAMS: school_closure_policy = none
+PARAMS: school_closure_day = 10
+PARAMS: school_closure_threshold = 10.000000
+PARAMS: individual_school_closure_threshold = 10.000000
+PARAMS: school_closure_cases = -1
+PARAMS: school_closure_period = 10
+PARAMS: school_closure_delay = 2
+PARAMS: school_summer_schedule = 0
+PARAMS: school_summer_start = 06-01
+PARAMS: school_summer_end = 08-31
+PARAMS: Weeks = -1
+PARAMS: Cases = -1
+PARAMS: office_size = 50
+PARAMS: small_workplace_size = 50
+PARAMS: medium_workplace_size = 100
+PARAMS: large_workplace_size = 500
+PARAMS: influenza_workplace_contacts = 1.600000
+PARAMS: influenza_workplace_prob = 1
+PARAMS: influenza_workplace_prob = 1 0.0575
+Added   18997        HOUSEHOLD places to Place_List
+Added      26           SCHOOL places to Place_List
+Added    4173        WORKPLACE places to Place_List
+Added       0         HOSPITAL places to Place_List
+finished reading 23196 locations, now creating additional FRED locations
+min_lat: 40.906319  max_lat: 41.373844
+Regional_Layer min_lon = -79.215340
+Regional_Layer min_lat = 40.906319
+Regional_Layer max_lon = -78.710197
+Regional_Layer max_lat = 41.373844
+PARAMS: regional_patch_size = 20.000000
+Regional_Layer new min_lon = -79.353310
+Regional_Layer new min_lat = 40.815525
+Regional_Layer new max_lon = -78.670189
+Regional_Layer new max_lat = 41.536270
+Regional_Layer rows = 4  cols = 3
+Regional_Layer min_x = 8840.000000  min_y = 14520.000000
+Regional_Layer max_x = 8900.000000  max_y = 14600.000000
+Regional_Layer global_col_min = 442  global_row_min = 726
+PARAMS: neighborhood_patch_size = 1.000000
+Neighborhood_Layer min_lon = -79.353310
+Neighborhood_Layer min_lat = 40.815525
+Neighborhood_Layer max_lon = -78.670189
+Neighborhood_Layer max_lat = 41.536270
+Neighborhood_Layer rows = 80  cols = 60
+Neighborhood_Layer min_x = 8840.000000  min_y = 14520.000000
+Neighborhood_Layer max_x = 8900.000000  max_y = 14600.000000
+PARAMS: enable_neighborhood_gravity_model = 1
+PARAMS: neighborhood_max_distance = 25.000000
+PARAMS: neighborhood_max_destinations = 100
+PARAMS: neighborhood_min_distance = 4.000000
+PARAMS: neighborhood_distance_exponent = 3.000000
+PARAMS: neighborhood_population_exponent = 1.000000
+PARAMS: community_distance = 20.000000
+PARAMS: community_prob = 0.100000
+PARAMS: home_neighborhood_prob = 0.500000
+Allocated space for     873 neighborhoods
+PARAMS: influenza_weekend_contact_rate = 1.500000
+PARAMS: influenza_neighborhood_contacts = 39.800000
+PARAMS: influenza_neighborhood_prob = 4
+PARAMS: influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
+Added     873     NEIGHBORHOOD places to Place_List
+read places finished: Places = 24069
+Places.read_places took 0 seconds
+FRED read_places finished Wed Nov 26 13:44:51 2014
+PARAMS: enable_neighborhood_density_transmission = 0
+PARAMS: enable_density_transmission_maximum_infectees = 1
+PARAMS: density_transmission_maximum_infectees = 10
+Activities::initialize() entered
+PARAMS: enable_default_sick_behavior = 1
+PARAMS: sick_day_prob = 0.500000
+PARAMS: SLA_mean_sick_days_absent = 2.700000
+PARAMS: SLU_mean_sick_days_absent = 2.700000
+PARAMS: SLA_absent_prob = 0.720000
+PARAMS: SLU_absent_prob = 0.520000
+PARAMS: flu_days = 0.000000
+PARAMS: prob_of_visiting_hospitalized_housemate = 0.000000
+PARAMS: hospitalization_prob_upper_ages = 0
+PARAMS: hospitalization_prob_values = 0
+PARAMS: outpatient_healthcare_prob_upper_ages = 0
+PARAMS: outpatient_healthcare_prob_values = 0
+PARAMS: stay_home_when_sick_enabled = 0
+PARAMS: stay_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+BEHAVIOR stay_home_when_sick behavior_change_model_cdf: 0.500000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: stay_home_when_sick_frequency = 1
+PARAMS: stay_home_when_sick_min_prob = 0.000000
+PARAMS: stay_home_when_sick_max_prob = 1.000000
+PARAMS: stay_home_when_sick_prob = -1.000000
+PARAMS: stay_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: stay_home_when_sick_imitate_prevalence_update_rate = 0.100000
+PARAMS: stay_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: stay_home_when_sick_imitate_consensus_update_rate = 0.100000
+PARAMS: stay_home_when_sick_imitate_consensus_threshold = 0.000000
+PARAMS: stay_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: stay_home_when_sick_imitate_count_update_rate = 0.100000
+PARAMS: stay_home_when_sick_imitate_count_threshold = 0.000000
+PARAMS: stay_home_when_sick_susceptibility_threshold = 2 0 0
+PARAMS: stay_home_when_sick_severity_threshold = 2 0 0
+PARAMS: stay_home_when_sick_benefits_threshold = 2 0 0
+PARAMS: stay_home_when_sick_barriers_threshold = 2 0 0
+PARAMS: stay_home_when_sick_base_odds_ratio = 1.000000
+PARAMS: stay_home_when_sick_susceptibility_odds_ratio = 1.000000
+PARAMS: stay_home_when_sick_severity_odds_ratio = 1.000000
+PARAMS: stay_home_when_sick_benefits_odds_ratio = 1.000000
+PARAMS: stay_home_when_sick_barriers_odds_ratio = 1.000000
+PARAMS: take_sick_leave_enabled = 0
+PARAMS: take_sick_leave_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+BEHAVIOR take_sick_leave behavior_change_model_cdf: 0.500000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: take_sick_leave_frequency = 1
+PARAMS: take_sick_leave_min_prob = 0.000000
+PARAMS: take_sick_leave_max_prob = 1.000000
+PARAMS: take_sick_leave_prob = -1.000000
+PARAMS: take_sick_leave_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: take_sick_leave_imitate_prevalence_update_rate = 0.100000
+PARAMS: take_sick_leave_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: take_sick_leave_imitate_consensus_update_rate = 0.100000
+PARAMS: take_sick_leave_imitate_consensus_threshold = 0.000000
+PARAMS: take_sick_leave_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: take_sick_leave_imitate_count_update_rate = 0.100000
+PARAMS: take_sick_leave_imitate_count_threshold = 0.000000
+PARAMS: take_sick_leave_susceptibility_threshold = 2 0 0
+PARAMS: take_sick_leave_severity_threshold = 2 0 0
+PARAMS: take_sick_leave_benefits_threshold = 2 0 0
+PARAMS: take_sick_leave_barriers_threshold = 2 0 0
+PARAMS: take_sick_leave_base_odds_ratio = 1.000000
+PARAMS: take_sick_leave_susceptibility_odds_ratio = 1.000000
+PARAMS: take_sick_leave_severity_odds_ratio = 1.000000
+PARAMS: take_sick_leave_benefits_odds_ratio = 1.000000
+PARAMS: take_sick_leave_barriers_odds_ratio = 1.000000
+PARAMS: keep_child_home_when_sick_enabled = 0
+PARAMS: keep_child_home_when_sick_behavior_change_model_distribution = 7 50 50 0 0 0 0 0
+BEHAVIOR keep_child_home_when_sick behavior_change_model_cdf: 0.500000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: keep_child_home_when_sick_frequency = 1
+PARAMS: keep_child_home_when_sick_min_prob = 0.000000
+PARAMS: keep_child_home_when_sick_max_prob = 1.000000
+PARAMS: keep_child_home_when_sick_prob = -1.000000
+PARAMS: keep_child_home_when_sick_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: keep_child_home_when_sick_imitate_prevalence_update_rate = 0.100000
+PARAMS: keep_child_home_when_sick_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: keep_child_home_when_sick_imitate_consensus_update_rate = 0.100000
+PARAMS: keep_child_home_when_sick_imitate_consensus_threshold = 0.000000
+PARAMS: keep_child_home_when_sick_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: keep_child_home_when_sick_imitate_count_update_rate = 0.100000
+PARAMS: keep_child_home_when_sick_imitate_count_threshold = 0.000000
+PARAMS: keep_child_home_when_sick_susceptibility_threshold = 2 0 0
+PARAMS: keep_child_home_when_sick_severity_threshold = 2 0 0
+PARAMS: keep_child_home_when_sick_benefits_threshold = 2 0 0
+PARAMS: keep_child_home_when_sick_barriers_threshold = 2 0 0
+PARAMS: keep_child_home_when_sick_base_odds_ratio = 1.000000
+PARAMS: keep_child_home_when_sick_susceptibility_odds_ratio = 1.000000
+PARAMS: keep_child_home_when_sick_severity_odds_ratio = 1.000000
+PARAMS: keep_child_home_when_sick_benefits_odds_ratio = 1.000000
+PARAMS: keep_child_home_when_sick_barriers_odds_ratio = 1.000000
+PARAMS: accept_vaccine_enabled = 0
+PARAMS: accept_vaccine_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+BEHAVIOR accept_vaccine behavior_change_model_cdf: 0.400000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: accept_vaccine_frequency = 1
+PARAMS: accept_vaccine_min_prob = 0.000000
+PARAMS: accept_vaccine_max_prob = 1.000000
+PARAMS: accept_vaccine_prob = -1.000000
+PARAMS: accept_vaccine_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_imitate_prevalence_update_rate = 0.100000
+PARAMS: accept_vaccine_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_imitate_consensus_update_rate = 0.100000
+PARAMS: accept_vaccine_imitate_consensus_threshold = 0.000000
+PARAMS: accept_vaccine_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_imitate_count_update_rate = 0.100000
+PARAMS: accept_vaccine_imitate_count_threshold = 0.000000
+PARAMS: accept_vaccine_susceptibility_threshold = 2 0 0
+PARAMS: accept_vaccine_severity_threshold = 2 0 0
+PARAMS: accept_vaccine_benefits_threshold = 2 0 0
+PARAMS: accept_vaccine_barriers_threshold = 2 0 0
+PARAMS: accept_vaccine_base_odds_ratio = 0.350000
+PARAMS: accept_vaccine_susceptibility_odds_ratio = 3.000000
+PARAMS: accept_vaccine_severity_odds_ratio = 1.930000
+PARAMS: accept_vaccine_benefits_odds_ratio = 1.000000
+PARAMS: accept_vaccine_barriers_odds_ratio = 0.650000
+PARAMS: accept_vaccine_dose_enabled = 0
+PARAMS: accept_vaccine_dose_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+BEHAVIOR accept_vaccine_dose behavior_change_model_cdf: 0.400000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: accept_vaccine_dose_frequency = 1
+PARAMS: accept_vaccine_dose_min_prob = 0.000000
+PARAMS: accept_vaccine_dose_max_prob = 1.000000
+PARAMS: accept_vaccine_dose_prob = -1.000000
+PARAMS: accept_vaccine_dose_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_imitate_prevalence_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_imitate_consensus_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_imitate_consensus_threshold = 0.000000
+PARAMS: accept_vaccine_dose_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_imitate_count_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_imitate_count_threshold = 0.000000
+PARAMS: accept_vaccine_dose_susceptibility_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_severity_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_benefits_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_barriers_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_base_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_susceptibility_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_severity_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_benefits_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_barriers_odds_ratio = 1.000000
+PARAMS: accept_vaccine_for_child_enabled = 0
+PARAMS: accept_vaccine_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+BEHAVIOR accept_vaccine_for_child behavior_change_model_cdf: 0.400000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: accept_vaccine_for_child_frequency = 1
+PARAMS: accept_vaccine_for_child_min_prob = 0.000000
+PARAMS: accept_vaccine_for_child_max_prob = 1.000000
+PARAMS: accept_vaccine_for_child_prob = -1.000000
+PARAMS: accept_vaccine_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_for_child_imitate_prevalence_update_rate = 0.100000
+PARAMS: accept_vaccine_for_child_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_for_child_imitate_consensus_update_rate = 0.100000
+PARAMS: accept_vaccine_for_child_imitate_consensus_threshold = 0.000000
+PARAMS: accept_vaccine_for_child_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_for_child_imitate_count_update_rate = 0.100000
+PARAMS: accept_vaccine_for_child_imitate_count_threshold = 0.000000
+PARAMS: accept_vaccine_for_child_susceptibility_threshold = 2 0 0
+PARAMS: accept_vaccine_for_child_severity_threshold = 2 0 0
+PARAMS: accept_vaccine_for_child_benefits_threshold = 2 0 0
+PARAMS: accept_vaccine_for_child_barriers_threshold = 2 0 0
+PARAMS: accept_vaccine_for_child_base_odds_ratio = 1.000000
+PARAMS: accept_vaccine_for_child_susceptibility_odds_ratio = 1.000000
+PARAMS: accept_vaccine_for_child_severity_odds_ratio = 1.000000
+PARAMS: accept_vaccine_for_child_benefits_odds_ratio = 1.000000
+PARAMS: accept_vaccine_for_child_barriers_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_for_child_enabled = 0
+PARAMS: accept_vaccine_dose_for_child_behavior_change_model_distribution = 7 40 60 0 0 0 0 0
+BEHAVIOR accept_vaccine_dose_for_child behavior_change_model_cdf: 0.400000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+PARAMS: accept_vaccine_dose_for_child_frequency = 1
+PARAMS: accept_vaccine_dose_for_child_min_prob = 0.000000
+PARAMS: accept_vaccine_dose_for_child_max_prob = 1.000000
+PARAMS: accept_vaccine_dose_for_child_prob = -1.000000
+PARAMS: accept_vaccine_dose_for_child_imitate_prevalence_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_for_child_imitate_prevalence_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_for_child_imitate_consensus_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_for_child_imitate_consensus_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_for_child_imitate_consensus_threshold = 0.000000
+PARAMS: accept_vaccine_dose_for_child_imitate_count_weights = 5 0 0 0 0 1
+PARAMS: accept_vaccine_dose_for_child_imitate_count_update_rate = 0.100000
+PARAMS: accept_vaccine_dose_for_child_imitate_count_threshold = 0.000000
+PARAMS: accept_vaccine_dose_for_child_susceptibility_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_for_child_severity_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_for_child_benefits_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_for_child_barriers_threshold = 2 0 0
+PARAMS: accept_vaccine_dose_for_child_base_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_for_child_susceptibility_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_for_child_severity_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_for_child_benefits_odds_ratio = 1.000000
+PARAMS: accept_vaccine_dose_for_child_barriers_odds_ratio = 1.000000
+PRINT BEHAVIOR PARAMS:
+name = take_sick_leave
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = stay_home_when_sick
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = keep_child_home_when_sick
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = accept_vaccine
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = accept_vaccine_dose
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = accept_vaccine_for_child
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PRINT BEHAVIOR PARAMS:
+name = accept_vaccine_dose_for_child
+enabled = 0
+frequency = 1
+behavior_change_model_population = 0 0 0 0 0 0 0 
+PARAMS: days_to_wear_face_masks = 2
+PARAMS: face_mask_compliance = 0.000000
+PARAMS: hand_washing_compliance = 0.000000
+initialize_static_variables took 0 seconds
+
+FRED Pop.setup started Wed Nov 26 13:44:51 2014
+setup population entered
+disease 0 influenza setup entered
+PARAMS: primary_cases_file = $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
+
+primary_cases Multistrain_Timestep_Map size = 1
+start day = 0, end day = 0, number of attempts = 10, strain = 0
+
+PARAMS: report_generation_time = 0
+PARAMS: advanced_seeding = exposed
+PARAMS: influenza_intra_host_model = 0
+PARAMS: influenza_symp = 0.670000
+PARAMS: influenza_symp_infectivity = 1.000000
+PARAMS: influenza_asymp_infectivity = 0.500000
+PARAMS: influenza_prob_symp_upper_ages = 0
+PARAMS: influenza_prob_symp_values = 0
+PARAMS: influenza_days_latent = 3
+PARAMS: influenza_days_latent = 3       0.0 0.8 1.0
+PARAMS: influenza_days_asymp = 7
+PARAMS: influenza_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: influenza_days_symp = 7
+PARAMS: influenza_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: influenza_infection_model = 0
+PARAMS: influenza_infectivity_threshold = 0.000000
+PARAMS: influenza_symptomaticity_threshold = 0.000000
+PARAMS: influenza_evolution = 0
+disease 0 influenza setup finished
+Loading population for Deme 0:
+Loading population 0 for Deme 0: 2010_ver1_42065
+read population entered
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt for reading
+PARAMS: number_antivirals = 0
+FRED_VERBOSE: <Population.cc, LINE:610> finished reading uncompressed population, pop_size = 44594
+Loading group quarters population 0 for Deme 0: 2010_ver1_42065
+read population entered
+fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt for reading
+FRED_VERBOSE: <Population.cc, LINE:610> finished reading uncompressed population, pop_size = 45318
+reading populations took 1 seconds
+number of residually immune people for disease 0 = 0
+population setup finished
+setup group quarters entered
+setup households entered
+FRED_VERBOSE: <Place_List.cc, LINE:1659> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
+setup households finished
+Pop.setup took 0 seconds
+FRED Pop.setup finished Wed Nov 26 13:44:52 2014
+setup classrooms entered
+Allocating space for 291 classrooms in 26 schools (out of 24069 total places)
+PARAMS: influenza_classroom_contacts = -1.000000
+PARAMS: influenza_classroom_prob = 16
+PARAMS: influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+Added     291        CLASSROOM places to Place_List
+setup classrooms finished
+assign classrooms entered
+FRED_VERBOSE: <Population.cc, LINE:1041> assign classrooms finished
+assign classrooms took 0 seconds
+reassign workers entered. places = 24360
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450054184 at (8894.253818,14553.410093) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270741 8894.605623 14553.510019 size 3 dist 0.365721
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450054192 at (8889.853909,14556.722477) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270412 8890.105868 14556.148748 size 3 dist 0.626617
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450057407 at (8881.789865,14514.040860) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W513929277 8881.584143 14513.013653 size 3 dist 1.047605
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450063600 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450066817 at (8857.664746,14498.465074) 
+FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 40.621510 lon -79.152191 
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450066968 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450067304 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450067582 at (8872.370870,14534.156514) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268767 8872.291797 14534.097236 size 5 dist 0.098825
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450102519 at (8790.415690,14481.511492) 
+FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450108468 at (8877.734390,14534.612110) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268760 8877.720988 14535.609255 size 4 dist 0.997235
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110701 at (8887.844934,14568.449411) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269718 8887.830862 14568.039544 size 5 dist 0.410108
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110702 at (8888.318698,14568.316881) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269769 8888.229574 14568.182658 size 5 dist 0.161118
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110845 at (8863.491979,14559.037717) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268063 8863.510072 14558.902647 size 6 dist 0.136276
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450111632 at (8881.186771,14550.487251) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269616 8881.170688 14550.626978 size 3 dist 0.140650
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450120306 at (8860.327743,14592.935566) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514266640 8855.872215 14575.241852 size 5 dist 18.246074
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450129160 at (8863.485278,14559.047032) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267977 8863.303009 14559.154579 size 4 dist 0.211633
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450132231 at (8880.379294,14552.796139) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269568 8880.467748 14552.617034 size 3 dist 0.199757
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450132458 at (8873.810925,14534.854304) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269301 8873.515409 14535.019436 size 5 dist 0.338524
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450134109 at (8824.220476,14566.018155) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514265309 8824.107899 14565.287339 size 3 dist 0.739436
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450139177 at (8865.398427,14535.814188) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267966 8866.384152 14537.849973 size 6 dist 2.261874
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450145390 at (8863.926207,14558.591013) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268273 8863.882650 14558.461871 size 4 dist 0.136290
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450147805 at (8874.241803,14540.628853) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268643 8874.822784 14540.421803 size 5 dist 0.616773
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450149079 at (8868.635705,14557.012094) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267670 8869.168438 14554.790853 size 3 dist 2.284232
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450150577 at (8872.894892,14534.921204) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269007 8872.725355 14535.015202 size 6 dist 0.193851
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450150578 at (8872.854015,14536.519600) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269441 8873.861183 14536.447195 size 4 dist 1.009767
+FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450151186 at (8862.196666,14507.478757) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W513931331 8859.195936 14500.041453 size 3 dist 8.019843
+reassign workers entered. places = 24360
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450004650 at (8872.078704,14534.637091) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 148 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269331 8872.257622 14534.040498 size 27 dist 0.622845
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450004651 at (8873.542883,14534.039651) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 20 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269191 8873.505357 14534.104857 size 8 dist 0.075233
+reassign workers entered. places = 24360
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450008460 at (8866.211935,14559.142724) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 79 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267805 8867.361165 14558.604985 size 9 dist 1.268815
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450022046 at (8870.004059,14558.495321) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 17 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268096 8865.887604 14558.685011 size 5 dist 4.120823
+reassign workers entered. places = 24360
+reassign workers entered. places = 24360
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450030495 at (8862.645636,14557.536283) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 141 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268053 8862.386976 14558.584238 size 14 dist 1.079405
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450030496 at (8866.028326,14558.542743) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 189 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268257 8867.057607 14558.479654 size 18 dist 1.031213
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450036345 at (8873.781441,14534.276341) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 34 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269428 8873.855152 14534.350439 size 8 dist 0.104517
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450040313 at (8889.690403,14567.779990) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 45 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269669 8889.688393 14567.888384 size 7 dist 0.108413
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450042411 at (8873.064428,14534.115866) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 33 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269373 8873.079841 14534.151857 size 7 dist 0.039152
+FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450047487 at (8885.570598,14562.424199) 
+FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 18 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270058 8884.568121 14561.566781 size 7 dist 1.319138
+reassign workers took 0 seconds
+reassign workers took 0 seconds
+setup offices entered
+PARAMS: influenza_office_contacts = -1.000000
+PARAMS: influenza_office_prob = 1
+PARAMS: influenza_office_prob = 1 0.0575
+Added    4295           OFFICE places to Place_List
+setup offices finished
+assign offices entered
+FRED_VERBOSE: <Population.cc, LINE:1055> assign offices finished
+assign offices took 0 seconds
+prepare places entered
+deleting place_label_map
+prepare places finished
+place preparation took 0 seconds
+disease_initialization took 0 seconds
+FRED initialization complete Wed Nov 26 13:44:52 2014
+FRED initialization took 1 seconds
+
+day 0 update places took 0 seconds
+employees at small workplaces with sick leave: 6766
+employees at small workplaces without sick leave: 6033
+employees at med workplaces with sick leave: 1301
+employees at med workplaces without sick leave: 976
+employees at large workplaces with sick leave: 2544
+employees at large workplaces without sick leave: 1107
+employees at xlarge workplaces with sick leave: 1093
+employees at xlarge workplaces without sick leave: 192
+day 0 update population took 0 seconds
+day 0 update_infectious_people took 0 seconds
+day 0 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>         0
+Number of infectious households    =>         0
+Number of infectious neighborhoods =>         0
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>         0
+Number of infectious offices       =>         0
+Number of infectious hospitals     =>         0
+day 0 epidemic in schools for disease 0 took 0 seconds
+day 0 epidemic in classrooms for disease 0 took 0 seconds
+day 0 epidemic in workplaces for disease 0 took 0 seconds
+day 0 epidemic in offices for disease 0 took 0 seconds
+day 0 epidemic in neighborhoods for disease 0 took 0 seconds
+day 0 epidemic in households for disease 0 took 0 seconds
+day 0 epidemic in hospitals for disease 0 took 0 seconds
+day 0 update epidemic for disease 0 took 0 seconds
+
+Day 0 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 0 report population took 0 seconds
+day 0 maxrss 70668288
+day 0 finished Wed Nov 26 13:44:52 2014
+day 0 took 0 seconds
+
+day 1 update places took 0 seconds
+day 1 update population took 0 seconds
+day 1 update_infectious_people took 0 seconds
+day 1 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        24
+Number of infectious households    =>         9
+Number of infectious neighborhoods =>         7
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>         4
+Number of infectious offices       =>         4
+Number of infectious hospitals     =>         0
+day 1 epidemic in schools for disease 0 took 0 seconds
+day 1 epidemic in classrooms for disease 0 took 0 seconds
+day 1 epidemic in workplaces for disease 0 took 0 seconds
+day 1 epidemic in offices for disease 0 took 0 seconds
+day 1 epidemic in neighborhoods for disease 0 took 0 seconds
+day 1 epidemic in households for disease 0 took 0 seconds
+day 1 epidemic in hospitals for disease 0 took 0 seconds
+day 1 update epidemic for disease 0 took 0 seconds
+
+Day 1 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 1 report population took 0 seconds
+day 1 maxrss 70807552
+day 1 finished Wed Nov 26 13:44:52 2014
+day 1 took 0 seconds
+
+day 2 update places took 0 seconds
+day 2 update population took 0 seconds
+day 2 update_infectious_people took 0 seconds
+day 2 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        34
+Number of infectious households    =>        13
+Number of infectious neighborhoods =>         9
+Number of infectious schools       =>         1
+Number of infectious classrooms    =>         1
+Number of infectious workplaces    =>         5
+Number of infectious offices       =>         5
+Number of infectious hospitals     =>         0
+day 2 epidemic in schools for disease 0 took 0 seconds
+day 2 epidemic in classrooms for disease 0 took 0 seconds
+day 2 epidemic in workplaces for disease 0 took 0 seconds
+day 2 epidemic in offices for disease 0 took 0 seconds
+day 2 epidemic in neighborhoods for disease 0 took 0 seconds
+day 2 epidemic in households for disease 0 took 0 seconds
+day 2 epidemic in hospitals for disease 0 took 0 seconds
+day 2 update epidemic for disease 0 took 0 seconds
+
+Day 2 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 2 report population took 0 seconds
+day 2 maxrss 70893568
+day 2 finished Wed Nov 26 13:44:52 2014
+day 2 took 0 seconds
+
+day 3 update places took 0 seconds
+day 3 update population took 0 seconds
+day 3 update_infectious_people took 0 seconds
+day 3 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        42
+Number of infectious households    =>        15
+Number of infectious neighborhoods =>        13
+Number of infectious schools       =>         1
+Number of infectious classrooms    =>         1
+Number of infectious workplaces    =>         6
+Number of infectious offices       =>         6
+Number of infectious hospitals     =>         0
+day 3 epidemic in schools for disease 0 took 0 seconds
+day 3 epidemic in classrooms for disease 0 took 0 seconds
+day 3 epidemic in workplaces for disease 0 took 0 seconds
+day 3 epidemic in offices for disease 0 took 0 seconds
+day 3 epidemic in neighborhoods for disease 0 took 0 seconds
+day 3 epidemic in households for disease 0 took 0 seconds
+day 3 epidemic in hospitals for disease 0 took 0 seconds
+day 3 update epidemic for disease 0 took 0 seconds
+
+Day 3 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 3 report population took 0 seconds
+day 3 maxrss 70930432
+day 3 finished Wed Nov 26 13:44:52 2014
+day 3 took 0 seconds
+
+day 4 update places took 0 seconds
+day 4 update population took 0 seconds
+day 4 update_infectious_people took 0 seconds
+day 4 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        52
+Number of infectious households    =>        20
+Number of infectious neighborhoods =>        16
+Number of infectious schools       =>         2
+Number of infectious classrooms    =>         2
+Number of infectious workplaces    =>         6
+Number of infectious offices       =>         6
+Number of infectious hospitals     =>         0
+day 4 epidemic in schools for disease 0 took 0 seconds
+day 4 epidemic in classrooms for disease 0 took 0 seconds
+day 4 epidemic in workplaces for disease 0 took 0 seconds
+day 4 epidemic in offices for disease 0 took 0 seconds
+day 4 epidemic in neighborhoods for disease 0 took 0 seconds
+day 4 epidemic in households for disease 0 took 0 seconds
+day 4 epidemic in hospitals for disease 0 took 0 seconds
+day 4 update epidemic for disease 0 took 0 seconds
+
+Day 4 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 4 report population took 0 seconds
+day 4 maxrss 71004160
+day 4 finished Wed Nov 26 13:44:52 2014
+day 4 took 0 seconds
+
+day 5 update places took 0 seconds
+day 5 update population took 0 seconds
+day 5 update_infectious_people took 0 seconds
+day 5 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        49
+Number of infectious households    =>        30
+Number of infectious neighborhoods =>        17
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>         1
+Number of infectious offices       =>         1
+Number of infectious hospitals     =>         0
+day 5 epidemic in schools for disease 0 took 0 seconds
+day 5 epidemic in classrooms for disease 0 took 0 seconds
+day 5 epidemic in workplaces for disease 0 took 0 seconds
+day 5 epidemic in offices for disease 0 took 0 seconds
+day 5 epidemic in neighborhoods for disease 0 took 0 seconds
+day 5 epidemic in households for disease 0 took 0 seconds
+day 5 epidemic in hospitals for disease 0 took 0 seconds
+day 5 update epidemic for disease 0 took 0 seconds
+
+Day 5 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 5 report population took 0 seconds
+day 5 maxrss 71045120
+day 5 finished Wed Nov 26 13:44:52 2014
+day 5 took 0 seconds
+
+day 6 update places took 0 seconds
+day 6 update population took 0 seconds
+day 6 update_infectious_people took 0 seconds
+day 6 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        47
+Number of infectious households    =>        28
+Number of infectious neighborhoods =>        17
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>         1
+Number of infectious offices       =>         1
+Number of infectious hospitals     =>         0
+day 6 epidemic in schools for disease 0 took 0 seconds
+day 6 epidemic in classrooms for disease 0 took 0 seconds
+day 6 epidemic in workplaces for disease 0 took 0 seconds
+day 6 epidemic in offices for disease 0 took 0 seconds
+day 6 epidemic in neighborhoods for disease 0 took 0 seconds
+day 6 epidemic in households for disease 0 took 0 seconds
+day 6 epidemic in hospitals for disease 0 took 0 seconds
+day 6 update epidemic for disease 0 took 0 seconds
+
+Day 6 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 6 report population took 0 seconds
+day 6 maxrss 71094272
+day 6 finished Wed Nov 26 13:44:52 2014
+day 6 took 0 seconds
+
+day 7 update places took 0 seconds
+day 7 update population took 0 seconds
+day 7 update_infectious_people took 0 seconds
+day 7 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>        67
+Number of infectious households    =>        26
+Number of infectious neighborhoods =>        18
+Number of infectious schools       =>         4
+Number of infectious classrooms    =>         7
+Number of infectious workplaces    =>         6
+Number of infectious offices       =>         6
+Number of infectious hospitals     =>         0
+day 7 epidemic in schools for disease 0 took 0 seconds
+day 7 epidemic in classrooms for disease 0 took 0 seconds
+day 7 epidemic in workplaces for disease 0 took 0 seconds
+day 7 epidemic in offices for disease 0 took 0 seconds
+day 7 epidemic in neighborhoods for disease 0 took 0 seconds
+day 7 epidemic in households for disease 0 took 0 seconds
+day 7 epidemic in hospitals for disease 0 took 0 seconds
+day 7 update epidemic for disease 0 took 0 seconds
+
+Day 7 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 7 report population took 0 seconds
+day 7 maxrss 71131136
+day 7 finished Wed Nov 26 13:44:52 2014
+day 7 took 0 seconds
+
+day 8 update places took 0 seconds
+day 8 update population took 0 seconds
+day 8 update_infectious_people took 0 seconds
+day 8 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       104
+Number of infectious households    =>        44
+Number of infectious neighborhoods =>        31
+Number of infectious schools       =>         5
+Number of infectious classrooms    =>        14
+Number of infectious workplaces    =>         5
+Number of infectious offices       =>         5
+Number of infectious hospitals     =>         0
+day 8 epidemic in schools for disease 0 took 0 seconds
+day 8 epidemic in classrooms for disease 0 took 0 seconds
+day 8 epidemic in workplaces for disease 0 took 0 seconds
+day 8 epidemic in offices for disease 0 took 0 seconds
+day 8 epidemic in neighborhoods for disease 0 took 0 seconds
+day 8 epidemic in households for disease 0 took 0 seconds
+day 8 epidemic in hospitals for disease 0 took 0 seconds
+day 8 update epidemic for disease 0 took 0 seconds
+
+Day 8 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 8 report population took 0 seconds
+day 8 maxrss 71184384
+day 8 finished Wed Nov 26 13:44:52 2014
+day 8 took 0 seconds
+
+day 9 update places took 0 seconds
+day 9 update population took 0 seconds
+day 9 update_infectious_people took 0 seconds
+day 9 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       182
+Number of infectious households    =>        94
+Number of infectious neighborhoods =>        47
+Number of infectious schools       =>         6
+Number of infectious classrooms    =>        21
+Number of infectious workplaces    =>         7
+Number of infectious offices       =>         7
+Number of infectious hospitals     =>         0
+day 9 epidemic in schools for disease 0 took 0 seconds
+day 9 epidemic in classrooms for disease 0 took 0 seconds
+day 9 epidemic in workplaces for disease 0 took 0 seconds
+day 9 epidemic in offices for disease 0 took 0 seconds
+day 9 epidemic in neighborhoods for disease 0 took 0 seconds
+day 9 epidemic in households for disease 0 took 0 seconds
+day 9 epidemic in hospitals for disease 0 took 0 seconds
+day 9 update epidemic for disease 0 took 0 seconds
+
+Day 9 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 9 report population took 0 seconds
+day 9 maxrss 71454720
+day 9 finished Wed Nov 26 13:44:52 2014
+day 9 took 0 seconds
+
+day 10 update places took 0 seconds
+day 10 update population took 0 seconds
+day 10 update_infectious_people took 0 seconds
+day 10 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       321
+Number of infectious households    =>       172
+Number of infectious neighborhoods =>        83
+Number of infectious schools       =>         8
+Number of infectious classrooms    =>        30
+Number of infectious workplaces    =>        14
+Number of infectious offices       =>        14
+Number of infectious hospitals     =>         0
+day 10 epidemic in schools for disease 0 took 0 seconds
+day 10 epidemic in classrooms for disease 0 took 0 seconds
+day 10 epidemic in workplaces for disease 0 took 0 seconds
+day 10 epidemic in offices for disease 0 took 0 seconds
+day 10 epidemic in neighborhoods for disease 0 took 0 seconds
+day 10 epidemic in households for disease 0 took 0 seconds
+day 10 epidemic in hospitals for disease 0 took 0 seconds
+day 10 update epidemic for disease 0 took 0 seconds
+
+Day 10 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 10 report population took 0 seconds
+day 10 maxrss 71712768
+day 10 finished Wed Nov 26 13:44:52 2014
+day 10 took 0 seconds
+
+day 11 update places took 0 seconds
+day 11 update population took 0 seconds
+day 11 update_infectious_people took 0 seconds
+day 11 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       535
+Number of infectious households    =>       291
+Number of infectious neighborhoods =>       123
+Number of infectious schools       =>        13
+Number of infectious classrooms    =>        50
+Number of infectious workplaces    =>        28
+Number of infectious offices       =>        30
+Number of infectious hospitals     =>         0
+day 11 epidemic in schools for disease 0 took 0 seconds
+day 11 epidemic in classrooms for disease 0 took 0 seconds
+day 11 epidemic in workplaces for disease 0 took 0 seconds
+day 11 epidemic in offices for disease 0 took 0 seconds
+day 11 epidemic in neighborhoods for disease 0 took 0 seconds
+day 11 epidemic in households for disease 0 took 0 seconds
+day 11 epidemic in hospitals for disease 0 took 0 seconds
+day 11 update epidemic for disease 0 took 0 seconds
+
+Day 11 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 11 report population took 0 seconds
+day 11 maxrss 72396800
+day 11 finished Wed Nov 26 13:44:52 2014
+day 11 took 0 seconds
+
+day 12 update places took 0 seconds
+day 12 update population took 0 seconds
+day 12 update_infectious_people took 0 seconds
+day 12 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       663
+Number of infectious households    =>       461
+Number of infectious neighborhoods =>       178
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>        12
+Number of infectious offices       =>        12
+Number of infectious hospitals     =>         0
+day 12 epidemic in schools for disease 0 took 0 seconds
+day 12 epidemic in classrooms for disease 0 took 0 seconds
+day 12 epidemic in workplaces for disease 0 took 0 seconds
+day 12 epidemic in offices for disease 0 took 0 seconds
+day 12 epidemic in neighborhoods for disease 0 took 0 seconds
+day 12 epidemic in households for disease 0 took 0 seconds
+day 12 epidemic in hospitals for disease 0 took 0 seconds
+day 12 update epidemic for disease 0 took 0 seconds
+
+Day 12 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 12 report population took 0 seconds
+day 12 maxrss 73228288
+day 12 finished Wed Nov 26 13:44:52 2014
+day 12 took 0 seconds
+
+day 13 update places took 0 seconds
+day 13 update population took 0 seconds
+day 13 update_infectious_people took 0 seconds
+day 13 find_visitors_to_infectious_places took 1 seconds
+Number of infectious places        =>       796
+Number of infectious households    =>       543
+Number of infectious neighborhoods =>       217
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>        17
+Number of infectious offices       =>        19
+Number of infectious hospitals     =>         0
+day 13 epidemic in schools for disease 0 took 0 seconds
+day 13 epidemic in classrooms for disease 0 took 0 seconds
+day 13 epidemic in workplaces for disease 0 took 0 seconds
+day 13 epidemic in offices for disease 0 took 0 seconds
+day 13 epidemic in neighborhoods for disease 0 took 0 seconds
+day 13 epidemic in households for disease 0 took 0 seconds
+day 13 epidemic in hospitals for disease 0 took 0 seconds
+day 13 update epidemic for disease 0 took 0 seconds
+
+Day 13 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+
+day 13 report population took 0 seconds
+day 13 maxrss 73805824
+day 13 finished Wed Nov 26 13:44:53 2014
+day 13 took 1 seconds
+
+day 14 update places took 0 seconds
+day 14 update population took 0 seconds
+day 14 update_infectious_people took 0 seconds
+day 14 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      1161
+Number of infectious households    =>       591
+Number of infectious neighborhoods =>       220
+Number of infectious schools       =>        19
+Number of infectious classrooms    =>       109
+Number of infectious workplaces    =>       101
+Number of infectious offices       =>       121
+Number of infectious hospitals     =>         0
+day 14 epidemic in schools for disease 0 took 0 seconds
+day 14 epidemic in classrooms for disease 0 took 0 seconds
+day 14 epidemic in workplaces for disease 0 took 0 seconds
+day 14 epidemic in offices for disease 0 took 0 seconds
+day 14 epidemic in neighborhoods for disease 0 took 0 seconds
+day 14 epidemic in households for disease 0 took 0 seconds
+day 14 epidemic in hospitals for disease 0 took 0 seconds
+day 14 update epidemic for disease 0 took 0 seconds
+
+Day 14 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 14 report population took 0 seconds
+day 14 maxrss 73879552
+day 14 finished Wed Nov 26 13:44:53 2014
+day 14 took 0 seconds
+
+day 15 update places took 0 seconds
+day 15 update population took 0 seconds
+day 15 update_infectious_people took 0 seconds
+day 15 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      1497
+Number of infectious households    =>       794
+Number of infectious neighborhoods =>       252
+Number of infectious schools       =>        18
+Number of infectious classrooms    =>       129
+Number of infectious workplaces    =>       141
+Number of infectious offices       =>       163
+Number of infectious hospitals     =>         0
+day 15 epidemic in schools for disease 0 took 0 seconds
+day 15 epidemic in classrooms for disease 0 took 0 seconds
+day 15 epidemic in workplaces for disease 0 took 0 seconds
+day 15 epidemic in offices for disease 0 took 0 seconds
+day 15 epidemic in neighborhoods for disease 0 took 0 seconds
+day 15 epidemic in households for disease 0 took 0 seconds
+day 15 epidemic in hospitals for disease 0 took 0 seconds
+day 15 update epidemic for disease 0 took 0 seconds
+
+Day 15 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 15 report population took 0 seconds
+day 15 maxrss 75214848
+day 15 finished Wed Nov 26 13:44:53 2014
+day 15 took 0 seconds
+
+day 16 update places took 0 seconds
+day 16 update population took 0 seconds
+day 16 update_infectious_people took 0 seconds
+day 16 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      1888
+Number of infectious households    =>      1071
+Number of infectious neighborhoods =>       283
+Number of infectious schools       =>        18
+Number of infectious classrooms    =>       148
+Number of infectious workplaces    =>       171
+Number of infectious offices       =>       197
+Number of infectious hospitals     =>         0
+day 16 epidemic in schools for disease 0 took 0 seconds
+day 16 epidemic in classrooms for disease 0 took 0 seconds
+day 16 epidemic in workplaces for disease 0 took 0 seconds
+day 16 epidemic in offices for disease 0 took 0 seconds
+day 16 epidemic in neighborhoods for disease 0 took 0 seconds
+day 16 epidemic in households for disease 0 took 0 seconds
+day 16 epidemic in hospitals for disease 0 took 0 seconds
+day 16 update epidemic for disease 0 took 0 seconds
+
+Day 16 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+
+day 16 report population took 0 seconds
+day 16 maxrss 76017664
+day 16 finished Wed Nov 26 13:44:53 2014
+day 16 took 0 seconds
+
+day 17 update places took 0 seconds
+day 17 update population took 0 seconds
+day 17 update_infectious_people took 0 seconds
+day 17 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      2450
+Number of infectious households    =>      1469
+Number of infectious neighborhoods =>       359
+Number of infectious schools       =>        19
+Number of infectious classrooms    =>       166
+Number of infectious workplaces    =>       200
+Number of infectious offices       =>       237
+Number of infectious hospitals     =>         0
+day 17 epidemic in schools for disease 0 took 0 seconds
+day 17 epidemic in classrooms for disease 0 took 0 seconds
+day 17 epidemic in workplaces for disease 0 took 0 seconds
+day 17 epidemic in offices for disease 0 took 0 seconds
+day 17 epidemic in neighborhoods for disease 0 took 0 seconds
+day 17 epidemic in households for disease 0 took 0 seconds
+day 17 epidemic in hospitals for disease 0 took 0 seconds
+day 17 update epidemic for disease 0 took 0 seconds
+
+Day 17 GQ_INF:  GQ 1 College 0 Prison 0 Nursing_Home 1 Military 0
+
+day 17 report population took 0 seconds
+day 17 maxrss 76529664
+day 17 finished Wed Nov 26 13:44:53 2014
+day 17 took 0 seconds
+
+day 18 update places took 0 seconds
+day 18 update population took 0 seconds
+day 18 update_infectious_people took 0 seconds
+day 18 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      3080
+Number of infectious households    =>      1905
+Number of infectious neighborhoods =>       397
+Number of infectious schools       =>        19
+Number of infectious classrooms    =>       196
+Number of infectious workplaces    =>       260
+Number of infectious offices       =>       303
+Number of infectious hospitals     =>         0
+day 18 epidemic in schools for disease 0 took 0 seconds
+day 18 epidemic in classrooms for disease 0 took 0 seconds
+day 18 epidemic in workplaces for disease 0 took 0 seconds
+day 18 epidemic in offices for disease 0 took 0 seconds
+day 18 epidemic in neighborhoods for disease 0 took 0 seconds
+day 18 epidemic in households for disease 0 took 0 seconds
+day 18 epidemic in hospitals for disease 0 took 0 seconds
+day 18 update epidemic for disease 0 took 0 seconds
+
+Day 18 GQ_INF:  GQ 1 College 0 Prison 0 Nursing_Home 1 Military 0
+
+day 18 report population took 0 seconds
+day 18 maxrss 76546048
+day 18 finished Wed Nov 26 13:44:53 2014
+day 18 took 0 seconds
+
+day 19 update places took 0 seconds
+day 19 update population took 0 seconds
+day 19 update_infectious_people took 0 seconds
+day 19 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      3068
+Number of infectious households    =>      2385
+Number of infectious neighborhoods =>       442
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>       114
+Number of infectious offices       =>       127
+Number of infectious hospitals     =>         0
+day 19 epidemic in schools for disease 0 took 0 seconds
+day 19 epidemic in classrooms for disease 0 took 0 seconds
+day 19 epidemic in workplaces for disease 0 took 0 seconds
+day 19 epidemic in offices for disease 0 took 0 seconds
+day 19 epidemic in neighborhoods for disease 0 took 0 seconds
+day 19 epidemic in households for disease 0 took 0 seconds
+day 19 epidemic in hospitals for disease 0 took 0 seconds
+day 19 update epidemic for disease 0 took 0 seconds
+
+Day 19 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+
+day 19 report population took 0 seconds
+day 19 maxrss 76558336
+day 19 finished Wed Nov 26 13:44:53 2014
+day 19 took 0 seconds
+
+
+FRED simulation complete. Excluding initialization, 20 days took 1 seconds
+FRED finished Wed Nov 26 13:44:53 2014
+FRED took 2 seconds
