@@ -441,11 +441,12 @@ void Health::become_immune(Person * self, Disease *disease) {
   int disease_id = disease->get_id();
   disease->become_immune(self, this->susceptible.test(disease_id),
       this->infectious.test(disease_id), this->symptomatic.test(disease_id));
+  this->immunity.set(disease_id);
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   FRED_STATUS(1, "person %d is now IMMUNE for disease %d\n", self->get_id(),
-      disease_id);
+	      disease_id);
 }
 
 void Health::update(Person * self, int day) {

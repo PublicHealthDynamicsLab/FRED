@@ -456,6 +456,7 @@ void Epidemic::print_stats(int day) {
    }
  
    // Print Residual Immunuties
+   // THIS NEEDS TO BE FIXED: DO NOT USE
    if(Global::Track_Residual_Immunity) {
      Evolution *evol = this->disease->get_evolution();
      for(int i = 0; i < this->disease->get_num_strains(); i++) {
