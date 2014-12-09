@@ -169,6 +169,7 @@ void Place::prepare() {
     }
   }
   this->infectious_bitset.reset();
+  this->human_infectious_bitset.reset();
   this->exposed_bitset.reset();
   this->unique_visitors.clear();
 
@@ -1149,10 +1150,8 @@ void Place::update_vector_population(int day) {
     born_infectious[d] = ceil(S_vectors*seeds);
     total_born_infectious += born_infectious[d];
     if(born_infectious[d] > 0) {
-      //      if(day == 0){
-	//	printf("PLACE_WITH_REAL_SEEDS %lg %lg\n",this->latitude,this->longitude);
-      //      }
       FRED_VERBOSE(1,"vector_update_population:: Vector born infectious disease[%d] = %d \n",d, born_infectious[d]);
+      FRED_VERBOSE(1,"Total Vector born infectious: %d \n", total_born_infectious);// 
     }
   }
   // printf("PLACE %s SEEDS %d S_vectors %d DAY %d\n",this->label,total_born_infectious,S_vectors,day);
@@ -1171,9 +1170,29 @@ void Place::update_vector_population(int day) {
   for (int i = 0; i < DISEASE_TYPES; i++) {
     // some die
     FRED_VERBOSE(1,"vector_update_population:: E_vectors[%d] = %d \n",i, E_vectors[i]);
-    E_vectors[i] -= floor(death_rate*E_vectors[i]);
+    if(E_vectors[i] < 10){
+      for(int k = 0; k < E_vectors[i]; k++){
+	double r = URAND(0,1);
+	if(r < death_rate){
+	  E_vectors[i]--;
+	}
+      }
+    }else{
+      E_vectors[i] -= floor(death_rate*E_vectors[i]);
+    } 
     // some become infectious
-    int become_infectious = floor(incubation_rate * E_vectors[i]);
+    int become_infectious = 0;
+    if(E_vectors[i] < 10){
+      for(int k = 0; k < E_vectors[i]; k++){
+	double r = URAND(0,1);
+	if(r < incubation_rate){
+	  become_infectious++;
+	}
+      }
+    }else{
+      become_infectious = floor(incubation_rate * E_vectors[i]);
+    } 
+    // int become_infectious = floor(incubation_rate * E_vectors[i]);
     FRED_VERBOSE(1,"vector_update_population:: become infectious [%d] = %d, incubation rate: %f,E_vectors[%d] %d \n",i, become_infectious,incubation_rate,i,E_vectors[i]);
     E_vectors[i] -= become_infectious;
     if (E_vectors[i] < 0) E_vectors[i] = 0;

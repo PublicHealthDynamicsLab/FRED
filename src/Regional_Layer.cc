@@ -249,6 +249,16 @@ void Regional_Layer::add_workplace(Place *place) {
 }
 
 
+void Regional_Layer::add_school(Place *place) {
+  int row = this->get_row(place->get_latitude());
+  int col = this->get_col(place->get_longitude());
+  Regional_Patch * patch = this->get_patch(row, col);
+  if(patch != NULL) {
+    patch->add_school(place);
+  }
+}
+
+
 Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y, int min_staff,
     int max_staff, double * min_dist) {
   //find nearest workplace that has right number of employees

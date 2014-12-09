@@ -44,6 +44,7 @@ public:
   void add_host(Person * person, Place * place);
   void read_temperature();
   void read_vector_seeds();
+  void swap_county_people();
   int get_total_infected_vectors() { return total_infected_vectors; }
   int get_total_infected_hosts() { return total_infected_hosts; }
   int get_total_infectious_hosts() { return total_infectious_hosts; }

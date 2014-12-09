@@ -477,6 +477,14 @@ public:
     return this->activities.get_household();
   }
 
+  int get_exposed_household_index(){
+    return this->exposed_household_index;
+  }
+
+  void set_exposed_household(int index_){
+    this->exposed_household_index = index_;
+  }
+
   Place * get_permanent_household() {
     return this->activities.get_permanent_household();
   }
@@ -815,6 +823,7 @@ private:
   // index: Person's location in population container; once set, will be unique at any given time,
   // but can be reused over the course of the simulation for different people (after death/removal)
   int index;
+  int exposed_household_index;
   Health health;
   Demographics demographics;
   Activities activities;

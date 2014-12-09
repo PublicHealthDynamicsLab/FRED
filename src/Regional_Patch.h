@@ -17,12 +17,17 @@
 #define _FRED_REGIONAL_PATCH_H
 
 #include <vector>
+#include <set>
 
 #include "Person.h"
 #include "Abstract_Patch.h"
 #include "Global.h"
 #include "Utils.h"
+#include "Household.h"
+#include "Place_List.h"
+#include "Place.h"
 
+typedef vector <Person*> pvec;//Vector of person pointers
 
 class Regional_Layer;
 
@@ -112,6 +117,24 @@ public:
     // <-------------------------------------------------------------- Mutex
     fred::Scoped_Lock lock(this->mutex);
     this->person.push_back(p);
+    if(Global::Enable_Vector_Layer) {
+      Household * h =  (Household *) p->get_household();
+      int c = h ->get_county();
+      int h_county = Global::Places.get_county_with_index(c);
+      this->counties.insert(h_county);
+      if(p->is_student()){
+	int age_ = 0;
+	age_ = p->get_age();
+	if(age_>100)
+	  age_=100;
+	if(age_<0)
+	  age_=0;
+	students_by_age[age_].push_back(p);
+      }
+      if(p->get_workplace()!=NULL){
+	workers.push_back(p);
+      }
+    }
     ++this->demes[p->get_deme_id()];
     ++this->popsize;
   }
@@ -121,6 +144,8 @@ public:
   }
 
   Person * select_random_person();
+  Person * select_random_student(int age_);
+  Person * select_random_worker();
   void set_max_popsize(int n);
   int get_max_popsize() {
     return this->max_popsize;
@@ -130,14 +155,17 @@ public:
     return this->pop_density;
   }
 
-  void unenroll(Person *per);
-  void add_workplace(Place *workplace);
+  void unenroll(Person *pers);
+  void add_workplace(Place *place);
+  void add_school(Place *place);
   Place * get_nearby_workplace(Place *place, int staff);
   Place * get_closest_workplace(double x, double y, int min_size, int max_size, double * min_dist);
 
   int get_id() {
     return this->id;
   }
+
+  void swap_county_people();
 
   unsigned char get_deme_id();
 
@@ -150,11 +178,15 @@ protected:
   Regional_Layer * grid;
   int popsize;
   vector<Person *> person;
+  std::set<int > counties;
   int max_popsize;
   double pop_density;
   int id;
   static int next_patch_id;
   vector<Place *> workplaces;
+  vector<Place *> schools;
+  pvec students_by_age[100];
+  vector <Person *> workers;
   std::map<unsigned char, int> demes;
 };
 

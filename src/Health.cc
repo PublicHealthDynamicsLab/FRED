@@ -19,6 +19,7 @@
 #include "Health.h"
 #include "Place.h"
 #include "Household.h"
+#include "Place_List.h"
 #include "Person.h"
 #include "Disease.h"
 #include "Evolution.h"
@@ -348,6 +349,8 @@ void Health::become_exposed(Person * self, Disease *disease,
     this->infection[disease_id] = new_infection;
     this->susceptible_date[disease_id] = -1;
     self->get_household()->set_exposed(disease_id);
+    self->set_exposed_household(self->get_household()->get_index());
+
     if(Global::Verbose > 0) {
       if(transmission.get_infected_place() == NULL) {
         FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),
@@ -399,6 +402,9 @@ void Health::become_infectious(Person * self, Disease * disease) {
   assert(this->active_infections.test(disease_id));
   this->infectious.set(disease_id);
   disease->become_infectious(self);
+  int household_index = self->get_exposed_household_index();
+  Household * h = Global::Places.get_household_ptr(household_index);
+  h->set_human_infectious(disease_id);
   FRED_STATUS(1, "person %d is now INFECTIOUS for disease %d\n", self->get_id(),
       disease_id);
 }
@@ -423,7 +429,12 @@ void Health::recover(Person * self, Disease * disease) {
   become_removed(self, disease_id);
   this->recovered_today.set(disease_id);
   this->recovered.set(disease_id);
-  self->get_household()->set_recovered(disease_id);
+  int household_index = self->get_exposed_household_index();
+  Household * h = Global::Places.get_household_ptr(household_index);
+  h->set_recovered(disease_id);
+  h->reset_human_infectious();
+  //  self->get_permanent_household()->set_recovered(disease_id);
+  // OLD: self->get_household()->set_recovered(disease_id);
 }
 
 void Health::become_removed(Person * self, int disease_id) {

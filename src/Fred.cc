@@ -233,6 +233,8 @@ void fred_setup(int argc, char* argv[]) {
     }
     if(Global::Enable_Vector_Layer) {
       Global::Vectors->quality_control();
+      Global::Simulation_Region->set_population_size();
+      Global::Vectors->swap_county_people();
     }
     if(Global::Track_network_stats) {
       Global::Pop.get_network_stats(Global::Simulation_directory);

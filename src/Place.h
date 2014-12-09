@@ -258,6 +258,18 @@ public:
     return this->infectious_bitset.test(disease_id);
   }
   
+  bool is_human_infectious(int disease_id){
+    return this->human_infectious_bitset.test(disease_id);
+  }  
+
+  void set_human_infectious (int disease_id){
+    if(!(this->human_infectious_bitset.test(disease_id))) {
+      this->human_infectious_bitset.set(disease_id);
+    }
+  }
+  void reset_human_infectious(){
+    this->human_infectious_bitset.reset();
+  }
   void set_exposed(int disease_id) {
     this->exposed_bitset.set(disease_id);
   }
@@ -793,6 +805,7 @@ protected:
 
   // track whether or not place is infectious with each disease
   fred::disease_bitset infectious_bitset; 
+  fred::disease_bitset human_infectious_bitset;
   fred::disease_bitset recovered_bitset; 
   fred::disease_bitset exposed_bitset; 
 

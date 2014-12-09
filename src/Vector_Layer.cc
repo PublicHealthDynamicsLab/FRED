@@ -28,6 +28,7 @@ using namespace std;
 #include "Vector_Patch.h"
 #include "Visualization_Layer.h"
 #include "Regional_Layer.h"
+#include "Regional_Patch.h"
 #include "Params.h"
 #include "Random.h"
 #include "Place.h"
@@ -95,6 +96,18 @@ Vector_Layer::Vector_Layer() {
   this-> read_temperature();
  // Read location where a proportion of mosquitoes susceptibles are infected externaly (birth or migration)
   this-> read_vector_seeds();
+}
+void Vector_Layer::swap_county_people(){
+  int cols = Global::Simulation_Region->get_cols();
+  int rows = Global::Simulation_Region->get_rows();
+  for(int i = 0;i < rows;i++){
+    for(int j = 0;j<cols;j++){
+      Regional_Patch * region_patch = Global::Simulation_Region->get_patch(i,j);
+      int pop_size = region_patch ->get_popsize();
+      if (pop_size > 0)
+      region_patch -> swap_county_people();
+    }
+  }
 }
 void Vector_Layer::read_temperature(){
   double  patch_temperature;
@@ -185,8 +198,6 @@ void Vector_Layer::read_vector_seeds(){
 	if(mosquito_seeds<0) mosquito_seeds = 0;
 	if((dis >= 0) && (dis<Global::MAX_NUM_DISEASES) && (day_on >= 0) && (day_off >= 0) ){
 	  this->seed_patches_by_distance_in_km(lat,lon,radius_,dis,day_on,day_off,mosquito_seeds);
-	  if(RANDOM()<place_seeding_probability){
-	  }
 	}
       }else{
 	FRED_VERBOSE(0,"Attempting to seed infectious vectors %lg proportion in %lg proportion of houses, day_on %d day_off %d disease %d in all houses \n", mosquito_seeds,place_seeding_probability,day_on,day_off,dis);
@@ -335,9 +346,7 @@ double Vector_Layer::get_seeds(Place * p, int dis) {
   if (patch != NULL) {
     double seeds_ = patch->get_seeds(dis);
     if (seeds_ > 0){
-      //      printf("PLACE_IN_VECTOR_SEEDS %lg %lg\n",lat,lon);
-      if(RANDOM() < place_seeding_probability){
-	//	printf("PLACE_WITH_SEEDS %lg %lg\n",lat,lon);
+      if(URAND(0,1) < place_seeding_probability){
 	return seeds_;    
       }else{
 	return 0.0;
@@ -345,8 +354,7 @@ double Vector_Layer::get_seeds(Place * p, int dis) {
     }else{
       return 0.0;
     }
-  }
-  else {
+  }else {
     return 0.0;
   }
 }
@@ -509,7 +517,7 @@ void Vector_Layer::immunize_total_by_age(){
     if (county_set[i].habitants.size()>0){
       for (int j = 0; j < county_set[i].habitants.size();j++){
 	Person * per = county_set[i].habitants[j];
-	double prob_immune_ = (double)rand() / RAND_MAX;
+	double prob_immune_ = URAND(0,1);
 	double prob_immune = prob_immune_ * 100;
 	int temp_age = per->get_age();
 	if (temp_age > 101) temp_age = 101;
@@ -532,7 +540,7 @@ void Vector_Layer::immunize_by_age(int d){
     if (county_set[i].habitants.size()>0){
       for (int j = 0; j < county_set[i].habitants.size();j++){
 	Person * per = county_set[i].habitants[j];
-	double prob_immune_ = (double)rand() / RAND_MAX;
+	double prob_immune_ = URAND(0,1);
 	double prob_immune = prob_immune_ * 100;
 	int temp_age = per->get_age();
 	if (temp_age > 101) temp_age = 101;

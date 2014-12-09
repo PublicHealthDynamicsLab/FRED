@@ -106,7 +106,7 @@ void Vector_Patch::set_vector_seeds(int dis,int day_on, int day_off,double seeds
   seeds[dis] = seeds_;
   day_start_seed[dis] = day_on;
   day_end_seed[dis] = day_off;
-  FRED_VERBOSE(1, "SET VECTOR SEEDS: Patch %d %d proportion of susceptible for disease [%d]: %f. start: %d end: %d\n", row, col, dis,seeds[dis],day_on,day_off);
+  FRED_VERBOSE(1, "SET_VECTOR_SEEDS: Patch %d %d proportion of susceptible for disease [%d]: %f. start: %d end: %d\n", row, col, dis,seeds[dis],day_on,day_off);
 }
 void Vector_Patch::print() {
   FRED_VERBOSE(0, "Vector_patch: %d %d N_vectors %d\n",
