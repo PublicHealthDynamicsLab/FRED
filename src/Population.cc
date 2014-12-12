@@ -723,9 +723,13 @@ void Population::update(int day) {
 
   // update activity profiles on July 1
   if(Global::Enable_Population_Dynamics && Date::simulation_date_matches_pattern("07-01-*")) {
+    FRED_VERBOSE(0, "Before update_activity_profile day = %d\n", day);
+    Global::Places.print_status_of_schools(day);
     FRED_VERBOSE(0, "population::update_activity_profile day = %d\n", day);
     Update_Population_Activities update_population_activities(day);
     this->blq.apply(update_population_activities);
+    FRED_VERBOSE(0, "After update_activity_profile day = %d\n", day);
+    Global::Places.print_status_of_schools(day);
   }
 
   FRED_VERBOSE(1, "population::update_travel day = %d\n", day);

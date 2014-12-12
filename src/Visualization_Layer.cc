@@ -307,7 +307,8 @@ void Visualization_Layer::print_household_data(char * dir, int disease_id, int d
   fprintf(fp, "lat long\n");
   for (int i = 0; i < size; i++) {
     Place * house = households[i];
-    if (house->is_infectious(disease_id)) {
+    //  just consider human infectious, not mosquito neither infectious places visited
+    if (house->is_human_infectious(disease_id)) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }

@@ -37,6 +37,8 @@ class Hospital;
 class Classroom;
 class Workplace;
 
+#define GRADES 20
+
 // Helper class used during read_all_places/read_places; definition
 // after Place_List class
 class Place_Init_Data;
@@ -71,6 +73,7 @@ public:
 
   void reassign_workers();
   void prepare();
+  void print_status_of_schools(int day);
   void update(int day);
   void quality_control();
   void report_school_distributions(int day);
@@ -134,18 +137,24 @@ public:
     }
   }
 
-  Place * select_a_school_for_person(Person * person);
+  Place * select_school(int county_index, int grade);
 
   int get_number_of_counties() {
     return (int)this->counties.size();
   }
 
   int get_county_with_index(int index) {
+    if (index < 0) {
+      return 99999;
+    }
     assert (index < this->counties.size());
     return this->counties[index];
   }
 
   int get_population_of_county_with_index(int index) {
+    if (index < 0) {
+      return 0;
+    }
     assert (index < this->counties.size());
     return this->county_population[index];
   }
@@ -289,6 +298,7 @@ private:
 
   std::vector<Place *> places;
   std::vector<Place *> schools;
+  std::vector<Place *>  schools_by_grade[GRADES];
   std::vector<Place *> workplaces;
   std::vector<Place *> hospitals;
 

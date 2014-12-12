@@ -543,6 +543,12 @@ Utils::Tokens & Utils::split_by_delim( const std::string & str,
   int items = 0;
   while ( std::getline( ss, item, delim ) ) {
     if ( !item.empty() ) {
+      while (!item.empty() && (item.at(item.size()-1) == '\n' || item.at(item.size()-1) == '\r')) {
+	item.resize(item.size()-1);
+      }
+      if (item.empty()) {
+	continue;
+      }
       if ( item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'' ) && item.at(0)==item.at(item.size()-1)) {
 	// printf("item = |%s|\n",item.c_str());
 	item.erase(item.size()-1,1);
@@ -552,7 +558,7 @@ Utils::Tokens & Utils::split_by_delim( const std::string & str,
       else {
 	if ( item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'' ) ) {
 	  quoted_item = item;
-	  // printf("item is quoted\n",quoted_item.c_str());
+	  // printf("item is quoted = |%s|\n",quoted_item.c_str());
 	  continue;
 	}
 	else if ( !quoted_item.empty() ) {

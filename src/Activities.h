@@ -624,6 +624,10 @@ private:
   static int Employees_xlarge_with_sick_leave;
   static int Employees_xlarge_without_sick_leave;
 
+  // school change statistics
+  static int entered_school;
+  static int left_school;
+
   void clear_favorite_places() {
     this->favorite_places_map.clear();
   }

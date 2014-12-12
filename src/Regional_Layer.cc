@@ -129,6 +129,10 @@ Regional_Patch * Regional_Layer::get_patch(fred::geo lat, fred::geo lon) {
     return NULL;
 }
 
+Regional_Patch * Regional_Layer::get_patch(Place *place) {
+  return get_patch(place->get_latitude(), place->get_longitude());
+}
+
 Regional_Patch * Regional_Layer::get_patch_with_global_coords(int row, int col) {
   return get_patch(row - this->global_row_min, col - this->global_col_min);
 }
@@ -240,21 +244,9 @@ void Regional_Layer::report_grid_stats(int day) {
 }
 
 void Regional_Layer::add_workplace(Place *place) {
-  int row = this->get_row(place->get_latitude());
-  int col = this->get_col(place->get_longitude());
-  Regional_Patch * patch = this->get_patch(row, col);
+  Regional_Patch * patch = this->get_patch(place);
   if(patch != NULL) {
     patch->add_workplace(place);
-  }
-}
-
-
-void Regional_Layer::add_school(Place *place) {
-  int row = this->get_row(place->get_latitude());
-  int col = this->get_col(place->get_longitude());
-  Regional_Patch * patch = this->get_patch(row, col);
-  if(patch != NULL) {
-    patch->add_school(place);
   }
 }
 

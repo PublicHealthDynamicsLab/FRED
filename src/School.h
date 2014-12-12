@@ -79,6 +79,14 @@ public:
   }
   static int get_max_classroom_size() { return School::school_classroom_size; }
 
+  void set_county(int _county_index) {
+    this->county_index = _county_index;
+  }
+
+  int get_county() {
+    return this->county_index;
+  }
+
 private:
   static double *** school_contact_prob;
   static char school_closure_policy[];
@@ -104,6 +112,7 @@ private:
   vector<Place *> classrooms[GRADES];
   bool closure_dates_have_been_set;
   int max_grade;
+  int county_index;
 };
 
 #endif // _FRED_SCHOOL_H

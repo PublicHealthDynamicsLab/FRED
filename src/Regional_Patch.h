@@ -27,7 +27,8 @@
 #include "Place_List.h"
 #include "Place.h"
 
-typedef vector <Person*> pvec;//Vector of person pointers
+typedef vector <Person*> person_vec;	     //Vector of person pointers
+typedef vector <Place *> place_vec;	      //Vector of place pointers
 
 class Regional_Layer;
 
@@ -157,7 +158,6 @@ public:
 
   void unenroll(Person *pers);
   void add_workplace(Place *place);
-  void add_school(Place *place);
   Place * get_nearby_workplace(Place *place, int staff);
   Place * get_closest_workplace(double x, double y, int min_size, int max_size, double * min_dist);
 
@@ -183,10 +183,9 @@ protected:
   double pop_density;
   int id;
   static int next_patch_id;
-  vector<Place *> workplaces;
-  vector<Place *> schools;
-  pvec students_by_age[100];
-  vector <Person *> workers;
+  place_vec workplaces;
+  person_vec students_by_age[100];
+  person_vec workers;
   std::map<unsigned char, int> demes;
 };
 

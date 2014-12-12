@@ -447,6 +447,15 @@ public:
     return this->longitude;
   }
 
+  double get_distance(Place *place) {
+    double x1 = this->get_x();
+    double y1 = this->get_y();
+    double x2 = place->get_x();
+    double y2 = place->get_y();
+    double distance = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    return distance;
+  }
+
   /**
    * Get the count of agents in this place.
    *

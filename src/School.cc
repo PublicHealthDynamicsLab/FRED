@@ -60,6 +60,7 @@ School::School(const char *lab, fred::place_subtype _subtype, double lon, double
   this->closure_dates_have_been_set = false;
   this->staff_size = 0;
   this->max_grade = -1;
+  this->county_index = -1;
 }
 
 void School::prepare() {
@@ -329,7 +330,7 @@ void School::print(int disease_id) {
   fprintf(Global::Statusfp, "Place %d label %s type %c ", this->id, this->label, this->type);
   fprintf(Global::Statusfp, "S %zu I %zu N %d\n", susceptibles.size(), infectious.size(), this->N);
   for(int g = 0; g < GRADES; g++) {
-    fprintf(Global::Statusfp, "%d students in gared %d | ", this->students_in_grade[g], g);
+    fprintf(Global::Statusfp, "%d students in grade %d | ", this->students_in_grade[g], g);
   }
   fprintf(Global::Statusfp, "\n");
   fflush(Global::Statusfp);
@@ -413,7 +414,7 @@ Place * School::select_classroom_for_student(Person *per) {
 
 void School::print_size_distribution() {
   for (int g = 1; g < GRADES; g++) {
-    if (1 || this->orig_students_in_grade[g] > 0) {
+    if (this->orig_students_in_grade[g] > 0) {
       printf("SCHOOL %s grade %d orig %d current %d\n", 
 	     this->get_label(), g, this->orig_students_in_grade[g], this->students_in_grade[g]);
     }

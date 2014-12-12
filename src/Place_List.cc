@@ -558,6 +558,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
       }
     } else if(place_type == Place::SCHOOL) {
       place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat, container, &Global::Pop);
+      ((School *)place)->set_county((*itr).county);
     } else if(place_type == Place::WORKPLACE) {
       place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat, container, &Global::Pop);
     } else if(place_type == Place::HOSPITAL) {
@@ -723,6 +724,10 @@ void Place_List::read_places(const char * pop_dir, const char * pop_id, unsigned
     strcpy(location_file, temp_file);
   }
   read_household_file(deme_id, location_file, pids);
+  fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
+  for(int i = 0; i < this->counties.size(); i++) {
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+  }
 
   // read workplace locations
   sprintf(location_file, "%s/%s/%s_workplaces.txt", pop_dir, pop_id, pop_id);
@@ -731,6 +736,10 @@ void Place_List::read_places(const char * pop_dir, const char * pop_id, unsigned
   // read school locations
   sprintf(location_file, "%s/%s/%s_schools.txt", pop_dir, pop_id, pop_id);
   read_school_file(deme_id, location_file, pids);
+  fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
+  for(int i = 0; i < this->counties.size(); i++) {
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+  }
 
   // read hospital locations
   if(Global::Enable_Hospitals) {
@@ -743,6 +752,10 @@ void Place_List::read_places(const char * pop_dir, const char * pop_id, unsigned
     // for each group quarters)
     sprintf(location_file, "%s/%s/%s_synth_gq.txt", pop_dir, pop_id, pop_id);
     read_group_quarters_file(deme_id, location_file, pids);
+  }
+  fprintf(Global::Statusfp, "COUNTIES AFTER READING GQ\n");
+  for(int i = 0; i < this->counties.size(); i++) {
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
   }
 }
 
@@ -847,8 +860,8 @@ void Place_List::read_workplace_file(unsigned char deme_id, char * location_file
 
       sprintf(s, "%c%s", place_type, tokens[workplace_id]);
 
-      SetInsertResultT result = pids.insert(
-					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
+      SetInsertResultT result =
+	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -886,8 +899,8 @@ void Place_List::read_hospital_file(unsigned char deme_id, char * location_file,
 
       sprintf(s, "%c%s", place_type, tokens[workplace_id]);
       sscanf(tokens[num_workers_assigned], "%d", &workers);
-      SetInsertResultT result = pids.insert(
-					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, 0, 0, "0", false, workers));
+      SetInsertResultT result =
+	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, 0, 0, "0", false, workers));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -901,31 +914,31 @@ void Place_List::read_hospital_file(unsigned char deme_id, char * location_file,
 void Place_List::read_school_file(unsigned char deme_id, char * location_file, InitSetT & pids) {
 
   enum column_index {
-    school_id,
-    name,
-    stabbr,
-    address,
-    city,
-    county,
-    zip,
-    zip4,
-    nces_id,
-    total,
-    prek,
-    kinder,
-    gr01_gr12,
-    ungraded,
-    latitude,
-    longitude,
-    source,
-    stco
+    school_id = 0,
+    name = 1,
+    stabbr = 2,
+    address = 3,
+    city = 4,
+    county = 5,
+    zip = 6,
+    zip4 = 7,
+    nces_id = 8,
+    total = 9,
+    prek = 10,
+    kinder = 11,
+    gr01_gr12 = 12,
+    ungraded = 13,
+    latitude = 14,
+    longitude = 15,
+    source = 16,
+    stco = 17
   };
 
   FILE * fp = Utils::fred_open_file(location_file);
-  char line_str[255];
+  char line_str[1024];
   Utils::Tokens tokens;
 
-  for(char * line = line_str; fgets(line, 255, fp); line = line_str) {
+  for(char * line = line_str; fgets(line, 1024, fp); line = line_str) {
     if(strstr(line_str, "\"\"") != NULL) {
       Utils::delete_char(line_str, '"', FRED_STRING_SIZE);
     }
@@ -937,15 +950,40 @@ void Place_List::read_school_file(unsigned char deme_id, char * location_file, I
       fred::place_subtype place_subtype = fred::PLACE_SUBTYPE_NONE;
       char s[80];
 
+      // printf("|%s| |%s| |%s| |%s|\n", tokens[latitude], tokens[longitude], tokens[source], tokens[stco]); exit(0);
+
+      // get county index for this school
+      int county = -1;
+      if (strcmp(tokens[stco],"-1") != 0) {
+	char fipstr[8];
+	int fips = 0;
+	// grab the first five digits of stcotrbg to get the county fips code
+	strncpy(fipstr, tokens[stco], 5);
+	fipstr[5] = '\0';
+	sscanf(fipstr, "%d", &fips);
+	
+	// find the county index for this fips code
+	int n_counties = counties.size();
+	for(county = 0; county < n_counties; county++) {
+	  if(counties[county] == fips) {
+	    break;
+	  }
+	}
+	if(county == n_counties) {
+	  // this school is outside the simulation region
+	  county = -1;
+	}
+      }
+
       sprintf(s, "%c%s", place_type, tokens[school_id]);
 
-      SetInsertResultT result = pids.insert(
-					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
+      SetInsertResultT result =
+	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, county));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(0, "READ_SCHOOL: %s %c %f %f name |%s|\n", s, place_type, result.first->lat,
-            result.first->lon, tokens[ name ]);
+        FRED_VERBOSE(0, "READ_SCHOOL: %s %c %f %f name |%s| county %d\n", s, place_type, result.first->lat,
+		     result.first->lon, tokens[ name ], get_county_with_index(county));
       }
     }
     tokens.clear();
@@ -1058,9 +1096,9 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char * location
       place_type = Place::WORKPLACE;
       sprintf(wp, "%c%s", place_type, tokens[gq_id]);
 
-      result = pids.insert(
-			   Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
-					   tokens[longitude], deme_id, county, tract_index, "0", true));
+      result =
+	pids.insert(Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
+				    tokens[longitude], deme_id, county, tract_index, "0", true));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -1070,9 +1108,9 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char * location
       place_type = Place::HOUSEHOLD;
       sprintf(s, "%c%s", place_type, tokens[gq_id]);
       
-      result = pids.insert(
-			   Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
-					   deme_id, county, tract_index, "0", true, 0, number_of_units, tokens[gq_type], wp));
+      result = 
+	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
+				    deme_id, county, tract_index, "0", true, 0, number_of_units, tokens[gq_type], wp));
       if(result.second) {
         ++(this->place_type_counts[place_type]);
         FRED_VERBOSE(0, "READ_GROUP_QUARTERS: %s size %d %f %f\n", s, capacity, result.first->lat, result.first->lon);
@@ -1081,9 +1119,9 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char * location
       // generate additional household units associated with this group quarters
       for(int i = 1; i < number_of_units; i++) {
 	      sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
-	      result = pids.insert(
-			     Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
-					     deme_id, county, tract_index, "0", true, 0, 0, tokens[gq_type], wp));
+	      result = 
+		pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
+					    deme_id, county, tract_index, "0", true, 0, 0, tokens[gq_type], wp));
 	      if(result.second) {
 	        ++(this->place_type_counts[place_type]);
 	      }
@@ -1104,11 +1142,78 @@ void Place_List::prepare() {
   }
   Global::Neighborhoods->prepare();
 
+  for(int p = 0; p < number_places; ++p) {
+    if(places[p]->get_type() == Place::SCHOOL) {
+      Place * place = places[p];
+
+      // add school to lists of school by grade
+      for (int grade = 0; grade < GRADES; grade++) {
+	if (((School *)place)->get_orig_students_in_grade(grade) > 0) {
+	  this->schools_by_grade[grade].push_back(place);
+	}
+      }
+    }
+  }
+
+  if (Global::Verbose > 1) {
+    // check the schools by grade lists
+    printf("\n");
+    for (int grade = 0; grade < GRADES; grade++) {
+      int size = this->schools_by_grade[grade].size();
+      printf("GRADE = %d SCHOOLS = %d: ", grade, size);
+      for (int i = 0; i < size; i++) {
+	printf("%s ", this->schools_by_grade[grade][i]->get_label());
+      }
+      printf("\n");
+    }
+    printf("\n");
+  }
+  print_status_of_schools(0);
+
   FRED_STATUS(0, "deleting place_label_map\n", "");
   delete_place_label_map();
 
   FRED_STATUS(0, "prepare places finished\n", "");
 
+}
+
+void Place_List::print_status_of_schools(int day) {
+  int number_places = places.size();
+  int total_students = 0;
+  int students_per_grade[GRADES];
+  for (int i = 0; i < GRADES; i++) {
+    students_per_grade[i] = 0;
+  }
+  for(int p = 0; p < number_places; ++p) {
+    if(places[p]->get_type() == Place::SCHOOL) {
+      Place * place = places[p];
+      for (int grade = 0; grade < GRADES; grade++) {
+	int total = ((School *)place)->get_orig_number_of_students(); 
+	int orig = ((School *)place)->get_orig_students_in_grade(grade); 
+	int now = ((School *)place)->get_students_in_grade(grade); 
+	students_per_grade[grade] += now;
+	if (0 && total > 1500 && orig > 0) {
+	  printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n",
+		 place->get_label(), grade,
+		 ((School *)place)->get_orig_students_in_grade(grade),
+		 ((School *)place)->get_students_in_grade(grade),
+		 ((School *)place)->get_students_in_grade(grade) - 
+		 ((School *)place)->get_orig_students_in_grade(grade));
+	}
+      }
+    }
+  }
+  int year = day / 365;
+  char filename[256];
+  sprintf(filename, "students.%d", year);
+  FILE *fp = fopen(filename,"w");
+  for (int i = 0; i < GRADES; i++) {
+    fprintf(fp, "%d %d\n", i,students_per_grade[i]);
+    printf("YEAR %d GRADE %d STUDENTS %d\n", year,i,students_per_grade[i]);
+    total_students += students_per_grade[i];
+  }
+  fclose(fp);
+  printf("YEAR %d TOTAL_STUDENTS %d\n", year, total_students);
 }
 
 void Place_List::update(int day) {
@@ -1352,7 +1457,7 @@ void Place_List::setup_classrooms() {
   //#pragma omp parallel for reduction(+:number_classrooms)
   for(int p = 0; p < number_places; p++) {
     if(this->places[p]->get_type() == Place::SCHOOL) {
-      School * school = (School *)places[p];
+      School * school = static_cast<School *>(this->places[p]);
       number_classrooms += school->get_number_of_rooms();
       ++(number_schools);
     }
@@ -1366,7 +1471,7 @@ void Place_List::setup_classrooms() {
 
   for(int p = 0; p < number_places; p++) {
     if(this->places[p]->get_type() == Place::SCHOOL) {
-      School * school = (School *)this->places[p];
+      School * school = static_cast<School *>(this->places[p]);
       school->setup_classrooms(classroom_allocator);
     }
   }
@@ -1963,51 +2068,70 @@ Hospital * Place_List::get_hospital_assigned_to_household(Household * hh) {
   }
 }
 
-Place * Place_List::select_a_school_for_person(Person * person) {
-  std::vector<Place *>schools_with_grade;
-  schools_with_grade.clear();
-
-  int age = person->get_age();
-  int size = schools.size();
-  // get list of all schools with a vacancy in the right grade for this kid
-  for (int i = 0; i < size; i++) {
-    School * school = static_cast<School *>(schools[i]);
-    if (school->get_orig_students_in_grade(age) > 0) {
-      if (school->get_students_in_grade(age) < school->get_orig_students_in_grade(age))
-	schools_with_grade.push_back(school);
+Place * Place_List::select_school(int county_index, int grade) {
+  // find school with this grade with greatest vacancy, and one with smallest overcapacity
+  School * school_with_vacancy = NULL;
+  School * school_with_overcrowding = NULL;
+  double vacancy = -1.0;
+  // limit capacity to 150% of original size:
+  double overcap = 50.0;
+  int size = this->schools_by_grade[grade].size();
+  for(int i = 0; i < size; i++) {
+    School * school = static_cast<School *>(schools_by_grade[grade][i]);
+    /*
+    if (county_index != school->get_county())
+      continue;
+    */
+    int orig = school->get_orig_students_in_grade(grade);
+    // the following treats schools with fewer than 20 original
+    // students as an anomaly due to incomplete representation of
+    // the student body, perhaps from outside the simulation region
+    if (orig < 20)
+      continue;
+    // the following avoids initially empty schools
+    // if (orig == 0) continue;
+    int now = school->get_students_in_grade(grade);
+    if (now <= orig) {
+      // school has vacancy
+      double vac_pct = (double)(orig - now)/(double) orig;
+      if (vac_pct > vacancy) {
+	vacancy = vac_pct;
+	school_with_vacancy = school;
+      }
+    }
+    else {
+      // school is at or over capacity
+      double over_pct = (double)(now - orig)/(double) orig;
+      if (over_pct < overcap) {
+	overcap = over_pct;
+	school_with_overcrowding = school;
+      }
     }
   }
-  
-  if (schools_with_grade.size() > 0) {
-    // pick one at random
-    int pick = IRAND(0,(int)schools_with_grade.size()-1);
-    Place *sch = schools_with_grade[pick];
-    FRED_VERBOSE(0,"select_a_school_for_person %d age %d found a vacancy in school %s size %d orig %d\n",
-		 person->get_id(), person->get_age(), sch->get_label(), sch->get_size(), sch->get_orig_size());
-    return sch;
+
+  // if there is a school with a vacancy, return one with the most vacancy
+  if (school_with_vacancy != NULL) {
+    int orig = school_with_vacancy->get_orig_students_in_grade(grade);
+    int now = school_with_vacancy->get_students_in_grade(grade);
+    FRED_VERBOSE(1, "select_school_by_grade: GRADE %d closest school WITH VACANCY %s ORIG %d NOW %d\n",
+	   grade, school_with_vacancy->get_label(), orig, now);
+    return school_with_vacancy;
   }
 
-  // try again, but take any school without or without vacancies
-  for (int i = 0; i < size; i++) {
-    School * school = static_cast<School *>(schools[i]);
-    if (school->get_orig_students_in_grade(age) > 0) {
-      schools_with_grade.push_back(school);
-    }
+  // otherwise, return school with minimal overcrowding, if there is one
+  if (school_with_overcrowding != NULL) {
+    int orig = school_with_overcrowding->get_orig_students_in_grade(grade);
+    int now = school_with_overcrowding->get_students_in_grade(grade);
+    FRED_VERBOSE(1, "select_school_by_grade: GRADE %d school with smallest OVERCROWDING %s ORIG %d NOW %d\n",
+	   grade, school_with_overcrowding->get_label(), orig, now);
+    return school_with_overcrowding;
   }
 
-  if (schools_with_grade.size() > 0) {
-    // pick one at random
-    int pick = IRAND(0,(int)schools_with_grade.size()-1);
-    Place *sch = schools_with_grade[pick];
-    FRED_VERBOSE(0,"select_a_school_for_person %d age %d found a no-vacancy school %s size %d orig %d\n",
-		 person->get_id(), person->get_age(), sch->get_label(), sch->get_size(), sch->get_orig_size());
-    return sch;
-  }
-
-  FRED_VERBOSE(0,"select_a_school_for_person %d age %d returns NULL\n",
-	       person->get_id(), person->get_age());
+  // ERROR: no grade appropriate school found
+  Utils::fred_abort("select_school_by_grade: NULL -- no grade-appropriate school found\n");
   return NULL;
 }
+
 
 void Place_List::find_visitors_to_infectious_places(int day) {
 

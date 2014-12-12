@@ -194,10 +194,6 @@ void Regional_Patch::add_workplace(Place *workplace) {
   this->workplaces.push_back(workplace);
 }
 
-void Regional_Patch::add_school(Place *place) {
-  this->schools.push_back(place);
-}
-
 void Regional_Patch::swap_county_people(){
   if(counties.size()>1){
     double percentage = 0.1;

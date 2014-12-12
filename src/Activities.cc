@@ -67,6 +67,9 @@ int Activities::Sick_days_absent = 0;
 int Activities::School_sick_days_present = 0;
 int Activities::School_sick_days_absent = 0;
 
+int Activities::entered_school = 0;
+int Activities::left_school = 0;
+
 /// static method called in main (Fred.cc)
 
 void Activities::initialize_static_variables() {
@@ -315,6 +318,15 @@ void Activities::update(int day) {
   Activities::Sick_days_absent = 0;
   Activities::School_sick_days_present = 0;
   Activities::School_sick_days_absent = 0;
+
+  // print school change activities
+  if (Activities::entered_school + Activities::left_school > 0) {
+    printf("DAY %d ENTERED_SCHOOL %d LEFT_SCHOOL %d\n",
+	   day, Activities::entered_school, Activities::left_school);
+    Activities::entered_school = 0;
+    Activities::left_school = 0;
+  }
+
 
   FRED_STATUS(1, "Activities update completed\n");
 }
@@ -755,26 +767,20 @@ void Activities::print(Person * self) {
 }
 
 void Activities::assign_school(Person * self) {
-  FRED_VERBOSE(1, "assign_school entered for person %d age %d\n", self->get_id(), self->get_age());
-  Neighborhood_Patch * patch = self->get_household()->get_patch();
-  if(Global::Enable_Hospitals && this->is_hospitalized) {
-    patch = get_permanent_household()->get_patch();
-  }
-  assert(patch != NULL);
-  Place *p = patch->select_school(self->get_age());
-  if (p == NULL) {
-    FRED_VERBOSE(0, "assign_school: falling back to random selection for person %d age %d\n", self->get_id(), self->get_age());
-    // assign this student to any school appropriate to its age
-    p = Global::Places.select_a_school_for_person(self);
-    assert(p != NULL);
-  }
-  FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n", p->get_label(), self->get_id(), self->get_age());
-  p->enroll(self);
-  // School * s = static_cast<School *>(p);  s->print_size_distribution();
-  set_school(p);
+  int grade = self->get_age();
+  FRED_VERBOSE(1, "assign_school entered for person %d age %d grade %d\n",
+	       self->get_id(), self->get_age(), grade);
+  Place *school = Global::Places.select_school(((Household *)self->get_household())->get_county(), grade);
+  assert(school != NULL);
+  FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
+	       school->get_label(), self->get_id(), self->get_age());
+  school->enroll(self);
+  set_school(school);
   set_classroom(NULL);
   assign_classroom(self);
-  FRED_VERBOSE(1, "assign_school finished for person %d age %d: school %s classroom %s\n", self->get_id(), self->get_age(), get_school()->get_label(), get_classroom()->get_label());
+  FRED_VERBOSE(1, "assign_school finished for person %d age %d: school %s classroom %s\n",
+	       self->get_id(), self->get_age(),
+	       get_school()->get_label(), get_classroom()->get_label());
   return;
 }
 
@@ -883,8 +889,6 @@ int Activities::get_degree() {
 void Activities::update_profile(Person * self) {
   int age = self->get_age();
 
-  // printf("update_profile entered, age = %d profile = %c\n", age, profile);
-
   // profiles for group quarters residents
   if (get_household()->is_college()) {
     if (profile != COLLEGE_STUDENT_PROFILE) {
@@ -948,9 +952,10 @@ void Activities::update_profile(Person * self) {
     change_workplace(self, NULL);
     assign_school(self);
     assert(get_school() && get_classroom());
-    FRED_VERBOSE(1,"PERSON %d AGE %d ENTERING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+    FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d ENTERING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
 		 self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
 		 get_school()->get_orig_size(), get_classroom()->get_label());
+    Activities::entered_school++;
     return;
   }
 
@@ -967,12 +972,17 @@ void Activities::update_profile(Person * self) {
 	  change_school(self, NULL);
 	  assign_school(self);
 	  assert(get_school() && get_classroom());
-	  FRED_VERBOSE(1,"PERSON %d AGE %d JOINING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_school()->get_size(), get_school()->get_orig_size(), get_classroom()->get_label());
+	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d CHANGING TO SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		       get_school()->get_orig_size(), get_classroom()->get_label());
 	}
 	else {
 	  // time to leave school
-	  FRED_VERBOSE(1,"LEAVING_SCHOOL: PERSON %d AGE %d FORMER SCHOOL %s SIZE %d\n", self->get_id(), age, s->get_label(), s->get_size());
+	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d LEAVING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		       get_school()->get_orig_size(), get_classroom()->get_label());
 	  change_school(self, NULL);
+	  Activities::left_school++;
 	  // get a job
 	  this->profile = WORKER_PROFILE;
 	  assign_workplace(self);
@@ -983,49 +993,43 @@ void Activities::update_profile(Person * self) {
 	return;
       }
 
+      // not too old for current school.
+
       // make sure we're in an appropriate classroom
       Classroom * c = static_cast<Classroom *>(get_classroom());
-      if (c == NULL) {
-	// we have a school, but no current classroom
-	FRED_VERBOSE(1,"ADD_CLASSROOM: PERSON %d AGE %d HAS NO CLASSROOM IN SCHOOL %s\n", self->get_id(), age, s->get_label());
-	assign_classroom(self);
-	if (get_classroom() == NULL) {
-	  // find another school
-	  FRED_VERBOSE(1,"CHANGE_SCHOOLS: PERSON %d AGE %d NO GRADE IN SCHOOL %s\n", self->get_id(), age, s->get_label());
-	  change_school(self, NULL);
-	  assign_school(self);
-	  FRED_VERBOSE(1,"PERSON %d AGE %d JOINING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_school()->get_size(), get_school()->get_orig_size(), get_classroom()->get_label());
-	}
-	assert(get_school() && get_classroom());
-	FRED_VERBOSE(1,"PERSON %d AGE %d IN SCHOOL %s CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_classroom()->get_label());
-	return;
-      }
+      assert(c != NULL);
 
       // check if too old for current classroom
       if (c->get_age_level() != age) {
-	if(s->get_classrooms_in_grade(age) > 0) {
-	  FRED_VERBOSE(1,"CHANGE_GRADES: PERSON %d AGE %d IN SCHOOL %s\n", self->get_id(), age, s->get_label());
-	  // pick a new classroom in current school
-	  c->unenroll(self);
-	  set_classroom(NULL);
-	  assign_classroom(self);
+	// stay in this school if (1) the school offers this grade and (2) the grade is not too overcrowded (<150%)
+	if(s->get_students_in_grade(age) < 1.5 * s->get_orig_students_in_grade(age)) {
+	  FRED_VERBOSE(1,"CHANGE_GRADES: PERSON %d AGE %d IN SCHOOL %s\n",
+		       self->get_id(), age, s->get_label());
+	  // re-enroll in current school -- this will assign an appropriate grade and classroom.
+	  change_school(self,s);
+	  assert(get_school() && get_classroom());
+	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d MOVE TO NEXT GRADE IN SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		       get_school()->get_orig_size(), get_classroom()->get_label());
 	} else {
-	  FRED_VERBOSE(1,"CHANGE_SCHOOLS: PERSON %d AGE %d NO GRADE IN SCHOOL %s\n", self->get_id(), age, s->get_label());
+	  FRED_VERBOSE(1,"CHANGE_SCHOOLS: PERSON %d AGE %d NO ROOM in GRADE IN SCHOOL %s\n",
+		       self->get_id(), age, s->get_label());
 	  // find another school
 	  change_school(self, NULL);
 	  assign_school(self);
-	  FRED_VERBOSE(1,"PERSON %d AGE %d JOINING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_school()->get_size(), get_school()->get_orig_size(), get_classroom()->get_label());
+	  assert(get_school() && get_classroom());
+	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d CHANGE TO NEW SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		       get_school()->get_orig_size(), get_classroom()->get_label());
 	}
-	assert(get_school() && get_classroom());
-	FRED_VERBOSE(1,"PERSON %d AGE %d IN SCHOOL %s CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_classroom()->get_label());
 	return;
       }
 
       // current school and classroom are ok
       assert(get_school() && get_classroom());
-      FRED_STATUS(1, "KEEPING CURRENT SCHOOL/CLASSROOM ASSIGNMENT: ID %d AGE %d SEX %c %s %s | %s\n",
-		  self->get_id(), age, self->get_sex(),
-		  s->get_label(), c->get_label(), to_string( self ).c_str());
+      FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d STAYING IN SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		   self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		   get_school()->get_orig_size(), get_classroom()->get_label());
     }
     else {
       // no current school
@@ -1034,7 +1038,10 @@ void Activities::update_profile(Person * self) {
 	change_school(self, NULL);
 	assign_school(self);
 	assert(get_school() && get_classroom());
-	FRED_VERBOSE(1,"PERSON %d AGE %d JOINING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n", self->get_id(), age, get_school()->get_label(), get_school()->get_size(), get_school()->get_orig_size(), get_classroom()->get_label());
+	Activities::entered_school++;
+	FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d ADDING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
+		     self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
+		     get_school()->get_orig_size(), get_classroom()->get_label());
       }
       else {
 	// time to leave school

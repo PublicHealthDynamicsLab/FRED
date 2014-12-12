@@ -34,11 +34,11 @@ public:
   Regional_Patch ** get_neighbors(int row, int col);
   Regional_Patch * get_patch(int row, int col);
   Regional_Patch * get_patch(fred::geo lat, fred::geo lon);
+  Regional_Patch * get_patch(Place *place);
   Regional_Patch * get_patch_with_global_coords(int row, int col);
   Regional_Patch * get_patch_from_id( int id );
   Regional_Patch * select_random_patch();
   void add_workplace(Place *place);
-  void add_school(Place *place);
   Place * get_nearby_workplace(int row, int col, double x, double y, int min_staff, int max_staff, double * min_dist);
   void set_population_size();
   void quality_control();
