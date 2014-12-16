@@ -864,6 +864,10 @@ diabetes_prob_upper_ages = 0
 diabetes_prob_values = 0
 heart_disease_prob_upper_ages = 0
 heart_disease_prob_values = 0
+hypertension_prob_upper_ages = 0
+hypertension_prob_values = 0
+hypercholestrolemia_prob_upper_ages = 0
+hypercholestrolemia_prob_values = 0
 
 # Chronic condition hospitalization multipliers
 asthma_hospitalization_prob_mult_upper_ages = 1 120
@@ -876,6 +880,10 @@ diabetes_hospitalization_prob_mult_upper_ages = 1 120
 diabetes_hospitalization_prob_mult_values = 1 1.0
 heart_disease_hospitalization_prob_mult_upper_ages = 1 120
 heart_disease_hospitalization_prob_mult_values = 1 1.0
+hypertension_hospitalization_prob_mult_upper_ages = 1 120
+hypertension_hospitalization_prob_mult_values = 1 1.0
+hypercholestrolemia_hospitalization_prob_mult_upper_ages = 1 120
+hypercholestrolemia_hospitalization_prob_mult_values 1 1.0
 pregnancy_hospitalization_prob_mult_upper_ages = 1 120
 pregnancy_hospitalization_prob_mult_values = 1 1.0
 
@@ -890,6 +898,10 @@ diabetes_case_fatality_prob_mult_upper_ages = 1 120
 diabetes_case_fatality_prob_mult_values = 1 1.0
 heart_disease_case_fatality_prob_mult_upper_ages = 1 120
 heart_disease_case_fatality_prob_mult_values = 1 1.0
+hypertension_case_fatality_prob_mult_upper_ages = 1 120
+hypertension_case_fatality_prob_mult_values = 1 1.0
+hypercholestrolemia_case_fatality_prob_mult_upper_ages = 1 120
+hypercholestrolemia_case_fatality_prob_mult_values = 1 1.0
 pregnancy_case_fatality_prob_mult_upper_ages = 1 120
 pregnancy_case_fatality_prob_mult_values = 1 1.0
 
