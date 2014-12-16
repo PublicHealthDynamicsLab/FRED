@@ -45,6 +45,8 @@ namespace Chronic_condition_index {
     CHRONIC_RENAL_DISEASE,
     DIABETES,
     HEART_DISEASE,
+    HYPERTENSION,
+    HYPERCHOLESTROLEMIA,
     CHRONIC_MEDICAL_CONDITIONS
   };
 };
@@ -55,6 +57,20 @@ namespace Intervention_flag {
   enum e {
     TAKES_VACCINE,
     TAKES_AV
+  };
+};
+
+// The following enum defines symbolic names for Insurance Company Assignment.
+// The last element should always be INSURANCE_ASSIGNMENTS.
+namespace Insurance_assignment_index {
+  enum e {
+    PRIVATE,
+    MEDICARE,
+    MEDICAID,
+    HIGHMARK,
+    UPMC,
+    UNINSURED,
+    INSURANCE_ASSIGNMENTS
   };
 };
 
@@ -69,11 +85,11 @@ public:
    *
    * @param person a pointer to a Person object
    */
-  Health(Person * person);
+  Health(Person* person);
 
   ~Health();
 
-  static const char * chronic_condition_lookup(int idx) {
+  static const char* chronic_condition_lookup(int idx) {
     assert(idx >= 0);
     assert(idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(idx) {
@@ -87,6 +103,10 @@ public:
         return "Diabetes";
       case Chronic_condition_index::HEART_DISEASE:
         return "Heart Disease";
+      case Chronic_condition_index::HYPERTENSION:
+        return "Hypertension";
+      case Chronic_condition_index::HYPERCHOLESTROLEMIA:
+        return "Hypercholestrolemia";
       default:
         Utils::fred_abort("Invalid Chronic Condition Type", "");
     }
@@ -102,54 +122,54 @@ public:
    *
    * @param day the simulation day
    */
-  void update(Person * self, int day);
+  void update(Person* self, int day);
 
-  void update_face_mask_decision(Person * self, int day);
+  void update_face_mask_decision(Person* self, int day);
 
   /*
    * Separating the updates for vaccine & antivirals from the
    * infection update gives improvement for the base.  
    */
-  void update_interventions(Person * self, int day);
+  void update_interventions(Person* self, int day);
 
   /**
    * Agent is susceptible to the disease
    *
    * @param disease which disease
    */
-  void become_susceptible(Person * self, int disease_id);
+  void become_susceptible(Person* self, int disease_id);
 
-  void become_susceptible(Person * self, Disease * disease);
+  void become_susceptible(Person* self, Disease* disease);
 
-  void become_susceptible_by_vaccine_waning(Person * self, Disease * disease);
+  void become_susceptible_by_vaccine_waning(Person* self, Disease* disease);
 
   /**
    * Agent is unsusceptible to the disease
    *
    * @param disease which disease
    */
-  void become_unsusceptible(Person * self, Disease * disease);
+  void become_unsusceptible(Person* self, Disease* disease);
 
   /**
    * Agent is infectious
    *
    * @param disease pointer to the Disease object
    */
-  void become_infectious(Person * self, Disease * disease);
+  void become_infectious(Person* self, Disease* disease);
 
   /**
    * Agent is symptomatic
    *
    * @param disease pointer to the Disease object
    */
-  void become_symptomatic(Person * self, Disease * disease);
+  void become_symptomatic(Person* self, Disease* disease);
 
   /**
    * Agent is immune to the disease
    *
    * @param disease pointer to the Disease object
    */
-  void become_immune(Person * self, Disease* disease);
+  void become_immune(Person* self, Disease* disease);
 
   /**
    * Agent is removed from the susceptible population that is
@@ -157,7 +177,7 @@ public:
    *
    * @param disease which disease
    */
-  void become_removed(Person * self, int disease_id);
+  void become_removed(Person* self, int disease_id);
 
   /**
    * Agent is 'At Risk' to a given Disease
@@ -171,7 +191,7 @@ public:
    *
    * @param disease pointer to the Disease object
    */
-  void recover(Person * self, Disease * disease);
+  void recover(Person* self, Disease* disease);
 
   /**
    * Is the agent susceptible to a given disease
@@ -207,11 +227,14 @@ public:
   bool is_symptomatic() const {
     return this->symptomatic.any();
   }
+
   bool is_symptomatic(int disease_id) {
     return this->symptomatic.test(disease_id);
   }
 
-  int get_days_symptomatic() { return days_symptomatic; }
+  int get_days_symptomatic() { 
+    return this->days_symptomatic; 
+  }
 
   /**
    * Is the agent immune to a given disease
@@ -277,9 +300,9 @@ public:
    * @param disease the disease to check
    * @return Person who gave this person the disease
    */
-  Person * get_infector(int disease_id) const;
+  Person* get_infector(int disease_id) const;
 
-  Place * get_infected_place(int disease_id) const;
+  Place* get_infected_place(int disease_id) const;
 
   /**
    * @param disease the disease to check
@@ -291,7 +314,7 @@ public:
    * @param disease the disease to check
    * @return the label of the infected place
    */
-  char * get_infected_place_label(int disease_id) const;
+  char* get_infected_place_label(int disease_id) const;
 
   /**
    * @param disease the disease to check
@@ -329,7 +352,7 @@ public:
    * @param disease the disease to check
    * @return a pointer to the Infection object
    */
-  Infection * get_infection(int disease_id) const {
+  Infection* get_infection(int disease_id) const {
     return this->infection[disease_id];
   }
 
@@ -349,14 +372,14 @@ public:
    * @param disease the disease with which to infect the Person
    * @param transmission a pointer to a Transmission object
    */
-  void infect(Person * self, Person *infectee, int disease_id,
+  void infect(Person* self, Person* infectee, int disease_id,
       Transmission & transmission);
 
   /**
    * @param disease pointer to a Disease object
    * @param transmission pointer to a Transmission object
    */
-  void become_exposed(Person * self, Disease *disease,
+  void become_exposed(Person* self, Disease* disease,
       Transmission & transmission);
 
   //Medication operators
@@ -366,14 +389,14 @@ public:
    * @param day the simulation day
    * @param vm a pointer to the Manager of the Vaccinations
    */
-  void take_vaccine(Person * self, Vaccine *vacc, int day, Vaccine_Manager* vm);
+  void take_vaccine(Person* self, Vaccine* vacc, int day, Vaccine_Manager* vm);
 
   /**
    * Agent will take an antiviral
    * @param av pointer to the Antiviral to take
    * @param day the simulation day
    */
-  void take(Antiviral *av, int day);
+  void take(Antiviral* av, int day);
 
   /**
    * @return a count of the antivirals this agent has already taken
@@ -432,7 +455,7 @@ public:
   /**
    * @return a pointer to this instance's AV_Health object
    */
-  AV_Health * get_av_health(int i) const {
+  AV_Health* get_av_health(int i) const {
     assert(this->av_health != NULL);
     return (*this->av_health)[i];
   }
@@ -445,7 +468,7 @@ public:
   /**
    * @return a pointer to this instance's Vaccine_Health object
    */
-  Vaccine_Health * get_vaccine_health(int i) const {
+  Vaccine_Health* get_vaccine_health(int i) const {
     if(this->vaccine_health) {
       return (*this->vaccine_health)[i];
     } else {
@@ -515,29 +538,32 @@ public:
   void modify_develops_symptoms(int disease_id, bool symptoms, int cur_day);
 
   // Personal Health Behaviors
-  bool is_wearing_face_mask() { return wears_face_mask_today; }
-  bool is_washing_hands() { return washes_hands; }
+  bool is_wearing_face_mask() { 
+    return this->wears_face_mask_today; 
+  }
+
+  bool is_washing_hands() { 
+    return this->washes_hands; 
+  }
 
   void start_wearing_face_mask() {
     this->wears_face_mask_today = true;
-    return;
   }
 
   void stop_wearing_face_mask() {
     this->wears_face_mask_today = false;
-    return;
   }
 
   double get_transmission_modifier_due_to_hygiene(int disease_id);
   double get_susceptibility_modifier_due_to_hygiene(int disease_id);
 
-  void terminate(Person * self);
+  void terminate(Person* self);
 
   int get_num_past_infections(int disease) {
     return this->past_infections[disease].size();
   }
 
-  Past_Infection * get_past_infection(int disease, int i) {
+  Past_Infection* get_past_infection(int disease, int i) {
     return &(this->past_infections[disease].at(i));
   }
 
@@ -545,15 +571,15 @@ public:
     this->past_infections[disease].clear();
   }
 
-  //void add_past_infection(int d, Past_Infection *pi){ past_infections[d].push_back(pi); }  
+  //void add_past_infection(int d, Past_Infection* pi){ past_infections[d].push_back(pi); }  
   void add_past_infection(int strain_id, int recovery_date, int age_at_exposure,
-      Disease * dis) {
+      Disease* dis) {
     this->past_infections[dis->get_id()].push_back(
         Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
 
-  void update_place_counts(Person * self, int day, int disease_id,
-      Place * place);
+  void update_place_counts(Person* self, int day, int disease_id,
+      Place* place);
 
   bool is_newly_infected(int day, int disease_id) {
     return day == get_exposure_date(disease_id);
@@ -566,6 +592,7 @@ public:
   bool is_alive() {
     return this->alive;
   }
+
   void die() {
     this->alive = false;
   }
@@ -647,6 +674,36 @@ public:
   void set_has_heart_disease(bool has_cond) {
     set_has_chronic_condition(Chronic_condition_index::HEART_DISEASE, has_cond);
   }
+    
+  /**
+   * @return <code>true</code> if agent has hypertension, <code>false</code> otherwise
+   */
+  bool has_hypertension() {
+    return has_chronic_condition(Chronic_condition_index::HYPERTENSION);
+  }
+    
+  /**
+   * Sets whether or not the agent has hypertension
+   * @param has_cond whether or not the agent has hypertension
+   */
+  void set_has_hypertension(bool has_cond) {
+    set_has_chronic_condition(Chronic_condition_index::HYPERTENSION, has_cond);
+  }
+
+  /**
+   * @return <code>true</code> if agent has hypercholestrolemia, <code>false</code> otherwise
+   */
+  bool has_hypercholestrolemia() {
+    return has_chronic_condition(Chronic_condition_index::HYPERCHOLESTROLEMIA);
+  }
+
+  /**
+   * Sets whether or not the agent has hypercholestrolemia 
+   * @param has_cond whether or not the agent has hypercholestrolemia 
+   */
+  void set_has_hypercholestrolemia(bool has_cond) {
+    set_has_chronic_condition(Chronic_condition_index::HYPERCHOLESTROLEMIA, has_cond);
+  }
 
   static double get_chronic_condition_case_fatality_prob_mult(double real_age, int cond_idx);
   static double get_chronic_condition_hospitalization_prob_mult(double real_age, int cond_idx);
@@ -676,26 +733,32 @@ private:
   std::map<int, bool> chronic_conditions_map;
 
   static bool is_initialized;
-  static Age_Map * asthma_prob;
-  static Age_Map * COPD_prob;
-  static Age_Map * chronic_renal_disease_prob;
-  static Age_Map * diabetes_prob;
-  static Age_Map * heart_disease_prob;
-   
-  static Age_Map * asthma_hospitalization_prob_mult;
-  static Age_Map * COPD_hospitalization_prob_mult;
-  static Age_Map * chronic_renal_disease_hospitalization_prob_mult;
-  static Age_Map * diabetes_hospitalization_prob_mult;
-  static Age_Map * heart_disease_hospitalization_prob_mult;
+  static Age_Map* asthma_prob;
+  static Age_Map* COPD_prob;
+  static Age_Map* chronic_renal_disease_prob;
+  static Age_Map* diabetes_prob;
+  static Age_Map* heart_disease_prob;
+  static Age_Map* hypertension_prob;
+  static Age_Map* hypercholestrolemia_prob;
+    
+  static Age_Map* asthma_hospitalization_prob_mult;
+  static Age_Map* COPD_hospitalization_prob_mult;
+  static Age_Map* chronic_renal_disease_hospitalization_prob_mult;
+  static Age_Map* diabetes_hospitalization_prob_mult;
+  static Age_Map* heart_disease_hospitalization_prob_mult;
+  static Age_Map* hypertension_hospitalization_prob_mult;
+  static Age_Map* hypercholestrolemia_hospitalization_prob_mult;
 
-  static Age_Map * asthma_case_fatality_prob_mult;
-  static Age_Map * COPD_case_fatality_prob_mult;
-  static Age_Map * chronic_renal_disease_case_fatality_prob_mult;
-  static Age_Map * diabetes_case_fatality_prob_mult;
-  static Age_Map * heart_disease_case_fatality_prob_mult;
+  static Age_Map* asthma_case_fatality_prob_mult;
+  static Age_Map* COPD_case_fatality_prob_mult;
+  static Age_Map* chronic_renal_disease_case_fatality_prob_mult;
+  static Age_Map* diabetes_case_fatality_prob_mult;
+  static Age_Map* heart_disease_case_fatality_prob_mult;
+  static Age_Map* hypertension_case_fatality_prob_mult;
+  static Age_Map* hypercholestrolemia_case_fatality_prob_mult;
 
-  static Age_Map * pregnancy_hospitalization_prob_mult;
-  static Age_Map * pregnancy_case_fatality_prob_mult;
+  static Age_Map* pregnancy_hospitalization_prob_mult;
+  static Age_Map* pregnancy_case_fatality_prob_mult;
 
   // health protective behavior parameters
   static int Days_to_wear_face_masks;
@@ -734,16 +797,16 @@ private:
   // Antivirals.  These are all dynamically allocated to save space
   // when not in use
   typedef vector<bool> checked_for_av_type;
-  checked_for_av_type * checked_for_av;
-  typedef vector<AV_Health *> av_health_type;
-  av_health_type * av_health;
-  typedef vector<AV_Health *>::iterator av_health_itr;
+  checked_for_av_type* checked_for_av;
+  typedef vector<AV_Health*> av_health_type;
+  av_health_type* av_health;
+  typedef vector<AV_Health*>::iterator av_health_itr;
 
   // Vaccines.  These are all dynamically allocated to save space
   // when not in use
-  typedef vector<Vaccine_Health *> vaccine_health_type;
-  vaccine_health_type * vaccine_health;
-  typedef vector<Vaccine_Health *>::iterator vaccine_health_itr;
+  typedef vector<Vaccine_Health*> vaccine_health_type;
+  vaccine_health_type* vaccine_health;
+  typedef vector<Vaccine_Health*>::iterator vaccine_health_itr;
 
   // follows face mask wearing behavior pattern
   bool has_face_mask_behavior;
@@ -812,7 +875,7 @@ protected:
 
   friend class Person;
   Health();
-  void setup(Person * self);
+  void setup(Person* self);
 };
 
 #endif // _FRED_HEALTH_H
