@@ -132,37 +132,37 @@ bool Global::Report_Immunity = false;
 // global singleton objects
 Population Global::Pop;
 Place_List Global::Places;
-Neighborhood_Layer *Global::Neighborhoods = NULL;
-Regional_Layer *Global::Simulation_Region;
-Visualization_Layer *Global::Visualization;
-Vector_Layer *Global::Vectors;
-Date *Global::Sim_Start_Date = NULL;
-Date *Global::Sim_Current_Date = NULL;
-Evolution *Global::Evol = NULL;
-Seasonality * Global::Clim = NULL;
-Tracker<int> * Global::Daily_Tracker = NULL;
-Tracker<long int> * Global::Tract_Tracker = NULL;
-Tracker<int> *Global::Income_Category_Tracker = NULL;
+Neighborhood_Layer* Global::Neighborhoods = NULL;
+Regional_Layer* Global::Simulation_Region;
+Visualization_Layer* Global::Visualization;
+Vector_Layer* Global::Vectors;
+Date* Global::Sim_Start_Date = NULL;
+Date* Global::Sim_Current_Date = NULL;
+Evolution* Global::Evol = NULL;
+Seasonality* Global::Clim = NULL;
+Tracker<int>* Global::Daily_Tracker = NULL;
+Tracker<long int>* Global::Tract_Tracker = NULL;
+Tracker<int>* Global::Income_Category_Tracker = NULL;
 
 #if SQLITE
 DB Global::db;
 #endif
 
 // global file pointers
-FILE *Global::Statusfp = NULL;
-FILE *Global::Outfp = NULL;
-FILE *Global::Tracefp = NULL;
-FILE *Global::Infectionfp = NULL;
-FILE *Global::VaccineTracefp = NULL;
-FILE *Global::Birthfp = NULL;
-FILE *Global::Deathfp = NULL;
-FILE *Global::Prevfp = NULL;
-FILE *Global::Incfp = NULL;
-FILE *Global::ErrorLogfp = NULL;
-FILE *Global::Immunityfp = NULL;
-FILE *Global::Householdfp = NULL;
-FILE *Global::Tractfp = NULL;
-FILE *Global::IncomeCatfp = NULL;
+FILE* Global::Statusfp = NULL;
+FILE* Global::Outfp = NULL;
+FILE* Global::Tracefp = NULL;
+FILE* Global::Infectionfp = NULL;
+FILE* Global::VaccineTracefp = NULL;
+FILE* Global::Birthfp = NULL;
+FILE* Global::Deathfp = NULL;
+FILE* Global::Prevfp = NULL;
+FILE* Global::Incfp = NULL;
+FILE* Global::ErrorLogfp = NULL;
+FILE* Global::Immunityfp = NULL;
+FILE* Global::Householdfp = NULL;
+FILE* Global::Tractfp = NULL;
+FILE* Global::IncomeCatfp = NULL;
 
 void Global::get_global_parameters() {
   Params::get_param_from_string("verbose", &Global::Verbose);
@@ -280,7 +280,7 @@ void Global::get_global_parameters() {
   Params::get_param_from_string("isolation_rate", &Global::Isolation_Rate);
 
   // Sanity Checks
-  if ( Global::Diseases > Global::MAX_NUM_DISEASES ) {
+  if(Global::Diseases > Global::MAX_NUM_DISEASES) {
     Utils::fred_abort("Global::Diseases > Global::MAX_NUM_DISEASES!");
   }
 }

@@ -68,7 +68,7 @@ public:
   ~Place_List();
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
-  void read_places(const char * pop_dir, const char * pop_id, unsigned char deme_id,
+  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id,
       InitSetT & pids);
 
   void reassign_workers();
@@ -79,8 +79,8 @@ public:
   void report_school_distributions(int day);
   void report_household_distributions();
   void get_parameters();
-  Place * get_place_from_label(const char *s) const;
-  Place * get_place_at_position(int i) {
+  Place* get_place_from_label(const char* s) const;
+  Place* get_place_at_position(int i) {
     return this->places[i];
   }
 
@@ -100,8 +100,8 @@ public:
   void setup_households();
   void setup_classrooms();
   void setup_offices();
-  Place * get_random_workplace();
-  void print_household_size_distribution(char * dir, char * date_string, int run);
+  Place* get_random_workplace();
+  void print_household_size_distribution(char* dir, char* date_string, int run);
   void report_shelter_stats(int day);
   void end_of_run();
 
@@ -109,8 +109,8 @@ public:
     return this->number_of_demes;
   }
 
-  Place * get_household(int i) {
-    if (i < (int)this->households.size()) {
+  Place* get_household(int i) {
+    if(i < (int)this->households.size()) {
       return this->households[i];
     } else {
       return NULL;
@@ -120,7 +120,7 @@ public:
   int get_number_of_households() {
     return (int)this->households.size();
   }
-  int get_housing_data(int * target_size, int * current_size);
+  int get_housing_data(int* target_size, int* current_size);
   void get_visualization_data(int disease_id, char place_type, int output_code);
   void get_initial_visualization_data_from_households();
   void get_visualization_data_from_households(int disease_id, int output_code);
@@ -129,15 +129,15 @@ public:
   void combine_households(int house_index1, int house_index2);
 
   // access function for when we need a Household pointer
-  Household * get_household_ptr(int i) {
+  Household* get_household_ptr(int i) {
     if(0 <= i && i < (int)this->households.size()) {
-      return (Household *)this->households[i];
+      return (Household*)this->households[i];
     } else {
       return NULL;
     }
   }
 
-  Place * select_school(int county_index, int grade);
+  Place* select_school(int county_index, int grade);
 
   int get_number_of_counties() {
     return (int)this->counties.size();
@@ -152,7 +152,7 @@ public:
   }
 
   int get_population_of_county_with_index(int index) {
-    if (index < 0) {
+    if(index < 0) {
       return 0;
     }
     assert (index < this->counties.size());
@@ -160,7 +160,7 @@ public:
   }
 
   int get_number_of_census_tracts() {
-    return (int) this->census_tracts.size();
+    return (int)this->census_tracts.size();
   }
 
   long int get_census_tract_with_index(int index) {
@@ -172,14 +172,14 @@ public:
 
 private:
 
-  void read_household_file(unsigned char deme_id, char * location_file, InitSetT & pids);
-  void read_workplace_file(unsigned char deme_id, char * location_file, InitSetT & pids);
-  void read_hospital_file(unsigned char deme_id, char * location_file, InitSetT & pids);
-  void read_school_file(unsigned char deme_id, char * location_file, InitSetT & pids);
-  void read_group_quarters_file(unsigned char deme_id, char * location_file, InitSetT & pids);
+  void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
+  void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);
+  void read_hospital_file(unsigned char deme_id, char* location_file, InitSetT &pids);
+  void read_school_file(unsigned char deme_id, char* location_file, InitSetT &pids);
+  void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
   void reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff, double resident_to_staff_ratio);
-  Hospital * get_hospital_assigned_to_household(Household * hh);
+  Hospital* get_hospital_assigned_to_household(Household* hh);
   int number_of_demes;
 
   // input files
@@ -188,7 +188,7 @@ private:
   char States_file[FRED_STRING_SIZE];
 
   // pointers to households
-  std::vector<Place *> households;
+  std::vector<Place*> households;
 
   // list of counties
   vector<int> counties;
@@ -228,6 +228,7 @@ private:
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
+  static int Hospital_min_bed_threshold;
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 
@@ -239,7 +240,7 @@ private:
   int third_quartile_household_income;
   void report_household_incomes();
   void select_households_for_shelter();
-  void shelter_household(Household * h);
+  void shelter_household(Household* h);
 
   // For hospitalization
   HouseholdHospitalIDMapT household_hospital_map;
@@ -264,7 +265,7 @@ private:
     return this->place_type_name_lookup_map[place_type];
   }
 
-  bool add_place(Place * p);
+  bool add_place(Place* p);
 
   template<typename Place_Type>
   void add_preallocated_places(char place_type, Place::Allocator<Place_Type> & pal) {
@@ -273,7 +274,7 @@ private:
     assert(pal.get_number_of_remaining_allocations() == 0);
 
     int places_added = 0;
-    Place_Type * place = pal.get_base_pointer();
+    Place_Type* place = pal.get_base_pointer();
     int places_allocated = pal.size();
 
     for(int i = 0; i < places_allocated; ++i) {
@@ -296,13 +297,13 @@ private:
 
   int next_place_id;
 
-  std::vector<Place *> places;
-  std::vector<Place *> schools;
-  std::vector<Place *>  schools_by_grade[GRADES];
-  std::vector<Place *> workplaces;
-  std::vector<Place *> hospitals;
+  std::vector<Place*> places;
+  std::vector<Place*> schools;
+  std::vector<Place*>  schools_by_grade[GRADES];
+  std::vector<Place*> workplaces;
+  std::vector<Place*> hospitals;
 
-  LabelMapT * place_label_map;
+  LabelMapT* place_label_map;
 };
 
 struct Place_Init_Data {
@@ -323,10 +324,10 @@ struct Place_Init_Data {
   char gq_workplace[32];
 
   void setup(char _s[], char _place_type, fred::place_subtype _place_subtype,
-	     const char * _lat, const char * _lon,
+	     const char* _lat, const char* _lon,
 	     unsigned char _deme_id, int _county, int _census_tract_index,
-	     const char * _income, bool _is_group_quarters, int _num_workers_assigned,
-	     int _group_quarters_units, const char * _gq_type, const char * _gq_workplace) {
+	     const char* _income, bool _is_group_quarters, int _num_workers_assigned,
+	     int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
     place_type = _place_type;
     place_subtype = _place_subtype;
     strcpy(s, _s);
@@ -351,11 +352,11 @@ struct Place_Init_Data {
   }
 
   Place_Init_Data(char _s[], char _place_type, fred::place_subtype _place_subtype, 
-		  const char * _lat, const char * _lon,
+		  const char* _lat, const char* _lon,
 		  unsigned char _deme_id, int _county = -1, int _census_tract = -1,
-		  const char * _income = "0", bool _is_group_quarters = false,
+		  const char* _income = "0", bool _is_group_quarters = false,
 		  int _num_workers_assigned = 0, int _group_quarters_units = 0,
-		  const char * gq_type = "X", const char * gq_workplace = "") {
+		  const char* gq_type = "X", const char* gq_workplace = "") {
     setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _county, _census_tract, _income,
 	  _is_group_quarters, _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
   }
