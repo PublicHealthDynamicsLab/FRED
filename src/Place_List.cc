@@ -82,9 +82,10 @@ double Place_List::Shelter_decay_rate = 0.0;
 bool Place_List::Household_hospital_map_file_exists = false;
 int Place_List::Hospital_fixed_staff = 1.0;
 double Place_List::Hospital_worker_to_bed_ratio = 1.0;
+int Place_List::Hospital_min_bed_threshold = 0;
 int Place_List::Enable_copy_files = 0;
 
-double distance_between_places(Place * p1, Place * p2) {
+double distance_between_places(Place* p1, Place* p2) {
   return Geo_Utils::xy_distance(p1->get_latitude(), p1->get_longitude(),
 				p2->get_latitude(), p2->get_longitude());
 }
@@ -163,12 +164,13 @@ void Place_List::get_parameters() {
     char map_file_name[FRED_STRING_SIZE];
     Params::get_param_from_string("household_hospital_map_file", map_file_name);
     Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
+    Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
     Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
     if(strcmp(map_file_name, "none") == 0) {
       Place_List::Household_hospital_map_file_exists = false;
     } else {
       //If there is a file mapping Households to Hospitals, open it
-      FILE * hospital_household_map_fp = NULL;
+      FILE* hospital_household_map_fp = NULL;
 
       char filename[FRED_STRING_SIZE];
       char directory[FRED_STRING_SIZE];
@@ -255,11 +257,15 @@ void Place_List::get_parameters() {
 
     // get population_id from fips
     char line_string[FRED_STRING_SIZE];
-    char *line, *city, *state, *county, *fips;
+    char* line;
+    char* city;
+    char* state;
+    char* county;
+    char* fips;
     int found = 0;
     int fipsLength = strlen(Global::FIPS_code);
     if(fipsLength == 5) {
-      FILE *fp = Utils::fred_open_file(Place_List::Counties_file);
+      FILE* fp = Utils::fred_open_file(Place_List::Counties_file);
       if(fp == NULL) {
         Utils::fred_abort("counties file |%s| NOT FOUND\n", Place_List::Counties_file);
       }
@@ -287,9 +293,12 @@ void Place_List::get_parameters() {
     } else if(fipsLength == 2) {
       // get population_id from state
       char line_string[FRED_STRING_SIZE];
-      char *line, *abbrev, *state, *fips;
+      char* line;
+      char* abbrev;
+      char* state;
+      char* fips;
       int found = 0;
-      FILE *fp = Utils::fred_open_file(Place_List::States_file);
+      FILE* fp = Utils::fred_open_file(Place_List::States_file);
       if(fp == NULL) {
         Utils::fred_abort("states file |%s| NOT FOUND\n", Place_List::States_file);
       }
@@ -331,9 +340,13 @@ void Place_List::get_parameters() {
     // get population_id from city
     char city_state[FRED_STRING_SIZE];
     char line_string[FRED_STRING_SIZE];
-    char *line, *city, *state, *county, *fips;
+    char* line;
+    char* city;
+    char* state;
+    char* county;
+    char* fips;
     int found = 0;
-    FILE *fp = Utils::fred_open_file(Place_List::Counties_file);
+    FILE* fp = Utils::fred_open_file(Place_List::Counties_file);
     if(fp == NULL) {
       Utils::fred_abort("counties file |%s| NOT FOUND\n", Place_List::Counties_file);
     }
@@ -373,9 +386,13 @@ void Place_List::get_parameters() {
     // get population_id from county
     char county_state[FRED_STRING_SIZE];
     char line_string[FRED_STRING_SIZE];
-    char *line, *city, *state, *county, *fips;
+    char* line;
+    char* city;
+    char* state;
+    char* county;
+    char* fips;
     int found = 0;
-    FILE *fp = Utils::fred_open_file(Place_List::Counties_file);
+    FILE* fp = Utils::fred_open_file(Place_List::Counties_file);
     if(fp == NULL) {
       Utils::fred_abort("counties file |%s| NOT FOUND\n", Place_List::Counties_file);
     }
@@ -413,9 +430,12 @@ void Place_List::get_parameters() {
 
     // get population_id from state
     char line_string[FRED_STRING_SIZE];
-    char *line, *abbrev, *state, *fips;
+    char* line;
+    char* abbrev;
+    char* state;
+    char* fips;
     int found = 0;
-    FILE *fp = Utils::fred_open_file(Place_List::States_file);
+    FILE* fp = Utils::fred_open_file(Place_List::States_file);
     if(fp == NULL) {
       Utils::fred_abort("states file |%s| NOT FOUND\n", Place_List::States_file);
     }
@@ -469,7 +489,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
   InitSetT pids;
 
   // only one population directory allowed at this point
-  const char * pop_dir = Global::Synthetic_population_directory;
+  const char* pop_dir = Global::Synthetic_population_directory;
 
   // need to have at least one deme
   assert(Demes.size() > 0);
@@ -487,10 +507,10 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
     }
   }
 
-  for(int i = 0; i < this->counties.size(); i++) {
+  for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
   }
-  for(int i = 0; i < this->census_tracts.size(); i++) {
+  for(int i = 0; i < this->census_tracts.size(); ++i) {
     fprintf(Global::Statusfp, "CENSUS_TRACTS[%d] = %ld\n", i, this->census_tracts[i]);
   }
   // HOUSEHOLD in-place allocator
@@ -509,8 +529,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
   // fred-specific place types initialized elsewhere (setup_offices, setup_classrooms)
 
   // more temporaries
-  Place * place = NULL;
-  Place * container = NULL;
+  Place* place = NULL;
+  Place* container = NULL;
 
   // loop through sorted init data and create objects using Place_Allocator
   InitSetT::iterator itr = pids.begin();
@@ -540,7 +560,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
     }
     if(place_type == Place::HOUSEHOLD) {
       place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat, container, &Global::Pop);
-      Household * h = (Household *)place;
+      Household* h = (Household*)place;
       // ensure that household income is non-negative
       h->set_household_income((*itr).income > 0 ? (*itr).income : 0);
       h->set_deme_id((*itr).deme_id);
@@ -553,18 +573,21 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> & Demes) {
       h->set_shelter(false);
       this->households.push_back(h);
       if(Global::Enable_Visualization_Layer) {
-	long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
-	Global::Visualization->add_census_tract(census_tract);
+	    long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
+	    Global::Visualization->add_census_tract(census_tract);
       }
     } else if(place_type == Place::SCHOOL) {
       place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat, container, &Global::Pop);
-      ((School *)place)->set_county((*itr).county);
+      ((School*)place)->set_county((*itr).county);
     } else if(place_type == Place::WORKPLACE) {
       place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat, container, &Global::Pop);
     } else if(place_type == Place::HOSPITAL) {
       place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat, container, &Global::Pop);
-      Hospital * hosp = (Hospital *)place;
+      Hospital* hosp = (Hospital*)place;
       hosp->set_bed_count((int)((double)(*itr).num_workers_assigned / Place_List::Hospital_worker_to_bed_ratio) + 1.0);
+      if(hosp->get_bed_count() < Place_List::Hospital_min_bed_threshold) {
+        hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
+      }
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);
     }
@@ -889,7 +912,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char * location_file,
   int workers = 0;
   Utils::Tokens tokens;
 
-  for(char * line = line_str; fgets(line, 255, fp); line = line_str) {
+  for(char* line = line_str; fgets(line, 255, fp); line = line_str) {
     tokens = Utils::split_by_delim(line, ',', tokens, false);
     // skip header line
     if(strcmp(tokens[workplace_id], "workplace_id") != 0 && strcmp(tokens[workplace_id], "sp_id") != 0) {
@@ -900,7 +923,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char * location_file,
       sprintf(s, "%c%s", place_type, tokens[workplace_id]);
       sscanf(tokens[num_workers_assigned], "%d", &workers);
       SetInsertResultT result =
-	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, 0, 0, "0", false, workers));
+	    pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, 0, 0, "0", false, workers));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);

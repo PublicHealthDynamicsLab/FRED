@@ -266,17 +266,17 @@ class Global {
     // global singleton objects
     static Population Pop;
     static Place_List Places;
-    static Neighborhood_Layer *Neighborhoods;
-    static Regional_Layer *Simulation_Region;
-    static Visualization_Layer *Visualization;
-    static Vector_Layer *Vectors;
-    static Date *Sim_Start_Date;
-    static Date *Sim_Current_Date;
-    static Evolution *Evol;
-    static Seasonality *Clim;
-    static Tracker<int> *Daily_Tracker;
-    static Tracker<long int> *Tract_Tracker;
-    static Tracker<int> *Income_Category_Tracker;
+    static Neighborhood_Layer* Neighborhoods;
+    static Regional_Layer* Simulation_Region;
+    static Visualization_Layer* Visualization;
+    static Vector_Layer* Vectors;
+    static Date* Sim_Start_Date;
+    static Date* Sim_Current_Date;
+    static Evolution* Evol;
+    static Seasonality* Clim;
+    static Tracker<int>* Daily_Tracker;
+    static Tracker<long int>* Tract_Tracker;
+    static Tracker<int>* Income_Category_Tracker;
     static int Popsize_by_age[];
 
 #if SQLITE
@@ -284,20 +284,20 @@ class Global {
 #endif
 
     // global file pointers
-    static FILE *Statusfp;
-    static FILE *Outfp;
-    static FILE *Tracefp;
-    static FILE *Infectionfp;
-    static FILE *VaccineTracefp;
-    static FILE *Birthfp;
-    static FILE *Deathfp;
-    static FILE *Prevfp;
-    static FILE *Incfp;
-    static FILE *ErrorLogfp;
-    static FILE *Immunityfp;
-    static FILE *Householdfp;
-    static FILE *Tractfp;
-    static FILE *IncomeCatfp;
+    static FILE* Statusfp;
+    static FILE* Outfp;
+    static FILE* Tracefp;
+    static FILE* Infectionfp;
+    static FILE* VaccineTracefp;
+    static FILE* Birthfp;
+    static FILE* Deathfp;
+    static FILE* Prevfp;
+    static FILE* Incfp;
+    static FILE* ErrorLogfp;
+    static FILE* Immunityfp;
+    static FILE* Householdfp;
+    static FILE* Tractfp;
+    static FILE* IncomeCatfp;
 
     /**
      * Fills the static variables with values from the parameter file.
@@ -316,25 +316,38 @@ namespace fred {
    * Most methods from std::bitset are implemented, however, notably, operator[] is not,
    * nor are operator&, operator*
    */
-  template< int n_bits >
+  template<int n_bits>
   struct tiny_bitset {
     typedef unsigned char BitType;
     BitType bits;
 
     tiny_bitset() {
-      if ( n_bits > sizeof( BitType ) * 8 ) {
-        fprintf( stderr,
+      if(n_bits > sizeof(BitType) * 8) {
+        fprintf(stderr,
 		 "This specialized bitset is limited to %zu bytes.%s\n",
-		 sizeof( BitType ),
-		 "If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)" );
+		 sizeof(BitType),
+		 "If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
       }
-      assert( n_bits <= sizeof( BitType ) * 8 );
+      assert(n_bits <= sizeof(BitType) * 8);
       reset();
     }
-    void reset() { bits = 0; }
-    void reset( int pos ) { bits  &= ~( (BitType) 1 << pos ); }
-    void set() { bits = ~0; }
-    void set( int pos ) { bits |= ( (BitType) 1 << pos ); }
+      
+    void reset() {
+        bits = 0;
+    }
+      
+    void reset(int pos) {
+        bits  &= ~((BitType)1 << pos);
+    }
+      
+    void set() {
+        bits = ~0;
+    }
+      
+    void set(int pos) {
+        bits |= ((BitType)1 << pos);
+    }
+      
     int size() {
       // Published in 1988, the C Programming Language 2nd Ed. (by Brian W.
       // Kernighan and Dennis M. Ritchie) mentions this in exercise 2-9.
@@ -342,14 +355,23 @@ namespace fred {
       // Wegner in CACM 3 (1960), 322. Also discovered independently by
       // Derrick Lehmer and published in 1964 in a book edited by Beckenbach.)"
       BitType c; // c accumulates the total bits set in v
-      for (c = 0; bits; c++) {
+      for(c = 0; bits; c++) {
         bits &= bits - 1; // clear the least significant bit set
       }
       return c;
     }
-    bool any() const { return bits > 0; }
-    bool none() const { return bits == 0; }
-    bool test( int pos ) const { return bits & ( (BitType) 1 << pos ); } 
+      
+    bool any() const {
+        return bits > 0;
+    }
+      
+    bool none() const {
+        return bits == 0;
+    }
+      
+    bool test(int pos) const {
+        return bits & ((BitType)1 << pos);
+    }
   };
 
 
@@ -383,7 +405,8 @@ namespace fred {
     PLACE_SUBTYPE_COLLEGE = 'C',
     PLACE_SUBTYPE_PRISON = 'P',
     PLACE_SUBTYPE_MILITARY_BASE = 'M',
-    PLACE_SUBTYPE_NURSING_HOME = 'N'
+    PLACE_SUBTYPE_NURSING_HOME = 'N',
+    PLACE_SUBTYPE_HEALTHCARE_CLINIC = 'I'
   };
   
   ////////////////////// OpenMP Utilities
@@ -393,13 +416,30 @@ namespace fred {
   
   #include <omp.h>
   struct Mutex {
-    Mutex()   { omp_init_lock( & lock ); }
-    ~Mutex()  { omp_destroy_lock( & lock ); }
-    void Lock()   { omp_set_lock( & lock ); }
-    void Unlock() { omp_unset_lock( & lock ); }
+    Mutex() {
+      omp_init_lock(&lock);
+    }
+      
+    ~Mutex() {
+      omp_destroy_lock(&lock);
+    }
+    
+    void Lock() {
+      omp_set_lock(&lock);
+    }
+      
+    void Unlock() {
+      omp_unset_lock(&lock);
+    }
    
-    Mutex( const Mutex & ) { omp_init_lock( & lock ); }
-    Mutex & operator= ( const Mutex & ) { return *( this ); }
+    Mutex(const Mutex &) {
+      omp_init_lock(&lock);
+    }
+      
+    Mutex & operator=(const Mutex &) {
+      return *(this);
+    }
+      
     omp_lock_t lock;
   };
 
@@ -426,24 +466,45 @@ namespace fred {
 
 
   struct Scoped_Lock {
-    explicit Scoped_Lock( Mutex & m ) : mut( m ), locked( true ) { mut.Lock(); }
-    ~Scoped_Lock() { Unlock(); }
-    void Unlock()     { if ( !locked ) return; locked = false; mut.Unlock(); }
-    void LockAgain()  { if (  locked ) return; mut.Lock(); locked = true; }
+    explicit Scoped_Lock(Mutex & m) : mut(m), locked(true) {
+      mut.Lock();
+    }
+      
+    ~Scoped_Lock() {
+      Unlock();
+    }
+      
+    void Unlock() {
+      if(!locked) {
+        return;
+      }
+      locked = false;
+      mut.Unlock();
+    }
+      
+    void LockAgain() {
+      if(locked) {
+        return;
+      }
+      mut.Lock();
+      locked = true;
+    }
+      
   private:
     Mutex & mut;
     bool locked;
-    void operator=( const Scoped_Lock &);
-    Scoped_Lock( const Scoped_Lock & );
+    void operator=(const Scoped_Lock &);
+    Scoped_Lock(const Scoped_Lock &);
   };
 
   // compare and swap currently only available using GCC atomic builtin
   // need to define behavior for other compilers 
   #ifdef __GNUC__
-  template < typename T >
-  inline static T compare_and_swap( T * p, T a, T b ) {
-    return __sync_bool_compare_and_swap( p, a, b );
+  template<typename T>
+  inline static T compare_and_swap(T* p, T a, T b) {
+    return __sync_bool_compare_and_swap(p, a, b);
   }
+    
   // Spin_Lock/Spin_Mutex:
   // This is a much lighter weight mutex.  The omp mutex defined above
   // requires 64 bytes of memory.  This spin mutex requires only 1.
@@ -451,18 +512,30 @@ namespace fred {
   // especially when wait time for acquisition of the lock is visualization.
   struct Spin_Mutex {
     bool locked;
-    Spin_Mutex()  { locked = false; }
-    void Lock()   { locked = true;  }
-    void Unlock() { locked = false; }
+    Spin_Mutex() {
+      locked = false;
+    }
+      
+    void Lock() {
+      locked = true;
+    }
+      
+    void Unlock() {
+      locked = false;
+    }
   };
+    
   // since we don't have compare and swap without the gcc builtin, other
   // compilers default back to the omp locks.  Until compare and swap is
   // available for other compilers, gcc should be preferred.
   struct Spin_Lock {
     Spin_Mutex & m;
-    explicit Spin_Lock( Spin_Mutex & _m ) : m( _m ) {
-      while ( !( compare_and_swap( &m.locked, false, true ) ) ) { }
+    explicit Spin_Lock(Spin_Mutex & _m) : m(_m) {
+      while(!(compare_and_swap(&m.locked, false, true))) {
+        //Do Nothing
+      }
     }
+      
     ~Spin_Lock() {
       #pragma omp atomic
       m.locked &= false;
@@ -473,8 +546,6 @@ namespace fred {
   typedef Mutex Spin_Mutex;
   typedef Scoped_Lock Spin_Lock;
   #endif
-
-
 }
 
 #endif // _FRED_GLOBAL_H

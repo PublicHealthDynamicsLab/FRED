@@ -280,6 +280,8 @@ outpatient_healthcare_prob_values = 0
 prob_of_visiting_hospitalized_housemate = 0.0
 hospital_fixed_staff = 20
 hospital_worker_to_bed_ratio = 1.0
+#If there aren’t this many beds, then the Hospital is subtype Clinic (no overnights)
+hospital_min_bed_threshold = 10 
 household_hospital_map_file = none
 
 ##########################################################
@@ -883,7 +885,7 @@ heart_disease_hospitalization_prob_mult_values = 1 1.0
 hypertension_hospitalization_prob_mult_upper_ages = 1 120
 hypertension_hospitalization_prob_mult_values = 1 1.0
 hypercholestrolemia_hospitalization_prob_mult_upper_ages = 1 120
-hypercholestrolemia_hospitalization_prob_mult_values 1 1.0
+hypercholestrolemia_hospitalization_prob_mult_values = 1 1.0
 pregnancy_hospitalization_prob_mult_upper_ages = 1 120
 pregnancy_hospitalization_prob_mult_values = 1 1.0
 

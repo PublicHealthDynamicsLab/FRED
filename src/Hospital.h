@@ -36,32 +36,32 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup( const char *lab, double lon, double lat, Place* cont, Population *pop)
+   * @see Place::setup(const char* lab, double lon, double lat, Place* cont, Population* pop)
    */
-  Hospital(const char * lab, fred::place_subtype _subtype, double lon, double lat, Place *container, Population *pop);
+  Hospital(const char* lab, fred::place_subtype _subtype, double lon, double lat, Place* container, Population* pop);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Hospital(int,const char *,double,double,Place *, Population *)</code>
+   * <code>Hospital(int,const char*, double, double, Place*, Population*)</code>
    */
   void get_parameters(int diseases);
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
-  int get_group(int disease, Person * per);
+  int get_group(int disease, Person* per);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Hospital::Hospital_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Hospital_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>hospital_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person * i, Person * s);
+  double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
    * @see Place::get_contacts_per_day(int disease)
@@ -93,8 +93,8 @@ public:
   }
 
 private:
-  static double * Hospital_contacts_per_day;
-  static double *** Hospital_contact_prob;
+  static double* Hospital_contacts_per_day;
+  static double*** Hospital_contact_prob;
   static bool Hospital_parameters_set;
   int bed_count;
 };
