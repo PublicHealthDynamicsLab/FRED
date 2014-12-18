@@ -33,6 +33,8 @@ void Place_List::report_school_distributions(int day) {
   }
   fprintf(Global::Statusfp, "\n");
 
+  return;
+
   int year = day / 365;
   char filename [FRED_STRING_SIZE];
   FILE *fp = NULL;
@@ -64,8 +66,6 @@ void Place_List::report_school_distributions(int day) {
     }
   }
   fclose(fp);
-
-  return;
 
   sprintf(filename, "%s/house-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");

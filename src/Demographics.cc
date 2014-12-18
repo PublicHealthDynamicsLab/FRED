@@ -82,7 +82,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   // adjust age for those over 89 (due to binning in the synthetic pop)
   if (_age > 89) {
     _age = 90;
-    while (RANDOM() < 0.6) _age++;
+    while (age < MAX_AGE && RANDOM() < 0.6) _age++;
   }
 
   // set demographic variables
@@ -112,6 +112,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
     } else {
       birthyear = Global::Sim_Current_Date->get_year() - (init_age + 1);
     }
+    if (birthyear < 1800) { birthyear = 1800; }
 
     //If the birthyear would have been a leap year, adjust the random number
     // so that it is based on 366 days

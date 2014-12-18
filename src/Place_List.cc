@@ -1202,7 +1202,6 @@ void Place_List::prepare() {
 
 void Place_List::print_status_of_schools(int day) {
   int number_places = places.size();
-  int total_students = 0;
   int students_per_grade[GRADES];
   for (int i = 0; i < GRADES; i++) {
     students_per_grade[i] = 0;
@@ -1226,16 +1225,18 @@ void Place_List::print_status_of_schools(int day) {
       }
     }
   }
+
   int year = day / 365;
-  char filename[256];
-  sprintf(filename, "students.%d", year);
-  FILE *fp = fopen(filename,"w");
+  // char filename[256];
+  // sprintf(filename, "students.%d", year);
+  // FILE *fp = fopen(filename,"w");
+  int total_students = 0;
   for (int i = 0; i < GRADES; i++) {
-    fprintf(fp, "%d %d\n", i,students_per_grade[i]);
+    // fprintf(fp, "%d %d\n", i,students_per_grade[i]);
     printf("YEAR %d GRADE %d STUDENTS %d\n", year,i,students_per_grade[i]);
     total_students += students_per_grade[i];
   }
-  fclose(fp);
+  // fclose(fp);
   printf("YEAR %d TOTAL_STUDENTS %d\n", year, total_students);
 }
 
