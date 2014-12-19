@@ -383,8 +383,8 @@ sub plot_command {
   $title = "notitle" if $run > 0;
 
   # line width
-  my $lw = "lw 5";
-  $lw = "lw 0.5" if $run > 0;
+  my $lw = "lt $n lw 5";
+  $lw = "lt $run lw 0.5" if $run > 0;
   $lw = "" if $boxes;
 
   # plot with lines?
@@ -393,7 +393,7 @@ sub plot_command {
   $w = "with boxes" if $boxes;
 
   my $spec = "";
-  $spec = "'-' using $x($y)$xtic $title $w lt $n $lw, \\\n";
+  $spec = "'-' using $x($y)$xtic $title $w $lw, \\\n";
   $spec .= "'-' using $x($y):($e) notitle wi errorbars lt -1 lw 2, \\\n" if $errorbars and $run == 0;
   return $spec;
 }
