@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -158,8 +158,9 @@ void Infection::update(int today) {
     return;
   }
 
-  if(this->trajectory == NULL)
+  if(this->trajectory == NULL) {
     return;
+  }
 
   int days_post_exposure = today - this->exposure_date;
 
@@ -233,18 +234,14 @@ void Infection::modify_symptomatic_period(double multp, int today) {
     throw out_of_range("cannot modify: negative multiplier");
 
   // after symptomatic period
-  if(today >= get_recovery_date())
+  if(today >= get_recovery_date()) {
     throw out_of_range("cannot modify: past symptomatic period");
 
-  // before symptomatic period
-  else if(today < get_symptomatic_date()) {
+  } else if(today < get_symptomatic_date()) { // before symptomatic period
     this->trajectory->modify_symp_period(this->symptomatic_date, this->symptomatic_period * multp);
     determine_transition_dates();
-  }
-
-  // during symptomatic period
-  // if days_left becomes 0, we make it 1 so that update() sees the new dates
-  else {
+  } else { // during symptomatic period
+    // if days_left becomes 0, we make it 1 so that update() sees the new dates
     //int days_into = today - get_symptomatic_date();
     int days_left = get_recovery_date() - today;
     days_left *= multp;
@@ -255,8 +252,9 @@ void Infection::modify_symptomatic_period(double multp, int today) {
 
 void Infection::modify_asymptomatic_period(double multp, int today) {
   // negative multiplier
-  if(multp < 0)
+  if(multp < 0) {
     throw out_of_range("cannot modify: negative multiplier");
+  }
 
   // after asymptomatic period
   if(today >= get_symptomatic_date()) {
@@ -276,20 +274,22 @@ void Infection::modify_asymptomatic_period(double multp, int today) {
 }
 
 void Infection::modify_infectious_period(double multp, int today) {
-  if(today < get_symptomatic_date())
+  if(today < get_symptomatic_date()) {
     modify_asymptomatic_period(multp, today);
+  }
 
   modify_symptomatic_period(multp, today);
 }
 
 void Infection::modify_develops_symptoms(bool symptoms, int today) {
   if((today >= get_symptomatic_date() && get_asymptomatic_date() == -1)
-      || (today >= get_recovery_date()))
+      || (today >= get_recovery_date())) {
     throw out_of_range("cannot modify: past symptomatic period");
+  }
 
-  if(will_be_symptomatic != symptoms) {
+  if(this->will_be_symptomatic != symptoms) {
     this->symptomatic_period = (this->will_be_symptomatic ? this->disease->get_days_symp() : 0);
-    trajectory->modify_develops_symp(get_symptomatic_date(), symptomatic_period);
+    this->trajectory->modify_develops_symp(get_symptomatic_date(), this->symptomatic_period);
     determine_transition_dates();
   }
 }
@@ -306,60 +306,61 @@ void Infection::print() const {
       this->infectivity, this->infectivity_multp, this->symptoms);
 }
 
-void Infection::transmit(Person *infectee, Transmission & transmission) {
+void Infection::transmit(Person* infectee, Transmission &transmission) {
   int day = transmission.get_exposure_date() - this->exposure_date;
-  Transmission::Loads * loads = this->trajectory->getInoculum(day);
+  Transmission::Loads* loads = this->trajectory->getInoculum(day);
   transmission.set_initial_loads(loads);
   infectee->become_exposed(this->disease, transmission);
 }
 
-void Infection::setTrajectory(Trajectory * _trajectory) {
+void Infection::setTrajectory(Trajectory* _trajectory) {
   this->trajectory = _trajectory;
   determine_transition_dates();
 }
 
 void Infection::report_infection(int day) const {
-  if(Global::Infectionfp == NULL)
+  if(Global::Infectionfp == NULL) {
     return;
+  }
 
   int place_id = (this->place == NULL ? -1 : this->place->get_id());
   char place_type = (this->place == NULL ? 'X' : this->place->get_type());
   char place_subtype = 'X';
   if(this->place != NULL && this->place->is_group_quarters()) {
-    if(place->is_college()) {
+    if(this->place->is_college()) {
       place_subtype = 'D';
     }
-    if(place->is_prison()) {
+    if(this->place->is_prison()) {
       place_subtype = 'J';
     }
-    if(place->is_nursing_home()) {
+    if(this->place->is_nursing_home()) {
       place_subtype = 'L';
     }
-    if(place->is_military_base()) {
+    if(this->place->is_military_base()) {
       place_subtype = 'B';
     }
   }
   int place_size = (this->place == NULL ? -1 : this->place->get_size());
   if(place_type == 'O' || place_type == 'C') {
-    Place *container = this->place->get_container();
+    Place* container = this->place->get_container();
     place_size = container->get_size();
   }
 
   std::stringstream infStrS;
   infStrS.precision(3);
-  infStrS << fixed << "day " << day << " dis " << disease->get_id() << " host " << host->get_id()
-  << " age " << host->get_real_age() << " sick_leave " << host->is_sick_leave_available()
+  infStrS << fixed << "day " << day << " dis " << this->disease->get_id() << " host " << this->host->get_id()
+  << " age " << this->host->get_real_age() << " sick_leave " << this->host->is_sick_leave_available()
   << " infector " << (this->infector == NULL ? -1 : this->infector->get_id()) << " inf_age "
   << (this->infector == NULL ? -1 : this->infector->get_real_age()) << " inf_sympt "
   << (this->infector == NULL ? -1 : this->infector->is_symptomatic()) << " inf_sick_leave "
   << (this->infector == NULL ? -1 : this->infector->is_sick_leave_available())
-  << " at " << place_type << " place " <<  place_id <<" subtype " << place_subtype
-  << " size " << place_size << " is_teacher " << (int) host->is_teacher();
+  << " at " << place_type << " place " <<  place_id << " subtype " << place_subtype
+  << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
 
   if(Global::Track_infection_events > 1) {
     if(place_type != 'X'  && infector != NULL) {
-      double host_x = host->get_x();
-      double host_y = host->get_y();
+      double host_x = this->host->get_x();
+      double host_y = this->host->get_y();
       double infector_x = this->infector->get_x();
       double infector_y = this->infector->get_y();
       double distance = sqrt((host_x-infector_x)*(host_x-infector_x) +
@@ -387,15 +388,17 @@ void Infection::report_infection(int day) const {
     infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
   }
 
-  if(Global::Track_infection_events > 2)
+  if(Global::Track_infection_events > 2) {
     infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
         << get_symptomatic_date() << " rec " << get_recovery_date() << " sus "
         << get_susceptible_date();
+  }
 
-  if(Global::Track_infection_events > 3)
+  if(Global::Track_infection_events > 3) {
     infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
-        << " infect " << this->infectivity << " inf_multp " << infectivity_multp << " sympts "
+        << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
         << this->symptoms;
+  }
 
   infStrS << "\n";
 
@@ -408,7 +411,7 @@ int Infection::get_num_past_infections() {
   return this->host->get_num_past_infections(this->disease->get_id());
 }
 
-Past_Infection *Infection::get_past_infection(int i) {
+Past_Infection* Infection::get_past_infection(int i) {
   return this->host->get_past_infection(this->disease->get_id(), i);
 }
 

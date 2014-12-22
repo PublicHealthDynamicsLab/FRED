@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -42,7 +42,7 @@ using namespace std;
 #include "Health.h"
 #include "Place_List.h"
 
-std::string * Disease::Disease_name = NULL;
+std::string* Disease::Disease_name = NULL;
 
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
@@ -60,6 +60,9 @@ Disease::Disease() {
   this->enable_case_fatality = 0;
   this->case_fatality_age_factor = NULL;
   this->case_fatality_prob_by_day = NULL;
+  this->min_symptoms_for_seek_healthcare = -1.0;
+  this->hospitalization_prob = NULL;
+  this->outpatient_healthcare_prob = NULL;
   this->seasonality_Ka = -1.0;
   this->seasonality_Kb = -1.0;
   this->seasonality_min = -1.0;
@@ -72,7 +75,6 @@ Disease::Disease() {
   this->R0 = -1.0;
   this->R0_a = -1.0;
   this->R0_b = -1.0;
-
 }
 
 Disease::~Disease() {
@@ -82,8 +84,25 @@ Disease::~Disease() {
   delete this->at_risk;
   delete this->strain_table;
   delete this->ihm;
+
   if(this->evol != NULL) {
     delete this->evol;
+  }
+
+  if(this->case_fatality_age_factor != NULL) {
+    delete this->case_fatality_age_factor;
+  }
+
+  if(this->case_fatality_prob_by_day != NULL) {
+    delete this->case_fatality_prob_by_day;
+  }
+
+  if(this->hospitalization_prob != NULL) {
+    delete this->hospitalization_prob;
+  }
+
+  if(this->outpatient_healthcare_prob != NULL) {
+    delete this->outpatient_healthcare_prob;
   }
 }
 
@@ -91,10 +110,10 @@ void Disease::get_parameters(int disease) {
   char paramstr[256];
   this->id = disease;
 
-  if (disease == 0) {
+  if(disease == 0) {
     Disease::Disease_name = new string[Global::Diseases];
     Params::get_param_vector((char *)"disease_names", Disease::Disease_name);
-    for (int i = 0; i < Global::Diseases; i++) {
+    for(int i = 0; i < Global::Diseases; ++i) {
       printf("disease %d = %s\n", i, Disease::Disease_name[i].c_str());
     }
   }
@@ -125,13 +144,13 @@ void Disease::get_parameters(int disease) {
   }
 
   if(this->R0 > 0) {
-    this->transmissibility = this->R0_a*this->R0*this->R0 + this->R0_b*this->R0;
+    this->transmissibility = this->R0_a * this->R0 * this->R0 + this->R0_b * this->R0;
   }
 
   //case fatality parameters
   Params::get_indexed_param(this->disease_name, "enable_case_fatality",
       &(this->enable_case_fatality));
-  if (this->enable_case_fatality) {
+  if(this->enable_case_fatality) {
     Params::get_indexed_param(this->disease_name, "min_symptoms_for_case_fatality",
 			      &(this->min_symptoms_for_case_fatality));
     this->case_fatality_age_factor = new Age_Map("Case Fatality Age Factor");
@@ -145,22 +164,34 @@ void Disease::get_parameters(int disease) {
 				     this->case_fatality_prob_by_day);
   }
 
+  //Hospitalization and Healthcare parameters
+  if(Global::Enable_Hospitals) {
+    Params::get_indexed_param(this->disease_name, "min_symptoms_for_seek_healthcare",
+                &(this->min_symptoms_for_seek_healthcare));
+    this->hospitalization_prob = new Age_Map("Hospitalization Probability");
+    sprintf(paramstr, "%s_hospitalization_prob", this->disease_name);
+    this->hospitalization_prob->read_from_input(paramstr);
+    this->outpatient_healthcare_prob = new Age_Map("Outpatient Healthcare Probability");
+    sprintf(paramstr, "%s_outpatient_healthcare_prob", this->disease_name);
+    this->outpatient_healthcare_prob->read_from_input(paramstr);
+  }
+
   // protective behavior efficacy parameters
   Params::get_param_from_string("enable_face_mask_usage", &(this->enable_face_mask_usage));
-  if (this->enable_face_mask_usage) {
+  if(this->enable_face_mask_usage) {
     Params::get_indexed_param(this->disease_name, "face_mask_transmission_efficacy",
 			      &(this->face_mask_transmission_efficacy));
     Params::get_indexed_param(this->disease_name, "face_mask_susceptibility_efficacy",
 			      &(this->face_mask_susceptibility_efficacy));
   }
   Params::get_param_from_string("enable_hand_washing", &(this->enable_hand_washing));
-  if (this->enable_hand_washing) {
+  if(this->enable_hand_washing) {
     Params::get_indexed_param(this->disease_name, "hand_washing_transmission_efficacy",
 			      &(this->hand_washing_transmission_efficacy));
     Params::get_indexed_param(this->disease_name, "hand_washing_susceptibility_efficacy",
 			      &(this->hand_washing_susceptibility_efficacy));
   }
-  if (this->enable_face_mask_usage && this->enable_hand_washing) {
+  if(this->enable_face_mask_usage && this->enable_hand_washing) {
     Params::get_indexed_param(this->disease_name, "face_mask_plus_hand_washing_transmission_efficacy",
 			      &(this->face_mask_plus_hand_washing_transmission_efficacy));
     Params::get_indexed_param(this->disease_name, "face_mask_plus_hand_washing_susceptibility_efficacy",
@@ -206,7 +237,7 @@ void Disease::get_parameters(int disease) {
   fflush(Global::Statusfp);
 }
 
-void Disease::setup(Population *pop) {
+void Disease::setup(Population* pop) {
   char paramstr[256];
   fprintf(Global::Statusfp, "disease %d %s setup entered\n",
 	  this->id, this->disease_name);
@@ -221,7 +252,7 @@ void Disease::setup(Population *pop) {
   // the file.
   sprintf(paramstr, "primary_cases");
   string param_name_str(paramstr);
-  Multistrain_Timestep_Map * msts = new Multistrain_Timestep_Map(
+  Multistrain_Timestep_Map* msts = new Multistrain_Timestep_Map(
       param_name_str);
   msts->read_map();
   this->epidemic = new Epidemic(this, msts);
@@ -293,15 +324,15 @@ double Disease::get_transmissibility(int strain) {
   return this->strain_table->get_transmissibility(strain);
 }
 
-Trajectory * Disease::get_trajectory(Infection *infection, Transmission::Loads * loads) {
+Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* loads) {
   return this->ihm->get_trajectory(infection, loads);
 }
 
-Transmission::Loads * Disease::get_primary_loads(int day) {
+Transmission::Loads* Disease::get_primary_loads(int day) {
   return this->evol->get_primary_loads(day);
 }
 /// @brief Overloaded to allow specification of a single strain to be used for the initial loads.
-Transmission::Loads * Disease::get_primary_loads(int day, int strain) {
+Transmission::Loads* Disease::get_primary_loads(int day, int strain) {
   return this->evol->get_primary_loads(day, strain);
 }
 
@@ -322,17 +353,17 @@ void Disease::add_root_strain(int num_elements) {
   this->strain_table->add_root_strain(num_elements);
 }
 
-int Disease::add_strain(Strain * child_strain, double transmissibility,
+int Disease::add_strain(Strain* child_strain, double transmissibility,
     int parent_strain_id) {
   return this->strain_table->add(child_strain, transmissibility, parent_strain_id);
 }
 
-int Disease::add_strain(Strain * child_strain, double transmissibility) {
+int Disease::add_strain(Strain* child_strain, double transmissibility) {
   return this->strain_table->add(child_strain, transmissibility);
 }
 
 double Disease::calculate_climate_multiplier(double seasonality_value) {
-  return exp(((this->seasonality_Ka * seasonality_value) + this->seasonality_Kb))
+  return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
       + this->seasonality_min;
 }
 
@@ -356,13 +387,14 @@ const Strain & Disease::get_strain(int strain_id) {
   return this->strain_table->get_strain(strain_id);
 }
 
-void Disease::initialize_evolution_reporting_grid(Regional_Layer * grid) {
+void Disease::initialize_evolution_reporting_grid(Regional_Layer* grid) {
   this->evol->initialize_reporting_grid(grid);
 }
 
 void Disease::init_prior_immunity() {
   this->evol->init_prior_immunity(this);
 }
+
 bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
       double age_prob = this->case_fatality_age_factor->find_value(real_age);
@@ -372,7 +404,7 @@ bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   return false;
 }
 
-bool Disease::is_fatal(Person * per, double symptoms, int days_symptomatic) {
+bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
   if(Global::Enable_Chronic_Condition && this->enable_case_fatality) {
     if(per->has_chronic_condition()) {
       double age_prob = this->case_fatality_age_factor->find_value(per->get_real_age());
@@ -392,6 +424,12 @@ bool Disease::is_fatal(Person * per, double symptoms, int days_symptomatic) {
       if(per->has_heart_disease()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HEART_DISEASE);
       }
+      if(per->has_hypertension()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HYPERTENSION);
+      }
+      if(per->has_hypercholestrolemia()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HYPERCHOLESTROLEMIA);
+      }
       if(per->get_demographics()->is_pregnant()) {
         age_prob *= Health::get_pregnancy_case_fatality_prob_mult(per->get_age());
       }
@@ -402,4 +440,12 @@ bool Disease::is_fatal(Person * per, double symptoms, int days_symptomatic) {
   } else {
     return is_fatal(per->get_age(), symptoms, days_symptomatic);
   }
+}
+
+double Disease::get_hospitalization_prob(Person* per) {
+  return this->hospitalization_prob->find_value(per->get_real_age());
+}
+
+double Disease::get_outpatient_healthcare_prob(Person* per) {
+  return this->outpatient_healthcare_prob->find_value(per->get_real_age());
 }

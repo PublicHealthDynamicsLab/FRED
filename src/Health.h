@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -572,8 +572,7 @@ public:
   }
 
   //void add_past_infection(int d, Past_Infection* pi){ past_infections[d].push_back(pi); }  
-  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure,
-      Disease* dis) {
+  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Disease* dis) {
     this->past_infections[dis->get_id()].push_back(
         Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
@@ -777,7 +776,7 @@ private:
   // helper class to make sure that they're always synched up.
   // There would be just a little overhead in doing this but probably well worth it.
   // Until then make sure that they're always changed together.
-  Infection * infection[Global::MAX_NUM_DISEASES];
+  Infection* infection[Global::MAX_NUM_DISEASES];
   // bitset removes need to check each infection in above array to
   // find out if any are not NULL
   fred::disease_bitset active_infections;

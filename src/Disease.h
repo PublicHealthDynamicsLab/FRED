@@ -1,7 +1,7 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
   Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
   Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -26,7 +26,6 @@ using namespace std;
 #include "Epidemic.h"
 #include "Transmission.h"
 #include "Age_Map.h"
-
 
 class Person;
 class Population;
@@ -54,7 +53,7 @@ public:
    *
    * @param pop the population for this Disease
    */
-  void setup(Population *pop);
+  void setup(Population* pop);
 
 //  /**
 //   * Print out information about this object
@@ -113,14 +112,14 @@ public:
   /**
    * @return a pointer to this Disease's residual_immunity Age_Map
    */
-  Age_Map * get_residual_immunity() const {
+  Age_Map* get_residual_immunity() const {
     return this->residual_immunity;
   }
 
   /**
    * @return a pointer to this Disease's at_risk Age_Map
    */
-  Age_Map * get_at_risk() const {
+  Age_Map* get_at_risk() const {
     return this->at_risk;
   }
 
@@ -129,7 +128,7 @@ public:
    * @return a pointer to a map of Primary Loads for a given day
    * @see Evolution::get_primary_loads(int day)
    */
-  Transmission::Loads * get_primary_loads(int day);
+  Transmission::Loads* get_primary_loads(int day);
 
   /**
    * @param the simulation day
@@ -137,12 +136,12 @@ public:
    * @return a pointer to a map of Primary Loads for a particular strain of the disease on a given day
    * @see Evolution::get_primary_loads(int day, int strain)
    */
-  Transmission::Loads * get_primary_loads(int day, int strain);
+  Transmission::Loads* get_primary_loads(int day, int strain);
 
   /**
    * @return a pointer to this Disease's Evolution attribute
    */
-  Evolution * get_evolution() {
+  Evolution* get_evolution() {
     return this->evol;
   }
 
@@ -150,16 +149,16 @@ public:
    * @param infection
    * @param loads
    * @return a pointer to a Trajectory object
-   * @see return Trajectory::get_trajectory(Infection *infection, map<int, double> *loads)
+   * @see return Trajectory::get_trajectory(Infection* infection, map<int, double>* loads)
    */
-  Trajectory * get_trajectory(Infection *infection, Transmission::Loads * loads);
+  Trajectory* get_trajectory(Infection* infection, Transmission::Loads* loads);
 
   /**
    * Add a person to the Epidemic's infectious place list
    * @param p pointer to a Place
-   * @see Epidemic::add_infectious_place(Place *p)
+   * @see Epidemic::add_infectious_place(Place* p)
    */
-  void add_infectious_place(Place *p) {
+  void add_infectious_place(Place* p) {
     this->epidemic->add_infectious_place(p);
   }
 
@@ -174,14 +173,14 @@ public:
   /**
    * @return the population with which this Disease is associated
    */
-  Population * get_population() {
+  Population* get_population() {
     return this->population;
   }
 
   /**
     * @return the epidemic with which this Disease is associated
     */
-  Epidemic * get_epidemic() {
+  Epidemic* get_epidemic() {
     return this->epidemic;
   }
 
@@ -203,35 +202,35 @@ public:
 
   static void get_disease_parameters();
 
-  void become_susceptible(Person * person) {
+  void become_susceptible(Person* person) {
     this->epidemic->become_susceptible(person);
   }
 
-  void become_unsusceptible(Person * person) {
+  void become_unsusceptible(Person* person) {
     this->epidemic->become_unsusceptible(person);
   }
 
-  void become_exposed(Person * person) {
+  void become_exposed(Person* person) {
     this->epidemic->become_exposed(person);
   }
 
-  void become_infectious(Person * person) {
+  void become_infectious(Person* person) {
     this->epidemic->become_infectious(person);
   }
 
-  void become_uninfectious(Person * person) {
+  void become_uninfectious(Person* person) {
     this->epidemic->become_uninfectious(person);
   }
 
-  void become_symptomatic(Person * person) {
+  void become_symptomatic(Person* person) {
     this->epidemic->become_symptomatic(person);
   }
 
-  void become_removed(Person * person, bool susceptible, bool infectious, bool symptomatic) {
+  void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic) {
     this->epidemic->become_removed(person, susceptible, infectious, symptomatic);
   }
 
-  void become_immune(Person * person, bool susceptible, bool infectious, bool symptomatic) {
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
     this->epidemic->become_immune(person, susceptible, infectious, symptomatic);
   }
 
@@ -241,13 +240,13 @@ public:
  
   bool gen_immunity_infection(double real_age);
 
-  int add_strain(Strain * child_strain, double transmissibility, int parent_strain_id);
-  int add_strain(Strain * child_strain, double transmissibility);
+  int add_strain(Strain* child_strain, double transmissibility, int parent_strain_id);
+  int add_strain(Strain* child_strain, double transmissibility);
 
   void add_root_strain(int num_elements);
   void print_strain(int strain_id, stringstream &out);
   std::string get_strain_data_string(int strain_id);
-  void initialize_evolution_reporting_grid(Regional_Layer * grid);
+  void initialize_evolution_reporting_grid(Regional_Layer* grid);
 
   double get_infectivity_threshold() {
     return this->infectivity_threshold;
@@ -288,16 +287,27 @@ public:
   }
 
   bool is_fatal(double real_age, double symptoms, int days_symptomatic);
-  bool is_fatal(Person * per, double symptoms, int days_symptomatic);
+  bool is_fatal(Person* per, double symptoms, int days_symptomatic);
+
+  double get_min_symptoms_for_seek_healthcare() {
+    return this->min_symptoms_for_seek_healthcare;
+  }
+
+  double get_hospitalization_prob(Person* per);
+
+  double get_outpatient_healthcare_prob(Person* per);
+
   bool is_case_fatality_enabled() {
     return this->enable_case_fatality;
   }
 
-  char * get_disease_name() { return disease_name; }
+  char* get_disease_name() {
+    return disease_name;
+  }
 
 private:
 
-  static std::string * Disease_name;
+  static std::string* Disease_name;
 
   char disease_name[FRED_STRING_SIZE];
   int id;
@@ -315,18 +325,23 @@ private:
   // case fatality parameters
   int enable_case_fatality;
   double min_symptoms_for_case_fatality;
-  Age_Map * case_fatality_age_factor;
-  double * case_fatality_prob_by_day;
+  Age_Map* case_fatality_age_factor;
+  double* case_fatality_prob_by_day;
   int max_days_case_fatality_prob;
 
+  //Hospitalization and outpatient healthcare parameters
+  double min_symptoms_for_seek_healthcare;
+  Age_Map* hospitalization_prob;
+  Age_Map* outpatient_healthcare_prob;
+
   double immunity_loss_rate;
-  Epidemic *epidemic;
-  Age_Map *residual_immunity;
-  Age_Map *at_risk;
-  Age_Map *infection_immunity_prob;
-  StrainTable *strain_table;
-  IntraHost *ihm;
-  Evolution *evol;
+  Epidemic* epidemic;
+  Age_Map* residual_immunity;
+  Age_Map* at_risk;
+  Age_Map* infection_immunity_prob;
+  StrainTable* strain_table;
+  IntraHost* ihm;
+  Evolution* evol;
 
   // intervention efficacies
   int enable_face_mask_usage;
@@ -344,7 +359,7 @@ private:
   double R0_b;
 
   // Vars that are not Disease-specific (for updating global stats).
-  Population *population;
+  Population* population;
 };
 
 #endif // _FRED_Disease_H

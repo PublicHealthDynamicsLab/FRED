@@ -1,7 +1,7 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
   Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
   Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -40,7 +40,7 @@ Person::~Person() {
 }
 
 void Person::setup(int _index, int _id, int age, char sex,
-       int race, int rel, Place *house, Place *school, Place *work,
+       int race, int rel, Place* house, Place* school, Place* work,
        int day, bool today_is_birthday) {
 
   this->index = _index;
@@ -54,23 +54,22 @@ void Person::setup(int _index, int _id, int age, char sex,
   if (today_is_birthday) {
     FRED_VERBOSE(1, "Baby index %d id %d age %d born on day %d household = %s  new_size %d orig_size %d\n",
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
-  }
-  else {
+  } else {
     // residual immunity does NOT apply to newborns
     for (int disease = 0; disease < Global::Diseases; disease++) {
-      Disease * dis = Global::Pop.get_disease(disease);
+      Disease* dis = Global::Pop.get_disease(disease);
       if(!dis->get_residual_immunity()->is_empty()) {
-	double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	// printf("RESID: age %d prob %f\n",age,residual_immunity_prob);
-	if(RANDOM() < residual_immunity_prob) {
-	  become_immune(dis);
-	}
+	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
+	      // printf("RESID: age %d prob %f\n",age,residual_immunity_prob);
+	      if(RANDOM() < residual_immunity_prob) {
+	        become_immune(dis);
+	      }
       }
     }
   }
 }
 
-void Person::print(FILE *fp, int disease) {
+void Person::print(FILE* fp, int disease) {
   if (fp == NULL) return;
   fprintf(fp, "%d id %7d  a %3d  s %c %d",
           disease, id,
@@ -86,7 +85,7 @@ void Person::print(FILE *fp, int disease) {
   fprintf(fp, "infected_at %c %6d ",
           this->health.get_infected_place_type(disease),
           this->health.get_infected_place_id(disease));
-  Person * infector = this->health.get_infector(disease);
+  Person* infector = this->health.get_infector(disease);
   int infector_id;
   if (infector == NULL) {
     infector_id = -1;
@@ -110,11 +109,11 @@ void Person::become_immune(Disease* disease) {
   }
 }
 
-void Person::infect(Person *infectee, int disease, Transmission & transmission) {
-  this->health.infect( this, infectee, disease, transmission );
+void Person::infect(Person* infectee, int disease, Transmission &transmission) {
+  this->health.infect(this, infectee, disease, transmission);
 }
 
-Person * Person::give_birth(int day) {
+Person* Person::give_birth(int day) {
   int age = 0;
   char sex = (URAND(0.0, 1.0) < 0.5 ? 'M' : 'F');
   int race = get_race();
@@ -125,16 +124,16 @@ Person * Person::give_birth(int day) {
   } else {
     house = get_household();
   }
-  Place * school = NULL;
-  Place * work = NULL;
+  Place* school = NULL;
+  Place* work = NULL;
   bool today_is_birthday = true;
-  Person * baby = Global::Pop.add_person( age, sex, race, rel,
-           house, school, work, day, today_is_birthday );
+  Person* baby = Global::Pop.add_person(age, sex, race, rel,
+           house, school, work, day, today_is_birthday);
   return baby;
 }
 
-char * get_place_label(Place * p) {
-  return (p==NULL) ? (char *) "-1" : p->get_label();
+char* get_place_label(Place* p) {
+  return (p==NULL) ? (char*) "-1" : p->get_label();
 }
 
 string Person::to_string() {

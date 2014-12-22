@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -71,7 +71,7 @@ class Activities {
 
 public:
 
-  static const char * activity_lookup(int idx) {
+  static const char* activity_lookup(int idx) {
     assert(idx >= 0);
     assert(idx < Activity_index::FAVORITE_PLACES);
     switch(idx) {
@@ -110,28 +110,28 @@ public:
   /**
    * Assigns an activity profile to the agent
    */
-  void assign_initial_profile(Person * self);
+  void assign_initial_profile(Person* self);
 
   /**
    * Perform the daily update for an infectious agent
    *
    * @param day the simulation day
    */
-  void update_activities_of_infectious_person(Person * self, int day);
+  void update_activities_of_infectious_person(Person* self, int day);
 
   /**
    * Perform the daily update for a non-infectious agent
    *
    * @param day the simulation day
    */
-  void add_visitor_to_infectious_places(Person * self, int day);
+  void add_visitor_to_infectious_places(Person* self, int day);
 
   /**
    * Perform the daily update to the schedule
    *
    * @param day the simulation day
    */
-  void update_schedule(Person * self, int day);
+  void update_schedule(Person* self, int day);
 
   /**
    * Decide whether to stay home if symptomatic.
@@ -139,14 +139,14 @@ public:
    *
    * @param day the simulation day
    */
-  void decide_whether_to_stay_home(Person * self, int day);
+  void decide_whether_to_stay_home(Person* self, int day);
 
   /**
    * Decide whether to seek healthcare if symptomatic.
    *
    * @param day the simulation day
    */
-  void decide_whether_to_seek_healthcare(Person * self, int day);
+  void decide_whether_to_seek_healthcare(Person* self, int day);
 
   /**
    * Have agent begin stay in a hospital
@@ -155,14 +155,14 @@ public:
    * @param day the simulation day
    * @param length_of_stay how many days to remain hospitalized
    */
-  void start_hospitalization(Person * self, int day, int length_of_stay);
+  void start_hospitalization(Person* self, int day, int length_of_stay);
 
   /**
    * Have agent end stay in a hospital
    *
    * @param self this agent
    */
-  void end_hospitalization(Person * self);
+  void end_hospitalization(Person* self);
 
   /**
    * Decide whether to stay home if symptomatic.
@@ -173,26 +173,26 @@ public:
 
   /// returns string containing Activities schedule; does
   /// not include trailing newline
-  std::string schedule_to_string(Person * self, int day);
+  std::string schedule_to_string(Person* self, int day);
 
   /**
    * Print the Activity schedule
    */
-  void print_schedule(Person * self, int day);
+  void print_schedule(Person* self, int day);
 
   /// returns string containing Activities status; does
   /// not include trailing newline
-  std::string to_string(Person * self);
+  std::string to_string(Person* self);
   std::string to_string();
 
   /**
    * Print out information about this object
    */
-  void print(Person * self);
+  void print(Person* self);
 
   unsigned char get_deme_id();
 
-  Place * get_favorite_place(int i) {
+  Place* get_favorite_place(int i) {
     if(this->favorite_places_map.find(i) != this->favorite_places_map.end()) {
       return this->favorite_places_map[i];
     } else {
@@ -200,11 +200,11 @@ public:
     }
   }
 
-  void set_favorite_place(int i, Place * p) {
+  void set_favorite_place(int i, Place* p) {
     if(p != NULL) {
       this->favorite_places_map[i] = p;
     } else {
-      std::map<int, Place *>::iterator itr;
+      std::map<int, Place*>::iterator itr;
       itr = this->favorite_places_map.find(i);
       if(itr != this->favorite_places_map.end()) {
         this->favorite_places_map.erase(itr);
@@ -212,44 +212,44 @@ public:
     }
   }
 
-  void set_household(Place * p) {
+  void set_household(Place* p) {
     set_favorite_place(Activity_index::HOUSEHOLD_ACTIVITY, p);
   }
 
-  void set_neighborhood(Place * p) {
+  void set_neighborhood(Place* p) {
     set_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY, p);
   }
 
-  void set_school(Place * p) {
+  void set_school(Place* p) {
     set_favorite_place(Activity_index::SCHOOL_ACTIVITY, p);
   }
 
-  void set_classroom(Place * p) {
+  void set_classroom(Place* p) {
     set_favorite_place(Activity_index::CLASSROOM_ACTIVITY, p);
   }
 
-  void set_workplace(Place * p) {
+  void set_workplace(Place* p) {
     set_favorite_place(Activity_index::WORKPLACE_ACTIVITY, p);
   }
 
-  void set_office(Place * p) {
+  void set_office(Place* p) {
     set_favorite_place(Activity_index::OFFICE_ACTIVITY, p);
   }
 
-  void set_hospital(Place * p) {
+  void set_hospital(Place* p) {
     set_favorite_place(Activity_index::HOSPITAL_ACTIVITY, p);
   }
 
-  void set_ad_hoc(Place * p) {
+  void set_ad_hoc(Place* p) {
     set_favorite_place(Activity_index::AD_HOC_ACTIVITY, p);
   }
 
-  void move_to_new_house(Person * self, Place * house);
-  void change_household(Person * self, Place * place);
-  void change_school(Person * self, Place * place);
-  void change_workplace(Person * self, Place * place, int include_office = 1);
+  void move_to_new_house(Person* self, Place* house);
+  void change_household(Person* self, Place* place);
+  void change_school(Person* self, Place* place);
+  void change_workplace(Person* self, Place* place, int include_office = 1);
 
-  Place * get_temporary_household() {
+  Place* get_temporary_household() {
     if(this->tmp_favorite_places_map->find(Activity_index::HOUSEHOLD_ACTIVITY)
         != this->tmp_favorite_places_map->end()) {
       return (*this->tmp_favorite_places_map)[Activity_index::HOUSEHOLD_ACTIVITY];
@@ -264,7 +264,7 @@ public:
    * If traveling, this is the household that is currently
    * being visited
    */
-  Place * get_household() {
+  Place* get_household() {
     if(Global::Enable_Hospitals && this->is_hospitalized) {
       return get_temporary_household();
     } else {
@@ -278,7 +278,7 @@ public:
    * If traveling, this is the Person's permanent residence,
    * NOT the household being visited
    */
-  Place * get_permanent_household() {
+  Place* get_permanent_household() {
     if(this->is_traveling && this->is_traveling_outside) {
       return get_temporary_household();
     } else if(Global::Enable_Hospitals && this->is_hospitalized) {
@@ -291,94 +291,94 @@ public:
   /**
    * @return a pointer to this agent's Neighborhood
    */
-  Place * get_neighborhood() {
+  Place* get_neighborhood() {
     return get_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's School
    */
-  Place * get_school() {
+  Place* get_school() {
     return get_favorite_place(Activity_index::SCHOOL_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Classroom
    */
-  Place * get_classroom() {
+  Place* get_classroom() {
     return get_favorite_place(Activity_index::CLASSROOM_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Workplace
    */
-  Place * get_workplace() {
+  Place* get_workplace() {
     return get_favorite_place(Activity_index::WORKPLACE_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Office
    */
-  Place * get_office() {
+  Place* get_office() {
     return get_favorite_place(Activity_index::OFFICE_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Hospital
    */
-  Place * get_hospital() {
+  Place* get_hospital() {
     return get_favorite_place(Activity_index::HOSPITAL_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Ad Hoc location
    */
-  Place * get_ad_hoc() {
+  Place* get_ad_hoc() {
     return get_favorite_place(Activity_index::AD_HOC_ACTIVITY);
   }
 
   /**
    * Assign the agent to a School
    */
-  void assign_school(Person * self);
+  void assign_school(Person* self);
 
   /**
    * Assign the agent to a Classroom
    */
-  void assign_classroom(Person * self);
+  void assign_classroom(Person* self);
 
   /**
    * Assign the agent to a Workplace
    */
-  void assign_workplace(Person * self);
+  void assign_workplace(Person* self);
 
   /**
    * Assign the agent to an Office
    */
-  void assign_office(Person * self);
+  void assign_office(Person* self);
 
   /**
    * Assign the agent to a Hospital
    */
-  void assign_hospital(Person * self, Place * place);
+  void assign_hospital(Person* self, Place* place);
 
   /**
    * Assign the agent to an Ad Hoc Location
    * Note: this is meant to be assigned at will
    */
-  void assign_ad_hoc_place(Person * self, Place * place);
+  void assign_ad_hoc_place(Person* self, Place* place);
 
   void unassign_ad_hoc_place(Person * self);
 
   /**
    * Update the agent's profile
    */
-  void update_profile(Person * self);
+  void update_profile(Person* self);
 
   /**
    * Unenroll from all the favorite places
    */
-  void terminate(Person * self);
+  void terminate(Person* self);
 
   /**
    * The agent begins traveling.  The favorite places for this agent are stored, and it gets a new schedule
@@ -387,13 +387,13 @@ public:
    * @param visited a pointer to the Person object being visited
    * @see Activities::store_favorite_places()
    */
-  void start_traveling(Person * self, Person * visited);
+  void start_traveling(Person* self, Person* visited);
 
   /**
    * The agent stops traveling and returns to its original favorite places
    * @see Activities::restore_favorite_places()
    */
-  void stop_traveling(Person * self);
+  void stop_traveling(Person* self);
 
   /**
    * @return <code>true</code> if the agent is traveling, <code>false</code> otherwise
@@ -402,7 +402,7 @@ public:
     return this->is_traveling;
   }
 
-  bool become_a_teacher(Person *self, Place *school);
+  bool become_a_teacher(Person* self, Place* school);
 
   /**
    * Return the number of other agents in an agent's neighborhood, school,
@@ -413,8 +413,9 @@ public:
   int get_household_size();
   int get_group_size(int index) {
     int size = 0;
-    if(get_favorite_place(index) != NULL)
+    if(get_favorite_place(index) != NULL) {
       size = get_favorite_place(index)->get_size();
+    }
     return size;
   }
 
@@ -555,18 +556,18 @@ public:
     this->grade = n;
   }
 
-  int get_visiting_health_status(Person * self, Place * place, int day, int disease_id);
+  int get_visiting_health_status(Person* self, Place* place, int day, int disease_id);
 
-  void update_activities_while_traveling(Person * self, int day);
+  void update_activities_while_traveling(Person* self, int day);
 
 private:
 
   // current favorite places
-  std::map<int, Place *> favorite_places_map;
+  std::map<int, Place*> favorite_places_map;
   // list of favorite places, stored while traveling
-  std::map<int, Place *> * tmp_favorite_places_map;
+  std::map<int, Place*> * tmp_favorite_places_map;
 
-  Place * home_neighborhood;
+  Place* home_neighborhood;
   std::bitset<Activity_index::FAVORITE_PLACES> on_schedule; // true iff favorite place is on schedule
   int schedule_updated;                       // date of last schedule update
   bool is_traveling;                         // true if traveling
@@ -604,8 +605,8 @@ private:
   // extra sick days for fle
   static double Flu_days;
   
-  static Age_Map * Hospitalization_prob;
-  static Age_Map * Outpatient_healthcare_prob;
+  static Age_Map* Hospitalization_prob;
+  static Age_Map* Outpatient_healthcare_prob;
   static double Hospitalization_visit_housemate_prob;
 
   // sick days statistics
@@ -632,26 +633,26 @@ private:
     this->favorite_places_map.clear();
   }
 
-  void enroll_in_favorite_places(Person *self) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+  void enroll_in_favorite_places(Person* self) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(get_favorite_place(i) != NULL) {
         get_favorite_place(i)->enroll(self);
       }
     }
   }
 
-  void unenroll_from_favorite_places(Person * self) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+  void unenroll_from_favorite_places(Person* self) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(get_favorite_place(i) != NULL) {
-	// printf("UNENROLLING ACTIVITY %d\n", i); fflush(stdout);
+	      // printf("UNENROLLING ACTIVITY %d\n", i); fflush(stdout);
         get_favorite_place(i)->unenroll(self);
       }
     }
     clear_favorite_places();
   }
 
-  void make_favorite_places_infectious(Person *self, int dis) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+  void make_favorite_places_infectious(Person* self, int dis) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(this->on_schedule[i]) {
         assert(get_favorite_place(i) != NULL);
         get_favorite_place(i)->add_infectious(dis, self);
@@ -659,8 +660,8 @@ private:
     }
   }
 
-  void join_susceptible_lists_at_favorite_places(Person * self, int dis) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+  void join_susceptible_lists_at_favorite_places(Person* self, int dis) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(this->on_schedule[i]) {
         assert(get_favorite_place(i) != NULL);
         if(get_favorite_place(i)->is_infectious(dis)) {
@@ -670,8 +671,8 @@ private:
     }
   }
 
-  void join_nonsusceptible_lists_at_favorite_places(Person * self, int dis) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+  void join_nonsusceptible_lists_at_favorite_places(Person* self, int dis) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(this->on_schedule[i]) {
         assert(get_favorite_place(i) != NULL);
         if(get_favorite_place(i)->is_infectious(dis)) {
@@ -686,7 +687,7 @@ private:
    */
 
   void store_favorite_places() {
-    this->tmp_favorite_places_map = new std::map<int, Place *>();
+    this->tmp_favorite_places_map = new std::map<int, Place*>();
     *this->tmp_favorite_places_map = this->favorite_places_map;
   }
 
@@ -704,7 +705,7 @@ private:
     return get_favorite_place(p) == NULL ? -1 : get_favorite_place(p)->get_id();
   }
 
-  const char * get_place_label(int p) {
+  const char* get_place_label(int p) {
     return get_favorite_place(p) == NULL ? "NULL" : get_favorite_place(p)->get_label();
   }
 
@@ -715,7 +716,7 @@ protected:
    */
   friend class Person;
   Activities();
-  void setup(Person * self, Place *house, Place *school, Place *work);
+  void setup(Person* self, Place* house, Place* school, Place* work);
 
 };
 

@@ -273,10 +273,13 @@ large_workplace_size = 500
 ##########################################################
 
 enable_hospitals = 0
+# These are the probabilities for general hospital or outpatient healthcare
+# see also disease specific values for probabilities
 hospitalization_prob_upper_ages = 0
 hospitalization_prob_values = 0
 outpatient_healthcare_prob_upper_ages = 0
 outpatient_healthcare_prob_values = 0
+
 prob_of_visiting_hospitalized_housemate = 0.0
 hospital_fixed_staff = 20
 hospital_worker_to_bed_ratio = 1.0
@@ -514,6 +517,21 @@ disease_names = 1 influenza
 ### OPTIONAL FEATURES
 ### The following settings disable optional features unless needed:
 <disease_name>_enable_case_fatality = 0
+<disease_name>_min_symptoms_for_case_fatality = 1.0
+<disease_name>_case_fatality_age_factor_upper_ages = 1 120
+<disease_name>_case_fatality_age_factor_values = 1 1.0
+<disease_name>_case_fatality_prob_by_day = 1 0.0
+
+# Hospitalization must be enabled
+# These are the probabilities for general hospital or outpatient healthcare
+# for a given disease. The probability will be multiplied by the symptomaticity
+# to get lower likelihood for lesser symptoms
+<disease_name>_min_symptoms_for_seek_healthcare = 1.0
+<disease_name>_hospitalization_prob_upper_ages = 0
+<disease_name>_hospitalization_prob_values = 0
+<disease_name>_outpatient_healthcare_prob_upper_ages = 0
+<disease_name>_outpatient_healthcare_prob_values = 0
+
 <disease_name>_at_risk_upper_ages = 0
 <disease_name>_at_risk_values = 0
 <disease_name>_intra_host_model = 0
@@ -621,6 +639,17 @@ influenza_case_fatality_prob_by_day = 4 0.0000715 0.0000715 0.0000715 0.0000715
 # influenza_at_risk_values = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
 influenza_at_risk_upper_ages = 0
 influenza_at_risk_values = 0
+
+### HOSPITALIZATION:
+#influenza_hospitalization_prob_upper_ages = 7 2 5 19 25 50 65 120
+#influenza_hospitalization_prob_values = 7 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+#influenza_outpatient_healthcare_prob_upper_ages = 7 2 5 19 25 50 65 120
+#influenza_outpatient_healthcare_prob_values =  7 0.03 0.03 0.03 0.03 0.03 0.03 0.03
+influenza_min_symptoms_for_seek_healthcare = 1.0
+influenza_hospitalization_prob_upper_ages = 0
+influenza_hospitalization_prob_values = 0
+influenza_outpatient_healthcare_prob_upper_ages = 0
+influenza_outpatient_healthcare_prob_values = 0
 
 
 ######### OPTIONAL EXPERIMENT_SPECIFIC PARAMETERS ######################

@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -43,7 +43,7 @@ class Infection {
 public:
   // if primary infection, infector and place are null.
   // if mutation, place is null.
-  Infection(Disease *s, Person *infector, Person *infectee, Place* place, int day);
+  Infection(Disease* s, Person* infector, Person* infectee, Place* place, int day);
   ~Infection();
 
   void chronic_update(int today);
@@ -59,21 +59,21 @@ public:
   /**
    * @return a pointer to the Disease object
    */
-  Disease * get_disease() const {
+  Disease* get_disease() const {
     return this->disease;
   }
 
   /**
    * @return the a pointer to the Person who was the infector for this Infection
    */
-  Person * get_infector() const {
+  Person* get_infector() const {
     return this->infector;
   }
 
   /**
    * @return the pointer to the place where the infection occured
    */
-  Place * get_infected_place() const {
+  Place* get_infected_place() const {
     return this->place;
   }
 
@@ -258,45 +258,45 @@ public:
    * @param infectee agent that this agent should try to infect
    * @param transmission
    */
-  void transmit(Person *infectee, Transmission & transmission);
+  void transmit(Person* infectee, Transmission &transmission);
 
   /**
    * @param transmission a Transmission to add
    */
-  //void addTransmission(Transmission *transmission);
+  //void addTransmission(Transmission* transmission);
   /**
    * @param trajectory the new Trajectory of this Infection
    */
-  void setTrajectory(Trajectory *trajectory);
+  void setTrajectory(Trajectory* trajectory);
 
   /**
    * @return a pointer to this Infection's trajectory attribute
    */
-  Trajectory * get_trajectory() {
+  Trajectory* get_trajectory() {
     return this->trajectory;
   }
 
   int get_num_past_infections();
 
-  Past_Infection *get_past_infection(int i);
+  Past_Infection* get_past_infection(int i);
 
   // change the following two to use disease id
   int get_num_vaccinations();
-  Past_Infection *get_vaccine_health(int i);
+  Past_Infection* get_vaccine_health(int i);
 
   bool provides_immunity() {
     return this->immune_response;
   }
 
   void get_strains(std::vector<int> &strains) {
-    return trajectory->get_all_strains(strains);
+    return this->trajectory->get_all_strains(strains);
   }
 
   int get_age_at_exposure() {
     return this->age_at_exposure;
   }
 
-  Person *get_host() {
+  Person* get_host() {
     return this->host;
   }
 
@@ -314,7 +314,7 @@ public:
 
 private:
   // associated disease
-  Disease *disease;
+  Disease* disease;
 
   bool is_susceptible;
   bool immune_response;
@@ -331,11 +331,11 @@ private:
   short int age_at_exposure;
 
   // people involved
-  Person *infector;
-  Person *host;
+  Person* infector;
+  Person* host;
 
   // where infection was caught
-  Place *place;
+  Place* place;
 
   // number of people infected by this infection
   int infectee_count;
@@ -347,7 +347,7 @@ private:
   double symptoms;
 
   // trajectory contains vectors that describe the (tentative) infection course
-  Trajectory * trajectory;
+  Trajectory* trajectory;
 
   // chrono data
   int exposure_date;
