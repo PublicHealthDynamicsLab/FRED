@@ -94,23 +94,29 @@ public:
    * @param disease_id the index of the Disease
    * @return a pointer to the Disease indexed by s
    */
-  Disease * get_disease(int disease_id);
+  Disease* get_disease(int disease_id);
 
   /**
    * @return the pop_size
    */
-  int get_pop_size() { return this->pop_size; }
+  int get_pop_size() {
+    return this->pop_size;
+  }
 
   //Mitigation Managers
   /**
    * @return a pointer to this Population's AV_Manager
    */
-  AV_Manager * get_av_manager(){ return this->av_manager; }
+  AV_Manager* get_av_manager(){
+    return this->av_manager;
+  }
 
   /**
    * @return a pointer to this Population's Vaccine_Manager
    */
-  Vaccine_Manager * get_vaccine_manager() { return this->vacc_manager;}
+  Vaccine_Manager* get_vaccine_manager() {
+    return this->vacc_manager;
+  }
 
   /**
    * @param args passes to Person ctor; all persons added to the
@@ -118,20 +124,20 @@ public:
    *
    * @return pointer to the person created and added
    */
-  Person * add_person( int age, char sex, int race, int rel, Place *house,
-		       Place *school, Place *work, int day, bool today_is_birthday );
+  Person* add_person(int age, char sex, int race, int rel, Place* house,
+		       Place* school, Place* work, int day, bool today_is_birthday);
 
   /**
    * @param per a pointer to the Person to remove from the Population
    */
-  void delete_person(Person * per);
+  void delete_person(Person* per);
 
   /**
    * Perform the necessary steps for an agent's death
    * @param day the simulation day
    * @param person_index the population index of the agent who will die
    */
-  void prepare_to_die( int day, int person_index );
+  void prepare_to_die(int day, int person_index);
 
   void remove_dead_from_population(int day);
 
@@ -140,24 +146,26 @@ public:
    * @param day the simulation day
    * @param person_index the population index of the agent who will give birth
    */
-  void prepare_to_give_birth( int day, int person_index );
+  void prepare_to_give_birth(int day, int person_index);
 
   /**
    * @param index the index of the Person
    * Return a pointer to the Person object at this index
    */
-  Person * get_person_by_index( int index );
+  Person* get_person_by_index(int index);
 
-  size_t get_index_size() { return blq.get_index_size(); }
+  size_t get_index_size() {
+    return blq.get_index_size();
+  }
 
   /**
    * @param n the id of the Person
    * Return a pointer to the Person object with this id
    */
-  Person * get_person_by_id( int id );
+  Person* get_person_by_id(int id);
 
   // Modifiers on the entire pop;
-  // void apply_residual_immunity(Disease *disease) {}
+  // void apply_residual_immunity(Disease* disease) {}
 
   /**
    * Assign agents in Schools to specific Classrooms within the school
@@ -173,13 +181,13 @@ public:
    * Write degree information to a file degree.txt
    * @param directory the directory where the file will be written
    */
-  void get_network_stats(char *directory);
+  void get_network_stats(char* directory);
 
   void split_synthetic_populations_by_deme();
 
   void read_all_populations();
 
-  void read_population( const char * pop_dir, const char * pop_id, const char * pop_type );
+  void read_population( const char* pop_dir, const char* pop_id, const char* pop_type );
 
   /**
    * Print the birth information to the status file
@@ -187,7 +195,7 @@ public:
    * @param day the simulation day
    * @param per a pointer to the Person object that has given birth
    */
-  void report_birth(int day, Person *per) const;
+  void report_birth(int day, Person* per) const;
 
   /**
    * Print the death information to the status file
@@ -195,23 +203,23 @@ public:
    * @param day the simulation day
    * @param per a pointer to the Person object that has died
    */
-  void report_death(int day, Person *per) const;
+  void report_death(int day, Person* per) const;
 
   /**
    *
    */
-  void print_age_distribution(char *dir, char * date_string, int run);
+  void print_age_distribution(char* dir, char* date_string, int run);
 
   /**
    * @return a pointer to a random Person in this population
    */
-  Person * select_random_person();
+  Person* select_random_person();
 
   /**
    * @return a pointer to a random Person in this population
    * whose age is in the given range
    */
-  Person * select_random_person_by_age(int min_age, int max_age);
+  Person* select_random_person_by_age(int min_age, int max_age);
 
   /*
    * Set the mask bit for the person_index
@@ -219,7 +227,7 @@ public:
    * TODO redefine the mask type so that multiple sets of masks
    * are available (one set for each disease)
    */
-  void set_mask_by_index( fred::Pop_Masks mask, int person_index );
+  void set_mask_by_index(fred::Pop_Masks mask, int person_index);
 
   /*
    * Clear the mask bit for the person_index
@@ -227,12 +235,12 @@ public:
    * TODO redefine the mask type so that multiple sets of masks
    * are available (one set for each disease)
    */
-  void clear_mask_by_index( fred::Pop_Masks mask, int person_index );
+  void clear_mask_by_index(fred::Pop_Masks mask, int person_index);
 
   /*
    * Check to see if mask is set for person_index
    */
-  bool check_mask_by_index( fred::Pop_Masks mask, int person_index ) {
+  bool check_mask_by_index(fred::Pop_Masks mask, int person_index) {
     return this->blq.mask_is_set( mask, person_index );
   }
 
@@ -248,26 +256,40 @@ public:
     return this->blq.size();
   }
 
-  int size( fred::Pop_Masks mask ) { return this->blq.size( mask ); }
+  int size(fred::Pop_Masks mask ) {
+    return this->blq.size( mask );
+  }
 
-  void get_age_distribution(int * count_males_by_age, int * count_females_by_age);
+  void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
 
-  template< typename Functor >
-  void apply( Functor & f ) { this->blq.apply( f ); }
+  template<typename Functor>
+  void apply(Functor &f) {
+    this->blq.apply(f);
+  }
 
-  template< typename Functor >
-  void apply( fred::Pop_Masks m, Functor & f ) { this->blq.apply( m, f ); }
+  template<typename Functor>
+  void apply(fred::Pop_Masks m, Functor &f) {
+    this->blq.apply(m, f);
+  }
 
-  template< typename Functor >
-  void parallel_apply( Functor & f ) { this->blq.parallel_apply( f ); }
+  template<typename Functor>
+  void parallel_apply(Functor &f) {
+    this->blq.parallel_apply(f);
+  }
 
-  template< typename Functor >
-  void parallel_masked_apply( fred::Pop_Masks m, Functor & f ) { this->blq.parallel_masked_apply( m, f ); }
+  template<typename Functor>
+  void parallel_masked_apply(fred::Pop_Masks m, Functor &f) {
+    this->blq.parallel_masked_apply(m, f);
+  }
 
-  template< typename Functor >
-  void parallel_not_masked_apply( fred::Pop_Masks m, Functor & f ) { this->blq.parallel_not_masked_apply( m, f ); }
+  template<typename Functor>
+  void parallel_not_masked_apply(fred::Pop_Masks m, Functor &f) {
+    this->blq.parallel_not_masked_apply(m, f);
+  }
 
-  const std::vector< Utils::Tokens > & get_demes() { return this->demes; }
+  const std::vector<Utils::Tokens> &get_demes() {
+    return this->demes;
+  }
   /* TODO rewrite
      template< typename MaskType >
      struct masked_iterator : bloque< Person, fred::Pop_Masks >::masked_iterator< MaskType > { };
@@ -344,34 +366,35 @@ private:
     }
   } gq_pop_file_col_index_2010_ver1;
 
-  const PopFileColIndex & get_pop_file_col_index( bool is_group_quarters, bool is_2010_ver1 ) const {
-    if ( is_group_quarters ) {
-      if (is_2010_ver1)
-	return gq_pop_file_col_index_2010_ver1;
-      else
-	return gq_pop_file_col_index;
+  const PopFileColIndex &get_pop_file_col_index(bool is_group_quarters, bool is_2010_ver1) const {
+    if(is_group_quarters) {
+      if(is_2010_ver1) {
+	      return this->gq_pop_file_col_index_2010_ver1;
+      } else {
+	      return this->gq_pop_file_col_index;
+      }
+    } else {
+      return this->hh_pop_file_col_index;
     }
-    else 
-      return hh_pop_file_col_index;
   }
 
-  std::vector< Utils::Tokens > demes;
+  std::vector<Utils::Tokens> demes;
 
-  void parse_lines_from_stream( std::istream & stream, bool is_group_quarters_pop );
+  void parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop);
 
-  Person_Init_Data get_person_init_data( char * line,
+  Person_Init_Data get_person_init_data(char* line,
 					 bool is_group_quarters_population,
-					 bool is_2010_ver1_format );
+					 bool is_2010_ver1_format);
 
 
-  bloque< Person, fred::Pop_Masks > blq;   // all Persons in the population
-  vector <Person * > death_list;     // list agents to die today
-  vector <Person * > maternity_list; // list agents to give birth today
+  bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
+  vector <Person*> death_list;     // list agents to die today
+  vector <Person*> maternity_list; // list agents to give birth today
   int pop_size;
-  Disease *disease;
+  Disease* disease;
 
-  vector <Person *> birthday_vecs[367]; //0 won't be used | day 1 - 366
-  map<Person *, int > birthday_map;
+  vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
+  map<Person*, int> birthday_map;
 
   int enable_copy_files;
     
@@ -383,8 +406,8 @@ private:
   static int next_id;
 
   //Mitigation Managers
-  AV_Manager *av_manager;
-  Vaccine_Manager *vacc_manager;
+  AV_Manager* av_manager;
+  Vaccine_Manager* vacc_manager;
 
   /**
    * Used for reporting
@@ -400,84 +423,84 @@ private:
   // functors for demographics updates 
   struct Update_Population_Births {
     int day;
-    Update_Population_Births( int _day ) : day( _day ) { }
-    void operator() ( Person & p );
+    Update_Population_Births(int _day) : day(_day) { }
+    void operator() (Person &p);
   };
 
   struct Update_Population_Deaths {
     int day;
-    Update_Population_Deaths( int _day ) : day( _day ) { }
-    void operator() ( Person & p );
+    Update_Population_Deaths(int _day) : day(_day) { }
+    void operator() (Person &p);
   };
 
   // functor for health interventions (vaccination & antivirals) updates
   struct Update_Health_Interventions {
     int day;
-    Update_Health_Interventions( int d ) : day( d ) { }
-    void operator() ( Person & p );
+    Update_Health_Interventions(int d) : day(d) { }
+    void operator() (Person &p );
   };
     
   // functor for health update
   struct Update_Population_Health {
     int day;
-    Update_Population_Health( int d ) : day( d ) { }
-    void operator() ( Person & p );
+    Update_Population_Health(int d) : day(d) { }
+    void operator() (Person &p);
   };
 
   // functor for prepare activities
   struct Prepare_Population_Activities {
     int day;
-    Prepare_Population_Activities( int d ) : day( d ) { }
-    void operator() ( Person & p );
+    Prepare_Population_Activities(int d) : day(d) { }
+    void operator() (Person &p);
   };
 
   // functor for activity profile update
   struct Update_Population_Activities {
     int day;
-    Update_Population_Activities( int d ) : day( d ) { }
-    void operator() ( Person & p );
+    Update_Population_Activities(int d) : day(d) { }
+    void operator() (Person &p);
   };
 
   struct update_activities {
     int day, disease_id;
     update_activities(int _day, int _disease_id) : day(_day), disease_id(_disease_id) { };
-    void operator() (Person & p);
+    void operator() (Person &p);
   };
 
   struct update_susceptible_activities {
     int day;
     update_susceptible_activities(int _day) : day(_day) { };
-    void operator() (Person & p);
+    void operator() (Person &p);
   };
 
   struct update_infectious_activities {
     int day;
     update_infectious_activities(int _day) : day(_day) { };
-    void operator() (Person & p);
+    void operator() (Person &p);
   };
   
   struct update_activities_while_traveling {
     int day;
     update_activities_while_traveling(int _day) : day(_day) { };
-    void operator() (Person & p);
+    void operator() (Person &p);
   };
   
   // functor for behavior setup
   struct Setup_Population_Behavior {
-    void operator() ( Person & p );
+    void operator() (Person &p);
   };
 
   // functor for behavior updates
   struct Update_Population_Behaviors {
     int day;
-    Update_Population_Behaviors( int d ) : day( d ) { }
-    void operator() ( Person & p );
+    Update_Population_Behaviors(int d) : day( d ) { }
+    void operator() (Person &p);
   };
 
   struct infectious_sampler {
     double prob;
-    vector<Person *> * samples;
-    void operator() (Person & p);
+    vector<Person*>* samples;
+    void operator() (Person &p);
   };
 
   fred::Mutex mutex;
@@ -494,9 +517,9 @@ struct Person_Init_Data {
   char sex;
   bool today_is_birthday;
   int day;
-  Place * house;
-  Place * work;
-  Place * school;
+  Place* house;
+  Place* work;
+  Place* school;
   bool in_grp_qrtrs;
   char gq_type;
 
@@ -504,8 +527,8 @@ struct Person_Init_Data {
     default_initialization();
   }
 
-  Person_Init_Data( int _age, int _race, int _relationship,
-		    char _sex, bool _today_is_birthday, int _day ) {
+  Person_Init_Data(int _age, int _race, int _relationship,
+		    char _sex, bool _today_is_birthday, int _day) {
 
     default_initialization();
     age = _age;
@@ -520,10 +543,10 @@ struct Person_Init_Data {
     this->house = NULL;
     this->work = NULL;
     this->school = NULL;
-    strcpy( this->label, "-1" );
-    strcpy( this->house_label, "-1" );
-    strcpy( this->school_label, "-1" );
-    strcpy( this->work_label, "-1" );
+    strcpy(this->label, "-1");
+    strcpy(this->house_label, "-1");
+    strcpy(this->school_label, "-1");
+    strcpy(this->work_label, "-1");
     this->age = -1;
     this->race = -1;
     this->relationship = -1;

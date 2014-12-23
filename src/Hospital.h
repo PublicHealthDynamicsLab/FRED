@@ -18,6 +18,7 @@
 #define _FRED_HOSPITAL_H
 
 #include "Place.h"
+#include "Health.h"
 
 /**
  * This class represents a hospital location in the FRED application. It inherits from <code>Place</code>.
@@ -78,10 +79,36 @@ public:
    *
    * @param day the simulation day
    * @param disease an integer representation of the disease
-   * @return whether or not the household is open on the given day for the given disease
+   * @return whether or not the hospital is open on the given day for the given disease
    */
   bool should_be_open(int day, int disease) {
     return true;
+  }
+
+  void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
+
+  bool accepts_private_insurance() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE];
+  }
+
+  bool accepts_medicare_insurance() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE];
+  }
+
+  bool accepts_medicaid_insurance() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID];
+  }
+
+  bool accepts_highmark_insurance() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK];
+  }
+
+  bool accepts_upmc_insurance() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::UPMC];
+  }
+
+  bool accepts_uninsured() {
+    return this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED];
   }
 
   int get_bed_count() {
@@ -97,6 +124,8 @@ private:
   static double*** Hospital_contact_prob;
   static bool Hospital_parameters_set;
   int bed_count;
+  // true iff a the hospital accepts the indexed Insurance Coverage
+  std::bitset<Insurance_assignment_index::INSURANCE_ASSIGNMENTS> accepted_insurance_bitset;
 };
 
 #endif // _FRED_HOSPITAL_H
