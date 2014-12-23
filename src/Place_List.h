@@ -1,7 +1,7 @@
 /*
  This file is part of the FRED system.
 
- Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette,
+ Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -120,6 +120,7 @@ public:
   int get_number_of_households() {
     return (int)this->households.size();
   }
+
   int get_housing_data(int* target_size, int* current_size);
   void get_visualization_data(int disease_id, char place_type, int output_code);
   void get_initial_visualization_data_from_households();
@@ -299,7 +300,7 @@ private:
 
   std::vector<Place*> places;
   std::vector<Place*> schools;
-  std::vector<Place*>  schools_by_grade[GRADES];
+  std::vector<Place*> schools_by_grade[GRADES];
   std::vector<Place*> workplaces;
   std::vector<Place*> hospitals;
 
