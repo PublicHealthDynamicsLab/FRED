@@ -145,7 +145,7 @@ public:
   }
 
   int get_county_with_index(int index) {
-    if (index < 0) {
+    if(index < 0) {
       return 99999;
     }
     assert (index < this->counties.size());

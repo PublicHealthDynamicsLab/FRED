@@ -52,7 +52,7 @@ void Hospital::get_parameters(int diseases) {
   Hospital::Hospital_contacts_per_day = new double[diseases];
   Hospital::Hospital_contact_prob = new double**[diseases];
   
-  for(int s = 0; s < diseases; s++) {
+  for(int s = 0; s < diseases; ++s) {
     int n;
     sprintf(param_str, "hospital_contacts[%d]", s);
     Params::get_param((char*) param_str, &Hospital::Hospital_contacts_per_day[s]);
@@ -78,8 +78,8 @@ void Hospital::get_parameters(int diseases) {
       
       if (Global::Verbose > 1) {
         printf("\nHospital_contact_prob:\n");
-        for(int i  = 0; i < n; i++)  {
-          for(int j  = 0; j < n; j++) {
+        for(int i  = 0; i < n; ++i)  {
+          for(int j  = 0; j < n; ++j) {
             printf("%f ", Hospital::Hospital_contact_prob[s][i][j]);
           }
           printf("\n");
@@ -106,6 +106,33 @@ double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {
 
 double Hospital::get_contacts_per_day(int disease) {
   return Hospital::Hospital_contacts_per_day[disease];
+}
+
+void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept) {
+  assert(insr >= Insurance_assignment_index::PRIVATE);
+  assert(insr < Insurance_assignment_index::INSURANCE_ASSIGNMENTS);
+  switch(insr) {
+    case Insurance_assignment_index::PRIVATE:
+      this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
+      break;
+    case Insurance_assignment_index::MEDICARE:
+      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
+      break;
+    case Insurance_assignment_index::MEDICAID:
+      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
+      break;
+    case Insurance_assignment_index::HIGHMARK:
+      this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
+      break;
+    case Insurance_assignment_index::UPMC:
+      this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
+      break;
+    case Insurance_assignment_index::UNINSURED:
+      this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
+      break;
+    default:
+      Utils::fred_abort("Invalid Insurance Assignment Type", "");
+  }
 }
 
 

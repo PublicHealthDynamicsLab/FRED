@@ -89,7 +89,7 @@ public:
   static std::map<long int, int> count_children_by_census_tract_map;
   static std::set<long int> census_tract_set;
 
-  static const char * household_income_level_lookup(int idx) {
+  static const char* household_income_level_lookup(int idx) {
     assert(idx >= 0);
     assert(idx <= Household_income_level_code::UNCLASSIFIED);
     switch(idx) {
@@ -141,9 +141,9 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop)
    */
-  Household(const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container, Population* pop);
+  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
 
   ~Household() {}
 
@@ -151,24 +151,24 @@ public:
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Household(int loc, const char *lab, fred:geo lon, fred::geo lat, Place *container, Population* pop)</code>
+   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place *container, Population* pop)</code>
    */
   void get_parameters(int diseases);
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
-  int get_group(int disease, Person * per);
+  int get_group(int disease, Person* per);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Household::Household_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Household_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>household_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person * i, Person * s);
+  double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
    * @see Place::get_contacts_per_day(int disease)
@@ -186,7 +186,7 @@ public:
    * @param i the index of the person in the household
    * @return a pointer the person with index i in the household
    */
-  Person * get_housemate(int i) {
+  Person* get_housemate(int i) {
     return this->enrollees[i];
   }
 
@@ -194,7 +194,7 @@ public:
    * Use to get list of all people in the household.
    * @return vector of pointers to people in household.
    */
-  vector <Person *> get_inhabitants() {
+  vector <Person*> get_inhabitants() {
     return this->enrollees;
   }
 
@@ -320,11 +320,11 @@ public:
   /**
    * @return a pointer to this household's visitation hospital
    */
-  Hospital * get_household_visitation_hospital() {
-    return (Hospital *)get_household_visitation_place(Household_visitation_place_index::HOSPITAL);
+  Hospital* get_household_visitation_hospital() {
+    return static_cast<Hospital*>(get_household_visitation_place(Household_visitation_place_index::HOSPITAL));
   }
 
-  void set_household_visitation_hospital(Hospital * hosp) {
+  void set_household_visitation_hospital(Hospital* hosp) {
     set_household_visitation_place(Household_visitation_place_index::HOSPITAL, hosp);
   }
 
@@ -342,18 +342,18 @@ public:
     return this->ages;
   }
 
-  void set_group_quarters_workplace(Place *p) {
+  void set_group_quarters_workplace(Place* p) {
     this->group_quarters_workplace = p;
   }
 
-  Place * get_group_quarters_workplace() {
+  Place* get_group_quarters_workplace() {
     return this->group_quarters_workplace;
   }
 
 private:
 
-  static double * Household_contacts_per_day;
-  static double *** Household_contact_prob;
+  static double* Household_contacts_per_day;
+  static double*** Household_contact_prob;
   static bool Household_parameters_set;
 
   //Income Limits for classification
@@ -364,7 +364,7 @@ private:
   static int Cat_V_Max_Income;
   static int Cat_VI_Max_Income;
 
-  Place * group_quarters_workplace;
+  Place* group_quarters_workplace;
   bool sheltering;
   unsigned char deme_id;	      // deme == synthetic population id
   int group_quarters_units;
@@ -379,7 +379,7 @@ private:
   std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
 
   // Places that household members may visit
-  std::map<Household_visitation_place_index::e, Place *> household_visitation_places_map;
+  std::map<Household_visitation_place_index::e, Place*> household_visitation_places_map;
 
   // profile of original housemates
   vector<unsigned char> ages;
@@ -395,7 +395,7 @@ private:
     }
   }
 
-  Place * get_household_visitation_place(Household_visitation_place_index::e i) {
+  Place* get_household_visitation_place(Household_visitation_place_index::e i) {
     if(this->household_visitation_places_map.find(i) != this->household_visitation_places_map.end()) {
       return this->household_visitation_places_map[i];
     } else {
@@ -403,11 +403,11 @@ private:
     }
   }
 
-  void set_household_visitation_place(Household_visitation_place_index::e i, Place * p) {
+  void set_household_visitation_place(Household_visitation_place_index::e i, Place* p) {
     if(p != NULL) {
       this->household_visitation_places_map[i] = p;
     } else {
-      std::map<Household_visitation_place_index::e, Place *>::iterator itr;
+      std::map<Household_visitation_place_index::e, Place*>::iterator itr;
       itr = this->household_visitation_places_map.find(i);
       if(itr != this->household_visitation_places_map.end()) {
         this->household_visitation_places_map.erase(itr);

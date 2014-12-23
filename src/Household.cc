@@ -28,8 +28,8 @@
 #include "Neighborhood_Patch.h"
 
 //Private static variables that will be set by parameter lookups
-double * Household::Household_contacts_per_day;
-double *** Household::Household_contact_prob;
+double* Household::Household_contacts_per_day;
+double*** Household::Household_contact_prob;
 
 std::set<long int> Household::census_tract_set;
 std::map<int, int> Household::count_inhabitants_by_household_income_level_map;
@@ -62,7 +62,7 @@ Household::Household() {
   set_household_income(-1);
 }
 
-Household::Household(const char * lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place * container, Population * pop) {
+Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
   get_parameters(Global::Diseases);
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
@@ -88,36 +88,36 @@ void Household::get_parameters(int diseases) {
     char param_str[80];
     Household::Household_contacts_per_day = new double [diseases];
     Household::Household_contact_prob = new double** [diseases];
-    for(int disease_id = 0; disease_id < diseases; disease_id++) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+    for(int disease_id = 0; disease_id < diseases; ++disease_id) {
+      Disease* disease = Global::Pop.get_disease(disease_id);
       sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
-      Params::get_param((char *) param_str, &Household::Household_contacts_per_day[disease_id]);
+      Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	printf("\nHousehold_contact_prob:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
+	      printf("\nHousehold_contact_prob:\n");
+	      for(int i  = 0; i < n; ++i)  {
+	        for(int j  = 0; j < n; ++j) {
+	          printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+	        }
+	        printf("\n");
+	      }
       }
     }
   }
 
   //Get the Household Income Cutoffs
-  Params::get_param((char *) "cat_I_max_income", &Household::Cat_I_Max_Income);
-  Params::get_param((char *) "cat_II_max_income", &Household::Cat_II_Max_Income);
-  Params::get_param((char *) "cat_III_max_income", &Household::Cat_III_Max_Income);
-  Params::get_param((char *) "cat_IV_max_income", &Household::Cat_IV_Max_Income);
-  Params::get_param((char *) "cat_V_max_income", &Household::Cat_V_Max_Income);
-  Params::get_param((char *) "cat_VI_max_income", &Household::Cat_VI_Max_Income);
+  Params::get_param((char*) "cat_I_max_income", &Household::Cat_I_Max_Income);
+  Params::get_param((char*) "cat_II_max_income", &Household::Cat_II_Max_Income);
+  Params::get_param((char*) "cat_III_max_income", &Household::Cat_III_Max_Income);
+  Params::get_param((char*) "cat_IV_max_income", &Household::Cat_IV_Max_Income);
+  Params::get_param((char*) "cat_V_max_income", &Household::Cat_V_Max_Income);
+  Params::get_param((char*) "cat_VI_max_income", &Household::Cat_VI_Max_Income);
 
   Household::Household_parameters_set = true;
 }
 
-int Household::get_group(int disease, Person * per) {
+int Household::get_group(int disease, Person* per) {
   int age = per->get_age();
   if(age < Global::ADULT_AGE) {
     return 0;
@@ -126,7 +126,7 @@ int Household::get_group(int disease, Person * per) {
   }
 }
 
-double Household::get_transmission_prob(int disease, Person * i, Person * s) {
+double Household::get_transmission_prob(int disease, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
   int row = get_group(disease, i);
@@ -146,13 +146,13 @@ void Household::set_household_has_hospitalized_member(bool does_have) {
     //Initially say no one is hospitalized
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = false;
     //iterate over all housemates  to see if anyone is still hospitalized
-    vector<Person *>::iterator it;
+    vector<Person*>::iterator it;
 
-    for(it = this->enrollees.begin(); it != this->enrollees.end(); it++) {
+    for(it = this->enrollees.begin(); it != this->enrollees.end(); ++it) {
       if((*it)->is_hospitalized()) {
         this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
         if(this->get_household_visitation_hospital() == NULL) {
-          this->set_household_visitation_hospital((Hospital *)(*it)->get_activities()->get_hospital());
+          this->set_household_visitation_hospital(static_cast<Hospital*>((*it)->get_activities()->get_hospital()));
         }
         break;
       }
@@ -170,7 +170,7 @@ void Household::record_profile() {
 
   // record the id's of the original members of the household
   this->ids.clear();
-  for(int i = 0; i < this->N; i++) {
+  for(int i = 0; i < this->N; ++i) {
     this->ids.push_back(this->enrollees[i]->get_id());
   }
 }
