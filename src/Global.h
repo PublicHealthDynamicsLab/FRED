@@ -229,6 +229,7 @@ class Global {
     static bool Enable_New_Transmission_Model;
     static bool Visit_Home_Neighborhood_Unless_Infectious;
     static bool Enable_Hospitals;
+    static bool Enable_Health_Insurance;
     static bool Enable_Group_Quarters;
     static bool Enable_Visualization_Layer;
     static bool Enable_Vector_Layer;

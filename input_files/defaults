@@ -287,6 +287,20 @@ hospital_worker_to_bed_ratio = 1.0
 hospital_min_bed_threshold = 10 
 household_hospital_map_file = none
 
+enable_health_insurance = 0
+
+#### HEALTH INSURANCE MARKET SEGMENTS
+#
+# 0 = PRIVATE
+# 1 = MEDICARE
+# 2 = MEDICAID
+# 3 = HIGHMARK
+# 4 = UPMC
+# 5 = UNINSURED
+#
+# health_insurance_distribution should add up to 100
+health_insurance_distribution = 6 0 0 0 0 0 100
+
 ##########################################################
 #
 # SUPPORT FOR GROUP QUARTERS (OPTIONAL)

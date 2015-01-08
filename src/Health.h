@@ -89,7 +89,7 @@ public:
 
   ~Health();
 
-  static const char* chronic_condition_lookup(int idx) {
+  static const char* chronic_condition_lookup(Chronic_condition_index::e idx) {
     assert(idx >= 0);
     assert(idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(idx) {
@@ -107,6 +107,28 @@ public:
         return "Hypertension";
       case Chronic_condition_index::HYPERCHOLESTROLEMIA:
         return "Hypercholestrolemia";
+      default:
+        Utils::fred_abort("Invalid Chronic Condition Type", "");
+    }
+    return NULL;
+  }
+
+  static const char* insurance_lookup(Insurance_assignment_index::e idx) {
+    assert(idx >= Insurance_assignment_index::PRIVATE);
+    assert(idx < Insurance_assignment_index::INSURANCE_ASSIGNMENTS);
+    switch(idx) {
+      case Insurance_assignment_index::PRIVATE:
+        return "Private";
+      case Insurance_assignment_index::MEDICARE:
+        return "Medicare";
+      case Insurance_assignment_index::MEDICAID:
+        return "Medicaid";
+      case Insurance_assignment_index::HIGHMARK:
+        return "Highmark";
+      case Insurance_assignment_index::UPMC:
+        return "UPMC";
+      case Insurance_assignment_index::UNINSURED:
+        return "Uninsured";
       default:
         Utils::fred_abort("Invalid Chronic Condition Type", "");
     }
@@ -704,8 +726,16 @@ public:
     set_has_chronic_condition(Chronic_condition_index::HYPERCHOLESTROLEMIA, has_cond);
   }
 
-  static double get_chronic_condition_case_fatality_prob_mult(double real_age, int cond_idx);
-  static double get_chronic_condition_hospitalization_prob_mult(double real_age, int cond_idx);
+  Insurance_assignment_index::e get_insurance_type() const {
+    return this->insurance_type;
+  }
+
+  void set_insurance_type(Insurance_assignment_index::e insurance_type) {
+    this->insurance_type = insurance_type;
+  }
+
+  static double get_chronic_condition_case_fatality_prob_mult(double real_age, Chronic_condition_index::e cond_idx);
+  static double get_chronic_condition_hospitalization_prob_mult(double real_age, Chronic_condition_index::e cond_idx);
 
   static double get_pregnancy_case_fatality_prob_mult(double real_age) {
     if(Global::Enable_Chronic_Condition && Health::is_initialized) {
@@ -764,8 +794,8 @@ private:
   static double Face_mask_compliance;
   static double Hand_washing_compliance;
 
-  // The index of the person in the Population
-  //int person_index;
+  // health insurance probabilities
+  static double health_insurance_distribution[Insurance_assignment_index::INSURANCE_ASSIGNMENTS];
 
   // living or not?
   bool alive;
@@ -814,6 +844,9 @@ private:
 
   // washes hands (every day)
   bool washes_hands;
+
+  //Insurance Type
+  Insurance_assignment_index::e insurance_type;
 
   // Define a bitset type to hold health flags
   // Enumeration corresponding to positions in health
