@@ -103,9 +103,9 @@ public:
 
   ~Behavior();
   static void initialize_static_variables();
-  void setup(Person * self);
-  void update( Person * self, int day );
-  void terminate( Person * self );
+  void setup(Person* self);
+  void update(Person* self, int day);
+  void terminate(Person* self);
 
   // methods to return this person's intention to take an action:
   bool adult_is_staying_home();
@@ -117,38 +117,47 @@ public:
   bool child_acceptance_of_another_vaccine_dose();
 
   // access functions
-  Person * get_health_decision_maker() { return health_decision_maker; }
-  bool is_health_decision_maker() { return health_decision_maker == NULL; }
-
-  void set_health_decision_maker(Person * p) {
-    health_decision_maker = p; 
-    if (p != NULL) delete_intentions();
+  Person* get_health_decision_maker() {
+    return this->health_decision_maker;
   }
 
-  void become_health_decision_maker(Person * self);
-  static Behavior_params * get_behavior_params(int i) { return behavior_params[i]; }
+  bool is_health_decision_maker() {
+    return this->health_decision_maker == NULL;
+  }
+
+  void set_health_decision_maker(Person* p) {
+    health_decision_maker = p; 
+    if(p != NULL) {
+      delete_intentions();
+    }
+  }
+
+  void become_health_decision_maker(Person* self);
+  static Behavior_params* get_behavior_params(int i) {
+    return Behavior::behavior_params[i];
+  }
+
   static void print_params(int n);
 
 private:
   // private data
-  Person * health_decision_maker;
-  Intention ** intention;
+  Person* health_decision_maker;
+  Intention** intention;
  
   // run-time parameters for behaviors
   static bool parameters_are_set;
-  static Behavior_params ** behavior_params;
+  static Behavior_params** behavior_params;
 
   // private methods
-  void setup_intentions(Person * _self);
+  void setup_intentions(Person* _self);
   static void get_parameters();
-  static void get_parameters_for_behavior(char * behavior_name, int n);
-  Person * select_adult(Household *h, int relationship, Person * self);
+  static void get_parameters_for_behavior(char* behavior_name, int n);
+  Person* select_adult(Household* h, int relationship, Person* self);
   void delete_intentions();
 
 protected:
   friend class Person;
   Behavior();
-
 };
 
 #endif // _FRED_BEHAVIOR_H

@@ -89,6 +89,7 @@ double Global::School_absenteeism = 0.0;
 bool Global::Enable_New_Transmission_Model = false;
 bool Global::Visit_Home_Neighborhood_Unless_Infectious = false;
 bool Global::Enable_Hospitals = false;
+bool Global::Enable_Health_Insurance = false;
 bool Global::Enable_Group_Quarters = false;
 bool Global::Enable_Visualization_Layer = false;
 bool Global::Enable_Vector_Layer = false;
@@ -225,6 +226,8 @@ void Global::get_global_parameters() {
   Global::Report_Epidemic_Data_By_Census_Tract = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_hospitals", &temp_int);
   Global::Enable_Hospitals = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_health_insurance", &temp_int);
+  Global::Enable_Health_Insurance = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_group_quarters", &temp_int);
   Global::Enable_Group_Quarters = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_visualization_layer", &temp_int);

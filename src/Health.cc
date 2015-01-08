@@ -75,6 +75,8 @@ int Health::Days_to_wear_face_masks = 0;
 double Health::Face_mask_compliance = 0.0;
 double Health::Hand_washing_compliance = 0.0;
 
+double Health::health_insurance_distribution[Insurance_assignment_index::INSURANCE_ASSIGNMENTS];
+
 // static method called in main (Fred.cc)
 
 void Health::initialize_static_variables() {
@@ -128,11 +130,11 @@ void Health::initialize_static_variables() {
       Health::hypertension_case_fatality_prob_mult = new Age_Map("Hypertension Case Fatality Probability Mult");
       Health::hypertension_case_fatality_prob_mult->read_from_input("hypertension_case_fatality_prob_mult");
 
-      Health::hypercholestrolemia_prob = new Age_Map("Hypecholestrolemia Probability");
+      Health::hypercholestrolemia_prob = new Age_Map("Hypercholestrolemia Probability");
       Health::hypercholestrolemia_prob->read_from_input("hypercholestrolemia_prob");
-      Health::hypercholestrolemia_hospitalization_prob_mult = new Age_Map("Hypecholestrolemia Hospitalization Probability Mult");
+      Health::hypercholestrolemia_hospitalization_prob_mult = new Age_Map("Hypercholestrolemia Hospitalization Probability Mult");
       Health::hypercholestrolemia_hospitalization_prob_mult->read_from_input("hypercholestrolemia_hospitalization_prob_mult");
-      Health::hypercholestrolemia_case_fatality_prob_mult = new Age_Map("Hypecholestrolemia Case Fatality Probability Mult");
+      Health::hypercholestrolemia_case_fatality_prob_mult = new Age_Map("Hypercholestrolemia Case Fatality Probability Mult");
       Health::hypercholestrolemia_case_fatality_prob_mult->read_from_input("hypercholestrolemia_case_fatality_prob_mult");
 
       Health::pregnancy_hospitalization_prob_mult = new Age_Map("Pregnancy Hospitalization Probability Mult");
@@ -141,13 +143,33 @@ void Health::initialize_static_variables() {
       Health::pregnancy_case_fatality_prob_mult->read_from_input("pregnancy_case_fatality_prob_mult");
     }
 
+    if(Global::Enable_Health_Insurance) {
+
+      int health_insurance_cdf_size = Params::get_param_vector((char*)"health_insurance_distribution", Health::health_insurance_distribution);
+
+      // convert to cdf
+      double stotal = 0;
+      for(int i = 0; i < health_insurance_cdf_size; ++i) {
+        stotal += Health::health_insurance_distribution[i];
+      }
+      if(stotal != 100.0 && stotal != 1.0) {
+        Utils::fred_abort("Bad distribution health_insurance_distribution params_str\nMust sum to 1.0 or 100.0\n");
+      }
+      double cumm = 0.0;
+      for(int i = 0; i < health_insurance_cdf_size; ++i) {
+        Health::health_insurance_distribution[i] /= stotal;
+        Health::health_insurance_distribution[i] += cumm;
+        cumm = Health::health_insurance_distribution[i];
+      }
+    }
+
     Health::is_initialized = true;
   }
 }
 
-double Health::get_chronic_condition_case_fatality_prob_mult(double real_age, int cond_idx) {
+double Health::get_chronic_condition_case_fatality_prob_mult(double real_age, Chronic_condition_index::e cond_idx) {
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
-    assert(cond_idx >= 0);
+    assert(cond_idx >= Chronic_condition_index::ASTHMA);
     assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(cond_idx) {
       case Chronic_condition_index::ASTHMA:
@@ -171,9 +193,9 @@ double Health::get_chronic_condition_case_fatality_prob_mult(double real_age, in
   return 1.0;
 }
 
-double Health::get_chronic_condition_hospitalization_prob_mult(double real_age, int cond_idx) {
+double Health::get_chronic_condition_hospitalization_prob_mult(double real_age, Chronic_condition_index::e cond_idx) {
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
-    assert(cond_idx >= 0);
+    assert(cond_idx >= Chronic_condition_index::ASTHMA);
     assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(cond_idx) {
       case Chronic_condition_index::ASTHMA:
@@ -207,9 +229,11 @@ Health::Health() {
   this->days_wearing_face_mask = 0;
   this->washes_hands = false;
   this->days_symptomatic = 0;
+  this->previous_infection_serotype = 0;
+  this->insurance_type = Insurance_assignment_index::UNINSURED;
 }
 
-Health::Health(Person * person) {
+Health::Health(Person* person) {
   this->alive = true;
   this->av_health = NULL;
   this->checked_for_av = NULL;
@@ -218,10 +242,12 @@ Health::Health(Person * person) {
   this->wears_face_mask_today = false;
   this->days_wearing_face_mask = 0;
   this->washes_hands = false;
+  this->previous_infection_serotype = 0;
+  this->insurance_type = Insurance_assignment_index::UNINSURED;
   setup(person);
 }
 
-void Health::setup(Person * self) {
+void Health::setup(Person* self) {
   this->alive = true;
   this->intervention_flags = intervention_flags_type();
   // infection pointers stored in statically allocated array (length of which
@@ -301,6 +327,10 @@ void Health::setup(Person * self) {
 
     prob = Health::hypercholestrolemia_prob->find_value(self->get_real_age());
     set_has_hypercholestrolemia((RANDOM() < prob));
+  }
+
+  if(Global::Enable_Health_Insurance && Health::is_initialized) {
+
   }
 }
 

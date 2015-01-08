@@ -1331,7 +1331,7 @@ void Place_List::setup_group_quarters() {
 
   int p = 0;
   while(p < num_households) {
-    Household* house = this->get_household_ptr(++p);
+    Household* house = this->get_household_ptr(p++);
     Household* new_house;
     if(house->is_group_quarters()) {
       int gq_size = house->get_size();
