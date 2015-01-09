@@ -874,11 +874,11 @@ shelter_in_place_by_income = 0
 ##########################################################
 
 enable_population_dynamics = 0 
-yearly_mortality_rate_file = $FRED_HOME/input_files/mortality_rate.txt
-yearly_birth_rate_file = $FRED_HOME/input_files/birth_rate.txt
+mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
+birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
 population_growth_rate = 0
-max_adjustment_rate = 0.2
+max_adjustment = 0.2
 # assume 4 years
 college_departure_rate = 0.25
 # assume 4 years

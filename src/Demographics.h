@@ -28,8 +28,8 @@ class Demographics {
 public:
 
   static const int MAX_AGE = 110;
-  static const int MAX_PREGNANCY_AGE = 60;
   static const int MIN_PREGNANCY_AGE = 12;
+  static const int MAX_PREGNANCY_AGE = 60;
 
   static const double MEAN_PREG_DAYS;
   static const double STDDEV_PREG_DAYS;
@@ -156,29 +156,32 @@ public:
 private:
 
   short int init_age;			     // Initial age of the agent
-  short int birth_day_of_year;
-  short int birth_year;
-  short int number_of_children;
+  short int birth_day_of_year;			// index of birthday
+  short int birth_year;				// year of birth
+  short int number_of_children;			// number of births
+  short int age;			     // Current age of the agent
+  short int relationship; // relationship to the householder (see Global.h)
+  short int race;			  // see Global.h for race codes
+  char sex;					// Male or female?
+  bool pregnant;			       // is the agent pregnant?
+  bool deceased;				// Is the agent deceased
   int deceased_sim_day;		   // When the agent (will die) / (died)
   int conception_sim_day;		 // When the agent will conceive
   int due_sim_day;		       // When the agent will give birth
-  short int age;			     // Current age of the agent
-  char sex;					// Male or female?
-  bool pregnant;				// Is the agent pregnant
-  bool deceased;				// Is the agent deceased
-  short int relationship;   // relationship to the holder (see Global.h)
-  short int race;			  // see Global.h for race codes
 
-  static double age_yearly_mortality_rate_male[MAX_AGE + 1];
-  static double age_yearly_mortality_rate_female[MAX_AGE + 1];
-  static double age_yearly_birth_rate[MAX_PREGNANCY_AGE + 1];
-  static double orig_age_yearly_mortality_rate_male[MAX_AGE + 1];
-  static double orig_age_yearly_mortality_rate_female[MAX_AGE + 1];
-  static double orig_age_yearly_birth_rate[MAX_PREGNANCY_AGE + 1];
+  static double male_mortality_rate[MAX_AGE + 1];
+  static double female_mortality_rate[MAX_AGE + 1];
+  static double adjusted_male_mortality_rate[MAX_AGE + 1];
+  static double adjusted_female_mortality_rate[MAX_AGE + 1];
+  static double birth_rate[MAX_AGE + 1];
+  static double adjusted_birth_rate[MAX_AGE + 1];
+  static double pregnancy_rate[MAX_AGE + 1];
   static bool is_initialized;
   static int target_popsize;
   static double population_growth_rate;
-  static double max_adjustment_rate;
+  // static double birth_rate_adjustment;
+  // static double death_rate_adjustment;
+  static double max_adjustment;
   static double college_departure_rate;
   static double military_departure_rate;
   static double prison_departure_rate;

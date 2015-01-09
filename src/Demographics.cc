@@ -32,15 +32,18 @@ const double Demographics::MEAN_PREG_DAYS = 280.0; //40 weeks
 const double Demographics::STDDEV_PREG_DAYS = 7.0; //1 week
 
 bool Demographics::is_initialized = false;
-double Demographics::age_yearly_mortality_rate_male[Demographics::MAX_AGE + 1];
-double Demographics::age_yearly_mortality_rate_female[Demographics::MAX_AGE + 1];
-double Demographics::age_yearly_birth_rate[Demographics::MAX_PREGNANCY_AGE + 1];
-double Demographics::orig_age_yearly_mortality_rate_male[Demographics::MAX_AGE + 1];
-double Demographics::orig_age_yearly_mortality_rate_female[Demographics::MAX_AGE + 1];
-double Demographics::orig_age_yearly_birth_rate[Demographics::MAX_PREGNANCY_AGE + 1];
+double Demographics::male_mortality_rate[Demographics::MAX_AGE + 1];
+double Demographics::female_mortality_rate[Demographics::MAX_AGE + 1];
+double Demographics::adjusted_male_mortality_rate[Demographics::MAX_AGE + 1];
+double Demographics::adjusted_female_mortality_rate[Demographics::MAX_AGE + 1];
+double Demographics::birth_rate[Demographics::MAX_AGE + 1];
+double Demographics::adjusted_birth_rate[Demographics::MAX_AGE + 1];
+double Demographics::pregnancy_rate[Demographics::MAX_AGE + 1];
 int Demographics::target_popsize = 0;
 double Demographics::population_growth_rate = 0.0;
-double Demographics::max_adjustment_rate = 0.0;
+// double Demographics::birth_rate_adjustment = 1.0;
+// double Demographics::death_rate_adjustment = 1.0;
+double Demographics::max_adjustment = 0.0;
 double Demographics::college_departure_rate = 0.0;
 double Demographics::military_departure_rate = 0.0;
 double Demographics::prison_departure_rate = 0.0;
@@ -134,41 +137,70 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   if (Global::Enable_Population_Dynamics) {
 
     // will this person die in the next year?
-    double pct_chance_to_die = 0.0;
+    double age_specific_probability_of_death = 0.0;
     if (Demographics::MAX_AGE <= age) {
-      pct_chance_to_die = 1.0;
+      age_specific_probability_of_death = 1.0;
+      // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
     }
+    /*
     else if (self->is_nursing_home_resident()) {
-      pct_chance_to_die = 0.25;
+      age_specific_probability_of_death = 0.25;
     }
+    */
     else {
       // look up mortality in the mortality rate tables
       if (this->sex == 'F') {
-	pct_chance_to_die = Demographics::age_yearly_mortality_rate_female[age];
+	age_specific_probability_of_death = Demographics::adjusted_female_mortality_rate[age];
       }
       else {
-	pct_chance_to_die = Demographics::age_yearly_mortality_rate_male[age];
+	age_specific_probability_of_death = Demographics::adjusted_male_mortality_rate[age];
       }
     }
 
-    if ( RANDOM() <= pct_chance_to_die ) {
+    if ( RANDOM() <= age_specific_probability_of_death ) {
       //Yes, so set the death day (in simulation days)
       this->deceased_sim_day = (day + IRAND(1,364));
+    // and flag for daily updates until death
       Global::Pop.set_mask_by_index( fred::Update_Deaths, self_index );
     }
 
-    //Is this person pregnant?
-    if (this->sex == 'F' && age <= Demographics::MAX_PREGNANCY_AGE) {
-      if ( ( ( 280.0/365.25 ) * Demographics::age_yearly_birth_rate[ age ] ) > RANDOM() ) {
-	//Yes, so set the due_date (in simulation days)
-	this->due_sim_day = ( day + IRAND( 1, 280 ) );
-	this->pregnant = true;
-	Global::Pop.set_mask_by_index( fred::Update_Births, self_index );
-	FRED_STATUS( 2, "Birth scheduled during initialization! conception day: %d, delivery day: %d\n",
-		     conception_sim_day, due_sim_day );
+    // set pregnancy status
+    if (sex == 'F' && 
+	Demographics::MIN_PREGNANCY_AGE <= age &&
+	age <= Demographics::MAX_PREGNANCY_AGE && 
+	self->lives_in_group_quarters() == false &&
+	RANDOM() < 1.25*Demographics::pregnancy_rate[age]) {
+    
+      // ignore small distortion due to leap years
+      conception_sim_day = day + IRAND( 1, 365 );
+      // correction for prior birthday
+      int current_day_of_year = Global::Sim_Current_Date->get_day_of_year();
+      int days_since_birthday = current_day_of_year - this->birth_day_of_year;
+      if (days_since_birthday < 0) {
+	days_since_birthday += 365;
       }
-    }
-  }
+      conception_sim_day -= days_since_birthday;
+      due_sim_day = conception_sim_day +
+	(int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+      
+      if (due_sim_day <= day) {
+	// birth happened already and will be ignored
+	conception_sim_day = -1;
+	due_sim_day = -1;
+	pregnant = false;
+	// printf("IGNORING BIRTH SCHEDULED PRIOR TO SIM START\n");
+      }
+      else {
+	if (conception_sim_day <= day) {
+	  pregnant = true;
+	}
+	// flag for daily updates
+	Global::Pop.set_mask_by_index( fred::Update_Births, self->get_pop_index() );
+	FRED_STATUS(0, "PREGNANCY SCHEDULED for female id %d age %d preg %d conc %d due %d\n",
+		    self->get_id(), age, pregnant?1:0, conception_sim_day, due_sim_day);
+      }
+    } // end test for pregnancy
+  } // end population_dynamics
 }
 
 
@@ -183,12 +215,21 @@ void Demographics::clear_pregnancy( Person * self ) {
   conception_sim_day = -1;
   due_sim_day = -1;
   pregnant = false;
-  // don't update this person's demographics anymore
+  // don't update this person's pregnancy status anymore
   Global::Pop.clear_mask_by_index( fred::Update_Births, self->get_pop_index() );
 }
 
 
 void Demographics::update_births( Person * self, int day ) {
+  // no pregnancy in group quarters
+  if (self->lives_in_group_quarters()) {
+    clear_pregnancy(self);
+    return;
+  }
+  //is this the day to become pregnant? ( previously set in Demographics::birthday )
+  if (conception_sim_day == day) {
+    pregnant = true;
+  }
   // Is this your day to give birth? ( previously set in Demographics::birthday )
   if ( pregnant && due_sim_day == day ) {
     clear_pregnancy(self);
@@ -225,23 +266,27 @@ void Demographics::birthday( Person * self, int day ) {
   age++;
 
   // will this person die in the next year?
-  double pct_chance_to_die = 0.0;
+  double age_specific_probability_of_death = 0.0;
   if (Demographics::MAX_AGE <= age) {
-    pct_chance_to_die = 1.0;
+    age_specific_probability_of_death = 1.0;
+    // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
   }
+  /*
+  else if (self->is_nursing_home_resident()) {
+    age_specific_probability_of_death = 0.25;
+  }
+  */
   else {
     // look up mortality in the mortality rate tables
     if (this->sex == 'F') {
-      pct_chance_to_die = Demographics::age_yearly_mortality_rate_female[age];
+      age_specific_probability_of_death = Demographics::adjusted_female_mortality_rate[age];
     }
     else {
-      pct_chance_to_die = Demographics::age_yearly_mortality_rate_male[age];
+      age_specific_probability_of_death = Demographics::adjusted_male_mortality_rate[age];
     }
   }
-  // if (90 <= age) printf("AGE %d PCT %f\n", age, pct_chance_to_die);
-
   if ( this->deceased == false && this->deceased_sim_day == -1 &&
-       RANDOM() <= pct_chance_to_die) {
+       RANDOM() <= age_specific_probability_of_death) {
     
     // Yes, so set the death day (in simulation days)
     this->deceased_sim_day = (day + IRAND(0,364));
@@ -254,30 +299,25 @@ void Demographics::birthday( Person * self, int day ) {
     FRED_STATUS(2, "SURVIVER: AGE %d deceased_sim_day = %d\n", age, this->deceased_sim_day);
   }
   
-  // Will this person conceive this year ( delivery may occur in the next year )?
-  if (sex == 'F' && age <= Demographics::MAX_PREGNANCY_AGE && self->lives_in_group_quarters() == false){
+  // Will this person conceive in the coming year year?
+  if (sex == 'F' && 
+      Demographics::MIN_PREGNANCY_AGE <= age &&
+      age <= Demographics::MAX_PREGNANCY_AGE && 
+      conception_sim_day == -1 && due_sim_day == -1 &&
+      self->lives_in_group_quarters() == false &&
+      RANDOM() < Demographics::pregnancy_rate[age]) {
     
-    FRED_STATUS(2, "birthday for female id %d age %d preg %d conc %d due %d\n",
+    assert(pregnant == false);
+    
+    // ignore small distortion due to leap years
+    conception_sim_day = day + IRAND( 1, 365 );
+    due_sim_day = conception_sim_day +
+      (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+	
+    // flag for daily updates
+    Global::Pop.set_mask_by_index( fred::Update_Births, self->get_pop_index() );
+    FRED_STATUS(2, "PREGNANCY SCHEDULED for female id %d age %d preg %d conc %d due %d\n",
 		self->get_id(), age, pregnant?1:0, conception_sim_day, due_sim_day);
-    
-    if ( pregnant == false && conception_sim_day == -1 && due_sim_day == -1 ) {
-      
-      // ignore small distortion due to leap years
-      if (RANDOM() < Demographics::age_yearly_birth_rate[ age ]) {
-	
-	// ignore small distortion due to leap years
-	conception_sim_day = day + IRAND( 1, 365 );
-	due_sim_day = conception_sim_day + (int) ( draw_normal(
-		       Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5 );
-	pregnant = true;
-	
-	// flag for daily updates
-	Global::Pop.set_mask_by_index( fred::Update_Births, self->get_pop_index() );
-	
-	FRED_STATUS( 2, "Birth scheduled! conception day: %d, delivery day: %d\n",
-		     conception_sim_day, due_sim_day );
-      }
-    }
   }
 
   // become responsible for health decisions when reaching adulthood
@@ -308,6 +348,18 @@ int Demographics::get_age_in_days() const {
 
 //////// Static Methods
 
+vector <int> fips_codes;
+
+int find_fips_code(int n) {
+  int size = fips_codes.size();
+  for (int i = 0; i < size; i++) {
+    if (fips_codes[i] == n) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 void Demographics::initialize_static_variables() {
 
   if ( Demographics::is_initialized ) { return; }
@@ -316,10 +368,9 @@ void Demographics::initialize_static_variables() {
   if (Global::Enable_Population_Dynamics == false)
     return;
 
-  char yearly_mortality_rate_file[FRED_STRING_SIZE];
-  char yearly_birth_rate_file[FRED_STRING_SIZE];
+  char mortality_rate_file[FRED_STRING_SIZE];
+  char birth_rate_file[FRED_STRING_SIZE];
   double birth_rate_multiplier;
-  FILE *fp = NULL;
 
   if (Global::Verbose) {
     fprintf(Global::Statusfp, "Demographics::initialize_static_variables() entered\n");
@@ -327,59 +378,84 @@ void Demographics::initialize_static_variables() {
   }
 
   Params::get_param_from_string("population_growth_rate", &(Demographics::population_growth_rate));
-  Params::get_param_from_string("yearly_birth_rate_file", yearly_birth_rate_file);
+  Params::get_param_from_string("birth_rate_file", birth_rate_file);
   Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
-  Params::get_param_from_string("yearly_mortality_rate_file", yearly_mortality_rate_file);
-  Params::get_param_from_string("max_adjustment_rate", &(Demographics::max_adjustment_rate));
+  Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
+  Params::get_param_from_string("max_adjustment", &(Demographics::max_adjustment));
   Params::get_param_from_string("college_departure_rate", &(Demographics::college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(Demographics::military_departure_rate));
   Params::get_param_from_string("prison_departure_rate", &(Demographics::prison_departure_rate));
   Params::get_param_from_string("youth_home_departure_rate", &(Demographics::youth_home_departure_rate));
   Params::get_param_from_string("adult_home_departure_rate", &(Demographics::adult_home_departure_rate));
   
-  // read and load the birth rates
-  fp = Utils::fred_open_file(yearly_birth_rate_file);
+  // initialize the birth rate array
+  for (int j = 0; j <= Demographics::MAX_AGE; j++) {
+    Demographics::birth_rate[j] = 0.0;
+  }
+
+  // read the birth rates
+  FILE *fp = NULL;
+  fp = Utils::fred_open_file(birth_rate_file);
   if (fp == NULL) {
-    fprintf(Global::Statusfp, "Demographics yearly_birth_rate_file %s not found\n", yearly_birth_rate_file);
+    fprintf(Global::Statusfp, "Demographics birth_rate_file %s not found\n", birth_rate_file);
     exit(1);
   }
-  for (int i = 0; i <= Demographics::MAX_PREGNANCY_AGE; i++) {
-    int age;
-    float rate;
-    if (fscanf(fp, "%d %f", &age, &rate) != 2) {
-      Utils::fred_abort("Help! Read failure for age %d\n", i); 
+  int age;
+  double rate;
+  while (fscanf(fp, "%d %lf", &age, &rate) == 2) {
+    if (age >= 0 && age <= Demographics::MAX_AGE) {
+      birth_rate[age] = rate;
     }
-    Demographics::age_yearly_birth_rate[i] = birth_rate_multiplier * (double)rate;
-    Demographics::orig_age_yearly_birth_rate[i] = Demographics::age_yearly_birth_rate[i]; 
   }
   fclose(fp);
   if (Global::Verbose) {
-    fprintf(Global::Statusfp, "finished reading yearly_birth_rate_file = %s\n", yearly_birth_rate_file);
+    fprintf(Global::Statusfp, "finished reading birth_rate_file = %s\n", birth_rate_file);
     fflush(Global::Statusfp);
   }
 
-  // read death rate file and load the values unt the death_rate_array
-  fp = Utils::fred_open_file(yearly_mortality_rate_file);
+  // set up pregnancy rates
+  for (int i = 0; i < Demographics::MAX_AGE; i++) {
+    // approx 3/4 of pregnancies deliver at the next age of the mother
+    Demographics::pregnancy_rate[i] =
+      0.25 * Demographics::birth_rate[i] + 0.75 * Demographics::birth_rate[i+1];
+  }
+  Demographics::pregnancy_rate[Demographics::MAX_AGE] = 0.0;
+
+  if (Global::Verbose) {
+    for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+      fprintf(Global::Statusfp, "BIRTH RATE     for age %d %e\n", i, birth_rate[i]);
+      fprintf(Global::Statusfp, "PREGNANCY RATE for age %d %e\n", i, pregnancy_rate[i]);
+    }
+  }
+
+  // read mortality rate file
+  fp = Utils::fred_open_file(mortality_rate_file);
   if (fp == NULL) {
-    fprintf(Global::Statusfp, "Demographic mortality_rate %s not found\n", yearly_mortality_rate_file);
+    fprintf(Global::Statusfp, "Demographic mortality_rate %s not found\n", mortality_rate_file);
     exit(1);
   }
   for (int i = 0; i <= Demographics::MAX_AGE; i++) {
     int age;
-    float female_rate;
-    float male_rate;
-    if (fscanf(fp, "%d %f %f", &age, &female_rate, &male_rate) != 3) {
+    double female_rate;
+    double male_rate;
+    if (fscanf(fp, "%d %lf %lf", &age, &female_rate, &male_rate) != 3) {
       Utils::fred_abort("Help! Read failure for age %d\n", i); 
     }
-    Demographics::age_yearly_mortality_rate_female[i] = (double)female_rate;
-    Demographics::orig_age_yearly_mortality_rate_female[i] = Demographics::age_yearly_mortality_rate_female[i];
-    Demographics::age_yearly_mortality_rate_male[i] = (double)male_rate;
-    Demographics::orig_age_yearly_mortality_rate_male[i] = Demographics::age_yearly_mortality_rate_male[i];
+    if (Global::Verbose) {
+      fprintf(Global::Statusfp, "MORTALITY RATE for age %d: female: %e male: %e\n", age, female_rate, male_rate);
+    }
+    Demographics::female_mortality_rate[i] = female_rate;
+    Demographics::male_mortality_rate[i] = male_rate;
   }
   fclose(fp);
   if (Global::Verbose) {
-    fprintf(Global::Statusfp, "finished reading mortality_rate_file = %s\n", yearly_mortality_rate_file);
+    fprintf(Global::Statusfp, "finished reading mortality_rate_file = %s\n", mortality_rate_file);
     fflush(Global::Statusfp);
+  }
+
+  for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+    Demographics::adjusted_female_mortality_rate[i] = Demographics::female_mortality_rate[i];
+    Demographics::adjusted_male_mortality_rate[i] = Demographics::male_mortality_rate[i];
   }
 
   if (Global::Verbose) {
@@ -430,7 +506,7 @@ void Demographics::update_population_dynamics(int day) {
   // get the current popsize
   int current_popsize = Global::Pop.get_pop_size();
   int year = day / 365;
-  printf("YEAR %d POPSIZE %d\n", year, current_popsize); fflush(stdout);
+  printf("POP_DYN YEAR %d POPSIZE %d\n", year, current_popsize); fflush(stdout);
   assert(current_popsize > 0);
 
   // growth rate needed to hit the target for this year
@@ -448,25 +524,25 @@ void Demographics::update_population_dynamics(int day) {
 
   // compute projected number of births for coming year
   double projected_births = 0;
-  for(int i = 0; i <= Demographics::MAX_PREGNANCY_AGE; i++) {
-    projected_births += Demographics::orig_age_yearly_birth_rate[i] * count_females_by_age[i];
+  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+    projected_births += Demographics::birth_rate[i] * count_females_by_age[i];
   }
-  double max_projected_births = (1.0 + max_adjustment_rate) * projected_births;
-  double min_projected_births = (1.0 - max_adjustment_rate) * projected_births;
+  double max_projected_births = (1.0 + max_adjustment) * projected_births;
+  double min_projected_births = (1.0 - max_adjustment) * projected_births;
 
   // compute projected number of deaths for coming year
   double projected_deaths = 0;
   for(int i = 0; i <= Demographics::MAX_AGE; i++) {
-    projected_deaths += orig_age_yearly_mortality_rate_male[i] * count_males_by_age[i];
-    projected_deaths += orig_age_yearly_mortality_rate_female[i] * count_females_by_age[i];
+    projected_deaths += Demographics::male_mortality_rate[i] * count_males_by_age[i];
+    projected_deaths += Demographics::female_mortality_rate[i] * count_females_by_age[i];
   }
-  double max_projected_deaths = (1.0 + max_adjustment_rate) * projected_deaths;
-  double min_projected_deaths = (1.0 - max_adjustment_rate) * projected_deaths;
+  double max_projected_deaths = (1.0 + max_adjustment) * projected_deaths;
+  double min_projected_deaths = (1.0 - max_adjustment) * projected_deaths;
 
   // projected population size
   int projected_popsize = current_popsize + projected_births - projected_deaths;
-  FRED_VERBOSE(1,
-	       "POP_DYNAMICS: year %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f  new = %d target = %d\n",
+  FRED_VERBOSE(2,
+	       "POP_DYNAMICS BEFORE ADJUSTMENTS: YEAR %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f  new = %d target = %d\n",
 	       year, current_popsize, projected_births, projected_deaths, projected_popsize,
 	       Demographics::target_popsize);
 
@@ -478,41 +554,44 @@ void Demographics::update_population_dynamics(int day) {
     adjustment_factor = (Demographics::target_popsize - min_projected_popsize) / projected_range;
   if (adjustment_factor > 1.0) adjustment_factor = 1.0;
   if (adjustment_factor < 0.0) adjustment_factor = 0.0;
-  double birth_adjustment = 1.0 + (2.0 * max_adjustment_rate * adjustment_factor)- max_adjustment_rate;
-  double death_adjustment = 1.0 - ((2.0 * max_adjustment_rate * adjustment_factor)- max_adjustment_rate);
+  double birth_rate_adjustment = 1.0 + (2.0 * max_adjustment * adjustment_factor)- max_adjustment;
+  double death_rate_adjustment = 1.0 - ((2.0 * max_adjustment * adjustment_factor)- max_adjustment);
+  // birth_rate_adjustment = 1.0;
+  // death_rate_adjustment = 1.0;
 
-  // make adjustments as needed:
-  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-    Demographics::age_yearly_mortality_rate_female[i] = death_adjustment
-      * Demographics::orig_age_yearly_mortality_rate_female[i];
-    Demographics::age_yearly_mortality_rate_male[i] = death_adjustment
-      * Demographics::orig_age_yearly_mortality_rate_male[i];
+  for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+    Demographics::adjusted_female_mortality_rate[i] = death_rate_adjustment*Demographics::female_mortality_rate[i];
+    Demographics::adjusted_male_mortality_rate[i] = death_rate_adjustment*Demographics::male_mortality_rate[i];
+    Demographics::adjusted_birth_rate[i] = birth_rate_adjustment*Demographics::birth_rate[i];
   }
-  for(int i = 0; i <= Demographics::MAX_PREGNANCY_AGE; ++i) {
-    Demographics::age_yearly_birth_rate[i] = birth_adjustment
-      * Demographics::orig_age_yearly_birth_rate[i];
+
+  // adjust pregnancy rates
+  for (int i = 0; i < Demographics::MAX_AGE; i++) {
+    // approx 3/4 of pregnancies deliver at the next age of the mother
+    Demographics::pregnancy_rate[i] =
+      0.25 * Demographics::adjusted_birth_rate[i] + 0.75 * Demographics::adjusted_birth_rate[i+1];
   }
+  Demographics::pregnancy_rate[Demographics::MAX_AGE] = 0.0;
+
   // projected number of births for coming year
   projected_births = 0;
-  for(int i = 0; i <= Demographics::MAX_PREGNANCY_AGE; i++) {
-    projected_births += Demographics::age_yearly_birth_rate[i] * count_females_by_age[i];
+  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+    projected_births += Demographics::adjusted_birth_rate[i] * count_females_by_age[i];
   }
 
   // projected number of deaths for coming year
   projected_deaths = 0;
   for(int i = 0; i <= Demographics::MAX_AGE; i++) {
-    projected_deaths += age_yearly_mortality_rate_male[i] * count_males_by_age[i];
-    projected_deaths += age_yearly_mortality_rate_female[i] * count_females_by_age[i];
+    projected_deaths += Demographics::adjusted_male_mortality_rate[i] * count_males_by_age[i];
+    projected_deaths += Demographics::adjusted_female_mortality_rate[i] * count_females_by_age[i];
   }
 
   // projected population size
   projected_popsize = current_popsize + projected_births - projected_deaths;
   FRED_VERBOSE(0,
-	       "POP DYNAMICS YEAR %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f  projected = %d target = %d ",
+	       "POP DYNAMICS: YEAR %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f projected = %d target = %d adjustment factor for births %0.3f and deaths %0.3f\n",
 	       year, current_popsize, projected_births, projected_deaths, projected_popsize,
-	       Demographics::target_popsize);
-  FRED_VERBOSE(0, " adjustment factor for births %0.3f and deaths %0.3f\n",
-	       birth_adjustment, death_adjustment); 
+	       Demographics::target_popsize, birth_rate_adjustment, death_rate_adjustment); 
 
   // reset counters for coming year:
   births = 0;
