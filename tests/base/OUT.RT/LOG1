@@ -1,4 +1,4 @@
-FRED started Wed Nov 26 13:44:48 2014
+FRED started Fri Jan  9 16:55:46 2015
 param file = params.test
 fred_open_file: opening file /Users/gref/FRED/input_files/defaults for reading
 FRED reading parameter file /Users/gref/FRED/input_files/defaults
@@ -40,6 +40,7 @@ PARAMS: report_mean_household_stats_per_income_category = 0
 PARAMS: visit_home_neighborhood_unless_infectious = 0
 PARAMS: report_epidemic_data_by_census_tract = 0
 PARAMS: enable_hospitals = 0
+PARAMS: enable_health_insurance = 0
 PARAMS: enable_group_quarters = 1
 PARAMS: enable_visualization_layer = 0
 PARAMS: enable_vector_layer = 0
@@ -98,7 +99,7 @@ Date = [2012-01-02]
 seed = 123456
 RNG setup took 0 seconds
 
-FRED run 1 started Wed Nov 26 13:44:48 2014
+FRED run 1 started Fri Jan  9 16:55:46 2015
 PARAMS: enable_copy_files = 0
 PARAMS: msa_file = $FRED_HOME/input_files/countries/usa/US_msa.txt
 PARAMS: counties_file = $FRED_HOME/input_files/countries/usa/US_counties.txt
@@ -136,50 +137,56 @@ Split ID string "2010_ver1_42065" into 1 token using delimiter: ' '
 Deme 0 comprises 1 synthetic population id:
 --> Deme 0, Synth. Pop. ID 0: 2010_ver1_42065
 
-FRED read_places started Wed Nov 26 13:44:48 2014
+FRED read_places started Fri Jan  9 16:55:46 2015
 Reading Places for Deme 0:
 read places entered
 POPULATION_FILE: $FRED_HOME/populations/2010_ver1_42065
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_households.txt for reading
+COUNTIES AFTER READING HOUSEHOLDS
+COUNTIES[0] = 42065
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_workplaces.txt for reading
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_schools.txt for reading
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450111632 S 41.090195 -78.884384 name |C G JOHNSON EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110845 S 41.167229 -79.085846 name |BROOKVILLE JSHS|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450057407 S 40.761837 -78.877518 name |HILLSDALE MENNONITE SCHOOL|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450132458 S 40.949352 -78.968361 name |JENKS HILL EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450063600 S 0.000000 0.000000 name |OAK HILL CHRISTIAN SCHOOL|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450066817 S 40.621510 -79.152191 name |SEEDS OF FAITH CHRISTIAN ACADEMY|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450151186 S 40.702717 -79.100594 name |RAYNE EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450108468 S 40.947170 -78.923691 name |BELL TWP EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450129160 S 41.167313 -79.085922 name |HICKORY GROVE EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450120306 S 41.472626 -79.121872 name |EAST FOREST EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450139177 S 40.958000 -79.064140 name |MAPLEVIEW EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450102519 S 40.468769 -79.917847 name |PITTSBURGH DILWORTH K-5|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450145390 S 41.163204 -79.080902 name |NORTHSIDE EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450150577 S 40.949955 -78.978790 name |PUNXSUTAWNEY AREA HS|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450147805 S 41.001377 -78.963455 name |PARKVIEW EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450134109 S 41.230118 -79.532967 name |KEYSTONE EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110702 S 41.250828 -78.803185 name |BROCKWAY AREA JSHS|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450054184 S 41.116528 -78.735611 name |DU BOIS CHRISTIAN SCHOOLS|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450067304 S 0.000000 0.000000 name |SOUTH BOSTON CATHOLIC ACADEMY|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450067582 S 40.943066 -78.984756 name |SS COSMAS & DAMIAN ELEMENTARY SCHOOL|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450054192 S 41.146370 -78.785706 name |DUBOIS AREA CATHOLIC SCHOOL|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450110701 S 41.252022 -78.808578 name |BROCKWAY AREA ELEMENTARY SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450149079 S 41.148979 -79.027283 name |PINECREEK EL SCH|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450066968 S 0.000000 0.000000 name |SHEEPSCOT VALLEY CHILDREN'S HOUSE|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450132231 S 41.110996 -78.893578 name |JEFFERSON COUNTY-DUBOIS AVTS|
-FRED_VERBOSE: <Place_List.cc, LINE:948> READ_SCHOOL: S450150578 S 40.964355 -78.979256 name |PUNXSUTAWNEY AREA MS|
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450111632 S 41.090195 -78.884384 name |C G JOHNSON EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450110845 S 41.167229 -79.085846 name |BROOKVILLE JSHS| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450057407 S 40.761837 -78.877518 name |HILLSDALE MENNONITE SCHOOL| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450132458 S 40.949352 -78.968361 name |JENKS HILL EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450063600 S 0.000000 0.000000 name |OAK HILL CHRISTIAN SCHOOL| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450066817 S 40.621510 -79.152191 name |SEEDS OF FAITH CHRISTIAN ACADEMY| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450151186 S 40.702717 -79.100594 name |RAYNE EL SCH| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450108468 S 40.947170 -78.923691 name |BELL TWP EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450129160 S 41.167313 -79.085922 name |HICKORY GROVE EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450120306 S 41.472626 -79.121872 name |EAST FOREST EL SCH| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450139177 S 40.958000 -79.064140 name |MAPLEVIEW EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450102519 S 40.468769 -79.917847 name |PITTSBURGH DILWORTH K-5| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450145390 S 41.163204 -79.080902 name |NORTHSIDE EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450150577 S 40.949955 -78.978790 name |PUNXSUTAWNEY AREA HS| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450147805 S 41.001377 -78.963455 name |PARKVIEW EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450134109 S 41.230118 -79.532967 name |KEYSTONE EL SCH| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450110702 S 41.250828 -78.803185 name |BROCKWAY AREA JSHS| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450054184 S 41.116528 -78.735611 name |DU BOIS CHRISTIAN SCHOOLS| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450067304 S 0.000000 0.000000 name |SOUTH BOSTON CATHOLIC ACADEMY| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450067582 S 40.943066 -78.984756 name |SS COSMAS & DAMIAN ELEMENTARY SCHOOL| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450054192 S 41.146370 -78.785706 name |DUBOIS AREA CATHOLIC SCHOOL| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450110701 S 41.252022 -78.808578 name |BROCKWAY AREA ELEMENTARY SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450149079 S 41.148979 -79.027283 name |PINECREEK EL SCH| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450066968 S 0.000000 0.000000 name |SHEEPSCOT VALLEY CHILDREN'S HOUSE| county 99999
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450132231 S 41.110996 -78.893578 name |JEFFERSON COUNTY-DUBOIS AVTS| county 42065
+FRED_VERBOSE: <Place_List.cc, LINE:1013> READ_SCHOOL: S450150578 S 40.964355 -78.979256 name |PUNXSUTAWNEY AREA MS| county 42065
+COUNTIES AFTER READING SCHOOLS
+COUNTIES[0] = 42065
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq.txt for reading
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450004650 size 148 40.947395 -78.988083
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450004651 size 20 40.942013 -78.971413
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450008460 size 79 41.168175 -79.054878
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450022046 size 17 41.162342 -79.011703
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450030495 size 141 41.153702 -79.095482
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450030496 size 189 41.162769 -79.056969
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450036345 size 34 40.944145 -78.968697
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450040313 size 45 41.245991 -78.787567
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450042411 size 33 40.942699 -78.976860
-FRED_VERBOSE: <Place_List.cc, LINE:1078> READ_GROUP_QUARTERS: H450047487 size 18 41.197739 -78.834473
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450004650 size 148 40.947395 -78.988083
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450004651 size 20 40.942013 -78.971413
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450008460 size 79 41.168175 -79.054878
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450022046 size 17 41.162342 -79.011703
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450030495 size 141 41.153702 -79.095482
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450030496 size 189 41.162769 -79.056969
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450036345 size 34 40.944145 -78.968697
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450040313 size 45 41.245991 -78.787567
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450042411 size 33 40.942699 -78.976860
+FRED_VERBOSE: <Place_List.cc, LINE:1143> READ_GROUP_QUARTERS: H450047487 size 18 41.197739 -78.834473
+COUNTIES AFTER READING GQ
+COUNTIES[0] = 42065
 COUNTIES[0] = 42065
 CENSUS_TRACTS[0] = 42065950100
 CENSUS_TRACTS[1] = 42065950200
@@ -269,8 +276,8 @@ PARAMS: influenza_neighborhood_prob = 4
 PARAMS: influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 Added     873     NEIGHBORHOOD places to Place_List
 read places finished: Places = 24069
-Places.read_places took 1 seconds
-FRED read_places finished Wed Nov 26 13:44:49 2014
+Places.read_places took 0 seconds
+FRED read_places finished Fri Jan  9 16:55:46 2015
 PARAMS: enable_neighborhood_density_transmission = 0
 PARAMS: enable_density_transmission_maximum_infectees = 1
 PARAMS: density_transmission_maximum_infectees = 10
@@ -495,7 +502,7 @@ PARAMS: face_mask_compliance = 0.000000
 PARAMS: hand_washing_compliance = 0.000000
 initialize_static_variables took 0 seconds
 
-FRED Pop.setup started Wed Nov 26 13:44:49 2014
+FRED Pop.setup started Fri Jan  9 16:55:46 2015
 setup population entered
 disease 0 influenza setup entered
 PARAMS: primary_cases_file = $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
@@ -527,20 +534,20 @@ Loading population 0 for Deme 0: 2010_ver1_42065
 read population entered
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt for reading
 PARAMS: number_antivirals = 0
-FRED_VERBOSE: <Population.cc, LINE:610> finished reading uncompressed population, pop_size = 44594
+FRED_VERBOSE: <Population.cc, LINE:618> finished reading uncompressed population, pop_size = 44594
 Loading group quarters population 0 for Deme 0: 2010_ver1_42065
 read population entered
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt for reading
-FRED_VERBOSE: <Population.cc, LINE:610> finished reading uncompressed population, pop_size = 45318
+FRED_VERBOSE: <Population.cc, LINE:618> finished reading uncompressed population, pop_size = 45318
 reading populations took 0 seconds
 number of residually immune people for disease 0 = 0
 population setup finished
 setup group quarters entered
 setup households entered
-FRED_VERBOSE: <Place_List.cc, LINE:1659> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
+FRED_VERBOSE: <Place_List.cc, LINE:1791> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
 setup households finished
 Pop.setup took 0 seconds
-FRED Pop.setup finished Wed Nov 26 13:44:49 2014
+FRED Pop.setup finished Fri Jan  9 16:55:46 2015
 setup classrooms entered
 Allocating space for 291 classrooms in 26 schools (out of 24069 total places)
 PARAMS: influenza_classroom_contacts = -1.000000
@@ -549,85 +556,85 @@ PARAMS: influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.
 Added     291        CLASSROOM places to Place_List
 setup classrooms finished
 assign classrooms entered
-FRED_VERBOSE: <Population.cc, LINE:1041> assign classrooms finished
+FRED_VERBOSE: <Population.cc, LINE:1072> assign classrooms finished
 assign classrooms took 0 seconds
 reassign workers entered. places = 24360
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450054184 at (8894.253818,14553.410093) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270741 8894.605623 14553.510019 size 3 dist 0.365721
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450054192 at (8889.853909,14556.722477) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270412 8890.105868 14556.148748 size 3 dist 0.626617
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450057407 at (8881.789865,14514.040860) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W513929277 8881.584143 14513.013653 size 3 dist 1.047605
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450063600 at (15809.760000,9989.640000) 
-FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450066817 at (8857.664746,14498.465074) 
-FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 40.621510 lon -79.152191 
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450066968 at (15809.760000,9989.640000) 
-FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450067304 at (15809.760000,9989.640000) 
-FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450067582 at (8872.370870,14534.156514) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268767 8872.291797 14534.097236 size 5 dist 0.098825
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450102519 at (8790.415690,14481.511492) 
-FRED_VERBOSE: <Place_List.cc, LINE:1431> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450108468 at (8877.734390,14534.612110) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268760 8877.720988 14535.609255 size 4 dist 0.997235
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110701 at (8887.844934,14568.449411) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269718 8887.830862 14568.039544 size 5 dist 0.410108
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110702 at (8888.318698,14568.316881) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269769 8888.229574 14568.182658 size 5 dist 0.161118
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450110845 at (8863.491979,14559.037717) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268063 8863.510072 14558.902647 size 6 dist 0.136276
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450111632 at (8881.186771,14550.487251) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269616 8881.170688 14550.626978 size 3 dist 0.140650
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450120306 at (8860.327743,14592.935566) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514266640 8855.872215 14575.241852 size 5 dist 18.246074
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450129160 at (8863.485278,14559.047032) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267977 8863.303009 14559.154579 size 4 dist 0.211633
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450132231 at (8880.379294,14552.796139) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269568 8880.467748 14552.617034 size 3 dist 0.199757
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450132458 at (8873.810925,14534.854304) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269301 8873.515409 14535.019436 size 5 dist 0.338524
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450134109 at (8824.220476,14566.018155) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514265309 8824.107899 14565.287339 size 3 dist 0.739436
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450139177 at (8865.398427,14535.814188) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267966 8866.384152 14537.849973 size 6 dist 2.261874
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450145390 at (8863.926207,14558.591013) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268273 8863.882650 14558.461871 size 4 dist 0.136290
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450147805 at (8874.241803,14540.628853) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268643 8874.822784 14540.421803 size 5 dist 0.616773
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450149079 at (8868.635705,14557.012094) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267670 8869.168438 14554.790853 size 3 dist 2.284232
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450150577 at (8872.894892,14534.921204) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269007 8872.725355 14535.015202 size 6 dist 0.193851
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450150578 at (8872.854015,14536.519600) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269441 8873.861183 14536.447195 size 4 dist 1.009767
-FRED_VERBOSE: <Place_List.cc, LINE:1422> Reassign teachers to school S450151186 at (8862.196666,14507.478757) 
-FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W513931331 8859.195936 14500.041453 size 3 dist 8.019843
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450054184 at (8894.253818,14553.410093) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514270741 8894.605623 14553.510019 size 3 dist 0.365721
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450054192 at (8889.853909,14556.722477) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514270412 8890.105868 14556.148748 size 3 dist 0.626617
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450057407 at (8881.789865,14514.040860) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W513929277 8881.584143 14513.013653 size 3 dist 1.047605
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450063600 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1564> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450066817 at (8857.664746,14498.465074) 
+FRED_VERBOSE: <Place_List.cc, LINE:1564> place OUTSIDE_REGION lat 40.621510 lon -79.152191 
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450066968 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1564> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450067304 at (15809.760000,9989.640000) 
+FRED_VERBOSE: <Place_List.cc, LINE:1564> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450067582 at (8872.370870,14534.156514) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268767 8872.291797 14534.097236 size 5 dist 0.098825
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450102519 at (8790.415690,14481.511492) 
+FRED_VERBOSE: <Place_List.cc, LINE:1564> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450108468 at (8877.734390,14534.612110) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268760 8877.720988 14535.609255 size 4 dist 0.997235
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450110701 at (8887.844934,14568.449411) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269718 8887.830862 14568.039544 size 5 dist 0.410108
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450110702 at (8888.318698,14568.316881) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269769 8888.229574 14568.182658 size 5 dist 0.161118
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450110845 at (8863.491979,14559.037717) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268063 8863.510072 14558.902647 size 6 dist 0.136276
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450111632 at (8881.186771,14550.487251) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269616 8881.170688 14550.626978 size 3 dist 0.140650
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450120306 at (8860.327743,14592.935566) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514266640 8855.872215 14575.241852 size 5 dist 18.246074
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450129160 at (8863.485278,14559.047032) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514267977 8863.303009 14559.154579 size 4 dist 0.211633
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450132231 at (8880.379294,14552.796139) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269568 8880.467748 14552.617034 size 3 dist 0.199757
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450132458 at (8873.810925,14534.854304) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269301 8873.515409 14535.019436 size 5 dist 0.338524
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450134109 at (8824.220476,14566.018155) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514265309 8824.107899 14565.287339 size 3 dist 0.739436
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450139177 at (8865.398427,14535.814188) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514267966 8866.384152 14537.849973 size 6 dist 2.261874
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450145390 at (8863.926207,14558.591013) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268273 8863.882650 14558.461871 size 4 dist 0.136290
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450147805 at (8874.241803,14540.628853) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268643 8874.822784 14540.421803 size 5 dist 0.616773
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450149079 at (8868.635705,14557.012094) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514267670 8869.168438 14554.790853 size 3 dist 2.284232
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450150577 at (8872.894892,14534.921204) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269007 8872.725355 14535.015202 size 6 dist 0.193851
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450150578 at (8872.854015,14536.519600) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269441 8873.861183 14536.447195 size 4 dist 1.009767
+FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450151186 at (8862.196666,14507.478757) 
+FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W513931331 8859.195936 14500.041453 size 3 dist 8.019843
 reassign workers entered. places = 24360
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450004650 at (8872.078704,14534.637091) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 148 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269331 8872.257622 14534.040498 size 27 dist 0.622845
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450004651 at (8873.542883,14534.039651) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 20 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269191 8873.505357 14534.104857 size 8 dist 0.075233
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450004650 at (8872.078704,14534.637091) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 148 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269331 8872.257622 14534.040498 size 27 dist 0.622845
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450004651 at (8873.542883,14534.039651) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 20 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269191 8873.505357 14534.104857 size 8 dist 0.075233
 reassign workers entered. places = 24360
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450008460 at (8866.211935,14559.142724) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 79 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514267805 8867.361165 14558.604985 size 9 dist 1.268815
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450022046 at (8870.004059,14558.495321) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 17 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268096 8865.887604 14558.685011 size 5 dist 4.120823
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450008460 at (8866.211935,14559.142724) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 79 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514267805 8867.361165 14558.604985 size 9 dist 1.268815
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450022046 at (8870.004059,14558.495321) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 17 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268096 8865.887604 14558.685011 size 5 dist 4.120823
 reassign workers entered. places = 24360
 reassign workers entered. places = 24360
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450030495 at (8862.645636,14557.536283) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 141 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268053 8862.386976 14558.584238 size 14 dist 1.079405
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450030496 at (8866.028326,14558.542743) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 189 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514268257 8867.057607 14558.479654 size 18 dist 1.031213
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450036345 at (8873.781441,14534.276341) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 34 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269428 8873.855152 14534.350439 size 8 dist 0.104517
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450040313 at (8889.690403,14567.779990) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 45 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269669 8889.688393 14567.888384 size 7 dist 0.108413
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450042411 at (8873.064428,14534.115866) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 33 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514269373 8873.079841 14534.151857 size 7 dist 0.039152
-FRED_VERBOSE: <Place_List.cc, LINE:1474> Reassign workers to place W450047487 at (8885.570598,14562.424199) 
-FRED_VERBOSE: <Place_List.cc, LINE:1484> Size 18 FRED_VERBOSE: <Regional_Patch.cc, LINE:140> nearby workplace W514270058 8884.568121 14561.566781 size 7 dist 1.319138
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450030495 at (8862.645636,14557.536283) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 141 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268053 8862.386976 14558.584238 size 14 dist 1.079405
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450030496 at (8866.028326,14558.542743) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 189 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514268257 8867.057607 14558.479654 size 18 dist 1.031213
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450036345 at (8873.781441,14534.276341) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 34 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269428 8873.855152 14534.350439 size 8 dist 0.104517
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450040313 at (8889.690403,14567.779990) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 45 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269669 8889.688393 14567.888384 size 7 dist 0.108413
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450042411 at (8873.064428,14534.115866) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 33 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514269373 8873.079841 14534.151857 size 7 dist 0.039152
+FRED_VERBOSE: <Place_List.cc, LINE:1606> Reassign workers to place W450047487 at (8885.570598,14562.424199) 
+FRED_VERBOSE: <Place_List.cc, LINE:1616> Size 18 FRED_VERBOSE: <Regional_Patch.cc, LINE:163> nearby workplace W514270058 8884.568121 14561.566781 size 7 dist 1.319138
 reassign workers took 0 seconds
 reassign workers took 0 seconds
 setup offices entered
@@ -637,15 +644,36 @@ PARAMS: influenza_office_prob = 1 0.0575
 Added    4295           OFFICE places to Place_List
 setup offices finished
 assign offices entered
-FRED_VERBOSE: <Population.cc, LINE:1055> assign offices finished
+FRED_VERBOSE: <Population.cc, LINE:1089> assign offices finished
 assign offices took 0 seconds
 prepare places entered
+YEAR 0 GRADE 0 STUDENTS 0
+YEAR 0 GRADE 1 STUDENTS 0
+YEAR 0 GRADE 2 STUDENTS 0
+YEAR 0 GRADE 3 STUDENTS 102
+YEAR 0 GRADE 4 STUDENTS 319
+YEAR 0 GRADE 5 STUDENTS 360
+YEAR 0 GRADE 6 STUDENTS 381
+YEAR 0 GRADE 7 STUDENTS 512
+YEAR 0 GRADE 8 STUDENTS 566
+YEAR 0 GRADE 9 STUDENTS 494
+YEAR 0 GRADE 10 STUDENTS 557
+YEAR 0 GRADE 11 STUDENTS 480
+YEAR 0 GRADE 12 STUDENTS 551
+YEAR 0 GRADE 13 STUDENTS 610
+YEAR 0 GRADE 14 STUDENTS 622
+YEAR 0 GRADE 15 STUDENTS 637
+YEAR 0 GRADE 16 STUDENTS 566
+YEAR 0 GRADE 17 STUDENTS 597
+YEAR 0 GRADE 18 STUDENTS 308
+YEAR 0 GRADE 19 STUDENTS 0
+YEAR 0 TOTAL_STUDENTS 7662
 deleting place_label_map
 prepare places finished
-place preparation took 1 seconds
+place preparation took 0 seconds
 disease_initialization took 0 seconds
-FRED initialization complete Wed Nov 26 13:44:50 2014
-FRED initialization took 2 seconds
+FRED initialization complete Fri Jan  9 16:55:46 2015
+FRED initialization took 0 seconds
 
 day 0 update places took 0 seconds
 employees at small workplaces with sick leave: 6844
@@ -679,8 +707,8 @@ day 0 update epidemic for disease 0 took 0 seconds
 Day 0 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 0 report population took 0 seconds
-day 0 maxrss 70893568
-day 0 finished Wed Nov 26 13:44:50 2014
+day 0 maxrss 71761920
+day 0 finished Fri Jan  9 16:55:46 2015
 day 0 took 0 seconds
 
 day 1 update places took 0 seconds
@@ -707,8 +735,8 @@ day 1 update epidemic for disease 0 took 0 seconds
 Day 1 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 1 report population took 0 seconds
-day 1 maxrss 70930432
-day 1 finished Wed Nov 26 13:44:50 2014
+day 1 maxrss 71811072
+day 1 finished Fri Jan  9 16:55:46 2015
 day 1 took 0 seconds
 
 day 2 update places took 0 seconds
@@ -735,8 +763,8 @@ day 2 update epidemic for disease 0 took 0 seconds
 Day 2 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 2 report population took 0 seconds
-day 2 maxrss 70930432
-day 2 finished Wed Nov 26 13:44:50 2014
+day 2 maxrss 71888896
+day 2 finished Fri Jan  9 16:55:46 2015
 day 2 took 0 seconds
 
 day 3 update places took 0 seconds
@@ -763,14 +791,14 @@ day 3 update epidemic for disease 0 took 0 seconds
 Day 3 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 3 report population took 0 seconds
-day 3 maxrss 71274496
-day 3 finished Wed Nov 26 13:44:50 2014
+day 3 maxrss 72073216
+day 3 finished Fri Jan  9 16:55:46 2015
 day 3 took 0 seconds
 
 day 4 update places took 0 seconds
 day 4 update population took 0 seconds
 day 4 update_infectious_people took 0 seconds
-day 4 find_visitors_to_infectious_places took 0 seconds
+day 4 find_visitors_to_infectious_places took 1 seconds
 Number of infectious places        =>        79
 Number of infectious households    =>        32
 Number of infectious neighborhoods =>        28
@@ -791,9 +819,9 @@ day 4 update epidemic for disease 0 took 0 seconds
 Day 4 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 4 report population took 0 seconds
-day 4 maxrss 71282688
-day 4 finished Wed Nov 26 13:44:50 2014
-day 4 took 0 seconds
+day 4 maxrss 72110080
+day 4 finished Fri Jan  9 16:55:47 2015
+day 4 took 1 seconds
 
 day 5 update places took 0 seconds
 day 5 update population took 0 seconds
@@ -819,8 +847,8 @@ day 5 update epidemic for disease 0 took 0 seconds
 Day 5 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 5 report population took 0 seconds
-day 5 maxrss 71680000
-day 5 finished Wed Nov 26 13:44:50 2014
+day 5 maxrss 72187904
+day 5 finished Fri Jan  9 16:55:47 2015
 day 5 took 0 seconds
 
 day 6 update places took 0 seconds
@@ -847,8 +875,8 @@ day 6 update epidemic for disease 0 took 0 seconds
 Day 6 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 6 report population took 0 seconds
-day 6 maxrss 71794688
-day 6 finished Wed Nov 26 13:44:50 2014
+day 6 maxrss 72253440
+day 6 finished Fri Jan  9 16:55:47 2015
 day 6 took 0 seconds
 
 day 7 update places took 0 seconds
@@ -875,8 +903,8 @@ day 7 update epidemic for disease 0 took 0 seconds
 Day 7 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 7 report population took 0 seconds
-day 7 maxrss 72130560
-day 7 finished Wed Nov 26 13:44:50 2014
+day 7 maxrss 72318976
+day 7 finished Fri Jan  9 16:55:47 2015
 day 7 took 0 seconds
 
 day 8 update places took 0 seconds
@@ -903,8 +931,8 @@ day 8 update epidemic for disease 0 took 0 seconds
 Day 8 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 8 report population took 0 seconds
-day 8 maxrss 72847360
-day 8 finished Wed Nov 26 13:44:50 2014
+day 8 maxrss 72384512
+day 8 finished Fri Jan  9 16:55:47 2015
 day 8 took 0 seconds
 
 day 9 update places took 0 seconds
@@ -931,8 +959,8 @@ day 9 update epidemic for disease 0 took 0 seconds
 Day 9 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 9 report population took 0 seconds
-day 9 maxrss 73007104
-day 9 finished Wed Nov 26 13:44:50 2014
+day 9 maxrss 72507392
+day 9 finished Fri Jan  9 16:55:47 2015
 day 9 took 0 seconds
 
 day 10 update places took 0 seconds
@@ -959,8 +987,8 @@ day 10 update epidemic for disease 0 took 0 seconds
 Day 10 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 10 report population took 0 seconds
-day 10 maxrss 73027584
-day 10 finished Wed Nov 26 13:44:50 2014
+day 10 maxrss 72536064
+day 10 finished Fri Jan  9 16:55:47 2015
 day 10 took 0 seconds
 
 day 11 update places took 0 seconds
@@ -987,8 +1015,8 @@ day 11 update epidemic for disease 0 took 0 seconds
 Day 11 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 11 report population took 0 seconds
-day 11 maxrss 73068544
-day 11 finished Wed Nov 26 13:44:50 2014
+day 11 maxrss 73256960
+day 11 finished Fri Jan  9 16:55:47 2015
 day 11 took 0 seconds
 
 day 12 update places took 0 seconds
@@ -1015,8 +1043,8 @@ day 12 update epidemic for disease 0 took 0 seconds
 Day 12 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 12 report population took 0 seconds
-day 12 maxrss 73084928
-day 12 finished Wed Nov 26 13:44:50 2014
+day 12 maxrss 73273344
+day 12 finished Fri Jan  9 16:55:47 2015
 day 12 took 0 seconds
 
 day 13 update places took 0 seconds
@@ -1040,24 +1068,24 @@ day 13 epidemic in households for disease 0 took 0 seconds
 day 13 epidemic in hospitals for disease 0 took 0 seconds
 day 13 update epidemic for disease 0 took 0 seconds
 
-Day 13 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+Day 13 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 13 report population took 0 seconds
-day 13 maxrss 73723904
-day 13 finished Wed Nov 26 13:44:50 2014
+day 13 maxrss 73297920
+day 13 finished Fri Jan  9 16:55:47 2015
 day 13 took 0 seconds
 
 day 14 update places took 0 seconds
 day 14 update population took 0 seconds
 day 14 update_infectious_people took 0 seconds
 day 14 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      1592
+Number of infectious places        =>      1595
 Number of infectious households    =>       846
-Number of infectious neighborhoods =>       268
+Number of infectious neighborhoods =>       269
 Number of infectious schools       =>        20
 Number of infectious classrooms    =>       143
-Number of infectious workplaces    =>       142
-Number of infectious offices       =>       173
+Number of infectious workplaces    =>       143
+Number of infectious offices       =>       174
 Number of infectious hospitals     =>         0
 day 14 epidemic in schools for disease 0 took 0 seconds
 day 14 epidemic in classrooms for disease 0 took 0 seconds
@@ -1068,24 +1096,24 @@ day 14 epidemic in households for disease 0 took 0 seconds
 day 14 epidemic in hospitals for disease 0 took 0 seconds
 day 14 update epidemic for disease 0 took 0 seconds
 
-Day 14 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+Day 14 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 14 report population took 0 seconds
-day 14 maxrss 74498048
-day 14 finished Wed Nov 26 13:44:50 2014
+day 14 maxrss 74571776
+day 14 finished Fri Jan  9 16:55:47 2015
 day 14 took 0 seconds
 
 day 15 update places took 0 seconds
 day 15 update population took 0 seconds
 day 15 update_infectious_people took 0 seconds
 day 15 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      2080
-Number of infectious households    =>      1163
-Number of infectious neighborhoods =>       321
+Number of infectious places        =>      2028
+Number of infectious households    =>      1136
+Number of infectious neighborhoods =>       295
 Number of infectious schools       =>        20
-Number of infectious classrooms    =>       165
-Number of infectious workplaces    =>       185
-Number of infectious offices       =>       226
+Number of infectious classrooms    =>       172
+Number of infectious workplaces    =>       184
+Number of infectious offices       =>       221
 Number of infectious hospitals     =>         0
 day 15 epidemic in schools for disease 0 took 0 seconds
 day 15 epidemic in classrooms for disease 0 took 0 seconds
@@ -1099,21 +1127,21 @@ day 15 update epidemic for disease 0 took 0 seconds
 Day 15 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 15 report population took 0 seconds
-day 15 maxrss 74510336
-day 15 finished Wed Nov 26 13:44:50 2014
+day 15 maxrss 75071488
+day 15 finished Fri Jan  9 16:55:47 2015
 day 15 took 0 seconds
 
 day 16 update places took 0 seconds
 day 16 update population took 0 seconds
 day 16 update_infectious_people took 0 seconds
 day 16 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      2660
-Number of infectious households    =>      1539
-Number of infectious neighborhoods =>       364
-Number of infectious schools       =>        21
-Number of infectious classrooms    =>       198
-Number of infectious workplaces    =>       247
-Number of infectious offices       =>       291
+Number of infectious places        =>      2560
+Number of infectious households    =>      1511
+Number of infectious neighborhoods =>       352
+Number of infectious schools       =>        20
+Number of infectious classrooms    =>       193
+Number of infectious workplaces    =>       221
+Number of infectious offices       =>       263
 Number of infectious hospitals     =>         0
 day 16 epidemic in schools for disease 0 took 0 seconds
 day 16 epidemic in classrooms for disease 0 took 0 seconds
@@ -1124,24 +1152,24 @@ day 16 epidemic in households for disease 0 took 0 seconds
 day 16 epidemic in hospitals for disease 0 took 0 seconds
 day 16 update epidemic for disease 0 took 0 seconds
 
-Day 16 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+Day 16 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 16 report population took 0 seconds
-day 16 maxrss 74977280
-day 16 finished Wed Nov 26 13:44:50 2014
+day 16 maxrss 75644928
+day 16 finished Fri Jan  9 16:55:47 2015
 day 16 took 0 seconds
 
 day 17 update places took 0 seconds
 day 17 update population took 0 seconds
 day 17 update_infectious_people took 0 seconds
-day 17 find_visitors_to_infectious_places took 1 seconds
-Number of infectious places        =>      3291
-Number of infectious households    =>      2017
-Number of infectious neighborhoods =>       391
+day 17 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>      3172
+Number of infectious households    =>      1970
+Number of infectious neighborhoods =>       386
 Number of infectious schools       =>        21
-Number of infectious classrooms    =>       222
-Number of infectious workplaces    =>       291
-Number of infectious offices       =>       349
+Number of infectious classrooms    =>       213
+Number of infectious workplaces    =>       268
+Number of infectious offices       =>       314
 Number of infectious hospitals     =>         0
 day 17 epidemic in schools for disease 0 took 0 seconds
 day 17 epidemic in classrooms for disease 0 took 0 seconds
@@ -1152,24 +1180,24 @@ day 17 epidemic in households for disease 0 took 0 seconds
 day 17 epidemic in hospitals for disease 0 took 0 seconds
 day 17 update epidemic for disease 0 took 0 seconds
 
-Day 17 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+Day 17 GQ_INF:  GQ 2 College 2 Prison 0 Nursing_Home 0 Military 0
 
 day 17 report population took 0 seconds
-day 17 maxrss 75714560
-day 17 finished Wed Nov 26 13:44:51 2014
-day 17 took 1 seconds
+day 17 maxrss 76386304
+day 17 finished Fri Jan  9 16:55:47 2015
+day 17 took 0 seconds
 
 day 18 update places took 0 seconds
 day 18 update population took 0 seconds
 day 18 update_infectious_people took 0 seconds
 day 18 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      4016
-Number of infectious households    =>      2526
-Number of infectious neighborhoods =>       458
-Number of infectious schools       =>        22
-Number of infectious classrooms    =>       237
-Number of infectious workplaces    =>       355
-Number of infectious offices       =>       418
+Number of infectious places        =>      3885
+Number of infectious households    =>      2450
+Number of infectious neighborhoods =>       445
+Number of infectious schools       =>        21
+Number of infectious classrooms    =>       231
+Number of infectious workplaces    =>       337
+Number of infectious offices       =>       401
 Number of infectious hospitals     =>         0
 day 18 epidemic in schools for disease 0 took 0 seconds
 day 18 epidemic in classrooms for disease 0 took 0 seconds
@@ -1180,24 +1208,24 @@ day 18 epidemic in households for disease 0 took 0 seconds
 day 18 epidemic in hospitals for disease 0 took 0 seconds
 day 18 update epidemic for disease 0 took 0 seconds
 
-Day 18 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+Day 18 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 18 report population took 0 seconds
-day 18 maxrss 76664832
-day 18 finished Wed Nov 26 13:44:51 2014
+day 18 maxrss 77135872
+day 18 finished Fri Jan  9 16:55:47 2015
 day 18 took 0 seconds
 
 day 19 update places took 0 seconds
 day 19 update population took 0 seconds
 day 19 update_infectious_people took 0 seconds
 day 19 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      3831
-Number of infectious households    =>      3039
-Number of infectious neighborhoods =>       497
+Number of infectious places        =>      3796
+Number of infectious households    =>      3006
+Number of infectious neighborhoods =>       481
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>       138
-Number of infectious offices       =>       157
+Number of infectious workplaces    =>       143
+Number of infectious offices       =>       166
 Number of infectious hospitals     =>         0
 day 19 epidemic in schools for disease 0 took 0 seconds
 day 19 epidemic in classrooms for disease 0 took 0 seconds
@@ -1208,14 +1236,14 @@ day 19 epidemic in households for disease 0 took 0 seconds
 day 19 epidemic in hospitals for disease 0 took 0 seconds
 day 19 update epidemic for disease 0 took 0 seconds
 
-Day 19 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+Day 19 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 19 report population took 0 seconds
-day 19 maxrss 77352960
-day 19 finished Wed Nov 26 13:44:51 2014
+day 19 maxrss 77144064
+day 19 finished Fri Jan  9 16:55:47 2015
 day 19 took 0 seconds
 
 
 FRED simulation complete. Excluding initialization, 20 days took 1 seconds
-FRED finished Wed Nov 26 13:44:51 2014
-FRED took 3 seconds
+FRED finished Fri Jan  9 16:55:47 2015
+FRED took 1 seconds

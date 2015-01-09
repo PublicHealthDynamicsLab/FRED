@@ -17,4 +17,4 @@ Day 15 Date 2012-01-17 WkDay Tue C 263 College 1 Cs 105 E 313 GQ 1 I 397 Is 275 
 Day 16 Date 2012-01-18 WkDay Wed C 346 College 0 Cs 184 E 393 GQ 0 I 574 Is 400 M 0 Military 0 N 45318 Nursing_Home 0 P 967 Prison 0 R 272 S 44079 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 3 Year 2012 AR 2.73 ARs 1.28 RR 1.11
 Day 17 Date 2012-01-19 WkDay Thu C 474 College 0 Cs 214 E 538 GQ 0 I 850 Is 579 M 0 Military 0 N 45318 Nursing_Home 0 P 1388 Prison 0 R 325 S 43605 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 3 Year 2012 AR 3.78 ARs 1.75 RR 3.00
 Day 18 Date 2012-01-20 WkDay Fri C 669 College 1 Cs 296 E 760 GQ 1 I 1184 Is 796 M 0 Military 0 N 45318 Nursing_Home 0 P 1944 Prison 0 R 438 S 42936 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 3 Year 2012 AR 5.26 ARs 2.41 RR 3.32
-Day 19 Date 2012-01-21 WkDay Sat C 440 College 0 Cs 423 E 569 GQ 0 I 1653 Is 1106 M 0 Military 0 N 45318 Nursing_Home 0 P 2222 Prison 0 R 600 S 42496 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 3 Year 2012 AR 6.23 ARs 3.34 RR 1.84
+Day 19 Date 2012-01-21 WkDay Sat C 478 College 0 Cs 423 E 607 GQ 0 I 1654 Is 1107 M 0 Military 0 N 45318 Nursing_Home 0 P 2261 Prison 0 R 599 S 42458 ScCl 0 V 0 Va 0 Vr 0 Vs 0 Week 3 Year 2012 AR 6.31 ARs 3.34 RR 1.84
