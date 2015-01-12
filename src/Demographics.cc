@@ -41,9 +41,6 @@ double Demographics::adjusted_birth_rate[Demographics::MAX_AGE + 1];
 double Demographics::pregnancy_rate[Demographics::MAX_AGE + 1];
 int Demographics::target_popsize = 0;
 double Demographics::population_growth_rate = 0.0;
-// double Demographics::birth_rate_adjustment = 1.0;
-// double Demographics::death_rate_adjustment = 1.0;
-double Demographics::max_adjustment = 0.0;
 double Demographics::college_departure_rate = 0.0;
 double Demographics::military_departure_rate = 0.0;
 double Demographics::prison_departure_rate = 0.0;
@@ -381,7 +378,6 @@ void Demographics::initialize_static_variables() {
   Params::get_param_from_string("birth_rate_file", birth_rate_file);
   Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
   Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
-  Params::get_param_from_string("max_adjustment", &(Demographics::max_adjustment));
   Params::get_param_from_string("college_departure_rate", &(Demographics::college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(Demographics::military_departure_rate));
   Params::get_param_from_string("prison_departure_rate", &(Demographics::prison_departure_rate));
@@ -498,17 +494,17 @@ void Demographics::update_population_dynamics(int day) {
     births *= 365.0 / (day + 1);
     deaths *= 365.0 / (day + 1);
   }
-  FRED_VERBOSE(0, "POP_DYNAMICS: births_last_year = %d deaths_last_year = %d\n", births, deaths);
+
+  // get the current popsize
+  int current_popsize = Global::Pop.get_pop_size();
+  assert(current_popsize > 0);
+
+  // get the current year
+  int year = Global::Sim_Current_Date->get_year();
 
   // get the target population size for the end of the coming year
   Demographics::target_popsize = (1.0 + 0.01 * Demographics::population_growth_rate)
       * Demographics::target_popsize;
-
-  // get the current popsize
-  int current_popsize = Global::Pop.get_pop_size();
-  int year = day / 365;
-  printf("POP_DYN YEAR %d POPSIZE %d\n", year, current_popsize); fflush(stdout);
-  assert(current_popsize > 0);
 
   // growth rate needed to hit the target for this year
   double target_growth_rate = (100.0 * (Demographics::target_popsize - current_popsize)) / current_popsize;
@@ -528,42 +524,47 @@ void Demographics::update_population_dynamics(int day) {
   for(int i = 0; i <= Demographics::MAX_AGE; i++) {
     projected_births += Demographics::birth_rate[i] * count_females_by_age[i];
   }
-  double max_projected_births = (1.0 + max_adjustment) * projected_births;
-  double min_projected_births = (1.0 - max_adjustment) * projected_births;
-
   // compute projected number of deaths for coming year
   double projected_deaths = 0;
   for(int i = 0; i <= Demographics::MAX_AGE; i++) {
     projected_deaths += Demographics::male_mortality_rate[i] * count_males_by_age[i];
     projected_deaths += Demographics::female_mortality_rate[i] * count_females_by_age[i];
   }
-  double max_projected_deaths = (1.0 + max_adjustment) * projected_deaths;
-  double min_projected_deaths = (1.0 - max_adjustment) * projected_deaths;
 
   // projected population size
   int projected_popsize = current_popsize + projected_births - projected_deaths;
-  FRED_VERBOSE(2,
-	       "POP_DYNAMICS BEFORE ADJUSTMENTS: YEAR %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f  new = %d target = %d\n",
-	       year, current_popsize, projected_births, projected_deaths, projected_popsize,
-	       Demographics::target_popsize);
 
-  double max_projected_popsize = current_popsize + max_projected_births - min_projected_deaths;
-  double min_projected_popsize = current_popsize + min_projected_births - max_projected_deaths;
+  // consider results of varying birth and death rates by up to 100%:
+  double max_projected_births = 2.0 * projected_births;
+  double max_projected_deaths = 2.0 * projected_deaths;
+  double max_projected_popsize = current_popsize + max_projected_births;
+  double min_projected_popsize = current_popsize - max_projected_deaths;
   double projected_range = max_projected_popsize - min_projected_popsize;
-  double adjustment_factor = 1.0;
+
+  // find the adjustment level that will achieve the target population, if possible.
+  // Note: a value of 0.5 will leave birth and death rates as they are.
+  double adjustment_factor = 0.5;
   if (projected_range > 0)
     adjustment_factor = (Demographics::target_popsize - min_projected_popsize) / projected_range;
+
+  // adjustment_factor = 1 means that births are doubled and deaths are eliminated.
+  // the resulting population size will be max_projected_popsize.
   if (adjustment_factor > 1.0) adjustment_factor = 1.0;
+
+  // adjustment_factor = 0 means that deaths are doubled and births are eliminated.
+  // the resulting population size will be min_projected_popsize.
   if (adjustment_factor < 0.0) adjustment_factor = 0.0;
-  double birth_rate_adjustment = 1.0 + (2.0 * max_adjustment * adjustment_factor)- max_adjustment;
-  double death_rate_adjustment = 1.0 - ((2.0 * max_adjustment * adjustment_factor)- max_adjustment);
-  // birth_rate_adjustment = 1.0;
-  // death_rate_adjustment = 1.0;
+
+  // set birth_rate_adjustment to between 0 and 2, increasing linearly with adjustment_factor
+  double birth_rate_adjustment = 2.0 * adjustment_factor;
+ 
+  // set death_rate_adjustment to between 2 and 0, decreasing linearly with adjustment_factor
+  double death_rate_adjustment = 2.0 * (1.0 - adjustment_factor);
 
   for (int i = 0; i <= Demographics::MAX_AGE; i++) {
-    Demographics::adjusted_female_mortality_rate[i] = death_rate_adjustment*Demographics::female_mortality_rate[i];
-    Demographics::adjusted_male_mortality_rate[i] = death_rate_adjustment*Demographics::male_mortality_rate[i];
-    Demographics::adjusted_birth_rate[i] = birth_rate_adjustment*Demographics::birth_rate[i];
+    Demographics::adjusted_female_mortality_rate[i] = death_rate_adjustment * Demographics::female_mortality_rate[i];
+    Demographics::adjusted_male_mortality_rate[i] = death_rate_adjustment * Demographics::male_mortality_rate[i];
+    Demographics::adjusted_birth_rate[i] = birth_rate_adjustment * Demographics::birth_rate[i];
   }
 
   // adjust pregnancy rates
@@ -589,10 +590,12 @@ void Demographics::update_population_dynamics(int day) {
 
   // projected population size
   projected_popsize = current_popsize + projected_births - projected_deaths;
+
   FRED_VERBOSE(0,
-	       "POP DYNAMICS: YEAR %d current = %d  exp_births = %0.1f  exp_deaths = %0.1f projected = %d target = %d adjustment factor for births %0.3f and deaths %0.3f\n",
-	       year, current_popsize, projected_births, projected_deaths, projected_popsize,
-	       Demographics::target_popsize, birth_rate_adjustment, death_rate_adjustment); 
+	       "POPULATION_DYNAMICS: year %d popsize %d births = %d deaths = %d exp_popsize = %d exp_births = %0.0f  exp_deaths = %0.0f birth_adj %0.3f death_adj %0.3f\n",
+	       year, current_popsize, births, deaths,
+	       projected_popsize, projected_births, projected_deaths,
+	       birth_rate_adjustment, death_rate_adjustment); 
 
   // reset counters for coming year:
   births = 0;

@@ -179,9 +179,6 @@ private:
   static bool is_initialized;
   static int target_popsize;
   static double population_growth_rate;
-  // static double birth_rate_adjustment;
-  // static double death_rate_adjustment;
-  static double max_adjustment;
   static double college_departure_rate;
   static double military_departure_rate;
   static double prison_departure_rate;
