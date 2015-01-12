@@ -472,6 +472,7 @@ void Demographics::update_population_dynamics(int day) {
     Demographics::houses = Global::Places.get_number_of_households();
     Demographics::beds = new int[houses];
     Demographics::occupants = new int[houses];
+    Demographics::target_popsize = Global::Pop.get_pop_size();
   }
 
   Demographics::births_today = 0;
