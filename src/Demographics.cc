@@ -367,7 +367,6 @@ void Demographics::initialize_static_variables() {
 
   char mortality_rate_file[FRED_STRING_SIZE];
   char birth_rate_file[FRED_STRING_SIZE];
-  double birth_rate_multiplier;
 
   if (Global::Verbose) {
     fprintf(Global::Statusfp, "Demographics::initialize_static_variables() entered\n");
@@ -376,7 +375,6 @@ void Demographics::initialize_static_variables() {
 
   Params::get_param_from_string("population_growth_rate", &(Demographics::population_growth_rate));
   Params::get_param_from_string("birth_rate_file", birth_rate_file);
-  Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
   Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
   Params::get_param_from_string("college_departure_rate", &(Demographics::college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(Demographics::military_departure_rate));
