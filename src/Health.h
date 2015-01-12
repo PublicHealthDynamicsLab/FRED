@@ -25,10 +25,11 @@ using namespace std;
 #include "Global.h"
 #include "Past_Infection.h"
 
-class Person;
-class Disease;
 class Antiviral;
 class Antivirals;
+class Person;
+class Disease;
+
 class AV_Manager;
 class AV_Health;
 class Vaccine;
@@ -61,7 +62,7 @@ namespace Intervention_flag {
 };
 
 // The following enum defines symbolic names for Insurance Company Assignment.
-// The last element should always be INSURANCE_ASSIGNMENTS.
+// The last element should always be UNSET.
 namespace Insurance_assignment_index {
   enum e {
     PRIVATE,
@@ -70,7 +71,7 @@ namespace Insurance_assignment_index {
     HIGHMARK,
     UPMC,
     UNINSURED,
-    INSURANCE_ASSIGNMENTS
+    UNSET
   };
 };
 
@@ -115,7 +116,7 @@ public:
 
   static const char* insurance_lookup(Insurance_assignment_index::e idx) {
     assert(idx >= Insurance_assignment_index::PRIVATE);
-    assert(idx < Insurance_assignment_index::INSURANCE_ASSIGNMENTS);
+    assert(idx <= Insurance_assignment_index::UNSET);
     switch(idx) {
       case Insurance_assignment_index::PRIVATE:
         return "Private";
@@ -129,8 +130,10 @@ public:
         return "UPMC";
       case Insurance_assignment_index::UNINSURED:
         return "Uninsured";
+      case Insurance_assignment_index::UNSET:
+        return "UNSET";
       default:
-        Utils::fred_abort("Invalid Chronic Condition Type", "");
+        Utils::fred_abort("Invalid Health Insurance Type", "");
     }
     return NULL;
   }
@@ -734,6 +737,27 @@ public:
     this->insurance_type = insurance_type;
   }
 
+  static Insurance_assignment_index::e get_insurance_type_from_int(int insurance_type) {
+    switch(insurance_type) {
+      case 0:
+        return Insurance_assignment_index::PRIVATE;
+      case 1:
+        return Insurance_assignment_index::MEDICARE;
+      case 2:
+        return Insurance_assignment_index::MEDICAID;
+      case 3:
+        return Insurance_assignment_index::HIGHMARK;
+      case 4:
+        return Insurance_assignment_index::UPMC;
+      case 5:
+        return Insurance_assignment_index::UNINSURED;
+      default:
+        return Insurance_assignment_index::UNSET;
+    }
+  }
+
+  static Insurance_assignment_index::e get_health_insurance_from_distribution();
+
   static double get_chronic_condition_case_fatality_prob_mult(double real_age, Chronic_condition_index::e cond_idx);
   static double get_chronic_condition_hospitalization_prob_mult(double real_age, Chronic_condition_index::e cond_idx);
 
@@ -759,7 +783,7 @@ public:
 private:
 
   // current chronic conditions
-  std::map<int, bool> chronic_conditions_map;
+  std::map<Chronic_condition_index::e, bool> chronic_conditions_map;
 
   static bool is_initialized;
   static Age_Map* asthma_prob;
@@ -795,7 +819,8 @@ private:
   static double Hand_washing_compliance;
 
   // health insurance probabilities
-  static double health_insurance_distribution[Insurance_assignment_index::INSURANCE_ASSIGNMENTS];
+  static double health_insurance_distribution[Insurance_assignment_index::UNSET];
+  static int health_insurance_cdf_size;
 
   // living or not?
   bool alive;
@@ -868,7 +893,7 @@ private:
    *  <code>false</code> otherwise
    */
   bool has_chronic_condition() {
-    for(int i = 0; i < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS; i++) {
+    for(int i = 0; i < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS; ++i) {
       if(has_chronic_condition(i)) {
         return true;
       }
@@ -882,11 +907,11 @@ private:
    * @param cond_idx the Chronic_condition_index to search for
    */
   bool has_chronic_condition(int cond_idx) {
-    assert(cond_idx >= 0);
-    assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
-    if(this->chronic_conditions_map.find(cond_idx)
+    assert(cond_idx >= static_cast<int>(Chronic_condition_index::ASTHMA));
+    assert(cond_idx < static_cast<int>(Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS));
+    if(this->chronic_conditions_map.find(static_cast<Chronic_condition_index::e>(cond_idx))
         != this->chronic_conditions_map.end()) {
-      return this->chronic_conditions_map[cond_idx];
+      return this->chronic_conditions_map[static_cast<Chronic_condition_index::e>(cond_idx)];
     } else {
       return false;
     }
@@ -897,8 +922,8 @@ private:
    * @param cond_idx the Chronic_condition_index to set
    * @param has_cond whether or not the agent has the condition
    */
-  void set_has_chronic_condition(int cond_idx, bool has_cond) {
-    assert(cond_idx >= 0);
+  void set_has_chronic_condition(Chronic_condition_index::e cond_idx, bool has_cond) {
+    assert(cond_idx >= Chronic_condition_index::ASTHMA);
     assert(cond_idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     this->chronic_conditions_map[cond_idx] = has_cond;
   }

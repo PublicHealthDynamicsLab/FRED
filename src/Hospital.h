@@ -125,7 +125,7 @@ private:
   static bool Hospital_parameters_set;
   int bed_count;
   // true iff a the hospital accepts the indexed Insurance Coverage
-  std::bitset<Insurance_assignment_index::INSURANCE_ASSIGNMENTS> accepted_insurance_bitset;
+  std::bitset<Insurance_assignment_index::UNSET> accepted_insurance_bitset;
 };
 
 #endif // _FRED_HOSPITAL_H

@@ -337,7 +337,7 @@ void Behavior::print_params(int n) {
   fflush (stdout);
 }
 
-void Behavior::update(Person * self, int day) {
+void Behavior::update(Person* self, int day) {
 
   FRED_VERBOSE(1, "behavior::update person %d day %d\n", self->get_id(), day);
 
@@ -369,7 +369,7 @@ void Behavior::update(Person * self, int day) {
 bool Behavior::adult_is_staying_home() {
   assert(Global::Enable_Behaviors == true);
   int n = Behavior_index::STAY_HOME_WHEN_SICK;
-  Intention *my_intention = intention[n];
+  Intention *my_intention = this->intention[n];
   if(my_intention == NULL) {
     return false;
   }

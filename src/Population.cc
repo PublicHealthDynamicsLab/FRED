@@ -285,9 +285,13 @@ void Population::setup() {
   }
   for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
-    if (person == NULL) continue;
+    if(person == NULL) {
+      continue;
+    }
     int age = person->get_age();
-    if (age > Demographics::MAX_AGE) age = Demographics::MAX_AGE;
+    if(age > Demographics::MAX_AGE) {
+      age = Demographics::MAX_AGE;
+    }
     Global::Popsize_by_age[age]++;
   }
 
@@ -300,7 +304,7 @@ Person_Init_Data Population::get_person_init_data(char* line,
   char newline[1024];
   Utils::replace_csv_missing_data(newline, line, "-1");
   Utils::Tokens tokens = Utils::split_by_delim(newline, ',', false);
-  const PopFileColIndex & col = get_pop_file_col_index(is_group_quarters_population, is_2010_ver1_format);
+  const PopFileColIndex &col = get_pop_file_col_index(is_group_quarters_population, is_2010_ver1_format);
   assert(int(tokens.size()) == col.number_of_columns);
   // initialized with default values
   Person_Init_Data pid = Person_Init_Data();
@@ -522,10 +526,51 @@ void Population::read_all_populations() {
   // select adult to make health decisions
   Setup_Population_Behavior setup_population_behavior;
   this->blq.apply(setup_population_behavior);
+
+  if(Global::Enable_Health_Insurance) {
+    // select insurance coverage
+    // try to make certain that everyone in a household has same coverage
+    Setup_Population_Health_Insurance setup_population_health_insurance;
+    this->blq.apply(setup_population_health_insurance);
+  }
 }
 
 void Population::Setup_Population_Behavior::operator() (Person &p) {
   p.setup_behavior();
+}
+
+void Population::Setup_Population_Health_Insurance::operator() (Person &p) {
+
+  if(!Global::Enable_Health_Insurance) {
+    return;
+  }
+
+  //If agent already has insurance set (by another household agent), then return
+  if(p.get_health()->get_insurance_type() != Insurance_assignment_index::UNSET) {
+    return;
+  }
+
+  //Get the household of the agent to see if anyone already has insurance
+  Household* h = static_cast<Household*>(p.get_household());
+  std::vector<Person*> inhab_vec = h->get_inhabitants();
+
+  for(std::vector<Person*>::iterator itr = inhab_vec.begin();
+      itr != inhab_vec.end(); ++itr) {
+    Insurance_assignment_index::e insr = (*itr)->get_health()->get_insurance_type();
+    if(insr != Insurance_assignment_index::UNSET) {
+      //Set this agent's insurance to the same one
+      p.get_health()->set_insurance_type(insr);
+      return;
+    }
+  }
+
+  //No one had insurance, so set everyone in household to the same insurance
+  Insurance_assignment_index::e insr = Health::get_health_insurance_from_distribution();
+  for(std::vector<Person*>::iterator itr = inhab_vec.begin();
+      itr != inhab_vec.end(); ++itr) {
+    (*itr)->get_health()->set_insurance_type(insr);
+    //printf("Agent %d has insurance %s\n", (*itr)->get_id(), Health::insurance_lookup((*itr)->get_health()->get_insurance_type()));
+  }
 }
 
 void Population::read_population(const char* pop_dir, const char* pop_id, const char* pop_type) {
@@ -665,7 +710,7 @@ void Population::update(int day) {
     this->blq.parallel_masked_apply(fred::Update_Births, update_population_births);
     // add the births to the population
     size_t births = this->maternity_list.size();
-    for(size_t i = 0; i < births; i++) {
+    for(size_t i = 0; i < births; ++i) {
       Person* mother = this->maternity_list[i];
       Person* baby = mother->give_birth(day);
 
@@ -700,7 +745,7 @@ void Population::update(int day) {
 
     size_t deaths = this->death_list.size();
     remove_dead_from_population(day);
-    FRED_STATUS(1, "non-disease related deaths = %d pop_size = %d\n", (int) deaths, this->pop_size);
+    FRED_STATUS(1, "non-disease related deaths = %d pop_size = %d\n", (int)deaths, this->pop_size);
   }
 
   // first update everyone's health intervention status
@@ -1013,10 +1058,10 @@ void Population::quality_control() {
       if(this->disease[d].get_at_risk()->is_empty() == false) {
         Disease* dis = &this->disease[d];
         int rcount[20];
-        for(int c = 0; c < 20; c++) {
+        for(int c = 0; c < 20; ++c) {
           rcount[c] = 0;
         }
-        for(int p = 0; p < this->get_index_size(); p++) {
+        for(int p = 0; p < this->get_index_size(); ++p) {
 	        Person* person = get_person_by_index(p);
 	        if(person == NULL) {
 	          continue;
@@ -1082,7 +1127,7 @@ void Population::assign_offices() {
     if(person == NULL) {
       continue;
     }
-    if (person->get_workplace() != NULL) {
+    if(person->get_workplace() != NULL) {
       person->assign_office();
     }
   }
@@ -1184,7 +1229,9 @@ void Population::report_mean_hh_size_per_school() {
 
   for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
-    if(person == NULL) continue;
+    if(person == NULL) {
+      continue;
+    }
     if(person->get_school() == NULL) {
       continue;
     } else {

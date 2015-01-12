@@ -16,28 +16,28 @@
 #include <new>
 #include <stdexcept>
 
-#include "Health.h"
-#include "Place.h"
-#include "Household.h"
-#include "Place_List.h"
-#include "Person.h"
+#include "Age_Map.h"
+#include "Antiviral.h"
+#include "AV_Health.h"
+#include "AV_Manager.h"
 #include "Disease.h"
 #include "Evolution.h"
 #include "Infection.h"
-#include "Antiviral.h"
+#include "Health.h"
+#include "Household.h"
+#include "Manager.h"
+#include "Past_Infection.h"
+#include "Person.h"
+#include "Place.h"
+#include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
-#include "Manager.h"
-#include "AV_Manager.h"
-#include "AV_Health.h"
+#include "Transmission.h"
+#include "Utils.h"
 #include "Vaccine.h"
 #include "Vaccine_Dose.h"
 #include "Vaccine_Health.h"
 #include "Vaccine_Manager.h"
-#include "Transmission.h"
-#include "Past_Infection.h"
-#include "Utils.h"
-#include "Age_Map.h"
 
 // static variables
 int Health::nantivirals = -1;
@@ -75,7 +75,8 @@ int Health::Days_to_wear_face_masks = 0;
 double Health::Face_mask_compliance = 0.0;
 double Health::Hand_washing_compliance = 0.0;
 
-double Health::health_insurance_distribution[Insurance_assignment_index::INSURANCE_ASSIGNMENTS];
+double Health::health_insurance_distribution[Insurance_assignment_index::UNSET];
+int Health::health_insurance_cdf_size = 0;
 
 // static method called in main (Fred.cc)
 
@@ -145,18 +146,18 @@ void Health::initialize_static_variables() {
 
     if(Global::Enable_Health_Insurance) {
 
-      int health_insurance_cdf_size = Params::get_param_vector((char*)"health_insurance_distribution", Health::health_insurance_distribution);
+      Health::health_insurance_cdf_size = Params::get_param_vector((char*)"health_insurance_distribution", Health::health_insurance_distribution);
 
       // convert to cdf
       double stotal = 0;
-      for(int i = 0; i < health_insurance_cdf_size; ++i) {
+      for(int i = 0; i < Health::health_insurance_cdf_size; ++i) {
         stotal += Health::health_insurance_distribution[i];
       }
       if(stotal != 100.0 && stotal != 1.0) {
         Utils::fred_abort("Bad distribution health_insurance_distribution params_str\nMust sum to 1.0 or 100.0\n");
       }
       double cumm = 0.0;
-      for(int i = 0; i < health_insurance_cdf_size; ++i) {
+      for(int i = 0; i < Health::health_insurance_cdf_size; ++i) {
         Health::health_insurance_distribution[i] /= stotal;
         Health::health_insurance_distribution[i] += cumm;
         cumm = Health::health_insurance_distribution[i];
@@ -164,6 +165,15 @@ void Health::initialize_static_variables() {
     }
 
     Health::is_initialized = true;
+  }
+}
+
+Insurance_assignment_index::e Health::get_health_insurance_from_distribution() {
+  if(Global::Enable_Health_Insurance && Health::is_initialized) {
+    int i = draw_from_distribution(Health::health_insurance_cdf_size, Health::health_insurance_distribution);
+    return Health::get_insurance_type_from_int(i);
+  } else {
+    return Insurance_assignment_index::UNSET;
   }
 }
 
@@ -230,7 +240,7 @@ Health::Health() {
   this->washes_hands = false;
   this->days_symptomatic = 0;
   this->previous_infection_serotype = 0;
-  this->insurance_type = Insurance_assignment_index::UNINSURED;
+  this->insurance_type = Insurance_assignment_index::UNSET;
 }
 
 Health::Health(Person* person) {
@@ -243,7 +253,7 @@ Health::Health(Person* person) {
   this->days_wearing_face_mask = 0;
   this->washes_hands = false;
   this->previous_infection_serotype = 0;
-  this->insurance_type = Insurance_assignment_index::UNINSURED;
+  this->insurance_type = Insurance_assignment_index::UNSET;
   setup(person);
 }
 
@@ -327,10 +337,6 @@ void Health::setup(Person* self) {
 
     prob = Health::hypercholestrolemia_prob->find_value(self->get_real_age());
     set_has_hypercholestrolemia((RANDOM() < prob));
-  }
-
-  if(Global::Enable_Health_Insurance && Health::is_initialized) {
-
   }
 }
 

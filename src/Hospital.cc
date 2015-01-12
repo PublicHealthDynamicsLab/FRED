@@ -110,7 +110,7 @@ double Hospital::get_contacts_per_day(int disease) {
 
 void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept) {
   assert(insr >= Insurance_assignment_index::PRIVATE);
-  assert(insr < Insurance_assignment_index::INSURANCE_ASSIGNMENTS);
+  assert(insr < Insurance_assignment_index::UNSET);
   switch(insr) {
     case Insurance_assignment_index::PRIVATE:
       this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
