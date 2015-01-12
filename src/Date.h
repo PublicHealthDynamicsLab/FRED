@@ -197,7 +197,7 @@ public:
 
   static int get_epoch_start_year() { return Date::EPOCH_START_YEAR; }
 private:
-  static const int EPOCH_START_YEAR = 1800;
+  static const int EPOCH_START_YEAR = 1700;
   static const int day_table[2][13];
   static const int doomsday_month_val[2][13];
   static vector<int> day_of_month_vec;

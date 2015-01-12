@@ -112,15 +112,12 @@ void Demographics::setup( Person * self, short int _age, char _sex,
     } else {
       birthyear = Global::Sim_Current_Date->get_year() - (init_age + 1);
     }
-    if (birthyear < 1800) { birthyear = 1800; }
 
     //If the birthyear would have been a leap year, adjust the random number
     // so that it is based on 366 days
     if (Date::is_leap_year(birthyear)) {
       rand_birthday = rand_birthday * 366.0 / 365.0;
     }
-
-    FRED_CONDITIONAL_VERBOSE(0, birthyear < 1800, "===========================================> \n","");
 
     Date tmpDate = Date(birthyear, (int) ceil(rand_birthday));
     this->birth_day_of_year = tmpDate.get_day_of_year();
