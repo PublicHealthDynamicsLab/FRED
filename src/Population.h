@@ -490,6 +490,11 @@ private:
     void operator() (Person &p);
   };
 
+  // functor for Health Insurance setup
+  struct Setup_Population_Health_Insurance {
+    void operator() (Person &p);
+  };
+
   // functor for behavior updates
   struct Update_Population_Behaviors {
     int day;

@@ -194,7 +194,7 @@ public:
    * Use to get list of all people in the household.
    * @return vector of pointers to people in household.
    */
-  vector <Person*> get_inhabitants() {
+  vector<Person*> get_inhabitants() {
     return this->enrollees;
   }
 
