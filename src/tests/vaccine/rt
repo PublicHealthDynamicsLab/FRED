@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# echo 'the rt regression test is temporarily disabled - JG'
+# exit
+
+# look for the FRED binary
+if [ x$FRED_HOME == x ]; then
+   echo "Please define FRED_HOME environment variable before running tests"
+fi 
+
+FRED="$FRED_HOME/bin/FRED"
+
+# sanity checks
+[ ! -d OUT.TEST ]          && mkdir -p OUT.TEST
+[ -e OUT.TEST/out1.txt ]   && rm -f OUT.TEST/out*
+[ -e OUT.TEST/infections1.txt ] && rm -f OUT.TEST/infections*
+if [ ! -x $FRED ]; then
+    echo "No FRED binary found (either ./FRED or \$FRED_HOME/src/FRED)"
+    echo ">>> You must either build FRED or properly define FRED_HOME"
+    exit 1
+fi
+
+# run the regression test
+echo $FRED
+echo -n regression test running ... run 1
+if [ "$1" = "-p" ]; then
+  echo -n " (in background) ..."
+  ($FRED params.test 1 > OUT.TEST/LOG1) &
+  R1=$!
+else
+  echo -n ...
+  $FRED params.test 1 > OUT.TEST/LOG1
+fi
+
+echo -n run 2 ...
+$FRED params.test 2 > OUT.TEST/LOG2
+if [ "$1" = "-p" ]; then
+  wait $R1
+fi
+echo
+echo comparing results ...
+
+# check the results
+cmp OUT.TEST/out1.txt OUT.RT/out1.txt
+cmp OUT.TEST/out2.txt OUT.RT/out2.txt
+cmp OUT.TEST/infections1.txt OUT.RT/infections1.txt
+cmp OUT.TEST/infections2.txt OUT.RT/infections2.txt
+cmp OUT.TEST/vacctr1.txt OUT.RT/vacctr1.txt
+cmp OUT.TEST/vacctr2.txt OUT.RT/vacctr2.txt
+# done
+echo regression test finished.
+

@@ -1,0 +1,16 @@
+days = 50
+runs = 2
+popfile = ../../test_pop.txt
+locfile = /../../test_loc.txt
+profiles = ../../profiles.txt
+outdir = OUT.TEST
+quality_control = 0
+
+tracefile = trace.txt
+vaccine_file = vaccine.txt
+vaccine_prioritize_by_age = 1
+vaccine_priority_age_low = 0
+vaccine_priority_age_high = 24
+vaccination_capacity_file = vaccination_capacity-0.txt
+vaccine_tracefile = vacctrace
+

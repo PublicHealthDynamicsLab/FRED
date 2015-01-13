@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my %options = ();
+getopts("k:", \%options);
+my $key = "";
+$key = $options{k} if exists $options{k};
+die "usage: fred_AR -k key\n" if not $key;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $bin = "$FRED/bin";
+my $status = `$bin/fred_status -k $key`;
+chomp $status;
+$status =~ s/\s.*//;
+die "fred_AR: bad status: $status\n" if $status ne "FINISHED";
+
+my $CAR = `$bin/fred_plot --data -k $key -v CAR | tail -1 | awk '{print \$2, \$3}' `;
+print "$CAR";
+

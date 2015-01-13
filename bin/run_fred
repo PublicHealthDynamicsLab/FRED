@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Cwd;
+use Fcntl qw(:flock);
+use Getopt::Std;
+use POSIX qw/ceil/;
+$| = 1;  # AUTO_FLUSH
+
+# File: run_fred
+# Author: John Grefenstette
+# Created: Apr 7, 2011
+# Updated: Apr 7, 2011
+
+# get current working directory
+my $cwd = getcwd();
+
+my $FRED = $ENV{FRED_HOME};
+die "run_fred: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $usage = "usage: run_fred -d dir -p params -s start_run -n end_run\n";
+
+my @arg = @ARGV;
+
+# get command line arguments
+my %options = ();
+getopts("d:p:s:n:", \%options);
+
+my $paramsfile = "params";
+$paramsfile = $options{p} if exists $options{p};
+die $usage if $paramsfile =~ /[\"\';]/;
+
+my $dir = "";
+$dir = $options{d} if exists $options{d};
+die $usage if $dir =~ /[\"\';]/;
+if ($dir eq "") {
+  $dir = get_param_value("outdir", $paramsfile);
+}
+if (not -d $dir) { mkdir $dir }
+`cp $paramsfile $dir` if $dir ne ".";
+
+my $start_run = 1;
+$start_run = $options{s} if exists $options{s};
+die $usage if $start_run =~ /\D/;
+
+my $end_run = $start_run;
+$end_run = $options{n} if exists $options{n};
+die $usage if $start_run =~ /\D/;
+$end_run = $start_run if $end_run < $start_run;
+die $usage if $end_run =~ /\D/;
+
+my $cmd = "'run_fred @arg'";
+system "echo $cmd > $dir/COMMAND_LINE";
+for my $n ($start_run .. $end_run) {
+  $cmd = "FRED $paramsfile $n $dir 2>&1 > $dir/LOG$n";
+  print "$cmd\n";
+  system $cmd;
+}
+
+
+sub get_param_value {
+  my ($param, $paramsfile) = @_;
+
+  # find params.default file
+  my $params_default = "params.default";
+  if (not -e $params_default) {
+    $params_default = "$FRED/input_files/params.default";
+  }
+  if (not -e $params_default) {
+    die "$0: could not find params.default file\n";
+  }
+
+  # add escape characters so that grep work for indexed parameters
+  $param =~ s/\[/\\[/g;
+  $param =~ s/\-/\\-/g;
+
+  # get last line from params.default that starts with the given parameter
+  my $dval = `grep '^$param =' $params_default`;
+  chomp $dval;
+  # retrieve the value portion
+  if ($dval) {
+    my @a = split " ", $dval;
+    $dval = pop @a;
+  }
+  # print "$param dval = |$dval|\n";
+  # handle invalid parameter
+  return "" if not $dval;
+
+  # get last line from params file that starts with the given parameter
+  my $pval = `grep '^$param =' $paramsfile`;
+  chomp $pval;
+  # retrieve the value portion
+  if ($pval) {
+    my @a = split " ", $pval;
+    $pval = pop @a;
+  }
+  # print "$param pval = |$pval|\n";
+
+  return $pval if $pval;
+  return $dval if $dval;
+  return "";
+}
+
+

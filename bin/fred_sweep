@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my ($key, $p, $init, $final, $incr, $n) = @ARGV;
+die "usage: fred_sweep key param init_val final_val increment\n" if not $incr;
+$n = 1 if not $n;
+
+die "File params.$key not found\n" if not -e "params.$key";
+die "$p is not a valid parameter\n" if not good_param($p);
+
+for (my $v = $init; $v <= $final; $v += $incr) {
+  my $newkey = "${key}_$p=$v";
+  my $pfile = "params.$newkey";
+  system "cp params.$key $pfile";
+  system "$FRED/bin/ch \'$p\' $v $pfile >& /dev/null";
+  my $cmd = "$FRED/bin/fred_job -p $pfile -k $newkey -n $n";
+  # print "$cmd\n";
+  system "$cmd";
+}
+exit;
+
+sub old_good_param {
+  my ($param) = @_;
+  $param =~ s/\[/\\[/g;
+  $param =~ s/\-/\\-/g;
+  my $dval = `grep '$param =' params.default`;
+  chomp $dval;
+  my @a = split " ", $dval;
+  $dval = shift @a;
+  return $dval;
+}
+
+sub good_param {
+  my ($param) = @_;
+
+  # find params.default file
+  my $params_default = "params.default";
+  if (not -e $params_default) {
+    $params_default = "$FRED/input_files/params.default";
+  }
+  if (not -e $params_default) {
+    die "$0: could not find params.default file\n";
+  }
+
+  # add escape characters so that grep work for indexed parameters
+  $param =~ s/\[/\\[/g;
+  $param =~ s/\-/\\-/g;
+
+  # get last line from params.default that starts with the given parameter
+  my $dval = `grep '^$param =' $params_default`;
+  chomp $dval;
+  # retrieve the value portion
+  if ($dval) {
+    my @a = split " ", $dval;
+    $dval = pop @a;
+  }
+  return $dval;
+}
+
+
+

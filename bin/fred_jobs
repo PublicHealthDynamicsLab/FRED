@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = $ENV{FRED_HOME} if not $FREDRESULTS;
+my $dir = "$FREDRESULTS/RESULTS";
+die "Can't find directory $dir\n" if not -d $dir;
+
+open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+while (<FH>) {
+  chomp;
+  my ($key, $id) = split;
+  printf "KEY = %-20s\tJOB = %3d\t", $key, $id;
+  print "STATUS = ", `$FRED/bin/fred_status -k $key`;
+}
+close FH;

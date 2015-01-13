@@ -1,0 +1,89 @@
+strains = 1
+all_strains_antigenically_identical = 1
+days = 240
+seed = 123456
+runs = 2
+verbose = 1
+debug = 0
+test = 0
+start_day = 0
+reseed_day = -1
+popfile = alleg_pop.txt
+locfile = alleg_loc.txt
+profiles = profiles.txt
+outfile = OUT/out
+tracefile = OUT/trace
+SEiIR_model = 0
+show_cases = 1
+
+# parameters for strain 0
+primary_cases_file[0] = primary_case_schedule-0.txt
+trans[0] = 1.0
+symp[0] = 0.67
+days_latent[0] = 3       0.0 0.8 1.0
+days_incubating[0] = 4   0.0 0.3 0.8 1.0
+days_asymp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+days_symp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+immunity_loss_rate[0] = 0
+symp_infectivity[0] = 1.0
+asymp_infectivity[0] = 0.5
+residual_immunity_ages[0] = 0
+residual_immunity_values[0] = 0
+pregnancy_prob_ages = 0
+pregnancy_prob_values = 0
+at_risk_ages[0] = 0
+at_risk_values[0] = 0
+prob_stay_home = 0.5
+mutation_prob = 1 0.0
+
+# the folowing contacts are calibrated for Allegheny County
+# using the original SEIR model (SEiIR = 0)
+household_contacts[0] = 0.4
+neighborhood_contacts[0] = 140
+community_contacts[0] = 0
+school_contacts[0] = 5
+classroom_contacts[0] = 25
+workplace_contacts[0] = 4
+office_contacts[0] = 5
+
+# groups = children adults
+household_prob[0] = 4 0.6 0.3 0.3 0.4
+
+# groups = adult_workers
+workplace_prob[0] = 1 0.0575
+office_prob[0] = 1 0.0575
+
+# groups = patients HCWs
+hospital_prob[0] = 4 0.0 0.01 0.01 0.0575
+
+# groups = elem_students mid_students high_students teachers
+school_prob[0] = 16 0.0435 0 0 0 0 0.0375 0 0 0 0 0.0315 0 0 0 0 0.0575
+classroom_prob[0] = 16 0.0435 0 0 0 0 0.0375 0 0 0 0 0.0315 0 0 0 0 0.0575
+
+# goups = children adults
+community_prob[0] = 4 3.175e-5 1.8125e-4 3.175e-5 1.8125e-4
+neighborhood_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+
+school_closure_policy = none
+school_closure_day = 10
+school_closure_threshold = 0.1
+school_closure_period = 10
+school_closure_delay = 2
+
+number_antivirals = 0
+vaccine_file = none
+vaccine_tracefile = OUT/vacctr
+vaccination_capacity_file = none
+
+# Health Belief Model params
+use_hbm = 0
+hbm_threshold = 0.5
+w1 = 1.0
+w2 = 1.0
+w3 = 1.0
+
+# set 0 for end-of-run trace printout only, non-zero to print every n-th day
+incremental_trace = 0
+
+# set non-zero to get headers printed in the trace file
+trace_headers = 0

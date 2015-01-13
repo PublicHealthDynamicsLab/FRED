@@ -1,0 +1,1216 @@
+FRED started Sun Jan 22 15:53:15 2012
+param file = params.test
+PARAMS: debug = 1
+PARAMS: test = 0
+PARAMS: quality_control = 0
+PARAMS: rr_delay = 20
+PARAMS: days = 50
+PARAMS: seed = 123456
+PARAMS: epidemic_offset = 0
+PARAMS: vaccine_offset = 0
+PARAMS: start_date = 2009-01-01
+PARAMS: reseed_day = -1
+PARAMS: popdir = ../../../region
+PARAMS: outdir = OUT.TEST
+PARAMS: tracefile = trace.txt
+PARAMS: track_infection_events = 1
+PARAMS: track_age_distribution = 0
+PARAMS: track_network_stats = 0
+PARAMS: track_household_distribution = 0
+PARAMS: vaccine_tracefile = vacctrace
+PARAMS: incremental_trace = 0
+PARAMS: trace_headers = 0
+PARAMS: diseases = 1
+PARAMS: enable_behaviors = 0
+PARAMS: prevalencefile = none
+PARAMS: incidencefile = none
+PARAMS: seasonality_timestep_file = none
+PARAMS: work_absenteeism = 0.000000
+PARAMS: school_absenteeism = 0.000000
+PARAMS: enable_large_grid = 0
+PARAMS: enable_small_grid = 0
+PARAMS: enable_aging = 0
+PARAMS: enable_births = 0
+PARAMS: enable_deaths = 0
+PARAMS: enable_mobility = 0
+PARAMS: enable_migration = 0
+PARAMS: enable_travel = 0
+PARAMS: enable_local_workplace_assignment = 0
+PARAMS: enable_seasonality = 0
+PARAMS: enable_climate = 0
+PARAMS: popfile = pop_Alleg.txt
+PARAMS: mutation_prob = 1
+PARAMS: mutation_prob = 1 0.0
+PARAMS: output_population = 0
+seed = 12345601
+
+FRED run 2 started Sun Jan 22 15:53:15 2012
+read places entered
+PARAMS: locfile = loc_Alleg.txt
+PARAMS: household_contacts[0] = 0.190000
+PARAMS: household_prob[0] = 4
+PARAMS: household_prob[0] = 4 0.6 0.3 0.3 0.4
+PARAMS: office_size = 50
+PARAMS: workplace_contacts[0] = 1.660000
+PARAMS: workplace_prob[0] = 1
+PARAMS: workplace_prob[0] = 1 0.0575
+PARAMS: school_contacts[0] = 15.830000
+PARAMS: school_prob[0] = 16
+PARAMS: school_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+PARAMS: school_classroom_size = 40
+PARAMS: school_closure_policy = none
+PARAMS: school_closure_day = 10
+PARAMS: school_closure_threshold = 0.100000
+PARAMS: school_closure_period = 10
+PARAMS: school_closure_delay = 2
+PARAMS: school_summer_schedule = 0
+PARAMS: school_summer_start = 06-01
+PARAMS: school_summer_end = 08-31
+finished reading locations, loc size = 590416
+Grid min_lon = -80.353137
+Grid min_lat = 40.195619
+Grid max_lon = -79.697610
+Grid max_lat = 40.674359
+PARAMS: grid_cell_size = 1.000000
+Grid rows = 54  cols = 58
+Grid max_x = 57.576247  max_y = 53.138214
+PARAMS: weekend_contact_rate[0] = 1.500000
+PARAMS: neighborhood_contacts[0] = 42.320000
+PARAMS: neighborhood_prob[0] = 4
+PARAMS: neighborhood_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+read places finished: Places = 593548
+Places.read_places took 8 seconds
+setup population entered
+disease 0 setup entered
+PARAMS: trans[0] = 1.000000
+PARAMS: mortality_rate[0] = 0.000000
+PARAMS: immunity_loss_rate[0] = 0.000000
+PARAMS: primary_cases_file[0] = primary_case_schedule-0.txt
+
+primary_cases[0] Multistrain_Timestep_Map size = 1
+start day = 0, end day = 0, number of attempts = 100, strain = 0
+
+PARAMS: residual_immunity_ages[0] = 0
+PARAMS: residual_immunity_values[0] = 0
+PARAMS: at_risk_ages[0] = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
+PARAMS: at_risk_values[0] = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
+PARAMS: num_strains[0] = 1
+Reading 1 strains for disease 0
+PARAMS: strain_data[0][0] = a:1
+PARAMS: transmissibility[0][0] = 1.000000
+Strain setup finished
+Strain 0 trans 1.000000e+00
+data:  
+PARAMS: num_strains[0] = 1
+Reading 1 strains for disease 0
+PARAMS: strain_data[0][0] = a:1
+PARAMS: transmissibility[0][0] = 1.000000
+Strain setup finished
+Strain 0 trans 1.000000e+00
+data:  
+PARAMS: intra_host_model[0] = 0
+PARAMS: symp[0] = 0.670000
+PARAMS: symp_infectivity[0] = 1.000000
+PARAMS: asymp_infectivity[0] = 0.500000
+PARAMS: days_latent[0] = 3
+PARAMS: days_latent[0] = 3       0.0 0.8 1.0
+PARAMS: days_incubating[0] = 4
+PARAMS: days_incubating[0] = 4   0.0 0.3 0.8 1.0
+PARAMS: days_asymp[0] = 7
+PARAMS: days_asymp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: days_symp[0] = 7
+PARAMS: days_symp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: infection_model[0] = 0
+PARAMS: evolution[0] = 0
+
+at_risk[0] Age Map
+age  0 to   1:  0.0390
+age  2 to   4:  0.0883
+age  5 to  18:  0.1168
+age 19 to  24:  0.1235
+age 25 to  49:  0.1570
+age 50 to  64:  0.3056
+age 65 to 110:  0.4701
+
+disease 0 setup finished
+PARAMS: number_of_vaccines = 1
+PARAMS: number_of_vaccines = 1
+PARAMS: vaccine_number_of_doses[0] = 1
+PARAMS: vaccine_total_avail[0] = 235881
+PARAMS: vaccine_additional_per_day[0] = 10000
+PARAMS: vaccine_starting_day[0] = 0
+PARAMS: vaccine_next_dosage_day[0][0] = 0
+PARAMS: vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100
+PARAMS: vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
+PARAMS: vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+PARAMS: vaccine_dose_efficacy_delay_values[0][0] = 1 14
+Vaccine Package Information
+There are 1 vaccines in the package
+Name = 				Vaccine#1
+Applied to disease = 		0
+Initial Stock = 		0
+Total Available = 		235881
+Amount left to system = 	235881
+Additional Stock per day =	10000
+Starting on day = 		0
+Dose Information
+Dose #1
+Time Between Doses:	 0
+
+vaccine_dose_efficacy[0][0] Age Map
+age  0 to   4:  0.7000
+age  5 to 100:  0.8300
+
+
+vaccine_dose_efficacy_delay[0][0] Age Map
+age  0 to 100: 14.0000
+
+PARAMS: vaccine_prioritize_acip = 1
+Vaccination Priority using ACIP recommendations
+   Includes: 
+        Ages 0 to 24
+        Pregnant Women
+        Persons at risk for complications
+PARAMS: vaccine_priority_only = 0
+PARAMS: vaccine_dose_priority = 0
+PARAMS: vaccination_capacity_file = vaccination_capacity-0.txt
+PARAMS: number_antivirals = 0
+read population entered
+PARAMS: number_antivirals = 0
+PARAMS: community_distance = 20.000000
+PARAMS: community_prob = 0.100000
+PARAMS: home_neighborhood_prob = 0.500000
+PARAMS: enable_default_sick_behavior = 1
+PARAMS: sick_day_prob = 0.500000
+PARAMS: SLA_mean_sick_days_absent = 2.700000
+PARAMS: SLU_mean_sick_days_absent = 2.700000
+PARAMS: SLA_absent_prob = 0.720000
+PARAMS: SLU_absent_prob = 0.520000
+PARAMS: flu_days = 0.000000
+finished reading population, pop_size = 1242755
+number of residually immune people = 0
+Vaccine Queue Stats 
+   Number in Priority Queue      = 614517
+   Number in Regular Queue       = 628238
+   Total Agents in Vaccine Queue = 1242755
+population setup finished
+Pop.setup took 28 seconds
+setup classrooms entered
+PARAMS: classroom_contacts[0] = -1.000000
+PARAMS: classroom_prob[0] = 16
+PARAMS: classroom_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+setup classrooms finished
+setup offices entered
+PARAMS: office_contacts[0] = -1.000000
+PARAMS: office_prob[0] = 1
+PARAMS: office_prob[0] = 1 0.0575
+setup offices finished
+assign classrooms entered
+assign classrooms finished
+assign offices entered
+assign offices finished
+assign classrooms and offices took 2 seconds
+prepare places entered
+prepare places finished
+place prep took 1 seconds
+FRED initialization took 0 seconds
+FRED initialization complete Sun Jan 22 15:53:54 2012
+day 0 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 0 = 10000
+Queues at beginning of vaccination:  priority (614517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 0
+Left in queues:  Priority (604517)    Regular (628238)
+day 0 update population took 1 seconds
+Number of infectious places = 0
+Number of infectious households = 0
+Number of infectious neighborhoods = 0
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 0
+Number of infectious offices = 0
+day 0 update epidemics took 1 seconds
+Day   0  Str 0  S 1242655  E     100  I       0  I_s       0  R       0  M       0  C     100  N 1242755  AR  0.01  CI       0 RR 0.00 NR 0  CAR  0.00  Thu 2009-01-01 Year 2008 Week 53
+day 0 report population took 0 seconds
+day 0 finished Sun Jan 22 15:53:56 2012
+day 0 took 2 seconds
+day 1 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 1 = 10000
+Queues at beginning of vaccination:  priority (604517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 1
+Left in queues:  Priority (594517)    Regular (628238)
+day 1 update population took 0 seconds
+DAY 0 ABSENTEEISM: work absent 0 present 0 0.00  school absent 0 present 0 0.00
+Number of infectious places = 206
+Number of infectious households = 88
+Number of infectious neighborhoods = 54
+Number of infectious schools = 6
+Number of infectious classrooms = 6
+Number of infectious workplaces = 26
+Number of infectious offices = 26
+day 1 update epidemics took 1 seconds
+Day   1  Str 0  S 1242621  E      46  I      88  I_s      51  R       0  M       0  C      34  N 1242755  AR  0.01  CI      51 RR 0.00 NR 0  CAR  0.00  Fri 2009-01-02 Year 2008 Week 53
+day 1 report population took 0 seconds
+day 1 finished Sun Jan 22 15:53:57 2012
+day 1 took 1 seconds
+day 2 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 2 = 10000
+Queues at beginning of vaccination:  priority (594517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 2
+Left in queues:  Priority (584517)    Regular (628238)
+day 2 update population took 1 seconds
+DAY 1 ABSENTEEISM: work absent 14 present 8 0.61  school absent 3 present 3 0.43
+Number of infectious places = 220
+Number of infectious households = 115
+Number of infectious neighborhoods = 85
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 10
+Number of infectious offices = 10
+day 2 update epidemics took 0 seconds
+Day   2  Str 0  S 1242590  E      39  I     126  I_s      78  R       0  M       0  C      31  N 1242755  AR  0.01  CI      27 RR 0.00 NR 0  CAR  0.01  Sat 2009-01-03 Year 2008 Week 53
+day 2 report population took 0 seconds
+day 2 finished Sun Jan 22 15:53:58 2012
+day 2 took 1 seconds
+day 3 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 3 = 10000
+Queues at beginning of vaccination:  priority (584517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 3
+Left in queues:  Priority (574517)    Regular (628238)
+day 3 update population took 1 seconds
+DAY 2 ABSENTEEISM: work absent 4 present 5 0.40  school absent 0 present 0 0.00
+Number of infectious places = 251
+Number of infectious households = 129
+Number of infectious neighborhoods = 98
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 12
+Number of infectious offices = 12
+day 3 update epidemics took 1 seconds
+Day   3  Str 0  S 1242550  E      46  I     159  I_s     101  R       0  M       0  C      40  N 1242755  AR  0.02  CI      23 RR 0.00 NR 0  CAR  0.01  Sun 2009-01-04 Year 2009 Week 1
+day 3 report population took 0 seconds
+day 3 finished Sun Jan 22 15:54:00 2012
+day 3 took 2 seconds
+day 4 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 4 = 10000
+Queues at beginning of vaccination:  priority (574517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 4
+Left in queues:  Priority (564517)    Regular (628238)
+day 4 update population took 0 seconds
+DAY 3 ABSENTEEISM: work absent 8 present 5 0.57  school absent 0 present 0 0.00
+Number of infectious places = 378
+Number of infectious households = 135
+Number of infectious neighborhoods = 104
+Number of infectious schools = 16
+Number of infectious classrooms = 18
+Number of infectious workplaces = 52
+Number of infectious offices = 53
+day 4 update epidemics took 1 seconds
+Day   4  Str 0  S 1242484  E      74  I     172  I_s     114  R      25  M       0  C      66  N 1242755  AR  0.02  CI      28 RR 0.00 NR 0  CAR  0.01  Mon 2009-01-05 Year 2009 Week 1
+day 4 report population took 0 seconds
+day 4 finished Sun Jan 22 15:54:01 2012
+day 4 took 1 seconds
+day 5 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 5 = 10000
+Queues at beginning of vaccination:  priority (564517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 5
+Left in queues:  Priority (554517)    Regular (628238)
+day 5 update population took 0 seconds
+DAY 4 ABSENTEEISM: work absent 21 present 28 0.42  school absent 17 present 9 0.63
+Number of infectious places = 434
+Number of infectious households = 159
+Number of infectious neighborhoods = 118
+Number of infectious schools = 24
+Number of infectious classrooms = 32
+Number of infectious workplaces = 50
+Number of infectious offices = 51
+day 5 update epidemics took 1 seconds
+Day   5  Str 0  S 1242372  E     119  I     199  I_s     139  R      65  M       0  C     112  N 1242755  AR  0.03  CI      47 RR 0.00 NR 0  CAR  0.01  Tue 2009-01-06 Year 2009 Week 1
+day 5 report population took 0 seconds
+day 5 finished Sun Jan 22 15:54:03 2012
+day 5 took 2 seconds
+day 6 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 6 = 10000
+Queues at beginning of vaccination:  priority (554517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 6
+Left in queues:  Priority (544517)    Regular (628238)
+day 6 update population took 1 seconds
+DAY 5 ABSENTEEISM: work absent 20 present 33 0.37  school absent 25 present 21 0.53
+Number of infectious places = 536
+Number of infectious households = 209
+Number of infectious neighborhoods = 144
+Number of infectious schools = 34
+Number of infectious classrooms = 49
+Number of infectious workplaces = 49
+Number of infectious offices = 51
+day 6 update epidemics took 1 seconds
+Day   6  Str 0  S 1242233  E     158  I     249  I_s     163  R     115  M       0  C     139  N 1242755  AR  0.04  CI      61 RR 0.00 NR 0  CAR  0.02  Wed 2009-01-07 Year 2009 Week 1
+day 6 report population took 0 seconds
+day 6 finished Sun Jan 22 15:54:05 2012
+day 6 took 2 seconds
+day 7 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 7 = 10000
+Queues at beginning of vaccination:  priority (544517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 7
+Left in queues:  Priority (534517)    Regular (628238)
+day 7 update population took 1 seconds
+DAY 6 ABSENTEEISM: work absent 28 present 26 0.51  school absent 43 present 37 0.53
+Number of infectious places = 685
+Number of infectious households = 288
+Number of infectious neighborhoods = 181
+Number of infectious schools = 44
+Number of infectious classrooms = 75
+Number of infectious workplaces = 48
+Number of infectious offices = 49
+day 7 update epidemics took 0 seconds
+Day   7  Str 0  S 1241980  E     286  I     331  I_s     219  R     158  M       0  C     253  N 1242755  AR  0.06  CI      85 RR 0.00 NR 0  CAR  0.03  Thu 2009-01-08 Year 2009 Week 1
+day 7 report population took 0 seconds
+day 7 finished Sun Jan 22 15:54:06 2012
+day 7 took 1 seconds
+day 8 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 8 = 10000
+Queues at beginning of vaccination:  priority (534517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 8
+Left in queues:  Priority (524517)    Regular (628238)
+day 8 update population took 0 seconds
+DAY 7 ABSENTEEISM: work absent 35 present 26 0.56  school absent 63 present 63 0.50
+Number of infectious places = 1035
+Number of infectious households = 459
+Number of infectious neighborhoods = 253
+Number of infectious schools = 58
+Number of infectious classrooms = 116
+Number of infectious workplaces = 72
+Number of infectious offices = 77
+day 8 update epidemics took 1 seconds
+Day   8  Str 0  S 1241546  E     484  I     524  I_s     342  R     201  M       0  C     434  N 1242755  AR  0.10  CI     151 RR 0.00 NR 0  CAR  0.04  Fri 2009-01-09 Year 2009 Week 1
+day 8 report population took 0 seconds
+day 8 finished Sun Jan 22 15:54:08 2012
+day 8 took 2 seconds
+day 9 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 9 = 10000
+Queues at beginning of vaccination:  priority (524517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 9
+Left in queues:  Priority (514517)    Regular (628238)
+day 9 update population took 0 seconds
+DAY 8 ABSENTEEISM: work absent 36 present 44 0.44  school absent 122 present 100 0.55
+Number of infectious places = 1150
+Number of infectious households = 710
+Number of infectious neighborhoods = 377
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 31
+Number of infectious offices = 32
+day 9 update epidemics took 1 seconds
+Day   9  Str 0  S 1241316  E     338  I     835  I_s     560  R     266  M       0  C     230  N 1242755  AR  0.12  CI     262 RR 0.00 NR 0  CAR  0.06  Sat 2009-01-10 Year 2009 Week 1
+day 9 report population took 0 seconds
+day 9 finished Sun Jan 22 15:54:09 2012
+day 9 took 1 seconds
+day 10 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 10 = 10000
+Queues at beginning of vaccination:  priority (514517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 10
+Left in queues:  Priority (504517)    Regular (628238)
+day 10 update population took 1 seconds
+DAY 9 ABSENTEEISM: work absent 10 present 6 0.59  school absent 0 present 0 0.00
+Number of infectious places = 1355
+Number of infectious households = 826
+Number of infectious neighborhoods = 430
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 49
+Number of infectious offices = 50
+day 10 update epidemics took 0 seconds
+Day  10  Str 0  S 1240988  E     369  I    1038  I_s     683  R     360  M       0  C     328  N 1242755  AR  0.14  CI     181 RR 0.00 NR 0  CAR  0.07  Sun 2009-01-11 Year 2009 Week 2
+day 10 report population took 0 seconds
+day 10 finished Sun Jan 22 15:54:10 2012
+day 10 took 1 seconds
+day 11 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 11 = 10000
+Queues at beginning of vaccination:  priority (504517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 11
+Left in queues:  Priority (494517)    Regular (628238)
+day 11 update population took 0 seconds
+DAY 10 ABSENTEEISM: work absent 13 present 17 0.42  school absent 0 present 0 0.00
+Number of infectious places = 2159
+Number of infectious households = 898
+Number of infectious neighborhoods = 471
+Number of infectious schools = 109
+Number of infectious classrooms = 273
+Number of infectious workplaces = 195
+Number of infectious offices = 213
+day 11 update epidemics took 1 seconds
+Day  11  Str 0  S 1240147  E     911  I    1196  I_s     787  R     501  M       0  C     841  N 1242755  AR  0.21  CI     204 RR 0.00 NR 0  CAR  0.09  Mon 2009-01-12 Year 2009 Week 2
+day 11 report population took 0 seconds
+day 11 finished Sun Jan 22 15:54:12 2012
+day 11 took 2 seconds
+day 12 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 12 = 10000
+Queues at beginning of vaccination:  priority (494517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 12
+Left in queues:  Priority (484517)    Regular (628238)
+day 12 update population took 1 seconds
+DAY 11 ABSENTEEISM: work absent 108 present 101 0.51  school absent 223 present 209 0.52
+Number of infectious places = 2924
+Number of infectious households = 1302
+Number of infectious neighborhoods = 577
+Number of infectious schools = 140
+Number of infectious classrooms = 386
+Number of infectious workplaces = 247
+Number of infectious offices = 272
+day 12 update epidemics took 1 seconds
+Day  12  Str 0  S 1238954  E    1365  I    1670  I_s    1134  R     766  M       0  C    1193  N 1242755  AR  0.31  CI     521 RR 0.00 NR 0  CAR  0.13  Tue 2009-01-13 Year 2009 Week 2
+day 12 report population took 0 seconds
+day 12 finished Sun Jan 22 15:54:14 2012
+day 12 took 2 seconds
+day 13 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 13 = 10000
+Queues at beginning of vaccination:  priority (484517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 13
+Left in queues:  Priority (474517)    Regular (628238)
+day 13 update population took 0 seconds
+DAY 12 ABSENTEEISM: work absent 131 present 124 0.51  school absent 331 present 354 0.48
+Number of infectious places = 4249
+Number of infectious households = 2063
+Number of infectious neighborhoods = 770
+Number of infectious schools = 160
+Number of infectious classrooms = 528
+Number of infectious workplaces = 346
+Number of infectious offices = 382
+day 13 update epidemics took 1 seconds
+Day  13  Str 0  S 1237058  E    2121  I    2521  I_s    1689  R    1055  M       0  C    1896  N 1242755  AR  0.46  CI     751 RR 0.00 NR 0  CAR  0.19  Wed 2009-01-14 Year 2009 Week 2
+day 13 report population took 0 seconds
+day 13 finished Sun Jan 22 15:54:15 2012
+day 13 took 1 seconds
+day 14 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 14 = 10000
+Queues at beginning of vaccination:  priority (474517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 14
+Left in queues:  Priority (464517)    Regular (628238)
+day 14 update population took 0 seconds
+DAY 13 ABSENTEEISM: work absent 183 present 195 0.48  school absent 533 present 540 0.50
+Number of infectious places = 6167
+Number of infectious households = 3232
+Number of infectious neighborhoods = 976
+Number of infectious schools = 203
+Number of infectious classrooms = 763
+Number of infectious workplaces = 468
+Number of infectious offices = 525
+day 14 update epidemics took 1 seconds
+Day  14  Str 0  S 1225986  E    3370  I    3926  I_s    2632  R    1372  M    8101  C    2971  N 1242755  AR  0.70  CI    1144 RR 0.00 NR 0  CAR  0.28  Thu 2009-01-15 Year 2009 Week 2
+day 14 report population took 0 seconds
+day 14 finished Sun Jan 22 15:54:17 2012
+day 14 took 2 seconds
+day 15 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 15 = 10000
+Queues at beginning of vaccination:  priority (464517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 15
+Left in queues:  Priority (454517)    Regular (628238)
+day 15 update population took 1 seconds
+DAY 14 ABSENTEEISM: work absent 239 present 266 0.47  school absent 889 present 923 0.49
+Number of infectious places = 9088
+Number of infectious households = 5102
+Number of infectious neighborhoods = 1210
+Number of infectious schools = 242
+Number of infectious classrooms = 1072
+Number of infectious workplaces = 678
+Number of infectious offices = 784
+day 15 update epidemics took 1 seconds
+Day  15  Str 0  S 1213399  E    5119  I    6270  I_s    4191  R    1789  M   16178  C    4510  N 1242755  AR  1.06  CI    1834 RR 0.00 NR 0  CAR  0.43  Fri 2009-01-16 Year 2009 Week 2
+day 15 report population took 0 seconds
+day 15 finished Sun Jan 22 15:54:19 2012
+day 15 took 2 seconds
+day 16 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 16 = 10000
+Queues at beginning of vaccination:  priority (454517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 16
+Left in queues:  Priority (444517)    Regular (628238)
+day 16 update population took 1 seconds
+DAY 15 ABSENTEEISM: work absent 390 present 348 0.53  school absent 1549 present 1445 0.52
+Number of infectious places = 10049
+Number of infectious households = 7824
+Number of infectious neighborhoods = 1409
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 388
+Number of infectious offices = 428
+day 16 update epidemics took 0 seconds
+Day  16  Str 0  S 1202522  E    3760  I    9691  I_s    6448  R    2575  M   24207  C    2848  N 1242755  AR  1.29  CI    2801 RR 0.00 NR 0  CAR  0.66  Sat 2009-01-17 Year 2009 Week 2
+day 16 report population took 0 seconds
+day 16 finished Sun Jan 22 15:54:20 2012
+day 16 took 1 seconds
+day 17 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 17 = 10000
+Queues at beginning of vaccination:  priority (444517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 17
+Left in queues:  Priority (434517)    Regular (628238)
+day 17 update population took 0 seconds
+DAY 16 ABSENTEEISM: work absent 96 present 91 0.51  school absent 0 present 0 0.00
+Number of infectious places = 11568
+Number of infectious households = 8973
+Number of infectious neighborhoods = 1500
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 515
+Number of infectious offices = 580
+day 17 update epidemics took 1 seconds
+Day  17  Str 0  S 1191232  E    3883  I   11778  I_s    7852  R    3678  M   32184  C    3313  N 1242755  AR  1.56  CI    2126 RR 0.00 NR 0  CAR  0.83  Sun 2009-01-18 Year 2009 Week 3
+day 17 report population took 0 seconds
+day 17 finished Sun Jan 22 15:54:22 2012
+day 17 took 2 seconds
+day 18 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 18 = 10000
+Queues at beginning of vaccination:  priority (434517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 18
+Left in queues:  Priority (424517)    Regular (628238)
+day 18 update population took 1 seconds
+DAY 17 ABSENTEEISM: work absent 134 present 139 0.49  school absent 0 present 0 0.00
+Number of infectious places = 17899
+Number of infectious households = 9671
+Number of infectious neighborhoods = 1577
+Number of infectious schools = 371
+Number of infectious classrooms = 2070
+Number of infectious workplaces = 1873
+Number of infectious offices = 2337
+day 18 update epidemics took 1 seconds
+Day  18  Str 0  S 1175629  E    8381  I   13150  I_s    8746  R    5485  M   40110  C    7677  N 1242755  AR  2.17  CI    2116 RR 0.00 NR 0  CAR  1.00  Mon 2009-01-19 Year 2009 Week 3
+day 18 report population took 0 seconds
+day 18 finished Sun Jan 22 15:54:24 2012
+day 18 took 2 seconds
+day 19 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 19 = 10000
+Queues at beginning of vaccination:  priority (424517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 19
+Left in queues:  Priority (414517)    Regular (628238)
+day 19 update population took 1 seconds
+DAY 18 ABSENTEEISM: work absent 1089 present 1138 0.49  school absent 2341 present 2433 0.49
+Number of infectious places = 23003
+Number of infectious households = 13209
+Number of infectious neighborhoods = 1704
+Number of infectious schools = 399
+Number of infectious classrooms = 2516
+Number of infectious workplaces = 2283
+Number of infectious offices = 2892
+day 19 update epidemics took 1 seconds
+Day  19  Str 0  S 1158337  E   11036  I   17141  I_s   11453  R    8309  M   47932  C    9470  N 1242755  AR  2.94  CI    4568 RR 0.00 NR 0  CAR  1.37  Tue 2009-01-20 Year 2009 Week 3
+day 19 report population took 0 seconds
+day 19 finished Sun Jan 22 15:54:26 2012
+day 19 took 2 seconds
+day 20 update places took 1 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 20 = 10000
+Queues at beginning of vaccination:  priority (414517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 20
+Left in queues:  Priority (404517)    Regular (628238)
+day 20 update population took 0 seconds
+DAY 19 ABSENTEEISM: work absent 1506 present 1441 0.51  school absent 3214 present 3109 0.51
+Number of infectious places = 30035
+Number of infectious households = 18192
+Number of infectious neighborhoods = 1884
+Number of infectious schools = 418
+Number of infectious classrooms = 3056
+Number of infectious workplaces = 2825
+Number of infectious offices = 3660
+day 20 update epidemics took 2 seconds
+Day  20  Str 0  S 1138240  E   14218  I   22848  I_s   15299  R   11696  M   55753  C   12276  N 1242755  AR  3.92  CI    6131 RR 1.17 NR 100  CAR  1.86  Wed 2009-01-21 Year 2009 Week 3
+day 20 report population took 0 seconds
+day 20 finished Sun Jan 22 15:54:29 2012
+day 20 took 3 seconds
+day 21 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 21 = 10000
+Queues at beginning of vaccination:  priority (404517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 21
+Left in queues:  Priority (394517)    Regular (628238)
+day 21 update population took 1 seconds
+DAY 20 ABSENTEEISM: work absent 1844 present 1951 0.49  school absent 4531 present 4379 0.51
+Number of infectious places = 39065
+Number of infectious households = 24737
+Number of infectious neighborhoods = 2044
+Number of infectious schools = 432
+Number of infectious classrooms = 3740
+Number of infectious workplaces = 3489
+Number of infectious offices = 4623
+day 21 update epidemics took 2 seconds
+Day  21  Str 0  S 1113835  E   19248  I   31369  I_s   20970  R   14964  M   63339  C   16819  N 1242755  AR  5.28  CI    7831 RR 2.29 NR 34  CAR  2.49  Thu 2009-01-22 Year 2009 Week 3
+day 21 report population took 0 seconds
+day 21 finished Sun Jan 22 15:54:32 2012
+day 21 took 3 seconds
+day 22 update places took 0 seconds
+Current Vaccine Stock = 10000
+Vaccinating!
+Vaccine Capacity on Day 22 = 10000
+Queues at beginning of vaccination:  priority (394517)    Regular (628238)
+Vaccinated priority to stock out 10000 agents, for a total of 10000 on day 22
+Left in queues:  Priority (384517)    Regular (628238)
+day 22 update population took 0 seconds
+DAY 21 ABSENTEEISM: work absent 2433 present 2469 0.50  school absent 6501 present 6421 0.50
+Number of infectious places = 50271
+Number of infectious households = 33076
+Number of infectious neighborhoods = 2146
+Number of infectious schools = 448
+Number of infectious classrooms = 4448
+Number of infectious workplaces = 4319
+Number of infectious offices = 5834
+day 22 update epidemics took 3 seconds
+Day  22  Str 0  S 1084984  E   24828  I   42895  I_s   28632  R   19322  M   70726  C   21464  N 1242755  AR  7.00  CI   10598 RR 1.61 NR 31  CAR  3.34  Fri 2009-01-23 Year 2009 Week 3
+day 22 report population took 0 seconds
+day 22 finished Sun Jan 22 15:54:35 2012
+day 22 took 3 seconds
+day 23 update places took 0 seconds
+Current Vaccine Stock = 5881
+Vaccinating!
+Vaccine Capacity on Day 23 = 10000
+Queues at beginning of vaccination:  priority (384517)    Regular (628238)
+Vaccinated priority to stock out 5881 agents, for a total of 5881 on day 23
+Left in queues:  Priority (378636)    Regular (628238)
+day 23 update population took 0 seconds
+DAY 22 ABSENTEEISM: work absent 3230 present 3248 0.50  school absent 9125 present 9098 0.50
+Number of infectious places = 50408
+Number of infectious households = 43024
+Number of infectious neighborhoods = 2296
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 2233
+Number of infectious offices = 2855
+day 23 update epidemics took 2 seconds
+Day  23  Str 0  S 1064115  E   18006  I   56855  I_s   38002  R   25875  M   77904  C   13691  N 1242755  AR  8.11  CI   13726 RR 1.70 NR 40  CAR  4.45  Sat 2009-01-24 Year 2009 Week 3
+day 23 report population took 0 seconds
+day 23 finished Sun Jan 22 15:54:37 2012
+day 23 took 2 seconds
+day 24 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 24 = 10000
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 24 update population took 1 seconds
+DAY 23 ABSENTEEISM: work absent 753 present 721 0.51  school absent 0 present 0 0.00
+Number of infectious places = 54859
+Number of infectious households = 46695
+Number of infectious neighborhoods = 2316
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 2545
+Number of infectious offices = 3303
+day 24 update epidemics took 2 seconds
+Day  24  Str 0  S 1042373  E   17305  I   63492  I_s   42504  R   34574  M   85011  C   14635  N 1242755  AR  9.28  CI   10315 RR 2.67 NR 66  CAR  5.28  Sun 2009-01-25 Year 2009 Week 4
+day 24 report population took 0 seconds
+day 24 finished Sun Jan 22 15:54:40 2012
+day 24 took 3 seconds
+day 25 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 25 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 25 update population took 1 seconds
+DAY 24 ABSENTEEISM: work absent 978 present 979 0.50  school absent 0 present 0 0.00
+Number of infectious places = 74618
+Number of infectious households = 48052
+Number of infectious neighborhoods = 2344
+Number of infectious schools = 464
+Number of infectious classrooms = 5511
+Number of infectious workplaces = 7644
+Number of infectious offices = 10603
+day 25 update epidemics took 9 seconds
+Day  25  Str 0  S 1009588  E   28835  I   65858  I_s   43965  R   46541  M   91933  C   25863  N 1242755  AR 11.36  CI    9494 RR 2.62 NR 112  CAR  6.04  Mon 2009-01-26 Year 2009 Week 4
+day 25 report population took 0 seconds
+day 25 finished Sun Jan 22 15:54:50 2012
+day 25 took 10 seconds
+day 26 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 26 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 26 update population took 0 seconds
+DAY 25 ABSENTEEISM: work absent 6845 present 6924 0.50  school absent 10141 present 10359 0.49
+Number of infectious places = 84090
+Number of infectious households = 55442
+Number of infectious neighborhoods = 2371
+Number of infectious schools = 466
+Number of infectious classrooms = 5699
+Number of infectious workplaces = 8443
+Number of infectious offices = 11669
+day 26 update epidemics took 6 seconds
+Day  26  Str 0  S  976583  E   31593  I   73834  I_s   49215  R   62220  M   98525  C   26413  N 1242755  AR 13.49  CI   15763 RR 2.22 NR 139  CAR  7.31  Tue 2009-01-27 Year 2009 Week 4
+day 26 report population took 0 seconds
+day 26 finished Sun Jan 22 15:54:57 2012
+day 26 took 7 seconds
+day 27 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 27 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 27 update population took 1 seconds
+DAY 26 ABSENTEEISM: work absent 8249 present 8077 0.51  school absent 10885 present 10813 0.50
+Number of infectious places = 94296
+Number of infectious households = 63757
+Number of infectious neighborhoods = 2426
+Number of infectious schools = 467
+Number of infectious classrooms = 5926
+Number of infectious workplaces = 9090
+Number of infectious offices = 12630
+day 27 update epidemics took 2 seconds
+Day  27  Str 0  S  941864  E   33407  I   82800  I_s   55249  R   79664  M  105020  C   28224  N 1242755  AR 15.76  CI   17627 RR 2.34 NR 253  CAR  8.73  Wed 2009-01-28 Year 2009 Week 4
+day 27 report population took 0 seconds
+day 27 finished Sun Jan 22 15:55:01 2012
+day 27 took 4 seconds
+day 28 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 28 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 28 update population took 0 seconds
+DAY 27 ABSENTEEISM: work absent 9417 present 9427 0.50  school absent 12146 present 12176 0.50
+Number of infectious places = 104764
+Number of infectious households = 72351
+Number of infectious neighborhoods = 2443
+Number of infectious schools = 465
+Number of infectious classrooms = 6014
+Number of infectious workplaces = 9846
+Number of infectious offices = 13645
+day 28 update epidemics took 4 seconds
+Day  28  Str 0  S  905760  E   35577  I   94613  I_s   63207  R   95641  M  111164  C   29960  N 1242755  AR 18.17  CI   18616 RR 2.38 NR 434  CAR 10.23  Thu 2009-01-29 Year 2009 Week 4
+day 28 report population took 0 seconds
+day 28 finished Sun Jan 22 15:55:06 2012
+day 28 took 5 seconds
+day 29 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 29 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 29 update population took 1 seconds
+DAY 28 ABSENTEEISM: work absent 10720 present 10618 0.50  school absent 14590 present 14437 0.50
+Number of infectious places = 114292
+Number of infectious households = 79949
+Number of infectious neighborhoods = 2492
+Number of infectious schools = 467
+Number of infectious classrooms = 6105
+Number of infectious workplaces = 10610
+Number of infectious offices = 14669
+day 29 update epidemics took 3 seconds
+Day  29  Str 0  S  869266  E   36835  I  106045  I_s   70948  R  113706  M  116903  C   30755  N 1242755  AR 20.65  CI   19831 RR 1.78 NR 230  CAR 11.82  Fri 2009-01-30 Year 2009 Week 4
+day 29 report population took 0 seconds
+day 29 finished Sun Jan 22 15:55:10 2012
+day 29 took 4 seconds
+day 30 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 30 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 30 update population took 1 seconds
+DAY 29 ABSENTEEISM: work absent 12002 present 12046 0.50  school absent 16727 present 16474 0.50
+Number of infectious places = 99876
+Number of infectious households = 85860
+Number of infectious neighborhoods = 2519
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 4871
+Number of infectious offices = 6626
+day 30 update epidemics took 2 seconds
+Day  30  Str 0  S  842821  E   27198  I  114903  I_s   76932  R  135569  M  122264  C   21084  N 1242755  AR 22.34  CI   20528 RR 2.10 NR 328  CAR 13.47  Sat 2009-01-31 Year 2009 Week 4
+day 30 report population took 0 seconds
+day 30 finished Sun Jan 22 15:55:13 2012
+day 30 took 3 seconds
+day 31 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 31 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 31 update population took 0 seconds
+DAY 30 ABSENTEEISM: work absent 2375 present 2427 0.49  school absent 0 present 0 0.00
+Number of infectious places = 98902
+Number of infectious households = 85041
+Number of infectious neighborhoods = 2513
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 4817
+Number of infectious offices = 6531
+day 31 update epidemics took 3 seconds
+Day  31  Str 0  S  817848  E   23853  I  112993  I_s   75767  R  160475  M  127586  C   19651  N 1242755  AR 23.92  CI   15379 RR 2.90 NR 841  CAR 14.71  Sun 2009-02-01 Year 2009 Week 5
+day 31 report population took 0 seconds
+day 31 finished Sun Jan 22 15:55:17 2012
+day 31 took 4 seconds
+day 32 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 32 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 32 update population took 1 seconds
+DAY 31 ABSENTEEISM: work absent 2568 present 2603 0.50  school absent 0 present 0 0.00
+Number of infectious places = 118178
+Number of infectious households = 80691
+Number of infectious neighborhoods = 2475
+Number of infectious schools = 466
+Number of infectious classrooms = 5693
+Number of infectious workplaces = 12222
+Number of infectious offices = 16631
+day 32 update epidemics took 2 seconds
+Day  32  Str 0  S  789181  E   27402  I  105251  I_s   70428  R  188137  M  132784  C   23469  N 1242755  AR 25.81  CI   13315 RR 2.49 NR 1193  CAR 15.78  Mon 2009-02-02 Year 2009 Week 5
+day 32 report population took 0 seconds
+day 32 finished Sun Jan 22 15:55:20 2012
+day 32 took 3 seconds
+day 33 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 33 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 33 update population took 1 seconds
+DAY 32 ABSENTEEISM: work absent 14368 present 14429 0.50  school absent 11054 present 11189 0.50
+Number of infectious places = 114741
+Number of infectious households = 77932
+Number of infectious neighborhoods = 2476
+Number of infectious schools = 467
+Number of infectious classrooms = 5331
+Number of infectious workplaces = 12093
+Number of infectious offices = 16442
+day 33 update epidemics took 2 seconds
+Day  33  Str 0  S  763988  E   24901  I   98703  I_s   65971  R  217392  M  137771  C   20206  N 1242755  AR 27.44  CI   15146 RR 2.17 NR 1896  CAR 17.00  Tue 2009-02-03 Year 2009 Week 5
+day 33 report population took 0 seconds
+day 33 finished Sun Jan 22 15:55:24 2012
+day 33 took 4 seconds
+day 34 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 34 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 34 update population took 1 seconds
+DAY 33 ABSENTEEISM: work absent 14539 present 14436 0.50  school absent 8554 present 8737 0.49
+Number of infectious places = 110212
+Number of infectious households = 74542
+Number of infectious neighborhoods = 2435
+Number of infectious schools = 466
+Number of infectious classrooms = 4829
+Number of infectious workplaces = 11833
+Number of infectious offices = 16107
+day 34 update epidemics took 2 seconds
+Day  34  Str 0  S  741469  E   21684  I   92046  I_s   61482  R  245026  M  142530  C   17760  N 1242755  AR 28.87  CI   14007 RR 1.98 NR 2971  CAR 18.13  Wed 2009-02-04 Year 2009 Week 5
+day 34 report population took 0 seconds
+day 34 finished Sun Jan 22 15:55:27 2012
+day 34 took 3 seconds
+day 35 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 35 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 35 update population took 0 seconds
+DAY 34 ABSENTEEISM: work absent 14274 present 14531 0.50  school absent 6892 present 6981 0.50
+Number of infectious places = 104862
+Number of infectious households = 70611
+Number of infectious neighborhoods = 2401
+Number of infectious schools = 458
+Number of infectious classrooms = 4420
+Number of infectious workplaces = 11351
+Number of infectious offices = 15621
+day 35 update epidemics took 2 seconds
+Day  35  Str 0  S  720936  E   19508  I   85720  I_s   57193  R  269473  M  147118  C   15945  N 1242755  AR 30.15  CI   12079 RR 2.02 NR 4510  CAR 19.10  Thu 2009-02-05 Year 2009 Week 5
+day 35 report population took 0 seconds
+day 35 finished Sun Jan 22 15:55:30 2012
+day 35 took 3 seconds
+day 36 update places took 1 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 36 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 36 update population took 0 seconds
+DAY 35 ABSENTEEISM: work absent 13953 present 14154 0.50  school absent 6182 present 6090 0.50
+Number of infectious places = 99422
+Number of infectious households = 66136
+Number of infectious neighborhoods = 2388
+Number of infectious schools = 458
+Number of infectious classrooms = 4113
+Number of infectious workplaces = 11089
+Number of infectious offices = 15238
+day 36 update epidemics took 2 seconds
+Day  36  Str 0  S  702291  E   17334  I   79515  I_s   53082  R  292070  M  151545  C   14218  N 1242755  AR 31.29  CI   11078 RR 1.51 NR 2848  CAR 19.99  Fri 2009-02-06 Year 2009 Week 5
+day 36 report population took 0 seconds
+day 36 finished Sun Jan 22 15:55:33 2012
+day 36 took 3 seconds
+day 37 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 37 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 37 update population took 1 seconds
+DAY 36 ABSENTEEISM: work absent 13423 present 13635 0.50  school absent 5522 present 5623 0.50
+Number of infectious places = 71880
+Number of infectious households = 60750
+Number of infectious neighborhoods = 2368
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 3754
+Number of infectious offices = 5008
+day 37 update epidemics took 2 seconds
+Day  37  Str 0  S  689483  E   13108  I   72389  I_s   48609  R  313703  M  154072  C   10281  N 1242755  AR 32.12  CI    9840 RR 1.52 NR 3313  CAR 20.78  Sat 2009-02-07 Year 2009 Week 5
+day 37 report population took 0 seconds
+day 37 finished Sun Jan 22 15:55:36 2012
+day 37 took 3 seconds
+day 38 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 38 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 38 update population took 0 seconds
+DAY 37 ABSENTEEISM: work absent 2210 present 2273 0.49  school absent 0 present 0 0.00
+Number of infectious places = 63721
+Number of infectious households = 53663
+Number of infectious neighborhoods = 2304
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 3354
+Number of infectious offices = 4400
+day 38 update epidemics took 2 seconds
+Day  38  Str 0  S  680806  E   10723  I   63219  I_s   42493  R  333935  M  154072  C    8677  N 1242755  AR 32.82  CI    7418 RR 2.11 NR 7677  CAR 21.38  Sun 2009-02-08 Year 2009 Week 6
+day 38 report population took 0 seconds
+day 38 finished Sun Jan 22 15:55:38 2012
+day 38 took 2 seconds
+day 39 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 39 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 39 update population took 1 seconds
+DAY 38 ABSENTEEISM: work absent 2052 present 1985 0.51  school absent 0 present 0 0.00
+Number of infectious places = 73200
+Number of infectious households = 46110
+Number of infectious neighborhoods = 2277
+Number of infectious schools = 424
+Number of infectious classrooms = 2722
+Number of infectious workplaces = 9085
+Number of infectious offices = 12582
+day 39 update epidemics took 1 seconds
+Day  39  Str 0  S  672143  E   10363  I   53737  I_s   36079  R  352440  M  154072  C    8663  N 1242755  AR 33.52  CI    6007 RR 1.84 NR 9470  CAR 21.86  Mon 2009-02-09 Year 2009 Week 6
+day 39 report population took 0 seconds
+day 39 finished Sun Jan 22 15:55:40 2012
+day 39 took 2 seconds
+day 40 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 40 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 40 update population took 1 seconds
+DAY 39 ABSENTEEISM: work absent 9794 present 9668 0.50  school absent 2355 present 2379 0.50
+Number of infectious places = 63964
+Number of infectious households = 39789
+Number of infectious neighborhoods = 2213
+Number of infectious schools = 405
+Number of infectious classrooms = 2068
+Number of infectious workplaces = 8164
+Number of infectious offices = 11325
+day 40 update epidemics took 1 seconds
+Day  40  Str 0  S  664924  E    8949  I   45805  I_s   30755  R  369005  M  154072  C    7219  N 1242755  AR 34.10  CI    5788 RR 1.59 NR 12276  CAR 22.33  Tue 2009-02-10 Year 2009 Week 6
+day 40 report population took 0 seconds
+day 40 finished Sun Jan 22 15:55:42 2012
+day 40 took 2 seconds
+day 41 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 41 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 41 update population took 1 seconds
+DAY 40 ABSENTEEISM: work absent 8420 present 8381 0.50  school absent 1566 present 1603 0.49
+Number of infectious places = 55520
+Number of infectious households = 34225
+Number of infectious neighborhoods = 2157
+Number of infectious schools = 369
+Number of infectious classrooms = 1541
+Number of infectious workplaces = 7214
+Number of infectious offices = 10014
+day 41 update epidemics took 1 seconds
+Day  41  Str 0  S  658987  E    7331  I   38919  I_s   26053  R  383446  M  154072  C    5937  N 1242755  AR 34.58  CI    5044 RR 1.44 NR 16819  CAR 22.74  Wed 2009-02-11 Year 2009 Week 6
+day 41 report population took 0 seconds
+day 41 finished Sun Jan 22 15:55:44 2012
+day 41 took 2 seconds
+day 42 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 42 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 42 update population took 1 seconds
+DAY 41 ABSENTEEISM: work absent 7345 present 7142 0.51  school absent 1096 present 1113 0.50
+Number of infectious places = 48848
+Number of infectious households = 29647
+Number of infectious neighborhoods = 2094
+Number of infectious schools = 330
+Number of infectious classrooms = 1231
+Number of infectious workplaces = 6504
+Number of infectious offices = 9042
+day 42 update epidemics took 1 seconds
+Day  42  Str 0  S  653852  E    6326  I   33440  I_s   22419  R  395065  M  154072  C    5135  N 1242755  AR 34.99  CI    4148 RR 1.38 NR 21464  CAR 23.07  Thu 2009-02-12 Year 2009 Week 6
+day 42 report population took 0 seconds
+day 42 finished Sun Jan 22 15:55:46 2012
+day 42 took 2 seconds
+day 43 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 43 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 43 update population took 1 seconds
+DAY 42 ABSENTEEISM: work absent 6433 present 6395 0.50  school absent 944 present 808 0.54
+Number of infectious places = 43278
+Number of infectious households = 25692
+Number of infectious neighborhoods = 2001
+Number of infectious schools = 312
+Number of infectious classrooms = 1077
+Number of infectious workplaces = 5921
+Number of infectious offices = 8275
+day 43 update epidemics took 1 seconds
+Day  43  Str 0  S  649413  E    5462  I   28865  I_s   19273  R  404943  M  154072  C    4439  N 1242755  AR 35.35  CI    3487 RR 1.08 NR 13691  CAR 23.35  Fri 2009-02-13 Year 2009 Week 6
+day 43 report population took 0 seconds
+day 43 finished Sun Jan 22 15:55:48 2012
+day 43 took 2 seconds
+day 44 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 44 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 44 update population took 0 seconds
+DAY 43 ABSENTEEISM: work absent 5768 present 5695 0.50  school absent 733 present 735 0.50
+Number of infectious places = 27484
+Number of infectious households = 22105
+Number of infectious neighborhoods = 1987
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 1523
+Number of infectious offices = 1869
+day 44 update epidemics took 1 seconds
+Day  44  Str 0  S  646137  E    4149  I   24757  I_s   16541  R  413640  M  154072  C    3276  N 1242755  AR 35.61  CI    3065 RR 1.07 NR 14635  CAR 23.60  Sat 2009-02-14 Year 2009 Week 6
+day 44 report population took 0 seconds
+day 44 finished Sun Jan 22 15:55:49 2012
+day 44 took 1 seconds
+day 45 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 45 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 45 update population took 1 seconds
+DAY 44 ABSENTEEISM: work absent 883 present 871 0.50  school absent 0 present 0 0.00
+Number of infectious places = 23172
+Number of infectious households = 18456
+Number of infectious neighborhoods = 1894
+Number of infectious schools = 0
+Number of infectious classrooms = 0
+Number of infectious workplaces = 1275
+Number of infectious offices = 1547
+day 45 update epidemics took 1 seconds
+Day  45  Str 0  S  643548  E    3221  I   20670  I_s   13754  R  421244  M  154072  C    2589  N 1242755  AR 35.82  CI    2357 RR 1.36 NR 25863  CAR 23.79  Sun 2009-02-15 Year 2009 Week 7
+day 45 report population took 0 seconds
+day 45 finished Sun Jan 22 15:55:51 2012
+day 45 took 2 seconds
+day 46 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 46 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 46 update population took 0 seconds
+DAY 45 ABSENTEEISM: work absent 715 present 712 0.50  school absent 0 present 0 0.00
+Number of infectious places = 27569
+Number of infectious households = 15286
+Number of infectious neighborhoods = 1837
+Number of infectious schools = 223
+Number of infectious classrooms = 605
+Number of infectious workplaces = 4079
+Number of infectious offices = 5539
+day 46 update epidemics took 1 seconds
+Day  46  Str 0  S  641096  E    2953  I   17121  I_s   11404  R  427513  M  154072  C    2452  N 1242755  AR 36.02  CI    1817 RR 1.17 NR 26413  CAR 23.93  Mon 2009-02-16 Year 2009 Week 7
+day 46 report population took 0 seconds
+day 46 finished Sun Jan 22 15:55:52 2012
+day 46 took 1 seconds
+day 47 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 47 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 47 update population took 1 seconds
+DAY 46 ABSENTEEISM: work absent 3321 present 3266 0.50  school absent 358 present 346 0.51
+Number of infectious places = 23212
+Number of infectious households = 12773
+Number of infectious neighborhoods = 1731
+Number of infectious schools = 198
+Number of infectious classrooms = 439
+Number of infectious workplaces = 3455
+Number of infectious offices = 4616
+day 47 update epidemics took 1 seconds
+Day  47  Str 0  S  639029  E    2556  I   14200  I_s    9468  R  432898  M  154072  C    2067  N 1242755  AR 36.18  CI    1646 RR 1.02 NR 28224  CAR 24.06  Tue 2009-02-17 Year 2009 Week 7
+day 47 report population took 0 seconds
+day 47 finished Sun Jan 22 15:55:54 2012
+day 47 took 2 seconds
+day 48 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 48 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 48 update population took 0 seconds
+DAY 47 ABSENTEEISM: work absent 2708 present 2668 0.50  school absent 268 present 258 0.51
+Number of infectious places = 19432
+Number of infectious households = 10532
+Number of infectious neighborhoods = 1682
+Number of infectious schools = 173
+Number of infectious classrooms = 327
+Number of infectious workplaces = 2906
+Number of infectious offices = 3812
+day 48 update epidemics took 1 seconds
+Day  48  Str 0  S  637435  E    2062  I   11647  I_s    7827  R  437539  M  154072  C    1594  N 1242755  AR 36.31  CI    1439 RR 0.91 NR 29960  CAR 24.18  Wed 2009-02-18 Year 2009 Week 7
+day 48 report population took 0 seconds
+day 48 finished Sun Jan 22 15:55:55 2012
+day 48 took 1 seconds
+day 49 update places took 0 seconds
+Current Vaccine Stock = 0
+Vaccinating!
+Vaccine Capacity on Day 49 = 0
+Queues at beginning of vaccination:  priority (378636)    Regular (628238)
+day 49 update population took 1 seconds
+DAY 48 ABSENTEEISM: work absent 2201 present 2235 0.50  school absent 201 present 204 0.50
+Number of infectious places = 16766
+Number of infectious households = 8840
+Number of infectious neighborhoods = 1620
+Number of infectious schools = 159
+Number of infectious classrooms = 291
+Number of infectious workplaces = 2557
+Number of infectious offices = 3299
+day 49 update epidemics took 0 seconds
+Day  49  Str 0  S  636039  E    1724  I    9731  I_s    6531  R  441189  M  154072  C    1396  N 1242755  AR 36.42  CI    1167 RR 0.85 NR 30755  CAR 24.27  Thu 2009-02-19 Year 2009 Week 7
+day 49 report population took 0 seconds
+day 49 finished Sun Jan 22 15:55:56 2012
+day 49 took 1 seconds
+FRED finished Sun Jan 22 15:55:56 2012
+FRED took 161 seconds

@@ -1,0 +1,5 @@
+Day   0 Date 2012-01-02 Wkday Mon Year 2012 Week  1 Str 0 S 1242655 E     100 I       0 I_s       0 R       0 M       0 C     100 CI       0 AR  0.01 CAR  0.00 RR 0.00 N 1242755
+Day   1 Date 2012-01-03 Wkday Tue Year 2012 Week  1 Str 0 S 1242626 E      53 I      76 I_s      54 R       0 M       0 C      29 CI      54 AR  0.01 CAR  0.00 RR 0.00 N 1242755
+Day   2 Date 2012-01-04 Wkday Wed Year 2012 Week  1 Str 0 S 1242574 E      58 I     123 I_s      87 R       0 M       0 C      52 CI      33 AR  0.01 CAR  0.01 RR 0.00 N 1242755
+Day   3 Date 2012-01-05 Wkday Thu Year 2012 Week  1 Str 0 S 1242478 E     112 I     165 I_s     118 R       0 M       0 C      96 CI      31 AR  0.02 CAR  0.01 RR 0.00 N 1242755
+Day   4 Date 2012-01-06 Wkday Fri Year 2012 Week  1 Str 0 S 1242355 E     146 I     228 I_s     163 R      26 M       0 C     123 CI      62 AR  0.03 CAR  0.01 RR 0.00 N 1242755

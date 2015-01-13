@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my %options = ();
+getopts("k:s:", \%options);
+my $mykey = "";
+my $secs = "";
+$mykey = $options{k} if exists $options{k};
+die "usage: fred_status -k key [-s secs]\n" if not $mykey;
+$secs = $options{s} if exists $options{s};
+
+my $FRED = $ENV{FRED_RESULTS};
+$FRED = $ENV{FRED_HOME} if not $FRED;
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $dir = "$FRED/RESULTS";
+die "Can't find directory $dir\n" if not -d $dir;
+
+my $id = get_id($mykey);
+die "NOT_FOUND\n" if $id eq "";
+
+my $status = `cat $dir/JOB/$id/META/STATUS`;
+chomp $status;
+
+if ($status =~ /RUNNING/) {
+  my $runs = `cat $dir/JOB/$id/META/RUNS`;
+  chomp $runs;
+  if (-e "$dir/JOB/$id/DATA/OUT/out1.txt") {
+    my $finished = `ls $dir/JOB/$id/DATA/OUT/out* | wc -l`;
+    chomp $finished;
+    $finished =~ s/\s//g;
+    $finished--;
+    $status = sprintf "RUNNING-%02d", int(0.5+100*$finished/$runs);
+  }
+  else {
+    $status = "RUNNING-00";
+  }
+}
+if ($status =~ /FINISHED/) {
+  my $t = (stat("$dir/JOB/$id/META/STATUS"))[9];
+  $status .= " " . localtime($t) . "\n";
+}
+else {
+  $status .= " " . localtime() . "\n";
+}
+print $status;
+
+if (defined $secs and $secs =~ /^\d+$/) {
+  while ($status !~ /FINISHED/ and $status !~ /NOT_FOUND/) {
+    sleep $secs;
+    $status = `cat $dir/JOB/$id/META/STATUS`;
+    chomp $status;
+    if ($status =~ /RUNNING/) {
+      my $runs = `cat $dir/JOB/$id/META/RUNS`;
+      chomp $runs;
+      my $z = `grep 'runs =' $dir/JOB/$id/META/PARAMS`;
+      my $finished = `ls $dir/JOB/$id/DATA/OUT/out* | wc -l`;
+      chomp $finished;
+      $finished =~ s/\s//g;
+      $finished--;
+      $status = sprintf "RUNNING-%02d", int(0.5+100*$finished/$runs);
+    }
+    if ($status =~ /FINISHED/) {
+      my $t = (stat("$dir/JOB/$id/META/STATUS"))[9];
+      $status .= " " . localtime($t) . "\n";
+    }
+    else {
+      $status .= " " . localtime() . "\n";
+    }
+    print $status;
+  }
+}
+exit;
+
+sub get_id {
+  my $mykey = shift;
+  open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    if (defined $key and $key eq $mykey) {
+      close FH;
+      return $id;
+    }
+  }
+  close FH;
+  return "";
+}

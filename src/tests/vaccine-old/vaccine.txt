@@ -1,0 +1,45 @@
+1    # Number of Vaccines
+# Vaccine 1
+0     100  1        235882      1000          0           0.0   
+  2 0.0 0 100.0   # Dose 1
+    0    4 0.70 14 0.0 0 # Age Grouped Efficacy 1 
+    5  100 0.83 14 0.0 0 # Age Grouped Efficacy 2
+
+#  This is the file the defines the vaccines that are in simulation for FRED
+#  
+#  This file is not column space dependent.  It is line dependent, so carriage returns can make a difference.
+#
+#  Anything after the # is not read and can contain comments
+#
+#  Some of these lines are not implemented, I note this below, they should eventually be implemented.
+#
+#  Description of Input Lines
+#
+#  Line 1: 
+#      Number of Vaccines in file			Integer
+#  
+#  Line 2: Comment Line
+#
+#  Line 3: One Line Per Vaccine				
+#	Low Age for the Vaccine				Integer
+#	High Age for the Vaccine			Integer
+#	Number of Doses					Integer
+#	Total Number of Vaccines for Simulation		Integer
+#	Number of Vaccines put into the system
+#		per day					Integer
+#	Starting Day of Vaccination			Integer
+# 	Starting Incidence Threshold for Vaccination	Not Implemented
+#
+#  Line 4: One Line Per Dose
+#	Number of Age Grouped Efficacies		Integer
+#	Percent Vaccines Reduces Infectiousness		Not Implemented
+#	Days To Next Dose				Integer
+#	Percent of People Getting Dose			Not Implemented  
+#
+#  Line 5 and 6: One Line per Dose Per Age Grouped Efficacy
+#	Low Age of Efficacy				Integer
+#	High Age of Efficacy				Integer
+#	Probability of Efficacy				Double (Between 0.0 and 1.0)
+#	Days to Efficacy				Integer
+#	Immunocompromised Probability of Efficacy	Not Implemented
+#	Immunocompromised Days to Efficacy		Not Implemented

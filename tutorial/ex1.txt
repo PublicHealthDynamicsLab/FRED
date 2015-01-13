@@ -1,0 +1,14 @@
+FRED Exercises
+
+1. CHECKING YOUR FRED INSTALLATION
+
+If you have not yet instaled FRED, please refer to the Installation
+Guide.  If you have installed FRED, check the installation by running
+the built-in regression test:
+
+% rt
+base regression test passed.
+
+If you get an error message, please contact a member of the FRED team.
+
+NOTES:

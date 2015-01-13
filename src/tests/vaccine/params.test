@@ -1,0 +1,28 @@
+days = 50
+popfile = $FRED_HOME/region/pop_Alleg.txt
+locfile = $FRED_HOME/region/loc_Alleg.txt
+outdir = OUT.TEST
+quality_control = 0
+
+vaccine_prioritize_by_age = 1
+vaccine_priority_age_low = 0
+vaccine_priority_age_high = 24
+vaccination_capacity_file = vaccination_capacity-0.txt
+vaccine_tracefile = vacctrace
+
+number_of_vaccines = 1
+prob_accept_vaccine = 0.6
+prob_accept_another_vaccine_dose = 1.0
+## Definition of Vaccine #0
+vaccine_number_of_doses[0]    = 1
+vaccine_total_avail[0]        = 235881
+vaccine_additional_per_day[0] = 10000
+vaccine_starting_day[0]       = 0
+
+#### Vaccine #0 Dose #0
+vaccine_next_dosage_day[0][0] = 0
+vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100
+vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
+
+vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_delay_values[0][0] = 1 14

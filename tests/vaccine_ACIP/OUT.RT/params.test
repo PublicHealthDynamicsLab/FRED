@@ -1,0 +1,42 @@
+days = 20
+runs  = 1
+popfile = $FRED_HOME/region/pop_Alleg.txt
+locfile = $FRED_HOME/region/loc_Alleg.txt
+outdir = OUT.TEST
+quality_control = 0
+
+# enable behaviors must be set
+enable_behaviors = 1
+
+pregnancy_prob_ages = 8 0 18 19 24 25 49 50 110
+pregnancy_prob_values = 4 0.0 0.0576 0.0314 0.0
+
+at_risk_ages[0] = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
+at_risk_values[0] = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
+
+enable_vaccination = 1
+number_of_vaccines = 1
+vaccine_prioritize_acip = 1
+vaccination_capacity_file = vaccination_capacity-0.txt
+vaccine_tracefile = vacctrace
+
+prob_accept_vaccine = 0.6
+prob_accept_another_vaccine_dose = 1.0
+
+## Definition of Vaccine #0
+vaccine_number_of_doses[0]    = 1
+vaccine_total_avail[0]        = 235881
+vaccine_additional_per_day[0] = 10000
+vaccine_starting_day[0]       = 0
+
+#### Vaccine #0 Dose #0
+vaccine_next_dosage_day[0][0] = 0
+vaccine_dose_efficacy_ages[0][0] = 4 0 4 5 100
+vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
+
+vaccine_dose_efficacy_delay_ages[0][0] = 2 0 100
+vaccine_dose_efficacy_delay_values[0][0] = 1 14
+
+# these are the strain ids that the vaccine will
+# protect against
+vaccine_strains[0] = 0

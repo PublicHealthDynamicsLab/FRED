@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# get current dir
+pwd=$(pwd)
+
+# look for the FRED binary
+if [ x$FRED_HOME == x ]; then
+   echo "Please define FRED_HOME environment variable before running tests"
+   exit 1
+fi 
+FRED="$FRED_HOME/bin/FRED"
+if [ ! -x $FRED ]; then
+    echo "No FRED binary found"
+    echo ">>> You must either build FRED or properly define FRED_HOME"
+    exit 1
+fi
+
+dir="base"
+if [ x"$1" != x ]; then
+    dir=$1
+    shift
+fi
+
+cd $FRED_HOME/tests/$dir
+
+echo "making files for FRED regression test: $dir"
+echo "please wait ..."
+
+# put results in OUT.TEST
+rm -rf OUT.TEST
+run_fred -p params.test -d OUT.TEST -n 2
+
+# copy results to OUT.RT (which may already have a CVS directory)
+if [ ! -d OUT.RT ]; then
+    mkdir OUT.RT
+fi
+rm -f OUT.RT/LOG*
+rm -f OUT.RT/*.txt
+
+cp -p OUT.TEST/* OUT.RT
+rt $dir

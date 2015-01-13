@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+# File: fred_tail
+# Author: Shawn Brown
+# Created: May 31, 2010
+# This script will find the current output being written by FRED and 
+# tail it to stdout so that you can view it running.
+
+# Future Improvements
+#    killing when there is no input being written
+#
+
+# determine if FRED_HOME is defined 
+my $FRED = $ENV{FRED_RESULTS};
+$FRED = $ENV{FRED_HOME} if not $FRED;
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+# get command line arguments
+my %options = ();
+getopts("k:", \%options);
+my $mykey = "";
+my $secs = "";
+$mykey = $options{k} if exists $options{k};
+die "usage: fred_tail -k key \n" if not $mykey;
+
+# define FRED RESULTS directory
+my $dir = "$FRED/RESULTS";
+die "Can't find directory $dir\n" if not -d $dir;
+
+# get the id for the FRED key
+my $id = get_id($mykey);
+die "NOT_FOUND\n" if $id eq "";
+
+# set up some variables for output
+my $outpath = "$dir/JOB/$id/DATA/OUT/";
+my $len = length("$outpath/out");
+my $output = `ls $outpath/out*`;
+my @outputs = split /\n/,$output;
+
+# Put in check to see if there are in fact any outputs
+# and define the maximum output file.
+my $maxout = -1;
+foreach my $outy (@outputs){
+  my $outtmp = substr($outy,0,-4);
+  my $outid = substr($outtmp,$len);
+  print "OutID = ".$outid."\n";
+  if($outid > $maxout) { $maxout = $outid; }
+}
+print "MaxOut = ".$maxout."\n";
+my $command = "tail -f $outpath/out$maxout.txt";
+
+# execute the tail command.
+system($command);
+exit;
+
+sub get_id {
+  my $mykey = shift;
+  open FH, "$dir/KEY" or die "Can't find $dir/KEY\n";
+  while (<FH>) {
+    chomp;
+    my ($key, $id) = split;
+    if (defined $key and $key eq $mykey) {
+      close FH;
+      return $id;
+    }
+  }
+  close FH;
+  return "";
+}
+

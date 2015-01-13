@@ -1,0 +1,6 @@
+days = 5
+vaccine_tracefile = none
+tracefile = none
+quality_control = 0
+outdir = OUT.TEST
+

@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+
+# File: fred_var_daily_tables
+
+my ($out, $tables) = @ARGV;
+$out = "OUT" if not $out;
+exit if  not -d $out;
+$tables = "TABLES" if not $tables;
+mkdir $tables if not -e $tables;
+exit if not -d $tables;
+
+# get the outfiles
+my $filelist = `ls $out/out*`;
+chomp $filelist;
+my @outfiles = split " ", $filelist;
+# print "|@outfiles|\n";
+
+# the list of plottable variables
+my %vars = ();
+
+for my $file (@outfiles) {
+  # print "$file\n";
+  open FH, $file or die "Can't open file $file\n";
+  my ($run) = ($file =~/(\d+)\.txt/);
+  # print "run = $run\n";
+  my $first = 1;
+  my %created = ();
+
+  while (<FH>) {
+    chomp;
+    my %hash = split " ";
+    my $day = $hash{Day};
+    my $week = $hash{Week};
+    my $year = $hash{Year};
+    my $n = $hash{N};
+    my $str = $hash{Str};
+    my $date = $hash{Date};
+
+    # make STRAIN directory if needed
+    my $dir = "$tables/$str";
+    mkdir $dir if not -e $dir;
+    exit if not -d $dir;
+
+    # print "$day $week $year $n\n";
+    for my $key (keys %hash) {
+      next if $key eq "Day";
+      next if $key eq "Week";
+      next if $key eq "Year";
+      next if $key eq "N";
+      next if $key eq "Wkday";
+      next if $key eq "Date";
+      next if $key eq "Str";
+      $vars{$key} = 1;
+      my $tfile = "$dir/$key\_tmp-$run.txt";
+      unlink $tfile if (-e $tfile and $first);
+      open OUT, ">>$tfile";
+      print OUT "DAY WEEK YEAR DATE POP $key\n" if $first;
+      print OUT "$day $week $year $date $n $hash{$key}\n";
+      close OUT;
+    }
+    $first = 0;
+  }
+  close FH;
+  get_tables($run, %vars);
+}
+
+sub get_tables {
+  my ($run, %vars) = @_;
+  for my $key (sort keys %vars) {
+    # loop over all strains
+    my $strain = 0;
+    my $dir = "$tables/$strain";
+    while (-d $dir) {
+      my $tfile = "$dir/$key\_tmp-$run.txt";
+      open IN, "$tfile" or die "Can't open tfile\n";
+      my $wfile = "$dir/$key\_weekly-$run.txt";
+      open WEEK, ">$wfile";
+      print WEEK "SIMWEEK $key POP DATE WEEK YEAR WKDAYS\n";
+
+      my $dfile = "$dir/$key\_daily-$run.txt";
+      open DAY, ">$dfile";
+      print DAY "DAY $key POP DATE WEEK YEAR\n";
+      
+      my $sum = 0;
+      my $size = 0;
+      my $lineno = 1;
+      my $oldweek = -1;
+      my $oldyear = -1;
+      my $day;
+      my $week;
+      my $year;
+      my $n;
+      my $x;
+      my $date;
+      $x = <IN>;
+      while (<IN>) {
+	chomp;
+	($day, $week, $year, $date, $n, $x) = split " ";
+	print DAY "$day $x $n $date $week $year\n";
+	if ($week ne $oldweek) {
+	  if ($size > 0) {
+	    print WEEK "$lineno $sum $n $date $oldweek $oldyear $size \n";
+	    $lineno++;
+	  }
+	  $sum = $x;
+	  $size = 1;
+	  $oldweek = $week;
+	  $oldyear = $year;
+	} 
+	else {
+	  $sum = $sum + $x;
+	  $size++;
+	}
+      }
+      close IN;
+      print WEEK "$lineno $sum $n $date $oldweek $oldyear $size \n";
+      close WEEK;
+      unlink $tfile;
+      $strain++;
+      $dir = "$tables/$strain";
+    }
+  }
+}
+
+
+
+  

@@ -1,0 +1,21 @@
+#line_format
+# Format is:
+# start end attempts [ strain [ prob [ min [ lat lon radius ] ] ] ]
+#
+# Only the first three fields are mandatory.  The others are optional, but, if
+# present, must be given in the order above.  If a location is specified, then
+# all three location fields must be present (lat, lon & radius).
+#
+# The radius is specified in kilometers. To disable geographic seeding either
+# omit lat, lon & radius or give a value for radius that is greater than 40075
+# or less than zero.
+#
+# example below will: make 100 seeding attempts of strain 0 on day 0, 
+# each with attempt probabilty of 1, requiring a minimum of 100 transmissions,
+# all selected randomly from people whose households are within 100km of
+# the specified point.
+#
+# 0 0 100 0 1 100 40.44181 -80.01278 100
+#
+# 1 seed on day zero...
+0 1000 1

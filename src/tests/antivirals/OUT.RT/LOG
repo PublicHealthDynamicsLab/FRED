@@ -1,0 +1,673 @@
+FRED started Tue Dec  7 08:27:23 2010
+param file = params.test
+PARAMS: debug = 1
+PARAMS: test = 0
+PARAMS: quality_control = 0
+PARAMS: runs = 2
+PARAMS: days = 50
+PARAMS: seed = 123456
+PARAMS: start_day_of_week = 0
+PARAMS: reseed_day = -1
+PARAMS: popdir = .
+PARAMS: outdir = OUT.TEST
+PARAMS: tracefile = trace.txt
+PARAMS: vaccine_tracefile = vacctr
+PARAMS: all_diseases_antigenically_identical = 1
+PARAMS: incremental_trace = 0
+PARAMS: trace_headers = 0
+PARAMS: cognitive_model = random
+PARAMS: diseases = 1
+PARAMS: prob_accept_vaccine = 0.600000
+PARAMS: prob_accept_another_vaccine_dose = 1.000000
+PARAMS: popfile = ../../test_pop.txt
+PARAMS: profiles = ../../profiles.txt
+PARAMS: mutation_prob = 1
+PARAMS: mutation_prob = 1 0.0
+PARAMS: pregnancy_prob_ages = 8 0 18 19 24 25 49 50 110
+PARAMS: pregnancy_prob_values = 4 0.0 0.0576 0.0314 0.0
+
+pregnancy_prob Age Map
+age  0 to  18:  0.0000
+age 19 to  24:  0.0576
+age 25 to  49:  0.0314
+age 50 to 110:  0.0000
+
+setup locations entered
+PARAMS: locfile = /../../test_loc.txt
+Locations = 8885
+PARAMS: community_limit_trials = 50
+PARAMS: community_limit[0] = -1.000000
+PARAMS: community_contacts[0] = 0.000000
+PARAMS: community_prob[0] = 4
+PARAMS: community_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+PARAMS: household_contacts[0] = 0.475000
+PARAMS: household_prob[0] = 4
+PARAMS: household_prob[0] = 4 0.6 0.3 0.3 0.4
+PARAMS: neighborhood_contacts[0] = 59.000000
+PARAMS: neighborhood_prob[0] = 4
+PARAMS: neighborhood_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+PARAMS: school_contacts[0] = 8.000000
+PARAMS: school_prob[0] = 16
+PARAMS: school_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+PARAMS: school_closure_policy = none
+PARAMS: school_closure_day = 10
+PARAMS: school_closure_threshold = 0.100000
+PARAMS: school_closure_period = 10
+PARAMS: school_closure_delay = 2
+PARAMS: classroom_contacts[0] = 13.500000
+PARAMS: classroom_prob[0] = 16
+PARAMS: classroom_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+PARAMS: workplace_contacts[0] = 2.000000
+PARAMS: workplace_prob[0] = 1
+PARAMS: workplace_prob[0] = 1 0.0575
+PARAMS: office_contacts[0] = 8.000000
+PARAMS: office_prob[0] = 1
+PARAMS: office_prob[0] = 1 0.0575
+setup locations finished: Locations = 8886
+setup population entered
+PARAMS: trans[0] = 1.000000
+PARAMS: symp[0] = 0.670000
+PARAMS: mortality_rate[0] = 0.000000
+PARAMS: symp_infectivity[0] = 1.000000
+PARAMS: asymp_infectivity[0] = 0.500000
+PARAMS: days_latent[0] = 3
+PARAMS: days_latent[0] = 3       0.0 0.8 1.0
+PARAMS: days_incubating[0] = 4
+PARAMS: days_incubating[0] = 4   0.0 0.3 0.8 1.0
+PARAMS: days_asymp[0] = 7
+PARAMS: days_asymp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: days_symp[0] = 7
+PARAMS: days_symp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: immunity_loss_rate[0] = 0.000000
+PARAMS: infection_model[0] = 0
+PARAMS: prob_stay_home = 0.500000
+PARAMS: primary_cases_file[0] = primary_case_schedule-0.txt
+
+primary_cases[0] Timestep Map  2
+    0:        100
+    1:          0
+
+PARAMS: residual_immunity_ages[0] = 0
+PARAMS: residual_immunity_values[0] = 0
+PARAMS: at_risk_ages[0] = 14 0 1 2 4 5 18 19 24 25 49 50 64 65 110
+PARAMS: at_risk_values[0] = 7 0.039 0.0883 0.1168 0.1235 0.1570 0.3056 0.4701
+
+at_risk[0] Age Map
+age  0 to   1:  0.0390
+age  2 to   4:  0.0883
+age  5 to  18:  0.1168
+age 19 to  24:  0.1235
+age 25 to  49:  0.1570
+age 50 to  64:  0.3056
+age 65 to 110:  0.4701
+
+Disease setup finished
+disease 0 symp 0.670 trans 1.000000e+00 symp_infectivity 1.000 asymp_infectivity 0.500
+days latent: 0.000 0.800 1.000 
+days incubating: 0.000 0.300 0.800 1.000 
+days symp: 0.000 0.000 0.000 0.300 0.700 0.900 1.000 
+days asymp: 0.000 0.000 0.000 0.300 0.700 0.900 1.000 
+read profiles entered
+read population entered
+Population = 10000
+PARAMS: number_antivirals = 1
+finished reading population = 10000
+setup population completed, diseases = 1
+PARAMS: number_of_vaccines = 0
+PARAMS: number_antivirals = 1
+PARAMS: number_antivirals = 1
+PARAMS: av_disease[0] = 0
+PARAMS: av_initial_stock[0] = 100
+PARAMS: av_total_avail[0] = 1000
+PARAMS: av_additional_per_day[0] = 100
+PARAMS: av_course_length[0] = 10
+PARAMS: av_reduce_infectivity[0] = 0.700000
+PARAMS: av_reduce_susceptibility[0] = 0.300000
+PARAMS: av_reduce_symptomatic_period[0] = 0.700000
+PARAMS: av_reduce_asymptomatic_period[0] = 0.000000
+PARAMS: av_prob_symptoms[0] = 0.677000
+PARAMS: av_start_day[0] = 0
+PARAMS: av_prophylaxis[0] = 0
+PARAMS: av_percent_symptomatics[0] = 0.500000
+PARAMS: av_course_start_day[0] = 1
+PARAMS: av_course_start_day[0] = 1 1.00000
+
+Antiviral Package 
+There are 1 antivirals to choose from. 
+
+Antiviral #0
+	Effective for Disease 		0
+	Current Stock:			100 out of 1000
+	What is left:			900
+	Additional Per Day: 		100
+	Reduces by:
+		Infectivity:		70.0000%
+		Susceptibility:		30.0000%
+		Aymptomatic Period:	0.0000%
+		Symptomatic Period:	70.0000%
+	New Probability of symptoms:	0.6770
+	Given to percent symptomatics:	50.0000%
+
+	AV Course start day (max 0):
+		  1.000000 
+
+
+
+FRED run 1 started Tue Dec  7 08:27:23 2010
+
+seed = 123456
+reset locations entered
+reset locations finished
+reset population entered for run 1
+Number of Residually Immune people = 0
+reset population completed
+================
+sim day = 0
+Number of infectious places = 0
+Day   0  Str 0  S    9900  E     100  I       0  I_s       0  R       0  M       0  C     100  N   10000  AR  1.00  CI       0 V    5973 RR 0.00 NR 0  CAR  0.00
+day 0 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 1
+Number of infectious places = 150
+Day   1  Str 0  S    9858  E      57  I      85  I_s      56  R       0  M       0  C      42  N   10000  AR  1.42  CI      56 V    5900 RR 0.00 NR 0  CAR  0.56
+day 1 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 2
+Number of infectious places = 205
+Day   2  Str 0  S    9822  E      46  I     132  I_s      91  R       0  M       0  C      36  N   10000  AR  1.78  CI      35 V    6002 RR 0.00 NR 0  CAR  0.91
+day 2 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 3
+Number of infectious places = 232
+Day   3  Str 0  S    9776  E      56  I     144  I_s      95  R      24  M       0  C      46  N   10000  AR  2.24  CI      28 V    6088 RR 0.00 NR 0  CAR  1.19
+day 3 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 4
+Number of infectious places = 243
+Day   4  Str 0  S    9717  E      67  I     143  I_s      88  R      73  M       0  C      59  N   10000  AR  2.83  CI      32 V    5965 RR 0.00 NR 0  CAR  1.51
+day 4 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 5
+Number of infectious places = 285
+Day   5  Str 0  S    9662  E      62  I     163  I_s      97  R     113  M       0  C      55  N   10000  AR  3.38  CI      38 V    6063 RR 0.00 NR 0  CAR  1.89
+day 5 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 6
+Number of infectious places = 171
+Day   6  Str 0  S    9631  E      45  I     163  I_s     100  R     161  M       0  C      31  N   10000  AR  3.69  CI      41 V    6072 RR 0.00 NR 0  CAR  2.30
+day 6 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 7
+Number of infectious places = 148
+Day   7  Str 0  S    9602  E      34  I     145  I_s      83  R     219  M       0  C      29  N   10000  AR  3.98  CI      25 V    6016 RR 0.00 NR 0  CAR  2.55
+day 7 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 8
+Number of infectious places = 228
+Day   8  Str 0  S    9565  E      43  I     129  I_s      75  R     263  M       0  C      37  N   10000  AR  4.35  CI      20 V    5998 RR 1.09 NR 100  CAR  2.75
+day 8 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 9
+Number of infectious places = 206
+Day   9  Str 0  S    9536  E      39  I     116  I_s      68  R     309  M       0  C      29  N   10000  AR  4.64  CI      25 V    5982 RR 1.00 NR 42  CAR  3.00
+day 9 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 10
+Number of infectious places = 193
+Day  10  Str 0  S    9508  E      35  I     110  I_s      69  R     347  M       0  C      28  N   10000  AR  4.92  CI      24 V    5977 RR 0.92 NR 36  CAR  3.24
+day 10 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 11
+Number of infectious places = 170
+Day  11  Str 0  S    9479  E      32  I     101  I_s      62  R     388  M       0  C      29  N   10000  AR  5.21  CI      19 V    5993 RR 1.09 NR 46  CAR  3.43
+day 11 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 12
+Number of infectious places = 166
+Day  12  Str 0  S    9459  E      29  I      92  I_s      56  R     420  M       0  C      20  N   10000  AR  5.41  CI      15 V    6055 RR 0.81 NR 59  CAR  3.58
+day 12 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 13
+Number of infectious places = 101
+Day  13  Str 0  S    9437  E      25  I      86  I_s      50  R     452  M       0  C      22  N   10000  AR  5.63  CI      19 V    6026 RR 0.60 NR 55  CAR  3.77
+day 13 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 14
+Number of infectious places = 93
+Day  14  Str 0  S    9422  E      16  I      82  I_s      44  R     480  M       0  C      15  N   10000  AR  5.78  CI      13 V    6049 RR 1.03 NR 31  CAR  3.90
+day 14 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 15
+Number of infectious places = 138
+Day  15  Str 0  S    9398  E      28  I      69  I_s      37  R     505  M       0  C      24  N   10000  AR  6.02  CI       6 V    5956 RR 0.79 NR 29  CAR  3.96
+day 15 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 16
+Number of infectious places = 128
+Day  16  Str 0  S    9367  E      37  I      65  I_s      31  R     531  M       0  C      31  N   10000  AR  6.33  CI      14 V    6045 RR 0.81 NR 37  CAR  4.10
+day 16 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 17
+Number of infectious places = 132
+Day  17  Str 0  S    9339  E      35  I      71  I_s      39  R     555  M       0  C      28  N   10000  AR  6.61  CI      19 V    5892 RR 0.86 NR 29  CAR  4.29
+day 17 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 18
+Number of infectious places = 148
+Day  18  Str 0  S    9315  E      31  I      81  I_s      48  R     573  M       0  C      24  N   10000  AR  6.85  CI      23 V    6076 RR 1.07 NR 28  CAR  4.52
+day 18 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 19
+Number of infectious places = 148
+Day  19  Str 0  S    9299  E      22  I      85  I_s      53  R     594  M       0  C      16  N   10000  AR  7.01  CI      17 V    6074 RR 1.07 NR 29  CAR  4.69
+day 19 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 20
+Number of infectious places = 89
+Day  20  Str 0  S    9286  E      18  I      77  I_s      50  R     619  M       0  C      13  N   10000  AR  7.14  CI      13 V    5900 RR 0.70 NR 20  CAR  4.82
+day 20 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 21
+Number of infectious places = 68
+Day  21  Str 0  S    9275  E      15  I      58  I_s      34  R     652  M       0  C      11  N   10000  AR  7.25  CI      10 V    5965 RR 0.64 NR 22  CAR  4.92
+day 21 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 22
+Number of infectious places = 95
+Day  22  Str 0  S    9267  E      12  I      49  I_s      31  R     672  M       0  C       8  N   10000  AR  7.33  CI      10 V    5961 RR 1.27 NR 15  CAR  5.02
+day 22 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 23
+Number of infectious places = 92
+Day  23  Str 0  S    9253  E      15  I      43  I_s      26  R     689  M       0  C      14  N   10000  AR  7.47  CI       6 V    5910 RR 1.17 NR 24  CAR  5.08
+day 23 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 24
+Number of infectious places = 67
+Day  24  Str 0  S    9243  E      14  I      39  I_s      21  R     704  M       0  C      10  N   10000  AR  7.57  CI       6 V    5952 RR 0.87 NR 31  CAR  5.14
+day 24 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 25
+Number of infectious places = 76
+Day  25  Str 0  S    9226  E      18  I      45  I_s      20  R     711  M       0  C      17  N   10000  AR  7.74  CI       5 V    6064 RR 0.71 NR 28  CAR  5.19
+day 25 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 26
+Number of infectious places = 79
+Day  26  Str 0  S    9210  E      21  I      43  I_s      22  R     726  M       0  C      16  N   10000  AR  7.90  CI       9 V    6034 RR 0.67 NR 24  CAR  5.28
+day 26 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 27
+Number of infectious places = 54
+Day  27  Str 0  S    9202  E      12  I      47  I_s      23  R     739  M       0  C       8  N   10000  AR  7.98  CI      10 V    5940 RR 0.75 NR 16  CAR  5.38
+day 27 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 28
+Number of infectious places = 44
+Day  28  Str 0  S    9194  E      10  I      42  I_s      21  R     754  M       0  C       8  N   10000  AR  8.06  CI       7 V    5988 RR 0.62 NR 13  CAR  5.45
+day 28 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 29
+Number of infectious places = 69
+Day  29  Str 0  S    9179  E      16  I      36  I_s      19  R     769  M       0  C      15  N   10000  AR  8.21  CI       7 V    5953 RR 0.73 NR 11  CAR  5.52
+day 29 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 30
+Number of infectious places = 70
+Day  30  Str 0  S    9166  E      15  I      36  I_s      19  R     783  M       0  C      13  N   10000  AR  8.34  CI       9 V    6028 RR 1.25 NR 8  CAR  5.61
+day 30 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 31
+Number of infectious places = 73
+Day  31  Str 0  S    9158  E      10  I      38  I_s      20  R     794  M       0  C       8  N   10000  AR  8.42  CI       6 V    6028 RR 1.64 NR 14  CAR  5.67
+day 31 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 32
+Number of infectious places = 59
+Day  32  Str 0  S    9144  E      20  I      30  I_s      14  R     806  M       0  C      14  N   10000  AR  8.56  CI       3 V    5990 RR 1.20 NR 10  CAR  5.70
+day 32 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 33
+Number of infectious places = 70
+Day  33  Str 0  S    9127  E      19  I      38  I_s      21  R     816  M       0  C      17  N   10000  AR  8.73  CI      14 V    6025 RR 0.82 NR 17  CAR  5.84
+day 33 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 34
+Number of infectious places = 52
+Day  34  Str 0  S    9122  E       7  I      46  I_s      27  R     825  M       0  C       5  N   10000  AR  8.78  CI      11 V    6030 RR 0.81 NR 16  CAR  5.95
+day 34 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 35
+Number of infectious places = 39
+Day  35  Str 0  S    9115  E       7  I      38  I_s      24  R     840  M       0  C       7  N   10000  AR  8.85  CI       6 V    5988 RR 0.50 NR 8  CAR  6.01
+day 35 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 36
+Number of infectious places = 60
+Day  36  Str 0  S    9105  E      11  I      29  I_s      15  R     855  M       0  C      10  N   10000  AR  8.95  CI       3 V    5963 RR 1.12 NR 8  CAR  6.04
+day 36 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 37
+Number of infectious places = 40
+Day  37  Str 0  S    9098  E      12  I      24  I_s      12  R     866  M       0  C       7  N   10000  AR  9.02  CI       5 V    5959 RR 0.93 NR 15  CAR  6.09
+day 37 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 38
+Number of infectious places = 40
+Day  38  Str 0  S    9093  E       6  I      23  I_s      15  R     878  M       0  C       5  N   10000  AR  9.07  CI       8 V    6038 RR 0.85 NR 13  CAR  6.17
+day 38 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 39
+Number of infectious places = 41
+Day  39  Str 0  S    9085  E       8  I      22  I_s      16  R     885  M       0  C       8  N   10000  AR  9.15  CI       6 V    5999 RR 1.25 NR 8  CAR  6.23
+day 39 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 40
+Number of infectious places = 39
+Day  40  Str 0  S    9080  E       6  I      23  I_s      15  R     891  M       0  C       5  N   10000  AR  9.20  CI       4 V    6085 RR 0.50 NR 14  CAR  6.27
+day 40 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 41
+Number of infectious places = 27
+Day  41  Str 0  S    9078  E       4  I      20  I_s      13  R     898  M       0  C       2  N   10000  AR  9.22  CI       3 V    6115 RR 0.71 NR 17  CAR  6.30
+day 41 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 42
+Number of infectious places = 24
+Day  42  Str 0  S    9075  E       4  I      18  I_s      12  R     903  M       0  C       3  N   10000  AR  9.25  CI       3 V    5959 RR 0.60 NR 5  CAR  6.33
+day 42 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 43
+Number of infectious places = 32
+Day  43  Str 0  S    9070  E       5  I      14  I_s       8  R     911  M       0  C       5  N   10000  AR  9.30  CI       3 V    6003 RR 1.57 NR 7  CAR  6.36
+day 43 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 44
+Number of infectious places = 24
+Day  44  Str 0  S    9067  E       3  I      13  I_s       7  R     917  M       0  C       3  N   10000  AR  9.33  CI       3 V    6050 RR 0.90 NR 10  CAR  6.39
+day 44 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 45
+Number of infectious places = 23
+Day  45  Str 0  S    9066  E       1  I      12  I_s       7  R     921  M       0  C       1  N   10000  AR  9.34  CI       2 V    6036 RR 0.57 NR 7  CAR  6.41
+day 45 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 46
+Number of infectious places = 14
+Day  46  Str 0  S    9065  E       1  I       7  I_s       3  R     927  M       0  C       1  N   10000  AR  9.35  CI       1 V    5996 RR 0.40 NR 5  CAR  6.42
+day 46 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 47
+Number of infectious places = 12
+Day  47  Str 0  S    9063  E       2  I       7  I_s       3  R     928  M       0  C       2  N   10000  AR  9.37  CI       0 V    6001 RR 0.88 NR 8  CAR  6.42
+day 47 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 48
+Number of infectious places = 9
+Day  48  Str 0  S    9062  E       1  I       5  I_s       3  R     932  M       0  C       1  N   10000  AR  9.38  CI       2 V    6034 RR 0.80 NR 5  CAR  6.44
+day 48 finished  Tue Dec  7 08:27:23 2010
+================
+sim day = 49
+Number of infectious places = 8
+Day  49  Str 0  S    9060  E       2  I       5  I_s       3  R     933  M       0  C       2  N   10000  AR  9.40  CI       1 V    6037 RR 0.00 NR 2  CAR  6.45
+day 49 finished  Tue Dec  7 08:27:23 2010
+
+FRED run 2 started Tue Dec  7 08:27:23 2010
+
+seed = 12345601
+reset locations entered
+reset locations finished
+reset population entered for run 2
+Number of Residually Immune people = 0
+reset population completed
+================
+sim day = 0
+Number of infectious places = 0
+Day   0  Str 0  S    9900  E     100  I       0  I_s       0  R       0  M       0  C     100  N   10000  AR  1.00  CI       0 V    5963 RR 0.00 NR 0  CAR  0.00
+day 0 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 1
+Number of infectious places = 142
+Day   1  Str 0  S    9877  E      49  I      74  I_s      52  R       0  M       0  C      23  N   10000  AR  1.23  CI      52 V    6043 RR 0.00 NR 0  CAR  0.52
+day 1 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 2
+Number of infectious places = 205
+Day   2  Str 0  S    9846  E      37  I     117  I_s      82  R       0  M       0  C      31  N   10000  AR  1.54  CI      30 V    6004 RR 0.00 NR 0  CAR  0.82
+day 2 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 3
+Number of infectious places = 210
+Day   3  Str 0  S    9814  E      40  I     125  I_s      77  R      21  M       0  C      32  N   10000  AR  1.86  CI      16 V    5931 RR 0.00 NR 0  CAR  0.98
+day 3 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 4
+Number of infectious places = 221
+Day   4  Str 0  S    9786  E      33  I     122  I_s      69  R      59  M       0  C      28  N   10000  AR  2.14  CI      23 V    5984 RR 0.00 NR 0  CAR  1.21
+day 4 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 5
+Number of infectious places = 193
+Day   5  Str 0  S    9763  E      31  I     106  I_s      51  R     100  M       0  C      23  N   10000  AR  2.37  CI      13 V    6080 RR 0.00 NR 0  CAR  1.34
+day 5 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 6
+Number of infectious places = 110
+Day   6  Str 0  S    9745  E      20  I      97  I_s      46  R     138  M       0  C      18  N   10000  AR  2.55  CI      16 V    6069 RR 0.00 NR 0  CAR  1.50
+day 6 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 7
+Number of infectious places = 95
+Day   7  Str 0  S    9732  E      15  I      78  I_s      36  R     175  M       0  C      13  N   10000  AR  2.68  CI      13 V    6125 RR 0.00 NR 0  CAR  1.63
+day 7 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 8
+Number of infectious places = 127
+Day   8  Str 0  S    9713  E      24  I      67  I_s      32  R     196  M       0  C      19  N   10000  AR  2.87  CI       5 V    6028 RR 0.87 NR 100  CAR  1.68
+day 8 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 9
+Number of infectious places = 127
+Day   9  Str 0  S    9694  E      22  I      62  I_s      27  R     222  M       0  C      19  N   10000  AR  3.06  CI      11 V    5958 RR 0.83 NR 23  CAR  1.79
+day 9 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 10
+Number of infectious places = 118
+Day  10  Str 0  S    9674  E      26  I      58  I_s      28  R     242  M       0  C      20  N   10000  AR  3.26  CI      12 V    5933 RR 0.61 NR 31  CAR  1.91
+day 10 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 11
+Number of infectious places = 121
+Day  11  Str 0  S    9660  E      17  I      62  I_s      36  R     261  M       0  C      14  N   10000  AR  3.40  CI      18 V    6022 RR 0.56 NR 32  CAR  2.09
+day 11 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 12
+Number of infectious places = 106
+Day  12  Str 0  S    9646  E      14  I      60  I_s      34  R     280  M       0  C      14  N   10000  AR  3.54  CI      10 V    6047 RR 0.86 NR 28  CAR  2.19
+day 12 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 13
+Number of infectious places = 49
+Day  13  Str 0  S    9639  E      10  I      46  I_s      27  R     305  M       0  C       7  N   10000  AR  3.61  CI       9 V    6027 RR 0.74 NR 23  CAR  2.28
+day 13 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 14
+Number of infectious places = 49
+Day  14  Str 0  S    9631  E      10  I      41  I_s      22  R     318  M       0  C       8  N   10000  AR  3.69  CI       5 V    5961 RR 0.61 NR 18  CAR  2.33
+day 14 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 15
+Number of infectious places = 66
+Day  15  Str 0  S    9620  E      12  I      32  I_s      17  R     336  M       0  C      11  N   10000  AR  3.80  CI       6 V    5985 RR 1.00 NR 13  CAR  2.39
+day 15 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 16
+Number of infectious places = 60
+Day  16  Str 0  S    9608  E      14  I      31  I_s      14  R     347  M       0  C      12  N   10000  AR  3.92  CI       4 V    6012 RR 1.21 NR 19  CAR  2.43
+day 16 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 17
+Number of infectious places = 60
+Day  17  Str 0  S    9601  E       9  I      29  I_s      14  R     361  M       0  C       7  N   10000  AR  3.99  CI       9 V    5951 RR 0.58 NR 19  CAR  2.52
+day 17 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 18
+Number of infectious places = 66
+Day  18  Str 0  S    9592  E      10  I      30  I_s      18  R     368  M       0  C       9  N   10000  AR  4.08  CI       6 V    5994 RR 0.90 NR 20  CAR  2.58
+day 18 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 19
+Number of infectious places = 55
+Day  19  Str 0  S    9587  E       9  I      26  I_s      17  R     378  M       0  C       5  N   10000  AR  4.13  CI       5 V    6021 RR 0.43 NR 14  CAR  2.63
+day 19 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 20
+Number of infectious places = 30
+Day  20  Str 0  S    9584  E       3  I      25  I_s      14  R     388  M       0  C       3  N   10000  AR  4.16  CI       6 V    6109 RR 0.79 NR 14  CAR  2.69
+day 20 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 21
+Number of infectious places = 27
+Day  21  Str 0  S    9579  E       5  I      23  I_s      11  R     393  M       0  C       5  N   10000  AR  4.21  CI       2 V    6024 RR 0.43 NR 7  CAR  2.71
+day 21 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 22
+Number of infectious places = 39
+Day  22  Str 0  S    9575  E       4  I      17  I_s       9  R     404  M       0  C       4  N   10000  AR  4.25  CI       3 V    6000 RR 1.25 NR 8  CAR  2.74
+day 22 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 23
+Number of infectious places = 35
+Day  23  Str 0  S    9574  E       1  I      18  I_s      11  R     407  M       0  C       1  N   10000  AR  4.26  CI       4 V    5903 RR 0.82 NR 11  CAR  2.78
+day 23 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 24
+Number of infectious places = 24
+Day  24  Str 0  S    9571  E       4  I      11  I_s       6  R     414  M       0  C       3  N   10000  AR  4.29  CI       0 V    6087 RR 1.00 NR 12  CAR  2.78
+day 24 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 25
+Number of infectious places = 29
+Day  25  Str 0  S    9569  E       4  I       9  I_s       4  R     418  M       0  C       2  N   10000  AR  4.31  CI       1 V    5991 RR 0.29 NR 7  CAR  2.79
+day 25 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 26
+Number of infectious places = 13
+Day  26  Str 0  S    9566  E       4  I       5  I_s       3  R     425  M       0  C       3  N   10000  AR  4.34  CI       2 V    6074 RR 0.67 NR 9  CAR  2.81
+day 26 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 27
+Number of infectious places = 8
+Day  27  Str 0  S    9564  E       3  I       7  I_s       5  R     426  M       0  C       2  N   10000  AR  4.36  CI       3 V    5958 RR 0.80 NR 5  CAR  2.84
+day 27 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 28
+Number of infectious places = 8
+Day  28  Str 0  S    9564  E       1  I       7  I_s       5  R     428  M       0  C       0  N   10000  AR  4.36  CI       2 V    5967 RR 0.67 NR 3  CAR  2.86
+day 28 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 29
+Number of infectious places = 15
+Day  29  Str 0  S    9564  E       0  I       6  I_s       4  R     430  M       0  C       0  N   10000  AR  4.36  CI       0 V    6055 RR 0.60 NR 5  CAR  2.86
+day 29 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 30
+Number of infectious places = 11
+Day  30  Str 0  S    9564  E       0  I       3  I_s       1  R     433  M       0  C       0  N   10000  AR  4.36  CI       0 V    6044 RR 0.50 NR 4  CAR  2.86
+day 30 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 31
+Number of infectious places = 4
+Day  31  Str 0  S    9563  E       1  I       1  I_s       0  R     435  M       0  C       1  N   10000  AR  4.37  CI       0 V    6009 RR 2.00 NR 1  CAR  2.86
+day 31 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 32
+Number of infectious places = 5
+Day  32  Str 0  S    9563  E       0  I       2  I_s       1  R     435  M       0  C       0  N   10000  AR  4.37  CI       1 V    5935 RR 0.67 NR 3  CAR  2.87
+day 32 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 33
+Number of infectious places = 1
+Day  33  Str 0  S    9563  E       0  I       1  I_s       1  R     436  M       0  C       0  N   10000  AR  4.37  CI       0 V    5969 RR 1.00 NR 2  CAR  2.87
+day 33 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 34
+Number of infectious places = 0
+Day  34  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6046 RR 0.00 NR 3  CAR  2.87
+day 34 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 35
+Number of infectious places = 0
+Day  35  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6029 RR 0.50 NR 2  CAR  2.87
+day 35 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 36
+Number of infectious places = 0
+Day  36  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6048 RR 0.00 NR 0  CAR  2.87
+day 36 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 37
+Number of infectious places = 0
+Day  37  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    5948 RR 0.00 NR 0  CAR  2.87
+day 37 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 38
+Number of infectious places = 0
+Day  38  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    5949 RR 0.00 NR 0  CAR  2.87
+day 38 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 39
+Number of infectious places = 0
+Day  39  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6031 RR 0.00 NR 1  CAR  2.87
+day 39 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 40
+Number of infectious places = 0
+Day  40  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6009 RR 0.00 NR 0  CAR  2.87
+day 40 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 41
+Number of infectious places = 0
+Day  41  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6057 RR 0.00 NR 0  CAR  2.87
+day 41 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 42
+Number of infectious places = 0
+Day  42  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6025 RR 0.00 NR 0  CAR  2.87
+day 42 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 43
+Number of infectious places = 0
+Day  43  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    5985 RR 0.00 NR 0  CAR  2.87
+day 43 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 44
+Number of infectious places = 0
+Day  44  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6106 RR 0.00 NR 0  CAR  2.87
+day 44 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 45
+Number of infectious places = 0
+Day  45  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6028 RR 0.00 NR 0  CAR  2.87
+day 45 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 46
+Number of infectious places = 0
+Day  46  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    5949 RR 0.00 NR 0  CAR  2.87
+day 46 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 47
+Number of infectious places = 0
+Day  47  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    5956 RR 0.00 NR 0  CAR  2.87
+day 47 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 48
+Number of infectious places = 0
+Day  48  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6015 RR 0.00 NR 0  CAR  2.87
+day 48 finished  Tue Dec  7 08:27:24 2010
+================
+sim day = 49
+Number of infectious places = 0
+Day  49  Str 0  S    9563  E       0  I       0  I_s       0  R     437  M       0  C       0  N   10000  AR  4.37  CI       0 V    6028 RR 0.00 NR 0  CAR  2.87
+day 49 finished  Tue Dec  7 08:27:24 2010
+FRED finished Tue Dec  7 08:27:24 2010

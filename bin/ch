@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Env;
+use Fcntl qw(:flock);
+
+# Author: John Grefenstette
+# Date: 15 Mar 2010
+# Purpose: Update the params file
+# Revised: 23 Jan 2012
+
+my $FRED = $ENV{FRED_HOME};
+die "ch: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $usage = "usage: ch parameter-name [ parameter-value [params-file] ]\n";
+die $usage if not @ARGV;
+
+my ($param, $param_value, $params_file) = @ARGV;
+$params_file = "params" if not $params_file;
+# print "param = |$param|\n";
+
+# make sure given param is in the params.default file
+my $params_default = "params.default";
+if (not -e $params_default) {
+  $params_default = "$FRED/input_files/params.default";
+}
+if (not -e $params_default) {
+  die "ch: could not find params.default file\n";
+}
+
+my $x="$param = ";
+$x =~ s/\[/\\[/g;
+$x =~ s/\-/\\-/g;
+$x =~ s/\./\\./g;
+# print "x = |$x|\n";
+my $line = `grep '^$x' $params_default`;
+die "$param not a valid parameter\n" if not $line;
+
+# set locking semaphore
+my $SEMAPHORE = ".params.lck";
+open(S, ">$SEMAPHORE") || die "ch failed to obtain semaphore: ($!)\n";
+flock(S, LOCK_EX);
+
+# read current param file
+open PARAMS_IN, $params_file or die "Can't read param file $params_file\n";
+my @params_in = <PARAMS_IN>;
+close PARAMS_IN;
+
+# count instances of param in the file
+my $found = 0;
+for my $pline (@params_in) {
+  $found += ($pline =~ /^$x/);
+}
+
+# new params
+my @params_out = ();
+
+if ($found) {
+  my $count = 0;
+  for my $pline (@params_in) {
+    if ($pline =~ /^$x/) {
+      $count++;
+      if ($count == $found) {
+	push @params_out, "$param = $param_value\n";
+      }
+      else {
+	push @params_out, $pline;
+      }
+    }
+    else {
+      push @params_out, $pline;
+    }
+  }
+}
+else {
+  # add new param value to end of file if it was not found
+  @params_out = @params_in;
+  push @params_out, "$param = $param_value\n";
+}
+
+# write out new params
+open OUT, ">$params_file" or die "Can't write param file $params_file\n";
+print OUT @params_out;
+close OUT;
+
+print "$param = $param_value\n" if defined $param_value;
+
+# release semaphore
+close S;
+
+exit;

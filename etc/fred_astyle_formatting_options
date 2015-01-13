@@ -1,0 +1,13 @@
+# use this file with astyle (http://astyle.sourceforge.net/) to automatically
+# format FRED source code.  Usage:
+# astyle --options=../etc/fred_astyle_formatting_options *.cc *.h
+# 
+# Above command saves orignial file, renamed as *.orig
+
+--style=java
+--indent=spaces=2
+--indent-col1-comments
+--convert-tabs
+--preserve-date
+--keep-one-line-statements
+--brackets=attach

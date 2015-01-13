@@ -1,0 +1,16 @@
+#!/bin/csh -f
+if( ! $?FRED_HOME ) then
+   echo "Please define FRED_HOME environment variable before running tests";
+   exit
+endif
+
+if (! -d OUT.TEST) mkdir OUT.TEST
+ln -sf ../../../src/params.def .
+$FRED_HOME/bin/FRED params.test > OUT.TEST/LOG
+cmp OUT.TEST/out1.txt OUT.RT/out1.txt
+cmp OUT.TEST/out2.txt OUT.RT/out2.txt
+cmp OUT.TEST/trace1.txt OUT.RT/trace1.txt
+cmp OUT.TEST/trace2.txt OUT.RT/trace2.txt
+cmp OUT.TEST/vacctr1.txt OUT.RT/vacctr1.txt
+cmp OUT.TEST/vacctr2.txt OUT.RT/vacctr2.txt
+echo regression test finished.

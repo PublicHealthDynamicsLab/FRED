@@ -1,0 +1,185 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+$| = 1;
+
+#####################################
+#
+# File: fred_calibrate
+# Author: John Grefenstette
+# 26 Aug 2011
+# Revised: Jan 2012
+#
+# Based on targets proposed by Phil Cooley:
+#
+my $Htarget = 30;
+my $Ntarget = 33;
+my $Starget = 24.66;
+my $Wtarget = 12.34;
+my $CARtarget = 33;		# clinical attack rate
+
+# stopping criteria
+my $days = 100;
+my $threshold = 0.1;
+
+my ($oldparams, $runs, $m) = @ARGV;
+open FH, $oldparams or die "Can't open file old params file\nusage: calibrate params\n";
+$runs = 1 if not $runs;
+$m = 1 if not $m;
+
+my @orig = <FH>;
+close FH;
+
+my $paramsfile = "$oldparams-cal";
+my $paramsfinal = "$oldparams-calibrated";
+
+# get settings for calibration parameters from input file
+my $x = `grep household_contact $oldparams`;
+my @tmp = split " ", $x;
+my $h = pop @tmp;
+$x = `grep neighborhood_contact $oldparams`;
+@tmp = split " ", $x;
+my $n = pop @tmp;
+$x = `grep school_contact $oldparams`;
+@tmp = split " ", $x;
+my $s = pop @tmp;
+$x = `grep workplace_contact $oldparams`;
+@tmp = split " ", $x;
+my $w = pop @tmp;
+
+my $error = $threshold + 1.0;
+my $step = 0;
+while ($error > $threshold) {
+  $step++;
+  my $time = localtime();
+  my $paramsfile = "$oldparams-cal-$step";
+  print "Creating paramsfile $paramsfile\n";
+  open CAL, ">$paramsfile" or die "Can't create paramsfile $paramsfile\n";
+  print CAL @orig;
+  print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
+  print CAL "###  runs = $runs  procs = $m\n";
+  print CAL "days = $days\n";
+  printf CAL "household_contacts[0] = %0.6f\n", $h;
+  printf CAL "neighborhood_contacts[0] = %0.6f\n", $n;
+  printf CAL "school_contacts[0] = %0.6f\n", $s;
+  printf CAL "workplace_contacts[0] = %0.6f\n", $w;
+  print CAL "classroom_contacts[0] = -1\n";
+  print CAL "office_contacts[0] = -1\n";
+  close CAL;
+
+  system "cp $paramsfile $paramsfinal";
+
+  print "###  CALIBRATION PHASE I STEP $step at $time\n";
+  print "###  runs = $runs  procs = $m\n";
+  print "days = $days\n\n";
+  printf "household_contacts[0] = %0.6f\n", $h;
+  printf "neighborhood_contacts[0] = %0.6f\n", $n;
+  printf "school_contacts[0] = %0.6f\n", $s;
+  printf "workplace_contacts[0] = %0.6f\n", $w;
+  print "classroom_contacts[0] = -1\n";
+  print "office_contacts[0] = -1\n";
+
+  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $m";
+  my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
+  chomp $dir;
+
+  system "get_distr $dir";
+  system "cat get_distr.dat";
+  $x = `cat get_distr.dat`;
+  my ($H, $N, $S, $W) = split " ", $x;
+
+  my $CAR = `fred_CAR -k $paramsfile | awk \'{print \$1}\'`;
+  chomp $CAR;
+
+  my $eh = $H - $Htarget;
+  my $en = $N - $Ntarget;
+  my $es = $S - $Starget;
+  my $ew = $W - $Wtarget;
+  my $ea = $CAR - $CARtarget;;
+
+  printf "CAR = %0.6f\n", $CAR;
+  printf "errors: EH = %0.6f EN = %0.6f  ES = %0.6f  EW = %0.6f  EA = %0.6f\n",
+    $eh, $en, $es, $ew, $ea;
+
+  $error = abs($eh) + abs($en) + abs($es) + abs($ew) + abs($ea);
+  printf "total error = %0.6f\n\n\n", $error;
+  
+  if (abs($ea) < 1.0) {
+    $h *= $Htarget / $H;
+    $n *= $Ntarget / $N;
+    $s *= $Starget / $S;
+    $w *= $Wtarget / $W;
+    $error = abs($eh) + abs($en) + abs($es) + abs($ew);
+  }
+  else {
+    # adjust to achieve desired CAR 
+    my $ar_ratio = $CARtarget / $CAR;
+    $h *= $ar_ratio * $Htarget / $H;
+    $n *= $ar_ratio * $Ntarget / $N;
+    $s *= $ar_ratio * $Starget / $S;
+    $w *= $ar_ratio * $Wtarget / $W;
+  }
+}
+
+$error = 100;
+$threshold = 0.01;
+
+while ($error > $threshold) {
+  $step++;
+  my $time = localtime();
+  my $paramsfile = "$oldparams-cal-$step";
+
+  open CAL, ">$paramsfile";
+  print CAL @orig;
+  print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
+  print CAL "###  runs = $runs  procs = $m\n";
+  print CAL "days = $days\n";
+  printf CAL "household_contacts[0] = %0.6f\n", $h;
+  printf CAL "neighborhood_contacts[0] = %0.6f\n", $n;
+  printf CAL "school_contacts[0] = %0.6f\n", $s;
+  printf CAL "workplace_contacts[0] = %0.6f\n", $w;
+  print CAL "classroom_contacts[0] = -1\n";
+  print CAL "office_contacts[0] = -1\n";
+  close CAL;
+
+  system "cp $paramsfile $paramsfinal";
+
+  print "###  CALIBRATION PHASE II STEP $step at $time\n";
+  print "###  runs = $runs  procs = $m\n";
+  print "days = $days\n";
+  printf "household_contacts[0] = %0.6f\n", $h;
+  printf "neighborhood_contacts[0] = %0.6f\n", $n;
+  printf "school_contacts[0] = %0.6f\n", $s;
+  printf "workplace_contacts[0] = %0.6f\n", $w;
+  print "classroom_contacts[0] = -1\n";
+  print "office_contacts[0] = -1\n";
+
+  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $m";
+
+  my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
+  chomp $dir;
+  system "get_distr $dir";
+  system "cat get_distr.dat";
+  $x = `cat get_distr.dat`;
+  my ($H, $N, $S, $W) = split " ", $x;
+
+  my $CAR = `fred_CAR -k $paramsfile | awk \'{print \$1}\'`;
+  chomp $CAR;
+  my $ea = $CAR - $CARtarget;;
+  printf "CAR = %0.4f\n", $CAR;
+  printf "errors: EA = %0.4f\n", $ea;
+  $error = abs($ea);
+  printf "total error = %0.4f\n\n\n", $error;
+  
+  # adjust to achieve desired CAR 
+  my $ar_ratio = $CARtarget / $CAR;
+  $h *= $ar_ratio;
+  $n *= $ar_ratio;
+  $s *= $ar_ratio;
+  $w *= $ar_ratio;
+}
+
+
+

@@ -1,0 +1,38 @@
+FRED Exercises
+
+5. GETTING INFORMATION FROM A FRED JOB
+
+FRED provide several command for retrieving information from a FRED job:
+
+fred_status -k key    print the status of job
+fred_AR -k key        print the final attack rate
+fred_R0 -k key        print the basic reproductive rate
+fred_find -k key      print the location of the job  files
+fred_log -k key       print the last few lines of the log file
+fred_csv -k key       print a csv file with the FRED output variables
+
+Try these commands out on your job "ex4".
+
+
+THE fred_csv COMMAND
+
+You can use the fred_csv command to obtain a report giving the values of
+FRED output variables for each day of the simulation.  If the job
+included multiple runs, you will get the mean and standard deviation for
+each variable, for each day.  You can save this report to a file that
+can be opened using a spreadsheet program, e.g. Excel.  The following
+creates a spreadsheet file of the daily values of all FRED output
+variables, averaged over all runs.
+
+fred_csv -k ex4 > ex4.csv
+
+If you want the data for a single run, e.g., run 2, use:
+
+fred_csv -k ex4 -r 2 > ex4_run2.csv
+
+If you only want the time series for a single output variable, say
+attack rate AR, you could use the command:
+
+fred_csv -k ex4 -v AR > ex4_AR.csv
+
+NOTES:

@@ -1,0 +1,19 @@
+#!/bin/bash
+echo cmp OUT.TEST/out1.txt OUT.RT/out1.txt
+cmp OUT.TEST/out1.txt OUT.RT/out1.txt
+
+echo cmp OUT.TEST/out2.txt OUT.RT/out2.txt
+cmp OUT.TEST/out2.txt OUT.RT/out2.txt
+
+echo cmp OUT.TEST/infections1.txt OUT.RT/infections1.txt
+cmp OUT.TEST/infections1.txt OUT.RT/infections1.txt
+
+echo cmp OUT.TEST/infections2.txt OUT.RT/infections2.txt
+cmp OUT.TEST/infections2.txt OUT.RT/infections2.txt
+
+echo cmp OUT.TEST/vacctr1.txt OUT.RT/vacctr1.txt
+cmp OUT.TEST/vacctr1.txt OUT.RT/vacctr1.txt
+
+echo cmp OUT.TEST/vacctr2.txt OUT.RT/vacctr2.txt
+cmp OUT.TEST/vacctr2.txt OUT.RT/vacctr2.txt
+

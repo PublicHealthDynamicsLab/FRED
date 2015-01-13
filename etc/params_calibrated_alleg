@@ -1,0 +1,55 @@
+popfile = alleg_pop.txt
+locfile = alleg_loc.txt
+profiles = profiles.txt
+trans[0] = 1.0
+symp[0] = 0.67
+# infection model: BIFURCATING = 0 , SEQUENTIAL = 1
+# Bifurcating model: each agent is either SEIR or SEiR
+# Sequential model: each agent is SEiIR
+infection_model[0] = 0
+days_latent[0] = 3       0.0 0.8 1.0
+days_incubating[0] = 4   0.0 0.3 0.8 1.0
+days_asymp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+days_symp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+immunity_loss_rate[0] = 0
+symp_infectivity[0] = 1.0
+asymp_infectivity[0] = 0.5
+residual_immunity_ages[0] = 0
+residual_immunity_values[0] = 0
+at_risk_ages[0] = 0
+at_risk_values[0] = 0
+prob_stay_home = 0.5
+mutation_prob = 1 0.0
+
+# the folowing contacts are calibrated for Allegheny County
+# for a 33% clinical attack rate
+# using the bifurcating SEIR model (SEiIR = 0)
+household_contacts[0] = 0.475
+neighborhood_contacts[0] = 59
+community_contacts[0] = 0
+school_contacts[0] = 8
+classroom_contacts[0] = 13.5
+workplace_contacts[0] = 2
+office_contacts[0] = 8
+
+community_limit[0] = -1
+community_limit_trials = 50
+
+# groups = children adults
+household_prob[0] = 4 0.6 0.3 0.3 0.4
+
+# groups = adult_workers
+workplace_prob[0] = 1 0.0575
+office_prob[0] = 1 0.0575
+
+# groups = patients HCWs
+hospital_prob[0] = 4 0.0 0.01 0.01 0.0575
+
+# groups = elem_students mid_students high_students teachers
+school_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+classroom_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+
+# goups = children adults
+neighborhood_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+community_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+

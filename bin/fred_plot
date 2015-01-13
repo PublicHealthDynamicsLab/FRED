@@ -1,0 +1,269 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my %titles = ( AR => "Attack Rate",
+	       C => "Cases",
+	       CAR => "Clinical Attack Rate",
+	       CI => "Clinical Incidents",
+	       Cls => "Classroom Transmissions",
+	       E => "Exposed",
+	       H => "Household Transmissions",
+	       I => "Infectious",
+	       I_s => "Symptomatics",
+	       M => "Immune",
+	       N => "Pop Size",
+	       Off => "Office Transmissions",
+	       R => "Recovered",
+	       RR => "Reproductive Rate",
+	       S => "Susceptible",
+	       Sch => "School Transmissions",
+	       SM => "Seasonality Mult",
+	       Wrk => "Workplace Transmissions",
+	       X => "Imported Transmissions",
+	       small => "Presenteeism at Small Workplaces",
+	       med => "Presenteeism at Medium Workplaces",
+	       large => "Presenteeism at Large Workplaces",
+	       xlarge => "Presenteeism at Xlarge Workplaces",
+);
+
+my @keys = ();
+my @varlist = ();
+my $year = "0";
+my $xmin = "0";
+my $xmax = "*";
+my $ymin = "0";
+my $ymax = "*";
+my $errorbars;
+my $nameonly;
+my $dataonly;
+my $cleanup;
+my $with = "lines";
+my $title = "FRED: Allegheny County Model";
+my $period = "daily";
+my $weekly;
+my $strain = 0;
+# my $fontsize = "giant";
+# my $fontsize = "large";
+my $fontsize = "medium";
+my $epi;
+my $hist;
+my $normalize;
+my $smooth;
+my $xtics;
+my $legend;
+my $opt_result = GetOptions(
+			    "e" => \$errorbars,
+			    "f=s" => \$fontsize,
+			    "k=s" => \@keys,
+			    "T=s" => \$title,
+			    "v=s" => \@varlist,
+			    "x=i" => \$xmin,
+			    "X=i" => \$xmax,
+			    "y=i" => \$ymin,
+			    "Y=i" => \$ymax,
+			    "clean" => \$cleanup,
+			    "data" => \$dataonly,
+			    "epi" => \$epi,
+			    "errorbars" => \$errorbars,
+			    "font=s" => \$fontsize,
+			    "histogram" => \$hist,
+			    "keys=s" => \@keys,
+			    "legend=s" => \$legend,
+			    "name" => \$nameonly,
+			    "normalize" => \$normalize,
+			    "period=s" => \$period,
+			    "smooth" => \$smooth,
+			    "strain=i" => \$strain,
+			    "title=s" => \$title,
+			    "var=s" => \@varlist,
+			    "weekly" => \$weekly,
+			    "with=s" => \$with,
+			    "xtics=i" => \$xtics,
+			    "xmin=i" => \$xmin,
+			    "xmax=i" => \$xmax,
+			    "Xmax=i" => \$xmax,
+			    "ymin=i" => \$ymin,
+			    "ymax=i" => \$ymax,
+			    "Ymax=i" => \$ymax,
+			   );
+
+# resolve conflicting options
+
+# if attack rates are requested, disable smoothing and weekly sums
+for my $v (@varlist) {
+ if ($v eq "AR" or $v eq "CAR") {  
+   $smooth = 0;
+   $weekly = 0;
+   $legend = "bottom right";
+ }
+}
+
+# histogram overides smoothing
+$smooth = 0 if $hist;
+
+$period = "weekly" if $weekly or $smooth;
+$with = "lines" if not $with;
+my $usage = "usage: fred_plot -k key [-k key ...] -v var [-v var ...][-a start_year|-e|-f fontsize|-x xmin|-y ymin|-X xmax|-Y ymax|-T title]\n";
+
+die $usage if not @keys;
+die $usage if not @varlist;
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $gnuplot = $ENV{FRED_GNUPLOT};
+die "no gnuplot\n" if (not $gnuplot or (not -x $gnuplot));
+
+my $pltfile = "fred_plot-$$.plt";
+my $pngfile = "fred_plot-$$.png";
+
+for my $v (@varlist) {
+  for my $key (@keys) {
+    my $datafile = "fred_plot_data.key=$key-var=$v-$$";
+    get_data($key, $v, $datafile);
+    if ($dataonly) {
+      system "cat $datafile";
+      cleanup();
+      exit;
+    }
+  }
+}
+
+my $n = 0;
+open FH, ">$pltfile";
+print FH <<"EOF";
+set title \"$title\"
+set terminal png $fontsize
+set output \"$pngfile\"
+# set terminal aqua font \"Arial,20\"
+set grid
+set xrange [$xmin:$xmax]
+set yrange [$ymin:$ymax]
+set xlabel \"Days\" offset 0,0.5
+set ylabel \"Individuals\" offset 1.2,0
+EOF
+
+if ($normalize) {
+  print FH "set ylabel \"Per 100,000\" offset 1.2,0\n";
+}
+
+for my $v (@varlist) {
+ if ($v eq "AR" or $v eq "CAR") {  
+   print FH "set ylabel 'Percent Infected' offset 1.2,0\n";
+   print FH "set yrange [0:100]\n";
+ }
+}
+
+if ($hist) {
+  # print FH "set boxwidth 1.0\n";
+  print FH "set style data histogram\n";
+  print FH "set style fill solid border\n";
+  if ($errorbars) {
+    print FH "set style histogram errorbars linewidth 1\n";
+    print FH "set style fill solid 0.3\n";
+    print FH "set bars front\n";
+  }
+}
+
+if ($weekly or $epi) {
+  print FH "set xlabel \"Week\" offset 0,0\n";
+
+}
+
+print FH "set xtics $xtics\n" if $xtics;
+print FH "set key $legend\n" if $legend;
+
+for my $v (@varlist) {
+  my $titlevar = $v;
+  $titlevar = $titles{$v} if exists $titles{$v};
+  for my $key (@keys) {
+    my $ptitle = "$titlevar";
+    $ptitle = "$ptitle-$key" if scalar @keys > 1;
+    print FH ($n == 0)? "plot " : ",\\\n";
+    $n++;
+    my $datafile = "fred_plot_data.key=$key-var=$v-$$";
+    print FH plot_spec($datafile,$ptitle,$n);
+  }
+}
+print FH "\n";
+close FH;
+system ($gnuplot,$pltfile);
+if ($nameonly) {
+  print "$pngfile\n";
+}
+else {
+  system ("open $pngfile");
+}
+cleanup();
+exit;
+
+sub get_data {
+  my ($key, $v, $file) = @_;
+
+  my $bindir = "$FRED/bin";
+  my $id = `$bindir/fred_id $key`;
+  chomp $id;
+  die "fred_plot: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+  my $status = `$bindir/fred_status -k $key`;
+  chomp $status;
+  $status =~ s/\s.*//;
+  die "fred_plot bad status: $status\n" if $status ne "FINISHED";
+
+  my $FREDRESULTS = $ENV{FRED_RESULTS};
+  $FREDRESULTS = $ENV{FRED_HOME} if not $FREDRESULTS;
+  my $reportsdir = "$FREDRESULTS/RESULTS/JOB/$id/DATA/REPORTS";
+  die "fred_plot can't find results\n" if not -d $reportsdir;
+
+  my $datafile = "$reportsdir/$v\_$period-$strain.dat";
+  die "fred_plot: can't find data file $datafile\n" if not -e $datafile;
+  system "cat $datafile > $file";
+}
+
+
+sub cleanup {
+  if ($cleanup) {
+    sleep 5;
+    unlink $pngfile if -e $pngfile;
+    unlink $pltfile if -e $pltfile;
+  }
+  for my $v (@varlist) {
+    for my $key (@keys) {
+      my $datafile = "fred_plot_data.key=$key-var=$v-$$";
+      unlink $datafile if -e $datafile;
+    }
+  }
+}
+
+
+sub plot_spec {
+  my ($datafile,$ptitle,$n) = @_;
+  $smooth = 0 if $weekly;
+  my $x = "(\$1):";
+  $x = "(7*\$1-3.5):" if $smooth;
+  $x = "" if $hist;
+  my $mult = "";
+  $mult = "(100000.0/\$4)*" if $normalize;
+  my $y = "$mult\$2";
+  $y = "$mult\$2/\$8" if $smooth;
+  $y = "$mult\$2" if $hist;
+  my $e = "";
+  $e = "$mult\$3" if $errorbars;
+  $e = "$mult\$3/\$8" if $errorbars and $smooth;
+  my $xtic = "";
+  $xtic = ":xtic(6)" if $epi;
+  my $title = "title '$ptitle'";
+  my $style = "lw 3 lt $n";
+  my $file = "'$datafile'";
+  my $w = "with lines";
+  $w = "smooth csplines" if $smooth or $weekly;
+  $w = "" if $hist;
+
+  my $spec = "";
+  $spec = "$file using $x($y):($e)$xtic notitle wi errorbars $style, \\\n" if $errorbars;
+  $spec .= "$file using $x($y)$xtic $title $w $style";
+  return $spec;
+}

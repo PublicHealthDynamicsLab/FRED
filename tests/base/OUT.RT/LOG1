@@ -1,0 +1,312 @@
+FRED started Fri Aug 10 21:28:05 2012
+param file = params.test
+fred_open_file: opening file /Users/gref/FRED/input_files/params.default for reading
+fred_open_file: opening file params.test for reading
+PARAMS: debug = 1
+PARAMS: test = 0
+PARAMS: quality_control = 0
+PARAMS: rr_delay = 10
+PARAMS: days = 5
+PARAMS: seed = 123456
+PARAMS: epidemic_offset = 0
+PARAMS: vaccine_offset = 0
+PARAMS: start_date = 2012-01-02
+PARAMS: reseed_day = -1
+PARAMS: outdir = OUT.TEST
+PARAMS: tracefile = none
+PARAMS: track_infection_events = 1
+PARAMS: track_age_distribution = 0
+PARAMS: track_network_stats = 0
+PARAMS: track_household_distribution = 0
+PARAMS: vaccine_tracefile = none
+PARAMS: incremental_trace = 0
+PARAMS: trace_headers = 0
+PARAMS: diseases = 1
+PARAMS: enable_behaviors = 0
+PARAMS: prevalencefile = none
+PARAMS: incidencefile = none
+PARAMS: immunity_file = none
+PARAMS: transmissionsfile = none
+PARAMS: strainsfile = none
+PARAMS: enable_protection = 0
+PARAMS: seasonality_timestep_file = none
+PARAMS: track_residual_immunity = 0
+PARAMS: track_multi_strain_stats = 0
+PARAMS: verbose = 1
+PARAMS: debug = 1
+PARAMS: test = 0
+PARAMS: quality_control = 0
+PARAMS: rr_delay = 10
+PARAMS: days = 5
+PARAMS: seed = 123456
+PARAMS: epidemic_offset = 0
+PARAMS: vaccine_offset = 0
+PARAMS: start_date = 2012-01-02
+PARAMS: rotate_start_date = 0
+PARAMS: reseed_day = -1
+PARAMS: outdir = OUT.TEST
+PARAMS: tracefile = none
+PARAMS: track_infection_events = 1
+PARAMS: track_age_distribution = 0
+PARAMS: track_network_stats = 0
+PARAMS: track_household_distribution = 0
+PARAMS: vaccine_tracefile = none
+PARAMS: incremental_trace = 0
+PARAMS: trace_headers = 0
+PARAMS: diseases = 1
+PARAMS: prevalencefile = none
+PARAMS: incidencefile = none
+PARAMS: immunity_file = none
+PARAMS: transmissionsfile = none
+PARAMS: strainsfile = none
+PARAMS: seasonality_timestep_file = none
+PARAMS: work_absenteeism = 0.000000
+PARAMS: school_absenteeism = 0.000000
+PARAMS: seed_age_lower_bound = 0
+PARAMS: seed_age_upper_bound = 120
+PARAMS: enable_large_grid = 0
+PARAMS: enable_small_grid = 0
+PARAMS: enable_aging = 0
+PARAMS: enable_births = 0
+PARAMS: enable_deaths = 0
+PARAMS: enable_mobility = 0
+PARAMS: enable_migration = 0
+PARAMS: enable_travel = 0
+PARAMS: enable_local_workplace_assignment = 0
+PARAMS: enable_seasonality = 0
+PARAMS: enable_climate = 0
+PARAMS: seed_by_age = 0
+PARAMS: enable_vaccination = 0
+PARAMS: enable_antivirals = 0
+PARAMS: use_mean_latitude = 0
+PARAMS: print_household_locations = 0
+PARAMS: report_age_of_infection = 0
+PARAMS: report_place_of_infection = 0
+PARAMS: report_presenteeism = 0
+PARAMS: popfile = $FRED_HOME/region/pop_Alleg.txt
+PARAMS: mutation_prob = 1
+PARAMS: mutation_prob = 1 0.0
+PARAMS: output_population = 0
+Overridden from command line: Output_directory = OUT.TEST
+year = 2012, month = 1, day_of_month = 2
+Date = [2012-01-02]
+year = 2012, month = 1, day_of_month = 2
+Date = [2012-01-02]
+seed = 123456
+
+FRED run 1 started Fri Aug 10 21:28:05 2012
+read places entered
+PARAMS: locfile = $FRED_HOME/region/loc_Alleg.txt
+fred_open_file: opening file /Users/gref/FRED/region/loc_Alleg.txt for reading
+PARAMS: household_contacts[0] = 0.187657
+PARAMS: household_prob[0] = 4
+PARAMS: household_prob[0] = 4 0.6 0.3 0.3 0.4
+PARAMS: school_contacts[0] = 15.824534
+PARAMS: school_prob[0] = 16
+PARAMS: school_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+PARAMS: school_classroom_size = 40
+PARAMS: school_closure_policy = none
+PARAMS: school_closure_day = 10
+PARAMS: school_closure_threshold = 10.000000
+PARAMS: individual_school_closure_threshold = 10.000000
+PARAMS: school_closure_cases = -1
+PARAMS: school_closure_period = 10
+PARAMS: school_closure_delay = 2
+PARAMS: school_summer_schedule = 0
+PARAMS: school_summer_start = 06-01
+PARAMS: school_summer_end = 08-31
+PARAMS: office_size = 50
+PARAMS: small_workplace_size = 50
+PARAMS: medium_workplace_size = 100
+PARAMS: large_workplace_size = 500
+PARAMS: workplace_contacts[0] = 1.647333
+PARAMS: workplace_prob[0] = 1
+PARAMS: workplace_prob[0] = 1 0.0575
+Added  537405        HOUSEHOLD places to Place_List
+Added     476           SCHOOL places to Place_List
+Added   52535        WORKPLACE places to Place_List
+Added       0         HOSPITAL places to Place_List
+finished reading 590416 locations, now creating additional FRED locations
+Grid min_lon = -80.353134
+Grid min_lat = 40.195618
+Grid max_lon = -79.697609
+Grid max_lat = 40.674358
+PARAMS: grid_cell_size = 1.000000
+Grid rows = 54  cols = 58
+Grid max_x = 57.576090  max_y = 53.138302
+Allocated space for    3132 neighborhoods
+PARAMS: weekend_contact_rate[0] = 1.500000
+PARAMS: neighborhood_contacts[0] = 40.843980
+PARAMS: neighborhood_prob[0] = 4
+PARAMS: neighborhood_prob[0] = 4 0.0048 0.0048 0.0048 0.0048
+Added    3132     NEIGHBORHOOD places to Place_List
+read places finished: Places = 593548
+Places.read_places took 2 seconds
+setup population entered
+disease 0 setup entered
+PARAMS: trans[0] = 1.000000
+PARAMS: mortality_rate[0] = 0.000000
+PARAMS: immunity_loss_rate[0] = 0.000000
+PARAMS: primary_cases_file[0] = $FRED_HOME/input_files/primary_case_schedule-0.txt
+
+primary_cases[0] Multistrain_Timestep_Map size = 1
+start day = 0, end day = 0, number of attempts = 100, strain = 0
+
+PARAMS: residual_immunity_ages[0] = 0
+PARAMS: residual_immunity_values[0] = 0
+PARAMS: infection_immunity_prob_ages[0] = 2 0 110
+PARAMS: infection_immunity_prob_values[0] = 1 1.0
+PARAMS: vaccination_immunity_prob_ages[0] = 6 0 2 3 70 71 100
+PARAMS: vaccination_immunity_prob_values[0] = 3 0.5 0.9 0.3
+PARAMS: at_risk_ages[0] = 0
+PARAMS: at_risk_values[0] = 0
+PARAMS: num_strains[0] = 1
+Reading 1 strains for disease 0
+PARAMS: num_amino_acids = 12
+PARAMS: num_strains[0] = 1
+Strain setup finished
+PARAMS: num_strains[0] = 1
+Reading 1 strains for disease 0
+PARAMS: num_amino_acids = 12
+PARAMS: num_strains[0] = 1
+Strain setup finished
+PARAMS: intra_host_model[0] = 0
+PARAMS: symp[0] = 0.670000
+PARAMS: symp_infectivity[0] = 1.000000
+PARAMS: asymp_infectivity[0] = 0.500000
+PARAMS: days_latent[0] = 3
+PARAMS: days_latent[0] = 3       0.0 0.8 1.0
+PARAMS: days_incubating[0] = 4
+PARAMS: days_incubating[0] = 4   0.0 0.3 0.8 1.0
+PARAMS: days_asymp[0] = 7
+PARAMS: days_asymp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: days_symp[0] = 7
+PARAMS: days_symp[0] = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+PARAMS: infection_model[0] = 0
+PARAMS: evolution[0] = 0
+disease 0 setup finished
+read population entered
+fred_open_file: opening file /Users/gref/FRED/region/pop_Alleg.txt for reading
+PARAMS: number_antivirals = 0
+PARAMS: community_distance = 20.000000
+PARAMS: community_prob = 0.100000
+PARAMS: home_neighborhood_prob = 0.500000
+PARAMS: enable_default_sick_behavior = 1
+PARAMS: sick_day_prob = 0.500000
+PARAMS: SLA_mean_sick_days_absent = 2.700000
+PARAMS: SLU_mean_sick_days_absent = 2.700000
+PARAMS: SLA_absent_prob = 0.720000
+PARAMS: SLU_absent_prob = 0.520000
+PARAMS: flu_days = 0.000000
+PARAMS: past_infections = none
+PARAMS: past_infections_delay = 20
+FRED_VERBOSE: <Population.cc, LINE:452> finished reading population, pop_size = 1242755
+number of residually immune people = 0
+population setup finished
+Pop.setup took 9 seconds
+setup classrooms entered
+Allocating space for 6687 classrooms in 476 schools (out of 593548 total places)
+PARAMS: classroom_contacts[0] = -1.000000
+PARAMS: classroom_prob[0] = 16
+PARAMS: classroom_prob[0] = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+Added    6687        CLASSROOM places to Place_List
+setup classrooms finished
+setup offices entered
+PARAMS: office_contacts[0] = -1.000000
+PARAMS: office_prob[0] = 1
+PARAMS: office_prob[0] = 1 0.0575
+Added   57712           OFFICE places to Place_List
+setup offices finished
+assign classrooms entered
+assign classrooms finished
+assign offices entered
+assign offices finished
+assign classrooms and offices took 1 seconds
+prepare places entered
+prepare places finished
+place prep took 0 seconds
+FRED initialization took 0 seconds
+FRED initialization complete Fri Aug 10 21:28:17 2012
+day 0 update places took 0 seconds
+day 0 update population took 0 seconds
+Number of infectious places        =>         0
+Number of infectious households    =>         0
+Number of infectious neighborhoods =>         0
+Number of infectious schools       =>         0
+Number of infectious classrooms    =>         0
+Number of infectious workplaces    =>         0
+Number of infectious offices       =>         0
+day 0 update epidemics took 1 seconds
+Day   0 Date 2012-01-02 Wkday Mon Year 2012 Week  1 Str 0 S 1242655 E     100 I       0 I_s       0 R       0 M       0 C     100 CI       0 AR  0.01 CAR  0.00 RR 0.00 N 1242755
+day 0 report population took 0 seconds
+day 0 finished Fri Aug 10 21:28:18 2012
+day 0 took 1 seconds
+day 0 maxrss 1443659776
+day 1 update places took 0 seconds
+day 1 update population took 0 seconds
+DAY 0 ABSENTEEISM: work absent 0 present 0 0.00  school absent 0 present 0 0.00
+Number of infectious places        =>       178
+Number of infectious households    =>        72
+Number of infectious neighborhoods =>        46
+Number of infectious schools       =>        10
+Number of infectious classrooms    =>        10
+Number of infectious workplaces    =>        20
+Number of infectious offices       =>        20
+day 1 update epidemics took 0 seconds
+Day   1 Date 2012-01-03 Wkday Tue Year 2012 Week  1 Str 0 S 1242616 E      67 I      72 I_s      48 R       0 M       0 C      39 CI      48 AR  0.01 CAR  0.00 RR 0.00 N 1242755
+day 1 report population took 0 seconds
+day 1 finished Fri Aug 10 21:28:18 2012
+day 1 took 0 seconds
+day 1 maxrss 1445224448
+day 2 update places took 0 seconds
+day 2 update population took 0 seconds
+DAY 1 ABSENTEEISM: work absent 13 present 10 0.54  school absent 2 present 5 0.25
+Number of infectious places        =>       307
+Number of infectious households    =>       122
+Number of infectious neighborhoods =>        81
+Number of infectious schools       =>        15
+Number of infectious classrooms    =>        19
+Number of infectious workplaces    =>        35
+Number of infectious offices       =>        35
+day 2 update epidemics took 0 seconds
+Day   2 Date 2012-01-04 Wkday Wed Year 2012 Week  1 Str 0 S 1242544 E      80 I     131 I_s      91 R       0 M       0 C      72 CI      43 AR  0.02 CAR  0.01 RR 0.00 N 1242755
+day 2 report population took 0 seconds
+day 2 finished Fri Aug 10 21:28:18 2012
+day 2 took 0 seconds
+day 2 maxrss 1446760448
+day 3 update places took 0 seconds
+day 3 update population took 0 seconds
+DAY 2 ABSENTEEISM: work absent 20 present 22 0.47  school absent 12 present 14 0.44
+Number of infectious places        =>       391
+Number of infectious households    =>       161
+Number of infectious neighborhoods =>       107
+Number of infectious schools       =>        20
+Number of infectious classrooms    =>        29
+Number of infectious workplaces    =>        37
+Number of infectious offices       =>        37
+day 3 update epidemics took 1 seconds
+Day   3 Date 2012-01-05 Wkday Thu Year 2012 Week  1 Str 0 S 1242431 E     132 I     192 I_s     132 R       0 M       0 C     113 CI      41 AR  0.03 CAR  0.01 RR 0.00 N 1242755
+day 3 report population took 0 seconds
+day 3 finished Fri Aug 10 21:28:19 2012
+day 3 took 1 seconds
+day 3 maxrss 1448009728
+day 4 update places took 0 seconds
+day 4 update population took 0 seconds
+DAY 3 ABSENTEEISM: work absent 29 present 26 0.52  school absent 22 present 23 0.48
+Number of infectious places        =>       534
+Number of infectious households    =>       225
+Number of infectious neighborhoods =>       148
+Number of infectious schools       =>        25
+Number of infectious classrooms    =>        41
+Number of infectious workplaces    =>        47
+Number of infectious offices       =>        48
+day 4 update epidemics took 0 seconds
+Day   4 Date 2012-01-06 Wkday Fri Year 2012 Week  1 Str 0 S 1242268 E     188 I     279 I_s     198 R      20 M       0 C     163 CI      78 AR  0.04 CAR  0.02 RR 0.00 N 1242755
+day 4 report population took 0 seconds
+day 4 finished Fri Aug 10 21:28:19 2012
+day 4 took 0 seconds
+day 4 maxrss 1450016768
+
+FRED simulation complete. Excluding initialization, 5 days took 2 seconds
+FRED finished Fri Aug 10 21:28:19 2012
+FRED took 14 seconds

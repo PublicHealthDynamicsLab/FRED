@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+system "rm -f tmp.age.distr*"; 
+my ($id) = @ARGV;
+my $dir = "OUT";
+$dir = "RESULTS/RUN/$id/DATA/OUT" if $id;
+
+for my $r (1..20) {
+  my $file = "$dir/trace$r.txt";
+  next if not -e "$file";
+  open TR, $file;
+  my $out = "tmp.age.distr-$r";
+  open FH, ">$out";
+  my $n = 0;
+  my %age_exposed = ();
+  my %age_count = ();
+  for my $d (0..8) {
+    my $age = 10*$d;
+    $age_exposed{$age} = 0;
+    $age_count{$age} = 0;
+  }
+  while (my $line = <TR>) {
+    my @a = split " ", $line;
+    my $age = $a[5];
+    my $low = $age - ($age % 10);
+    $age_count{$low}++;
+    $age_exposed{$low}++ if ($a[1] ne 'S') and ($a[1] ne 'M');
+    $n++;
+  }
+  for my $i (0..8) {
+    my $age = 10*$i;
+    my $x = 100 * $age_exposed{$age} / $age_count{$age} if $age_count{$age};
+    printf FH "%d %d %5.2f %d %d\n", $age, $age+9, $x, $age_count{$age}, $age_exposed{$age};
+  }
+  close FH;
+  close TR;
+}
+system "$FRED_HOME/bin/stats tmp.age.distr* > age.distr"; 
+system "/usr/local/bin/gnuplot age.plt";
+
+
+
+
