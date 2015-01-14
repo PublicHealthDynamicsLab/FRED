@@ -2,9 +2,15 @@
 use strict;
 use warnings;
 
+my $usage = "usage: $0 infile outfile";
+my ($infile,$outfile) = @ARGV;
+$infile = "US_birth_rates_2010.txt"  if not $infile;
+$outfile = "birth_rates.txt"  if not $outfile;
+die $usage if not -e $infile;
+
 my ($notes,$years,$ages,$births,$fpop,$rate) = ();
-open OUT,">birth_rates.txt";
-open IN,"US_birth_rates_2010.txt";
+open IN,$infile or die "FILE $infile not found\n$usage\n";
+open OUT,">$outfile" or die "$usage\n";
 <IN>;
 for my $group (1..6) {
   my $line = <IN>;
