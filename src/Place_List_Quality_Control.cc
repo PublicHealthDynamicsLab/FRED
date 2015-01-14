@@ -33,7 +33,7 @@ void Place_List::report_school_distributions(int day) {
   }
   fprintf(Global::Statusfp, "\n");
 
-  return;
+  // return;
 
   int year = day / 365;
   char filename [FRED_STRING_SIZE];
@@ -45,6 +45,7 @@ void Place_List::report_school_distributions(int day) {
     if (places[p]->get_type() == Place::SCHOOL) {
       Place *h = places[p];
       fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size()-h->get_staff_size(), h->get_size()-h->get_staff_size());
+      /*
       School * s = static_cast<School *>(h);
       for (int a = 1; a <=20; a++) {
 	if (s->get_orig_students_in_grade(a) > 0) {
@@ -53,6 +54,7 @@ void Place_List::report_school_distributions(int day) {
 	}
       }
       fprintf(fp,"\n");
+      */
     }
   }
   fclose(fp);

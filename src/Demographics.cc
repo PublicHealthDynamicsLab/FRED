@@ -40,6 +40,7 @@ double Demographics::birth_rate[Demographics::MAX_AGE + 1];
 double Demographics::adjusted_birth_rate[Demographics::MAX_AGE + 1];
 double Demographics::pregnancy_rate[Demographics::MAX_AGE + 1];
 int Demographics::target_popsize = 0;
+int Demographics::control_population_growth_rate = 1;
 double Demographics::population_growth_rate = 0.0;
 double Demographics::college_departure_rate = 0.0;
 double Demographics::military_departure_rate = 0.0;
@@ -370,6 +371,7 @@ void Demographics::initialize_static_variables() {
     fflush(Global::Statusfp);
   }
 
+  Params::get_param_from_string("control_population_growth_rate", &(Demographics::control_population_growth_rate));
   Params::get_param_from_string("population_growth_rate", &(Demographics::population_growth_rate));
   Params::get_param_from_string("birth_rate_file", birth_rate_file);
   Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
@@ -539,8 +541,9 @@ void Demographics::update_population_dynamics(int day) {
   // find the adjustment level that will achieve the target population, if possible.
   // Note: a value of 0.5 will leave birth and death rates as they are.
   double adjustment_factor = 0.5;
-  if (projected_range > 0)
+  if (Demographics::control_population_growth_rate == 1 && projected_range > 0) {
     adjustment_factor = (Demographics::target_popsize - min_projected_popsize) / projected_range;
+  }
 
   // adjustment_factor = 1 means that births are doubled and deaths are eliminated.
   // the resulting population size will be max_projected_popsize.
@@ -587,8 +590,8 @@ void Demographics::update_population_dynamics(int day) {
   projected_popsize = current_popsize + projected_births - projected_deaths;
 
   FRED_VERBOSE(0,
-	       "POPULATION_DYNAMICS: year %d popsize %d births = %d deaths = %d exp_popsize = %d exp_births = %0.0f  exp_deaths = %0.0f birth_adj %0.3f death_adj %0.3f\n",
-	       year, current_popsize, births, deaths,
+	       "POPULATION_DYNAMICS: year %d popsize %d births = %d deaths = %d target = %d exp_popsize = %d exp_births = %0.0f  exp_deaths = %0.0f birth_adj %0.3f death_adj %0.3f\n",
+	       year, current_popsize, births, deaths, target_popsize,
 	       projected_popsize, projected_births, projected_deaths,
 	       birth_rate_adjustment, death_rate_adjustment); 
 
