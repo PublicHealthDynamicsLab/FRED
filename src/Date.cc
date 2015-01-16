@@ -44,6 +44,11 @@ const string Date::DDMMYYYY = string("DD/MM/YYYY");
 const string Date::DDMMYY = string("DD/MM/YY");
 const string Date::YYYYMMDD = string("YYYY-MM-DD");
 
+int Date::today = 0;
+int Date::epoch_year = 0;
+int Date::offset = 0;
+date_t * Date::date = NULL;
+
 bool Date::is_initialized = false;
 vector<int> Date::day_of_month_vec;
 vector<int> Date::month_vec;
@@ -623,6 +628,10 @@ int Date::get_day_of_year(int year, int month, int day_of_month) {
   return day_of_year;
 }
 
+int Date::get_days_in_month(int month, int year) {
+  return Date::day_table[(Date::is_leap_year(year) ? 1 : 0)][month];
+}
+
 int Date::get_day_of_week(int year, int month, int day_of_month) {
   int x = 0, y = 0;
   int weekday = -1;
@@ -1001,5 +1010,93 @@ bool Date::is_weekday() {
   return !this->is_weekend();
 }
 
+void Date::set_dates(int year, int month, int day_of_month) {
+  date = new date_t [ MAX_DATES ];
+  epoch_year = year - 125;
+  epoch_year = year - 10;
+  date[0].year = epoch_year;
+  date[0].month = 1;
+  date[0].day_of_month = 1;
+  date[0].day_of_year = 1;
 
+  // assign the right epi week number:
+  int jan_1_day_of_week = date[0].day_of_week;
+  int dec_31_day_of_week = (jan_1_day_of_week + (Date::is_leap_year(epoch_year)? 365 : 364)) % 7;
+  bool short_week;
+  if (jan_1_day_of_week < 3) {
+    date[0].epi_week = 1;
+    date[0].epi_year = epoch_year;
+    short_week = false;
+  }
+  else {
+    date[0].epi_week = 52;
+    date[0].epi_year = epoch_year-1;
+    short_week = true;
+  }
+
+  for (int i = 0; i < MAX_DATES-1; i++) {
+    int new_year = date[i].year;
+    int new_month = date[i].month;
+    int new_day_of_month = date[i].day_of_month + 1;
+    int new_day_of_year = date[i].day_of_year + 1;
+    int new_day_of_week = (date[i].day_of_week + 1) % 7;
+    if (new_day_of_month > Date::get_days_in_month(new_month,new_year)) {
+      new_day_of_month = 1;
+      if (new_month < 12) {
+	new_month++;
+      }
+      else {
+	new_year++;
+	new_month = 1;
+	new_day_of_year = 1;
+      }
+    }
+    date[i+1].year = new_year;
+    date[i+1].month = new_month;
+    date[i+1].day_of_month = new_day_of_month;
+    date[i+1].day_of_year = new_day_of_year;
+    date[i+1].day_of_week = new_day_of_week;
+
+    // set epi_week and epi_year
+    if (new_month == 1 && new_day_of_month == 1) {
+      jan_1_day_of_week = new_day_of_week;
+      dec_31_day_of_week = (jan_1_day_of_week + (Date::is_leap_year(new_year)? 365 : 364)) % 7;
+      if (jan_1_day_of_week <= 3) {
+	date[i+1].epi_week = 1;
+	date[i+1].epi_year = new_year;
+	short_week = false;
+      }
+      else {
+	date[i+1].epi_week = date[i].epi_week;
+	date[i+1].epi_year = date[i].epi_year;
+	short_week = true;
+      }
+    }
+    else {
+      if ((new_month == 1) && short_week && (new_day_of_month <= 7 - jan_1_day_of_week)) {
+	date[i+1].epi_week = date[i].epi_week;
+	date[i+1].epi_year = date[i].epi_year;
+      }
+      else {
+	if ((new_month == 12) &&
+	    (dec_31_day_of_week < 3) && 
+	    (31 - dec_31_day_of_week) <= new_day_of_month) {
+	  date[i+1].epi_week = 1;
+	  date[i+1].epi_year = new_year+1;
+	}
+	else {
+	  date[i+1].epi_week = (short_week ? 0 : 1) + (jan_1_day_of_week + new_day_of_year - 1) / 7;
+	  date[i+1].epi_year = new_year;
+	}
+      }
+    }
+
+
+    // set offset 
+    if (date[i].year == year && date[i].month == month and date[i].day_of_month == day_of_month) {
+      offset = i;
+    }
+  }
+  today = 0;
+}
 

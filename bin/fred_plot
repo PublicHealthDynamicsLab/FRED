@@ -67,6 +67,7 @@ my $outfile = "";
 my $help = "";
 my $show_year = 0;
 my $show_vars = 0;
+my $run = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
@@ -97,6 +98,7 @@ my $opt_result = GetOptions(
 			    "legend=s" => \$legend,
 			    "n" => \$normalize,
 			    "normalize" => \$normalize,
+			    "r=i" => \$run,
 			    "s=f" => \$scale,
 			    "scale=f" => \$scale,
 			    "smooth" => \$smooth,
@@ -120,29 +122,30 @@ my $opt_result = GetOptions(
 
 my $usage = <<EOH;
 usage: fred_plot -k key -v var [ options ], where options include:
-       -a: show individual runs.
+       -a: show all individual runs.
        -b: plot bar charts instead of curves.
        -d 0/1 : display the image file (default = 1).
        -e: include errorbars on plot.
-       -f font : use the named font
-       -F fontsize: specify font size
+       -f font : use the named font.
+       -F fontsize: specify font size.
        -h: print this help message.
-       -k key [ -k key ... ]: keys of jobs to plot
+       -k key [ -k key ... ]: keys of jobs to plot.
        -n: scale y-axis to show counts per <s> people.
        -o outfile: send output image to indicated file.
-       -s <s> : scale factor for normalization
+       -r <n>: show individual run <n>.
+       -s <s> : scale factor for normalization.
        -t title: Title to appear on plot.
        -v var [ -v var ... ]: variable to be plotted.
-       -V : show available plottabel variables.
+       -V : list available plotable variables.
        -w: plot variables averaged over epi weeks.
        -x xmin: min value for x-axis.
        -X xmax: max value for x-axis.
        -y ymin: min value for y-axis.
        -Y ymax: max value for y-axis.
-       --xtics <n>: put xtics every <n> units
-       --xlabel <s>: label the x axis with "s"
-       --ylabel <s>: label the y axis with "s"
-       --year 1: show year in xtics
+       --xtics <n>: put xtics every <n> units.
+       --xlabel <s>: label the x axis with "s".
+       --ylabel <s>: label the y axis with "s".
+       --year 1: show year in xtics.
 EOH
 
 die $usage if $help;
@@ -196,12 +199,15 @@ else {
 
 for my $v (@varlist) {
   for my $key (@keys) {
-    get_data($key, $v, 0);
+    get_data($key, $v, 0) if ($all or not $run);
     if ($all) {
       my $runs = get_runs($key);
-      for my $run (1..$runs) {
-	get_data($key, $v, $run);
+      for my $run_number (1..$runs) {
+	get_data($key, $v, $run_number);
       }
+    }
+    elsif ($run) {
+      get_data($key, $v, $run);
     }
   }
 }
@@ -299,13 +305,16 @@ for my $v (@varlist) {
     my $plotcmd = ($n == 0);
     $n++;
     print FH "plot \\\n" if $plotcmd;
-    print FH plot_command($ptitle,$n,0);
+    print FH plot_command($ptitle,$n,0) if ($all or not $run);
     $plotcmd = 0;
     if ($all) {
       my $runs = get_runs($key);
-      for my $run (1..$runs) {
-	print FH plot_command("",$n,$run);
+      for my $run_number (1..$runs) {
+	print FH plot_command("",$n,$run_number);
       }
+    }
+    elsif ($run) {
+      print FH plot_command("",$n,$run);
     }
   }
 }
@@ -384,6 +393,7 @@ sub plot_command {
 
   # line width
   my $lw = "lt $n lw 5";
+  $lw = "lt -1 lw 3" if ($run == 0 and $all);
   $lw = "lt $run lw 0.5" if $run > 0;
   $lw = "" if $boxes;
 

@@ -22,6 +22,18 @@
 
 using namespace std;
 
+#define MAX_DATES (250*366)
+
+struct date_t {
+  int year;
+  int month;
+  int day_of_year;
+  int day_of_month;
+  int day_of_week;
+  int epi_year;
+  int epi_week;
+};
+
 class Date {
 public:
   static const int SUNDAY = 0;
@@ -197,6 +209,11 @@ public:
 
   static int get_epoch_start_year() { return Date::EPOCH_START_YEAR; }
 private:
+  static int today;
+  static int epoch_year;
+  static int offset;
+  static date_t * date;
+
   static const int EPOCH_START_YEAR = 1700;
   static const int day_table[2][13];
   static const int doomsday_month_val[2][13];
@@ -212,12 +229,14 @@ private:
   int day_of_week;
   int day_of_year;
 
+  static void set_dates(int year, int month, int day_of_month);
   static void initialize_vectors();
   static void add_to_vectors(int _days_since_jan_1_epoch_year);
   static int get_doomsday_month(int month, int year)
   { return Date::doomsday_month_val[(Date::is_leap_year(year) ? 1 : 0)][month]; }
   static int get_doomsday_century(int year);
   static int get_day_of_week(int year, int month, int day_of_month);
+  static int get_days_in_month(int month, int year);
   //char date_string[32];
 };
 
