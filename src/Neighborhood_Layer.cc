@@ -32,7 +32,6 @@ using namespace std;
 #include "Utils.h"
 #include "Household.h"
 #include "Population.h"
-#include "Date.h"
 #include "Regional_Layer.h"
 
 Neighborhood_Layer::Neighborhood_Layer() {

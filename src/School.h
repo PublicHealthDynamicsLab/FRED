@@ -100,6 +100,10 @@ private:
   static int school_summer_schedule;
   static char school_summer_start[];
   static char school_summer_end[];
+  static int summer_start_month;
+  static int summer_start_day;
+  static int summer_end_month;
+  static int summer_end_day;
   static int school_classroom_size;
   static double * school_contacts_per_day;
   static bool global_closure_is_active;

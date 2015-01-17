@@ -29,7 +29,6 @@ using namespace std;
 #include "Utils.h"
 #include "Household.h"
 #include "Population.h"
-#include "Date.h"
 
 Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo maxlon, fred::geo maxlat) {
   this->min_lon = minlon;

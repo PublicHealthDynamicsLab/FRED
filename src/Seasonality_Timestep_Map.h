@@ -153,6 +153,7 @@ public:
     }
 
     void print() {
+      /*
       for(unsigned i = 0; i < sim_day_ranges.size(); i++) {
       Date * tmp_start_date = Global::Sim_Start_Date->clone();
       Date * tmp_end_date = Global::Sim_Start_Date->clone();
@@ -165,6 +166,7 @@ public:
         delete tmp_start_date;
         delete tmp_end_date;
       }
+      */
     }
 
   private:

@@ -99,8 +99,9 @@ void Seasonality_Timestep_Map::print() {
 }
 
 bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD, string endMMDD) {
+  /*
   int years = 0.5 + (Global::Days / 365);
-  int startYear = Global::Sim_Start_Date->get_year();
+  int startYear = Date::get_year();
   string dateFormat = string("YYYY-MM-DD");
   for(int y = startYear; y <= startYear + years; y++) {
 
@@ -115,13 +116,13 @@ bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD,
     string end_dateStr = ss_e.str();
 
     if(!(Date::is_leap_year(y))) {
-      if(Date::parse_month_from_date_string(startDateStr, dateFormat) == 2
-          && Date::parse_day_of_month_from_date_string(startDateStr, dateFormat) == 29) {
+      if(parse_month_from_date_string(startDateStr, dateFormat) == 2
+          && parse_day_of_month_from_date_string(startDateStr, dateFormat) == 29) {
         ss_s2 << y << "-" << "03-01";
         startDateStr = ss_s2.str();
       }
-      if(Date::parse_month_from_date_string(end_dateStr, dateFormat) == 2
-          && Date::parse_day_of_month_from_date_string(end_dateStr, dateFormat) == 29) {
+      if(parse_month_from_date_string(end_dateStr, dateFormat) == 2
+          && parse_day_of_month_from_date_string(end_dateStr, dateFormat) == 29) {
         ss_e2 << y << "-" << "03-01";
         end_dateStr = ss_e2.str();
       }
@@ -144,8 +145,65 @@ bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD,
       simEndDay = Date::days_between(0, &end_dateObj);
       this->sim_day_ranges.push_back(pair<int, int>(simStartDay, simEndDay));
     }
-
   }
+  */
   return true;
+}
+
+int parse_month_from_date_string(string date_string, string format_string) {
+  string temp_str;
+  string current_date = Date::get_date_string();
+  if (format_string.compare(current_date) == 0) {
+    size_t pos_1, pos_2;
+    pos_1 = date_string.find('-');
+    if (pos_1 != string::npos) {
+      pos_2 = date_string.find('-', pos_1 + 1);
+      if (pos_2 != string::npos) {
+        temp_str = date_string.substr(pos_1 + 1, pos_2 - pos_1 - 1);
+        int i;
+        istringstream my_stream(temp_str);
+        if(my_stream >> i)
+          return i;
+      }
+    }
+    return -1;
+  }
+  return -1;
+}
+
+int parse_day_of_month_from_date_string(string date_string, string format_string) {
+  string temp_str;
+  string current_date = Date::get_date_string();
+  if (format_string.compare(current_date) == 0) {
+    size_t pos;
+    pos = date_string.find('-', date_string.find('-') + 1);
+    if (pos != string::npos) {
+      temp_str = date_string.substr(pos + 1);
+      int i;
+      istringstream my_stream(temp_str);
+      if (my_stream >> i)
+        return i;
+    }
+    return -1;
+  }
+  return -1;
+}
+
+int parse_year_from_date_string(string date_string, string format_string) {
+  string temp_str;
+  string current_date = Date::get_date_string();
+  if (format_string.compare(current_date) == 0) {
+    size_t pos;
+    pos = date_string.find('-');
+    if (pos != string::npos) {
+      temp_str = date_string.substr(0, pos);
+      int i;
+      istringstream my_stream(temp_str);
+      if (my_stream >> i)
+        return i;
+    }
+    return -1;
+  }
+  return -1;
 }
 

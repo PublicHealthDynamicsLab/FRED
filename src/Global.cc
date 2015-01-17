@@ -33,6 +33,7 @@ char Global::Simulation_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
 unsigned long Global::Simulation_seed = 1;
 time_t Global::Simulation_start_time = 0;
+int Global::Simulation_Day = 0;
 
 // global runtime parameters
 char Global::Synthetic_population_directory[FRED_STRING_SIZE];
@@ -137,8 +138,8 @@ Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;
 Visualization_Layer* Global::Visualization;
 Vector_Layer* Global::Vectors;
-Date* Global::Sim_Start_Date = NULL;
-Date* Global::Sim_Current_Date = NULL;
+// Date* Global::Sim_Start_Date = NULL;
+// Date* Global::Sim_Current_Date = NULL;
 Evolution* Global::Evol = NULL;
 Seasonality* Global::Clim = NULL;
 Tracker<int>* Global::Daily_Tracker = NULL;

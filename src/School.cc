@@ -39,6 +39,10 @@ int School::school_closure_delay = 0;
 int School::school_summer_schedule = 0;
 char School::school_summer_start[8];
 char School::school_summer_end[8];
+int School::summer_start_month = 0;
+int School::summer_start_day = 0;
+int School::summer_end_month = 0;
+int School::summer_end_day = 0;
 
 //Private static variable to assure we only lookup parameters once
 bool School::school_parameters_set = false;
@@ -113,6 +117,8 @@ void School::get_parameters(int diseases) {
   Params::get_param_from_string("school_summer_schedule", &School::school_summer_schedule);
   Params::get_param_from_string("school_summer_start", School::school_summer_start);
   Params::get_param_from_string("school_summer_end", School::school_summer_end);
+  sscanf(School::school_summer_start, "%d-%d", &School::summer_start_month, &School::summer_start_day);
+  sscanf(School::school_summer_end, "%d-%d", &School::summer_end_month, &School::summer_end_day);
 
   int Weeks;
   Params::get_param_from_string("Weeks", &Weeks);
@@ -157,14 +163,18 @@ bool School::should_be_open(int day, int disease_id) {
     return false;
 
   // summer break
-  if(School::school_summer_schedule > 0
-      && Date::day_in_range_MMDD(Global::Sim_Current_Date, School::school_summer_start,
-          School::school_summer_end)) {
-    if(Global::Verbose > 1) {
-      fprintf(Global::Statusfp, "School %s closed for summer\n", label);
-      fflush(Global::Statusfp);
+  if(School::school_summer_schedule > 0) {
+    int month = Date::get_month();
+    int day_of_month = Date::get_day_of_month();
+    if ((month == School::summer_start_month && School::summer_start_day <= day_of_month) ||
+	(month == School::summer_end_month && day_of_month <= School::summer_end_day) ||
+	(School::summer_start_month < month && month < School::summer_end_month)) {
+      if(Global::Verbose > 1) {
+	fprintf(Global::Statusfp, "School %s closed for summer\n", label);
+	fflush(Global::Statusfp);
+      }
+      return false;
     }
-    return false;
   }
 
   // stick to previously made decision to close

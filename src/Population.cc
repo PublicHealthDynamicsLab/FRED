@@ -57,12 +57,13 @@ int Population::next_id = 0;
 Population::Population() {
 
   clear_static_arrays();
-  this->birthday_map.clear();
   this->pop_size = 0;
   this->disease = NULL;
   this->av_manager = NULL;
   this->vacc_manager = NULL;
 
+  // clear birthday lists
+  this->birthday_map.clear();
   for(int i = 0; i < 367; ++i) {
     this->birthday_vecs[i].clear();
   }
@@ -153,17 +154,7 @@ Person* Population::add_person(int age, char sex, int race, int rel, Place* hous
   this->pop_size = blq.size();
 
   if(Global::Enable_Population_Dynamics) {
-    Demographics* demographics = person->get_demographics();
-    int pos = demographics->get_birth_day_of_year();
-    //Check to see if the day of the year is after FEB 28
-    if(pos > 59 && !Date::is_leap_year(demographics->get_birth_year())) {
-      pos++;
-    }
-    this->birthday_vecs[pos].push_back(person);
-    FRED_VERBOSE(2,
-        "Adding person %d to birthday vector for day = %d.\n ... birthday_vecs[ %d ].size() = %zu\n",
-        id, pos, pos, birthday_vecs[ pos ].size());
-    this->birthday_map[person] = ((int)this->birthday_vecs[pos].size() - 1);
+    add_to_birthday_list(person);
   }
   return person;
 }
@@ -671,37 +662,7 @@ void Population::update(int day) {
   this->maternity_list.clear();
 
   if(Global::Enable_Population_Dynamics) {
-
-    //Find out if we are currently in a leap year
-    int year = Global::Sim_Start_Date->get_year(day);
-    int day_of_year = Date::get_day_of_year(year, Global::Sim_Start_Date->get_month(day),
-        Global::Sim_Start_Date->get_day_of_month(day));
-
-    int bd_count = 0;
-    size_t vec_size = 0;
-
-    FRED_VERBOSE(1, "day_of_year = [%d]\n", day_of_year);
-
-    bool is_leap = Date::is_leap_year(year);
-
-    FRED_VERBOSE(2, "Day: %d, Year: %d, is_leap: %d\n", day_of_year, year, is_leap);
-
-    // All birthdays except Feb. 29 ( unless in leap year ) 
-    if(day_of_year != 60 || is_leap) {
-      for(size_t p = 0; p < this->birthday_vecs[day_of_year].size(); ++p) {
-        this->birthday_vecs[day_of_year][p]->birthday(day);
-        bd_count++;
-      }
-    }
-
-    //If we are NOT in a leap year, then we need to do all of the day 60 (feb 29) birthdays on day 61
-    if(!is_leap && day_of_year == 61) {
-      for(size_t p = 0; p < this->birthday_vecs[60].size(); p++) {
-        this->birthday_vecs[60][p]->birthday(day);
-        bd_count++;
-      }
-    }
-    FRED_VERBOSE(1, "birthday count = [%d]\n", bd_count);
+    update_people_on_birthday_list(day);
   }
 
   if(Global::Enable_Population_Dynamics) {
@@ -776,7 +737,7 @@ void Population::update(int day) {
   }
 
   // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::simulation_date_matches_pattern("07-01-*")) {
+  if(Global::Enable_Population_Dynamics && Date::get_month()==7 && Date::get_day_of_month()==1){
     FRED_VERBOSE(0, "Before update_activity_profile day = %d\n", day);
     Global::Places.print_status_of_schools(day);
     FRED_VERBOSE(0, "population::update_activity_profile day = %d\n", day);
@@ -818,49 +779,29 @@ void Population::remove_dead_from_population(int day) {
   size_t deaths = this->death_list.size();
   for(size_t i = 0; i < deaths; ++i) {
     // For reporting
-    int age_lookup = this->death_list[i]->get_age();
+    Person *departed = death_list[i];
+    int age_lookup = departed->get_age();
     if(age_lookup > Demographics::MAX_AGE) {
       age_lookup = Demographics::MAX_AGE;
     }
-    if(this->death_list[i]->get_sex() == 'F') {
+    if(departed->get_sex() == 'F') {
       death_count_female[age_lookup]++;
     } else {
       death_count_male[age_lookup]++;
     }
 
     if(this->vacc_manager->do_vaccination()) {
-      FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", death_list[i]->get_id());
-      this->vacc_manager->remove_from_queue(this->death_list[i]);
+      FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", departed->get_id());
+      this->vacc_manager->remove_from_queue(departed);
     }
 
     // Remove the person from the birthday lists
     if(Global::Enable_Population_Dynamics) {
-      map<Person*, int>::iterator itr;
-      itr = this->birthday_map.find(this->death_list[i]);
-      if(itr == this->birthday_map.end()) {
-        FRED_VERBOSE(0, "Help! person %d deleted, but not in the birthday_map\n",
-            death_list[i]->get_id());
-      }
-      assert(itr != this->birthday_map.end());
-      int pos = (*itr).second;
-      int day_of_year = this->death_list[i]->get_birth_day_of_year();
-
-      // Check to see if the day of the year is after FEB 28
-      // and in a leap year, if so, increment position in birthday vector
-      if(day_of_year > 59 && !Date::is_leap_year(this->death_list[i]->get_birth_year())) {
-        day_of_year++;
-      }
-
-      Person* last = this->birthday_vecs[day_of_year].back();
-      this->birthday_map.erase(itr);
-      this->birthday_map[last] = pos;
-
-      this->birthday_vecs[day_of_year][pos] = this->birthday_vecs[day_of_year].back();
-      this->birthday_vecs[day_of_year].pop_back();
+      delete_from_birthday_list(departed);
     }
 
     // finally, 
-    delete_person(this->death_list[i]);
+    delete_person(departed);
   }
   // clear the death list
   this->death_list.clear();
@@ -920,7 +861,7 @@ void Population::report(int day) {
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
 
-  if(Global::Verbose > 0 && Date::simulation_date_matches_pattern("12-31-*")) {
+  if(Global::Verbose > 0 && Date::get_month()==12 && Date::get_day_of_month()==31) {
     // print the statistics on December 31 of each year
     for(int i = 0; i < this->get_index_size(); ++i) {
       Person* person = get_person_by_index(i);
@@ -942,7 +883,7 @@ void Population::report(int day) {
       int count, num_deaths, num_births;
       double birthrate, deathrate;
       FRED_VERBOSE(1,"DEMOGRAPHICS Year %d TotalPop %d Age %d ",
-          Global::Sim_Current_Date->get_year(), this->pop_size, i);
+          Date::get_year(), this->pop_size, i);
       count = age_count_female[i];
       num_births = birth_count[i];
       num_deaths = death_count_female[i];
@@ -969,8 +910,11 @@ void Population::report(int day) {
   // matching the date pattern in the parameter file, and the on
   // the last day of the simulation
   if(Population::output_population > 0) {
+    int month;
+    int day_of_month;
+    sscanf(Population::output_population_date_match,"%d-%d", &month, &day_of_month);
     if((day == 0)
-        || (Date::simulation_date_matches_pattern(Population::output_population_date_match))) {
+       || (month == Date::get_month() && day_of_month == Date::get_day_of_month())) {
       this->write_population_output_file(day);
     }
   }
@@ -1817,7 +1761,7 @@ void Population::write_population_output_file(int day) {
   //Loop over the whole population and write the output of each Person's to_string to the file
   char population_output_file[FRED_STRING_SIZE];
   sprintf(population_output_file, "%s/%s_%s.txt", Global::Output_directory, Population::pop_outfile,
-      (char *)Global::Sim_Current_Date->get_YYYYMMDD().c_str());
+      (char *)Date::get_date_string().c_str());
   FILE* fp = fopen(population_output_file, "w");
   if(fp == NULL) {
     Utils::fred_abort("Help! population_output_file %s not found\n", population_output_file);
@@ -1906,5 +1850,62 @@ void Population::update_traveling_people(int day) {
 
 void Population::update_activities_while_traveling::operator() (Person &person) {
   person.get_activities()->update_activities_while_traveling(&person, this->day);
+}
+
+void Population::add_to_birthday_list(Person * person) {
+  int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
+  this->birthday_vecs[day_of_year].push_back(person);
+  FRED_VERBOSE(2,
+	       "Adding person %d to birthday vector for day = %d.\n ... birthday_vecs[ %d ].size() = %zu\n",
+	       person->get_id(), day_of_year, day_of_year, birthday_vecs[ day_of_year ].size());
+  this->birthday_map[person] = ((int)this->birthday_vecs[day_of_year].size() - 1);
+}
+
+void Population::delete_from_birthday_list(Person * person) {
+  int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
+  map<Person*, int>::iterator itr;
+  itr = this->birthday_map.find(person);
+  if(itr == this->birthday_map.end()) {
+    FRED_VERBOSE(0, "Help! person %d deleted, but not in the birthday_map\n",
+		 person->get_id());
+  }
+  assert(itr != this->birthday_map.end());
+  int pos = (*itr).second;
+
+  // copy last person in birthday list into this person's slot
+  Person* last = this->birthday_vecs[day_of_year].back();
+  this->birthday_vecs[day_of_year][pos] = last;
+  birthday_map[last] = pos;
+
+  // delete last slot
+  this->birthday_vecs[day_of_year].pop_back();
+
+  // delete from birthday map
+  this->birthday_map.erase(itr);
+}
+
+void Population::update_people_on_birthday_list(int day) {
+  int birthday_index = Date::get_day_of_year();
+  if (Date::is_leap_year()) {
+    // skip feb 29
+    if (birthday_index == 60) {
+      return;
+    }
+    // shift all days after feb 28 forward
+    if (60 < birthday_index) {
+      birthday_index--;
+    }
+  }
+
+  // update everyone on today birthday list
+  int birthday_count = 0;
+  int size = (int) this->birthday_vecs[birthday_index].size();
+  for(int p = 0; p < size; ++p) {
+    this->birthday_vecs[birthday_index][p]->birthday(day);
+    birthday_count++;
+  }
+  
+  FRED_VERBOSE(0, "update_people_on_birthday_list: index = %d count = %d\n",
+	       birthday_index, birthday_count);
 }
 

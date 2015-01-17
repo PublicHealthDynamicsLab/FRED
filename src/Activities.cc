@@ -302,8 +302,9 @@ void Activities::update(int day) {
   FRED_STATUS(1, "Activities update entered\n");
 
   // decide if this is a weekday:
-  Activities::day_of_week = Global::Sim_Current_Date->get_day_of_week();
-  Activities::is_weekday = (0 < Activities::day_of_week && Activities::day_of_week < 6);
+  // Activities::day_of_week = Global::Sim_Current_Date->get_day_of_week();
+  // Activities::is_weekday = (0 < Activities::day_of_week && Activities::day_of_week < 6);
+  Activities::is_weekday = Date::is_weekday();
 
   // print out absenteeism/presenteeism counts
   FRED_CONDITIONAL_VERBOSE(1, day > 0,

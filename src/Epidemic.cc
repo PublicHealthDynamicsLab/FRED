@@ -422,10 +422,10 @@ void Epidemic::print_stats(int day) {
   }
 
   if (this->id == 0) {
-    Global::Daily_Tracker->set_index_key_pair(day,"Date", Global::Sim_Current_Date->get_YYYYMMDD());
-    Global::Daily_Tracker->set_index_key_pair(day,"WkDay", Global::Sim_Current_Date->get_day_of_week_string());
-    Global::Daily_Tracker->set_index_key_pair(day,"Year", Global::Sim_Current_Date->get_epi_week_year());
-    Global::Daily_Tracker->set_index_key_pair(day,"Week", Global::Sim_Current_Date->get_epi_week());
+    Global::Daily_Tracker->set_index_key_pair(day,"Date", Date::get_date_string());
+    Global::Daily_Tracker->set_index_key_pair(day,"WkDay", Date::get_day_of_week_string());
+    Global::Daily_Tracker->set_index_key_pair(day,"Year", Date::get_epi_year());
+    Global::Daily_Tracker->set_index_key_pair(day,"Week", Date::get_epi_week());
     Global::Daily_Tracker->set_index_key_pair(day,"N", this->N);
   }
 

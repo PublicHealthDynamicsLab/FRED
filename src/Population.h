@@ -512,6 +512,10 @@ private:
   fred::Mutex add_person_mutex;
   fred::Mutex batch_add_person_mutex;
 
+  void add_to_birthday_list(Person * person);
+  void delete_from_birthday_list(Person * person);
+  void update_people_on_birthday_list(int day);
+
 };
 
 struct Person_Init_Data {

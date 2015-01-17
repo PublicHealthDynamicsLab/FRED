@@ -55,7 +55,7 @@ class Neighborhood_Layer;
 class Regional_Layer;
 class Visualization_Layer;
 class Vector_Layer;
-class Date;
+// class Date;
 class Evolution;
 class Seasonality;
 #include "Tracker.h"
@@ -169,6 +169,7 @@ class Global {
     static int Simulation_run_number;
     static unsigned long Simulation_seed;
     static time_t Simulation_start_time;
+    static int Simulation_Day;
 
     // global runtime parameters
     static char Synthetic_population_directory[];
@@ -271,8 +272,8 @@ class Global {
     static Regional_Layer* Simulation_Region;
     static Visualization_Layer* Visualization;
     static Vector_Layer* Vectors;
-    static Date* Sim_Start_Date;
-    static Date* Sim_Current_Date;
+  // static Date* Sim_Start_Date;
+  // static Date* Sim_Current_Date;
     static Evolution* Evol;
     static Seasonality* Clim;
     static Tracker<int>* Daily_Tracker;

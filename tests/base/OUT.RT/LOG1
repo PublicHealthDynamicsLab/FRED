@@ -1,4 +1,4 @@
-FRED started Fri Jan  9 16:55:46 2015
+FRED started Sat Jan 17 12:36:56 2015
 param file = params.test
 fred_open_file: opening file /Users/gref/FRED/input_files/defaults for reading
 FRED reading parameter file /Users/gref/FRED/input_files/defaults
@@ -92,14 +92,10 @@ PARAMS: influenza_at_risk_values = 0
 disease 0 influenza read_parameters finished
 get_parameters took 0 seconds
 Overridden from command line: Output_directory = OUT.TEST
-year = 2012, month = 1, day_of_month = 2
-Date = [2012-01-02]
-year = 2012, month = 1, day_of_month = 2
-Date = [2012-01-02]
 seed = 123456
 RNG setup took 0 seconds
 
-FRED run 1 started Fri Jan  9 16:55:46 2015
+FRED run 1 started Sat Jan 17 12:36:56 2015
 PARAMS: enable_copy_files = 0
 PARAMS: msa_file = $FRED_HOME/input_files/countries/usa/US_msa.txt
 PARAMS: counties_file = $FRED_HOME/input_files/countries/usa/US_counties.txt
@@ -137,7 +133,7 @@ Split ID string "2010_ver1_42065" into 1 token using delimiter: ' '
 Deme 0 comprises 1 synthetic population id:
 --> Deme 0, Synth. Pop. ID 0: 2010_ver1_42065
 
-FRED read_places started Fri Jan  9 16:55:46 2015
+FRED read_places started Sat Jan 17 12:36:56 2015
 Reading Places for Deme 0:
 read places entered
 POPULATION_FILE: $FRED_HOME/populations/2010_ver1_42065
@@ -277,7 +273,7 @@ PARAMS: influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 Added     873     NEIGHBORHOOD places to Place_List
 read places finished: Places = 24069
 Places.read_places took 0 seconds
-FRED read_places finished Fri Jan  9 16:55:46 2015
+FRED read_places finished Sat Jan 17 12:36:56 2015
 PARAMS: enable_neighborhood_density_transmission = 0
 PARAMS: enable_density_transmission_maximum_infectees = 1
 PARAMS: density_transmission_maximum_infectees = 10
@@ -502,7 +498,7 @@ PARAMS: face_mask_compliance = 0.000000
 PARAMS: hand_washing_compliance = 0.000000
 initialize_static_variables took 0 seconds
 
-FRED Pop.setup started Fri Jan  9 16:55:46 2015
+FRED Pop.setup started Sat Jan 17 12:36:56 2015
 setup population entered
 disease 0 influenza setup entered
 PARAMS: primary_cases_file = $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
@@ -534,12 +530,12 @@ Loading population 0 for Deme 0: 2010_ver1_42065
 read population entered
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt for reading
 PARAMS: number_antivirals = 0
-FRED_VERBOSE: <Population.cc, LINE:618> finished reading uncompressed population, pop_size = 44594
+FRED_VERBOSE: <Population.cc, LINE:654> finished reading uncompressed population, pop_size = 44594
 Loading group quarters population 0 for Deme 0: 2010_ver1_42065
 read population entered
 fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt for reading
-FRED_VERBOSE: <Population.cc, LINE:618> finished reading uncompressed population, pop_size = 45318
-reading populations took 0 seconds
+FRED_VERBOSE: <Population.cc, LINE:654> finished reading uncompressed population, pop_size = 45318
+reading populations took 1 seconds
 number of residually immune people for disease 0 = 0
 population setup finished
 setup group quarters entered
@@ -547,7 +543,7 @@ setup households entered
 FRED_VERBOSE: <Place_List.cc, LINE:1791> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
 setup households finished
 Pop.setup took 0 seconds
-FRED Pop.setup finished Fri Jan  9 16:55:46 2015
+FRED Pop.setup finished Sat Jan 17 12:36:57 2015
 setup classrooms entered
 Allocating space for 291 classrooms in 26 schools (out of 24069 total places)
 PARAMS: influenza_classroom_contacts = -1.000000
@@ -556,7 +552,7 @@ PARAMS: influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.
 Added     291        CLASSROOM places to Place_List
 setup classrooms finished
 assign classrooms entered
-FRED_VERBOSE: <Population.cc, LINE:1072> assign classrooms finished
+FRED_VERBOSE: <Population.cc, LINE:1061> assign classrooms finished
 assign classrooms took 0 seconds
 reassign workers entered. places = 24360
 FRED_VERBOSE: <Place_List.cc, LINE:1556> Reassign teachers to school S450054184 at (8894.253818,14553.410093) 
@@ -644,7 +640,7 @@ PARAMS: influenza_office_prob = 1 0.0575
 Added    4295           OFFICE places to Place_List
 setup offices finished
 assign offices entered
-FRED_VERBOSE: <Population.cc, LINE:1089> assign offices finished
+FRED_VERBOSE: <Population.cc, LINE:1078> assign offices finished
 assign offices took 0 seconds
 prepare places entered
 YEAR 0 GRADE 0 STUDENTS 0
@@ -672,8 +668,8 @@ deleting place_label_map
 prepare places finished
 place preparation took 0 seconds
 disease_initialization took 0 seconds
-FRED initialization complete Fri Jan  9 16:55:46 2015
-FRED initialization took 0 seconds
+FRED initialization complete Sat Jan 17 12:36:57 2015
+FRED initialization took 1 seconds
 
 day 0 update places took 0 seconds
 employees at small workplaces with sick leave: 6844
@@ -707,8 +703,8 @@ day 0 update epidemic for disease 0 took 0 seconds
 Day 0 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 0 report population took 0 seconds
-day 0 maxrss 71761920
-day 0 finished Fri Jan  9 16:55:46 2015
+day 0 maxrss 72114176
+day 0 finished Sat Jan 17 12:36:57 2015
 day 0 took 0 seconds
 
 day 1 update places took 0 seconds
@@ -735,8 +731,8 @@ day 1 update epidemic for disease 0 took 0 seconds
 Day 1 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 1 report population took 0 seconds
-day 1 maxrss 71811072
-day 1 finished Fri Jan  9 16:55:46 2015
+day 1 maxrss 72269824
+day 1 finished Sat Jan 17 12:36:57 2015
 day 1 took 0 seconds
 
 day 2 update places took 0 seconds
@@ -763,8 +759,8 @@ day 2 update epidemic for disease 0 took 0 seconds
 Day 2 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 2 report population took 0 seconds
-day 2 maxrss 71888896
-day 2 finished Fri Jan  9 16:55:46 2015
+day 2 maxrss 72491008
+day 2 finished Sat Jan 17 12:36:57 2015
 day 2 took 0 seconds
 
 day 3 update places took 0 seconds
@@ -791,14 +787,14 @@ day 3 update epidemic for disease 0 took 0 seconds
 Day 3 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 3 report population took 0 seconds
-day 3 maxrss 72073216
-day 3 finished Fri Jan  9 16:55:46 2015
+day 3 maxrss 72871936
+day 3 finished Sat Jan 17 12:36:57 2015
 day 3 took 0 seconds
 
 day 4 update places took 0 seconds
 day 4 update population took 0 seconds
 day 4 update_infectious_people took 0 seconds
-day 4 find_visitors_to_infectious_places took 1 seconds
+day 4 find_visitors_to_infectious_places took 0 seconds
 Number of infectious places        =>        79
 Number of infectious households    =>        32
 Number of infectious neighborhoods =>        28
@@ -819,9 +815,9 @@ day 4 update epidemic for disease 0 took 0 seconds
 Day 4 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 4 report population took 0 seconds
-day 4 maxrss 72110080
-day 4 finished Fri Jan  9 16:55:47 2015
-day 4 took 1 seconds
+day 4 maxrss 72925184
+day 4 finished Sat Jan 17 12:36:57 2015
+day 4 took 0 seconds
 
 day 5 update places took 0 seconds
 day 5 update population took 0 seconds
@@ -847,8 +843,8 @@ day 5 update epidemic for disease 0 took 0 seconds
 Day 5 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 5 report population took 0 seconds
-day 5 maxrss 72187904
-day 5 finished Fri Jan  9 16:55:47 2015
+day 5 maxrss 72986624
+day 5 finished Sat Jan 17 12:36:57 2015
 day 5 took 0 seconds
 
 day 6 update places took 0 seconds
@@ -875,8 +871,8 @@ day 6 update epidemic for disease 0 took 0 seconds
 Day 6 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 6 report population took 0 seconds
-day 6 maxrss 72253440
-day 6 finished Fri Jan  9 16:55:47 2015
+day 6 maxrss 73035776
+day 6 finished Sat Jan 17 12:36:57 2015
 day 6 took 0 seconds
 
 day 7 update places took 0 seconds
@@ -903,8 +899,8 @@ day 7 update epidemic for disease 0 took 0 seconds
 Day 7 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 7 report population took 0 seconds
-day 7 maxrss 72318976
-day 7 finished Fri Jan  9 16:55:47 2015
+day 7 maxrss 73224192
+day 7 finished Sat Jan 17 12:36:57 2015
 day 7 took 0 seconds
 
 day 8 update places took 0 seconds
@@ -931,8 +927,8 @@ day 8 update epidemic for disease 0 took 0 seconds
 Day 8 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 8 report population took 0 seconds
-day 8 maxrss 72384512
-day 8 finished Fri Jan  9 16:55:47 2015
+day 8 maxrss 73457664
+day 8 finished Sat Jan 17 12:36:57 2015
 day 8 took 0 seconds
 
 day 9 update places took 0 seconds
@@ -959,8 +955,8 @@ day 9 update epidemic for disease 0 took 0 seconds
 Day 9 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 9 report population took 0 seconds
-day 9 maxrss 72507392
-day 9 finished Fri Jan  9 16:55:47 2015
+day 9 maxrss 74170368
+day 9 finished Sat Jan 17 12:36:57 2015
 day 9 took 0 seconds
 
 day 10 update places took 0 seconds
@@ -987,8 +983,8 @@ day 10 update epidemic for disease 0 took 0 seconds
 Day 10 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 10 report population took 0 seconds
-day 10 maxrss 72536064
-day 10 finished Fri Jan  9 16:55:47 2015
+day 10 maxrss 74207232
+day 10 finished Sat Jan 17 12:36:57 2015
 day 10 took 0 seconds
 
 day 11 update places took 0 seconds
@@ -1015,8 +1011,8 @@ day 11 update epidemic for disease 0 took 0 seconds
 Day 11 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 11 report population took 0 seconds
-day 11 maxrss 73256960
-day 11 finished Fri Jan  9 16:55:47 2015
+day 11 maxrss 74280960
+day 11 finished Sat Jan 17 12:36:57 2015
 day 11 took 0 seconds
 
 day 12 update places took 0 seconds
@@ -1043,8 +1039,8 @@ day 12 update epidemic for disease 0 took 0 seconds
 Day 12 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 12 report population took 0 seconds
-day 12 maxrss 73273344
-day 12 finished Fri Jan  9 16:55:47 2015
+day 12 maxrss 74625024
+day 12 finished Sat Jan 17 12:36:57 2015
 day 12 took 0 seconds
 
 day 13 update places took 0 seconds
@@ -1071,8 +1067,8 @@ day 13 update epidemic for disease 0 took 0 seconds
 Day 13 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 13 report population took 0 seconds
-day 13 maxrss 73297920
-day 13 finished Fri Jan  9 16:55:47 2015
+day 13 maxrss 74633216
+day 13 finished Sat Jan 17 12:36:57 2015
 day 13 took 0 seconds
 
 day 14 update places took 0 seconds
@@ -1099,8 +1095,8 @@ day 14 update epidemic for disease 0 took 0 seconds
 Day 14 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 14 report population took 0 seconds
-day 14 maxrss 74571776
-day 14 finished Fri Jan  9 16:55:47 2015
+day 14 maxrss 75653120
+day 14 finished Sat Jan 17 12:36:57 2015
 day 14 took 0 seconds
 
 day 15 update places took 0 seconds
@@ -1119,7 +1115,7 @@ day 15 epidemic in schools for disease 0 took 0 seconds
 day 15 epidemic in classrooms for disease 0 took 0 seconds
 day 15 epidemic in workplaces for disease 0 took 0 seconds
 day 15 epidemic in offices for disease 0 took 0 seconds
-day 15 epidemic in neighborhoods for disease 0 took 0 seconds
+day 15 epidemic in neighborhoods for disease 0 took 1 seconds
 day 15 epidemic in households for disease 0 took 0 seconds
 day 15 epidemic in hospitals for disease 0 took 0 seconds
 day 15 update epidemic for disease 0 took 0 seconds
@@ -1127,9 +1123,9 @@ day 15 update epidemic for disease 0 took 0 seconds
 Day 15 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 15 report population took 0 seconds
-day 15 maxrss 75071488
-day 15 finished Fri Jan  9 16:55:47 2015
-day 15 took 0 seconds
+day 15 maxrss 76165120
+day 15 finished Sat Jan 17 12:36:58 2015
+day 15 took 1 seconds
 
 day 16 update places took 0 seconds
 day 16 update population took 0 seconds
@@ -1155,8 +1151,8 @@ day 16 update epidemic for disease 0 took 0 seconds
 Day 16 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 16 report population took 0 seconds
-day 16 maxrss 75644928
-day 16 finished Fri Jan  9 16:55:47 2015
+day 16 maxrss 76800000
+day 16 finished Sat Jan 17 12:36:58 2015
 day 16 took 0 seconds
 
 day 17 update places took 0 seconds
@@ -1183,8 +1179,8 @@ day 17 update epidemic for disease 0 took 0 seconds
 Day 17 GQ_INF:  GQ 2 College 2 Prison 0 Nursing_Home 0 Military 0
 
 day 17 report population took 0 seconds
-day 17 maxrss 76386304
-day 17 finished Fri Jan  9 16:55:47 2015
+day 17 maxrss 76845056
+day 17 finished Sat Jan 17 12:36:58 2015
 day 17 took 0 seconds
 
 day 18 update places took 0 seconds
@@ -1211,8 +1207,8 @@ day 18 update epidemic for disease 0 took 0 seconds
 Day 18 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 18 report population took 0 seconds
-day 18 maxrss 77135872
-day 18 finished Fri Jan  9 16:55:47 2015
+day 18 maxrss 79081472
+day 18 finished Sat Jan 17 12:36:58 2015
 day 18 took 0 seconds
 
 day 19 update places took 0 seconds
@@ -1239,11 +1235,11 @@ day 19 update epidemic for disease 0 took 0 seconds
 Day 19 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 19 report population took 0 seconds
-day 19 maxrss 77144064
-day 19 finished Fri Jan  9 16:55:47 2015
+day 19 maxrss 79929344
+day 19 finished Sat Jan 17 12:36:58 2015
 day 19 took 0 seconds
 
 
 FRED simulation complete. Excluding initialization, 20 days took 1 seconds
-FRED finished Fri Jan  9 16:55:47 2015
-FRED took 1 seconds
+FRED finished Sat Jan 17 12:36:58 2015
+FRED took 2 seconds

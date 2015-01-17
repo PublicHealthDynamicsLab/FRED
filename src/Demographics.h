@@ -52,11 +52,10 @@ public:
   void update_deaths( Person * self, int day );
 
   /**
-   * @return the number of days the agent has been alive / 365.0
+   * @return the number of days the agent has been alive / 365.25
    */
   double get_real_age() const;
 
-  int get_age_in_days() const;
   /**
    * @return the agent's age
    */
@@ -105,21 +104,13 @@ public:
 
   void make_householder() { relationship = Global::HOUSEHOLDER; }
 
+  int get_day_of_year_for_birthday_in_nonleap_year();
+
   /**
    * Perform the necessary changes to the demographics on an agent's birthday
    */
   void birthday( Person * self, int day );
 
-  /**
-   * @return the agent's birth_day_of_year
-   */
-  short int get_birth_day_of_year() { return this->birth_day_of_year; }
-
-  /**
-   * @return the agent's birth_year
-   */
-  short int get_birth_year() { return this->birth_year; }
-  
   void set_number_of_children(int n) { number_of_children = n; }
   int get_number_of_children() { return number_of_children; }
 
@@ -156,15 +147,16 @@ public:
 private:
 
   short int init_age;			     // Initial age of the agent
-  short int birth_day_of_year;			// index of birthday
-  short int birth_year;				// year of birth
-  short int number_of_children;			// number of births
   short int age;			     // Current age of the agent
+  short int number_of_children;			// number of births
   short int relationship; // relationship to the householder (see Global.h)
   short int race;			  // see Global.h for race codes
   char sex;					// Male or female?
   bool pregnant;			       // is the agent pregnant?
   bool deceased;				// Is the agent deceased
+
+  // all sim_day values assume simulation starts on day 0
+  int birthday_sim_day;		  // agent's birthday in simulation time
   int deceased_sim_day;		   // When the agent (will die) / (died)
   int conception_sim_day;		 // When the agent will conceive
   int due_sim_day;		       // When the agent will give birth

@@ -223,14 +223,6 @@ public:
     return this->demographics.get_age();
   }
 
-  int get_birth_year() {
-    return this->demographics.get_birth_year();
-  }
-
-  int get_birth_day_of_year() {
-    return this->demographics.get_birth_day_of_year();
-  }
-
   /**
    * @return the Person's initial age
    * @see Demographics::get_init_age()
@@ -245,10 +237,6 @@ public:
    */
   double get_real_age() const {
     return this->demographics.get_real_age();
-  }
-
-  int get_age_in_days() const {
-    return this->demographics.get_age_in_days();
   }
 
   /**

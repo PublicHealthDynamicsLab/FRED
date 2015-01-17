@@ -53,8 +53,8 @@ class Place;
 
 int main(int argc, char* argv[]) {
   fred_setup(argc, argv);
-  for(int day = 0; day < Global::Days; day++) {
-    fred_step(day);
+  for(Global::Simulation_Day = 0; Global::Simulation_Day < Global::Days; Global::Simulation_Day++) {
+    fred_step(Global::Simulation_Day);
   }
   fred_finish();
   return 0;
@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
 void fred_setup(int argc, char* argv[]) {
   char paramfile[FRED_STRING_SIZE];
 
+  Global::Simulation_Day = 0;
   Global::Statusfp = stdout;
   Utils::fred_print_wall_time("FRED started");
   Utils::fred_start_initialization_timer();
@@ -95,6 +96,7 @@ void fred_setup(int argc, char* argv[]) {
   // get runtime parameters
   Params::read_parameters(paramfile);
   Global::get_global_parameters();
+  Date::setup_dates(Global::Start_date);
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
 
@@ -126,14 +128,14 @@ void fred_setup(int argc, char* argv[]) {
   INIT_RANDOM(Global::Seed);
 
   // Date Setup -- Start_date parameter must have format 'YYYY-MM-DD'
-  Global::Sim_Start_Date = new Date(string(Global::Start_date));
-  Global::Sim_Current_Date = new Date(string(Global::Start_date));
+  // Global::Sim_Start_Date = new Date(string(Global::Start_date));
+  // Global::Sim_Current_Date = new Date(string(Global::Start_date));
 
   if(Global::Rotate_start_date) {
     // add one day to the start date for each additional run,
     // rotating the days of the week to reduce weekend effect.
-    Global::Sim_Start_Date->advance((Global::Simulation_run_number - 1) % 7);
-    Global::Sim_Current_Date->advance((Global::Simulation_run_number - 1) % 7);
+    // Global::Sim_Start_Date->advance((Global::Simulation_run_number - 1) % 7);
+    // Global::Sim_Current_Date->advance((Global::Simulation_run_number - 1) % 7);
   }
 
   // set random number seed based on run number
@@ -243,9 +245,11 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   if(Global::Track_age_distribution) {
+    /*
     Global::Pop.print_age_distribution(Global::Simulation_directory,
 				       (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
 				       Global::Simulation_run_number);
+    */
   }
 
   if(Global::Enable_Seasonality) {
@@ -325,11 +329,13 @@ void fred_step(int day) {
 
   // optional: periodically output distributions of the population demographics
   if(Global::Track_age_distribution) {
-    if(Date::simulation_date_matches_pattern("01-01-*")) {
+    if(Date::get_month()==1 && Date::get_day_of_month()==1) {
+      /*
       char date_string[80];
       strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
       Global::Pop.print_age_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
       Global::Places.print_household_size_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
+      */
     }
   }
 
@@ -395,7 +401,7 @@ void fred_step(int day) {
 
   // optional: report change in demographics and end of each year
   if(Global::Enable_Population_Dynamics && Global::Verbose
-     && Date::simulation_date_matches_pattern("12-31-*")) {
+     && Date::get_month()==12 && Date::get_day_of_month()==31) {
     Global::Pop.quality_control();
   }
 
@@ -426,7 +432,7 @@ void fred_step(int day) {
   Global::Daily_Tracker->output_inline_report_format_for_index(day, Global::Outfp);
 
   // advance date counter
-  Global::Sim_Current_Date->advance();
+  Date::update();
 }
 
 

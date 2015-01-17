@@ -64,8 +64,7 @@ Demographics::Demographics() {
   this->init_age = -1;
   this->age = -1;
   this->sex = 'n';
-  this->birth_day_of_year = -1;
-  this->birth_year = -1;
+  this->birthday_sim_day = -1;
   this->deceased_sim_day = -1;
   this->conception_sim_day = -1;
   this->due_sim_day = -1;
@@ -92,7 +91,6 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   sex                 = _sex;
   race                = _race;
   relationship        = rel;
-  birth_day_of_year   = -1;
   deceased_sim_day    = -1;
   conception_sim_day  = -1;
   due_sim_day         = -1;
@@ -100,33 +98,17 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   deceased            = false;
   number_of_children = 0;
 
-  if (is_newborn == false) {
-    double eps = std::numeric_limits<double>::epsilon();
-    double rand_birthday = URAND(0.0 + eps, 365.0);
-    int current_day_of_year = Global::Sim_Current_Date->get_day_of_year();
-    int birthyear;
-
-    //If the random birthday selected is less than or equal to the system day then the birthyear is
-    // found using system_year - init_age, else it is system_year - (init_age + 1)
-    if (((int) ceil(rand_birthday)) <= current_day_of_year) {
-      birthyear = Global::Sim_Current_Date->get_year() - init_age;
-    } else {
-      birthyear = Global::Sim_Current_Date->get_year() - (init_age + 1);
-    }
-
-    //If the birthyear would have been a leap year, adjust the random number
-    // so that it is based on 366 days
-    if (Date::is_leap_year(birthyear)) {
-      rand_birthday = rand_birthday * 366.0 / 365.0;
-    }
-
-    Date tmpDate = Date(birthyear, (int) ceil(rand_birthday));
-    this->birth_day_of_year = tmpDate.get_day_of_year();
-    this->birth_year = birthyear;
-
-  } else {
-    this->birth_day_of_year = Global::Sim_Current_Date->get_day_of_year();
-    birth_year = Global::Sim_Current_Date->get_year();
+  if (is_newborn) {
+    // today is birthday
+    birthday_sim_day = day;
+  }
+  else {
+    // set the agent's birthday relative to simulation day
+    birthday_sim_day = day - 365*age;
+    // adjust for leap years:
+    birthday_sim_day -= (age/4);
+    // pick a random birthday in the previous year
+    birthday_sim_day -= IRAND(1,365);
   }
 
   if (Global::Enable_Population_Dynamics) {
@@ -169,8 +151,8 @@ void Demographics::setup( Person * self, short int _age, char _sex,
       // ignore small distortion due to leap years
       conception_sim_day = day + IRAND( 1, 365 );
       // correction for prior birthday
-      int current_day_of_year = Global::Sim_Current_Date->get_day_of_year();
-      int days_since_birthday = current_day_of_year - this->birth_day_of_year;
+      int current_day_of_year = Date::get_day_of_year();
+      int days_since_birthday = current_day_of_year - Date::get_day_of_year(birthday_sim_day);
       if (days_since_birthday < 0) {
 	days_since_birthday += 365;
       }
@@ -198,12 +180,20 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   } // end population_dynamics
 }
 
-
 Demographics::~Demographics() {
 }
 
 void Demographics::update(int day) {
   // TODO: this does nothing, leave as stub for future extensions
+}
+
+int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
+  int day_of_year = Date::get_day_of_year(birthday_sim_day);
+  int year = Date::get_year(birthday_sim_day);
+  if (Date::is_leap_year(year) && 59 < day_of_year) {
+    day_of_year--;
+  }
+  return day_of_year;
 }
 
 void Demographics::clear_pregnancy( Person * self ) {
@@ -328,17 +318,7 @@ void Demographics::print() {
 }
 
 double Demographics::get_real_age() const {
-  return double( get_age_in_days() ) / 365.0;
-}
-
-int Demographics::get_age_in_days() const {
-  if ( birth_year > Date::get_epoch_start_year() ) {
-    const Date tmp_date = Date(birth_year, birth_day_of_year);
-    return Date::days_between(Global::Sim_Current_Date, & tmp_date);
-  }
-  FRED_WARNING("WARNING: Birth year (%d) before start of epoch (Date::EPOCH_START_YEAR == %d)!\n",
-      birth_year, Date::get_epoch_start_year());
-  return -1;
+  return double( Global::Simulation_Day - birthday_sim_day ) / 365.25;
 }
 
 //////// Static Methods
@@ -471,16 +451,16 @@ void Demographics::update_population_dynamics(int day) {
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
 
-  if(Date::simulation_date_matches_pattern("01-01-*")) {
+  if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
     Demographics::births_ytd = 0;
     Demographics::deaths_ytd = 0;
   }
 
-  if(day == 0 || Date::simulation_date_matches_pattern("06-30-*")) {
+  if(day == 0 || (Date::get_month() == 6 && Date::get_day_of_month() == 30)) {
     Demographics::update_housing(day);
   }
 
-  if(Date::simulation_date_matches_pattern("12-31-*") == false) {
+  if(!(Date::get_month() == 12 && Date::get_day_of_month() == 31)) {
     return;
   }
 
@@ -497,7 +477,7 @@ void Demographics::update_population_dynamics(int day) {
   assert(current_popsize > 0);
 
   // get the current year
-  int year = Global::Sim_Current_Date->get_year();
+  int year = Date::get_year();
 
   // get the target population size for the end of the coming year
   Demographics::target_popsize = (1.0 + 0.01 * Demographics::population_growth_rate)
