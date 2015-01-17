@@ -7,6 +7,11 @@
 # multiplier values (alternatively, integer values corresponding to the days
 # elapsed since the beginning of the simulation can be used for "start day"
 # and "end day").
+#
+# The seasonality multiplier in this file follows a simple sine
+# wave, with a maximum on Jan. 1st and a minimimum on Jul. 1st.
+# No claims are made regarding realism (though this is a
+# common approximation).
 # 
 # Dates given in the format "mm-dd" will be recycled throughout the duration
 # of the simulation run.  It is also possible to explicity give the year
