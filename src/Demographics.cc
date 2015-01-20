@@ -441,12 +441,16 @@ int count_by_age[Demographics::MAX_AGE+1];
 void Demographics::update_population_dynamics(int day) {
 
   if (day == 0) {
+
     // initialize house data structures
     Demographics::houses = Global::Places.get_number_of_households();
     Demographics::beds = new int[houses];
     Demographics::occupants = new int[houses];
     Demographics::target_popsize = Global::Pop.get_pop_size();
   }
+
+  // reserve ready_to_move vector:
+  ready_to_move.reserve(Global::Pop.get_pop_size());
 
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;

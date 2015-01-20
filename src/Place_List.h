@@ -122,7 +122,7 @@ public:
   }
 
   int get_housing_data(int* target_size, int* current_size);
-  void get_visualization_data(int disease_id, char place_type, int output_code);
+  // void get_visualization_data(int disease_id, char place_type, int output_code);
   void get_initial_visualization_data_from_households();
   void get_visualization_data_from_households(int disease_id, int output_code);
   void get_census_tract_data_from_households(int disease_id, int output_code);

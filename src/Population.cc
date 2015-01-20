@@ -62,9 +62,14 @@ Population::Population() {
   this->av_manager = NULL;
   this->vacc_manager = NULL;
 
+  // reserve memory for lists
+  death_list.reserve(1000000);
+  maternity_list.reserve(1000000);
+
   // clear birthday lists
   this->birthday_map.clear();
   for(int i = 0; i < 367; ++i) {
+    this->birthday_vecs[i].reserve(10000);
     this->birthday_vecs[i].clear();
   }
 }

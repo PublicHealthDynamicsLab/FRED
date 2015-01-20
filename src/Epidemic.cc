@@ -128,6 +128,7 @@ Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
   this->total_case_fatality_count = 0;
 
   this->place_person_list_reserve_size = 1;
+  this->daily_infections_list.reserve(this->disease->get_population()->get_pop_size());
   this->daily_infections_list.clear();
 
   this->case_fatality_incidence = 0;

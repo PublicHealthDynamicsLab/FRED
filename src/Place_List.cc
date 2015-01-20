@@ -1248,21 +1248,42 @@ void Place_List::update(int day) {
 
   FRED_STATUS(1, "update places entered\n", "");
 
+  /*
+  int num_schools_closed = 0;
+  int number_places = this->places.size();
+#pragma omp parallel for reduction(+: num_schools_closed)
+  for(int p = 0; p < number_places; ++p) {
+    Place *place = this->places[p];
+    if(place->get_type() == Place::SCHOOL) {
+      if(place->should_be_open(day, 0) == false) {
+	num_schools_closed++;
+      }
+    }
+    // place->update(day);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day,"ScCl", num_schools_closed);
+  */
+
   if(Global::Enable_Seasonality) {
     Global::Clim->update(day);
   }
-  int number_places = this->places.size();
-  int num_schools_closed = 0;
-#pragma omp parallel for reduction(+: num_schools_closed)
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::SCHOOL) {
-      if(this->places[p]->should_be_open(day, 0) == false) {
-        num_schools_closed++;
-      }
+
+  if(Global::Enable_Visualization_Layer) {
+    int number_places = this->places.size();
+    for(int p = 0; p < number_places; ++p) {
+      Place *place = this->places[p];
+      place->reset_visualization_data(day);
     }
-    this->places[p]->update(day);
   }
-  Global::Daily_Tracker->set_index_key_pair(day,"ScCl", num_schools_closed);
+
+  if(Global::Enable_Vector_Transmission) {
+    int number_places = this->places.size();
+    for(int p = 0; p < number_places; ++p) {
+      Place *place = this->places[p];
+      place->reset_vector_data(day);
+    }
+  }
+
   FRED_STATUS(1, "update places finished\n", "");
 }
 
@@ -1703,21 +1724,6 @@ void Place_List::delete_place_label_map() {
   if(this->place_label_map) {
     delete this->place_label_map;
     this->place_label_map = NULL;
-  }
-}
-
-void Place_List::get_visualization_data(int disease_id, char place_type, int output_code) {
-  int number_places = (int)this->places.size();
-  for(int p = 0; p < number_places; ++p) {
-    Place* place = this->places[p];
-    if(place->get_type() == place_type) {
-      int count = place->get_output_count(disease_id, output_code);
-      int popsize = place->get_size();
-      // update appropriate visualization patch
-      Global::Visualization->update_data(place->get_latitude(),
-						 place->get_longitude(),
-						 count, popsize);
-    }
   }
 }
 

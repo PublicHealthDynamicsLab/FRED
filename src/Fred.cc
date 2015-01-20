@@ -349,7 +349,6 @@ void fred_step(int day) {
   Global::Places.update(day);
   Utils::fred_print_lap_time("day %d update places", day);
 
-  // update population dynamics, if enabled.
   // update health status of all agents.
   // update activity profiles if dynamic.
   // update travel decisions.

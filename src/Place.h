@@ -156,10 +156,19 @@ public:
   virtual void prepare();
 
   /**
-   * Perform a daily update of this place.  The daily count arrays will all be reset and the vectors
+   * Perform a daily update of this place.  The vectors
    * containing infectious and symptomatics will be cleared.
    */
   virtual void update(int day);
+
+  void reset_place_state(int disease_id);
+
+  /**
+   * The daily count arrays will all be reset.
+   */
+  void reset_visualization_data(int day);
+
+  void reset_vector_data(int day);
 
   /**
    * Display the information for a given disease.
@@ -616,24 +625,24 @@ public:
     #pragma omp atomic
     this->total_infections[disease_id]++;
   }
-
+  
   void add_current_infection(int disease_id) {
     #pragma omp atomic
     this->current_infections[disease_id]++;
   }
-
+  
   void add_new_symptomatic_infection(int disease_id) {
     #pragma omp atomic
     this->new_symptomatic_infections[disease_id]++;
     #pragma omp atomic
     this->total_symptomatic_infections[disease_id]++;
   }
-
+  
   void add_current_symptomatic_infection(int disease_id) {
     #pragma omp atomic
     this->current_symptomatic_infections[disease_id]++;
   }
-
+  
   int get_new_infections(int disease_id) {
     return this->new_infections[disease_id];
   }
@@ -902,12 +911,12 @@ protected:
     #pragma omp atomic
     this->current_infectious_visitors[disease_id]++;
   }
-
+  
   void add_symptomatic_visitor(int disease_id) {
     #pragma omp atomic
     this->current_symptomatic_visitors[disease_id]++;
   }
-
+  
   // data for vector transmission model
   double death_rate;
   double birth_rate;

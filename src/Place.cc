@@ -70,6 +70,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
   strcpy(this->label, lab);
   this->longitude = lon;
   this->latitude = lat;
+  this->enrollees.reserve(8); // initial slots for 8 people -- this is expanded in enroll()
   this->enrollees.clear();
   this->N = 0;
   this->first_day_infectious = -1;
@@ -143,6 +144,15 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
   }
 }
 
+void Place::reset_place_state(int disease_id) {
+  if(this->infectious_bitset.test(disease_id)) {
+    this->place_state[disease_id].clear();
+  } else {
+    this->place_state[disease_id].reset();
+  }
+  this->infectious_bitset.reset(disease_id);
+}
+
 void Place::prepare() {
   for(int d = 0; d < Global::Diseases; ++d) {
     // Following arithmetic estimates the optimal number of thread-safe states
@@ -190,18 +200,13 @@ void Place::prepare() {
   FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->id, this->label, this->type);
 }
 
-void Place::update(int day) {
-  for(int d = 0; d < Global::Diseases; ++d) {
-    if(this->infectious_bitset.test(d)) {
-      this->place_state[d].clear();
-    } else {
-      this->place_state[d].reset();
-    }
-  }
-  this->infectious_bitset.reset();
-  this->exposed_bitset.reset();
-  this->unique_visitors.clear();
 
+void Place::update(int day) {
+  // sub for future use.
+}
+
+void Place::reset_visualization_data(int day) {
+  this->exposed_bitset.reset();
   for(int d = 0; d < Global::Diseases; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
@@ -210,10 +215,13 @@ void Place::update(int day) {
     this->current_symptomatic_visitors[d] = 0;
     // new_deaths[ d ] = 0;
   }
+}
 
-  if(Global::Enable_Vector_Transmission && !this->is_neighborhood()){
+void Place::reset_vector_data(int day) {
+  if (!this->is_neighborhood()){
     this->update_vector_population(day);
     this->vectors_not_infected_yet = true;
+    this->unique_visitors.clear();
   }
 }
 
@@ -224,6 +232,10 @@ void Place::print(int disease_id) {
 
 void Place::enroll(Person* per) {
   if(get_enrollee_index(per) == -1) {
+    if (N == enrollees.size()) {
+      // double capacity if needed (to reduce future reallocations)
+      enrollees.reserve(2*N);
+    }
     this->enrollees.push_back(per);
     this->N++;
     FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
@@ -352,6 +364,7 @@ bool Place::is_open(int day) {
 void Place::turn_workers_into_teachers(Place* school) {
   FRED_VERBOSE(1,"Place %s has %d enrollees\n", this->get_label(), this->enrollees.size());
   std::vector <Person *> workers;
+  workers.reserve((int)this->enrollees.size());
   workers.clear();
   for(int i = 0; i < (int)this->enrollees.size(); ++i) {
     workers.push_back(this->enrollees[i]);
@@ -378,6 +391,7 @@ void Place::turn_workers_into_teachers(Place* school) {
 
 void Place::reassign_workers(Place* new_place) {
   std::vector<Person*> workers;
+  workers.reserve((int)this->enrollees.size());
   workers.clear();
   for(int i = 0; i < (int)this->enrollees.size(); ++i) {
     workers.push_back(this->enrollees[i]);
@@ -542,13 +556,16 @@ void Place::spread_infection(int day, int disease_id) {
   Disease* disease = this->population->get_disease(disease_id);
   double beta = disease->get_transmissibility();
   if(beta == 0.0) {
+    reset_place_state(disease_id);
     return;
   }
 
   if(is_open(day) == false) {
+    reset_place_state(disease_id);
     return;
   }
   if(should_be_open(day, disease_id) == false) {
+    reset_place_state(disease_id);
     return;
   }
 
@@ -565,21 +582,25 @@ void Place::spread_infection(int day, int disease_id) {
 
   if(Global::Enable_Vector_Transmission) {
     vector_transmission(day, disease_id);
+    reset_place_state(disease_id);
     return;
   }
 
   // need at least one susceptible
   if(susceptibles.size() == 0) {
+    reset_place_state(disease_id);
     return;
   }
 
   if(this->is_household()) {
     pairwise_transmission_model(day, disease_id);
+    reset_place_state(disease_id);
     return;
   }
 
   if(this->is_neighborhood() && Place::Enable_Neighborhood_Density_Transmission==true) {
     density_transmission_model(day, disease_id);
+    reset_place_state(disease_id);
     return;
   }
 
@@ -588,6 +609,8 @@ void Place::spread_infection(int day, int disease_id) {
   } else {
     default_transmission_model(day, disease_id);
   }
+  reset_place_state(disease_id);
+  return;
 }
 
 void Place::default_transmission_model(int day, int disease_id) {

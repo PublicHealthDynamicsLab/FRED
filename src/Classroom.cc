@@ -103,6 +103,10 @@ void Classroom::enroll(Person * per) {
   if (age >= GRADES) age = GRADES - 1;
   assert(per->is_teacher() == false);
   if (get_enrollee_index(per) == -1) {
+    if (N == enrollees.size()) {
+      // double capacity if needed (to reduce future reallocations)
+      enrollees.reserve(2*N);
+    }
     this->enrollees.push_back(per);
     this->N++;
     FRED_VERBOSE(1,"Enroll person %d age %d in classroom %d age_level %d %s\n", per->get_id(), per->get_age(), this->id, this->age_level, this->label);
