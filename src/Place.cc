@@ -47,6 +47,9 @@ bool Place::Enable_Neighborhood_Density_Transmission = false;
 bool Place::Enable_Density_Transmission_Maximum_Infectees = false;
 int Place::Density_Transmission_Maximum_Infectees = 10.0;
 
+place_vec Place::infectious_places;
+
+
 void Place::initialize_static_variables() {
   int temp_int = 0;
   Params::get_param_from_string("enable_neighborhood_density_transmission", &temp_int);
@@ -55,6 +58,7 @@ void Place::initialize_static_variables() {
   Place::Enable_Density_Transmission_Maximum_Infectees = (temp_int == 1);
   Params::get_param_from_string("density_transmission_maximum_infectees",
 				&Place::Density_Transmission_Maximum_Infectees);
+  infectious_places.clear();
 }
 
 bool compare_age (Person* p1, Person* p2) {
@@ -113,6 +117,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
     // new_deaths[ d ] = 0;
     // total_deaths[ d ] = 0;
   }
+  this->is_registered_as_an_infectous_place = false;
 
   if(Place::prob_contact == NULL) {
     Place::prob_contact = new double * [101];
@@ -232,7 +237,7 @@ void Place::print(int disease_id) {
 
 void Place::enroll(Person* per) {
   if(get_enrollee_index(per) == -1) {
-    if (N == enrollees.size()) {
+    if (N == enrollees.capacity()) {
       // double capacity if needed (to reduce future reallocations)
       enrollees.reserve(2*N);
     }
@@ -277,6 +282,10 @@ void Place::register_as_an_infectious_place(int disease_id) {
     dis->add_infectious_place(this);
     this->infectious_bitset.set(disease_id);
     // printf("REGISTER place %s for disease %d\n", label, disease_id);
+  }
+  if (this->is_registered_as_an_infectous_place == false) { 
+    infectious_places.push_back(this);
+    this->is_registered_as_an_infectous_place = true;
   }
 }
 

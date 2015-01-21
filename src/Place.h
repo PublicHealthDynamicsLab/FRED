@@ -31,6 +31,7 @@ using namespace std;
 #include "Geo_Utils.h"
 #define DISEASE_TYPES 4
 
+typedef std::vector <Place *> place_vec;
 
 class Neighborhood_Patch;
 class Person;
@@ -269,6 +270,10 @@ public:
    */
   bool is_infectious(int disease_id) {
     return this->infectious_bitset.test(disease_id);
+  }
+  
+  bool is_infectious() {
+    return this->infectious_bitset.any();
   }
   
   bool is_human_infectious(int disease_id) {
@@ -835,7 +840,31 @@ public:
     this->unique_visitors.insert(person);
   }
 
+  static void clear_infectious_places(int capacity) {
+    int size = infectious_places.size();
+    for (int i = 0; i < size; i++) {
+      Place *place = infectious_places[i];
+      place->is_registered_as_an_infectous_place = false;
+    }
+    infectious_places.clear();
+    infectious_places.reserve(capacity);
+  }
+
+  static int count_infectious_places() {
+    return infectious_places.size();
+  }
+
+  static Place * get_infectious_place(int n) {
+    return infectious_places[n];
+  }
+
 protected:
+  // list of places that are infectious today
+  static place_vec infectious_places;
+
+  // true if this place is on the above list
+  bool is_registered_as_an_infectous_place;
+
   //  collects list of susceptible visitors (per disease)
   //  collects list of infectious visitors (per disease)
   State< Place_State > place_state[Global::MAX_NUM_DISEASES];

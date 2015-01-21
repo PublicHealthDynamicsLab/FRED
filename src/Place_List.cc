@@ -1264,6 +1264,8 @@ void Place_List::update(int day) {
   Global::Daily_Tracker->set_index_key_pair(day,"ScCl", num_schools_closed);
   */
 
+  Place::clear_infectious_places(get_number_of_places());
+
   if(Global::Enable_Seasonality) {
     Global::Clim->update(day);
   }
@@ -2175,9 +2177,10 @@ void Place_List::find_visitors_to_infectious_places(int day) {
   if(Global::Visit_Home_Neighborhood_Unless_Infectious) {
 
     // only poll enrollees of infectious places (faster)
-    int number_places = places.size();
+    int number_places = Place::count_infectious_places();
     for(int p = 0; p < number_places; ++p) {
-      this->places[p]->add_visitors_if_infectious(day);
+      Place * place = Place::get_infectious_place(p);
+      place->add_visitors_if_infectious(day);
     }
 
     // but also check whether traveling people visit infectious places
