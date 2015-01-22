@@ -30,7 +30,7 @@ void Utils::fred_abort(const char* format, ...){
   // open ErrorLog file if it doesn't exist
   if(Global::ErrorLogfp == NULL){
     Global::ErrorLogfp = fopen(ErrorFilename, "w");
-    if (Global::ErrorLogfp == NULL) {
+    if(Global::ErrorLogfp == NULL) {
       // output to stdout
       printf("FRED ERROR: Can't open errorfile %s\n", ErrorFilename);
       // current error message:
@@ -67,9 +67,9 @@ void Utils::fred_abort(const char* format, ...){
 void Utils::fred_warning(const char* format, ...){
 
   // open ErrorLog file if it doesn't exist
-  if(Global::ErrorLogfp == NULL){
+  if(Global::ErrorLogfp == NULL) {
     Global::ErrorLogfp = fopen(ErrorFilename, "w");
-    if (Global::ErrorLogfp == NULL) {
+    if(Global::ErrorLogfp == NULL) {
       // output to stdout
       printf("FRED ERROR: Can't open errorfile %s\n", ErrorFilename);
       // current error message:
@@ -112,63 +112,63 @@ void Utils::fred_open_output_files(){
 
   sprintf(filename, "%s/out%d.txt", directory, run);
   Global::Outfp = fopen(filename, "w");
-  if (Global::Outfp == NULL) {
+  if(Global::Outfp == NULL) {
     Utils::fred_abort("Can't open %s\n", filename);
   }
   Global::Tracefp = NULL;
   if (strcmp(Global::Tracefilebase, "none") != 0) {
     sprintf(filename, "%s/trace%d.txt", directory, run);
     Global::Tracefp = fopen(filename, "w");
-    if (Global::Tracefp == NULL) {
+    if(Global::Tracefp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::Infectionfp = NULL;
-  if (Global::Track_infection_events > 0) {
+  if(Global::Track_infection_events > 0) {
     sprintf(filename, "%s/infections%d.txt", directory, run);
     Global::Infectionfp = fopen(filename, "w");
-    if (Global::Infectionfp == NULL) {
+    if(Global::Infectionfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::VaccineTracefp = NULL;
-  if (strcmp(Global::VaccineTracefilebase, "none") != 0) {
+  if(strcmp(Global::VaccineTracefilebase, "none") != 0) {
     sprintf(filename, "%s/vacctr%d.txt", directory, run);
     Global::VaccineTracefp = fopen(filename, "w");
-    if (Global::VaccineTracefp == NULL) {
+    if(Global::VaccineTracefp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::Birthfp = NULL;
-  if (Global::Enable_Population_Dynamics) {
+  if(Global::Enable_Population_Dynamics) {
     sprintf(filename, "%s/births%d.txt", directory, run);
     Global::Birthfp = fopen(filename, "w");
-    if (Global::Birthfp == NULL) {
+    if(Global::Birthfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::Deathfp = NULL;
-  if (Global::Enable_Population_Dynamics) {
+  if(Global::Enable_Population_Dynamics) {
     sprintf(filename, "%s/deaths%d.txt", directory, run);
     Global::Deathfp = fopen(filename, "w");
-    if (Global::Deathfp == NULL) {
+    if(Global::Deathfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::Immunityfp = NULL;
-  if (strcmp(Global::Immunityfilebase, "none") != 0) {
+  if(strcmp(Global::Immunityfilebase, "none") != 0) {
     sprintf(filename, "%s/immunity%d.txt", directory, run);
     Global::Immunityfp = fopen(filename, "w");
-    if (Global::Immunityfp == NULL) {
+    if(Global::Immunityfp == NULL) {
       Utils::fred_abort("Help! Can't open %s\n", filename);
     }
     Global::Report_Immunity = true;
   }
   Global::Householdfp = NULL;
-  if (Global::Print_Household_Locations) {
+  if(Global::Print_Household_Locations) {
     sprintf(filename, "%s/households.txt", directory);
     Global::Householdfp = fopen(filename, "w");
-    if (Global::Householdfp == NULL) {
+    if(Global::Householdfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
@@ -177,7 +177,7 @@ void Utils::fred_open_output_files(){
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     sprintf(filename,"%s/tracts%d.txt",directory,run);
     Global::Tractfp = fopen(filename,"w");
-    if (Global::Tractfp == NULL) {
+    if(Global::Tractfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
@@ -186,7 +186,7 @@ void Utils::fred_open_output_files(){
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     sprintf(filename,"%s/income_category%d.txt",directory,run);
     Global::IncomeCatfp = fopen(filename,"w");
-    if (Global::IncomeCatfp == NULL) {
+    if(Global::IncomeCatfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
@@ -194,27 +194,44 @@ void Utils::fred_open_output_files(){
   return;
 }
 
-void Utils::fred_make_directory(char * directory) {
+void Utils::fred_make_directory(char* directory) {
   mode_t mask;        // the user's current umask
   mode_t mode = 0777; // as a start
   mask = umask(0); // get the current mask, which reads and sets...
   umask(mask);     // so now we have to put it back
   mode ^= mask;    // apply the user's existing umask
-  if (0!=mkdir(directory, mode) && EEXIST!=errno) // make it
+  if(0!=mkdir(directory, mode) && EEXIST != errno) { // make it
     Utils::fred_abort("mkdir(%s) failed with %d\n", directory, errno); // or die
+  }
 }
 
 
 void Utils::fred_end(void){
   // This is a function that cleans up FRED and exits
-  if (Global::Outfp != NULL) fclose(Global::Outfp);
-  if (Global::Tracefp != NULL) fclose(Global::Tracefp);
-  if (Global::Infectionfp != NULL) fclose(Global::Infectionfp);
-  if (Global::VaccineTracefp != NULL) fclose(Global::VaccineTracefp);
-  if (Global::Prevfp != NULL) fclose(Global::Prevfp);
-  if (Global::Incfp != NULL) fclose(Global::Incfp);
-  if (Global::Immunityfp != NULL) fclose(Global::Immunityfp);
-  if (Global::Householdfp != NULL) fclose(Global::Householdfp);
+  if(Global::Outfp != NULL) {
+    fclose(Global::Outfp);
+  }
+  if(Global::Tracefp != NULL) {
+    fclose(Global::Tracefp);
+  }
+  if(Global::Infectionfp != NULL) {
+    fclose(Global::Infectionfp);
+  }
+  if(Global::VaccineTracefp != NULL) {
+    fclose(Global::VaccineTracefp);
+  }
+  if(Global::Prevfp != NULL) {
+    fclose(Global::Prevfp);
+  }
+  if(Global::Incfp != NULL) {
+    fclose(Global::Incfp);
+  }
+  if(Global::Immunityfp != NULL) {
+    fclose(Global::Immunityfp);
+  }
+  if(Global::Householdfp != NULL) {
+    fclose(Global::Householdfp);
+  }
 }
 
 
@@ -223,9 +240,9 @@ void Utils::fred_print_wall_time(const char* format, ...) {
   time(&clock);
   va_list ap;
   va_start(ap,format);
-  vfprintf(Global::Statusfp,format,ap);
+  vfprintf(Global::Statusfp, format, ap);
   va_end(ap);
-  fprintf(Global::Statusfp," %s",ctime(&clock));
+  fprintf(Global::Statusfp, " %s", ctime(&clock));
   fflush(Global::Statusfp);
 }
 
@@ -234,8 +251,8 @@ void Utils::fred_start_timer() {
   start_timer = fred_timer;
 }
 
-void Utils::fred_start_timer( time_t * lap_start_time ) {
-  time( lap_start_time );
+void Utils::fred_start_timer(time_t* lap_start_time) {
+  time(lap_start_time);
 }
 
 void Utils::fred_start_initialization_timer() {
@@ -245,7 +262,7 @@ void Utils::fred_start_initialization_timer() {
 void Utils::fred_print_initialization_timer() {
   time(&stop_initialization_timer);
   fprintf(Global::Statusfp, "FRED initialization took %d seconds\n\n",
-      (int) (stop_initialization_timer-start_initialization_timer));
+      (int)(stop_initialization_timer - start_initialization_timer));
   fflush(Global::Statusfp);
 }
 
@@ -257,7 +274,7 @@ void Utils::fred_start_day_timer() {
 void Utils::fred_print_day_timer(int day) {
   time(&stop_timer);
   fprintf(Global::Statusfp, "day %d took %d seconds\n\n",
-      day, (int) (stop_timer-day_timer));
+      day, (int) (stop_timer - day_timer));
   fflush(Global::Statusfp);
   start_timer = stop_timer;
 }
@@ -265,7 +282,7 @@ void Utils::fred_print_day_timer(int day) {
 void Utils::fred_print_finish_timer() {
   time(&stop_timer);
   fprintf(Global::Statusfp, "FRED took %d seconds\n",
-      (int)(stop_timer-fred_timer));
+      (int)(stop_timer - fred_timer));
   fflush(Global::Statusfp);
 }
 
@@ -276,7 +293,7 @@ void Utils::fred_print_lap_time(const char* format, ...) {
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int) (stop_timer - start_timer));
+      (int)(stop_timer - start_timer));
   fflush(Global::Statusfp);
   start_timer = stop_timer;
 }
@@ -288,81 +305,80 @@ void Utils::fred_print_update_time(const char* format, ...) {
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int) (stop_update_timer - start_update_timer));
+      (int)(stop_update_timer - start_update_timer));
   fflush(Global::Statusfp);
   start_update_timer = stop_update_timer;
 }
 
-void Utils::fred_print_lap_time( time_t * start_lap_time, const char* format, ...) {
+void Utils::fred_print_lap_time(time_t* start_lap_time, const char* format, ...) {
   time_t stop_lap_time;
-  time( &stop_lap_time );
+  time(&stop_lap_time);
   va_list ap;
-  va_start(ap,format);
+  va_start(ap, format);
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int) ( stop_lap_time - ( *start_lap_time ) ) );
+      (int)(stop_lap_time - (*start_lap_time)));
   fflush(Global::Statusfp);
 }
 
-void Utils::fred_verbose(int verbosity, const char* format, ...){
-  if (Global::Verbose > verbosity) {
+void Utils::fred_verbose(int verbosity, const char* format, ...) {
+  if(Global::Verbose > verbosity) {
     va_list ap;
-    va_start(ap,format);
-    vprintf(format,ap);
+    va_start(ap, format);
+    vprintf(format, ap);
     va_end(ap);
     fflush(stdout);
   }
 }
 
 void Utils::fred_verbose_statusfp(int verbosity, const char* format, ...) {
-  if (Global::Verbose > verbosity) {
+  if(Global::Verbose > verbosity) {
     va_list ap;
     va_start(ap,format);
-    vfprintf(Global::Statusfp,format,ap);
+    vfprintf(Global::Statusfp, format, ap);
     va_end(ap);
     fflush(Global::Statusfp);
   }
 }
 
-void Utils::fred_log(const char* format, ...){
+void Utils::fred_log(const char* format, ...) {
   va_list ap;
-  va_start(ap,format);
-  vfprintf(Global::Statusfp,format,ap);
+  va_start(ap, format);
+  vfprintf(Global::Statusfp, format, ap);
   va_end(ap);
   fflush(Global::Statusfp);
 }
 
-void Utils::fred_report(const char* format, ...){
+void Utils::fred_report(const char* format, ...) {
   va_list ap;
-  va_start(ap,format);
-  vfprintf(Global::Outfp,format,ap);
+  va_start(ap, format);
+  vfprintf(Global::Outfp, format, ap);
   fflush(Global::Outfp);
-  va_start(ap,format);
-  vfprintf(Global::Statusfp,format,ap);
+  va_start(ap, format);
+  vfprintf(Global::Statusfp, format, ap);
   fflush(Global::Statusfp);
   va_end(ap);
 }
 
-FILE *Utils::fred_open_file(char * filename) {
-  FILE *fp;
+FILE* Utils::fred_open_file(char* filename) {
+  FILE* fp;
   get_fred_file_name(filename);
   printf("fred_open_file: opening file %s for reading\n", filename);
   fp = fopen(filename, "r");
   return fp;
 }
 
-void Utils::get_fred_file_name(char * filename) {
+void Utils::get_fred_file_name(char* filename) {
   string str;
   str.assign(filename);
-  if (str.compare(0,10,"$FRED_HOME") == 0) {
-    char * fred_home = getenv("FRED_HOME");
-    if (fred_home != NULL) {
-      str.erase(0,10);
-      str.insert(0,fred_home);
+  if(str.compare(0,10,"$FRED_HOME") == 0) {
+    char* fred_home = getenv("FRED_HOME");
+    if(fred_home != NULL) {
+      str.erase(0, 10);
+      str.insert(0, fred_home);
       strcpy(filename, str.c_str());
-    }
-    else {
+    } else {
       fred_abort("get_fred_file_name: the FRED_HOME environmental variable cannot be found\n");
     }
   }
@@ -415,44 +431,43 @@ void Utils::replace_csv_missing_data(char* out_str, char* in_str, const char* re
   int i = 0;
   int j = 0;
   int new_field = 1;
-  while (in_str[i] != '\0') {
-    if (in_str[i] == '\n') {
+  while(in_str[i] != '\0') {
+    if(in_str[i] == '\n') {
       i++;
-    }
-    else if (new_field && in_str[i] == ',') {
+    } else if(new_field && in_str[i] == ',') {
       // field is missing, so insert replacement
       int k = 0;
       while (replacement[k] != '\0') { out_str[j++] = replacement[k++]; }
       out_str[j++] = ',';
       i++;
       new_field = 1;
-    }
-    else if (in_str[i] == ',') {
+    } else if (in_str[i] == ',') {
       out_str[j++] = in_str[i++];
       new_field = 1;
-    }
-    else {
+    } else {
       out_str[j++] = in_str[i++];
       new_field = 0;
     }
   }
   // printf("new_field = %d\n", new_field); fflush(stdout);
-  if (new_field) {
+  if(new_field) {
     // last field is missing
     int k = 0;
-    while (replacement[k] != '\0') { out_str[j++] = replacement[k++]; }
+    while(replacement[k] != '\0') {
+      out_str[j++] = replacement[k++];
+    }
   }
   out_str[j] = '\0';
   // printf("out = |%s|\n",out_str); fflush(stdout);
 }
 
 
-void Utils::get_next_token(char * out_string, char ** input_string) {
-  char *token;
+void Utils::get_next_token(char* out_string, char** input_string) {
+  char* token;
   token = strsep(input_string,",");
 
   // if the field is empty, we report a value of "-1"
-  if (*token == '\0') {
+  if(*token == '\0') {
     strcpy(out_string,"-1");
     return;
   }
@@ -463,18 +478,20 @@ void Utils::get_next_token(char * out_string, char ** input_string) {
   // if the token contains an opening quote but not closing quote, then
   // it was truncated by an intervening comma, so we have to retrieve
   // the remainder of the field:
-  if (*token == '"') {
-    char * c;
+  if(*token == '"') {
+    char* c;
     c = token;
     c++;					// skip opening quote
-    while ((*c != '"') && (*c != '\0')) c++;    // search for closing quote
-    if (*c == '\0') {				// no closing quote
+    while((*c != '"') && (*c != '\0')) {
+      c++;    // search for closing quote
+    }
+    if(*c == '\0') {				// no closing quote
       char *remainder;
       remainder = strsep(input_string, "\"");
       // concatenate remainder of field onto out_string
-      (void) strncat(out_string, remainder, sizeof(out_string) - strlen(remainder) - 1);
+      (void)strncat(out_string, remainder, sizeof(out_string) - strlen(remainder) - 1);
       // add closing quote
-      (void) strcat(out_string, "\"");
+      (void)strcat(out_string, "\"");
       // retrieve rest of field up to next comma (and verify that this is empty)
       remainder = strsep(input_string, ",");
       assert(*remainder == '\0');
@@ -485,38 +502,46 @@ void Utils::get_next_token(char * out_string, char ** input_string) {
 
 // remove non-NULL char c from string s with length at most maxlen
 // string must be null-terminated.
-void Utils::delete_char(char *s, char c, int maxlen) {
-  int len = std::strlen( s );
+void Utils::delete_char(char* s, char c, int maxlen) {
+  int len = std::strlen(s);
 
   // abort if greater than or equal to maximum length 
-  if (len >= maxlen)
+  if(len >= maxlen) {
     return;
+  }
 
   // do not remove NULL characters
-  if ( c == '\0' )
+  if(c == '\0') {
     return;
+  }
 
-  char *new_s = s;
-  while (*s != '\0') {
-    if ( *s != c )
+  char* new_s = s;
+  while(*s != '\0') {
+    if(*s != c) {
       *new_s++ = *s;
+    }
     s++;
   }
   *new_s = '\0';
 }
 
 // replace multiple white spaces with a single space in string s
-void Utils::normalize_white_space(char *s) {
-  char *new_s = s;
+void Utils::normalize_white_space(char* s) {
+  char* new_s = s;
   // printf("new_s = |%s|\n", new_s); fflush(stdout);
   int started = 0;
-  char *token;
-  while ((token = strsep(&s, " \t")) != NULL) {
-    if (*token != '\0') {
+  char* token;
+  while((token = strsep(&s, " \t")) != NULL) {
+    if(*token != '\0') {
       // printf("token = |%s|\n", token); fflush(stdout);
-      char *t = token;
-      if (started) *new_s++ = ' ';
-      while (*t != '\0') *new_s++ = *t++;
+      char* t = token;
+      if(started) {
+        *new_s++ = ' ';
+      }
+
+      while(*t != '\0') {
+        *new_s++ = *t++;
+      }
       *new_s = '\0';
       started = 1;
       // printf("new_s = |%s|\n", new_s); fflush(stdout);
@@ -530,64 +555,60 @@ void Utils::normalize_white_space(char *s) {
 //      - can be passed as refence to split methods (treated like vector)
 
 // splits a string by delimiter, loads into vector passed by reference
-Utils::Tokens & Utils::split_by_delim( const std::string & str,
+Utils::Tokens &Utils::split_by_delim( const std::string &str,
     const char delim, Tokens & tokens,
     bool collapse_consecutive_delims ) {
 
-  std::stringstream ss( str );
+  std::stringstream ss(str);
   std::string item;
 
   std::string quoted_item;
   quoted_item.clear();
 
   int items = 0;
-  while ( std::getline( ss, item, delim ) ) {
-    if ( !item.empty() ) {
-      while (!item.empty() && (item.at(item.size()-1) == '\n' || item.at(item.size()-1) == '\r')) {
-	item.resize(item.size()-1);
+  while(std::getline( ss, item, delim)) {
+    if(!item.empty()) {
+      while(!item.empty() && (item.at(item.size()-1) == '\n' || item.at(item.size()-1) == '\r')) {
+	      item.resize(item.size()-1);
       }
-      if (item.empty()) {
-	continue;
+      if(item.empty()) {
+	      continue;
       }
-      if ( item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'' ) && item.at(0)==item.at(item.size()-1)) {
-	// printf("item = |%s|\n",item.c_str());
-	item.erase(item.size()-1,1);
-	item.erase(0,1);
-	// printf("item = |%s|\n",item.c_str());
-      }
-      else {
-	if ( item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'' ) ) {
-	  quoted_item = item;
-	  // printf("item is quoted = |%s|\n",quoted_item.c_str());
-	  continue;
-	}
-	else if ( !quoted_item.empty() ) {
-	  if ( item.at(item.size()-1) != quoted_item.at(0) ) {
-	    quoted_item = quoted_item + "," + item;
-	    continue;
-	  }
-	  else {
-	    item = quoted_item + "," + item;
-	    item.erase(0,1);
-	    item.erase(item.size()-1,1);
-	    quoted_item.clear();
-	  }
-	}
+      if(item.size() > 1 && (item.at(0) == '\"' || item.at(0) == '\'') && item.at(0) == item.at(item.size() - 1)) {
+	      // printf("item = |%s|\n",item.c_str());
+	      item.erase(item.size() - 1, 1);
+	      item.erase(0, 1);
+	      // printf("item = |%s|\n",item.c_str());
+      } else {
+	      if(item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'')) {
+	        quoted_item = item;
+	        // printf("item is quoted = |%s|\n",quoted_item.c_str());
+	        continue;
+	      } else if (!quoted_item.empty()) {
+	        if(item.at(item.size() - 1) != quoted_item.at(0)) {
+	          quoted_item = quoted_item + "," + item;
+	          continue;
+	        } else {
+	          item = quoted_item + "," + item;
+	          item.erase(0,1);
+	          item.erase(item.size()-1,1);
+	          quoted_item.clear();
+	        }
+	      }
       }
     }
-    if ( !item.empty() || !collapse_consecutive_delims ) {
+    if(!item.empty() || !collapse_consecutive_delims) {
       tokens.push_back( item );
     }
   }
   int trim_size = tokens.back().size();
   std::string::reverse_iterator rit = tokens.back().rbegin();
-  for ( ; rit != tokens.back().rend(); ++rit ) {
-    if ( (*rit) == '\n' || (*rit) == '\r' ) {
+  for( ; rit != tokens.back().rend(); ++rit) {
+    if((*rit) == '\n' || (*rit) == '\r') {
       --( trim_size );
-    }
-    else {
-      if ( trim_size < tokens.back().size() ) {
-        tokens.back().resize( trim_size );
+    } else {
+      if(trim_size < tokens.back().size()) {
+        tokens.back().resize(trim_size);
       }
       break;
     }
@@ -596,26 +617,26 @@ Utils::Tokens & Utils::split_by_delim( const std::string & str,
 }
 
 // splits a string by delimiter, returns result in a new vector
-Utils::Tokens Utils::split_by_delim( const std::string & str,
-    const char delim, bool collapse_consecutive_delims ) {
+Utils::Tokens Utils::split_by_delim(const std::string &str,
+    const char delim, bool collapse_consecutive_delims) {
 
   Tokens tokens;
-  return split_by_delim( str, delim, tokens, collapse_consecutive_delims );
+  return split_by_delim(str, delim, tokens, collapse_consecutive_delims);
 }
 
-Utils::Tokens & Utils::split_by_delim( const char * str,
+Utils::Tokens & Utils::split_by_delim(const char* str,
     const char delim, Tokens & tokens,
-    bool collapse_consecutive_delims ) {
+    bool collapse_consecutive_delims) {
 
-  return split_by_delim( std::string( str ), delim, tokens,
-      collapse_consecutive_delims );
+  return split_by_delim(std::string(str), delim, tokens,
+      collapse_consecutive_delims);
 }
 
-Utils::Tokens Utils::split_by_delim( const char * str,
-    const char delim, bool collapse_consecutive_delims ) {
+Utils::Tokens Utils::split_by_delim(const char* str,
+    const char delim, bool collapse_consecutive_delims) {
 
-  return split_by_delim( std::string( str ), delim,
-      collapse_consecutive_delims );
+  return split_by_delim(std::string(str), delim,
+      collapse_consecutive_delims);
 }
 
 

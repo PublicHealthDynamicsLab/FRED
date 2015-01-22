@@ -56,14 +56,14 @@ public:
   void prepare();
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
   int get_group(int disease, Person* per) {
     return 0;
   }
 
   /**
-    * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+    * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
     *
     * This method returns the value from the static array <code>Workplace::Workplace_contact_prob</code> that
     * corresponds to a particular age-related value for each person.<br />
@@ -87,7 +87,7 @@ public:
   /**
    * Setup the offices within this Workplace
    */
-  void setup_offices(Allocator<Office> & office_allocator);
+  void setup_offices(Allocator<Office> &office_allocator);
 
   /**
    * Assign a person to a particular Office
@@ -144,8 +144,8 @@ public:
   }
 
  private:
-  static double * Workplace_contacts_per_day;
-  static double *** Workplace_contact_prob;
+  static double* Workplace_contacts_per_day;
+  static double*** Workplace_contact_prob;
   static bool Workplace_parameters_set;
   static int Office_size;
   static int Small_workplace_size;
@@ -157,7 +157,7 @@ public:
   static int workers_in_large_workplaces;
   static int workers_in_xlarge_workplaces;
 
-  vector <Place *> offices;
+  vector<Place*> offices;
   int next_office;
 };
 

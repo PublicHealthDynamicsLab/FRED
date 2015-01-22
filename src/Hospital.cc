@@ -49,38 +49,22 @@ void Hospital::get_parameters(int diseases) {
     return;
   }
   
-  Hospital::Hospital_contacts_per_day = new double[diseases];
-  Hospital::Hospital_contact_prob = new double**[diseases];
-  
-  for(int s = 0; s < diseases; ++s) {
-    int n;
-    sprintf(param_str, "hospital_contacts[%d]", s);
-    Params::get_param((char*) param_str, &Hospital::Hospital_contacts_per_day[s]);
-    
-    sprintf(param_str, "hospital_prob[%d]", s);
-    n = 0;
-    Params::get_param((char*) param_str, &n);
-    if(n) {
-      double* tmp;
-      tmp = new double [n];
-      Params::get_param_vector((char*) param_str, tmp);
-      n = (int)sqrt((double) n);
-      Hospital::Hospital_contact_prob[s] = new double* [n];
-      for(int i  = 0; i < n; ++i) {
-        Hospital::Hospital_contact_prob[s][i] = new double[n];
-      }
-      for(int i  = 0; i < n; ++i) {
-        for(int j  = 0; j < n; ++j) {
-          Hospital::Hospital_contact_prob[s][i][j] = tmp[i*n+j];
-        }
-      }
-      delete tmp;
-      
-      if (Global::Verbose > 1) {
+  if(Global::Enable_Vector_Transmission == false) {
+    Hospital::Hospital_contacts_per_day = new double[diseases];
+    Hospital::Hospital_contact_prob = new double**[diseases];
+
+    char param_str[80];
+    for(int disease_id = 0; disease_id < diseases; ++disease_id) {
+      Disease* disease = Global::Pop.get_disease(disease_id);
+      sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
+      Params::get_param((char*) param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
+      sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
+      int n = Params::get_param_matrix(param_str, &Hospital::Hospital_contact_prob[disease_id]);
+      if(Global::Verbose > 1) {
         printf("\nHospital_contact_prob:\n");
         for(int i  = 0; i < n; ++i)  {
           for(int j  = 0; j < n; ++j) {
-            printf("%f ", Hospital::Hospital_contact_prob[s][i][j]);
+            printf("%f ", Hospital::Hospital_contact_prob[disease_id][i][j]);
           }
           printf("\n");
         }
@@ -92,7 +76,16 @@ void Hospital::get_parameters(int diseases) {
 }
 
 int Hospital::get_group(int disease, Person* per) {
-  return 0;
+  // 0 - Healthcare worker
+  // 1 - Patient
+  // 2 - Visitor
+  if(per->get_activities()->get_workplace()->get_id() == this->get_id()) {
+    return 0;
+  } else if(per->get_activities()->get_hospital()->get_id() == this->get_id()) {
+    return 1;
+  } else {
+    return 2;
+  }
 }
 
 double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {
