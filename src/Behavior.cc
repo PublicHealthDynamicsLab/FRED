@@ -84,8 +84,15 @@ void Behavior::setup(Person* self) {
 
   // setup a child
   int relationship = self->get_relationship();
-  Household* h = static_cast<Household*>(self->get_household());
-  Person* person = select_adult(h, relationship, self);
+  Household* hh = static_cast<Household*>(self->get_household());
+
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
+      hh = static_cast<Household*>(self->get_permanent_household());
+    }
+  }
+
+  Person* person = select_adult(hh, relationship, self);
 
   // child is on its own
   if(person == NULL) {
@@ -557,10 +564,15 @@ void Behavior::terminate(Person* self) {
   }
 
   // see if this person is the adult decision maker for any child in the household
-  Household* household = static_cast<Household*>(self->get_household());
-  int size = household->get_size();
+  Household* hh = static_cast<Household*>(self->get_household());
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
+      hh = static_cast<Household*>(self->get_permanent_household());;
+    }
+  }
+  int size = hh->get_size();
   for(int i = 0; i < size; ++i) {
-    Person* child = household->get_housemate(i);
+    Person* child = hh->get_housemate(i);
     if(child != self && child->get_health_decision_maker() == self) {
       if(Global::Verbose > 1) {
         printf("need new decision maker for agent %d age %d\n", child->get_id(), child->get_age());

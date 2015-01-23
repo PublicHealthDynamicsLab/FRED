@@ -27,8 +27,8 @@
 #include "Place_List.h"
 #include "Place.h"
 
-typedef vector <Person*> person_vec;	     //Vector of person pointers
-typedef vector <Place *> place_vec;	      //Vector of place pointers
+typedef vector<Person*> person_vec;	     //Vector of person pointers
+typedef vector<Place*> place_vec;	      //Vector of place pointers
 
 class Regional_Layer;
 
@@ -45,8 +45,8 @@ struct Patch_Report : public Transaction {
     total = 0;
   }
 
-  void collect(std::vector<Person *> & person) {
-    std::vector<Person *>::iterator iter = person.begin();
+  void collect(std::vector<Person*> & person) {
+    std::vector<Person*>::iterator iter = person.begin();
     while(iter != person.end()) {
       Person & p = *(*iter);
       if(!((p.is_infectious(disease_id)) && (p.get_exposure_date(disease_id) >= 0)
@@ -81,12 +81,12 @@ struct Patch_Report : public Transaction {
     // array giving the number of values expected for each statement
     n_values = new int[n_stmts];
     // array of vectors of string arrays  
-    values = new std::vector<string *>[n_stmts];
+    values = new std::vector<string*>[n_stmts];
     // <------------------------------------------------------------------------------------- prepare first statement
     S = 0;
     statements[S] = std::string("insert into patch_stats values ($DAY,$PATCH,$NAIVE,$TOTAL);");
     n_values[S] = 4;
-    std::string * values_array = new std::string[n_values[S]];
+    std::string* values_array = new std::string[n_values[S]];
     std::stringstream ss;
     ss << this->day;
     values_array[0] = ss.str();
@@ -107,33 +107,40 @@ struct Patch_Report : public Transaction {
 
 class Regional_Patch : public Abstract_Patch {
 public:
-  Regional_Patch(Regional_Layer * grd, int i, int j);
+  Regional_Patch(Regional_Layer* grd, int i, int j);
   Regional_Patch();
   ~Regional_Patch() {
   }
-  void setup(Regional_Layer * grd, int i, int j);
+  void setup(Regional_Layer* grd, int i, int j);
   void quality_control();
-  double distance_to_patch(Regional_Patch *patch2);
-  void add_person(Person * p) {
+  double distance_to_patch(Regional_Patch* patch2);
+  void add_person(Person* p) {
     // <-------------------------------------------------------------- Mutex
     fred::Scoped_Lock lock(this->mutex);
     this->person.push_back(p);
     if(Global::Enable_Vector_Layer) {
-      Household * h =  (Household *) p->get_household();
-      int c = h ->get_county();
+      Household* hh = static_cast<Household*>(p->get_household());
+      if(hh == NULL) {
+        if(Global::Enable_Hospitals && p->is_hospitalized() && p->get_permanent_household() != NULL) {
+          hh = static_cast<Household*>(p->get_permanent_household());
+        }
+      }
+      int c = hh->get_county();
       int h_county = Global::Places.get_county_with_index(c);
       this->counties.insert(h_county);
       if(p->is_student()){
-	int age_ = 0;
-	age_ = p->get_age();
-	if(age_>100)
-	  age_=100;
-	if(age_<0)
-	  age_=0;
-	students_by_age[age_].push_back(p);
+	      int age_ = 0;
+	      age_ = p->get_age();
+	      if(age_>100) {
+	        age_=100;
+	      }
+	      if(age_<0) {
+	        age_=0;
+	      }
+	      this->students_by_age[age_].push_back(p);
       }
-      if(p->get_workplace()!=NULL){
-	workers.push_back(p);
+      if(p->get_workplace()!=NULL) {
+	      this->workers.push_back(p);
       }
     }
     ++this->demes[p->get_deme_id()];
@@ -144,9 +151,9 @@ public:
     return this->popsize;
   }
 
-  Person * select_random_person();
-  Person * select_random_student(int age_);
-  Person * select_random_worker();
+  Person* select_random_person();
+  Person* select_random_student(int age_);
+  Person* select_random_worker();
   void set_max_popsize(int n);
   int get_max_popsize() {
     return this->max_popsize;
@@ -156,10 +163,10 @@ public:
     return this->pop_density;
   }
 
-  void unenroll(Person *pers);
+  void unenroll(Person* pers);
   void add_workplace(Place *place);
-  Place * get_nearby_workplace(Place *place, int staff);
-  Place * get_closest_workplace(double x, double y, int min_size, int max_size, double * min_dist);
+  Place* get_nearby_workplace(Place* place, int staff);
+  Place* get_closest_workplace(double x, double y, int min_size, int max_size, double* min_dist);
 
   int get_id() {
     return this->id;
@@ -175,9 +182,9 @@ public:
 
 protected:
   fred::Mutex mutex;
-  Regional_Layer * grid;
+  Regional_Layer* grid;
   int popsize;
-  vector<Person *> person;
+  vector<Person*> person;
   std::set<int > counties;
   int max_popsize;
   double pop_density;

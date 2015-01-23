@@ -2240,6 +2240,8 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
       }
     }
   }
+
+  return NULL;
 }
 
 Place* Place_List::select_school(int county_index, int grade) {
@@ -2314,7 +2316,7 @@ void Place_List::find_visitors_to_infectious_places(int day) {
     // only poll enrollees of infectious places (faster)
     int number_places = Place::count_infectious_places();
     for(int p = 0; p < number_places; ++p) {
-      Place * place = Place::get_infectious_place(p);
+      Place* place = Place::get_infectious_place(p);
       place->add_visitors_if_infectious(day);
     }
 

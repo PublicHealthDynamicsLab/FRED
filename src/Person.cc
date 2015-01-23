@@ -118,11 +118,11 @@ Person* Person::give_birth(int day) {
   char sex = (URAND(0.0, 1.0) < 0.5 ? 'M' : 'F');
   int race = get_race();
   int rel = Global::CHILD;
-  Place * house;
-  if(Global::Enable_Hospitals && this->activities.is_hospitalized) {
-    house = this->activities.get_permanent_household();
-  } else {
-    house = get_household();
+  Place* house = this->get_household();
+  if(house == NULL) {
+    if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+      house = this->get_permanent_household();
+    }
   }
   Place* school = NULL;
   Place* work = NULL;

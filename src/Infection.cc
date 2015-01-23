@@ -374,9 +374,12 @@ void Infection::report_infection(int day) const {
     if(this->infector == NULL) {
       infStrS << " census_tract -1";
     } else {
-      Household* hh = (Household*)this->infector->get_household();
+
+      Household* hh = static_cast<Household*>(this->infector->get_household());
       if(hh == NULL) {
-        hh = (Household*)this->infector->get_permanent_household();
+        if(Global::Enable_Hospitals && this->infector->is_hospitalized() && this->infector->get_permanent_household() != NULL) {
+          hh = static_cast<Household*>(this->infector->get_permanent_household());;
+        }
       }
       int census_tract_index = (hh == NULL ? -1 : hh->get_census_tract_index());
       long int census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));

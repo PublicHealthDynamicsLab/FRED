@@ -33,11 +33,11 @@ Regional_Patch::Regional_Patch() {
   this->id = -1;
 }
 
-Regional_Patch::Regional_Patch(Regional_Layer * grd, int i, int j) {
+Regional_Patch::Regional_Patch(Regional_Layer* grd, int i, int j) {
   setup(grd, i, j);
 }
 
-void Regional_Patch::setup(Regional_Layer * grd, int i, int j) {
+void Regional_Patch::setup(Regional_Layer* grd, int i, int j) {
   this->grid = grd;
   this->row = i;
   this->col = j;
@@ -67,7 +67,7 @@ void Regional_Patch::quality_control() {
   return;
 }
 
-double Regional_Patch::distance_to_patch(Regional_Patch *p2) {
+double Regional_Patch::distance_to_patch(Regional_Patch* p2) {
   double x1 = this->center_x;
   double y1 = this->center_y;
   double x2 = p2->get_center_x();
@@ -75,7 +75,7 @@ double Regional_Patch::distance_to_patch(Regional_Patch *p2) {
   return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
-Person *Regional_Patch::select_random_person() {
+Person* Regional_Patch::select_random_person() {
   if((int)this->person.size() == 0)
     return NULL;
   int i = IRAND(0, ((int )this->person.size()) - 1);
@@ -94,7 +94,7 @@ void Regional_Patch::set_max_popsize(int n) {
 
 }
 
-Person *Regional_Patch::select_random_student(int age_) {
+Person* Regional_Patch::select_random_student(int age_) {
   if((int)this->students_by_age[age_].size() == 0)
     return NULL;
   int i = IRAND(0, ((int )this->students_by_age[age_].size()) - 1);
@@ -102,16 +102,17 @@ Person *Regional_Patch::select_random_student(int age_) {
   return this->students_by_age[age_][i];
 }
 
-Person *Regional_Patch::select_random_worker() {
-  if((int)this->workers.size() == 0)
+Person* Regional_Patch::select_random_worker() {
+  if((int)this->workers.size() == 0) {
     return NULL;
+  }
   int i = IRAND(0, ((int )this->workers.size()) - 1);
   
   return this->workers[i];
 }
 
 
-void Regional_Patch::unenroll(Person *per) {
+void Regional_Patch::unenroll(Person* per) {
   // <-------------------------------------------------------------- Mutex
   fred::Scoped_Lock lock(this->mutex);
   if(this->person.size() > 1) {
@@ -130,15 +131,15 @@ void Regional_Patch::unenroll(Person *per) {
 
 #if SQLITE
 
-Transaction * Regional_Patch::collect_patch_stats(int day, int disease_id) {
-  Patch_Report * report = new Patch_Report(day, this->id, disease_id);
+Transaction* Regional_Patch::collect_patch_stats(int day, int disease_id) {
+  Patch_Report* report = new Patch_Report(day, this->id, disease_id);
   report->collect(this->person);
   return report;
 }
 
 #endif
 
-Place *Regional_Patch::get_nearby_workplace(Place *place, int staff) {
+Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   // printf("get_workplace_near_place entered\n"); print(); fflush(stdout);
   double x = Geo_Utils::get_x(place->get_longitude());
   double y = Geo_Utils::get_y(place->get_latitude());
@@ -152,7 +153,7 @@ Place *Regional_Patch::get_nearby_workplace(Place *place, int staff) {
 
   // find nearest workplace that has right number of employees
   double min_dist = 1e99;
-  Place * nearby_workplace = this->grid->get_nearby_workplace(this->row, this->col, x, y, min_staff,
+  Place* nearby_workplace = this->grid->get_nearby_workplace(this->row, this->col, x, y, min_staff,
       max_staff, &min_dist);
   if(nearby_workplace == NULL)
     return NULL;
@@ -165,15 +166,16 @@ Place *Regional_Patch::get_nearby_workplace(Place *place, int staff) {
   return nearby_workplace;
 }
 
-Place * Regional_Patch::get_closest_workplace(double x, double y, int min_size, int max_size,
-    double * min_dist) {
+Place* Regional_Patch::get_closest_workplace(double x, double y, int min_size, int max_size,
+    double* min_dist) {
   // printf("get_closest_workplace entered for patch %d %d\n", row, col); fflush(stdout);
-  Place * closest_workplace = NULL;
+  Place* closest_workplace = NULL;
   int number_workplaces = this->workplaces.size();
   for(int j = 0; j < number_workplaces; j++) {
-    Place *workplace = this->workplaces[j];
-    if (workplace->is_group_quarters())
+    Place* workplace = this->workplaces[j];
+    if (workplace->is_group_quarters()) {
       continue;
+    }
     int size = workplace->get_size();
     if(min_size <= size && size <= max_size) {
       double x2 = Geo_Utils::get_x(workplace->get_longitude());
@@ -190,7 +192,7 @@ Place * Regional_Patch::get_closest_workplace(double x, double y, int min_size, 
   return closest_workplace;
 }
 
-void Regional_Patch::add_workplace(Place *workplace) {
+void Regional_Patch::add_workplace(Place* workplace) {
   this->workplaces.push_back(workplace);
 }
 
@@ -200,55 +202,57 @@ void Regional_Patch::swap_county_people(){
     int people_swapped = 0;
     int people_to_reassign_place = (int) (percentage * this->person.size());
     FRED_VERBOSE(1,"People to reassign : %d \n", people_to_reassign_place);
-    for(int k = 0; k < people_to_reassign_place;k++){
-      Person * p = this->select_random_person();
-      Person * p2;
-      if(p!=NULL){
-	if(p->is_student()){
-	  int age_ = 0;
-	  age_ = p->get_age();
-	  if(age_>100)
-	    age_=100;
-	  if(age_<0)
-	    age_=0;
-	  p2 = select_random_student(age_);
-	  if(p2 !=NULL){
-	    Place * s1 = p->get_school();
-	    Place * s2 = p2->get_school();
-	    Household * h1 =  (Household *) p->get_household();
-	    int c1 = h1->get_county();
-	    int h1_county = Global::Places.get_county_with_index(c1);
-	    Household * h2 =  (Household *) p2->get_household();
-	    int c2 = h2->get_county();
-	    int h2_county = Global::Places.get_county_with_index(c2);
-	    if(h1_county != h2_county){
-	      p->change_school(s2);
-	      p2->change_school(s1);
-	      FRED_VERBOSE(0,"SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
-	   printf("SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
-	      people_swapped++;
-	    }
-	  }
-	}else if (p->get_workplace()!=NULL){
-	  p2 = select_random_worker();
-	  if(p2 != NULL){
-	    Place * w1 =  p->get_workplace();
-	    Place * w2 =  p2->get_workplace();
-	    Household * h1 =  (Household *) p->get_household();
-	    int c1 = h1->get_county();
-	    int h1_county = Global::Places.get_county_with_index(c1);
-	    Household * h2 =  (Household *) p2->get_household();
-	    int c2 = h2->get_county();
-	    int h2_county = Global::Places.get_county_with_index(c2);
-	    if(h1_county != h2_county){
-	      p->change_workplace(w2);
-	      p2->change_workplace(w1);
-	      FRED_VERBOSE(0,"SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
-	      printf("SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
-	      people_swapped++;
-	    }
-	  }
-	}
+    for(int k = 0; k < people_to_reassign_place; ++k) {
+      Person* p = this->select_random_person();
+      Person* p2;
+      if(p!=NULL) {
+	      if(p->is_student()) {
+	        int age_ = 0;
+	        age_ = p->get_age();
+	        if(age_>100) {
+	          age_=100;
+	        }
+	        if(age_ < 0) {
+	          age_=0;
+	        }
+	        p2 = select_random_student(age_);
+	        if(p2 !=NULL) {
+	          Place* s1 = p->get_school();
+	          Place* s2 = p2->get_school();
+	          Household* h1 =  (Household*)p->get_household();
+	          int c1 = h1->get_county();
+	          int h1_county = Global::Places.get_county_with_index(c1);
+	          Household* h2 =  (Household*)p2->get_household();
+	          int c2 = h2->get_county();
+	          int h2_county = Global::Places.get_county_with_index(c2);
+	          if(h1_county != h2_county) {
+	            p->change_school(s2);
+	            p2->change_school(s1);
+	            FRED_VERBOSE(0,"SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
+	            printf("SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
+	            people_swapped++;
+	          }
+	        }
+	      } else if (p->get_workplace()!=NULL) {
+	        p2 = select_random_worker();
+	        if(p2 != NULL) {
+	          Place* w1 = p->get_workplace();
+	          Place* w2 = p2->get_workplace();
+	          Household* h1 = (Household*)p->get_household();
+	          int c1 = h1->get_county();
+	          int h1_county = Global::Places.get_county_with_index(c1);
+	          Household* h2 = (Household*)p2->get_household();
+	          int c2 = h2->get_county();
+	          int h2_county = Global::Places.get_county_with_index(c2);
+	          if(h1_county != h2_county) {
+	            p->change_workplace(w2);
+	            p2->change_workplace(w1);
+	            FRED_VERBOSE(0,"SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
+	            printf("SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
+	            people_swapped++;
+	          }
+	        }
+	      }
       }
     }
     FRED_VERBOSE(0,"People Swapped:: %d out of %d\n",people_swapped,people_to_reassign_place);

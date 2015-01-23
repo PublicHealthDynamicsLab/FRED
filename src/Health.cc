@@ -420,9 +420,10 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
     }
     this->infection[disease_id] = new_infection;
     this->susceptible_date[disease_id] = -1;
-    self->get_household()->set_exposed(disease_id);
-    self->set_exposed_household(self->get_household()->get_index());
-
+    if(self->get_household() != NULL) {
+      self->get_household()->set_exposed(disease_id);
+      self->set_exposed_household(self->get_household()->get_index());
+    }
     if(Global::Verbose > 0) {
       if(transmission.get_infected_place() == NULL) {
         FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),

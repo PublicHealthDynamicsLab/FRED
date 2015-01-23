@@ -79,13 +79,17 @@ int Hospital::get_group(int disease, Person* per) {
   // 0 - Healthcare worker
   // 1 - Patient
   // 2 - Visitor
-  if(per->get_activities()->get_workplace()->get_id() == this->get_id()) {
+  if(per->get_activities()->is_hospital_staff() && !per->is_hospitalized()) {
     return 0;
-  } else if(per->get_activities()->get_hospital()->get_id() == this->get_id()) {
-    return 1;
-  } else {
-    return 2;
   }
+
+//  Place* hosp = per->get_activities()->get_hospital();
+//  if(hosp != NULL && hosp->get_id() == this->get_id()) {
+//    return 1;
+//  } else {
+//    return 2;
+//  }
+  return 1;
 }
 
 double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {

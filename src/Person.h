@@ -137,7 +137,15 @@ public:
   }
 
   void update_household_counts(int day, int disease_id) {
-    this->health.update_place_counts(this, day, disease_id, get_household());
+    Place* hh = this->get_household();
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+        hh = this->get_permanent_household();
+      }
+    }
+    if(hh != NULL) {
+      this->health.update_place_counts(this, day, disease_id, hh);
+    }
   }
 
   void update_school_counts(int day, int disease_id) {
@@ -804,11 +812,35 @@ public:
   }
 
   double get_x() {
-    return this->get_household()->get_x();
+    Place* hh = this->get_household();
+
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+        hh = this->get_permanent_household();
+      }
+    }
+
+    if(hh == NULL) {
+      return 0.0;
+    } else {
+      return hh->get_x();
+    }
   }
 
   double get_y() {
-    return this->get_household()->get_y();
+    Place* hh = this->get_household();
+
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+        hh = this->get_permanent_household();
+      }
+    }
+
+    if(hh == NULL) {
+      return 0.0;
+    } else {
+      return hh->get_y();
+    }
   }
 
   bool is_prisoner() {
