@@ -130,7 +130,7 @@ CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(S
 %.o:%.c %.h
 	$(CPP) $(CPPFLAG) -c $< $(INCLUDES)
 
-OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Random.o \
+OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o \
 	Geo_Utils.o Neighborhood_Layer.o Neighborhood_Patch.o Regional_Layer.o Regional_Patch.o \
 	Visualization_Layer.o Visualization_Patch.o Travel.o \
 	Decision.o Policy.o Manager.o \

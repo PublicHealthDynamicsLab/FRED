@@ -122,13 +122,32 @@ Person* Person::give_birth(int day) {
   if(Global::Enable_Hospitals && this->activities.is_hospitalized) {
     house = this->activities.get_permanent_household();
   } else {
-    house = get_household();
+    house = this->get_household();
   }
+  if (house == NULL) {
+    printf("Mom %d has no household\n", this->get_id()); fflush(stdout);
+  }
+  assert(house != NULL);
+  printf("Mom house: %s\n", house->get_label()); fflush(stdout);
   Place* school = NULL;
   Place* work = NULL;
   bool today_is_birthday = true;
   Person* baby = Global::Pop.add_person(age, sex, race, rel,
            house, school, work, day, today_is_birthday);
+
+  if(Global::Enable_Behaviors) {
+    // turn mother into an adult decision maker, if not already
+    if(this->is_health_decision_maker() == false) {
+      FRED_VERBOSE(0,
+		   "young mother %d age %d becomes baby's health decision maker on day %d\n",
+		   id, age, day);
+      this->become_health_decision_maker(this);
+    }
+    // let mother decide health behaviors for child
+    baby->set_health_decision_maker(this);
+  }
+  this->demographics.give_birth(this, day);
+
   return baby;
 }
 

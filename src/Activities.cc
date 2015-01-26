@@ -123,7 +123,13 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   set_household(house);
   set_school(school);
   set_workplace(work);
+  if (get_household() == NULL) {
+    FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d has no household\n",
+		 self->get_id(), self->get_age());
+  }
   assert(get_household() != NULL);
+  FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d household %s\n",
+	       self->get_id(), self->get_age(), house->get_label());
 
   // get the neighbhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
@@ -762,13 +768,16 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
       assert(tmp_place != NULL);
     }
 
+    //Set the flag for the household
+    ((Household*)self->get_household())->set_household_has_hospitalized_member(true);
+
     store_favorite_places();
     clear_favorite_places();
 
     set_hospital(tmp_place);
 
     //Set the flag for the household
-    ((Household*)tmp_place)->set_household_has_hospitalized_member(true);
+    // ((Household*)tmp_place)->set_household_has_hospitalized_member(true);
   }
 }
 
@@ -1304,7 +1313,7 @@ unsigned char Activities::get_deme_id() {
 
 void Activities::move_to_new_house(Person* self, Place* house) {
 
-  FRED_VERBOSE(1, "move_to_new_house person %d house %s\n", self->get_id(), house->get_label());
+  FRED_VERBOSE(0, "move_to_new_house person %d house %s\n", self->get_id(), house->get_label());
 
   // everyone must have a household
   assert(house != NULL); 

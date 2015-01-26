@@ -29,11 +29,6 @@
 
 using namespace std;
 
-#include "Global.h"
-#include "Demographics.h"
-#include "Bloque.h"
-#include "Utils.h"
-
 class Person;
 class Disease;
 class Antivirals;
@@ -41,7 +36,11 @@ class AV_Manager;
 class Vaccine_Manager;
 class Place;
 
-typedef map <Person*, bool> ChangeMap;  
+#include "Global.h"
+#include "Demographics.h"
+#include "Bloque.h"
+#include "Utils.h"
+#include "Events.h"
 
 class Person_Init_Data;
 
@@ -135,18 +134,18 @@ public:
   /**
    * Perform the necessary steps for an agent's death
    * @param day the simulation day
-   * @param person_index the population index of the agent who will die
+   * @param person the agent who will die
    */
-  void prepare_to_die(int day, int person_index);
+  void prepare_to_die(int day, Person* person);
 
   void remove_dead_from_population(int day);
 
   /**
    * Perform the necessary steps for an agent to give birth
    * @param day the simulation day
-   * @param person_index the population index of the agent who will give birth
+   * @param person the agent who will give birth
    */
-  void prepare_to_give_birth(int day, int person_index);
+  void prepare_to_give_birth(int day, Person* person);
 
   /**
    * @param index the index of the Person
@@ -309,7 +308,28 @@ public:
 
   void update_traveling_people(int day);
 
+  void add_conception_event(int day, Person *person) {
+    conception_queue->add_event(day, person);
+  }
+
+  void delete_conception_event(int day, Person *person) {
+    conception_queue->delete_event(day, person);
+  }
+
+  void add_maternity_event(int day, Person *person) {
+    maternity_queue->add_event(day, person);
+  }
+
+  void delete_maternity_event(int day, Person *person) {
+    maternity_queue->delete_event(day, person);
+  }
+
 private:
+
+  void mother_gives_birth(int day, Person *mother);
+
+  Events * conception_queue;
+  Events * maternity_queue;
 
   struct PopFileColIndex {
     // all populations
@@ -390,6 +410,7 @@ private:
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
   vector <Person*> death_list;     // list agents to die today
   vector <Person*> maternity_list; // list agents to give birth today
+  vector <Person*> new_maternity_list; // list agents to give birth today
   int pop_size;
   Disease* disease;
 

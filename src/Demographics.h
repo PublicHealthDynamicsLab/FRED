@@ -18,7 +18,7 @@
 #define _FRED_DEMOGRAPHICS_H
 
 #include "Global.h"
-#include <vector>
+
 using namespace std;
 
 class Person;
@@ -45,9 +45,15 @@ public:
    */
   void update(int day);
 
+  void clear_conception_event( Person * self );
+
+  void become_pregnant( Person * self );
+
   void clear_pregnancy( Person * self );
 
   void update_births( Person * self, int day );
+
+  void give_birth( Person * self, int day );
 
   void update_deaths( Person * self, int day );
 
@@ -158,8 +164,8 @@ private:
   // all sim_day values assume simulation starts on day 0
   int birthday_sim_day;		  // agent's birthday in simulation time
   int deceased_sim_day;		   // When the agent (will die) / (died)
-  int conception_sim_day;		 // When the agent will conceive
-  int due_sim_day;		       // When the agent will give birth
+  int conception_sim_day;	  // When the agent will become pregnant
+  int maternity_sim_day;	       // When the agent will give birth
 
   static double male_mortality_rate[MAX_AGE + 1];
   static double female_mortality_rate[MAX_AGE + 1];

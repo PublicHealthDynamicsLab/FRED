@@ -67,7 +67,7 @@ Demographics::Demographics() {
   this->birthday_sim_day = -1;
   this->deceased_sim_day = -1;
   this->conception_sim_day = -1;
-  this->due_sim_day = -1;
+  this->maternity_sim_day = -1;
   this->pregnant = false;
   this->deceased = false;
   this->relationship = -1;
@@ -93,7 +93,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
   relationship        = rel;
   deceased_sim_day    = -1;
   conception_sim_day  = -1;
-  due_sim_day         = -1;
+  maternity_sim_day         = -1;
   pregnant            = false;
   deceased            = false;
   number_of_children = 0;
@@ -145,36 +145,23 @@ void Demographics::setup( Person * self, short int _age, char _sex,
     if (sex == 'F' && 
 	Demographics::MIN_PREGNANCY_AGE <= age &&
 	age <= Demographics::MAX_PREGNANCY_AGE && 
-	self->lives_in_group_quarters() == false &&
-	RANDOM() < 1.25*Demographics::pregnancy_rate[age]) {
-    
-      // ignore small distortion due to leap years
-      conception_sim_day = day + IRAND( 1, 365 );
-      // correction for prior birthday
-      int current_day_of_year = Date::get_day_of_year();
+	self->lives_in_group_quarters() == false) {
+
+      int current_day_of_year = Date::get_day_of_year(day);
       int days_since_birthday = current_day_of_year - Date::get_day_of_year(birthday_sim_day);
       if (days_since_birthday < 0) {
 	days_since_birthday += 365;
       }
-      conception_sim_day -= days_since_birthday;
-      due_sim_day = conception_sim_day +
-	(int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-      
-      if (due_sim_day <= day) {
-	// birth happened already and will be ignored
-	conception_sim_day = -1;
-	due_sim_day = -1;
-	pregnant = false;
-	// printf("IGNORING BIRTH SCHEDULED PRIOR TO SIM START\n");
-      }
-      else {
-	if (conception_sim_day <= day) {
-	  pregnant = true;
-	}
-	// flag for daily updates
-	Global::Pop.set_mask_by_index( fred::Update_Births, self->get_pop_index() );
-	FRED_STATUS(0, "PREGNANCY SCHEDULED for female id %d age %d preg %d conc %d due %d\n",
-		    self->get_id(), age, pregnant?1:0, conception_sim_day, due_sim_day);
+      double frac_of_year = (double) days_since_birthday / 366.0;
+
+      if (RANDOM() < frac_of_year*Demographics::pregnancy_rate[age]) {
+	// already pregnant
+	int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+	conception_sim_day = day - IRAND(1,length_of_pregnancy-1);
+	maternity_sim_day = conception_sim_day + length_of_pregnancy;
+	pregnant = true;
+	Global::Pop.add_maternity_event(maternity_sim_day, self);
+	FRED_STATUS(0, "MATERNITY EVENT ADDDED\n");
       }
     } // end test for pregnancy
   } // end population_dynamics
@@ -196,18 +183,48 @@ int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
   return day_of_year;
 }
 
-void Demographics::clear_pregnancy( Person * self ) {
+void Demographics::clear_conception_event( Person * self ) {
+  assert(conception_sim_day > -1);
+  Global::Pop.delete_conception_event(conception_sim_day, self);
+  FRED_STATUS(0, "CONCEPTION EVENT DELETED\n");
   conception_sim_day = -1;
-  due_sim_day = -1;
+}
+
+void Demographics::become_pregnant( Person * self ) {
+  int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+  maternity_sim_day = conception_sim_day + length_of_pregnancy;
+  clear_conception_event(self);
+  Global::Pop.add_maternity_event(maternity_sim_day, self);
+  FRED_STATUS(0, "MATERNITY EVENT ADDDED\n");
+  pregnant = true;
+}
+
+void Demographics::clear_pregnancy( Person * self ) {
+  assert(pregnant == true);
+  Global::Pop.delete_maternity_event(maternity_sim_day, self);
+  FRED_STATUS(0, "MATERNITY EVENT DELETED\n");
+  maternity_sim_day = -1;
   pregnant = false;
-  // don't update this person's pregnancy status anymore
-  Global::Pop.clear_mask_by_index( fred::Update_Births, self->get_pop_index() );
+}
+
+void Demographics::give_birth( Person * self, int day ) {
+  // NOTE: This is called by Person::give_birth() to update stats.
+  // The baby is actually created in Person::give_birth()
+  number_of_children++;
+  Demographics::births_today++;
+  Demographics::births_ytd++;
+  Demographics::total_births++;
+  printf("gave birth: %d births today = %d\n", self->get_id(), births_today);
+  clear_pregnancy(self);
+  Global::Pop.report_birth( day, self );
 }
 
 
 void Demographics::update_births( Person * self, int day ) {
+  /*
   // no pregnancy in group quarters
-  if (self->lives_in_group_quarters()) {
+  if (self->lives_in_group_quarters() && pregnant) {
+    printf("GQ PREGNANCY\n");
     clear_pregnancy(self);
     return;
   }
@@ -216,24 +233,24 @@ void Demographics::update_births( Person * self, int day ) {
     pregnant = true;
   }
   // Is this your day to give birth? ( previously set in Demographics::birthday )
-  if ( pregnant && due_sim_day == day ) {
-    clear_pregnancy(self);
-    // give birth
-    Global::Pop.prepare_to_give_birth( day, self->get_pop_index() );
-    number_of_children++;
-    Demographics::births_today++;
-    Demographics::births_ytd++;
-    Demographics::total_births++;
+  if ( pregnant && maternity_sim_day == day ) {
+    give_birth(self,day);
   }
+  */
 }
 
 void Demographics::update_deaths( Person * self, int day ) {
   //Is this your day to die?
   if ( deceased_sim_day == day ) {
+    // clear pregnancy if pregnant
+    if (pregnant) {
+      printf("DEATH WHILE PREGNANT\n");
+      clear_pregnancy(self);
+    }
     // don't update this person's demographics anymore
     Global::Pop.clear_mask_by_index( fred::Update_Deaths, self->get_pop_index() );
     deceased = true;
-    Global::Pop.prepare_to_die( day, self->get_pop_index() );
+    Global::Pop.prepare_to_die( day, self );
     Demographics::deaths_today++;
     Demographics::deaths_ytd++;
     Demographics::total_deaths++;
@@ -288,7 +305,7 @@ void Demographics::birthday( Person * self, int day ) {
   if (sex == 'F' && 
       Demographics::MIN_PREGNANCY_AGE <= age &&
       age <= Demographics::MAX_PREGNANCY_AGE && 
-      conception_sim_day == -1 && due_sim_day == -1 &&
+      conception_sim_day == -1 && maternity_sim_day == -1 &&
       self->lives_in_group_quarters() == false &&
       RANDOM() < Demographics::pregnancy_rate[age]) {
     
@@ -296,13 +313,8 @@ void Demographics::birthday( Person * self, int day ) {
     
     // ignore small distortion due to leap years
     conception_sim_day = day + IRAND( 1, 365 );
-    due_sim_day = conception_sim_day +
-      (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-	
-    // flag for daily updates
-    Global::Pop.set_mask_by_index( fred::Update_Births, self->get_pop_index() );
-    FRED_STATUS(2, "PREGNANCY SCHEDULED for female id %d age %d preg %d conc %d due %d\n",
-		self->get_id(), age, pregnant?1:0, conception_sim_day, due_sim_day);
+    Global::Pop.add_conception_event(conception_sim_day, self);
+    FRED_STATUS(0, "CONCEPTION EVENT ADDDED\n");
   }
 
   // become responsible for health decisions when reaching adulthood

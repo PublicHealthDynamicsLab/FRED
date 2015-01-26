@@ -64,7 +64,6 @@ Population::Population() {
 
   // reserve memory for lists
   death_list.reserve(1000000);
-  maternity_list.reserve(1000000);
 
   // clear birthday lists
   this->birthday_map.clear();
@@ -72,6 +71,8 @@ Population::Population() {
     this->birthday_vecs[i].reserve(10000);
     this->birthday_vecs[i].clear();
   }
+  conception_queue = new Events;
+  maternity_queue = new Events;
 }
 
 void Population::initialize_masks() {
@@ -134,8 +135,9 @@ void Population::get_parameters() {
 /*
  * All Persons in the population must have been created using add_person
  */
-Person* Population::add_person(int age, char sex, int race, int rel, Place* house, Place* school,
-    Place* work, int day, bool today_is_birthday) {
+Person* Population::add_person(int age, char sex, int race, int rel,
+			       Place* house, Place* school, Place* work,
+			       int day, bool today_is_birthday) {
 
   fred::Scoped_Lock lock(this->add_person_mutex);
 
@@ -198,10 +200,9 @@ void Population::delete_person(Person* person) {
   assert((unsigned ) this->pop_size == this->blq.size());
 }
 
-void Population::prepare_to_die(int day, int person_index) {
-  Person* person = get_person_by_index(person_index);
-  fred::Scoped_Lock lock(this->mutex);
+void Population::prepare_to_die(int day, Person* person) {
   // add person to daily death_list
+  fred::Scoped_Lock lock(this->mutex);
   this->death_list.push_back(person);
   report_death(day, person);
   // you'll be stone dead in a moment...
@@ -214,8 +215,8 @@ void Population::prepare_to_die(int day, int person_index) {
   }
 }
 
-void Population::prepare_to_give_birth(int day, int person_index) {
-  Person* person = get_person_by_index(person_index);
+void Population::prepare_to_give_birth(int day, Person* person) {
+  /*
   fred::Scoped_Lock lock(this->mutex);
   // add person to daily maternity_list
   this->maternity_list.push_back(person);
@@ -224,6 +225,7 @@ void Population::prepare_to_give_birth(int day, int person_index) {
     fprintf(Global::Statusfp, "prepare to give birth: ");
     person->print(Global::Statusfp, 0);
   }
+  */
 }
 
 void Population::setup() {
@@ -662,56 +664,57 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
 
 void Population::update(int day) {
 
-  // clear lists of births and deaths
-  this->death_list.clear();
-  this->maternity_list.clear();
-
   if(Global::Enable_Population_Dynamics) {
+
+    this->maternity_list.clear();
+
     update_people_on_birthday_list(day);
-  }
 
-  if(Global::Enable_Population_Dynamics) {
-    // populate the maternity list (Demographics::update_births)
-    Update_Population_Births update_population_births(day);
-    this->blq.parallel_masked_apply(fred::Update_Births, update_population_births);
+    // add pregnancies
+    std::vector <Person *> pregnancy_list = conception_queue->get_events(day);
+    int size = (int) pregnancy_list.size();
+    for (int i = 0; i < size; i++) {
+      Person *person = pregnancy_list[i];
+      person->get_demographics()->become_pregnant(person);
+    }
+
+    // print maternity_queue for today
+    printf("MATERNITY: ");
+    maternity_queue->print_events(day);
+
+
     // add the births to the population
+    maternity_list = maternity_queue->get_events(day);
     size_t births = this->maternity_list.size();
+    printf("upcoming births = %d  pop_size = %d\n",(int)births, this->pop_size);fflush(stdout);
     for(size_t i = 0; i < births; ++i) {
       Person* mother = this->maternity_list[i];
       Person* baby = mother->give_birth(day);
-
-      if(Global::Enable_Behaviors) {
-        // turn mother into an adult decision maker, if not already
-        if(mother->is_health_decision_maker() == false) {
-          FRED_VERBOSE(0, "young mother %d age %d becomes baby's health decision maker on day %d\n",
-              mother->get_id(), mother->get_age(), day);
-          mother->become_health_decision_maker(mother);
-        }
-        // let mother decide health behaviors for child
-        baby->set_health_decision_maker(mother);
-      }
-
+      printf("mother %d baby %d\n", mother->get_id(), baby->get_id());
+      
+      // add baby to vaccine queue if one exists
       if(this->vacc_manager->do_vaccination()) {
-        FRED_DEBUG(1, "Adding %d to Vaccine Queue\n", baby->get_id());
-        this->vacc_manager->add_to_queue(baby);
+	FRED_DEBUG(1, "Adding %d to Vaccine Queue\n", baby->get_id());
+	this->vacc_manager->add_to_queue(baby);
       }
+
+      // update birth counts
       int age_lookup = mother->get_age();
       if(age_lookup > Demographics::MAX_AGE) {
-        age_lookup = Demographics::MAX_AGE;
+	age_lookup = Demographics::MAX_AGE;
       }
       birth_count[age_lookup]++;
     }
-    FRED_STATUS(1, "births = %d pop_size = %d \n", (int) births, this->pop_size);
-  }
+    FRED_STATUS(0, "births = %d pop_size = %d \n", (int) births, this->pop_size);
 
-  if(Global::Enable_Population_Dynamics) {
     // populate the death list (Demographics::update_deaths)
     Update_Population_Deaths update_population_deaths(day);
     this->blq.parallel_masked_apply(fred::Update_Deaths, update_population_deaths);
 
     size_t deaths = this->death_list.size();
     remove_dead_from_population(day);
-    FRED_STATUS(1, "non-disease related deaths = %d pop_size = %d\n", (int)deaths, this->pop_size);
+    FRED_STATUS(1, "non-disease related deaths = %d pop_size = %d\n",
+		(int) deaths, this->pop_size);
   }
 
   // first update everyone's health intervention status

@@ -560,7 +560,7 @@ void Health::update(Person* self, int day) {
         // and abort updating health.
         if(this->infection[disease_id]->is_fatal()) {
           printf("FATAL: day %d person %d\n", day, self->get_id());
-          Global::Pop.prepare_to_die(day, self->get_pop_index());
+          Global::Pop.prepare_to_die(day, self);
           return;
         }
 
