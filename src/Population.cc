@@ -54,6 +54,8 @@ int Population::output_population = 0;
 bool Population::is_initialized = false;
 int Population::next_id = 0;
 
+Person * trouble;
+
 Population::Population() {
 
   clear_static_arrays();
@@ -163,6 +165,7 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   if(Global::Enable_Population_Dynamics) {
     add_to_birthday_list(person);
   }
+  if (id == 43056) { trouble = person; }
   return person;
 }
 
@@ -664,6 +667,9 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
 
 void Population::update(int day) {
 
+  printf("update entered day %d\n", day); fflush(stdout);
+  printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
+
   if(Global::Enable_Population_Dynamics) {
 
     this->maternity_list.clear();
@@ -781,6 +787,7 @@ void Population::update(int day) {
   // Utils::fred_print_wall_time("day %d av_manager", day);
 
   FRED_STATUS(1, "population begin_day finished, pop_size = %d\n", this->pop_size);
+  printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
 }
 
 void Population::remove_dead_from_population(int day) {

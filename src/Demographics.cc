@@ -191,11 +191,13 @@ void Demographics::clear_conception_event( Person * self ) {
 }
 
 void Demographics::become_pregnant( Person * self ) {
+  FRED_STATUS(0, "become_pregnant: person %d age %d\n", self->get_id(), self->get_age());
+  FRED_STATUS(0, "become_pregnant: household %s\n", self->get_household()->get_label());
   int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
   maternity_sim_day = conception_sim_day + length_of_pregnancy;
   clear_conception_event(self);
   Global::Pop.add_maternity_event(maternity_sim_day, self);
-  FRED_STATUS(0, "MATERNITY EVENT ADDDED\n");
+  FRED_STATUS(0, "MATERNITY EVENT ADDDED for person %d due %d household %s\n", self->get_id(), maternity_sim_day, self->get_household()->get_label());
   pregnant = true;
 }
 
@@ -313,8 +315,12 @@ void Demographics::birthday( Person * self, int day ) {
     
     // ignore small distortion due to leap years
     conception_sim_day = day + IRAND( 1, 365 );
+    FRED_STATUS(0, "queue_conception: person %d age %d\n", self->get_id(), self->get_age());
+    FRED_STATUS(0, "queue_conception: household %s\n", self->get_household()->get_label());
     Global::Pop.add_conception_event(conception_sim_day, self);
     FRED_STATUS(0, "CONCEPTION EVENT ADDDED\n");
+    FRED_STATUS(0, "queue_conception: person %d age %d\n", self->get_id(), self->get_age());
+    FRED_STATUS(0, "queue_conception: household %s\n", self->get_household()->get_label());
   }
 
   // become responsible for health decisions when reaching adulthood
