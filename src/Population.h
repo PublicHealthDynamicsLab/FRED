@@ -140,6 +140,8 @@ public:
 
   void remove_dead_from_population(int day);
 
+  void remove_dead_person_from_population(int day, Person *person);
+
   /**
    * @param index the index of the Person
    * Return a pointer to the Person object at this index
@@ -180,22 +182,6 @@ public:
   void read_all_populations();
 
   void read_population( const char* pop_dir, const char* pop_id, const char* pop_type );
-
-  /**
-   * Print the birth information to the status file
-   * @see Global::Birthfp
-   * @param day the simulation day
-   * @param per a pointer to the Person object that has given birth
-   */
-  void report_birth(int day, Person* per) const;
-
-  /**
-   * Print the death information to the status file
-   * @see Global::Deathfp
-   * @param day the simulation day
-   * @param per a pointer to the Person object that has died
-   */
-  void report_death(int day, Person* per) const;
 
   /**
    *
@@ -317,12 +303,21 @@ public:
     maternity_queue->delete_event(day, person);
   }
 
+  void add_mortality_event(int day, Person *person) {
+    mortality_queue->add_event(day, person);
+  }
+
+  void delete_mortality_event(int day, Person *person) {
+    mortality_queue->delete_event(day, person);
+  }
+
 private:
 
   void mother_gives_birth(int day, Person *mother);
 
   Events * conception_queue;
   Events * maternity_queue;
+  Events * mortality_queue;
 
   struct PopFileColIndex {
     // all populations
@@ -401,14 +396,9 @@ private:
 
 
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
-  vector <Person*> death_list;     // list agents to die today
-  vector <Person*> maternity_list; // list agents to give birth today
-  vector <Person*> new_maternity_list; // list agents to give birth today
+  vector <Person*> death_list;		  // list of agents to die today
   int pop_size;
   Disease* disease;
-
-  vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
-  map<Person*, int> birthday_map;
 
   int enable_copy_files;
     

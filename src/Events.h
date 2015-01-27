@@ -51,8 +51,8 @@ public:
       events[day].reserve(2*events[day].capacity());
     }
     events[day].push_back(item);
-    printf("\nadd_event day %d new size %d\n", day, get_size(day));
-    print_events(day);
+    // printf("\nadd_event day %d new size %d\n", day, get_size(day));
+    // print_events(day);
   }
 
 
@@ -66,8 +66,8 @@ public:
 	events[day][pos] = events[day].back();
 	// delete last slot
 	events[day].pop_back();
-	printf("\ndelete_event day %d final size %d\n", day, get_size(day));
-	print_events(day);
+	// printf("\ndelete_event day %d final size %d\n", day, get_size(day));
+	// print_events(day);
 	return;
       }
     }
@@ -79,7 +79,7 @@ public:
   void clear_events(int day) {
     assert(0 <= day && day < MAX_DAYS);
     events[day] = events_t();
-    printf("clear_events day %d size %d\n", day, get_size(day));
+    // printf("clear_events day %d size %d\n", day, get_size(day));
   }
 
   int get_size(int day) {

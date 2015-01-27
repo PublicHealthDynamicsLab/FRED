@@ -123,12 +123,8 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   set_household(house);
   set_school(school);
   set_workplace(work);
-  if (get_household() == NULL) {
-    FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d has no household\n",
-		 self->get_id(), self->get_age());
-  }
   assert(get_household() != NULL);
-  FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d household %s\n",
+  FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d age %d household %s\n",
 	       self->get_id(), self->get_age(), house->get_label());
 
   // get the neighborhood from the household

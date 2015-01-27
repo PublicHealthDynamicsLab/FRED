@@ -18,6 +18,8 @@
 #define _FRED_DEMOGRAPHICS_H
 
 #include "Global.h"
+#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -41,13 +43,8 @@ public:
    *
    * @param day the simulation day
    *
-   * See also Demographics::update_births and Demographics::update_deaths
    */
   void update(int day);
-
-  void update_births( Person * self, int day );
-
-  void update_deaths( Person * self, int day );
 
   /**
    * @return the number of days the agent has been alive / 365.25
@@ -142,6 +139,14 @@ public:
   static void maternity_handler( int day, Person * self );
   void update_birth_stats( int day, Person * self );
 
+  static void mortality_handler( int day, Person * self );
+  void die(int day, Person * self);
+
+  // birthday lists
+  static void add_to_birthday_list(Person * person);
+  static void delete_from_birthday_list(Person * person);
+  static void update_people_on_birthday_list(int day);
+
   // methods to rebalance household sizes
   static void get_housing_imbalance(int day);
   static int fill_vacancies(int day);
@@ -200,6 +205,9 @@ private:
   static int houses;
   static int * beds;
   static int * occupants;
+
+  static std::vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
+  static std::map<Person*, int> birthday_map;
 
 protected:
 

@@ -395,8 +395,6 @@ namespace fred {
   enum Pop_Masks {
     Infectious = 'I',
     Susceptible = 'S',
-    Update_Deaths = 'D',
-    Update_Births = 'B',
     Update_Health = 'H',
     Travel = 'T'
   };

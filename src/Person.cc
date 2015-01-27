@@ -124,11 +124,12 @@ Person* Person::give_birth(int day) {
   } else {
     house = this->get_household();
   }
+  /*
   if (house == NULL) {
     printf("Mom %d has no household\n", this->get_id()); fflush(stdout);
   }
+  */
   assert(house != NULL);
-  printf("Mom house: %s\n", house->get_label()); fflush(stdout);
   Place* school = NULL;
   Place* work = NULL;
   bool today_is_birthday = true;
@@ -147,7 +148,7 @@ Person* Person::give_birth(int day) {
     baby->set_health_decision_maker(this);
   }
   this->demographics.update_birth_stats(day, this);
-  printf("mother %d baby %d\n", this->get_id(), baby->get_id());
+  FRED_VERBOSE(1, "mother %d baby %d\n", this->get_id(), baby->get_id());
 
   return baby;
 }

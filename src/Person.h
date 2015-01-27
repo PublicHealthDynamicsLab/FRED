@@ -682,14 +682,6 @@ public:
     this->demographics.birthday(this, day);
   }
 
-  void update_births(int day) {
-    this->demographics.update_births(this, day);
-  }
-
-  void update_deaths(int day) {
-    this->demographics.update_deaths(this, day);
-  }
-
   bool become_a_teacher(Place* school) {
     return this->activities.become_a_teacher(this, school);
   }

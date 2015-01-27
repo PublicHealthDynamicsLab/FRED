@@ -58,14 +58,9 @@ Population::Population() {
   // reserve memory for lists
   // death_list.reserve(1000000);
 
-  // clear birthday lists
-  this->birthday_map.clear();
-  for(int i = 0; i < 367; ++i) {
-    this->birthday_vecs[i].reserve(10000);
-    this->birthday_vecs[i].clear();
-  }
   conception_queue = new Events;
   maternity_queue = new Events;
+  mortality_queue = new Events;
 }
 
 void Population::initialize_masks() {
@@ -73,8 +68,6 @@ void Population::initialize_masks() {
   // available when the Global::Pop is defined
   this->blq.add_mask(fred::Infectious);
   this->blq.add_mask(fred::Susceptible);
-  //this->blq.add_mask(fred::Update_Deaths);
-  // this->blq.add_mask(fred::Update_Births);
   this->blq.add_mask(fred::Update_Health);
   this->blq.add_mask(fred::Travel);
 }
@@ -153,9 +146,6 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   assert((unsigned ) this->pop_size == blq.size() - 1);
   this->pop_size = blq.size();
 
-  if(Global::Enable_Population_Dynamics) {
-    add_to_birthday_list(person);
-  }
   return person;
 }
 
@@ -197,15 +187,6 @@ void Population::prepare_to_die(int day, Person* person) {
   // add person to daily death_list
   fred::Scoped_Lock lock(this->mutex);
   this->death_list.push_back(person);
-  report_death(day, person);
-  // you'll be stone dead in a moment...
-  person->die();
-  if(Global::Verbose > 1) {
-    printf("popsize = %d\n", this->pop_size);
-    fprintf(Global::Statusfp, "prepare to die: ");
-    person->print(Global::Statusfp, 0);
-    printf("popsize = %d\n", this->pop_size);
-  }
 }
 
 void Population::setup() {
@@ -234,7 +215,6 @@ void Population::setup() {
   // TODO provide clear() method for bloque
   //id_to_index.clear();
   this->pop_size = 0;
-  this->maternity_list.clear();
   this->death_list.clear();
   read_all_populations();
   Demographics::set_initial_popsize(this->pop_size);
@@ -645,13 +625,10 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
 void Population::update(int day) {
 
   printf("update entered day %d\n", day); fflush(stdout);
-  // printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
 
   if(Global::Enable_Population_Dynamics) {
 
-    this->maternity_list.clear();
-
-    update_people_on_birthday_list(day);
+    Demographics::update_people_on_birthday_list(day);
 
     // add pregnancies
     conception_queue->event_handler(day, Demographics::conception_handler);
@@ -659,25 +636,25 @@ void Population::update(int day) {
     // add the births to the population
     maternity_queue->event_handler(day, Demographics::maternity_handler);
 
-    // populate the death list (Demographics::update_deaths)
-    Update_Population_Deaths update_population_deaths(day);
-    this->blq.parallel_masked_apply(fred::Update_Deaths, update_population_deaths);
+    int pop_size_before = this->pop_size;
 
-    size_t deaths = this->death_list.size();
-    remove_dead_from_population(day);
-    FRED_STATUS(1, "non-disease related deaths = %d pop_size = %d\n",
-		(int) deaths, this->pop_size);
+    // remove dead from population
+    mortality_queue->event_handler(day, Demographics::mortality_handler);
+
+    int deaths = pop_size_before - this->pop_size;
+    FRED_STATUS(0, "non-disease related deaths = %d pop_size = %d\n",
+		deaths, this->pop_size);
   }
 
-  // first update everyone's health intervention status
+  // update everyone's health intervention status
   if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
     Update_Health_Interventions update_health_interventions(day);
     this->blq.apply(update_health_interventions);
   }
-
   FRED_VERBOSE(1, "population::update health  day = %d\n", day);
 
   // update everyone's health status
+  this->death_list.clear();
   Update_Population_Health update_population_health(day);
   this->blq.parallel_masked_apply(fred::Update_Health, update_population_health);
   // Utils::fred_print_wall_time("day %d update_health", day);
@@ -733,31 +710,31 @@ void Population::update(int day) {
   // Utils::fred_print_wall_time("day %d av_manager", day);
 
   FRED_STATUS(1, "population begin_day finished, pop_size = %d\n", this->pop_size);
-  // printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
 }
 
 void Population::remove_dead_from_population(int day) {
   size_t deaths = this->death_list.size();
   for(size_t i = 0; i < deaths; ++i) {
-    // For reporting
-    Person *departed = death_list[i];
-    if(this->vacc_manager->do_vaccination()) {
-      FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", departed->get_id());
-      this->vacc_manager->remove_from_queue(departed);
-    }
-
-    // Remove the person from the birthday lists
-    if(Global::Enable_Population_Dynamics) {
-      delete_from_birthday_list(departed);
-    }
-
-    // finally, 
-    delete_person(departed);
+    Person *person = death_list[i];
+    remove_dead_person_from_population(day, person);
   }
   // clear the death list
   this->death_list.clear();
 }
 
+void Population::remove_dead_person_from_population(int day, Person *person) {
+
+  // remove from vaccine queues
+  if(this->vacc_manager->do_vaccination()) {
+    FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
+    this->vacc_manager->remove_from_queue(person);
+  }
+
+  // finally, 
+  delete_person(person);
+}
+
+/*
 void Population::Update_Population_Births::operator() (Person &p) {
   p.update_births(this->day);
 }
@@ -765,6 +742,7 @@ void Population::Update_Population_Births::operator() (Person &p) {
 void Population::Update_Population_Deaths::operator() (Person &p) {
   p.update_deaths(this->day);
 }
+*/
 
 void Population::Update_Health_Interventions::operator() (Person &p) {
   p.update_health_interventions(this->day);
@@ -1001,24 +979,6 @@ void Population::get_network_stats(char* directory) {
     fprintf(Global::Statusfp, "get_network_stats finished\n");
     fflush(Global::Statusfp);
   }
-}
-
-void Population::report_birth(int day, Person* per) const {
-  /*
-  if(Global::Birthfp == NULL) {
-    return;
-  }
-  fprintf(Global::Birthfp, "day %d mother %d age %d\n", day, per->get_id(), per->get_age());
-  fflush(Global::Birthfp);
-  */
-}
-
-void Population::report_death(int day, Person* per) const {
-  if(Global::Deathfp == NULL) {
-    return;
-  }
-  fprintf(Global::Deathfp, "day %d person %d age %d\n", day, per->get_id(), per->get_age());
-  fflush(Global::Deathfp);
 }
 
 void Population::report_mean_hh_income_per_school() {
@@ -1752,62 +1712,5 @@ void Population::update_traveling_people(int day) {
 
 void Population::update_activities_while_traveling::operator() (Person &person) {
   person.get_activities()->update_activities_while_traveling(&person, this->day);
-}
-
-void Population::add_to_birthday_list(Person * person) {
-  int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
-  this->birthday_vecs[day_of_year].push_back(person);
-  FRED_VERBOSE(2,
-	       "Adding person %d to birthday vector for day = %d.\n ... birthday_vecs[ %d ].size() = %zu\n",
-	       person->get_id(), day_of_year, day_of_year, birthday_vecs[ day_of_year ].size());
-  this->birthday_map[person] = ((int)this->birthday_vecs[day_of_year].size() - 1);
-}
-
-void Population::delete_from_birthday_list(Person * person) {
-  int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
-  map<Person*, int>::iterator itr;
-  itr = this->birthday_map.find(person);
-  if(itr == this->birthday_map.end()) {
-    FRED_VERBOSE(0, "Help! person %d deleted, but not in the birthday_map\n",
-		 person->get_id());
-  }
-  assert(itr != this->birthday_map.end());
-  int pos = (*itr).second;
-
-  // copy last person in birthday list into this person's slot
-  Person* last = this->birthday_vecs[day_of_year].back();
-  this->birthday_vecs[day_of_year][pos] = last;
-  birthday_map[last] = pos;
-
-  // delete last slot
-  this->birthday_vecs[day_of_year].pop_back();
-
-  // delete from birthday map
-  this->birthday_map.erase(itr);
-}
-
-void Population::update_people_on_birthday_list(int day) {
-  int birthday_index = Date::get_day_of_year();
-  if (Date::is_leap_year()) {
-    // skip feb 29
-    if (birthday_index == 60) {
-      return;
-    }
-    // shift all days after feb 28 forward
-    if (60 < birthday_index) {
-      birthday_index--;
-    }
-  }
-
-  // update everyone on today birthday list
-  int birthday_count = 0;
-  int size = (int) this->birthday_vecs[birthday_index].size();
-  for(int p = 0; p < size; ++p) {
-    this->birthday_vecs[birthday_index][p]->birthday(day);
-    birthday_count++;
-  }
-  
-  FRED_VERBOSE(0, "update_people_on_birthday_list: index = %d count = %d\n",
-	       birthday_index, birthday_count);
 }
 
