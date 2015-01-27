@@ -40,7 +40,6 @@ class Place;
 #include "Demographics.h"
 #include "Bloque.h"
 #include "Utils.h"
-#include "Events.h"
 
 class Person_Init_Data;
 
@@ -287,37 +286,9 @@ public:
 
   void update_traveling_people(int day);
 
-  void add_conception_event(int day, Person *person) {
-    conception_queue->add_event(day, person);
-  }
-
-  void delete_conception_event(int day, Person *person) {
-    conception_queue->delete_event(day, person);
-  }
-
-  void add_maternity_event(int day, Person *person) {
-    maternity_queue->add_event(day, person);
-  }
-
-  void delete_maternity_event(int day, Person *person) {
-    maternity_queue->delete_event(day, person);
-  }
-
-  void add_mortality_event(int day, Person *person) {
-    mortality_queue->add_event(day, person);
-  }
-
-  void delete_mortality_event(int day, Person *person) {
-    mortality_queue->delete_event(day, person);
-  }
-
 private:
 
   void mother_gives_birth(int day, Person *mother);
-
-  Events * conception_queue;
-  Events * maternity_queue;
-  Events * mortality_queue;
 
   struct PopFileColIndex {
     // all populations

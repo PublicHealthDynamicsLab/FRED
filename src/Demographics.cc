@@ -59,6 +59,10 @@ int * Demographics::occupants = NULL;
 std::vector <Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
 std::map<Person*, int> Demographics::birthday_map;
 
+Events * Demographics::conception_queue = new Events;
+Events * Demographics::maternity_queue = new Events;
+Events * Demographics::mortality_queue = new Events;
+
 int max_beds = -1;
 int max_occupants = -1;
 std::vector < pair<Person *, int> > ready_to_move;
@@ -140,7 +144,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
     if ( RANDOM() <= age_specific_probability_of_death ) {
       //Yes, so set the death day (in simulation days)
       this->deceased_sim_day = (day + IRAND(1,364));
-      Global::Pop.add_mortality_event(deceased_sim_day, self);
+      Demographics::add_mortality_event(deceased_sim_day, self);
       FRED_STATUS(0, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
 		  day, self->get_id(),age,deceased_sim_day);
     }
@@ -164,7 +168,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
 	conception_sim_day = day - IRAND(1,length_of_pregnancy-1);
 	maternity_sim_day = conception_sim_day + length_of_pregnancy;
 	pregnant = true;
-	Global::Pop.add_maternity_event(maternity_sim_day, self);
+	Demographics::add_maternity_event(maternity_sim_day, self);
 	FRED_STATUS(0, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
 		    day, self->get_id(),age,maternity_sim_day);
       }
@@ -178,10 +182,6 @@ void Demographics::setup( Person * self, short int _age, char _sex,
 Demographics::~Demographics() {
 }
 
-void Demographics::update(int day) {
-  // TODO: this does nothing, leave as stub for future extensions
-}
-
 int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
   int day_of_year = Date::get_day_of_year(birthday_sim_day);
   int year = Date::get_year(birthday_sim_day);
@@ -193,7 +193,7 @@ int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
 
 void Demographics::cancel_conception( Person * self ) {
   assert(conception_sim_day > -1);
-  Global::Pop.delete_conception_event(conception_sim_day, self);
+  Demographics::delete_conception_event(conception_sim_day, self);
   FRED_STATUS(0, "CONCEPTION EVENT DELETED\n");
   conception_sim_day = -1;
 }
@@ -212,7 +212,7 @@ void Demographics::become_pregnant( int day, Person * self ) {
   }
   int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
   maternity_sim_day = conception_sim_day + length_of_pregnancy;
-  Global::Pop.add_maternity_event(maternity_sim_day, self);
+  Demographics::add_maternity_event(maternity_sim_day, self);
   FRED_STATUS(0, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
 	      day, self->get_id(),age,maternity_sim_day);
   pregnant = true;
@@ -222,7 +222,7 @@ void Demographics::become_pregnant( int day, Person * self ) {
 
 void Demographics::cancel_pregnancy( Person * self ) {
   assert(pregnant == true);
-  Global::Pop.delete_maternity_event(maternity_sim_day, self);
+  Demographics::delete_maternity_event(maternity_sim_day, self);
   FRED_STATUS(0, "MATERNITY EVENT DELETED\n");
   maternity_sim_day = -1;
   pregnant = false;
@@ -329,7 +329,7 @@ void Demographics::birthday( Person * self, int day ) {
     
     // Yes, so set the death day (in simulation days)
     this->deceased_sim_day = (day + IRAND(0,364));
-    Global::Pop.add_mortality_event(deceased_sim_day, self);
+    Demographics::add_mortality_event(deceased_sim_day, self);
     FRED_STATUS(0, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
 		day, self->get_id(),age,deceased_sim_day);
   }
@@ -349,7 +349,7 @@ void Demographics::birthday( Person * self, int day ) {
     
     // ignore small distortion due to leap years
     conception_sim_day = day + IRAND( 1, 365 );
-    Global::Pop.add_conception_event(conception_sim_day, self);
+    Demographics::add_conception_event(conception_sim_day, self);
     FRED_STATUS(0, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
 		day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
   }
@@ -494,34 +494,40 @@ void Demographics::initialize_static_variables() {
 
 int count_by_age[Demographics::MAX_AGE+1];
 
-void Demographics::update_population_dynamics(int day) {
+void Demographics::update(int day) {
 
-  if (day == 0) {
-    // initialize house data structures
-    Demographics::houses = Global::Places.get_number_of_households();
-    Demographics::beds = new int[houses];
-    Demographics::occupants = new int[houses];
-    Demographics::target_popsize = Global::Pop.get_pop_size();
-  }
-
-  // reserve ready_to_move vector:
-  ready_to_move.reserve(Global::Pop.get_pop_size());
-
+  // reset counts of births and deaths
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
-
   if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
     Demographics::births_ytd = 0;
     Demographics::deaths_ytd = 0;
   }
 
+  Demographics::update_people_on_birthday_list(day);
+
+  // initiate pregnancies
+  Demographics::conception_queue->event_handler(day, Demographics::conception_handler);
+
+  // add newborns to the population
+  Demographics::maternity_queue->event_handler(day, Demographics::maternity_handler);
+
+  // remove dead from population
+  Demographics::mortality_queue->event_handler(day, Demographics::mortality_handler);
+
+  // update housing periodically
   if(day == 0 || (Date::get_month() == 6 && Date::get_day_of_month() == 30)) {
     Demographics::update_housing(day);
   }
 
-  if(!(Date::get_month() == 12 && Date::get_day_of_month() == 31)) {
-    return;
+  // update birth and death rates at end of each year
+  if(Date::get_month() == 12 && Date::get_day_of_month() == 31) {
+    Demographics::update_population_dynamics(day);
   }
+
+}
+
+void Demographics::update_population_dynamics(int day) {
 
   int births = Demographics::births_ytd;
   int deaths = Demographics::deaths_ytd;
@@ -706,6 +712,18 @@ int Demographics::fill_vacancies(int day) {
 }
 
 void Demographics::update_housing(int day) {
+
+  if (day == 0) {
+    // initialize house data structures
+    Demographics::houses = Global::Places.get_number_of_households();
+    Demographics::beds = new int[houses];
+    Demographics::occupants = new int[houses];
+    Demographics::target_popsize = Global::Pop.get_pop_size();
+  }
+
+  // reserve ready_to_move vector:
+  ready_to_move.reserve(Global::Pop.get_pop_size());
+
   Global::Places.get_housing_data(beds, occupants);
   max_beds = -1;
   max_occupants = -1;

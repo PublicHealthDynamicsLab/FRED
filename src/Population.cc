@@ -58,9 +58,6 @@ Population::Population() {
   // reserve memory for lists
   // death_list.reserve(1000000);
 
-  conception_queue = new Events;
-  maternity_queue = new Events;
-  mortality_queue = new Events;
 }
 
 void Population::initialize_masks() {
@@ -626,26 +623,6 @@ void Population::update(int day) {
 
   printf("update entered day %d\n", day); fflush(stdout);
 
-  if(Global::Enable_Population_Dynamics) {
-
-    Demographics::update_people_on_birthday_list(day);
-
-    // add pregnancies
-    conception_queue->event_handler(day, Demographics::conception_handler);
-
-    // add the births to the population
-    maternity_queue->event_handler(day, Demographics::maternity_handler);
-
-    int pop_size_before = this->pop_size;
-
-    // remove dead from population
-    mortality_queue->event_handler(day, Demographics::mortality_handler);
-
-    int deaths = pop_size_before - this->pop_size;
-    FRED_STATUS(0, "non-disease related deaths = %d pop_size = %d\n",
-		deaths, this->pop_size);
-  }
-
   // update everyone's health intervention status
   if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
     Update_Health_Interventions update_health_interventions(day);
@@ -723,26 +700,13 @@ void Population::remove_dead_from_population(int day) {
 }
 
 void Population::remove_dead_person_from_population(int day, Person *person) {
-
   // remove from vaccine queues
   if(this->vacc_manager->do_vaccination()) {
     FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
     this->vacc_manager->remove_from_queue(person);
   }
-
-  // finally, 
   delete_person(person);
 }
-
-/*
-void Population::Update_Population_Births::operator() (Person &p) {
-  p.update_births(this->day);
-}
-
-void Population::Update_Population_Deaths::operator() (Person &p) {
-  p.update_deaths(this->day);
-}
-*/
 
 void Population::Update_Health_Interventions::operator() (Person &p) {
   p.update_health_interventions(this->day);

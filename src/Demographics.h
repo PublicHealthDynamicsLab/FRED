@@ -18,6 +18,7 @@
 #define _FRED_DEMOGRAPHICS_H
 
 #include "Global.h"
+#include "Events.h"
 #include <vector>
 #include <map>
 
@@ -44,7 +45,7 @@ public:
    * @param day the simulation day
    *
    */
-  void update(int day);
+  static void update(int day);
 
   /**
    * @return the number of days the agent has been alive / 365.25
@@ -118,9 +119,6 @@ public:
   void set_pregnant() { pregnant = true; }
   void unset_pregnant() { pregnant = false; }
 
-  /**
-   * This method is only used one time during initialization to load the birth rate and mortality rate arrays from files
-   */
   static void initialize_static_variables();
   static void set_initial_popsize(int popsize) { target_popsize = popsize; }
   static void update_population_dynamics(int day);
@@ -163,7 +161,35 @@ public:
   static void report_ages(int day, int house_id);
   static void swap_houses(int day);
 
+  static void add_conception_event(int day, Person *person) {
+    conception_queue->add_event(day, person);
+  }
+
+  static void delete_conception_event(int day, Person *person) {
+    conception_queue->delete_event(day, person);
+  }
+
+  static void add_maternity_event(int day, Person *person) {
+    maternity_queue->add_event(day, person);
+  }
+
+  static void delete_maternity_event(int day, Person *person) {
+    maternity_queue->delete_event(day, person);
+  }
+
+  static void add_mortality_event(int day, Person *person) {
+    mortality_queue->add_event(day, person);
+  }
+
+  static void delete_mortality_event(int day, Person *person) {
+    mortality_queue->delete_event(day, person);
+  }
+
 private:
+
+  static Events * conception_queue;
+  static Events * maternity_queue;
+  static Events * mortality_queue;
 
   short int init_age;			     // Initial age of the agent
   short int age;			     // Current age of the agent

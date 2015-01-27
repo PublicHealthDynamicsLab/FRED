@@ -339,15 +339,15 @@ void fred_step(int day) {
     }
   }
 
-  // optional: update population dynamics 
-  if (Global::Enable_Population_Dynamics) {
-    Demographics::update_population_dynamics(day);
-    Utils::fred_print_lap_time("day %d update population dynamics", day);
-  }
-
   // reset lists of infectious, susceptibles; update vector population, if any
   Global::Places.update(day);
   Utils::fred_print_lap_time("day %d update places", day);
+
+  // optional: update population dynamics 
+  if (Global::Enable_Population_Dynamics) {
+    Demographics::update(day);
+    Utils::fred_print_lap_time("day %d update population dynamics", day);
+  }
 
   // update health status of all agents.
   // update activity profiles if dynamic.
