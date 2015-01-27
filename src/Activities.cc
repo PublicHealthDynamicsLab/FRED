@@ -116,6 +116,7 @@ Activities::Activities() {
   this->sim_day_hospitalization_ends = -1;
   this->is_isolated = false;
   this->grade = 0;
+  this->return_from_travel_sim_day = -1;
 }
 
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
@@ -1178,6 +1179,7 @@ void Activities::stop_traveling(Person* self) {
   }
   this->is_traveling = false;
   this->is_traveling_outside = false;
+  this->return_from_travel_sim_day = -1;
   Global::Pop.clear_mask_by_index( fred::Travel, self->get_pop_index() );
   FRED_STATUS(1, "stop traveling: id = %d\n", self->get_id());
 }
@@ -1356,10 +1358,13 @@ void Activities::move_to_new_house(Person* self, Place* house) {
 }
 
 void Activities::terminate(Person* self) {
-  // Person was enrolled in only his original 
-  // favorite places, not his host's places while traveling
-  if(this->is_traveling && !this->is_traveling_outside) {
-    restore_favorite_places();
+  if (this->get_travel_status()) {
+    // Person was enrolled in only his original 
+    // favorite places, not his host's places while traveling
+    if(this->is_traveling && !this->is_traveling_outside) {
+      restore_favorite_places();
+    }
+    Travel::terminate_person(self);
   }
   //If the agent was hospitalized, restore original favorite places
   if(this->is_hospitalized) {

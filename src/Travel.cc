@@ -36,6 +36,8 @@ static pset_ptr * traveler_list_ptr;        // pointers to above lists
 static double mean_trip_duration;		// mean days per trip
 typedef vector <Person*> pvec;			// vector of person ptrs
 
+Events * Travel::return_queue = new Events;
+
 // runtime parameters
 static double * Travel_Duration_Cdf;		// cdf for trip duration
 static int max_Travel_Duration = 0;		// number of days in cdf
@@ -120,7 +122,7 @@ void Travel::read_trips_per_day_file() {
     }
     fflush(stdout);
     fprintf(Global::Statusfp, "finished reading trips_per_day_file %s\n", trips_per_day_file);
-    }
+  }
 }
 
 void Travel::setup_travelers_per_hub() {
@@ -140,15 +142,15 @@ void Travel::setup_travelers_per_hub() {
     double min_dist = 100000000.0;
     int closest = -1;
     for(int j = 0; j < num_hubs; j++) {
-       double dist = Geo_Utils::xy_distance(h_lat, h_lon, hubs[j].lat, hubs[j].lon);
-	     /* if (dist < max_distance && dist < min_dist) {
-	          closest = j;
-	          min_dist = dist;
-	     }*/
-       //Assign travelers to hub based on 'county' rather than distance
+      double dist = Geo_Utils::xy_distance(h_lat, h_lon, hubs[j].lat, hubs[j].lon);
+      if (dist < max_distance && dist < min_dist) {
+	closest = j;
+	min_dist = dist;
+      }
+      //Assign travelers to hub based on 'county' rather than distance
       if(hubs[j].id == h_county){
-	      closest = j;
-	      min_dist = dist;
+	closest = j;
+	min_dist = dist;
       }
     }
     if(closest > -1) {
@@ -156,8 +158,8 @@ void Travel::setup_travelers_per_hub() {
       // add everyone in the household to the user list for this hub
       int housemates = h->get_size();
       for(int k = 0; k < housemates; k++) {
-	      Person * person = h->get_housemate(k);
-	      hubs[closest].users.push_back(person);
+	Person * person = h->get_housemate(k);
+	hubs[closest].users.push_back(person);
       }
     }
   }
@@ -180,7 +182,7 @@ void Travel::setup_travel_lists(){
   Params::get_param_from_string("travel_duration",&n);
   Travel_Duration_Cdf = new double [n];
   max_Travel_Duration = Params::get_param_vector((char *) "travel_duration",
-           Travel_Duration_Cdf) - 1;
+						 Travel_Duration_Cdf) - 1;
  
   if(Global::Verbose > 0) {
     for (int i = 0; i <= max_Travel_Duration; i++) {
@@ -211,8 +213,8 @@ void Travel::update_travel(int day) {
     return;
   }
 
-  if(Global::Verbose > 1) {
-    fprintf(Global::Statusfp, "update_travel entered\n");
+  if(Global::Verbose > 0) {
+    fprintf(Global::Statusfp, "update_travel entered day %d\n",day);
     fflush(Global::Statusfp);
   }
 
@@ -223,63 +225,87 @@ void Travel::update_travel(int day) {
     }
     for(int j = 0; j < num_hubs; j++) {
       if(hubs[j].users.size() == 0) {
-	      continue;
+	continue;
       }
       int successful_trips = 0;
       int count = (trips_per_day[i][j] * hubs[i].pct + 0.5) / 100;
+      printf("TRIPCOUNT day %d i %d j %d count %d\n",day,i,j,count);
       for(int t = 0; t < count; t++) {
-	      // select a potential traveler determined by travel_age_prob param
-	      Person * visitor = NULL;
-	      Person * host = NULL;
-	      int attempts = 0;
-	      while(visitor == NULL && attempts < 100) {
-	        // select a random member of the source hub's user group
-	        int v = IRAND(0,hubs[i].users.size()-1);
-	        visitor = hubs[i].users[v];
-	        double prob_travel_by_age = travel_age_prob->find_value(visitor->get_real_age());
-	        if(prob_travel_by_age < RANDOM()) {
-	          visitor = NULL;
-	        }
-	        attempts++;
-	      }
-	      if(visitor != NULL) {
-	        // select a potential travel host determined by travel_age_prob param
-	        attempts = 0;
-	        while(host == NULL && attempts < 100) {
-	          // select a random member of the destination hub's user group
-	          int v = IRAND(0,hubs[j].users.size()-1);
-	          host = hubs[j].users[v];
-	          double prob_travel_by_age = travel_age_prob->find_value(host->get_real_age());
-	          if(prob_travel_by_age < RANDOM()) {
-	            host = NULL;
-	          }
-	          attempts++;
-	        }
-	      }
-	      // travel occurs only of if both visitor and host are not already traveling
-	      if(visitor != NULL && (!visitor->get_travel_status()) &&
-	         host != NULL && (!host->get_travel_status())) {
-	        // put traveler in travel status
-	        visitor->start_traveling(host);
-	        // put traveler on list for given number of days to travel
-	        int duration = draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
-	        traveler_list_ptr[duration]->insert(visitor);
-	        successful_trips ++;
-	        //TODO Decide when this should print
-	        if(0) {
-	          printf("DAY %d SRC = %d DEST = %d TRIP = %d TRAVELER = %d age = %d HOST = %d age = %d duration = %d\n",
-		         day, hubs[i].id, hubs[j].id, t, visitor->get_id(), visitor->get_age(),
-		        host->get_id(), host->get_age(), duration);
-	          fflush(stdout);
-	        }
-	      }
+	// select a potential traveler determined by travel_age_prob param
+	Person * traveler = NULL;
+	Person * host = NULL;
+	int attempts = 0;
+	while(traveler == NULL && attempts < 100) {
+	  // select a random member of the source hub's user group
+	  int v = IRAND(0,hubs[i].users.size()-1);
+	  traveler = hubs[i].users[v];
+	  double prob_travel_by_age = travel_age_prob->find_value(traveler->get_real_age());
+	  if(prob_travel_by_age < RANDOM()) {
+	    traveler = NULL;
+	  }
+	  attempts++;
+	}
+	if(traveler != NULL) {
+	  // select a potential travel host determined by travel_age_prob param
+	  attempts = 0;
+	  while(host == NULL && attempts < 100) {
+	    // select a random member of the destination hub's user group
+	    int v = IRAND(0,hubs[j].users.size()-1);
+	    host = hubs[j].users[v];
+	    /*
+	    double prob_travel_by_age = travel_age_prob->find_value(host->get_real_age());
+	    if(prob_travel_by_age < RANDOM()) {
+	      host = NULL;
+	    }
+	    */
+	    attempts++;
+	  }
+	}
+	// travel occurs only if both traveler and host are not already traveling
+	if(traveler != NULL && (!traveler->get_travel_status()) &&
+	   host != NULL && (!host->get_travel_status())) {
+	  // put traveler in travel status
+	  traveler->start_traveling(host);
+	  if (traveler->get_travel_status()) {
+	    // put traveler on list for given number of days to travel
+	    int duration = draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
+	    int return_sim_day = day + duration;
+	    Travel::add_return_event(return_sim_day, traveler);
+	    traveler_list_ptr[duration]->insert(traveler);
+	    traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
+	    FRED_STATUS(0, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
+			day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
+	    successful_trips ++;
+	  }
+	}
       }
-      FRED_VERBOSE(0,"DAY %d SRC = %d DEST = %d TRIPS = %d\n",
-		   day, hubs[i].id, hubs[j].id, successful_trips);
+      FRED_VERBOSE(0,"DAY %d SRC = %d DEST = %d TRIPS = %d\n", day, hubs[i].id, hubs[j].id, successful_trips);
     }
   }
 
   // process travelers who are returning home
+  Travel::find_returning_travelers(day);
+  Travel::old_find_returning_travelers(day);
+
+  if(Global::Verbose > 1) {
+    fprintf(Global::Statusfp, "update_travel finished\n");
+    fflush(Global::Statusfp);
+  }
+
+  return;
+}
+
+void Travel::find_returning_travelers(int day) {
+  Travel::return_queue->event_handler(day, Travel::return_handler);
+}
+
+void Travel::return_handler(int day, Person * person) {
+  FRED_STATUS(0, "RETURNING FROM TRAVEL today %d id %d age %d\n",
+	      day, person->get_id(),person->get_age());
+  // person->stop_traveling();
+}
+
+void Travel::old_find_returning_travelers(int day) {
   // printf("returning home:\n"); fflush(stdout);
   for(piter it=traveler_list_ptr[0]->begin(); it != traveler_list_ptr[0]->end(); it++) {
     (*it)->stop_traveling();
@@ -292,16 +318,16 @@ void Travel::update_travel(int day) {
     traveler_list_ptr[i] = traveler_list_ptr[i+1];
   }
   traveler_list_ptr[max_Travel_Duration] = tmp;
-  
-  if(Global::Verbose > 1) {
-    fprintf(Global::Statusfp, "update_travel finished\n");
-    fflush(Global::Statusfp);
-  }
-
-  return;
 }
 
+
 void Travel::terminate_person(Person *person) {
+  if (!person->get_travel_status()) {
+    return;
+  }
+  int return_day = person->get_activities()->get_return_from_travel_sim_day();
+  assert(Global::Simulation_Day <= return_day);
+  Travel::delete_return_event(return_day, person);
   for(unsigned int i = 0; i <= max_Travel_Duration; i++) {
     piter it = traveler_list[i].find(person);
     if(it != traveler_list[i].end()) {

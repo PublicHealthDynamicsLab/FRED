@@ -560,6 +560,9 @@ public:
 
   void update_activities_while_traveling(Person* self, int day);
 
+  void set_return_from_travel_sim_day(int day) { return_from_travel_sim_day = day; }
+  int get_return_from_travel_sim_day() { return return_from_travel_sim_day; }
+
 private:
 
   // current favorite places
@@ -575,6 +578,7 @@ private:
   char profile;                              // activities profile type
   bool is_hospitalized;
   bool is_isolated;
+  int return_from_travel_sim_day;
   int sim_day_hospitalization_ends;
   int grade;
 
