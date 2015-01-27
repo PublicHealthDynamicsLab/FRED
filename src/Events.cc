@@ -19,10 +19,9 @@
 
 void Events::print_events(FILE *fp, int day) {
   assert(0 <= day && day < MAX_DAYS);
-  int size = get_number_of_events(day);
-  events_t::iterator itr_end = events[day].end();
-  fprintf(fp, "events[%d] = %d : ", day, size);
-  for (events_t::iterator itr = events[day].begin(); itr != itr_end; itr++) {
+  events_itr_t itr_end = events[day].end();
+  fprintf(fp, "events[%d] = %d : ", day, get_size(day));
+  for (events_itr_t itr = events[day].begin(); itr != itr_end; itr++) {
     fprintf(fp, "id %d age %d ", (*itr)->get_id(), (*itr)->get_age());
   }
   fprintf(fp,"\n");

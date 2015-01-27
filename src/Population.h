@@ -141,13 +141,6 @@ public:
   void remove_dead_from_population(int day);
 
   /**
-   * Perform the necessary steps for an agent to give birth
-   * @param day the simulation day
-   * @param person the agent who will give birth
-   */
-  void prepare_to_give_birth(int day, Person* person);
-
-  /**
    * @param index the index of the Person
    * Return a pointer to the Person object at this index
    */
@@ -429,11 +422,6 @@ private:
   //Mitigation Managers
   AV_Manager* av_manager;
   Vaccine_Manager* vacc_manager;
-
-  /**
-   * Used for reporting
-   */
-  void clear_static_arrays();
 
   /**
    * Write out the population in a format similar to the population input files (with additional runtime information)

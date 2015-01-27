@@ -41,31 +41,22 @@
 #include "Compression.h"
 #endif
 
-// used for reporting
-int age_count_male[Demographics::MAX_AGE + 1];
-int age_count_female[Demographics::MAX_AGE + 1];
-int birth_count[Demographics::MAX_AGE + 1];
-int death_count_male[Demographics::MAX_AGE + 1];
-int death_count_female[Demographics::MAX_AGE + 1];
-
 char Population::pop_outfile[FRED_STRING_SIZE];
 char Population::output_population_date_match[FRED_STRING_SIZE];
 int Population::output_population = 0;
 bool Population::is_initialized = false;
 int Population::next_id = 0;
 
-Person * trouble;
-
 Population::Population() {
 
-  clear_static_arrays();
+  // clear_static_arrays();
   this->pop_size = 0;
   this->disease = NULL;
   this->av_manager = NULL;
   this->vacc_manager = NULL;
 
   // reserve memory for lists
-  death_list.reserve(1000000);
+  // death_list.reserve(1000000);
 
   // clear birthday lists
   this->birthday_map.clear();
@@ -82,8 +73,8 @@ void Population::initialize_masks() {
   // available when the Global::Pop is defined
   this->blq.add_mask(fred::Infectious);
   this->blq.add_mask(fred::Susceptible);
-  this->blq.add_mask(fred::Update_Deaths);
-  this->blq.add_mask(fred::Update_Births);
+  //this->blq.add_mask(fred::Update_Deaths);
+  // this->blq.add_mask(fred::Update_Births);
   this->blq.add_mask(fred::Update_Health);
   this->blq.add_mask(fred::Travel);
 }
@@ -165,7 +156,6 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   if(Global::Enable_Population_Dynamics) {
     add_to_birthday_list(person);
   }
-  if (id == 43056) { trouble = person; }
   return person;
 }
 
@@ -216,19 +206,6 @@ void Population::prepare_to_die(int day, Person* person) {
     person->print(Global::Statusfp, 0);
     printf("popsize = %d\n", this->pop_size);
   }
-}
-
-void Population::prepare_to_give_birth(int day, Person* person) {
-  /*
-  fred::Scoped_Lock lock(this->mutex);
-  // add person to daily maternity_list
-  this->maternity_list.push_back(person);
-  report_birth(day, person);
-  if(Global::Verbose > 1) {
-    fprintf(Global::Statusfp, "prepare to give birth: ");
-    person->print(Global::Statusfp, 0);
-  }
-  */
 }
 
 void Population::setup() {
@@ -668,7 +645,7 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
 void Population::update(int day) {
 
   printf("update entered day %d\n", day); fflush(stdout);
-  printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
+  // printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
 
   if(Global::Enable_Population_Dynamics) {
 
@@ -677,40 +654,10 @@ void Population::update(int day) {
     update_people_on_birthday_list(day);
 
     // add pregnancies
-    std::vector <Person *> pregnancy_list = conception_queue->get_events(day);
-    int size = (int) pregnancy_list.size();
-    for (int i = 0; i < size; i++) {
-      Person *person = pregnancy_list[i];
-      person->get_demographics()->become_pregnant(person);
-    }
-
-    // print maternity_queue for today
-    // printf("MATERNITY: ");
-    // maternity_queue->print_events(day);
+    conception_queue->event_handler(day, Demographics::conception_handler);
 
     // add the births to the population
-    maternity_list = maternity_queue->get_events(day);
-    size_t births = this->maternity_list.size();
-    printf("upcoming births = %d  pop_size = %d\n",(int)births, this->pop_size);fflush(stdout);
-    for(size_t i = 0; i < births; ++i) {
-      Person* mother = this->maternity_list[i];
-      Person* baby = mother->give_birth(day);
-      printf("mother %d baby %d\n", mother->get_id(), baby->get_id());
-      
-      // add baby to vaccine queue if one exists
-      if(this->vacc_manager->do_vaccination()) {
-	FRED_DEBUG(1, "Adding %d to Vaccine Queue\n", baby->get_id());
-	this->vacc_manager->add_to_queue(baby);
-      }
-
-      // update birth counts
-      int age_lookup = mother->get_age();
-      if(age_lookup > Demographics::MAX_AGE) {
-	age_lookup = Demographics::MAX_AGE;
-      }
-      birth_count[age_lookup]++;
-    }
-    FRED_STATUS(0, "births = %d pop_size = %d \n", (int) births, this->pop_size);
+    maternity_queue->event_handler(day, Demographics::maternity_handler);
 
     // populate the death list (Demographics::update_deaths)
     Update_Population_Deaths update_population_deaths(day);
@@ -786,7 +733,7 @@ void Population::update(int day) {
   // Utils::fred_print_wall_time("day %d av_manager", day);
 
   FRED_STATUS(1, "population begin_day finished, pop_size = %d\n", this->pop_size);
-  printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
+  // printf("day %d TROUBLE person %d household %s\n", day, trouble->get_id(), trouble->get_household()->get_label()); fflush(stdout);
 }
 
 void Population::remove_dead_from_population(int day) {
@@ -794,16 +741,6 @@ void Population::remove_dead_from_population(int day) {
   for(size_t i = 0; i < deaths; ++i) {
     // For reporting
     Person *departed = death_list[i];
-    int age_lookup = departed->get_age();
-    if(age_lookup > Demographics::MAX_AGE) {
-      age_lookup = Demographics::MAX_AGE;
-    }
-    if(departed->get_sex() == 'F') {
-      death_count_female[age_lookup]++;
-    } else {
-      death_count_male[age_lookup]++;
-    }
-
     if(this->vacc_manager->do_vaccination()) {
       FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", departed->get_id());
       this->vacc_manager->remove_from_queue(departed);
@@ -874,46 +811,6 @@ void Population::report(int day) {
 
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
-
-  if(Global::Verbose > 0 && Date::get_month()==12 && Date::get_day_of_month()==31) {
-    // print the statistics on December 31 of each year
-    for(int i = 0; i < this->get_index_size(); ++i) {
-      Person* person = get_person_by_index(i);
-      if(person == NULL) {
-        continue;
-      }
-      int age_lookup = person->get_age();
-      if(age_lookup > Demographics::MAX_AGE) {
-        age_lookup = Demographics::MAX_AGE;
-      }
-      if(person->get_sex() == 'F') {
-        age_count_female[age_lookup]++;
-      } else {
-        age_count_male[age_lookup]++;
-      }
-    }
-
-    for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-      int count, num_deaths, num_births;
-      double birthrate, deathrate;
-      FRED_VERBOSE(1,"DEMOGRAPHICS Year %d TotalPop %d Age %d ",
-          Date::get_year(), this->pop_size, i);
-      count = age_count_female[i];
-      num_births = birth_count[i];
-      num_deaths = death_count_female[i];
-      birthrate = count > 0 ? ((100.0 * num_births) / count) : 0.0;
-      deathrate = count > 0 ? ((100.0 * num_deaths) / count) : 0.0;
-      FRED_VERBOSE(1,
-		   "count_f %d births_f %d birthrate_f %.03f deaths_f %d deathrate_f %.03f ", count,
-		   num_births, birthrate, num_deaths, deathrate);
-      count = age_count_male[i];
-      num_deaths = death_count_male[i];
-      deathrate = count ? ((100.0 * num_deaths) / count) : 0.0;
-      FRED_VERBOSE(1, "count_m %d deaths_m %d deathrate_m %.03f\n", count, num_deaths,
-          deathrate);
-    }
-    clear_static_arrays();
-  }
 
   for(int d = 0; d < Global::Diseases; ++d) {
     this->disease[d].print_stats(day);
@@ -1047,17 +944,6 @@ void Population::quality_control() {
   FRED_STATUS(0, "population quality control finished\n");
 }
 
-//Static function to clear arrays
-void Population::clear_static_arrays() {
-  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-    age_count_male[i] = 0;
-    age_count_female[i] = 0;
-    death_count_male[i] = 0;
-    death_count_female[i] = 0;
-    birth_count[i] = 0;
-  }
-}
-
 void Population::assign_classrooms() {
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "assign classrooms entered\n");
@@ -1118,11 +1004,13 @@ void Population::get_network_stats(char* directory) {
 }
 
 void Population::report_birth(int day, Person* per) const {
+  /*
   if(Global::Birthfp == NULL) {
     return;
   }
   fprintf(Global::Birthfp, "day %d mother %d age %d\n", day, per->get_id(), per->get_age());
   fflush(Global::Birthfp);
+  */
 }
 
 void Population::report_death(int day, Person* per) const {

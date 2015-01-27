@@ -161,7 +161,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
 	maternity_sim_day = conception_sim_day + length_of_pregnancy;
 	pregnant = true;
 	Global::Pop.add_maternity_event(maternity_sim_day, self);
-	FRED_STATUS(0, "MATERNITY EVENT ADDDED\n");
+	FRED_STATUS(0, "MATERNITY EVENT ADDDED id %d due %d\n",self->get_id(),maternity_sim_day);
       }
     } // end test for pregnancy
   } // end population_dynamics
@@ -183,25 +183,37 @@ int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
   return day_of_year;
 }
 
-void Demographics::clear_conception_event( Person * self ) {
+void Demographics::cancel_conception( Person * self ) {
   assert(conception_sim_day > -1);
   Global::Pop.delete_conception_event(conception_sim_day, self);
   FRED_STATUS(0, "CONCEPTION EVENT DELETED\n");
   conception_sim_day = -1;
 }
 
-void Demographics::become_pregnant( Person * self ) {
-  FRED_STATUS(0, "become_pregnant: person %d age %d\n", self->get_id(), self->get_age());
-  FRED_STATUS(0, "become_pregnant: household %s\n", self->get_household()->get_label());
-  int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-  maternity_sim_day = conception_sim_day + length_of_pregnancy;
-  clear_conception_event(self);
-  Global::Pop.add_maternity_event(maternity_sim_day, self);
-  FRED_STATUS(0, "MATERNITY EVENT ADDDED for person %d due %d household %s\n", self->get_id(), maternity_sim_day, self->get_household()->get_label());
-  pregnant = true;
+void Demographics::conception_handler( int day, Person * self ) {
+  self->get_demographics()->become_pregnant(day, self);
 }
 
-void Demographics::clear_pregnancy( Person * self ) {
+void Demographics::become_pregnant( int day, Person * self ) {
+  // No pregnancies in group quarters
+  if(self->lives_in_group_quarters()) {
+    FRED_STATUS(0, "GQ: do not become pregnant: today %d person %d age %d\n",
+		day, self->get_id(), self->get_age());
+    conception_sim_day = -1;
+    return;
+  }
+  FRED_STATUS(0, "become_pregnant: today %d person %d age %d\n",
+	      day, self->get_id(), self->get_age());
+  int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+  maternity_sim_day = conception_sim_day + length_of_pregnancy;
+  Global::Pop.add_maternity_event(maternity_sim_day, self);
+  pregnant = true;
+  FRED_STATUS(0, "MATERNITY EVENT ADDDED id %d due %d\n",self->get_id(),maternity_sim_day);
+  conception_sim_day = -1;
+}
+
+
+void Demographics::cancel_pregnancy( Person * self ) {
   assert(pregnant == true);
   Global::Pop.delete_maternity_event(maternity_sim_day, self);
   FRED_STATUS(0, "MATERNITY EVENT DELETED\n");
@@ -209,16 +221,26 @@ void Demographics::clear_pregnancy( Person * self ) {
   pregnant = false;
 }
 
-void Demographics::give_birth( Person * self, int day ) {
+void Demographics::maternity_handler( int day, Person * self ) {
+  // NOTE: This calls Person::give_birth() to create the baby
+  self->give_birth(day);
+}
+
+void Demographics::update_birth_stats( int day, Person * self ) {
   // NOTE: This is called by Person::give_birth() to update stats.
   // The baby is actually created in Person::give_birth()
+  pregnant = false;
+  maternity_sim_day = -1;
   number_of_children++;
   Demographics::births_today++;
   Demographics::births_ytd++;
   Demographics::total_births++;
-  printf("gave birth: %d births today = %d\n", self->get_id(), births_today);
-  clear_pregnancy(self);
-  Global::Pop.report_birth( day, self );
+  if(Global::Birthfp != NULL) {
+  // report births
+    fprintf(Global::Birthfp, "day %d mother %d age %d\n",
+	    day, self->get_id(), self->get_age());
+    fflush(Global::Birthfp);
+  }
 }
 
 
@@ -227,7 +249,7 @@ void Demographics::update_births( Person * self, int day ) {
   // no pregnancy in group quarters
   if (self->lives_in_group_quarters() && pregnant) {
     printf("GQ PREGNANCY\n");
-    clear_pregnancy(self);
+    cancel_pregnancy(self);
     return;
   }
   //is this the day to become pregnant? ( previously set in Demographics::birthday )
@@ -244,10 +266,17 @@ void Demographics::update_births( Person * self, int day ) {
 void Demographics::update_deaths( Person * self, int day ) {
   //Is this your day to die?
   if ( deceased_sim_day == day ) {
-    // clear pregnancy if pregnant
+    // cancel any planned pregnancy
+    if (day <= conception_sim_day) {
+      printf("DEATH CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
+	     day, self->get_id(), age, conception_sim_day);
+      cancel_conception(self);
+    }
+    // cancel any pregnancy
     if (pregnant) {
-      printf("DEATH WHILE PREGNANT\n");
-      clear_pregnancy(self);
+      printf("DEATH CANCELS PREGNANCY: today %d person %d age %d due %d\n",
+	     day, self->get_id(), age, maternity_sim_day);
+      cancel_pregnancy(self);
     }
     // don't update this person's demographics anymore
     Global::Pop.clear_mask_by_index( fred::Update_Deaths, self->get_pop_index() );
@@ -459,7 +488,6 @@ int count_by_age[Demographics::MAX_AGE+1];
 void Demographics::update_population_dynamics(int day) {
 
   if (day == 0) {
-
     // initialize house data structures
     Demographics::houses = Global::Places.get_number_of_households();
     Demographics::beds = new int[houses];

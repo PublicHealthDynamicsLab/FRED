@@ -45,15 +45,7 @@ public:
    */
   void update(int day);
 
-  void clear_conception_event( Person * self );
-
-  void become_pregnant( Person * self );
-
-  void clear_pregnancy( Person * self );
-
   void update_births( Person * self, int day );
-
-  void give_birth( Person * self, int day );
 
   void update_deaths( Person * self, int day );
 
@@ -122,6 +114,13 @@ public:
 
   void terminate( Person * self ) { }
 
+  int get_conception_sim_day() { return conception_sim_day; }
+  void set_conception_sim_day(int day) { conception_sim_day = day; }
+  int get_maternity_sim_day() { return maternity_sim_day; }
+  void set_maternity_sim_day(int day) { maternity_sim_day = day; }
+  void set_pregnant() { pregnant = true; }
+  void unset_pregnant() { pregnant = false; }
+
   /**
    * This method is only used one time during initialization to load the birth rate and mortality rate arrays from files
    */
@@ -133,6 +132,15 @@ public:
   static int get_deaths_today() { return deaths_today; }
   static int get_deaths_ytd() { return deaths_ytd; }
   static int get_total_deaths() { return total_deaths; }
+
+  // event handlers:
+  void cancel_conception( Person * self );
+  static void conception_handler( int day, Person * self );
+
+  void become_pregnant( int day, Person * self );
+  void cancel_pregnancy( Person * self );
+  static void maternity_handler( int day, Person * self );
+  void update_birth_stats( int day, Person * self );
 
   // methods to rebalance household sizes
   static void get_housing_imbalance(int day);

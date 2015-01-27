@@ -146,7 +146,8 @@ Person* Person::give_birth(int day) {
     // let mother decide health behaviors for child
     baby->set_health_decision_maker(this);
   }
-  this->demographics.give_birth(this, day);
+  this->demographics.update_birth_stats(day, this);
+  printf("mother %d baby %d\n", this->get_id(), baby->get_id());
 
   return baby;
 }

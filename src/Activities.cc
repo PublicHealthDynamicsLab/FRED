@@ -131,7 +131,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d household %s\n",
 	       self->get_id(), self->get_age(), house->get_label());
 
-  // get the neighbhood from the household
+  // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
   FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
 	       get_neighborhood()->get_id(), get_neighborhood()->get_label());
@@ -160,10 +160,22 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   this->sick_days_remaining = 0.0;
   this->sick_leave_available = false;
 
-  // no pregnancies in group_quarters
-  if(self->lives_in_group_quarters() && self->get_demographics()->is_pregnant()) {
-    self->get_demographics()->clear_pregnancy(self);
+  if(self->lives_in_group_quarters()) {
+    int day = Global::Simulation_Day;
+    // no pregnancies in group_quarters
+    if (self->get_demographics()->is_pregnant()) {
+      printf("GQ CANCELS PREGNANCY: today %d person %d age %d due %d\n",
+	     day, self->get_id(), self->get_age(), self->get_demographics()->get_maternity_sim_day());
+      self->get_demographics()->cancel_pregnancy(self);
+    }
+    // cancel any planned pregnancy
+    if (day <= self->get_demographics()->get_conception_sim_day()) {
+      printf("GQ CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
+	     day, self->get_id(), self->get_age(), self->get_demographics()->get_conception_sim_day());
+      self->get_demographics()->cancel_conception(self);
+    }
   }
+
 }
 
 void Activities::prepare() {
