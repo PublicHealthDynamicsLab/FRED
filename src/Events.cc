@@ -18,6 +18,7 @@
 #include "Person.h"
 
 void Events::print_events(FILE *fp, int day) {
+  assert(0 <= day && day < MAX_DAYS);
   int size = get_number_of_events(day);
   events_t::iterator itr_end = events[day].end();
   fprintf(fp, "events[%d] = %d : ", day, size);
@@ -31,15 +32,5 @@ void Events::print_events(FILE *fp, int day) {
 void Events::print_events(int day) {
   print_events(stdout, day);
 }
-
-/*
-void Events::process_events(int day) {
-  int size = get_number_of_events(day);
-  events_t::iterator itr_end = events[day].end();
-  for (events_t::iterator itr = events[day].begin(); itr != itr_end; itr++) {
-    process_event(day,(*itr));
-  }
-}
-*/
 
 

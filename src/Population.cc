@@ -685,9 +685,8 @@ void Population::update(int day) {
     }
 
     // print maternity_queue for today
-    printf("MATERNITY: ");
-    maternity_queue->print_events(day);
-
+    // printf("MATERNITY: ");
+    // maternity_queue->print_events(day);
 
     // add the births to the population
     maternity_list = maternity_queue->get_events(day);
