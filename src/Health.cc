@@ -559,7 +559,8 @@ void Health::update(Person* self, int day) {
         // if this disease is fatal today, add this person to the population's death_list
         // and abort updating health.
         if(this->infection[disease_id]->is_fatal()) {
-          printf("FATAL: day %d person %d\n", day, self->get_id());
+          printf("DISEASE %d is FATAL: day %d person %d\n", disease_id, day, self->get_id());
+	  // queue removal from population
           Global::Pop.prepare_to_die(day, self);
           return;
         }

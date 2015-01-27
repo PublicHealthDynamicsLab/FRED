@@ -56,7 +56,7 @@ Population::Population() {
   this->vacc_manager = NULL;
 
   // reserve memory for lists
-  // death_list.reserve(1000000);
+  death_list.reserve(1000);
 
 }
 
@@ -631,18 +631,14 @@ void Population::update(int day) {
   FRED_VERBOSE(1, "population::update health  day = %d\n", day);
 
   // update everyone's health status
-  this->death_list.clear();
   Update_Population_Health update_population_health(day);
   this->blq.parallel_masked_apply(fred::Update_Health, update_population_health);
   // Utils::fred_print_wall_time("day %d update_health", day);
 
-  // handle deaths from disease
-  size_t deaths = this->death_list.size();
+  // handle all queued deaths
   remove_dead_from_population(day);
-  FRED_STATUS(1, "disease-related deaths = %d pop_size = %d\n", (int) deaths, this->pop_size);
 
   FRED_VERBOSE(1, "population::update prepare activities day = %d\n", day);
-
   // prepare Activities at start up
   if(day == 0) {
     Prepare_Population_Activities prepare_population_activities(day);

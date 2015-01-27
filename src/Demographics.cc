@@ -290,8 +290,8 @@ void Demographics::die(int day, Person * self) {
     Demographics::delete_from_birthday_list(self);
   }
 
-  // remove from population
-  Global::Pop.remove_dead_person_from_population( day, self);
+  // queue removal from population
+  Global::Pop.prepare_to_die(day, self);
 }
 
 void Demographics::birthday( Person * self, int day ) {
