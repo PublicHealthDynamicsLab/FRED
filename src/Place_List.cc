@@ -511,10 +511,10 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   }
 
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+    FRED_VERBOSE(0, "COUNTIES[%d] = %d\n", i, this->counties[i]);
   }
   for(int i = 0; i < this->census_tracts.size(); ++i) {
-    fprintf(Global::Statusfp, "CENSUS_TRACTS[%d] = %ld\n", i, this->census_tracts[i]);
+    FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %ld\n", i, this->census_tracts[i]);
   }
   // HOUSEHOLD in-place allocator
   Place::Allocator<Household> household_allocator;
@@ -1009,7 +1009,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(0, "READ_SCHOOL: %s %c %f %f name |%s| county %d\n", s, place_type, result.first->lat,
+        FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| county %d\n", s, place_type, result.first->lat,
 		     result.first->lon, tokens[ name ], get_county_with_index(county));
       }
     }
@@ -1140,7 +1140,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
 				    deme_id, county, tract_index, "0", true, 0, number_of_units, tokens[gq_type], wp));
       if(result.second) {
         ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(0, "READ_GROUP_QUARTERS: %s size %d %f %f\n", s, capacity, result.first->lat, result.first->lon);
+        FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s size %d %f %f\n", s, capacity, result.first->lat, result.first->lon);
       }
 
       // generate additional household units associated with this group quarters
@@ -1373,6 +1373,9 @@ void Place_List::setup_group_quarters() {
 	        Person* person = house->get_housemate(i);
 	        //printf("housemate %d id %d house %s\n", i, person->get_id(), person->get_household()->get_label());fflush(stdout);
 	        housemates.push_back(person);
+		if (i == 0) {
+		  person->make_householder();
+		}
 	      }
 	      int units_filled = 1;
 	      int min_per_unit = gq_size / gq_units;
@@ -1390,6 +1393,9 @@ void Place_List::setup_group_quarters() {
 	          Person* person = housemates[next_person++];
 	          // printf("Move person %d (housemate %d) to new house %s\n", person->get_id(), next_person-1, new_house->get_label()); fflush(stdout);
 	          person->move_to_new_house(new_house);
+		  if (j == 0) {
+		    person->make_householder();
+		  }
 	        }
 	        units_filled++;
 	      }
@@ -1400,6 +1406,9 @@ void Place_List::setup_group_quarters() {
 	          Person* person = housemates[next_person++];
 	          // printf("Move person %d (housemate %d) to new house %s\n", person->get_id(), next_person-1, new_house->get_label());  fflush(stdout);
 	          person->move_to_new_house(new_house);
+		  if (j == 0) {
+		    person->make_householder();
+		  }
 	        }
 	      }
       }
@@ -1576,9 +1585,9 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
       double x = Geo_Utils::get_x(lon);
       double y = Geo_Utils::get_y(lat);
       if(place_type == Place::SCHOOL) {
-	      FRED_VERBOSE(0, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
+	      FRED_VERBOSE(1, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
       } else {
-	      FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
+	      FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
       }
 
       // ignore place if it is outside the region
@@ -1626,7 +1635,7 @@ void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype,
       fred::geo lon = place->get_longitude();
       double x = Geo_Utils::get_x(lon);
       double y = Geo_Utils::get_y(lat);
-      FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
+      FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
 
       // ignore place if it is outside the region
       Regional_Patch* regional_patch = Global::Simulation_Region->get_patch(lat, lon);
@@ -1636,7 +1645,7 @@ void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype,
       }
 
       // target staff size
-      FRED_VERBOSE(0,"Size %d ", place->get_size());
+      FRED_VERBOSE(1,"Size %d ", place->get_size());
       int staff = fixed_staff;
       if(resident_to_staff_ratio > 0.0) {
 	      staff += 0.5 + (double)place->get_size() / resident_to_staff_ratio;

@@ -159,7 +159,7 @@ Place *Regional_Patch::get_nearby_workplace(Place *place, int staff) {
   assert(nearby_workplace != NULL);
   double x2 = Geo_Utils::get_x(nearby_workplace->get_longitude());
   double y2 = Geo_Utils::get_y(nearby_workplace->get_latitude());
-  FRED_VERBOSE(0, "nearby workplace %s %f %f size %d dist %f\n", nearby_workplace->get_label(),
+  FRED_VERBOSE(1, "nearby workplace %s %f %f size %d dist %f\n", nearby_workplace->get_label(),
       x2, y2, nearby_workplace->get_size(), min_dist);
 
   return nearby_workplace;

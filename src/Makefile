@@ -36,6 +36,7 @@ endif
 SNAPPY = 0
 ifeq ($(SNAPPY),1)
 SNAPPY_DIR = $(SRC_DIR)/snappy
+# SNAPPY_DIR = /usr/local
 SNAPPY_INC_DIR = $(SNAPPY_DIR)/include
 SNAPPY_HDR = $(SNAPPY_INC_DIR)/snappy.h 
 INCLUDE_DIRS = -I$(SNAPPY_INC_DIR)
@@ -147,7 +148,7 @@ OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.
 	Abstract_Grid.o Abstract_Patch.o \
 	Seasonality_Timestep_Map.o Seasonality.o \
 	Past_Infection.o MSEvolution.o Piecewise_Linear.o \
-	Vector_Layer.o Vector_Patch.o
+	Vector_Layer.o Vector_Patch.o $(SNAPPY_OBJ)
 	# ODEIntraHost.o ODE.o
 
 SRC = $(OBJ:.o=.cc)
@@ -158,8 +159,8 @@ MD5 := FRED.md5
 
 all: FRED FRED.tar.gz $(FSZ) $(MD5)
 
-FRED: dSFMT.o $(SQLITE_OBJ) $(SNAPPY_OBJ) $(OBJ)
-	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) $(SNAPPY_OBJ) dSFMT.o $(SNAPPY_LFLAGS) -ldl
+FRED: dSFMT.o $(SQLITE_OBJ)  $(OBJ)
+	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) dSFMT.o $(SNAPPY_LFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
 
 Compression.o: $(SNAPPY_LIB)
@@ -173,7 +174,6 @@ $(SNAPPY_LIB):
 	@echo Extracting and Compiling Compression Library
 	(cd $(SNAPPY_DIR); tar --strip-components=1 -xzvf snappy-1.0.5.tar.gz; \
 	./configure --prefix=$(SNAPPY_DIR); make && make install)
-
 
 FRED_memcheck: FRED
 

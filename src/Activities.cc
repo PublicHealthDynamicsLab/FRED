@@ -1323,7 +1323,7 @@ unsigned char Activities::get_deme_id() {
 
 void Activities::move_to_new_house(Person* self, Place* house) {
 
-  FRED_VERBOSE(0, "move_to_new_house person %d house %s\n", self->get_id(), house->get_label());
+  FRED_VERBOSE(1, "move_to_new_house person %d house %s\n", self->get_id(), house->get_label());
 
   // everyone must have a household
   assert(house != NULL); 
