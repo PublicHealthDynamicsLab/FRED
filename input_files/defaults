@@ -303,6 +303,9 @@ enable_health_insurance = 0
 # health_insurance_distribution should add up to 100
 health_insurance_distribution = 6 0 0 0 0 0 100
 
+# hospital accepts insurance probabilities
+hospital_health_insurance_prob = 6 0.0 0.0 0.0 0.0 0.0 1.0 
+
 ##########################################################
 #
 # SUPPORT FOR GROUP QUARTERS (OPTIONAL)

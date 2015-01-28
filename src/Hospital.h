@@ -86,6 +86,7 @@ public:
   }
 
   void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
+  void set_accepts_insurance(int insr_indx, bool does_accept);
 
   bool accepts_insurance(Insurance_assignment_index::e insr) {
     return this->accepted_insurance_bitset[insr];
@@ -102,6 +103,7 @@ public:
 private:
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
+  static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
   int bed_count;
   // true iff a the hospital accepts the indexed Insurance Coverage
