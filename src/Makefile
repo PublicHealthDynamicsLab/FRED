@@ -26,17 +26,19 @@ NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 = -m64
 OSX_VERSION = $(shell sw_vers -productVersion | sed 's/10.//' | sed 's/\..*//')
 ifeq ($(OSX_VERSION),10)
-USE_STDLIB = -stdlib=libstdc++
+# USE_STDLIB = -stdlib=libstdc++
 endif
 endif
 # NCPU = 1
 
 ################   Snappy Compression  ###############################
-## Off by default
-SNAPPY = 0
+## Snappy can significantly improve FRED startup time by reading
+## compressed population files.  If you have snappy installed,
+## set the following flag to 1, and make sure the library locations
+## below are coreect.
+SNAPPY = 1
 ifeq ($(SNAPPY),1)
-SNAPPY_DIR = $(SRC_DIR)/snappy
-# SNAPPY_DIR = /usr/local
+SNAPPY_DIR = /usr/local
 SNAPPY_INC_DIR = $(SNAPPY_DIR)/include
 SNAPPY_HDR = $(SNAPPY_INC_DIR)/snappy.h 
 INCLUDE_DIRS = -I$(SNAPPY_INC_DIR)
@@ -170,10 +172,11 @@ fsz: $(SNAPPY_LIB) $(SNAPPY_OBJ) Global.h fsz.cc
 	$(CPP) -o fsz $(CPPFLAGS) $(INCLUDE_FLAGS) $(SNAPPY_LDFLAGS) $(SNAPPY_OBJ) $(SNAPPY_LFLAGS) fsz.cc
 	cp fsz ../bin
 
-$(SNAPPY_LIB):
-	@echo Extracting and Compiling Compression Library
-	(cd $(SNAPPY_DIR); tar --strip-components=1 -xzvf snappy-1.0.5.tar.gz; \
-	./configure --prefix=$(SNAPPY_DIR); make && make install)
+# The following will use the snappy library provided with the distribution (deprecated):
+# $(SNAPPY_LIB):
+#	@echo Extracting and Compiling Compression Library
+#	(cd $(SNAPPY_DIR); tar --strip-components=1 -xzvf snappy-1.0.5.tar.gz; \
+#	./configure --prefix=$(SNAPPY_DIR); make && make install)
 
 FRED_memcheck: FRED
 
