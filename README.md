@@ -6,6 +6,7 @@ An open source modeling system developed by the University of Pittsburgh [Public
 This is the Master branch of FRED. It is should only be updated after a Development branch is ready to be declared Stable
 
 ####Notes on compiling
+
 FRED was compiled using gcc which is not C++11 by default, so the file src/Place_List.h includes two references to tr1. The following lines
 
 ```c++
