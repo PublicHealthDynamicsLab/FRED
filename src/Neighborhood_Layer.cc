@@ -114,8 +114,11 @@ void Neighborhood_Layer::setup(Place::Allocator<Neighborhood> & neighborhood_all
 
 void Neighborhood_Layer::prepare() {
   record_favorite_places();
-  if (Enable_neighborhood_gravity_model)
+  if (Enable_neighborhood_gravity_model) {
+    FRED_VERBOSE(0, "setup gravity model ...\n");
     setup_gravity_model();
+    FRED_VERBOSE(0, "setup gravity model complete\n");
+  }
 }
 
 Neighborhood_Patch * Neighborhood_Layer::get_patch(int row, int col) {
@@ -338,7 +341,7 @@ vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fr
 
 // Comparison used to sort by probability
 static bool compare( const pair<double,int>& p1, const pair<double,int>& p2) {
-  return p1.first > p2.first;
+  return ((p1.first == p2.first) ? (p1.second < p2.second) : (p1.first > p2.first));
 }
 
 void Neighborhood_Layer::setup_gravity_model() {
@@ -368,6 +371,7 @@ void Neighborhood_Layer::setup_gravity_model() {
     for(int j = 0; j < cols; j++) {
       // set up gravity model for grid[i][j];
       Neighborhood_Patch * patch = (Neighborhood_Patch *)&grid[i][j];
+      assert(patch != NULL);
       double x_src = patch->get_center_x();
       double y_src = patch->get_center_y();
       int pop_src = patch->get_popsize();
@@ -397,7 +401,7 @@ void Neighborhood_Layer::setup_gravity_model() {
 
 	  tmp_offset[count] = off;
 	  tmp_prob[count++] = gravity;
-	  // printf("row %3d col %3d pop %5d count %4d k ", i,j,pop_src,count);
+	  // printf("SETUP row %3d col %3d pop %5d count %4d ", i,j,pop_src,count);
 	  // printf("offset %5d off_i %3d off_j %3d ii %3d jj %3d ",off,i+max_offset-(off/256),j+max_offset-(off%256),ii,jj);
 	  // printf("dist %.2f pop_dest %5d gravity %7.3f\n",dist,pop_dest,gravity);
 	}
@@ -444,11 +448,11 @@ void Neighborhood_Layer::setup_gravity_model() {
       }
     }
   }  
-  // printf("\n===========================================================\n");
   // this->print_gravity_model();
 }
 
 void Neighborhood_Layer::print_gravity_model() {
+  printf("\n=== GRAVITY MODEL ========================================================\n");
   for(int i_src = 0; i_src < rows; i_src++) {
     for(int j_src = 0; j_src < cols; j_src++) {
       Neighborhood_Patch * src_patch = (Neighborhood_Patch *)&grid[i_src][j_src];
@@ -459,7 +463,7 @@ void Neighborhood_Layer::print_gravity_model() {
       int count = (int) offset[i_src][j_src].size();
       for (int k = 0; k < count; k++) {
 	int off = offset[i_src][j_src][k];
-	printf("row %3d col %3d pop %5d count %4d k %4d offset %d ", i_src,j_src,pop_src,count,k,off);
+	printf("GRAVITY_MODEL row %3d col %3d pop %5d count %4d k %4d offset %d ", i_src,j_src,pop_src,count,k,off);
 	int i_dest = i_src + max_offset - (off / 256);
 	int j_dest = j_src + max_offset - (off % 256);
 	printf("row %3d col %3d ", i_dest,j_dest);
@@ -596,7 +600,7 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_gravity_model(Pla
   assert (dest_patch != NULL);
 
   // int pop_src = src_patch->get_popsize(); int pop_dest = dest_patch->get_popsize();
-  // printf("src (%3d, %3d) pop %d dest (%3d, %3d) pop %5d\n", i_src,j_src,pop_src,i_dest,j_dest,pop_dest);
+  // printf("SELECT_DEST src (%3d, %3d) pop %d dest (%3d, %3d) pop %5d\n", i_src,j_src,pop_src,i_dest,j_dest,pop_dest);
 
   return dest_patch->get_neighborhood();
 }
