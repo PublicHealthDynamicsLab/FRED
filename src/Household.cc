@@ -142,6 +142,9 @@ double Household::get_contacts_per_day(int disease) {
 void Household::set_household_has_hospitalized_member(bool does_have) {
   if(does_have) {
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
+    this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = false;
+    this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = false;
+    this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
   } else {
     //Initially say no one is hospitalized
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = false;

@@ -475,7 +475,7 @@ void Activities::update_schedule(Person* self, int day) {
 
     // decide if my household is sheltering
     if(Global::Enable_Household_Shelter) {
-      Household* h = (Household*) self->get_household();
+      Household* h = (Household*)self->get_household();
       if(h->is_sheltering_today(day)) {
 	      FRED_STATUS(1, "update_schedule on day %d\n%s\n", day,
 		      schedule_to_string(self, day).c_str());
@@ -528,9 +528,19 @@ void Activities::update_schedule(Person* self, int day) {
 
     //Decide whether to visit hospitalized housemates
     if(Global::Enable_Hospitals && ((Household*)self->get_household())->has_hospitalized_member()) {
-      if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < 0.25) {
-        set_ad_hoc(((Household*)self->get_household())->get_household_visitation_hospital());
-        this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
+
+      Household* hh = static_cast<Household*>(self->get_household());
+
+      if(hh == NULL) {
+        if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
+          hh = static_cast<Household*>(self->get_permanent_household());
+        }
+      }
+      if(hh != NULL) {
+        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < 0.25) {
+          set_ad_hoc(hh->get_household_visitation_hospital());
+          this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
+        }
       }
     }
 
@@ -557,9 +567,8 @@ void Activities::update_schedule(Person* self, int day) {
       // printf("\nHOME NEIGHBORHOOD %d\n", (int) (destination_neighborhood == home_neighborhood));
     }
 
-    // decide whether to visit hospital if have chronic condition
-    if(Global::Enable_Hospitals && Global::Enable_Chronic_Condition
-        && self->has_chronic_condition() && !self->is_hospitalized()) {
+    // decide whether to visit hospital
+    if(Global::Enable_Hospitals && !self->is_hospitalized()) {
       decide_whether_to_seek_healthcare(self, day);
     }
   }
@@ -646,7 +655,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
       //First check to see if agent will seek health care for any active symptomatic infection
       if(self->is_symptomatic()) {
-
         //Get specific symptomatic diseases for multiplier
         for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
           if(self->get_health()->is_infected(disease_id)) {
@@ -707,13 +715,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
       //First check to see if agent will visit a Hospital for an overnight stay, then check for an outpatient visit
       if(rand < hospitalization_prob) {
-
-        Household* hh = (Household*)self->get_household();
-        assert(hh != NULL);
-        Hospital* hosp = hh->get_household_visitation_hospital();
-        assert(hosp != NULL);
-        set_hospital(hosp);
-
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
         this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
@@ -731,7 +732,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         assert(hh != NULL);
         Hospital* hosp = hh->get_household_visitation_hospital();
         assert(hosp != NULL);
-        set_hospital(hosp);
+        assign_hospital(self, hosp);
 
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
@@ -761,32 +762,31 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 void Activities::start_hospitalization(Person* self, int day, int length_of_stay) {
   assert(length_of_stay > 0);
   if(Global::Enable_Hospitals) {
+    assert(!self->is_hospitalized());
     //If agent is traveling, return home first
     if(this->is_traveling || this->is_traveling_outside) {
       stop_traveling(self);
     }
 
+    //First see if this agent has a favorite hospital
+    Place* tmp_hosp = get_favorite_place(Activity_index::HOSPITAL_ACTIVITY);
+    Household* hh = static_cast<Household*>(self->get_household());
+    //If not, then use the household's hospital
+    if(tmp_hosp == NULL) {
+      tmp_hosp = hh->get_household_visitation_hospital();
+      assert(tmp_hosp != NULL);
+    }
+
+    assert(hh != NULL);
+    store_favorite_places();
+    clear_favorite_places();
+    assign_hospital(self, tmp_hosp);
+
     this->is_hospitalized = true;
     this->sim_day_hospitalization_ends = day + length_of_stay;
 
-    //First see if this agent has a favorite hospital
-    Place* tmp_place = get_favorite_place(Activity_index::HOSPITAL_ACTIVITY);
-    //If not, then use the household's hospital
-    if(tmp_place == NULL) {
-      tmp_place = ((Household*)self->get_household())->get_household_visitation_hospital();
-      assert(tmp_place != NULL);
-    }
-
     //Set the flag for the household
-    ((Household*)self->get_household())->set_household_has_hospitalized_member(true);
-
-    store_favorite_places();
-    clear_favorite_places();
-
-    set_hospital(tmp_place);
-
-    //Set the flag for the household
-    // ((Household*)tmp_place)->set_household_has_hospitalized_member(true);
+    hh->set_household_has_hospitalized_member(true);
   }
 }
 
@@ -797,7 +797,7 @@ void Activities::end_hospitalization(Person* self) {
     restore_favorite_places();
 
     //Set the flag for the household
-    ((Household*)self->get_household())->set_household_has_hospitalized_member(false);
+    static_cast<Household*>(self->get_household())->set_household_has_hospitalized_member(false);
   }
 }
 
@@ -825,7 +825,16 @@ void Activities::assign_school(Person* self) {
   int grade = self->get_age();
   FRED_VERBOSE(1, "assign_school entered for person %d age %d grade %d\n",
 	       self->get_id(), self->get_age(), grade);
-  Place* school = Global::Places.select_school(((Household*)self->get_household())->get_county(), grade);
+
+  Household* hh = static_cast<Household*>(self->get_household());
+
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
+      hh = static_cast<Household*>(self->get_permanent_household());
+    }
+  }
+  assert(hh != NULL);
+  Place* school = Global::Places.select_school(hh->get_county(), grade);
   assert(school != NULL);
   FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
 	       school->get_label(), self->get_id(), self->get_age());

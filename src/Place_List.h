@@ -230,6 +230,7 @@ private:
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
   static int Hospital_min_bed_threshold;
+  static double Hospitalization_radius;
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 

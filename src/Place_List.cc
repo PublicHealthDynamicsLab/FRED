@@ -83,6 +83,7 @@ bool Place_List::Household_hospital_map_file_exists = false;
 int Place_List::Hospital_fixed_staff = 1.0;
 double Place_List::Hospital_worker_to_bed_ratio = 1.0;
 int Place_List::Hospital_min_bed_threshold = 0;
+double Place_List::Hospitalization_radius = 0.0;
 int Place_List::Enable_copy_files = 0;
 
 double distance_between_places(Place* p1, Place* p2) {
@@ -161,10 +162,13 @@ void Place_List::get_parameters() {
   }
 
   if(Global::Enable_Hospitals) {
+    char map_file_dir[FRED_STRING_SIZE];
     char map_file_name[FRED_STRING_SIZE];
+    Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
     Params::get_param_from_string("household_hospital_map_file", map_file_name);
     Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
     Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
+    Params::get_param_from_string("hospitalization_radius", &Place_List::Hospitalization_radius);
     Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
     if(strcmp(map_file_name, "none") == 0) {
       Place_List::Household_hospital_map_file_exists = false;
@@ -173,10 +177,8 @@ void Place_List::get_parameters() {
       FILE* hospital_household_map_fp = NULL;
 
       char filename[FRED_STRING_SIZE];
-      char directory[FRED_STRING_SIZE];
-      strcpy(directory, Global::Synthetic_population_directory);
 
-      sprintf(filename, "%s/%s", directory, map_file_name);
+      sprintf(filename, "%s%s", map_file_dir, map_file_name);
 
       hospital_household_map_fp = Utils::fred_open_file(filename);
       if(hospital_household_map_fp != NULL) {
@@ -689,10 +691,14 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     //Write the mapping file if it did not already exist (or if it was incomplete)
     if(!Place_List::Household_hospital_map_file_exists) {
 
-      int run = Global::Simulation_run_number;
+      char map_file_dir[FRED_STRING_SIZE];
+      char map_file_name[FRED_STRING_SIZE];
+      Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
+      Params::get_param_from_string("household_hospital_map_file", map_file_name);
+
+
       char filename[FRED_STRING_SIZE];
-      char directory[FRED_STRING_SIZE];
-      strcpy(directory, Global::Synthetic_population_directory);
+      sprintf(filename, "%s%s", map_file_dir, map_file_name);
 
       Utils::get_fred_file_name(filename);
       FILE* hospital_household_map_fp = fopen(filename, "w");
@@ -2082,38 +2088,169 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
 
     Hospital* assigned_hospital = NULL;
     int number_hospitals = this->hospitals.size();
+    int number_possible_hospitals = 0;
     if(number_hospitals == 0) {
-      return NULL;
+      Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
     }
 
-    std::vector<double> probabilities;
+    //First, only try Hospitals within a certain radius (* that accept insurance)
+    std::vector<double> hosp_probs;
     double probability_total = 0.0;
     for(int i = 0; i < number_hospitals; ++i) {
       Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
       int bed_count = hospital->get_bed_count();
       double distance = distance_between_places(hh, hospital);
-      double cur_prob = (double)bed_count / (distance * distance);
-      probabilities.push_back(cur_prob);
+      double cur_prob = 0.0;
+      int increment = 0;
+      if(distance <= Place_List::Hospitalization_radius) {
+        if(Global::Enable_Health_Insurance) {
+          //Get someone in the household (they should all have the same insurance)
+          Person* per = hh->get_housemate(0);
+          if(per != NULL) {
+            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+            if(hospital->accepts_insurance(per_insur)) {
+              //Hospital accepts the insurance so we are good
+              cur_prob = (double)bed_count / (distance * distance);
+              increment = 1;
+            } else {
+              //Not possible
+              cur_prob = 0.0;
+              increment = 0;
+            }
+          } else {
+            //No one lives here right now, so really who cares?
+            cur_prob = (double)bed_count / (distance * distance);
+            increment = 1;
+          }
+        } else {
+          //We don't care about Insurance so go ahead and allow this one
+          cur_prob = (double)bed_count / (distance * distance);
+          increment = 1;
+        }
+      } else {
+        //Not possible
+        cur_prob = 0.0;
+        increment = 0;
+      }
+
+      hosp_probs.push_back(cur_prob);
       probability_total += cur_prob;
+      number_possible_hospitals += increment;
     }
+    assert((int)hosp_probs.size() == number_hospitals);
 
-    assert((int)probabilities.size() == (int)this->hospitals.size());
+    if(number_possible_hospitals > 0) {
+      if(probability_total > 0.0) {
+        for(int i = 0; i < number_hospitals; ++i) {
+          hosp_probs[i] /= probability_total;
+        }
+      }
 
-    if(probability_total != 0.0) {
+      double rand = RANDOM();
+      double cum_prob = 0.0;
+      int i = 0;
+      while(i < number_possible_hospitals) {
+        cum_prob += hosp_probs[i];
+        if(rand < cum_prob) {
+          return static_cast<Hospital*>(this->hospitals[i]);
+        }
+        ++i;
+      }
+      return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+    } else { //Need to expand search to all hospitals (*still care about insurance)
+      number_possible_hospitals = 0;
+      probability_total = 0.0;
+      hosp_probs.clear();
       for(int i = 0; i < number_hospitals; ++i) {
-        probabilities[i] /= probability_total;
+        Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+        int bed_count = hospital->get_bed_count();
+        double distance = distance_between_places(hh, hospital);
+        double cur_prob = 0;
+        int increment = 0;
+        if(Global::Enable_Health_Insurance) {
+          //Get someone in the household (they should all have the same insurance)
+          Person* per = hh->get_housemate(0);
+          if(per != NULL) {
+            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+            if(hospital->accepts_insurance(per_insur)) {
+              //Hospital accepts the insurance so we are good
+              cur_prob = (double)bed_count / (distance * distance);
+              increment = 1;
+            } else {
+              //Not possible
+              cur_prob = 0.0;
+              increment = 0;
+            }
+          } else {
+            //No one lives here right now, so really who cares?
+            cur_prob = (double)bed_count / (distance * distance);
+            increment = 1;
+          }
+        } else {
+          //We don't care about Insurance so go ahead and allow this one
+          cur_prob = (double)bed_count / (distance * distance);
+          increment = 1;
+        }
+
+        hosp_probs.push_back(cur_prob);
+        probability_total += cur_prob;
+        number_possible_hospitals += increment;
+      }
+
+      assert((int)hosp_probs.size() == (int)this->hospitals.size());
+      if(number_possible_hospitals > 0) {
+        if(probability_total > 0.0) {
+          for(int i = 0; i < number_hospitals; ++i) {
+            hosp_probs[i] /= probability_total;
+          }
+        }
+        double rand = RANDOM();
+        double cum_prob = 0.0;
+        int i = 0;
+        while(i < number_hospitals) {
+          cum_prob += hosp_probs[i];
+          if(rand < cum_prob) {
+            return static_cast<Hospital*>(this->hospitals[i]);
+          }
+          ++i;
+        }
+        return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+      } else if(Global::Enable_Health_Insurance) { //Try again without insurance lookup
+        probability_total = 0.0;
+        hosp_probs.clear();
+        for(int i = 0; i < number_hospitals; ++i) {
+          Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+          int bed_count = hospital->get_bed_count();
+          double distance = distance_between_places(hh, hospital);
+          double cur_prob = (double)bed_count / (distance * distance);
+          hosp_probs.push_back(cur_prob);
+          probability_total += cur_prob;
+          number_possible_hospitals++;
+        }
+        if(probability_total > 0.0) {
+          for(int i = 0; i < number_hospitals; ++i) {
+            hosp_probs[i] /= probability_total;
+          }
+        }
+        double rand = RANDOM();
+        double cum_prob = 0.0;
+        int i = 0;
+        while(i < number_hospitals) {
+          cum_prob += hosp_probs[i];
+          if(rand < cum_prob) {
+            return static_cast<Hospital*>(this->hospitals[i]);
+          }
+          ++i;
+        }
+        return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+      } else {
+        //No hospitals in the simulation
+        Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
       }
     }
-
-    double rand = RANDOM();
-    for(int i = 0; i < number_hospitals; ++i) {
-      if(rand < probabilities[i]) {
-        return static_cast<Hospital*>(this->hospitals[i]);
-      }
-    }
-
-    return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
   }
+
+  return NULL;
 }
 
 Place* Place_List::select_school(int county_index, int grade) {
@@ -2188,7 +2325,7 @@ void Place_List::find_visitors_to_infectious_places(int day) {
     // only poll enrollees of infectious places (faster)
     int number_places = Place::count_infectious_places();
     for(int p = 0; p < number_places; ++p) {
-      Place * place = Place::get_infectious_place(p);
+      Place* place = Place::get_infectious_place(p);
       place->add_visitors_if_infectious(day);
     }
 

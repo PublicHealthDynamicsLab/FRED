@@ -86,29 +86,10 @@ public:
   }
 
   void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
+  void set_accepts_insurance(int insr_indx, bool does_accept);
 
-  bool accepts_private_insurance() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE];
-  }
-
-  bool accepts_medicare_insurance() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE];
-  }
-
-  bool accepts_medicaid_insurance() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID];
-  }
-
-  bool accepts_highmark_insurance() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK];
-  }
-
-  bool accepts_upmc_insurance() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::UPMC];
-  }
-
-  bool accepts_uninsured() {
-    return this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED];
+  bool accepts_insurance(Insurance_assignment_index::e insr) {
+    return this->accepted_insurance_bitset[insr];
   }
 
   int get_bed_count() {
@@ -122,6 +103,7 @@ public:
 private:
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
+  static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
   int bed_count;
   // true iff a the hospital accepts the indexed Insurance Coverage

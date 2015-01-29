@@ -151,7 +151,7 @@ public:
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place *container, Population* pop)</code>
+   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place* container, Population* pop)</code>
    */
   void get_parameters(int diseases);
 
@@ -253,7 +253,7 @@ public:
     return this->ids[i];
   }
 
-  void set_deme_id( unsigned char _deme_id ) {
+  void set_deme_id(unsigned char _deme_id) {
     this->deme_id = _deme_id;
   }
 
@@ -293,7 +293,7 @@ public:
     return this->sheltering;
   }
 
-  bool is_sheltering_today (int day) {
+  bool is_sheltering_today(int day) {
     return (this->shelter_start_day <= day && day < this->shelter_end_day);
   }
 
@@ -338,7 +338,7 @@ public:
     return this->N;
   }
 
-  vector <unsigned char> get_original_ages() {
+  vector<unsigned char> get_original_ages() {
     return this->ages;
   }
 
@@ -376,7 +376,8 @@ private:
   int census_tract_index;
 
   // true iff a household member is at one of the places for an extended absence
-  std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
+  //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
+  std::bitset<4> not_home_bitset;
 
   // Places that household members may visit
   std::map<Household_visitation_place_index::e, Place*> household_visitation_places_map;

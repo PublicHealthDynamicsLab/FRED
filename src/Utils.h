@@ -128,14 +128,14 @@
 using namespace std;
 
 namespace Utils {
-  void fred_abort(const char* format,...);
-  void fred_warning(const char* format,...);
+  void fred_abort(const char* format, ...);
+  void fred_warning(const char* format, ...);
   void fred_open_output_files();
-  void fred_make_directory(char * directory);
+  void fred_make_directory(char* directory);
   void fred_end();
   void fred_print_wall_time(const char* format, ...);
   void fred_start_timer();
-  void fred_start_timer( time_t * lap_start_time );
+  void fred_start_timer(time_t* lap_start_time );
   void fred_start_day_timer();
   void fred_print_day_timer(int day);
   void fred_start_initialization_timer();
@@ -143,64 +143,72 @@ namespace Utils {
   void fred_print_finish_timer();
   void fred_print_update_time(const char* format, ...);
   void fred_print_lap_time(const char* format, ...);
-  void fred_print_lap_time( time_t * start_lap_time, const char* format, ...);
+  void fred_print_lap_time(time_t* start_lap_time, const char* format, ...);
   void fred_verbose(int verbosity, const char* format, ...);
   void fred_verbose_statusfp(int verbosity, const char* format, ...);
   void fred_log(const char* format, ...);
   void fred_report(const char* format, ...);
-  FILE *fred_open_file(char * filename);
-  void get_fred_file_name(char * filename);
+  FILE *fred_open_file(char* filename);
+  void get_fred_file_name(char* filename);
   void fred_print_resource_usage(int day);
-  void replace_csv_missing_data(char *out_str, char* in_str, const char * replacement);
-  void get_next_token(char * out_string, char ** input_string);
-  void delete_char(char *s, char c, int maxlen);
-  void normalize_white_space(char *s);
+  void replace_csv_missing_data(char* out_str, char* in_str, const char* replacement);
+  void get_next_token(char* out_string, char** input_string);
+  void delete_char(char* s, char c, int maxlen);
+  void normalize_white_space(char* s);
 
   class Tokens {
-    std::vector< std::string > tokens;
+    std::vector<std::string> tokens;
     
     public:
 
-    std::string & back() { return tokens.back(); }
-    std::string & front() { return tokens.front(); }
+    std::string &back() {
+      return this->tokens.back();
+    }
+    std::string &front() {
+      return this->tokens.front();
+    }
 
-    void clear() { tokens.clear(); }
+    void clear() {
+      this->tokens.clear();
+    }
     
     void push_back( std::string str ) {
-      tokens.push_back( str );
+      this->tokens.push_back(str);
     }
     
-    void push_back( const char * cstr ) {
-      tokens.push_back( std::string( cstr ) );
+    void push_back(const char* cstr) {
+      this->tokens.push_back(std::string(cstr));
     }
     
-    const char * operator[] ( int i ) const {
-      return tokens[ i ].c_str();
+    const char* operator[] (int i) const {
+      return this->tokens[i].c_str();
     }
     
-    void fill_empty_with(const char * c ) {
-      std::vector< std::string >::iterator itr = tokens.begin();
-      for ( ; itr != tokens.end(); ++itr ) {
-        if ( (*itr).empty() ) (*itr).assign( c );
+    void fill_empty_with(const char* c) {
+      std::vector< std::string >::iterator itr = this->tokens.begin();
+      for( ; itr != this->tokens.end(); ++itr) {
+        if((*itr).empty()) {
+          (*itr).assign(c);
+        }
       }
     }
     
     void assign(int i, int j) {
-      tokens.at(i) = tokens.at(j);
+      this->tokens.at(i) = this->tokens.at(j);
     }
 
     size_t size() const {
-      return tokens.size();
+      return this->tokens.size();
     }
     
-    const char * join( const char * delim ) {
-      if ( tokens.size() == 0 ) {
+    const char* join(const char* delim) {
+      if(this->tokens.size() == 0) {
         return "";
       } else {
         std::stringstream ss;
-        ss << tokens[ 0 ];
-        for ( int i = 1; i < tokens.size(); ++i ) {
-          ss << delim << tokens[ i ];
+        ss << this->tokens[0];
+        for(int i = 1; i < this->tokens.size(); ++i) {
+          ss << delim << this->tokens[ i ];
         }
         return ss.str().c_str();
       }
@@ -208,19 +216,19 @@ namespace Utils {
   };
 
 
-  Tokens & split_by_delim( const std::string & str,
+  Tokens &split_by_delim(const std::string &str,
       const char delim, Tokens & tokens,
-      bool collapse_consecutive_delims = true );
+      bool collapse_consecutive_delims = true);
 
-  Tokens split_by_delim( const std::string & str,
-      const char delim, bool collapse_consecutive_delims = true ); 
+  Tokens split_by_delim(const std::string &str,
+      const char delim, bool collapse_consecutive_delims = true);
 
-  Tokens & split_by_delim( const char * str,
-      const char delim, Tokens & tokens,
-      bool collapse_consecutive_delims = true );
+  Tokens & split_by_delim(const char* str,
+      const char delim, Tokens &tokens,
+      bool collapse_consecutive_delims = true);
 
-  Tokens split_by_delim( const char * str,
-      const char delim, bool collapse_consecutive_delims = true ); 
+  Tokens split_by_delim(const char* str,
+      const char delim, bool collapse_consecutive_delims = true);
 
 }
 
