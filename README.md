@@ -3,7 +3,7 @@
 An open source modeling system developed by the University of Pittsburgh [Public Health Dynamics Laboratory](http://www.phdl.pitt.edu "PHDL website") in collaboration with the [Pittsburgh Supercomputing Center](http://www.psc.edu "PSC website") and the [Carnegie Mellon University School of Computer Science](http://www.cs.cmu.edu "CMU CS website").
 
 ####Version information
-This is the Development branch of FRED. It is intended for developers and contains code that is still in progress.
+This is the Master branch of FRED. It is should only be updated after a Development branch is ready to be declared Stable
 
 ####Notes on compiling
 FRED was compiled using gcc which is not C++11 by default, so the file src/Place_List.h includes two references to tr1. The following lines
