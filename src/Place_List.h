@@ -22,12 +22,21 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+using namespace std;
+
+#include <cstddef> // for __GLIBCXX__
+
+#ifdef __GLIBCXX__
 #include <tr1/unordered_map>
+typedef std::tr1::unordered_map<string, int> LabelMapT;
+#else
+#include <unordered_map>
+typedef std::unordered_map<string, int> LabelMapT;
+#endif
 
 #include "Place.h"
 #include "Utils.h"
 
-using namespace std;
 
 class School;
 class Neighborhood;
@@ -46,7 +55,6 @@ class Place_Init_Data;
 class Place_List {
 
   typedef std::set<Place_Init_Data> InitSetT;
-  typedef std::tr1::unordered_map<string, int> LabelMapT;
 
   typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
