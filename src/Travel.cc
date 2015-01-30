@@ -279,7 +279,7 @@ void Travel::update_travel(int day) {
 	  }
 	}
       }
-      FRED_VERBOSE(0,"DAY %d SRC = %d DEST = %d TRIPS = %d\n", day, hubs[i].id, hubs[j].id, successful_trips);
+      FRED_VERBOSE(1,"DAY %d SRC = %d DEST = %d TRIPS = %d\n", day, hubs[i].id, hubs[j].id, successful_trips);
     }
   }
 
