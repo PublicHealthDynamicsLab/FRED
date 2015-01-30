@@ -89,16 +89,25 @@ chomp $id;
 die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
-chdir $outdir;
+chdir $outdir or die "Can't chdir to $outdir\n";
+# print "CWD = $outdir\n";
 my $days = `wc -l out1.txt`;
 chomp $days;
 $days--;
 $parallelism = $days if ($days < $parallelism);
+# print "days = $days\n";
 
 my $vis = "$outdir/VIS/run$run/dis$disease_id";
-chdir $vis;
+chdir $vis or die "Can't chdir to $vis\n";
+# print "CWD = $vis\n";
 
-system "mkdir -p MAPS";
+if (not -d "MAPS") {
+  system "mkdir -p MAPS";
+  die "Can't mkdir MAPS\n" if not -d "MAPS";
+} 
+else {
+  # print "MAPS already exists\n";
+}
 
 # get the population for each fips code
 my @fips = ();
@@ -109,6 +118,7 @@ while (<IN>) {
   chomp;
   my ($fips,$n) = split " ";
   $pop{$fips} = $n;
+  # print "pop of $fips = $pop{$fips}\n";
 }
 close IN;
 
@@ -216,8 +226,11 @@ sub make_county_map_data {
       my $key = shift @a;
       my $val = shift @a;
       if ($key =~ /^County_/) {
-	my ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
-	push @fips, $code if $dis == 0 && $day == 0;
+	# print "key = |$key|\n";
+	my ($code) = $key =~ /^County_(\d+)/;
+	# my ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
+	my $dis = 0;
+	push @fips, $code if ($dis == 0 and $day == 0);
 	push @values_0, $val if $dis == 0;
 	push @values_1, $val if $dis == 1;
 	push @values_2, $val if $dis == 2;
@@ -240,7 +253,6 @@ sub make_county_map_data {
     write_values_to_file(3,$day, @values_3);
   }
   close FH;
-  return;
 }
 
 sub write_values_to_file {

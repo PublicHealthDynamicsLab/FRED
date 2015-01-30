@@ -273,7 +273,7 @@ void Travel::update_travel(int day) {
 	    Travel::add_return_event(return_sim_day, traveler);
 	    traveler_list_ptr[duration]->insert(traveler);
 	    traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
-	    FRED_STATUS(0, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
+	    FRED_STATUS(1, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
 			day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
 	    successful_trips ++;
 	  }
@@ -300,7 +300,7 @@ void Travel::find_returning_travelers(int day) {
 }
 
 void Travel::return_handler(int day, Person * person) {
-  FRED_STATUS(0, "RETURNING FROM TRAVEL today %d id %d age %d\n",
+  FRED_STATUS(1, "RETURNING FROM TRAVEL today %d id %d age %d\n",
 	      day, person->get_id(),person->get_age());
   // person->stop_traveling();
 }
