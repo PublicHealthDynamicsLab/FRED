@@ -229,7 +229,7 @@ void Travel::update_travel(int day) {
       }
       int successful_trips = 0;
       int count = (trips_per_day[i][j] * hubs[i].pct + 0.5) / 100;
-      printf("TRIPCOUNT day %d i %d j %d count %d\n",day,i,j,count);
+      FRED_VERBOSE(1,"TRIPCOUNT day %d i %d j %d count %d\n",day,i,j,count);
       for(int t = 0; t < count; t++) {
 	// select a potential traveler determined by travel_age_prob param
 	Person * traveler = NULL;
