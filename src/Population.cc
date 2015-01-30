@@ -670,20 +670,20 @@ void Population::update(int day) {
 
   FRED_VERBOSE(1, "population::update_behavior day = %d\n", day);
 
-  // update decisions about behaviors
-  Update_Population_Behaviors update_population_behaviors(day);
-  this->blq.apply(update_population_behaviors);
-  // Utils::fred_print_wall_time("day %d update_behavior", day);
-
-  FRED_VERBOSE(1, "population::update vacc_manager day = %d\n", day);
+  if (Global::Enable_Behaviors) {
+    // update decisions about behaviors
+    Update_Population_Behaviors update_population_behaviors(day);
+    this->blq.apply(update_population_behaviors);
+    // Utils::fred_print_wall_time("day %d update_behavior", day);
+  }
 
   // distribute vaccines
+  FRED_VERBOSE(1, "population::update vacc_manager day = %d\n", day);
   this->vacc_manager->update(day);
   // Utils::fred_print_wall_time("day %d vacc_manager", day);
 
-  FRED_VERBOSE(1, "population::update av_manager day = %d\n", day);
-
   // distribute AVs
+  FRED_VERBOSE(1, "population::update av_manager day = %d\n", day);
   this->av_manager->update(day);
   // Utils::fred_print_wall_time("day %d av_manager", day);
 

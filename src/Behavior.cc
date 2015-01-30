@@ -348,11 +348,13 @@ void Behavior::update(Person* self, int day) {
 
   FRED_VERBOSE(1, "behavior::update person %d day %d\n", self->get_id(), day);
 
+  /*
   if(day == -1 && self->get_id() == 0) {
     for(int i = 0; i < Behavior_index::NUM_BEHAVIORS; ++i) {
       print_params(i);
     }
   }
+  */
 
   if(!Global::Enable_Behaviors) {
     return;

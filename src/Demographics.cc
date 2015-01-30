@@ -145,7 +145,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
       //Yes, so set the death day (in simulation days)
       this->deceased_sim_day = (day + IRAND(1,364));
       Demographics::add_mortality_event(deceased_sim_day, self);
-      FRED_STATUS(0, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
+      FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
 		  day, self->get_id(),age,deceased_sim_day);
     }
 
@@ -169,7 +169,7 @@ void Demographics::setup( Person * self, short int _age, char _sex,
 	maternity_sim_day = conception_sim_day + length_of_pregnancy;
 	pregnant = true;
 	Demographics::add_maternity_event(maternity_sim_day, self);
-	FRED_STATUS(0, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
+	FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
 		    day, self->get_id(),age,maternity_sim_day);
       }
     } // end test for pregnancy
@@ -213,7 +213,7 @@ void Demographics::become_pregnant( int day, Person * self ) {
   int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
   maternity_sim_day = conception_sim_day + length_of_pregnancy;
   Demographics::add_maternity_event(maternity_sim_day, self);
-  FRED_STATUS(0, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
+  FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
 	      day, self->get_id(),age,maternity_sim_day);
   pregnant = true;
   conception_sim_day = -1;
@@ -330,7 +330,7 @@ void Demographics::birthday( Person * self, int day ) {
     // Yes, so set the death day (in simulation days)
     this->deceased_sim_day = (day + IRAND(0,364));
     Demographics::add_mortality_event(deceased_sim_day, self);
-    FRED_STATUS(0, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
+    FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
 		day, self->get_id(),age,deceased_sim_day);
   }
   else {
@@ -350,7 +350,7 @@ void Demographics::birthday( Person * self, int day ) {
     // ignore small distortion due to leap years
     conception_sim_day = day + IRAND( 1, 365 );
     Demographics::add_conception_event(conception_sim_day, self);
-    FRED_STATUS(0, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
+    FRED_STATUS(1, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
 		day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
   }
 
