@@ -32,8 +32,6 @@ using namespace std;
 #include "Infection.h"
 #include "Place_List.h"
 #include "Place.h"
-#include "Timestep_Map.h"
-#include "Multistrain_Timestep_Map.h"
 #include "Transmission.h"
 #include "Date.h"
 #include "Neighborhood_Layer.h"
@@ -46,11 +44,9 @@ using namespace std;
 #include "Workplace.h"
 #include "Tracker.h"
 
-Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
+Epidemic::Epidemic(Disease *dis) {
   this->disease = dis;
   this->id = disease->get_id();
-  this->primary_cases_map = _primary_cases_map;
-  this->primary_cases_map->print();
   this->daily_cohort_size = new int[Global::Days];
   this->number_infected_by_cohort = new int[Global::Days];
   for(int i = 0; i < Global::Days; i++) {
@@ -138,13 +134,62 @@ Epidemic::Epidemic(Disease *dis, Timestep_Map* _primary_cases_map) {
   this->census_tracts = 0;
   this->fraction_seeds_infectious = 0.0;
 
-
+  this->imported_cases_map.clear();
+  this->import_by_age = false;
+  this->import_age_lower_bound = 0;
+  this->import_age_upper_bound = Demographics::MAX_AGE;
   this->seeding_type = SEED_EXPOSED;
 }
 
 void Epidemic::setup() {
   using namespace Utils;
+  char paramstr[FRED_STRING_SIZE];
+  char map_file_name[FRED_STRING_SIZE];
   int temp;
+
+  // read time_step_map
+  Params::get_param_from_string("primary_cases_file", map_file_name);
+  // If this parameter is "none", then there is no map
+  if(strncmp(map_file_name,"none",4)!=0){
+    Utils::get_fred_file_name(map_file_name);
+    ifstream * ts_input = new ifstream(map_file_name);
+    if(!ts_input->is_open()) {
+      Utils::fred_abort("Help!  Can't read %s Timestep Map\n", map_file_name);
+      abort();
+    }
+    string line;
+    while(getline(*ts_input,line)){
+      if ( line[0] == '\n' || line[0] == '#' ) { // empty line or comment
+	continue;
+      }
+      char cstr[FRED_STRING_SIZE];
+      std::strcpy(cstr, line.c_str());
+      Time_Step_Map * tmap = new Time_Step_Map;
+      int n = sscanf(cstr,
+		     "%d %d %d %d %lf %d %lf %lf %lf",
+		     &tmap->simDayStart,&tmap->simDayEnd,&tmap->numSeedingAttempts,
+		     &tmap->disease_id,&tmap->seedingAttemptProb,&tmap->minNumSuccessful,
+		     &tmap->lat,&tmap->lon,&tmap->radius);
+      if (n < 3) {
+	Utils::fred_abort("Need to specify at least SimulationDayStart, SimulationDayEnd and NumSeedingAttempts for Time_Step_Map. ");
+      }
+      if (n < 9) { tmap->lat = 0.0; tmap->lon = 0.0; tmap->radius = -1; }
+      if (n < 6) { tmap->minNumSuccessful = 0; }
+      if (n < 5) { tmap->seedingAttemptProb = 1; }
+      if (n < 4) { tmap->disease_id = 0; }
+      imported_cases_map.push_back(tmap);
+    }
+    ts_input->close();
+  }
+  for (int i = 0; i < imported_cases_map.size(); i++) {
+    string ss = imported_cases_map[i]->to_string();
+    printf("%s\n", ss.c_str());
+  }
+
+  Params::get_param_from_string("seed_by_age", &temp);
+  import_by_age = (temp == 0 ? false : true);
+  Params::get_param_from_string("seed_age_lower_bound", &import_age_lower_bound);
+  Params::get_param_from_string("seed_age_upper_bound", &import_age_upper_bound);
   Params::get_param_from_string("report_generation_time", &temp);
   this->report_generation_time = (temp > 0);
   Params::get_param_from_string("advanced_seeding", this->seeding_type_name);
@@ -173,11 +218,9 @@ void Epidemic::setup() {
   } else {
     Utils::fred_abort("Invalid advance_seeding parameter: %s!\n", this->seeding_type_name);
   }
-
 }
 
 Epidemic::~Epidemic() {
-  delete this->primary_cases_map;
 }
 
 void Epidemic::become_susceptible(Person *person) {
@@ -457,28 +500,6 @@ void Epidemic::print_stats(int day) {
          this->disease->get_id());
      fprintf(Global::Outfp, " SM %2.4f", average_seasonality_multiplier);
      FRED_STATUS(0, " SM %2.4f", average_seasonality_multiplier);
-   }
- 
-   // Print Residual Immunuties
-   // THIS NEEDS TO BE FIXED: DO NOT USE
-   if(Global::Track_Residual_Immunity) {
-     Evolution *evol = this->disease->get_evolution();
-     for(int i = 0; i < this->disease->get_num_strains(); i++) {
-       double res_immunity = 0.0;
-       Population *pop = this->disease->get_population();
-       for(int j = 0; j < pop->get_index_size(); j++) {
-         if (pop->get_person_by_index(j) != NULL) {
-           res_immunity = evol->residual_immunity(pop->get_person_by_index(j), i, day);
-         }
-       }
-       res_immunity /= pop->get_pop_size();
-       if(res_immunity != 0) {
-         //fprintf(Global::Outfp, " ResM_%d %lf", i, res_immunity);
-         fprintf(Global::Outfp, " S_%d %lf", i, 1.0 - res_immunity);
-         //FRED_STATUS(0, " ResM_%d %lf", i, res_immunity);
-         FRED_STATUS(0, " S_%d %lf", i, 1.0-res_immunity);
-       }
-     }
    }
   */
 
@@ -1162,82 +1183,114 @@ void Epidemic::add_infectious_place(Place* place) {
   }
 }
 
-void Epidemic::get_primary_infections(int day) {
+void Epidemic::get_imported_infections(int day) {
   Population* pop = this->disease->get_population();
   this->N = pop->get_pop_size();
 
-  Multistrain_Timestep_Map* ms_map = ((Multistrain_Timestep_Map*)this->primary_cases_map);
-
-  for(Multistrain_Timestep_Map::iterator ms_map_itr = ms_map->begin(); ms_map_itr != ms_map->end();
-      ms_map_itr++) {
-
-    Multistrain_Timestep_Map::Multistrain_Timestep* mst = *ms_map_itr;
-
-    if(mst->is_applicable(day, Global::Epidemic_offset)) {
-
-      int extra_attempts = 1000;
-      int successes = 0;
-
-      vector<Person*> people;
-
-      if(mst->has_location()) {
-        vector<Place*> households = Global::Neighborhoods->get_households_by_distance(mst->get_lat(),
-            mst->get_lon(), mst->get_radius());
-        for(vector<Place*>::iterator hi = households.begin(); hi != households.end(); hi++) {
-          vector<Person*> hs = ((Household*)(*hi))->get_inhabitants();
-          // This cast is ugly and should be fixed.  
-          // Problem is that Place::update (which clears susceptible list for the place) is called before Epidemic::update.
-          // If households were stored as Household in the Patch (rather than the base Place class) this wouldn't be needed.
-          people.insert(people.end(), hs.begin(), hs.end());
-        }
+  for (int i = 0; i < imported_cases_map.size(); i++) {
+    Time_Step_Map * tmap = imported_cases_map[i];
+    if (tmap->simDayStart <= day && day <= tmap->simDayEnd) {
+      FRED_VERBOSE(0,"IMPORT MST:\n"); // tmap->print();
+      int imported_cases_requested = tmap->numSeedingAttempts;
+      int imported_cases = 0;
+      double lat = tmap->lat;
+      double lon = tmap->lon;
+      double radius = tmap->radius;
+      // list of susceptible people that qualify by distance and age
+      std::vector<Person *>people;
+      if(this->import_by_age) {
+	FRED_VERBOSE(0, "IMPORT import by age %0.2f %0.2f\n",
+		     this->import_age_lower_bound, this->import_age_upper_bound);
       }
 
-      for(int i = 0; i < mst->get_num_seeding_attempts(); ++i) {
-        int r, n;
-        Person* person;
+      int searches_within_given_location = 1;
+      while (searches_within_given_location <= 10) {
+	FRED_VERBOSE(0,"IMPORT search number %d ", searches_within_given_location);
 
-        // each seeding attempt is independent
-        if(mst->get_seeding_prob() < 1) {
-          if( RANDOM()> mst->get_seeding_prob() ) {continue;}
-        }
-        // if a location is specified in the timestep map select from that area, otherwise pick a person from the entire population
-        if(mst->has_location()) {
-          r = IRAND(0, people.size() - 1);
-          person = people[r];
-        } else if(Global::Seed_by_age) {
-          person = pop->select_random_person_by_age(Global::Seed_age_lower_bound,
-              Global::Seed_age_upper_bound);
-        } else {
-          person = pop->select_random_person();
-        }
+	// clear the list of candidates
+	people.clear();
 
-        if(person == NULL) { // nobody home
-          FRED_WARNING("Person selected for seeding in Epidemic update is NULL.\n");
-          continue;
-        }
+	// find households that qualify by distance
+	int hsize = Global::Places.get_number_of_households();
+	for (int i = 0; i < hsize; i++) {
+	  Household * house = Global::Places.get_household_ptr(i);
+	  double dist = 0.0;
+	  if (radius > 0) {
+	    dist = Geo_Utils::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
+	    if (radius < dist) {
+	      continue;
+	    }
+	  }
+	  // this household qualifies by distance.
+	  // find all susceptible housemates who qualify by age.
+	  int size = house->get_size();
+	  for (int j = 0; j < size; j++) {
+	    Person * person = house->get_housemate(j);
+	    if(person->get_health()->is_susceptible(this->id)) {
+	      double age = person->get_real_age();
+	      if (this->import_age_lower_bound <= age && age <= this->import_age_upper_bound) {
+		people.push_back(person);
+	      }
+	    }
+	  }
+	}
 
-        if(person->get_health()->is_susceptible(this->id)) {
-          Transmission transmission = Transmission(NULL, NULL, day);
-          transmission.set_initial_loads(this->disease->get_primary_loads(day));
-          person->become_exposed(this->disease, transmission);
-          successes++;
-          if(this->seeding_type != SEED_EXPOSED) {
-            advance_seed_infection(person);
-          }
-        }
+	int imported_cases_remaining = imported_cases_requested - imported_cases;
+	FRED_VERBOSE(0, "IMPORT: seeking %d candidates, found %d\n",
+		     imported_cases_remaining, (int) people.size());
 
-        if(successes < mst->get_min_successes() && i == (mst->get_num_seeding_attempts() - 1)
-            && extra_attempts > 0) {
-          extra_attempts--;
-          i--;
-        }
+	if (imported_cases_remaining <= people.size()) {
+	  // we have at least the minimum number of candidates.
+	  for (int n = 0; n < imported_cases_remaining; n++) {
+	    // pick a candidate without replacement
+	    int pos = IRAND(0,people.size()-1);
+	    Person * person = people[pos];
+	    people[pos] = people[people.size()-1];
+	    people.pop_back();
+
+	    // infect the candidate
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    person->become_exposed(this->disease, transmission);
+	    if(this->seeding_type != SEED_EXPOSED) {
+	      advance_seed_infection(person);
+	    }
+	    imported_cases++;
+	  }
+	  FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
+	  return; // success!
+	}
+	else {
+	// infect all the candidates
+	  for (int n = 0; n < people.size(); n++) {
+	    Person * person = people[n];
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    person->become_exposed(this->disease, transmission);
+	    if(this->seeding_type != SEED_EXPOSED) {
+	      advance_seed_infection(person);
+	    }
+	    imported_cases++;
+	  }
+	}
+
+	if (radius > 0) {
+	  // expand the distance and try again
+	  radius = 2* radius;
+	  FRED_VERBOSE(0, "IMPORT: increasing radius to %f\n", radius);
+	  searches_within_given_location++;
+	}
+	else {
+	  // return with a warning
+	  FRED_VERBOSE(0, "IMPORT FAILURE: only %d imported cases out of %d\n",
+		       imported_cases, imported_cases_requested);
+	  return;
+	}
       }
-
-      if(successes < mst->get_min_successes()) {
-        FRED_WARNING(
-            "A minimum of %d successes was specified, but only %d successful transmissions occurred.",
-            mst->get_min_successes(), successes);
-      }
+      // after 10 tries, return with a warning
+      FRED_VERBOSE(0, "IMPORT FAILURE: only %d imported cases out of %d\n",
+		   imported_cases, imported_cases_requested);
+      return;
     }
   }
 }
@@ -1264,7 +1317,7 @@ void Epidemic::update(int day) {
   Population *pop = this->disease->get_population();
 
   // import infections from unknown sources
-  get_primary_infections(day);
+  get_imported_infections(day);
 
   int infectious_places;
   infectious_places = (int)this->inf_households.size();

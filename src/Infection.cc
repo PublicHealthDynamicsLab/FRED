@@ -349,13 +349,34 @@ void Infection::report_infection(int day) const {
   std::stringstream infStrS;
   infStrS.precision(3);
   infStrS << fixed << "day " << day << " dis " << this->disease->get_id() << " host " << this->host->get_id()
-  << " age " << this->host->get_real_age() << " sick_leave " << this->host->is_sick_leave_available()
-  << " infector " << (this->infector == NULL ? -1 : this->infector->get_id()) << " inf_age "
-  << (this->infector == NULL ? -1 : this->infector->get_real_age()) << " inf_sympt "
-  << (this->infector == NULL ? -1 : this->infector->is_symptomatic()) << " inf_sick_leave "
-  << (this->infector == NULL ? -1 : this->infector->is_sick_leave_available())
-  << " at " << place_type << " place " <<  place_id << " subtype " << place_subtype
-  << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
+	  << " age " << this->host->get_real_age() << " sick_leave " << this->host->is_sick_leave_available()
+	  << " infector " << (this->infector == NULL ? -1 : this->infector->get_id()) << " inf_age "
+	  << (this->infector == NULL ? -1 : this->infector->get_real_age()) << " inf_sympt "
+	  << (this->infector == NULL ? -1 : this->infector->is_symptomatic()) << " inf_sick_leave "
+	  << (this->infector == NULL ? -1 : this->infector->is_sick_leave_available())
+	  << " at " << place_type << " place " <<  place_id << " subtype " << place_subtype;
+  infStrS << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
+
+  if (place_type != 'X') {
+    double lat = this->place->get_latitude();
+    double lon = this->place->get_longitude();
+    infStrS << " lat " << lat;
+    infStrS << " lon " << lon;
+  }
+  else {
+    infStrS << " lat " << -999;
+    infStrS << " lon " << -999;
+  }
+  double host_lat = this->host->get_household()->get_latitude();
+  double host_lon = this->host->get_household()->get_longitude();
+  infStrS << " home_lat " << host_lat;
+  infStrS << " home_lon " << host_lon;
+  infStrS << " | PERIODS  latent " << this->latent_period << " asymp " << this->asymptomatic_period
+	  << " symp " << this->symptomatic_period << " recovery " << this->recovery_period;
+  infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
+  infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
+	  << get_symptomatic_date() << " rec " << get_recovery_date() << " sus "
+	  << get_susceptible_date();
 
   if(Global::Track_infection_events > 1) {
     if(place_type != 'X'  && infector != NULL) {
@@ -369,7 +390,6 @@ void Infection::report_infection(int day) const {
     } else {
       infStrS << " dist -1 ";
     }
-    
     //Add Census Tract information. If there was no infector, censustract is -1
     if(this->infector == NULL) {
       infStrS << " census_tract -1";
@@ -385,24 +405,10 @@ void Infection::report_infection(int day) const {
       long int census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
       infStrS << " census_tract " << census_tract;
     }
-    
-    infStrS << " | PERIODS  latent " << this->latent_period << " asymp " << this->asymptomatic_period
-	    << " symp " << this->symptomatic_period << " recovery " << this->recovery_period;
-    infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
-  }
-
-  if(Global::Track_infection_events > 2) {
-    infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
-        << get_symptomatic_date() << " rec " << get_recovery_date() << " sus "
-        << get_susceptible_date();
-  }
-
-  if(Global::Track_infection_events > 3) {
     infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
         << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
         << this->symptoms;
   }
-
   infStrS << "\n";
 
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());

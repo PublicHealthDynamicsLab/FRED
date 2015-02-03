@@ -223,8 +223,6 @@ class Global {
     static char Seasonality_Timestep[];
     static double Work_absenteeism;
     static double School_absenteeism;
-    static int Seed_age_lower_bound;
-    static int Seed_age_upper_bound;
 
     //Boolean flags
     static bool Enable_New_Transmission_Model;
@@ -241,7 +239,6 @@ class Global {
     static bool Enable_Seasonality;
     static bool Enable_Climate;
     static bool Enable_Chronic_Condition;
-    static bool Seed_by_age;
     static bool Report_Immunity;
     static bool Enable_Vaccination;
     static bool Enable_Antivirals;

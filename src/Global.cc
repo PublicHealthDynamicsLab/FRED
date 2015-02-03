@@ -101,9 +101,6 @@ bool Global::Enable_Local_Workplace_Assignment = false;
 bool Global::Enable_Seasonality = false;
 bool Global::Enable_Climate = false;
 bool Global::Enable_Chronic_Condition = false;
-bool Global::Seed_by_age = false;
-int Global::Seed_age_lower_bound = 0;
-int Global::Seed_age_upper_bound = 0;
 bool Global::Enable_Antivirals = true;
 bool Global::Enable_Vaccination = true;
 bool Global::Use_Mean_Latitude = false;
@@ -190,8 +187,6 @@ void Global::get_global_parameters() {
   Params::get_param_from_string("seasonality_timestep_file", Global::Seasonality_Timestep);
   Params::get_param_from_string("work_absenteeism", &Global::Work_absenteeism);
   Params::get_param_from_string("school_absenteeism", &Global::School_absenteeism);
-  Params::get_param_from_string("seed_age_lower_bound", &Global::Seed_age_lower_bound);
-  Params::get_param_from_string("seed_age_upper_bound", &Global::Seed_age_upper_bound);
 
 #if SQLITE
   // this is the default, global sqlite3 database file.  Overwritten by default.
@@ -249,8 +244,6 @@ void Global::get_global_parameters() {
   Global::Enable_Climate = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_chronic_condition", &temp_int);
   Global::Enable_Chronic_Condition = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("seed_by_age", &temp_int);
-  Global::Seed_by_age = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_vaccination",&temp_int);
   Global::Enable_Vaccination = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_antivirals",&temp_int);

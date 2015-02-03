@@ -34,7 +34,6 @@ using namespace std;
 #include "Evolution.h"
 #include "EvolutionFactory.h"
 #include "Transmission.h"
-#include "Multistrain_Timestep_Map.h"
 #include "Seasonality.h"
 #include "Strain.h"
 #include "Person.h"
@@ -238,24 +237,12 @@ void Disease::get_parameters(int disease) {
 }
 
 void Disease::setup(Population* pop) {
-  char paramstr[256];
   fprintf(Global::Statusfp, "disease %d %s setup entered\n",
 	  this->id, this->disease_name);
   fflush(Global::Statusfp);
 
   this->population = pop;
-
-  // Read primary_cases file that indicates the number of external infections
-  // that occur each day.
-  // Note: infectees are chosen at random, and previously infected individuals
-  // are not affected, so the number of new cases may be less than specified in
-  // the file.
-  sprintf(paramstr, "primary_cases");
-  string param_name_str(paramstr);
-  Multistrain_Timestep_Map* msts = new Multistrain_Timestep_Map(
-      param_name_str);
-  msts->read_map();
-  this->epidemic = new Epidemic(this, msts);
+  this->epidemic = new Epidemic(this);
   this->epidemic->setup();
 
   // Initialize StrainTable

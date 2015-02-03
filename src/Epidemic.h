@@ -33,8 +33,36 @@ using namespace std;
 
 class Disease;
 class Person;
-class Timestep_Map;
-class Multistrain_Timestep_Map;
+// class Time_Step_Map;
+// class Multistrain_Time_Step_Map;
+
+
+struct Time_Step_Map {
+  int simDayStart;
+  int simDayEnd;
+  int numSeedingAttempts;
+  int disease_id;
+  double seedingAttemptProb;
+  int minNumSuccessful;
+  double lat;
+  double lon;
+  double radius;
+  const std::string to_string() const {
+    std::stringstream ss;
+    ss << "Time Step Map ";
+    ss << " simDayStart " << simDayStart;
+    ss << " simDayEnd " << simDayEnd;
+    ss << " numSeedingAttempts " << numSeedingAttempts;
+    ss << " disease_id " << disease_id;
+    ss << " seedingAttemptProb " << seedingAttemptProb;
+    ss << " minNumSuccessful " << minNumSuccessful;
+    ss << " lat " << lat;
+    ss << " lon " << lon;
+    ss << " radius " << radius;
+    ss << std::endl;
+    return ss.str();
+  }
+};
 
 
 struct Disease_Count_Info {
@@ -57,7 +85,7 @@ struct Disease_Count_Info {
 
 class Epidemic {
 public:
-  Epidemic(Disease * str, Timestep_Map *);
+  Epidemic(Disease * disease);
   ~Epidemic();
  
   void setup();
@@ -79,6 +107,7 @@ public:
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);
   void report_group_quarters_incidence(int day);
+  void read_time_step_map();
 
   /**
    * Add an infectious place of a given type to this Epidemic's list
@@ -90,7 +119,7 @@ public:
    *
    */
   void get_infectious_places(int day);
-  void get_primary_infections(int day);
+  void get_imported_infections(int day);
   void become_susceptible(Person *person);
   void become_unsusceptible(Person *person);
   void become_exposed(Person *person);
@@ -208,7 +237,11 @@ private:
   
   bool report_generation_time;
 
-  Timestep_Map* primary_cases_map;
+  // seeding imported cases
+  std::vector <Time_Step_Map *> imported_cases_map;
+  bool import_by_age;
+  double import_age_lower_bound;
+  double import_age_upper_bound;
 
   // valid seeding types are:
   // "user_specified" => SEED_USER 'U'
@@ -253,7 +286,6 @@ private:
 
   int people_becoming_symptomatic_today;
   int people_with_current_symptoms;
-
 
   int daily_case_fatality_count;
   int total_case_fatality_count;
