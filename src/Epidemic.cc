@@ -1397,27 +1397,6 @@ void Epidemic::update(int day) {
   FRED_VERBOSE(1, "epidemic update finished for disease %d day %d\n", id, day);
 }
 
-void Epidemic::infectious_sampler::operator()(Person &person) {
-  if(RANDOM() < this->prob) {
-#pragma omp critical(EPIDEMIC_INFECTIOUS_SAMPLER)
-    this->samples->push_back( &person );
-  }
-}
-
-void Epidemic::get_infectious_samples(vector<Person*> &samples, double prob = 1.0) {
-  if(prob > 1.0) {
-    prob = 1.0;
-  }
-  if(prob <= 0.0) {
-    return;
-  }
-  samples.clear();
-  infectious_sampler sampler;
-  sampler.samples = &samples;
-  sampler.prob = prob;
-  Global::Pop.parallel_masked_apply(fred::Infectious, sampler);
-}
-
 void Epidemic::track_value(int day, char* key, int value) {
   char key_str[80];
   if (this->id == 0) {

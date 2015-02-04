@@ -33,9 +33,6 @@ using namespace std;
 
 class Disease;
 class Person;
-// class Time_Step_Map;
-// class Multistrain_Time_Step_Map;
-
 
 struct Time_Step_Map {
   int simDayStart;
@@ -140,9 +137,6 @@ public:
       ++(this->number_infected_by_cohort[ cohort_day ]);
     //}
   }
-
-  void get_infectious_samples(int num_samples, vector<Person *> &samples);
-  void get_infectious_samples(vector<Person *> &samples, double prob);
 
   int get_susceptible_people() {
     return this->susceptible_people;
@@ -330,14 +324,6 @@ private:
   fred::Spin_Mutex spin_mutex;
 
   size_t place_person_list_reserve_size;
-
-  ///////////// Functors for Population loops //////////////////
-
-  struct infectious_sampler {
-    double prob;
-    vector<Person *> * samples;
-    void operator() (Person & p);
-  };
 
 };
 
