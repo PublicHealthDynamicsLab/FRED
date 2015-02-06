@@ -1,4 +1,4 @@
-FRED started Tue Feb  3 12:09:52 2015
+FRED started Fri Feb  6 11:59:48 2015
 param file = params.test
 fred_open_file: opening file /Users/gref/FRED/input_files/defaults for reading
 FRED reading parameter file /Users/gref/FRED/input_files/defaults
@@ -92,7 +92,7 @@ Overridden from command line: Output_directory = OUT.TEST
 seed = 12345601
 RNG setup took 0 seconds
 
-FRED run 2 started Tue Feb  3 12:09:52 2015
+FRED run 2 started Fri Feb  6 11:59:48 2015
 PARAMS: enable_copy_files = 0
 PARAMS: msa_file = $FRED_HOME/input_files/countries/usa/US_msa.txt
 PARAMS: counties_file = $FRED_HOME/input_files/countries/usa/US_counties.txt
@@ -130,7 +130,7 @@ Split ID string "2010_ver1_42065" into 1 token using delimiter: ' '
 Deme 0 comprises 1 synthetic population id:
 --> Deme 0, Synth. Pop. ID 0: 2010_ver1_42065
 
-FRED read_places started Tue Feb  3 12:09:52 2015
+FRED read_places started Fri Feb  6 11:59:48 2015
 Reading Places for Deme 0:
 read places entered
 POPULATION_FILE: $FRED_HOME/populations/2010_ver1_42065
@@ -220,8 +220,8 @@ PARAMS: influenza_neighborhood_prob = 4
 PARAMS: influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 Added     873     NEIGHBORHOOD places to Place_List
 read places finished: Places = 24069
-Places.read_places took 1 seconds
-FRED read_places finished Tue Feb  3 12:09:53 2015
+Places.read_places took 0 seconds
+FRED read_places finished Fri Feb  6 11:59:48 2015
 PARAMS: enable_neighborhood_density_transmission = 0
 PARAMS: enable_density_transmission_maximum_infectees = 1
 PARAMS: density_transmission_maximum_infectees = 10
@@ -446,13 +446,11 @@ PARAMS: face_mask_compliance = 0.000000
 PARAMS: hand_washing_compliance = 0.000000
 initialize_static_variables took 0 seconds
 
-FRED Pop.setup started Tue Feb  3 12:09:53 2015
+FRED Pop.setup started Fri Feb  6 11:59:48 2015
 setup population entered
 disease 0 influenza setup entered
 PARAMS: primary_cases_file = $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
-
-primary_cases Multistrain_Timestep_Map size = 1
-start day = 0, end day = 0, number of attempts = 10, strain = 0 prob = 1.000000, min = 0, lat 0.000000 lon 0.000000 radius -1.000000
+Time Step Map  simDayStart 0 simDayEnd 0 numSeedingAttempts 10 disease_id 0 seedingAttemptProb 1 minNumSuccessful 0 lat 0 lon 0 radius -1
 
 PARAMS: seed_by_age = 0
 PARAMS: seed_age_lower_bound = 0.000000
@@ -10343,11 +10341,21 @@ Vaccine Queue Stats
    Total Agents in Vaccine Queue = 45318
 population setup finished
 setup group quarters entered
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18562 label H450004650 subtype C initial size 148 units 59
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18621 label H450004651 subtype C initial size 20 units 8
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18629 label H450008460 subtype P initial size 79 units 52
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18681 label H450022046 subtype P initial size 17 units 11
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18692 label H450030495 subtype N initial size 141 units 94
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18786 label H450030496 subtype N initial size 189 units 126
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18912 label H450036345 subtype N initial size 34 units 22
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18934 label H450040313 subtype N initial size 45 units 30
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18964 label H450042411 subtype N initial size 33 units 22
+FRED_VERBOSE: <Place_List.cc, LINE:1373> GQ_setup: house 18986 label H450047487 subtype N initial size 18 units 12
 setup households entered
-FRED_VERBOSE: <Place_List.cc, LINE:1814> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
+FRED_VERBOSE: <Place_List.cc, LINE:1813> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
 setup households finished
 Pop.setup took 0 seconds
-FRED Pop.setup finished Tue Feb  3 12:09:53 2015
+FRED Pop.setup finished Fri Feb  6 11:59:48 2015
 setup classrooms entered
 Allocating space for 291 classrooms in 26 schools (out of 24069 total places)
 PARAMS: influenza_classroom_contacts = -1.000000
@@ -10359,11 +10367,11 @@ assign classrooms entered
 FRED_VERBOSE: <Population.cc, LINE:904> assign classrooms finished
 assign classrooms took 0 seconds
 reassign workers entered. places = 24360
-FRED_VERBOSE: <Place_List.cc, LINE:1602> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1602> place OUTSIDE_REGION lat 40.621510 lon -79.152191 
-FRED_VERBOSE: <Place_List.cc, LINE:1602> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1602> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1602> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
+FRED_VERBOSE: <Place_List.cc, LINE:1601> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1601> place OUTSIDE_REGION lat 40.621510 lon -79.152191 
+FRED_VERBOSE: <Place_List.cc, LINE:1601> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1601> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1601> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
 reassign workers entered. places = 24360
 reassign workers entered. places = 24360
 reassign workers entered. places = 24360
@@ -10407,8 +10415,8 @@ deleting place_label_map
 prepare places finished
 place preparation took 0 seconds
 disease_initialization took 0 seconds
-FRED initialization complete Tue Feb  3 12:09:53 2015
-FRED initialization took 1 seconds
+FRED initialization complete Fri Feb  6 11:59:48 2015
+FRED initialization took 0 seconds
 
 day 0 update places took 0 seconds
 update entered day 0
@@ -10428,13 +10436,12 @@ Vaccinated priority to population 8070 agents, for a total of 8070 on day 0
 Vaccinated regular to stock_out 1930 agents, for a total of 10000 on day 0
 Left in queues:  priority (0)    Regular (28708)
 Number of acceptances: 10000, Number of rejections: 6610
-day 0 update population took 1 seconds
+day 0 update population took 0 seconds
 day 0 update_infectious_people took 0 seconds
 day 0 find_visitors_to_infectious_places took 0 seconds
-FRED_VERBOSE: <Epidemic.cc, LINE:1161> IMPORT MST: start day = 0, end day = 0, number of attempts = 10, strain = 0 prob = 1.000000, min = 0, lat 0.000000 lon 0.000000 radius -1.000000
-FRED_VERBOSE: <Epidemic.cc, LINE:1180> IMPORT search number 1 start day = 0, end day = 0, number of attempts = 10, strain = 0 prob = 1.000000, min = 0, lat 0.000000 lon 0.000000 radius -1.000000
-FRED_VERBOSE: <Epidemic.cc, LINE:1211> IMPORT: seeking 10 candidates, found 45318
-FRED_VERBOSE: <Epidemic.cc, LINE:1232> IMPORT SUCCESS: 10 imported cases
+FRED_VERBOSE: <Epidemic.cc, LINE:1193> IMPORT MST:
+FRED_VERBOSE: <Epidemic.cc, LINE:1208> IMPORT search number 1 FRED_VERBOSE: <Epidemic.cc, LINE:1240> IMPORT: seeking 10 candidates, found 45318
+FRED_VERBOSE: <Epidemic.cc, LINE:1260> IMPORT SUCCESS: 10 imported cases
 Number of infectious places        =>         0
 Number of infectious households    =>         0
 Number of infectious neighborhoods =>         0
@@ -10455,9 +10462,9 @@ day 0 update epidemic for disease 0 took 0 seconds
 Day 0 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 0 report population took 0 seconds
-day 0 maxrss 81395712
-day 0 finished Tue Feb  3 12:09:54 2015
-day 0 took 1 seconds
+day 0 maxrss 82735104
+day 0 finished Fri Feb  6 11:59:48 2015
+day 0 took 0 seconds
 
 day 1 update places took 0 seconds
 update entered day 1
@@ -10469,7 +10476,7 @@ Vaccinated priority to population 0 agents, for a total of 0 on day 1
 Vaccinated regular to stock_out 10000 agents, for a total of 10000 on day 1
 Left in queues:  priority (0)    Regular (12087)
 Number of acceptances: 10000, Number of rejections: 6621
-day 1 update population took 0 seconds
+day 1 update population took 1 seconds
 day 1 update_infectious_people took 0 seconds
 day 1 find_visitors_to_infectious_places took 0 seconds
 Number of infectious places        =>        25
@@ -10492,9 +10499,9 @@ day 1 update epidemic for disease 0 took 0 seconds
 Day 1 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 1 report population took 0 seconds
-day 1 maxrss 81805312
-day 1 finished Tue Feb  3 12:09:54 2015
-day 1 took 0 seconds
+day 1 maxrss 83468288
+day 1 finished Fri Feb  6 11:59:49 2015
+day 1 took 1 seconds
 
 day 2 update places took 0 seconds
 update entered day 2
@@ -10529,8 +10536,8 @@ day 2 update epidemic for disease 0 took 0 seconds
 Day 2 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 2 report population took 0 seconds
-day 2 maxrss 82268160
-day 2 finished Tue Feb  3 12:09:54 2015
+day 2 maxrss 84209664
+day 2 finished Fri Feb  6 11:59:49 2015
 day 2 took 0 seconds
 
 day 3 update places took 0 seconds
@@ -10566,8 +10573,8 @@ day 3 update epidemic for disease 0 took 0 seconds
 Day 3 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 3 report population took 0 seconds
-day 3 maxrss 82677760
-day 3 finished Tue Feb  3 12:09:54 2015
+day 3 maxrss 84623360
+day 3 finished Fri Feb  6 11:59:49 2015
 day 3 took 0 seconds
 
 day 4 update places took 0 seconds
@@ -10603,8 +10610,8 @@ day 4 update epidemic for disease 0 took 0 seconds
 Day 4 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 4 report population took 0 seconds
-day 4 maxrss 83140608
-day 4 finished Tue Feb  3 12:09:54 2015
+day 4 maxrss 85102592
+day 4 finished Fri Feb  6 11:59:49 2015
 day 4 took 0 seconds
 
 day 5 update places took 0 seconds
@@ -10640,8 +10647,8 @@ day 5 update epidemic for disease 0 took 0 seconds
 Day 5 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 5 report population took 0 seconds
-day 5 maxrss 83546112
-day 5 finished Tue Feb  3 12:09:54 2015
+day 5 maxrss 85479424
+day 5 finished Fri Feb  6 11:59:49 2015
 day 5 took 0 seconds
 
 day 6 update places took 0 seconds
@@ -10677,8 +10684,8 @@ day 6 update epidemic for disease 0 took 0 seconds
 Day 6 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 6 report population took 0 seconds
-day 6 maxrss 84000768
-day 6 finished Tue Feb  3 12:09:54 2015
+day 6 maxrss 85479424
+day 6 finished Fri Feb  6 11:59:49 2015
 day 6 took 0 seconds
 
 day 7 update places took 0 seconds
@@ -10714,8 +10721,8 @@ day 7 update epidemic for disease 0 took 0 seconds
 Day 7 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 7 report population took 0 seconds
-day 7 maxrss 84500480
-day 7 finished Tue Feb  3 12:09:54 2015
+day 7 maxrss 85520384
+day 7 finished Fri Feb  6 11:59:49 2015
 day 7 took 0 seconds
 
 day 8 update places took 0 seconds
@@ -10751,8 +10758,8 @@ day 8 update epidemic for disease 0 took 0 seconds
 Day 8 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 8 report population took 0 seconds
-day 8 maxrss 85065728
-day 8 finished Tue Feb  3 12:09:54 2015
+day 8 maxrss 86065152
+day 8 finished Fri Feb  6 11:59:49 2015
 day 8 took 0 seconds
 
 day 9 update places took 0 seconds
@@ -10788,8 +10795,8 @@ day 9 update epidemic for disease 0 took 0 seconds
 Day 9 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 9 report population took 0 seconds
-day 9 maxrss 85716992
-day 9 finished Tue Feb  3 12:09:54 2015
+day 9 maxrss 86687744
+day 9 finished Fri Feb  6 11:59:49 2015
 day 9 took 0 seconds
 
 day 10 update places took 0 seconds
@@ -10825,8 +10832,8 @@ day 10 update epidemic for disease 0 took 0 seconds
 Day 10 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 10 report population took 0 seconds
-day 10 maxrss 86671360
-day 10 finished Tue Feb  3 12:09:54 2015
+day 10 maxrss 87646208
+day 10 finished Fri Feb  6 11:59:49 2015
 day 10 took 0 seconds
 
 day 11 update places took 0 seconds
@@ -10862,8 +10869,8 @@ day 11 update epidemic for disease 0 took 0 seconds
 Day 11 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 11 report population took 0 seconds
-day 11 maxrss 87834624
-day 11 finished Tue Feb  3 12:09:54 2015
+day 11 maxrss 88702976
+day 11 finished Fri Feb  6 11:59:49 2015
 day 11 took 0 seconds
 
 day 12 update places took 0 seconds
@@ -10899,8 +10906,8 @@ day 12 update epidemic for disease 0 took 0 seconds
 Day 12 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 12 report population took 0 seconds
-day 12 maxrss 88899584
-day 12 finished Tue Feb  3 12:09:54 2015
+day 12 maxrss 89698304
+day 12 finished Fri Feb  6 11:59:49 2015
 day 12 took 0 seconds
 
 day 13 update places took 0 seconds
@@ -10916,13 +10923,13 @@ Number of acceptances: 0, Number of rejections: 0
 day 13 update population took 0 seconds
 day 13 update_infectious_people took 0 seconds
 day 13 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       485
+Number of infectious places        =>       487
 Number of infectious households    =>       286
 Number of infectious neighborhoods =>       147
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>        26
-Number of infectious offices       =>        26
+Number of infectious workplaces    =>        27
+Number of infectious offices       =>        27
 Number of infectious hospitals     =>         0
 day 13 epidemic in schools for disease 0 took 0 seconds
 day 13 epidemic in classrooms for disease 0 took 0 seconds
@@ -10936,8 +10943,8 @@ day 13 update epidemic for disease 0 took 0 seconds
 Day 13 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 13 report population took 0 seconds
-day 13 maxrss 89964544
-day 13 finished Tue Feb  3 12:09:54 2015
+day 13 maxrss 90767360
+day 13 finished Fri Feb  6 11:59:49 2015
 day 13 took 0 seconds
 
 day 14 update places took 0 seconds
@@ -11469,15 +11476,15 @@ Agent 2756 has become immune from dose 0 on day 14
 Agent 2759 has become immune from dose 0 on day 14
 Agent 2760 has become immune from dose 0 on day 14
 Agent 2762 has become immune from dose 0 on day 14
-Agent 2763 was already infected so did not become immune from dose 0 on day 14
-Agent 2764 has become immune from dose 0 on day 14
+Agent 2763 has become immune from dose 0 on day 14
+Agent 2764 was already infected so did not become immune from dose 0 on day 14
 Agent 2765 was already infected so did not become immune from dose 0 on day 14
 Agent 2768 was already infected so did not become immune from dose 0 on day 14
 Agent 2782 has become immune from dose 0 on day 14
 Agent 2786 has become immune from dose 0 on day 14
 Agent 2790 has become immune from dose 0 on day 14
 Agent 2811 was already infected so did not become immune from dose 0 on day 14
-Agent 2812 has become immune from dose 0 on day 14
+Agent 2812 was already infected so did not become immune from dose 0 on day 14
 Agent 2813 was already infected so did not become immune from dose 0 on day 14
 Agent 2832 has become immune from dose 0 on day 14
 Agent 2834 has become immune from dose 0 on day 14
@@ -11820,7 +11827,7 @@ Agent 4875 has become immune from dose 0 on day 14
 Agent 4881 has become immune from dose 0 on day 14
 Agent 4883 has become immune from dose 0 on day 14
 Agent 4884 has become immune from dose 0 on day 14
-Agent 4886 has become immune from dose 0 on day 14
+Agent 4886 was already infected so did not become immune from dose 0 on day 14
 Agent 4909 has become immune from dose 0 on day 14
 Agent 4911 has become immune from dose 0 on day 14
 Agent 4914 has become immune from dose 0 on day 14
@@ -11860,7 +11867,7 @@ Agent 5177 has become immune from dose 0 on day 14
 Agent 5180 has become immune from dose 0 on day 14
 Agent 5181 has become immune from dose 0 on day 14
 Agent 5182 has become immune from dose 0 on day 14
-Agent 5183 has become immune from dose 0 on day 14
+Agent 5183 was already infected so did not become immune from dose 0 on day 14
 Agent 5184 has become immune from dose 0 on day 14
 Agent 5185 has become immune from dose 0 on day 14
 Agent 5186 has become immune from dose 0 on day 14
@@ -12001,7 +12008,7 @@ Agent 5950 has become immune from dose 0 on day 14
 Agent 5964 has become immune from dose 0 on day 14
 Agent 5969 has become immune from dose 0 on day 14
 Agent 5981 has become immune from dose 0 on day 14
-Agent 5986 was already infected so did not become immune from dose 0 on day 14
+Agent 5986 has become immune from dose 0 on day 14
 Agent 5987 has become immune from dose 0 on day 14
 Agent 5988 has become immune from dose 0 on day 14
 Agent 5989 has become immune from dose 0 on day 14
@@ -13189,7 +13196,7 @@ Agent 12751 has become immune from dose 0 on day 14
 Agent 12752 has become immune from dose 0 on day 14
 Agent 12753 has become immune from dose 0 on day 14
 Agent 12754 has become immune from dose 0 on day 14
-Agent 12755 has become immune from dose 0 on day 14
+Agent 12755 was already infected so did not become immune from dose 0 on day 14
 Agent 12760 has become immune from dose 0 on day 14
 Agent 12764 has become immune from dose 0 on day 14
 Agent 12768 has become immune from dose 0 on day 14
@@ -13210,7 +13217,7 @@ Agent 12812 has become immune from dose 0 on day 14
 Agent 12814 has become immune from dose 0 on day 14
 Agent 12838 has become immune from dose 0 on day 14
 Agent 12852 has become immune from dose 0 on day 14
-Agent 12859 has become immune from dose 0 on day 14
+Agent 12859 was already infected so did not become immune from dose 0 on day 14
 Agent 12860 has become immune from dose 0 on day 14
 Agent 12863 has become immune from dose 0 on day 14
 Agent 12865 has become immune from dose 0 on day 14
@@ -13303,7 +13310,7 @@ Agent 13374 has become immune from dose 0 on day 14
 Agent 13378 has become immune from dose 0 on day 14
 Agent 13381 has become immune from dose 0 on day 14
 Agent 13401 has become immune from dose 0 on day 14
-Agent 13402 has become immune from dose 0 on day 14
+Agent 13402 was already infected so did not become immune from dose 0 on day 14
 Agent 13407 has become immune from dose 0 on day 14
 Agent 13433 has become immune from dose 0 on day 14
 Agent 13440 has become immune from dose 0 on day 14
@@ -13420,7 +13427,7 @@ Agent 14208 was already infected so did not become immune from dose 0 on day 14
 Agent 14209 was already infected so did not become immune from dose 0 on day 14
 Agent 14212 was already infected so did not become immune from dose 0 on day 14
 Agent 14217 has become immune from dose 0 on day 14
-Agent 14220 was already infected so did not become immune from dose 0 on day 14
+Agent 14220 has become immune from dose 0 on day 14
 Agent 14221 has become immune from dose 0 on day 14
 Agent 14223 has become immune from dose 0 on day 14
 Agent 14230 has become immune from dose 0 on day 14
@@ -14044,7 +14051,7 @@ Agent 17718 has become immune from dose 0 on day 14
 Agent 17720 has become immune from dose 0 on day 14
 Agent 17721 has become immune from dose 0 on day 14
 Agent 17725 has become immune from dose 0 on day 14
-Agent 17727 was already infected so did not become immune from dose 0 on day 14
+Agent 17727 has become immune from dose 0 on day 14
 Agent 17728 has become immune from dose 0 on day 14
 Agent 17738 has become immune from dose 0 on day 14
 Agent 17743 has become immune from dose 0 on day 14
@@ -14397,7 +14404,7 @@ Agent 19569 has become immune from dose 0 on day 14
 Agent 19570 has become immune from dose 0 on day 14
 Agent 19572 has become immune from dose 0 on day 14
 Agent 19573 has become immune from dose 0 on day 14
-Agent 19576 has become immune from dose 0 on day 14
+Agent 19576 was already infected so did not become immune from dose 0 on day 14
 Agent 19578 has become immune from dose 0 on day 14
 Agent 19582 has become immune from dose 0 on day 14
 Agent 19584 has become immune from dose 0 on day 14
@@ -14896,13 +14903,13 @@ Agent 22486 has become immune from dose 0 on day 14
 Agent 22493 has become immune from dose 0 on day 14
 Agent 22505 has become immune from dose 0 on day 14
 Agent 22530 has become immune from dose 0 on day 14
-Agent 22531 has become immune from dose 0 on day 14
+Agent 22531 was already infected so did not become immune from dose 0 on day 14
 Agent 22538 has become immune from dose 0 on day 14
 Agent 22539 has become immune from dose 0 on day 14
 Agent 22540 has become immune from dose 0 on day 14
 Agent 22545 has become immune from dose 0 on day 14
 Agent 22547 was already infected so did not become immune from dose 0 on day 14
-Agent 22548 was already infected so did not become immune from dose 0 on day 14
+Agent 22548 has become immune from dose 0 on day 14
 Agent 22554 has become immune from dose 0 on day 14
 Agent 22556 has become immune from dose 0 on day 14
 Agent 22566 has become immune from dose 0 on day 14
@@ -15188,7 +15195,7 @@ Agent 24034 has become immune from dose 0 on day 14
 Agent 24043 has become immune from dose 0 on day 14
 Agent 24049 has become immune from dose 0 on day 14
 Agent 24056 has become immune from dose 0 on day 14
-Agent 24067 was already infected so did not become immune from dose 0 on day 14
+Agent 24067 has become immune from dose 0 on day 14
 Agent 24069 has become immune from dose 0 on day 14
 Agent 24072 has become immune from dose 0 on day 14
 Agent 24073 has become immune from dose 0 on day 14
@@ -15480,10 +15487,10 @@ Agent 25601 has become immune from dose 0 on day 14
 Agent 25602 has become immune from dose 0 on day 14
 Agent 25622 has become immune from dose 0 on day 14
 Agent 25624 has become immune from dose 0 on day 14
-Agent 25630 was already infected so did not become immune from dose 0 on day 14
+Agent 25630 has become immune from dose 0 on day 14
 Agent 25636 has become immune from dose 0 on day 14
 Agent 25639 has become immune from dose 0 on day 14
-Agent 25640 has become immune from dose 0 on day 14
+Agent 25640 was already infected so did not become immune from dose 0 on day 14
 Agent 25642 has become immune from dose 0 on day 14
 Agent 25643 has become immune from dose 0 on day 14
 Agent 25647 has become immune from dose 0 on day 14
@@ -15895,7 +15902,7 @@ Agent 27957 has become immune from dose 0 on day 14
 Agent 27962 has become immune from dose 0 on day 14
 Agent 27964 has become immune from dose 0 on day 14
 Agent 27967 was already infected so did not become immune from dose 0 on day 14
-Agent 27968 was already infected so did not become immune from dose 0 on day 14
+Agent 27968 has become immune from dose 0 on day 14
 Agent 27977 has become immune from dose 0 on day 14
 Agent 27988 has become immune from dose 0 on day 14
 Agent 27989 has become immune from dose 0 on day 14
@@ -15932,7 +15939,7 @@ Agent 28080 has become immune from dose 0 on day 14
 Agent 28081 has become immune from dose 0 on day 14
 Agent 28083 has become immune from dose 0 on day 14
 Agent 28084 has become immune from dose 0 on day 14
-Agent 28085 has become immune from dose 0 on day 14
+Agent 28085 was already infected so did not become immune from dose 0 on day 14
 Agent 28086 has become immune from dose 0 on day 14
 Agent 28091 has become immune from dose 0 on day 14
 Agent 28092 has become immune from dose 0 on day 14
@@ -16309,7 +16316,7 @@ Agent 30292 has become immune from dose 0 on day 14
 Agent 30295 has become immune from dose 0 on day 14
 Agent 30301 has become immune from dose 0 on day 14
 Agent 30313 has become immune from dose 0 on day 14
-Agent 30320 has become immune from dose 0 on day 14
+Agent 30320 was already infected so did not become immune from dose 0 on day 14
 Agent 30321 was already infected so did not become immune from dose 0 on day 14
 Agent 30322 has become immune from dose 0 on day 14
 Agent 30332 has become immune from dose 0 on day 14
@@ -16845,7 +16852,7 @@ Agent 33023 has become immune from dose 0 on day 14
 Agent 33032 has become immune from dose 0 on day 14
 Agent 33036 has become immune from dose 0 on day 14
 Agent 33041 has become immune from dose 0 on day 14
-Agent 33047 was already infected so did not become immune from dose 0 on day 14
+Agent 33047 has become immune from dose 0 on day 14
 Agent 33048 has become immune from dose 0 on day 14
 Agent 33049 has become immune from dose 0 on day 14
 Agent 33059 has become immune from dose 0 on day 14
@@ -16922,7 +16929,7 @@ Agent 33468 has become immune from dose 0 on day 14
 Agent 33469 has become immune from dose 0 on day 14
 Agent 33472 has become immune from dose 0 on day 14
 Agent 33476 has become immune from dose 0 on day 14
-Agent 33477 has become immune from dose 0 on day 14
+Agent 33477 was already infected so did not become immune from dose 0 on day 14
 Agent 33479 has become immune from dose 0 on day 14
 Agent 33492 has become immune from dose 0 on day 14
 Agent 33497 has become immune from dose 0 on day 14
@@ -17000,7 +17007,7 @@ Agent 33828 has become immune from dose 0 on day 14
 Agent 33845 has become immune from dose 0 on day 14
 Agent 33849 has become immune from dose 0 on day 14
 Agent 33870 has become immune from dose 0 on day 14
-Agent 33875 has become immune from dose 0 on day 14
+Agent 33875 was already infected so did not become immune from dose 0 on day 14
 Agent 33880 has become immune from dose 0 on day 14
 Agent 33900 has become immune from dose 0 on day 14
 Agent 33901 has become immune from dose 0 on day 14
@@ -17200,7 +17207,7 @@ Agent 35014 has become immune from dose 0 on day 14
 Agent 35015 has become immune from dose 0 on day 14
 Agent 35033 has become immune from dose 0 on day 14
 Agent 35047 has become immune from dose 0 on day 14
-Agent 35049 has become immune from dose 0 on day 14
+Agent 35049 was already infected so did not become immune from dose 0 on day 14
 Agent 35050 has become immune from dose 0 on day 14
 Agent 35053 has become immune from dose 0 on day 14
 Agent 35055 has become immune from dose 0 on day 14
@@ -17234,7 +17241,7 @@ Agent 35153 has become immune from dose 0 on day 14
 Agent 35154 has become immune from dose 0 on day 14
 Agent 35156 has become immune from dose 0 on day 14
 Agent 35157 has become immune from dose 0 on day 14
-Agent 35159 was already infected so did not become immune from dose 0 on day 14
+Agent 35159 has become immune from dose 0 on day 14
 Agent 35161 has become immune from dose 0 on day 14
 Agent 35163 has become immune from dose 0 on day 14
 Agent 35166 has become immune from dose 0 on day 14
@@ -17381,7 +17388,7 @@ Agent 36030 has become immune from dose 0 on day 14
 Agent 36043 has become immune from dose 0 on day 14
 Agent 36045 has become immune from dose 0 on day 14
 Agent 36046 has become immune from dose 0 on day 14
-Agent 36064 has become immune from dose 0 on day 14
+Agent 36064 was already infected so did not become immune from dose 0 on day 14
 Agent 36069 has become immune from dose 0 on day 14
 Agent 36072 has become immune from dose 0 on day 14
 Agent 36073 has become immune from dose 0 on day 14
@@ -17566,7 +17573,7 @@ Agent 37126 has become immune from dose 0 on day 14
 Agent 37139 has become immune from dose 0 on day 14
 Agent 37142 has become immune from dose 0 on day 14
 Agent 37144 has become immune from dose 0 on day 14
-Agent 37155 has become immune from dose 0 on day 14
+Agent 37155 was already infected so did not become immune from dose 0 on day 14
 Agent 37162 has become immune from dose 0 on day 14
 Agent 37176 has become immune from dose 0 on day 14
 Agent 37179 has become immune from dose 0 on day 14
@@ -17753,7 +17760,7 @@ Agent 38151 has become immune from dose 0 on day 14
 Agent 38163 has become immune from dose 0 on day 14
 Agent 38175 has become immune from dose 0 on day 14
 Agent 38181 has become immune from dose 0 on day 14
-Agent 38182 was already infected so did not become immune from dose 0 on day 14
+Agent 38182 has become immune from dose 0 on day 14
 Agent 38190 has become immune from dose 0 on day 14
 Agent 38191 has become immune from dose 0 on day 14
 Agent 38192 has become immune from dose 0 on day 14
@@ -17788,7 +17795,7 @@ Agent 38327 has become immune from dose 0 on day 14
 Agent 38330 has become immune from dose 0 on day 14
 Agent 38340 has become immune from dose 0 on day 14
 Agent 38342 has become immune from dose 0 on day 14
-Agent 38355 has become immune from dose 0 on day 14
+Agent 38355 was already infected so did not become immune from dose 0 on day 14
 Agent 38361 has become immune from dose 0 on day 14
 Agent 38380 has become immune from dose 0 on day 14
 Agent 38389 has become immune from dose 0 on day 14
@@ -17836,7 +17843,7 @@ Agent 38589 has become immune from dose 0 on day 14
 Agent 38591 has become immune from dose 0 on day 14
 Agent 38605 has become immune from dose 0 on day 14
 Agent 38607 has become immune from dose 0 on day 14
-Agent 38617 has become immune from dose 0 on day 14
+Agent 38617 was already infected so did not become immune from dose 0 on day 14
 Agent 38623 has become immune from dose 0 on day 14
 Agent 38627 has become immune from dose 0 on day 14
 Agent 38628 has become immune from dose 0 on day 14
@@ -17931,7 +17938,7 @@ Agent 39110 has become immune from dose 0 on day 14
 Agent 39112 has become immune from dose 0 on day 14
 Agent 39113 has become immune from dose 0 on day 14
 Agent 39118 has become immune from dose 0 on day 14
-Agent 39120 was already infected so did not become immune from dose 0 on day 14
+Agent 39120 has become immune from dose 0 on day 14
 Agent 39124 has become immune from dose 0 on day 14
 Agent 39125 has become immune from dose 0 on day 14
 Agent 39126 has become immune from dose 0 on day 14
@@ -18395,7 +18402,7 @@ Agent 41736 has become immune from dose 0 on day 14
 Agent 41737 has become immune from dose 0 on day 14
 Agent 41739 has become immune from dose 0 on day 14
 Agent 41743 has become immune from dose 0 on day 14
-Agent 41745 was already infected so did not become immune from dose 0 on day 14
+Agent 41745 has become immune from dose 0 on day 14
 Agent 41747 has become immune from dose 0 on day 14
 Agent 41760 has become immune from dose 0 on day 14
 Agent 41761 has become immune from dose 0 on day 14
@@ -18451,7 +18458,7 @@ Agent 42010 has become immune from dose 0 on day 14
 Agent 42011 has become immune from dose 0 on day 14
 Agent 42012 has become immune from dose 0 on day 14
 Agent 42020 was already infected so did not become immune from dose 0 on day 14
-Agent 42021 has become immune from dose 0 on day 14
+Agent 42021 was already infected so did not become immune from dose 0 on day 14
 Agent 42022 was already infected so did not become immune from dose 0 on day 14
 Agent 42023 has become immune from dose 0 on day 14
 Agent 42024 has become immune from dose 0 on day 14
@@ -18800,7 +18807,7 @@ Agent 44079 has become immune from dose 0 on day 14
 Agent 44083 has become immune from dose 0 on day 14
 Agent 44113 has become immune from dose 0 on day 14
 Agent 44115 has become immune from dose 0 on day 14
-Agent 44116 was already infected so did not become immune from dose 0 on day 14
+Agent 44116 has become immune from dose 0 on day 14
 Agent 44123 has become immune from dose 0 on day 14
 Agent 44125 has become immune from dose 0 on day 14
 Agent 44126 has become immune from dose 0 on day 14
@@ -19002,16 +19009,16 @@ Vaccinated priority to population 0 agents, for a total of 0 on day 14
 Vaccinated regular to population 0 agents, for a total of 0 on day 14
 Left in queues:  priority (0)    Regular (1)
 Number of acceptances: 0, Number of rejections: 0
-day 14 update population took 1 seconds
+day 14 update population took 0 seconds
 day 14 update_infectious_people took 0 seconds
 day 14 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       746
-Number of infectious households    =>       319
-Number of infectious neighborhoods =>       164
-Number of infectious schools       =>        16
-Number of infectious classrooms    =>        64
-Number of infectious workplaces    =>        88
-Number of infectious offices       =>        95
+Number of infectious places        =>       745
+Number of infectious households    =>       326
+Number of infectious neighborhoods =>       166
+Number of infectious schools       =>        17
+Number of infectious classrooms    =>        62
+Number of infectious workplaces    =>        84
+Number of infectious offices       =>        90
 Number of infectious hospitals     =>         0
 day 14 epidemic in schools for disease 0 took 0 seconds
 day 14 epidemic in classrooms for disease 0 took 0 seconds
@@ -19025,9 +19032,9 @@ day 14 update epidemic for disease 0 took 0 seconds
 Day 14 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 14 report population took 0 seconds
-day 14 maxrss 91103232
-day 14 finished Tue Feb  3 12:09:55 2015
-day 14 took 1 seconds
+day 14 maxrss 91996160
+day 14 finished Fri Feb  6 11:59:49 2015
+day 14 took 0 seconds
 
 day 15 update places took 0 seconds
 update entered day 15
@@ -19066,7 +19073,7 @@ Agent 158 has become immune from dose 0 on day 15
 Agent 160 has become immune from dose 0 on day 15
 Agent 162 has become immune from dose 0 on day 15
 Agent 165 has become immune from dose 0 on day 15
-Agent 166 was already infected so did not become immune from dose 0 on day 15
+Agent 166 has become immune from dose 0 on day 15
 Agent 172 has become immune from dose 0 on day 15
 Agent 177 has become immune from dose 0 on day 15
 Agent 183 has become immune from dose 0 on day 15
@@ -19129,8 +19136,8 @@ Agent 501 has become immune from dose 0 on day 15
 Agent 512 has become immune from dose 0 on day 15
 Agent 514 has become immune from dose 0 on day 15
 Agent 515 has become immune from dose 0 on day 15
-Agent 521 was already infected so did not become immune from dose 0 on day 15
-Agent 523 was already infected so did not become immune from dose 0 on day 15
+Agent 521 has become immune from dose 0 on day 15
+Agent 523 has become immune from dose 0 on day 15
 Agent 536 has become immune from dose 0 on day 15
 Agent 547 has become immune from dose 0 on day 15
 Agent 551 has become immune from dose 0 on day 15
@@ -19207,7 +19214,7 @@ Agent 925 has become immune from dose 0 on day 15
 Agent 930 has become immune from dose 0 on day 15
 Agent 944 has become immune from dose 0 on day 15
 Agent 950 has become immune from dose 0 on day 15
-Agent 956 has become immune from dose 0 on day 15
+Agent 956 was already infected so did not become immune from dose 0 on day 15
 Agent 964 has become immune from dose 0 on day 15
 Agent 986 has become immune from dose 0 on day 15
 Agent 994 has become immune from dose 0 on day 15
@@ -19861,10 +19868,10 @@ Agent 4289 has become immune from dose 0 on day 15
 Agent 4297 has become immune from dose 0 on day 15
 Agent 4312 has become immune from dose 0 on day 15
 Agent 4317 has become immune from dose 0 on day 15
-Agent 4319 was already infected so did not become immune from dose 0 on day 15
+Agent 4319 has become immune from dose 0 on day 15
 Agent 4320 has become immune from dose 0 on day 15
 Agent 4325 has become immune from dose 0 on day 15
-Agent 4326 was already infected so did not become immune from dose 0 on day 15
+Agent 4326 has become immune from dose 0 on day 15
 Agent 4335 has become immune from dose 0 on day 15
 Agent 4336 has become immune from dose 0 on day 15
 Agent 4339 has become immune from dose 0 on day 15
@@ -19935,8 +19942,8 @@ Agent 4593 has become immune from dose 0 on day 15
 Agent 4594 has become immune from dose 0 on day 15
 Agent 4610 has become immune from dose 0 on day 15
 Agent 4615 has become immune from dose 0 on day 15
-Agent 4633 was already infected so did not become immune from dose 0 on day 15
-Agent 4637 was already infected so did not become immune from dose 0 on day 15
+Agent 4633 has become immune from dose 0 on day 15
+Agent 4637 has become immune from dose 0 on day 15
 Agent 4645 has become immune from dose 0 on day 15
 Agent 4648 has become immune from dose 0 on day 15
 Agent 4649 has become immune from dose 0 on day 15
@@ -19973,7 +19980,7 @@ Agent 4816 has become immune from dose 0 on day 15
 Agent 4817 has become immune from dose 0 on day 15
 Agent 4819 has become immune from dose 0 on day 15
 Agent 4820 has become immune from dose 0 on day 15
-Agent 4823 has become immune from dose 0 on day 15
+Agent 4823 was already infected so did not become immune from dose 0 on day 15
 Agent 4830 has become immune from dose 0 on day 15
 Agent 4832 has become immune from dose 0 on day 15
 Agent 4840 has become immune from dose 0 on day 15
@@ -20201,7 +20208,7 @@ Agent 5881 has become immune from dose 0 on day 15
 Agent 5883 has become immune from dose 0 on day 15
 Agent 5886 has become immune from dose 0 on day 15
 Agent 5887 has become immune from dose 0 on day 15
-Agent 5890 has become immune from dose 0 on day 15
+Agent 5890 was already infected so did not become immune from dose 0 on day 15
 Agent 5896 was already infected so did not become immune from dose 0 on day 15
 Agent 5898 has become immune from dose 0 on day 15
 Agent 5904 has become immune from dose 0 on day 15
@@ -20272,7 +20279,7 @@ Agent 6190 has become immune from dose 0 on day 15
 Agent 6192 has become immune from dose 0 on day 15
 Agent 6196 has become immune from dose 0 on day 15
 Agent 6199 has become immune from dose 0 on day 15
-Agent 6201 has become immune from dose 0 on day 15
+Agent 6201 was already infected so did not become immune from dose 0 on day 15
 Agent 6210 has become immune from dose 0 on day 15
 Agent 6214 was already infected so did not become immune from dose 0 on day 15
 Agent 6217 has become immune from dose 0 on day 15
@@ -20436,7 +20443,7 @@ Agent 6938 has become immune from dose 0 on day 15
 Agent 6943 has become immune from dose 0 on day 15
 Agent 6975 has become immune from dose 0 on day 15
 Agent 6981 has become immune from dose 0 on day 15
-Agent 6982 was already infected so did not become immune from dose 0 on day 15
+Agent 6982 has become immune from dose 0 on day 15
 Agent 6987 has become immune from dose 0 on day 15
 Agent 7007 has become immune from dose 0 on day 15
 Agent 7010 has become immune from dose 0 on day 15
@@ -20537,7 +20544,7 @@ Agent 7393 has become immune from dose 0 on day 15
 Agent 7394 has become immune from dose 0 on day 15
 Agent 7399 has become immune from dose 0 on day 15
 Agent 7404 has become immune from dose 0 on day 15
-Agent 7408 has become immune from dose 0 on day 15
+Agent 7408 was already infected so did not become immune from dose 0 on day 15
 Agent 7410 has become immune from dose 0 on day 15
 Agent 7412 has become immune from dose 0 on day 15
 Agent 7413 has become immune from dose 0 on day 15
@@ -20579,7 +20586,7 @@ Agent 7605 has become immune from dose 0 on day 15
 Agent 7607 has become immune from dose 0 on day 15
 Agent 7618 has become immune from dose 0 on day 15
 Agent 7623 has become immune from dose 0 on day 15
-Agent 7624 was already infected so did not become immune from dose 0 on day 15
+Agent 7624 has become immune from dose 0 on day 15
 Agent 7631 has become immune from dose 0 on day 15
 Agent 7632 has become immune from dose 0 on day 15
 Agent 7639 has become immune from dose 0 on day 15
@@ -20856,7 +20863,7 @@ Agent 9090 has become immune from dose 0 on day 15
 Agent 9091 has become immune from dose 0 on day 15
 Agent 9097 has become immune from dose 0 on day 15
 Agent 9105 has become immune from dose 0 on day 15
-Agent 9106 has become immune from dose 0 on day 15
+Agent 9106 was already infected so did not become immune from dose 0 on day 15
 Agent 9108 has become immune from dose 0 on day 15
 Agent 9111 has become immune from dose 0 on day 15
 Agent 9112 has become immune from dose 0 on day 15
@@ -20870,7 +20877,7 @@ Agent 9155 has become immune from dose 0 on day 15
 Agent 9157 has become immune from dose 0 on day 15
 Agent 9160 has become immune from dose 0 on day 15
 Agent 9173 has become immune from dose 0 on day 15
-Agent 9176 was already infected so did not become immune from dose 0 on day 15
+Agent 9176 has become immune from dose 0 on day 15
 Agent 9179 has become immune from dose 0 on day 15
 Agent 9188 has become immune from dose 0 on day 15
 Agent 9199 has become immune from dose 0 on day 15
@@ -20942,7 +20949,7 @@ Agent 9673 has become immune from dose 0 on day 15
 Agent 9678 has become immune from dose 0 on day 15
 Agent 9686 has become immune from dose 0 on day 15
 Agent 9689 has become immune from dose 0 on day 15
-Agent 9690 was already infected so did not become immune from dose 0 on day 15
+Agent 9690 has become immune from dose 0 on day 15
 Agent 9692 has become immune from dose 0 on day 15
 Agent 9698 has become immune from dose 0 on day 15
 Agent 9699 has become immune from dose 0 on day 15
@@ -20951,7 +20958,7 @@ Agent 9703 has become immune from dose 0 on day 15
 Agent 9708 has become immune from dose 0 on day 15
 Agent 9709 has become immune from dose 0 on day 15
 Agent 9710 has become immune from dose 0 on day 15
-Agent 9711 was already infected so did not become immune from dose 0 on day 15
+Agent 9711 has become immune from dose 0 on day 15
 Agent 9714 has become immune from dose 0 on day 15
 Agent 9715 has become immune from dose 0 on day 15
 Agent 9718 has become immune from dose 0 on day 15
@@ -21008,12 +21015,12 @@ Agent 9894 has become immune from dose 0 on day 15
 Agent 9897 has become immune from dose 0 on day 15
 Agent 9903 has become immune from dose 0 on day 15
 Agent 9910 has become immune from dose 0 on day 15
-Agent 9913 was already infected so did not become immune from dose 0 on day 15
+Agent 9913 has become immune from dose 0 on day 15
 Agent 9914 has become immune from dose 0 on day 15
 Agent 9915 has become immune from dose 0 on day 15
 Agent 9916 has become immune from dose 0 on day 15
 Agent 9917 has become immune from dose 0 on day 15
-Agent 9921 was already infected so did not become immune from dose 0 on day 15
+Agent 9921 has become immune from dose 0 on day 15
 Agent 9924 has become immune from dose 0 on day 15
 Agent 9929 has become immune from dose 0 on day 15
 Agent 9945 has become immune from dose 0 on day 15
@@ -21052,7 +21059,7 @@ Agent 10138 has become immune from dose 0 on day 15
 Agent 10140 has become immune from dose 0 on day 15
 Agent 10142 has become immune from dose 0 on day 15
 Agent 10147 has become immune from dose 0 on day 15
-Agent 10151 has become immune from dose 0 on day 15
+Agent 10151 was already infected so did not become immune from dose 0 on day 15
 Agent 10153 has become immune from dose 0 on day 15
 Agent 10163 has become immune from dose 0 on day 15
 Agent 10168 has become immune from dose 0 on day 15
@@ -21101,7 +21108,7 @@ Agent 10370 has become immune from dose 0 on day 15
 Agent 10373 has become immune from dose 0 on day 15
 Agent 10380 has become immune from dose 0 on day 15
 Agent 10382 has become immune from dose 0 on day 15
-Agent 10389 has become immune from dose 0 on day 15
+Agent 10389 was already infected so did not become immune from dose 0 on day 15
 Agent 10390 has become immune from dose 0 on day 15
 Agent 10392 has become immune from dose 0 on day 15
 Agent 10409 has become immune from dose 0 on day 15
@@ -21132,7 +21139,7 @@ Agent 10547 has become immune from dose 0 on day 15
 Agent 10553 has become immune from dose 0 on day 15
 Agent 10554 has become immune from dose 0 on day 15
 Agent 10555 has become immune from dose 0 on day 15
-Agent 10559 has become immune from dose 0 on day 15
+Agent 10559 was already infected so did not become immune from dose 0 on day 15
 Agent 10564 has become immune from dose 0 on day 15
 Agent 10569 has become immune from dose 0 on day 15
 Agent 10570 has become immune from dose 0 on day 15
@@ -21189,7 +21196,7 @@ Agent 10836 has become immune from dose 0 on day 15
 Agent 10837 has become immune from dose 0 on day 15
 Agent 10840 has become immune from dose 0 on day 15
 Agent 10846 has become immune from dose 0 on day 15
-Agent 10858 has become immune from dose 0 on day 15
+Agent 10858 was already infected so did not become immune from dose 0 on day 15
 Agent 10861 has become immune from dose 0 on day 15
 Agent 10863 has become immune from dose 0 on day 15
 Agent 10864 has become immune from dose 0 on day 15
@@ -21344,7 +21351,7 @@ Agent 11668 has become immune from dose 0 on day 15
 Agent 11671 has become immune from dose 0 on day 15
 Agent 11675 has become immune from dose 0 on day 15
 Agent 11686 has become immune from dose 0 on day 15
-Agent 11695 has become immune from dose 0 on day 15
+Agent 11695 was already infected so did not become immune from dose 0 on day 15
 Agent 11709 has become immune from dose 0 on day 15
 Agent 11711 has become immune from dose 0 on day 15
 Agent 11715 has become immune from dose 0 on day 15
@@ -21363,7 +21370,7 @@ Agent 11756 has become immune from dose 0 on day 15
 Agent 11757 has become immune from dose 0 on day 15
 Agent 11760 has become immune from dose 0 on day 15
 Agent 11761 has become immune from dose 0 on day 15
-Agent 11771 has become immune from dose 0 on day 15
+Agent 11771 was already infected so did not become immune from dose 0 on day 15
 Agent 11773 has become immune from dose 0 on day 15
 Agent 11805 has become immune from dose 0 on day 15
 Agent 11816 has become immune from dose 0 on day 15
@@ -21398,7 +21405,7 @@ Agent 11989 has become immune from dose 0 on day 15
 Agent 11991 has become immune from dose 0 on day 15
 Agent 12000 has become immune from dose 0 on day 15
 Agent 12014 has become immune from dose 0 on day 15
-Agent 12017 was already infected so did not become immune from dose 0 on day 15
+Agent 12017 has become immune from dose 0 on day 15
 Agent 12024 has become immune from dose 0 on day 15
 Agent 12037 has become immune from dose 0 on day 15
 Agent 12040 has become immune from dose 0 on day 15
@@ -21441,8 +21448,8 @@ Agent 12207 has become immune from dose 0 on day 15
 Agent 12208 has become immune from dose 0 on day 15
 Agent 12209 has become immune from dose 0 on day 15
 Agent 12218 has become immune from dose 0 on day 15
-Agent 12221 has become immune from dose 0 on day 15
-Agent 12222 has become immune from dose 0 on day 15
+Agent 12221 was already infected so did not become immune from dose 0 on day 15
+Agent 12222 was already infected so did not become immune from dose 0 on day 15
 Agent 12225 has become immune from dose 0 on day 15
 Agent 12226 has become immune from dose 0 on day 15
 Agent 12229 has become immune from dose 0 on day 15
@@ -21491,7 +21498,7 @@ Agent 12391 has become immune from dose 0 on day 15
 Agent 12398 has become immune from dose 0 on day 15
 Agent 12399 has become immune from dose 0 on day 15
 Agent 12416 has become immune from dose 0 on day 15
-Agent 12419 was already infected so did not become immune from dose 0 on day 15
+Agent 12419 has become immune from dose 0 on day 15
 Agent 12420 has become immune from dose 0 on day 15
 Agent 12421 has become immune from dose 0 on day 15
 Agent 12422 has become immune from dose 0 on day 15
@@ -21504,7 +21511,7 @@ Agent 12455 has become immune from dose 0 on day 15
 Agent 12458 has become immune from dose 0 on day 15
 Agent 12468 has become immune from dose 0 on day 15
 Agent 12469 has become immune from dose 0 on day 15
-Agent 12476 was already infected so did not become immune from dose 0 on day 15
+Agent 12476 has become immune from dose 0 on day 15
 Agent 12487 has become immune from dose 0 on day 15
 Agent 12493 has become immune from dose 0 on day 15
 Agent 12496 has become immune from dose 0 on day 15
@@ -21653,7 +21660,7 @@ Agent 13179 has become immune from dose 0 on day 15
 Agent 13184 has become immune from dose 0 on day 15
 Agent 13194 has become immune from dose 0 on day 15
 Agent 13195 has become immune from dose 0 on day 15
-Agent 13198 was already infected so did not become immune from dose 0 on day 15
+Agent 13198 has become immune from dose 0 on day 15
 Agent 13201 has become immune from dose 0 on day 15
 Agent 13208 has become immune from dose 0 on day 15
 Agent 13212 has become immune from dose 0 on day 15
@@ -21865,7 +21872,7 @@ Agent 14185 has become immune from dose 0 on day 15
 Agent 14189 has become immune from dose 0 on day 15
 Agent 14200 has become immune from dose 0 on day 15
 Agent 14203 has become immune from dose 0 on day 15
-Agent 14214 has become immune from dose 0 on day 15
+Agent 14214 was already infected so did not become immune from dose 0 on day 15
 Agent 14219 has become immune from dose 0 on day 15
 Agent 14222 has become immune from dose 0 on day 15
 Agent 14232 has become immune from dose 0 on day 15
@@ -21880,7 +21887,7 @@ Agent 14270 has become immune from dose 0 on day 15
 Agent 14271 has become immune from dose 0 on day 15
 Agent 14272 has become immune from dose 0 on day 15
 Agent 14286 has become immune from dose 0 on day 15
-Agent 14293 has become immune from dose 0 on day 15
+Agent 14293 was already infected so did not become immune from dose 0 on day 15
 Agent 14298 has become immune from dose 0 on day 15
 Agent 14300 has become immune from dose 0 on day 15
 Agent 14310 has become immune from dose 0 on day 15
@@ -22190,7 +22197,7 @@ Agent 15991 has become immune from dose 0 on day 15
 Agent 16000 has become immune from dose 0 on day 15
 Agent 16003 has become immune from dose 0 on day 15
 Agent 16005 has become immune from dose 0 on day 15
-Agent 16007 has become immune from dose 0 on day 15
+Agent 16007 was already infected so did not become immune from dose 0 on day 15
 Agent 16016 has become immune from dose 0 on day 15
 Agent 16017 has become immune from dose 0 on day 15
 Agent 16021 has become immune from dose 0 on day 15
@@ -22464,7 +22471,7 @@ Agent 17479 has become immune from dose 0 on day 15
 Agent 17481 has become immune from dose 0 on day 15
 Agent 17484 has become immune from dose 0 on day 15
 Agent 17491 has become immune from dose 0 on day 15
-Agent 17504 has become immune from dose 0 on day 15
+Agent 17504 was already infected so did not become immune from dose 0 on day 15
 Agent 17507 has become immune from dose 0 on day 15
 Agent 17513 has become immune from dose 0 on day 15
 Agent 17520 has become immune from dose 0 on day 15
@@ -23376,7 +23383,7 @@ Agent 22640 has become immune from dose 0 on day 15
 Agent 22641 has become immune from dose 0 on day 15
 Agent 22643 has become immune from dose 0 on day 15
 Agent 22652 has become immune from dose 0 on day 15
-Agent 22663 was already infected so did not become immune from dose 0 on day 15
+Agent 22663 has become immune from dose 0 on day 15
 Agent 22685 has become immune from dose 0 on day 15
 Agent 22689 has become immune from dose 0 on day 15
 Agent 22696 has become immune from dose 0 on day 15
@@ -23529,12 +23536,12 @@ Agent 23645 has become immune from dose 0 on day 15
 Agent 23648 has become immune from dose 0 on day 15
 Agent 23653 has become immune from dose 0 on day 15
 Agent 23663 has become immune from dose 0 on day 15
-Agent 23682 was already infected so did not become immune from dose 0 on day 15
+Agent 23682 has become immune from dose 0 on day 15
 Agent 23683 has become immune from dose 0 on day 15
 Agent 23689 has become immune from dose 0 on day 15
 Agent 23692 has become immune from dose 0 on day 15
 Agent 23696 has become immune from dose 0 on day 15
-Agent 23700 was already infected so did not become immune from dose 0 on day 15
+Agent 23700 has become immune from dose 0 on day 15
 Agent 23703 has become immune from dose 0 on day 15
 Agent 23707 has become immune from dose 0 on day 15
 Agent 23708 has become immune from dose 0 on day 15
@@ -23664,7 +23671,7 @@ Agent 24374 has become immune from dose 0 on day 15
 Agent 24378 has become immune from dose 0 on day 15
 Agent 24385 has become immune from dose 0 on day 15
 Agent 24391 has become immune from dose 0 on day 15
-Agent 24401 has become immune from dose 0 on day 15
+Agent 24401 was already infected so did not become immune from dose 0 on day 15
 Agent 24402 has become immune from dose 0 on day 15
 Agent 24418 has become immune from dose 0 on day 15
 Agent 24419 has become immune from dose 0 on day 15
@@ -23681,7 +23688,7 @@ Agent 24471 has become immune from dose 0 on day 15
 Agent 24472 has become immune from dose 0 on day 15
 Agent 24473 has become immune from dose 0 on day 15
 Agent 24484 has become immune from dose 0 on day 15
-Agent 24492 has become immune from dose 0 on day 15
+Agent 24492 was already infected so did not become immune from dose 0 on day 15
 Agent 24498 has become immune from dose 0 on day 15
 Agent 24516 has become immune from dose 0 on day 15
 Agent 24518 has become immune from dose 0 on day 15
@@ -23762,7 +23769,7 @@ Agent 24965 has become immune from dose 0 on day 15
 Agent 24972 has become immune from dose 0 on day 15
 Agent 24974 has become immune from dose 0 on day 15
 Agent 24979 has become immune from dose 0 on day 15
-Agent 24994 was already infected so did not become immune from dose 0 on day 15
+Agent 24994 has become immune from dose 0 on day 15
 Agent 25004 has become immune from dose 0 on day 15
 Agent 25005 has become immune from dose 0 on day 15
 Agent 25006 has become immune from dose 0 on day 15
@@ -23779,7 +23786,7 @@ Agent 25085 has become immune from dose 0 on day 15
 Agent 25094 has become immune from dose 0 on day 15
 Agent 25097 has become immune from dose 0 on day 15
 Agent 25102 has become immune from dose 0 on day 15
-Agent 25114 has become immune from dose 0 on day 15
+Agent 25114 was already infected so did not become immune from dose 0 on day 15
 Agent 25116 has become immune from dose 0 on day 15
 Agent 25124 has become immune from dose 0 on day 15
 Agent 25127 has become immune from dose 0 on day 15
@@ -23901,7 +23908,7 @@ Agent 25726 has become immune from dose 0 on day 15
 Agent 25727 has become immune from dose 0 on day 15
 Agent 25729 has become immune from dose 0 on day 15
 Agent 25731 has become immune from dose 0 on day 15
-Agent 25747 was already infected so did not become immune from dose 0 on day 15
+Agent 25747 has become immune from dose 0 on day 15
 Agent 25753 has become immune from dose 0 on day 15
 Agent 25765 has become immune from dose 0 on day 15
 Agent 25778 has become immune from dose 0 on day 15
@@ -24010,7 +24017,7 @@ Agent 26426 has become immune from dose 0 on day 15
 Agent 26428 has become immune from dose 0 on day 15
 Agent 26432 has become immune from dose 0 on day 15
 Agent 26433 has become immune from dose 0 on day 15
-Agent 26436 was already infected so did not become immune from dose 0 on day 15
+Agent 26436 has become immune from dose 0 on day 15
 Agent 26438 has become immune from dose 0 on day 15
 Agent 26441 has become immune from dose 0 on day 15
 Agent 26449 has become immune from dose 0 on day 15
@@ -24068,7 +24075,7 @@ Agent 26691 has become immune from dose 0 on day 15
 Agent 26697 has become immune from dose 0 on day 15
 Agent 26698 has become immune from dose 0 on day 15
 Agent 26707 has become immune from dose 0 on day 15
-Agent 26709 was already infected so did not become immune from dose 0 on day 15
+Agent 26709 has become immune from dose 0 on day 15
 Agent 26711 has become immune from dose 0 on day 15
 Agent 26714 has become immune from dose 0 on day 15
 Agent 26716 has become immune from dose 0 on day 15
@@ -24151,11 +24158,11 @@ Agent 27198 has become immune from dose 0 on day 15
 Agent 27209 has become immune from dose 0 on day 15
 Agent 27217 has become immune from dose 0 on day 15
 Agent 27219 has become immune from dose 0 on day 15
-Agent 27223 has become immune from dose 0 on day 15
+Agent 27223 was already infected so did not become immune from dose 0 on day 15
 Agent 27230 has become immune from dose 0 on day 15
 Agent 27232 has become immune from dose 0 on day 15
 Agent 27238 has become immune from dose 0 on day 15
-Agent 27241 has become immune from dose 0 on day 15
+Agent 27241 was already infected so did not become immune from dose 0 on day 15
 Agent 27243 has become immune from dose 0 on day 15
 Agent 27244 has become immune from dose 0 on day 15
 Agent 27249 has become immune from dose 0 on day 15
@@ -24257,7 +24264,7 @@ Agent 27790 has become immune from dose 0 on day 15
 Agent 27791 has become immune from dose 0 on day 15
 Agent 27798 has become immune from dose 0 on day 15
 Agent 27817 has become immune from dose 0 on day 15
-Agent 27823 was already infected so did not become immune from dose 0 on day 15
+Agent 27823 has become immune from dose 0 on day 15
 Agent 27826 has become immune from dose 0 on day 15
 Agent 27843 has become immune from dose 0 on day 15
 Agent 27845 has become immune from dose 0 on day 15
@@ -24373,13 +24380,13 @@ Agent 28559 has become immune from dose 0 on day 15
 Agent 28560 has become immune from dose 0 on day 15
 Agent 28564 has become immune from dose 0 on day 15
 Agent 28578 has become immune from dose 0 on day 15
-Agent 28625 has become immune from dose 0 on day 15
+Agent 28625 was already infected so did not become immune from dose 0 on day 15
 Agent 28627 has become immune from dose 0 on day 15
 Agent 28633 has become immune from dose 0 on day 15
 Agent 28640 has become immune from dose 0 on day 15
 Agent 28641 has become immune from dose 0 on day 15
 Agent 28668 has become immune from dose 0 on day 15
-Agent 28671 has become immune from dose 0 on day 15
+Agent 28671 was already infected so did not become immune from dose 0 on day 15
 Agent 28675 has become immune from dose 0 on day 15
 Agent 28684 has become immune from dose 0 on day 15
 Agent 28692 has become immune from dose 0 on day 15
@@ -24452,7 +24459,7 @@ Agent 29126 has become immune from dose 0 on day 15
 Agent 29128 has become immune from dose 0 on day 15
 Agent 29129 has become immune from dose 0 on day 15
 Agent 29130 has become immune from dose 0 on day 15
-Agent 29138 was already infected so did not become immune from dose 0 on day 15
+Agent 29138 has become immune from dose 0 on day 15
 Agent 29148 has become immune from dose 0 on day 15
 Agent 29150 has become immune from dose 0 on day 15
 Agent 29153 has become immune from dose 0 on day 15
@@ -24893,7 +24900,7 @@ Agent 31957 has become immune from dose 0 on day 15
 Agent 31969 has become immune from dose 0 on day 15
 Agent 31970 has become immune from dose 0 on day 15
 Agent 31971 has become immune from dose 0 on day 15
-Agent 31976 was already infected so did not become immune from dose 0 on day 15
+Agent 31976 has become immune from dose 0 on day 15
 Agent 31977 has become immune from dose 0 on day 15
 Agent 31979 has become immune from dose 0 on day 15
 Agent 31980 has become immune from dose 0 on day 15
@@ -24991,7 +24998,7 @@ Agent 32582 has become immune from dose 0 on day 15
 Agent 32584 has become immune from dose 0 on day 15
 Agent 32589 has become immune from dose 0 on day 15
 Agent 32592 has become immune from dose 0 on day 15
-Agent 32597 has become immune from dose 0 on day 15
+Agent 32597 was already infected so did not become immune from dose 0 on day 15
 Agent 32598 has become immune from dose 0 on day 15
 Agent 32600 has become immune from dose 0 on day 15
 Agent 32602 has become immune from dose 0 on day 15
@@ -25015,8 +25022,8 @@ Agent 32674 has become immune from dose 0 on day 15
 Agent 32678 has become immune from dose 0 on day 15
 Agent 32679 has become immune from dose 0 on day 15
 Agent 32682 has become immune from dose 0 on day 15
-Agent 32687 was already infected so did not become immune from dose 0 on day 15
-Agent 32693 was already infected so did not become immune from dose 0 on day 15
+Agent 32687 has become immune from dose 0 on day 15
+Agent 32693 has become immune from dose 0 on day 15
 Agent 32696 has become immune from dose 0 on day 15
 Agent 32698 has become immune from dose 0 on day 15
 Agent 32707 has become immune from dose 0 on day 15
@@ -25051,7 +25058,7 @@ Agent 32890 has become immune from dose 0 on day 15
 Agent 32892 has become immune from dose 0 on day 15
 Agent 32896 has become immune from dose 0 on day 15
 Agent 32902 has become immune from dose 0 on day 15
-Agent 32904 has become immune from dose 0 on day 15
+Agent 32904 was already infected so did not become immune from dose 0 on day 15
 Agent 32921 has become immune from dose 0 on day 15
 Agent 32927 has become immune from dose 0 on day 15
 Agent 32931 has become immune from dose 0 on day 15
@@ -25231,7 +25238,7 @@ Agent 33972 has become immune from dose 0 on day 15
 Agent 33977 has become immune from dose 0 on day 15
 Agent 33980 has become immune from dose 0 on day 15
 Agent 33983 has become immune from dose 0 on day 15
-Agent 33998 was already infected so did not become immune from dose 0 on day 15
+Agent 33998 has become immune from dose 0 on day 15
 Agent 34004 has become immune from dose 0 on day 15
 Agent 34009 has become immune from dose 0 on day 15
 Agent 34019 has become immune from dose 0 on day 15
@@ -25272,7 +25279,7 @@ Agent 34274 has become immune from dose 0 on day 15
 Agent 34278 has become immune from dose 0 on day 15
 Agent 34280 has become immune from dose 0 on day 15
 Agent 34286 has become immune from dose 0 on day 15
-Agent 34290 has become immune from dose 0 on day 15
+Agent 34290 was already infected so did not become immune from dose 0 on day 15
 Agent 34295 has become immune from dose 0 on day 15
 Agent 34296 has become immune from dose 0 on day 15
 Agent 34299 has become immune from dose 0 on day 15
@@ -25336,7 +25343,7 @@ Agent 34567 has become immune from dose 0 on day 15
 Agent 34579 has become immune from dose 0 on day 15
 Agent 34587 has become immune from dose 0 on day 15
 Agent 34593 has become immune from dose 0 on day 15
-Agent 34595 was already infected so did not become immune from dose 0 on day 15
+Agent 34595 has become immune from dose 0 on day 15
 Agent 34597 has become immune from dose 0 on day 15
 Agent 34598 has become immune from dose 0 on day 15
 Agent 34603 has become immune from dose 0 on day 15
@@ -25528,7 +25535,7 @@ Agent 35640 has become immune from dose 0 on day 15
 Agent 35649 has become immune from dose 0 on day 15
 Agent 35651 has become immune from dose 0 on day 15
 Agent 35660 has become immune from dose 0 on day 15
-Agent 35669 has become immune from dose 0 on day 15
+Agent 35669 was already infected so did not become immune from dose 0 on day 15
 Agent 35671 has become immune from dose 0 on day 15
 Agent 35672 has become immune from dose 0 on day 15
 Agent 35673 has become immune from dose 0 on day 15
@@ -25595,7 +25602,7 @@ Agent 35979 has become immune from dose 0 on day 15
 Agent 35981 has become immune from dose 0 on day 15
 Agent 35984 has become immune from dose 0 on day 15
 Agent 35986 has become immune from dose 0 on day 15
-Agent 35989 has become immune from dose 0 on day 15
+Agent 35989 was already infected so did not become immune from dose 0 on day 15
 Agent 35991 has become immune from dose 0 on day 15
 Agent 36002 has become immune from dose 0 on day 15
 Agent 36004 has become immune from dose 0 on day 15
@@ -25619,7 +25626,7 @@ Agent 36055 has become immune from dose 0 on day 15
 Agent 36057 has become immune from dose 0 on day 15
 Agent 36062 has become immune from dose 0 on day 15
 Agent 36065 has become immune from dose 0 on day 15
-Agent 36071 has become immune from dose 0 on day 15
+Agent 36071 was already infected so did not become immune from dose 0 on day 15
 Agent 36079 has become immune from dose 0 on day 15
 Agent 36084 has become immune from dose 0 on day 15
 Agent 36099 has become immune from dose 0 on day 15
@@ -25633,7 +25640,7 @@ Agent 36140 has become immune from dose 0 on day 15
 Agent 36141 has become immune from dose 0 on day 15
 Agent 36148 has become immune from dose 0 on day 15
 Agent 36153 has become immune from dose 0 on day 15
-Agent 36154 was already infected so did not become immune from dose 0 on day 15
+Agent 36154 has become immune from dose 0 on day 15
 Agent 36159 has become immune from dose 0 on day 15
 Agent 36166 has become immune from dose 0 on day 15
 Agent 36167 has become immune from dose 0 on day 15
@@ -25666,7 +25673,7 @@ Agent 36252 has become immune from dose 0 on day 15
 Agent 36257 has become immune from dose 0 on day 15
 Agent 36260 has become immune from dose 0 on day 15
 Agent 36265 has become immune from dose 0 on day 15
-Agent 36270 has become immune from dose 0 on day 15
+Agent 36270 was already infected so did not become immune from dose 0 on day 15
 Agent 36275 has become immune from dose 0 on day 15
 Agent 36277 has become immune from dose 0 on day 15
 Agent 36286 has become immune from dose 0 on day 15
@@ -25775,7 +25782,7 @@ Agent 36896 has become immune from dose 0 on day 15
 Agent 36898 has become immune from dose 0 on day 15
 Agent 36908 has become immune from dose 0 on day 15
 Agent 36915 has become immune from dose 0 on day 15
-Agent 36917 was already infected so did not become immune from dose 0 on day 15
+Agent 36917 has become immune from dose 0 on day 15
 Agent 36921 has become immune from dose 0 on day 15
 Agent 36927 has become immune from dose 0 on day 15
 Agent 36928 has become immune from dose 0 on day 15
@@ -25843,7 +25850,7 @@ Agent 37231 has become immune from dose 0 on day 15
 Agent 37232 has become immune from dose 0 on day 15
 Agent 37240 has become immune from dose 0 on day 15
 Agent 37242 has become immune from dose 0 on day 15
-Agent 37243 was already infected so did not become immune from dose 0 on day 15
+Agent 37243 has become immune from dose 0 on day 15
 Agent 37250 has become immune from dose 0 on day 15
 Agent 37259 has become immune from dose 0 on day 15
 Agent 37265 has become immune from dose 0 on day 15
@@ -25943,11 +25950,11 @@ Agent 37822 has become immune from dose 0 on day 15
 Agent 37846 has become immune from dose 0 on day 15
 Agent 37855 has become immune from dose 0 on day 15
 Agent 37863 has become immune from dose 0 on day 15
-Agent 37866 was already infected so did not become immune from dose 0 on day 15
+Agent 37866 has become immune from dose 0 on day 15
 Agent 37869 has become immune from dose 0 on day 15
 Agent 37870 has become immune from dose 0 on day 15
 Agent 37872 has become immune from dose 0 on day 15
-Agent 37876 has become immune from dose 0 on day 15
+Agent 37876 was already infected so did not become immune from dose 0 on day 15
 Agent 37887 has become immune from dose 0 on day 15
 Agent 37892 has become immune from dose 0 on day 15
 Agent 37897 has become immune from dose 0 on day 15
@@ -25963,7 +25970,7 @@ Agent 37963 has become immune from dose 0 on day 15
 Agent 37970 has become immune from dose 0 on day 15
 Agent 37977 has become immune from dose 0 on day 15
 Agent 37981 was already infected so did not become immune from dose 0 on day 15
-Agent 37982 has become immune from dose 0 on day 15
+Agent 37982 was already infected so did not become immune from dose 0 on day 15
 Agent 37999 has become immune from dose 0 on day 15
 Agent 38000 has become immune from dose 0 on day 15
 Agent 38001 has become immune from dose 0 on day 15
@@ -26098,7 +26105,7 @@ Agent 38763 has become immune from dose 0 on day 15
 Agent 38771 has become immune from dose 0 on day 15
 Agent 38778 has become immune from dose 0 on day 15
 Agent 38779 has become immune from dose 0 on day 15
-Agent 38784 has become immune from dose 0 on day 15
+Agent 38784 was already infected so did not become immune from dose 0 on day 15
 Agent 38789 has become immune from dose 0 on day 15
 Agent 38797 has become immune from dose 0 on day 15
 Agent 38802 has become immune from dose 0 on day 15
@@ -26335,7 +26342,7 @@ Agent 40082 has become immune from dose 0 on day 15
 Agent 40097 has become immune from dose 0 on day 15
 Agent 40098 has become immune from dose 0 on day 15
 Agent 40101 has become immune from dose 0 on day 15
-Agent 40103 was already infected so did not become immune from dose 0 on day 15
+Agent 40103 has become immune from dose 0 on day 15
 Agent 40112 has become immune from dose 0 on day 15
 Agent 40113 has become immune from dose 0 on day 15
 Agent 40119 has become immune from dose 0 on day 15
@@ -26346,7 +26353,7 @@ Agent 40145 has become immune from dose 0 on day 15
 Agent 40159 has become immune from dose 0 on day 15
 Agent 40163 has become immune from dose 0 on day 15
 Agent 40169 has become immune from dose 0 on day 15
-Agent 40181 has become immune from dose 0 on day 15
+Agent 40181 was already infected so did not become immune from dose 0 on day 15
 Agent 40185 has become immune from dose 0 on day 15
 Agent 40199 has become immune from dose 0 on day 15
 Agent 40205 has become immune from dose 0 on day 15
@@ -26735,7 +26742,7 @@ Agent 42215 has become immune from dose 0 on day 15
 Agent 42217 has become immune from dose 0 on day 15
 Agent 42253 has become immune from dose 0 on day 15
 Agent 42257 has become immune from dose 0 on day 15
-Agent 42273 has become immune from dose 0 on day 15
+Agent 42273 was already infected so did not become immune from dose 0 on day 15
 Agent 42275 has become immune from dose 0 on day 15
 Agent 42278 has become immune from dose 0 on day 15
 Agent 42279 has become immune from dose 0 on day 15
@@ -26788,7 +26795,7 @@ Agent 42555 has become immune from dose 0 on day 15
 Agent 42557 has become immune from dose 0 on day 15
 Agent 42559 has become immune from dose 0 on day 15
 Agent 42561 has become immune from dose 0 on day 15
-Agent 42568 has become immune from dose 0 on day 15
+Agent 42568 was already infected so did not become immune from dose 0 on day 15
 Agent 42576 has become immune from dose 0 on day 15
 Agent 42579 has become immune from dose 0 on day 15
 Agent 42583 has become immune from dose 0 on day 15
@@ -26917,7 +26924,7 @@ Agent 43317 has become immune from dose 0 on day 15
 Agent 43320 has become immune from dose 0 on day 15
 Agent 43324 has become immune from dose 0 on day 15
 Agent 43325 has become immune from dose 0 on day 15
-Agent 43327 was already infected so did not become immune from dose 0 on day 15
+Agent 43327 has become immune from dose 0 on day 15
 Agent 43328 has become immune from dose 0 on day 15
 Agent 43329 has become immune from dose 0 on day 15
 Agent 43333 has become immune from dose 0 on day 15
@@ -27045,7 +27052,7 @@ Agent 43974 has become immune from dose 0 on day 15
 Agent 43993 has become immune from dose 0 on day 15
 Agent 43996 has become immune from dose 0 on day 15
 Agent 43997 has become immune from dose 0 on day 15
-Agent 44002 has become immune from dose 0 on day 15
+Agent 44002 was already infected so did not become immune from dose 0 on day 15
 Agent 44007 has become immune from dose 0 on day 15
 Agent 44027 has become immune from dose 0 on day 15
 Agent 44028 has become immune from dose 0 on day 15
@@ -27094,7 +27101,7 @@ Agent 44233 has become immune from dose 0 on day 15
 Agent 44245 has become immune from dose 0 on day 15
 Agent 44252 has become immune from dose 0 on day 15
 Agent 44254 has become immune from dose 0 on day 15
-Agent 44257 has become immune from dose 0 on day 15
+Agent 44257 was already infected so did not become immune from dose 0 on day 15
 Agent 44260 has become immune from dose 0 on day 15
 Agent 44262 has become immune from dose 0 on day 15
 Agent 44265 has become immune from dose 0 on day 15
@@ -27334,13 +27341,13 @@ Number of acceptances: 0, Number of rejections: 0
 day 15 update population took 0 seconds
 day 15 update_infectious_people took 0 seconds
 day 15 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       854
+Number of infectious places        =>       881
 Number of infectious households    =>       391
-Number of infectious neighborhoods =>       173
-Number of infectious schools       =>        16
-Number of infectious classrooms    =>        66
-Number of infectious workplaces    =>       101
-Number of infectious offices       =>       107
+Number of infectious neighborhoods =>       182
+Number of infectious schools       =>        18
+Number of infectious classrooms    =>        72
+Number of infectious workplaces    =>       106
+Number of infectious offices       =>       112
 Number of infectious hospitals     =>         0
 day 15 epidemic in schools for disease 0 took 0 seconds
 day 15 epidemic in classrooms for disease 0 took 0 seconds
@@ -27354,8 +27361,8 @@ day 15 update epidemic for disease 0 took 0 seconds
 Day 15 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 15 report population took 0 seconds
-day 15 maxrss 91873280
-day 15 finished Tue Feb  3 12:09:55 2015
+day 15 maxrss 92762112
+day 15 finished Fri Feb  6 11:59:49 2015
 day 15 took 0 seconds
 
 day 16 update places took 0 seconds
@@ -27708,7 +27715,7 @@ Agent 3260 has become immune from dose 0 on day 16
 Agent 3270 has become immune from dose 0 on day 16
 Agent 3271 has become immune from dose 0 on day 16
 Agent 3275 has become immune from dose 0 on day 16
-Agent 3294 has become immune from dose 0 on day 16
+Agent 3294 was already infected so did not become immune from dose 0 on day 16
 Agent 3298 has become immune from dose 0 on day 16
 Agent 3305 has become immune from dose 0 on day 16
 Agent 3309 has become immune from dose 0 on day 16
@@ -27833,7 +27840,7 @@ Agent 4234 has become immune from dose 0 on day 16
 Agent 4241 has become immune from dose 0 on day 16
 Agent 4244 has become immune from dose 0 on day 16
 Agent 4250 has become immune from dose 0 on day 16
-Agent 4259 has become immune from dose 0 on day 16
+Agent 4259 was already infected so did not become immune from dose 0 on day 16
 Agent 4285 has become immune from dose 0 on day 16
 Agent 4291 has become immune from dose 0 on day 16
 Agent 4310 has become immune from dose 0 on day 16
@@ -27880,7 +27887,7 @@ Agent 4603 has become immune from dose 0 on day 16
 Agent 4608 has become immune from dose 0 on day 16
 Agent 4613 has become immune from dose 0 on day 16
 Agent 4620 has become immune from dose 0 on day 16
-Agent 4668 has become immune from dose 0 on day 16
+Agent 4668 was already infected so did not become immune from dose 0 on day 16
 Agent 4671 has become immune from dose 0 on day 16
 Agent 4680 has become immune from dose 0 on day 16
 Agent 4690 has become immune from dose 0 on day 16
@@ -27896,7 +27903,7 @@ Agent 4738 has become immune from dose 0 on day 16
 Agent 4744 has become immune from dose 0 on day 16
 Agent 4747 has become immune from dose 0 on day 16
 Agent 4751 has become immune from dose 0 on day 16
-Agent 4754 has become immune from dose 0 on day 16
+Agent 4754 was already infected so did not become immune from dose 0 on day 16
 Agent 4756 has become immune from dose 0 on day 16
 Agent 4767 has become immune from dose 0 on day 16
 Agent 4769 has become immune from dose 0 on day 16
@@ -27970,7 +27977,7 @@ Agent 5370 has become immune from dose 0 on day 16
 Agent 5373 has become immune from dose 0 on day 16
 Agent 5382 has become immune from dose 0 on day 16
 Agent 5384 has become immune from dose 0 on day 16
-Agent 5386 was already infected so did not become immune from dose 0 on day 16
+Agent 5386 has become immune from dose 0 on day 16
 Agent 5387 has become immune from dose 0 on day 16
 Agent 5389 has become immune from dose 0 on day 16
 Agent 5398 has become immune from dose 0 on day 16
@@ -28036,7 +28043,7 @@ Agent 5889 has become immune from dose 0 on day 16
 Agent 5893 has become immune from dose 0 on day 16
 Agent 5894 has become immune from dose 0 on day 16
 Agent 5913 has become immune from dose 0 on day 16
-Agent 5921 has become immune from dose 0 on day 16
+Agent 5921 was already infected so did not become immune from dose 0 on day 16
 Agent 5936 has become immune from dose 0 on day 16
 Agent 5958 has become immune from dose 0 on day 16
 Agent 5962 has become immune from dose 0 on day 16
@@ -28072,7 +28079,7 @@ Agent 6306 has become immune from dose 0 on day 16
 Agent 6324 has become immune from dose 0 on day 16
 Agent 6328 has become immune from dose 0 on day 16
 Agent 6339 has become immune from dose 0 on day 16
-Agent 6347 has become immune from dose 0 on day 16
+Agent 6347 was already infected so did not become immune from dose 0 on day 16
 Agent 6349 has become immune from dose 0 on day 16
 Agent 6350 has become immune from dose 0 on day 16
 Agent 6365 has become immune from dose 0 on day 16
@@ -28156,7 +28163,7 @@ Agent 6946 has become immune from dose 0 on day 16
 Agent 6949 has become immune from dose 0 on day 16
 Agent 6952 has become immune from dose 0 on day 16
 Agent 6960 has become immune from dose 0 on day 16
-Agent 6969 has become immune from dose 0 on day 16
+Agent 6969 was already infected so did not become immune from dose 0 on day 16
 Agent 6983 has become immune from dose 0 on day 16
 Agent 7005 has become immune from dose 0 on day 16
 Agent 7015 has become immune from dose 0 on day 16
@@ -28178,7 +28185,7 @@ Agent 7129 has become immune from dose 0 on day 16
 Agent 7138 has become immune from dose 0 on day 16
 Agent 7154 has become immune from dose 0 on day 16
 Agent 7165 has become immune from dose 0 on day 16
-Agent 7169 has become immune from dose 0 on day 16
+Agent 7169 was already infected so did not become immune from dose 0 on day 16
 Agent 7172 has become immune from dose 0 on day 16
 Agent 7173 has become immune from dose 0 on day 16
 Agent 7180 has become immune from dose 0 on day 16
@@ -28187,7 +28194,7 @@ Agent 7224 has become immune from dose 0 on day 16
 Agent 7230 has become immune from dose 0 on day 16
 Agent 7239 has become immune from dose 0 on day 16
 Agent 7249 has become immune from dose 0 on day 16
-Agent 7254 has become immune from dose 0 on day 16
+Agent 7254 was already infected so did not become immune from dose 0 on day 16
 Agent 7260 has become immune from dose 0 on day 16
 Agent 7271 has become immune from dose 0 on day 16
 Agent 7273 has become immune from dose 0 on day 16
@@ -28219,7 +28226,7 @@ Agent 7519 has become immune from dose 0 on day 16
 Agent 7559 has become immune from dose 0 on day 16
 Agent 7567 has become immune from dose 0 on day 16
 Agent 7587 has become immune from dose 0 on day 16
-Agent 7589 was already infected so did not become immune from dose 0 on day 16
+Agent 7589 has become immune from dose 0 on day 16
 Agent 7590 has become immune from dose 0 on day 16
 Agent 7593 has become immune from dose 0 on day 16
 Agent 7603 has become immune from dose 0 on day 16
@@ -28252,7 +28259,7 @@ Agent 7828 has become immune from dose 0 on day 16
 Agent 7832 has become immune from dose 0 on day 16
 Agent 7835 has become immune from dose 0 on day 16
 Agent 7837 was already infected so did not become immune from dose 0 on day 16
-Agent 7846 has become immune from dose 0 on day 16
+Agent 7846 was already infected so did not become immune from dose 0 on day 16
 Agent 7888 has become immune from dose 0 on day 16
 Agent 7891 has become immune from dose 0 on day 16
 Agent 7896 has become immune from dose 0 on day 16
@@ -28340,7 +28347,7 @@ Agent 8603 has become immune from dose 0 on day 16
 Agent 8607 has become immune from dose 0 on day 16
 Agent 8616 has become immune from dose 0 on day 16
 Agent 8619 has become immune from dose 0 on day 16
-Agent 8620 has become immune from dose 0 on day 16
+Agent 8620 was already infected so did not become immune from dose 0 on day 16
 Agent 8624 has become immune from dose 0 on day 16
 Agent 8638 has become immune from dose 0 on day 16
 Agent 8645 has become immune from dose 0 on day 16
@@ -28393,7 +28400,7 @@ Agent 9021 has become immune from dose 0 on day 16
 Agent 9024 has become immune from dose 0 on day 16
 Agent 9031 has become immune from dose 0 on day 16
 Agent 9051 has become immune from dose 0 on day 16
-Agent 9063 has become immune from dose 0 on day 16
+Agent 9063 was already infected so did not become immune from dose 0 on day 16
 Agent 9070 has become immune from dose 0 on day 16
 Agent 9074 has become immune from dose 0 on day 16
 Agent 9078 has become immune from dose 0 on day 16
@@ -28451,7 +28458,7 @@ Agent 9434 has become immune from dose 0 on day 16
 Agent 9456 has become immune from dose 0 on day 16
 Agent 9491 has become immune from dose 0 on day 16
 Agent 9511 has become immune from dose 0 on day 16
-Agent 9523 was already infected so did not become immune from dose 0 on day 16
+Agent 9523 has become immune from dose 0 on day 16
 Agent 9532 has become immune from dose 0 on day 16
 Agent 9535 has become immune from dose 0 on day 16
 Agent 9539 has become immune from dose 0 on day 16
@@ -28554,7 +28561,7 @@ Agent 10317 has become immune from dose 0 on day 16
 Agent 10323 has become immune from dose 0 on day 16
 Agent 10335 has become immune from dose 0 on day 16
 Agent 10344 has become immune from dose 0 on day 16
-Agent 10350 was already infected so did not become immune from dose 0 on day 16
+Agent 10350 has become immune from dose 0 on day 16
 Agent 10351 has become immune from dose 0 on day 16
 Agent 10352 has become immune from dose 0 on day 16
 Agent 10354 has become immune from dose 0 on day 16
@@ -28834,7 +28841,7 @@ Agent 12462 has become immune from dose 0 on day 16
 Agent 12478 has become immune from dose 0 on day 16
 Agent 12483 has become immune from dose 0 on day 16
 Agent 12484 has become immune from dose 0 on day 16
-Agent 12508 was already infected so did not become immune from dose 0 on day 16
+Agent 12508 has become immune from dose 0 on day 16
 Agent 12519 has become immune from dose 0 on day 16
 Agent 12525 has become immune from dose 0 on day 16
 Agent 12534 has become immune from dose 0 on day 16
@@ -28950,7 +28957,7 @@ Agent 13458 has become immune from dose 0 on day 16
 Agent 13459 has become immune from dose 0 on day 16
 Agent 13476 has become immune from dose 0 on day 16
 Agent 13485 has become immune from dose 0 on day 16
-Agent 13509 has become immune from dose 0 on day 16
+Agent 13509 was already infected so did not become immune from dose 0 on day 16
 Agent 13535 has become immune from dose 0 on day 16
 Agent 13548 has become immune from dose 0 on day 16
 Agent 13551 has become immune from dose 0 on day 16
@@ -29004,7 +29011,7 @@ Agent 13910 has become immune from dose 0 on day 16
 Agent 13912 has become immune from dose 0 on day 16
 Agent 13913 has become immune from dose 0 on day 16
 Agent 13920 has become immune from dose 0 on day 16
-Agent 13922 was already infected so did not become immune from dose 0 on day 16
+Agent 13922 has become immune from dose 0 on day 16
 Agent 13936 has become immune from dose 0 on day 16
 Agent 13945 has become immune from dose 0 on day 16
 Agent 13946 has become immune from dose 0 on day 16
@@ -29048,7 +29055,7 @@ Agent 14186 has become immune from dose 0 on day 16
 Agent 14198 has become immune from dose 0 on day 16
 Agent 14201 has become immune from dose 0 on day 16
 Agent 14202 has become immune from dose 0 on day 16
-Agent 14226 has become immune from dose 0 on day 16
+Agent 14226 was already infected so did not become immune from dose 0 on day 16
 Agent 14234 has become immune from dose 0 on day 16
 Agent 14246 has become immune from dose 0 on day 16
 Agent 14249 has become immune from dose 0 on day 16
@@ -29124,7 +29131,7 @@ Agent 14831 has become immune from dose 0 on day 16
 Agent 14832 has become immune from dose 0 on day 16
 Agent 14833 has become immune from dose 0 on day 16
 Agent 14835 has become immune from dose 0 on day 16
-Agent 14836 has become immune from dose 0 on day 16
+Agent 14836 was already infected so did not become immune from dose 0 on day 16
 Agent 14850 has become immune from dose 0 on day 16
 Agent 14855 has become immune from dose 0 on day 16
 Agent 14859 has become immune from dose 0 on day 16
@@ -29147,7 +29154,7 @@ Agent 14987 has become immune from dose 0 on day 16
 Agent 14993 has become immune from dose 0 on day 16
 Agent 14995 has become immune from dose 0 on day 16
 Agent 14996 has become immune from dose 0 on day 16
-Agent 15025 has become immune from dose 0 on day 16
+Agent 15025 was already infected so did not become immune from dose 0 on day 16
 Agent 15031 has become immune from dose 0 on day 16
 Agent 15036 has become immune from dose 0 on day 16
 Agent 15039 has become immune from dose 0 on day 16
@@ -29237,7 +29244,7 @@ Agent 15637 has become immune from dose 0 on day 16
 Agent 15640 has become immune from dose 0 on day 16
 Agent 15645 has become immune from dose 0 on day 16
 Agent 15652 has become immune from dose 0 on day 16
-Agent 15654 was already infected so did not become immune from dose 0 on day 16
+Agent 15654 has become immune from dose 0 on day 16
 Agent 15658 has become immune from dose 0 on day 16
 Agent 15666 has become immune from dose 0 on day 16
 Agent 15709 has become immune from dose 0 on day 16
@@ -29304,7 +29311,7 @@ Agent 16179 has become immune from dose 0 on day 16
 Agent 16199 was already infected so did not become immune from dose 0 on day 16
 Agent 16217 has become immune from dose 0 on day 16
 Agent 16230 has become immune from dose 0 on day 16
-Agent 16231 has become immune from dose 0 on day 16
+Agent 16231 was already infected so did not become immune from dose 0 on day 16
 Agent 16234 has become immune from dose 0 on day 16
 Agent 16251 has become immune from dose 0 on day 16
 Agent 16295 has become immune from dose 0 on day 16
@@ -29443,7 +29450,7 @@ Agent 17377 has become immune from dose 0 on day 16
 Agent 17378 has become immune from dose 0 on day 16
 Agent 17379 has become immune from dose 0 on day 16
 Agent 17380 has become immune from dose 0 on day 16
-Agent 17389 has become immune from dose 0 on day 16
+Agent 17389 was already infected so did not become immune from dose 0 on day 16
 Agent 17395 has become immune from dose 0 on day 16
 Agent 17399 has become immune from dose 0 on day 16
 Agent 17407 has become immune from dose 0 on day 16
@@ -29808,7 +29815,7 @@ Agent 20014 has become immune from dose 0 on day 16
 Agent 20015 has become immune from dose 0 on day 16
 Agent 20018 has become immune from dose 0 on day 16
 Agent 20043 has become immune from dose 0 on day 16
-Agent 20055 has become immune from dose 0 on day 16
+Agent 20055 was already infected so did not become immune from dose 0 on day 16
 Agent 20059 has become immune from dose 0 on day 16
 Agent 20061 has become immune from dose 0 on day 16
 Agent 20064 has become immune from dose 0 on day 16
@@ -29842,7 +29849,7 @@ Agent 20343 has become immune from dose 0 on day 16
 Agent 20359 has become immune from dose 0 on day 16
 Agent 20391 has become immune from dose 0 on day 16
 Agent 20393 has become immune from dose 0 on day 16
-Agent 20403 has become immune from dose 0 on day 16
+Agent 20403 was already infected so did not become immune from dose 0 on day 16
 Agent 20404 has become immune from dose 0 on day 16
 Agent 20408 has become immune from dose 0 on day 16
 Agent 20418 has become immune from dose 0 on day 16
@@ -29884,7 +29891,7 @@ Agent 20690 has become immune from dose 0 on day 16
 Agent 20695 has become immune from dose 0 on day 16
 Agent 20703 has become immune from dose 0 on day 16
 Agent 20717 has become immune from dose 0 on day 16
-Agent 20733 was already infected so did not become immune from dose 0 on day 16
+Agent 20733 has become immune from dose 0 on day 16
 Agent 20734 has become immune from dose 0 on day 16
 Agent 20736 has become immune from dose 0 on day 16
 Agent 20744 has become immune from dose 0 on day 16
@@ -30001,14 +30008,14 @@ Agent 21446 has become immune from dose 0 on day 16
 Agent 21455 has become immune from dose 0 on day 16
 Agent 21466 has become immune from dose 0 on day 16
 Agent 21474 has become immune from dose 0 on day 16
-Agent 21476 has become immune from dose 0 on day 16
+Agent 21476 was already infected so did not become immune from dose 0 on day 16
 Agent 21477 has become immune from dose 0 on day 16
 Agent 21497 has become immune from dose 0 on day 16
 Agent 21506 has become immune from dose 0 on day 16
 Agent 21516 has become immune from dose 0 on day 16
 Agent 21522 has become immune from dose 0 on day 16
 Agent 21523 has become immune from dose 0 on day 16
-Agent 21530 was already infected so did not become immune from dose 0 on day 16
+Agent 21530 has become immune from dose 0 on day 16
 Agent 21533 has become immune from dose 0 on day 16
 Agent 21535 has become immune from dose 0 on day 16
 Agent 21540 has become immune from dose 0 on day 16
@@ -30033,7 +30040,7 @@ Agent 21643 has become immune from dose 0 on day 16
 Agent 21644 has become immune from dose 0 on day 16
 Agent 21653 has become immune from dose 0 on day 16
 Agent 21680 has become immune from dose 0 on day 16
-Agent 21693 was already infected so did not become immune from dose 0 on day 16
+Agent 21693 has become immune from dose 0 on day 16
 Agent 21698 has become immune from dose 0 on day 16
 Agent 21714 has become immune from dose 0 on day 16
 Agent 21717 has become immune from dose 0 on day 16
@@ -30154,7 +30161,7 @@ Agent 22586 has become immune from dose 0 on day 16
 Agent 22587 has become immune from dose 0 on day 16
 Agent 22594 has become immune from dose 0 on day 16
 Agent 22600 has become immune from dose 0 on day 16
-Agent 22601 was already infected so did not become immune from dose 0 on day 16
+Agent 22601 has become immune from dose 0 on day 16
 Agent 22603 has become immune from dose 0 on day 16
 Agent 22604 has become immune from dose 0 on day 16
 Agent 22608 has become immune from dose 0 on day 16
@@ -30256,7 +30263,7 @@ Agent 23226 has become immune from dose 0 on day 16
 Agent 23230 has become immune from dose 0 on day 16
 Agent 23276 has become immune from dose 0 on day 16
 Agent 23284 has become immune from dose 0 on day 16
-Agent 23294 has become immune from dose 0 on day 16
+Agent 23294 was already infected so did not become immune from dose 0 on day 16
 Agent 23297 has become immune from dose 0 on day 16
 Agent 23301 has become immune from dose 0 on day 16
 Agent 23312 has become immune from dose 0 on day 16
@@ -30356,7 +30363,7 @@ Agent 23943 has become immune from dose 0 on day 16
 Agent 23950 has become immune from dose 0 on day 16
 Agent 23951 has become immune from dose 0 on day 16
 Agent 23960 has become immune from dose 0 on day 16
-Agent 23961 has become immune from dose 0 on day 16
+Agent 23961 was already infected so did not become immune from dose 0 on day 16
 Agent 23962 has become immune from dose 0 on day 16
 Agent 23963 has become immune from dose 0 on day 16
 Agent 23965 has become immune from dose 0 on day 16
@@ -30398,7 +30405,7 @@ Agent 24152 has become immune from dose 0 on day 16
 Agent 24154 has become immune from dose 0 on day 16
 Agent 24155 has become immune from dose 0 on day 16
 Agent 24156 has become immune from dose 0 on day 16
-Agent 24164 has become immune from dose 0 on day 16
+Agent 24164 was already infected so did not become immune from dose 0 on day 16
 Agent 24169 has become immune from dose 0 on day 16
 Agent 24175 has become immune from dose 0 on day 16
 Agent 24192 has become immune from dose 0 on day 16
@@ -30512,7 +30519,7 @@ Agent 24905 has become immune from dose 0 on day 16
 Agent 24909 has become immune from dose 0 on day 16
 Agent 24918 has become immune from dose 0 on day 16
 Agent 24920 has become immune from dose 0 on day 16
-Agent 24929 has become immune from dose 0 on day 16
+Agent 24929 was already infected so did not become immune from dose 0 on day 16
 Agent 24949 has become immune from dose 0 on day 16
 Agent 24954 has become immune from dose 0 on day 16
 Agent 24961 has become immune from dose 0 on day 16
@@ -30522,12 +30529,12 @@ Agent 24970 has become immune from dose 0 on day 16
 Agent 24971 has become immune from dose 0 on day 16
 Agent 24976 has become immune from dose 0 on day 16
 Agent 24980 has become immune from dose 0 on day 16
-Agent 24984 was already infected so did not become immune from dose 0 on day 16
+Agent 24984 has become immune from dose 0 on day 16
 Agent 25018 has become immune from dose 0 on day 16
 Agent 25045 has become immune from dose 0 on day 16
 Agent 25047 has become immune from dose 0 on day 16
 Agent 25050 has become immune from dose 0 on day 16
-Agent 25056 has become immune from dose 0 on day 16
+Agent 25056 was already infected so did not become immune from dose 0 on day 16
 Agent 25059 has become immune from dose 0 on day 16
 Agent 25061 has become immune from dose 0 on day 16
 Agent 25083 has become immune from dose 0 on day 16
@@ -30582,7 +30589,7 @@ Agent 25433 has become immune from dose 0 on day 16
 Agent 25437 has become immune from dose 0 on day 16
 Agent 25442 has become immune from dose 0 on day 16
 Agent 25447 has become immune from dose 0 on day 16
-Agent 25457 was already infected so did not become immune from dose 0 on day 16
+Agent 25457 has become immune from dose 0 on day 16
 Agent 25468 has become immune from dose 0 on day 16
 Agent 25469 has become immune from dose 0 on day 16
 Agent 25473 has become immune from dose 0 on day 16
@@ -30604,7 +30611,7 @@ Agent 25605 has become immune from dose 0 on day 16
 Agent 25612 has become immune from dose 0 on day 16
 Agent 25620 has become immune from dose 0 on day 16
 Agent 25625 has become immune from dose 0 on day 16
-Agent 25628 was already infected so did not become immune from dose 0 on day 16
+Agent 25628 has become immune from dose 0 on day 16
 Agent 25645 has become immune from dose 0 on day 16
 Agent 25652 has become immune from dose 0 on day 16
 Agent 25655 has become immune from dose 0 on day 16
@@ -30634,7 +30641,7 @@ Agent 25808 has become immune from dose 0 on day 16
 Agent 25814 has become immune from dose 0 on day 16
 Agent 25819 has become immune from dose 0 on day 16
 Agent 25821 has become immune from dose 0 on day 16
-Agent 25822 has become immune from dose 0 on day 16
+Agent 25822 was already infected so did not become immune from dose 0 on day 16
 Agent 25828 has become immune from dose 0 on day 16
 Agent 25829 has become immune from dose 0 on day 16
 Agent 25843 has become immune from dose 0 on day 16
@@ -30678,7 +30685,7 @@ Agent 26057 has become immune from dose 0 on day 16
 Agent 26066 has become immune from dose 0 on day 16
 Agent 26068 has become immune from dose 0 on day 16
 Agent 26071 has become immune from dose 0 on day 16
-Agent 26075 has become immune from dose 0 on day 16
+Agent 26075 was already infected so did not become immune from dose 0 on day 16
 Agent 26082 has become immune from dose 0 on day 16
 Agent 26095 has become immune from dose 0 on day 16
 Agent 26141 has become immune from dose 0 on day 16
@@ -30764,7 +30771,7 @@ Agent 26603 has become immune from dose 0 on day 16
 Agent 26605 has become immune from dose 0 on day 16
 Agent 26607 has become immune from dose 0 on day 16
 Agent 26612 has become immune from dose 0 on day 16
-Agent 26621 was already infected so did not become immune from dose 0 on day 16
+Agent 26621 has become immune from dose 0 on day 16
 Agent 26624 has become immune from dose 0 on day 16
 Agent 26625 has become immune from dose 0 on day 16
 Agent 26627 has become immune from dose 0 on day 16
@@ -30800,7 +30807,7 @@ Agent 26811 has become immune from dose 0 on day 16
 Agent 26841 has become immune from dose 0 on day 16
 Agent 26847 was already infected so did not become immune from dose 0 on day 16
 Agent 26875 has become immune from dose 0 on day 16
-Agent 26882 was already infected so did not become immune from dose 0 on day 16
+Agent 26882 has become immune from dose 0 on day 16
 Agent 26901 has become immune from dose 0 on day 16
 Agent 26903 has become immune from dose 0 on day 16
 Agent 26917 has become immune from dose 0 on day 16
@@ -30948,7 +30955,7 @@ Agent 27755 has become immune from dose 0 on day 16
 Agent 27760 has become immune from dose 0 on day 16
 Agent 27761 has become immune from dose 0 on day 16
 Agent 27762 has become immune from dose 0 on day 16
-Agent 27764 has become immune from dose 0 on day 16
+Agent 27764 was already infected so did not become immune from dose 0 on day 16
 Agent 27767 has become immune from dose 0 on day 16
 Agent 27788 has become immune from dose 0 on day 16
 Agent 27797 has become immune from dose 0 on day 16
@@ -30958,7 +30965,7 @@ Agent 27802 has become immune from dose 0 on day 16
 Agent 27809 has become immune from dose 0 on day 16
 Agent 27830 has become immune from dose 0 on day 16
 Agent 27831 has become immune from dose 0 on day 16
-Agent 27842 has become immune from dose 0 on day 16
+Agent 27842 was already infected so did not become immune from dose 0 on day 16
 Agent 27858 has become immune from dose 0 on day 16
 Agent 27862 has become immune from dose 0 on day 16
 Agent 27864 has become immune from dose 0 on day 16
@@ -30990,14 +30997,14 @@ Agent 27996 has become immune from dose 0 on day 16
 Agent 28015 has become immune from dose 0 on day 16
 Agent 28020 has become immune from dose 0 on day 16
 Agent 28024 has become immune from dose 0 on day 16
-Agent 28027 was already infected so did not become immune from dose 0 on day 16
+Agent 28027 has become immune from dose 0 on day 16
 Agent 28028 was already infected so did not become immune from dose 0 on day 16
 Agent 28035 has become immune from dose 0 on day 16
 Agent 28040 has become immune from dose 0 on day 16
 Agent 28044 has become immune from dose 0 on day 16
 Agent 28046 has become immune from dose 0 on day 16
 Agent 28048 has become immune from dose 0 on day 16
-Agent 28052 has become immune from dose 0 on day 16
+Agent 28052 was already infected so did not become immune from dose 0 on day 16
 Agent 28058 has become immune from dose 0 on day 16
 Agent 28063 has become immune from dose 0 on day 16
 Agent 28065 has become immune from dose 0 on day 16
@@ -31020,7 +31027,7 @@ Agent 28159 has become immune from dose 0 on day 16
 Agent 28173 has become immune from dose 0 on day 16
 Agent 28180 has become immune from dose 0 on day 16
 Agent 28182 has become immune from dose 0 on day 16
-Agent 28183 was already infected so did not become immune from dose 0 on day 16
+Agent 28183 has become immune from dose 0 on day 16
 Agent 28185 has become immune from dose 0 on day 16
 Agent 28199 has become immune from dose 0 on day 16
 Agent 28208 has become immune from dose 0 on day 16
@@ -31060,7 +31067,7 @@ Agent 28480 has become immune from dose 0 on day 16
 Agent 28482 has become immune from dose 0 on day 16
 Agent 28483 has become immune from dose 0 on day 16
 Agent 28497 has become immune from dose 0 on day 16
-Agent 28502 was already infected so did not become immune from dose 0 on day 16
+Agent 28502 has become immune from dose 0 on day 16
 Agent 28503 has become immune from dose 0 on day 16
 Agent 28517 has become immune from dose 0 on day 16
 Agent 28523 was already infected so did not become immune from dose 0 on day 16
@@ -31285,10 +31292,10 @@ Agent 30126 has become immune from dose 0 on day 16
 Agent 30136 has become immune from dose 0 on day 16
 Agent 30161 has become immune from dose 0 on day 16
 Agent 30166 was already infected so did not become immune from dose 0 on day 16
-Agent 30169 was already infected so did not become immune from dose 0 on day 16
+Agent 30169 has become immune from dose 0 on day 16
 Agent 30195 has become immune from dose 0 on day 16
 Agent 30203 has become immune from dose 0 on day 16
-Agent 30207 was already infected so did not become immune from dose 0 on day 16
+Agent 30207 has become immune from dose 0 on day 16
 Agent 30211 has become immune from dose 0 on day 16
 Agent 30214 has become immune from dose 0 on day 16
 Agent 30222 has become immune from dose 0 on day 16
@@ -31467,21 +31474,21 @@ Agent 31462 has become immune from dose 0 on day 16
 Agent 31463 has become immune from dose 0 on day 16
 Agent 31464 has become immune from dose 0 on day 16
 Agent 31465 has become immune from dose 0 on day 16
-Agent 31471 has become immune from dose 0 on day 16
+Agent 31471 was already infected so did not become immune from dose 0 on day 16
 Agent 31473 has become immune from dose 0 on day 16
 Agent 31475 has become immune from dose 0 on day 16
 Agent 31484 has become immune from dose 0 on day 16
 Agent 31491 has become immune from dose 0 on day 16
 Agent 31510 has become immune from dose 0 on day 16
 Agent 31513 has become immune from dose 0 on day 16
-Agent 31524 was already infected so did not become immune from dose 0 on day 16
+Agent 31524 has become immune from dose 0 on day 16
 Agent 31537 has become immune from dose 0 on day 16
 Agent 31541 has become immune from dose 0 on day 16
 Agent 31557 has become immune from dose 0 on day 16
 Agent 31563 has become immune from dose 0 on day 16
 Agent 31569 has become immune from dose 0 on day 16
 Agent 31575 has become immune from dose 0 on day 16
-Agent 31591 has become immune from dose 0 on day 16
+Agent 31591 was already infected so did not become immune from dose 0 on day 16
 Agent 31592 has become immune from dose 0 on day 16
 Agent 31600 has become immune from dose 0 on day 16
 Agent 31601 has become immune from dose 0 on day 16
@@ -31530,7 +31537,7 @@ Agent 31974 has become immune from dose 0 on day 16
 Agent 31988 has become immune from dose 0 on day 16
 Agent 31992 has become immune from dose 0 on day 16
 Agent 31997 has become immune from dose 0 on day 16
-Agent 31998 was already infected so did not become immune from dose 0 on day 16
+Agent 31998 has become immune from dose 0 on day 16
 Agent 32031 has become immune from dose 0 on day 16
 Agent 32036 has become immune from dose 0 on day 16
 Agent 32039 has become immune from dose 0 on day 16
@@ -31654,7 +31661,7 @@ Agent 32878 has become immune from dose 0 on day 16
 Agent 32885 has become immune from dose 0 on day 16
 Agent 32887 has become immune from dose 0 on day 16
 Agent 32893 has become immune from dose 0 on day 16
-Agent 32895 has become immune from dose 0 on day 16
+Agent 32895 was already infected so did not become immune from dose 0 on day 16
 Agent 32906 has become immune from dose 0 on day 16
 Agent 32911 has become immune from dose 0 on day 16
 Agent 32917 has become immune from dose 0 on day 16
@@ -31773,7 +31780,7 @@ Agent 33591 has become immune from dose 0 on day 16
 Agent 33592 has become immune from dose 0 on day 16
 Agent 33593 has become immune from dose 0 on day 16
 Agent 33594 has become immune from dose 0 on day 16
-Agent 33595 was already infected so did not become immune from dose 0 on day 16
+Agent 33595 has become immune from dose 0 on day 16
 Agent 33599 has become immune from dose 0 on day 16
 Agent 33611 has become immune from dose 0 on day 16
 Agent 33616 has become immune from dose 0 on day 16
@@ -31826,7 +31833,7 @@ Agent 33918 has become immune from dose 0 on day 16
 Agent 33922 has become immune from dose 0 on day 16
 Agent 33950 has become immune from dose 0 on day 16
 Agent 33959 has become immune from dose 0 on day 16
-Agent 33973 has become immune from dose 0 on day 16
+Agent 33973 was already infected so did not become immune from dose 0 on day 16
 Agent 33993 has become immune from dose 0 on day 16
 Agent 33997 has become immune from dose 0 on day 16
 Agent 34008 has become immune from dose 0 on day 16
@@ -31950,7 +31957,7 @@ Agent 34822 has become immune from dose 0 on day 16
 Agent 34826 has become immune from dose 0 on day 16
 Agent 34830 has become immune from dose 0 on day 16
 Agent 34834 has become immune from dose 0 on day 16
-Agent 34837 has become immune from dose 0 on day 16
+Agent 34837 was already infected so did not become immune from dose 0 on day 16
 Agent 34838 has become immune from dose 0 on day 16
 Agent 34845 has become immune from dose 0 on day 16
 Agent 34849 has become immune from dose 0 on day 16
@@ -32063,7 +32070,7 @@ Agent 35545 has become immune from dose 0 on day 16
 Agent 35547 has become immune from dose 0 on day 16
 Agent 35551 has become immune from dose 0 on day 16
 Agent 35573 has become immune from dose 0 on day 16
-Agent 35574 has become immune from dose 0 on day 16
+Agent 35574 was already infected so did not become immune from dose 0 on day 16
 Agent 35576 has become immune from dose 0 on day 16
 Agent 35594 has become immune from dose 0 on day 16
 Agent 35596 has become immune from dose 0 on day 16
@@ -32106,7 +32113,7 @@ Agent 35871 has become immune from dose 0 on day 16
 Agent 35876 has become immune from dose 0 on day 16
 Agent 35894 has become immune from dose 0 on day 16
 Agent 35896 has become immune from dose 0 on day 16
-Agent 35900 has become immune from dose 0 on day 16
+Agent 35900 was already infected so did not become immune from dose 0 on day 16
 Agent 35902 has become immune from dose 0 on day 16
 Agent 35907 has become immune from dose 0 on day 16
 Agent 35908 has become immune from dose 0 on day 16
@@ -32322,8 +32329,8 @@ Agent 37391 has become immune from dose 0 on day 16
 Agent 37394 has become immune from dose 0 on day 16
 Agent 37406 has become immune from dose 0 on day 16
 Agent 37426 has become immune from dose 0 on day 16
-Agent 37448 was already infected so did not become immune from dose 0 on day 16
-Agent 37452 was already infected so did not become immune from dose 0 on day 16
+Agent 37448 has become immune from dose 0 on day 16
+Agent 37452 has become immune from dose 0 on day 16
 Agent 37455 has become immune from dose 0 on day 16
 Agent 37461 has become immune from dose 0 on day 16
 Agent 37463 has become immune from dose 0 on day 16
@@ -32336,7 +32343,7 @@ Agent 37519 has become immune from dose 0 on day 16
 Agent 37523 has become immune from dose 0 on day 16
 Agent 37527 has become immune from dose 0 on day 16
 Agent 37528 has become immune from dose 0 on day 16
-Agent 37531 has become immune from dose 0 on day 16
+Agent 37531 was already infected so did not become immune from dose 0 on day 16
 Agent 37533 has become immune from dose 0 on day 16
 Agent 37537 has become immune from dose 0 on day 16
 Agent 37539 has become immune from dose 0 on day 16
@@ -32428,7 +32435,7 @@ Agent 38220 has become immune from dose 0 on day 16
 Agent 38223 has become immune from dose 0 on day 16
 Agent 38227 has become immune from dose 0 on day 16
 Agent 38228 has become immune from dose 0 on day 16
-Agent 38229 was already infected so did not become immune from dose 0 on day 16
+Agent 38229 has become immune from dose 0 on day 16
 Agent 38234 has become immune from dose 0 on day 16
 Agent 38247 has become immune from dose 0 on day 16
 Agent 38292 has become immune from dose 0 on day 16
@@ -32458,7 +32465,7 @@ Agent 38456 has become immune from dose 0 on day 16
 Agent 38459 has become immune from dose 0 on day 16
 Agent 38471 has become immune from dose 0 on day 16
 Agent 38473 has become immune from dose 0 on day 16
-Agent 38474 has become immune from dose 0 on day 16
+Agent 38474 was already infected so did not become immune from dose 0 on day 16
 Agent 38479 has become immune from dose 0 on day 16
 Agent 38501 has become immune from dose 0 on day 16
 Agent 38505 has become immune from dose 0 on day 16
@@ -32559,7 +32566,7 @@ Agent 39311 has become immune from dose 0 on day 16
 Agent 39314 has become immune from dose 0 on day 16
 Agent 39326 has become immune from dose 0 on day 16
 Agent 39334 has become immune from dose 0 on day 16
-Agent 39351 was already infected so did not become immune from dose 0 on day 16
+Agent 39351 has become immune from dose 0 on day 16
 Agent 39353 has become immune from dose 0 on day 16
 Agent 39359 has become immune from dose 0 on day 16
 Agent 39362 has become immune from dose 0 on day 16
@@ -32894,7 +32901,7 @@ Agent 41703 has become immune from dose 0 on day 16
 Agent 41722 has become immune from dose 0 on day 16
 Agent 41725 has become immune from dose 0 on day 16
 Agent 41728 has become immune from dose 0 on day 16
-Agent 41730 was already infected so did not become immune from dose 0 on day 16
+Agent 41730 has become immune from dose 0 on day 16
 Agent 41732 has become immune from dose 0 on day 16
 Agent 41740 has become immune from dose 0 on day 16
 Agent 41746 has become immune from dose 0 on day 16
@@ -32943,7 +32950,7 @@ Agent 42043 has become immune from dose 0 on day 16
 Agent 42055 has become immune from dose 0 on day 16
 Agent 42066 has become immune from dose 0 on day 16
 Agent 42070 has become immune from dose 0 on day 16
-Agent 42074 was already infected so did not become immune from dose 0 on day 16
+Agent 42074 has become immune from dose 0 on day 16
 Agent 42079 has become immune from dose 0 on day 16
 Agent 42080 has become immune from dose 0 on day 16
 Agent 42081 has become immune from dose 0 on day 16
@@ -33085,7 +33092,7 @@ Agent 43083 has become immune from dose 0 on day 16
 Agent 43097 has become immune from dose 0 on day 16
 Agent 43098 has become immune from dose 0 on day 16
 Agent 43101 has become immune from dose 0 on day 16
-Agent 43108 has become immune from dose 0 on day 16
+Agent 43108 was already infected so did not become immune from dose 0 on day 16
 Agent 43125 has become immune from dose 0 on day 16
 Agent 43135 has become immune from dose 0 on day 16
 Agent 43136 has become immune from dose 0 on day 16
@@ -33183,7 +33190,7 @@ Agent 43913 has become immune from dose 0 on day 16
 Agent 43918 has become immune from dose 0 on day 16
 Agent 43924 has become immune from dose 0 on day 16
 Agent 43925 has become immune from dose 0 on day 16
-Agent 43931 has become immune from dose 0 on day 16
+Agent 43931 was already infected so did not become immune from dose 0 on day 16
 Agent 43934 has become immune from dose 0 on day 16
 Agent 43951 has become immune from dose 0 on day 16
 Agent 43953 has become immune from dose 0 on day 16
@@ -33217,21 +33224,21 @@ Agent 44157 has become immune from dose 0 on day 16
 Agent 44166 has become immune from dose 0 on day 16
 Agent 44170 has become immune from dose 0 on day 16
 Agent 44177 has become immune from dose 0 on day 16
-Agent 44180 was already infected so did not become immune from dose 0 on day 16
+Agent 44180 has become immune from dose 0 on day 16
 Agent 44184 has become immune from dose 0 on day 16
 Agent 44192 has become immune from dose 0 on day 16
 Agent 44194 has become immune from dose 0 on day 16
 Agent 44204 has become immune from dose 0 on day 16
 Agent 44205 has become immune from dose 0 on day 16
 Agent 44246 has become immune from dose 0 on day 16
-Agent 44256 has become immune from dose 0 on day 16
+Agent 44256 was already infected so did not become immune from dose 0 on day 16
 Agent 44259 has become immune from dose 0 on day 16
 Agent 44264 has become immune from dose 0 on day 16
 Agent 44266 has become immune from dose 0 on day 16
 Agent 44269 has become immune from dose 0 on day 16
 Agent 44277 has become immune from dose 0 on day 16
 Agent 44280 has become immune from dose 0 on day 16
-Agent 44283 was already infected so did not become immune from dose 0 on day 16
+Agent 44283 has become immune from dose 0 on day 16
 Agent 44287 has become immune from dose 0 on day 16
 Agent 44289 has become immune from dose 0 on day 16
 Agent 44290 has become immune from dose 0 on day 16
@@ -33387,13 +33394,13 @@ Number of acceptances: 0, Number of rejections: 0
 day 16 update population took 0 seconds
 day 16 update_infectious_people took 0 seconds
 day 16 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       892
-Number of infectious households    =>       429
-Number of infectious neighborhoods =>       168
-Number of infectious schools       =>        18
-Number of infectious classrooms    =>        74
-Number of infectious workplaces    =>        98
-Number of infectious offices       =>       105
+Number of infectious places        =>       990
+Number of infectious households    =>       467
+Number of infectious neighborhoods =>       203
+Number of infectious schools       =>        17
+Number of infectious classrooms    =>        80
+Number of infectious workplaces    =>       109
+Number of infectious offices       =>       114
 Number of infectious hospitals     =>         0
 day 16 epidemic in schools for disease 0 took 0 seconds
 day 16 epidemic in classrooms for disease 0 took 0 seconds
@@ -33407,8 +33414,8 @@ day 16 update epidemic for disease 0 took 0 seconds
 Day 16 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 16 report population took 0 seconds
-day 16 maxrss 92491776
-day 16 finished Tue Feb  3 12:09:55 2015
+day 16 maxrss 93368320
+day 16 finished Fri Feb  6 11:59:49 2015
 day 16 took 0 seconds
 
 day 17 update places took 0 seconds
@@ -33424,13 +33431,13 @@ Number of acceptances: 0, Number of rejections: 0
 day 17 update population took 0 seconds
 day 17 update_infectious_people took 0 seconds
 day 17 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       961
-Number of infectious households    =>       468
-Number of infectious neighborhoods =>       189
+Number of infectious places        =>      1072
+Number of infectious households    =>       536
+Number of infectious neighborhoods =>       190
 Number of infectious schools       =>        18
-Number of infectious classrooms    =>        80
-Number of infectious workplaces    =>        98
-Number of infectious offices       =>       108
+Number of infectious classrooms    =>        93
+Number of infectious workplaces    =>       113
+Number of infectious offices       =>       122
 Number of infectious hospitals     =>         0
 day 17 epidemic in schools for disease 0 took 0 seconds
 day 17 epidemic in classrooms for disease 0 took 0 seconds
@@ -33444,8 +33451,8 @@ day 17 update epidemic for disease 0 took 0 seconds
 Day 17 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 17 report population took 0 seconds
-day 17 maxrss 93057024
-day 17 finished Tue Feb  3 12:09:55 2015
+day 17 maxrss 93921280
+day 17 finished Fri Feb  6 11:59:49 2015
 day 17 took 0 seconds
 
 day 18 update places took 0 seconds
@@ -33461,14 +33468,14 @@ Left in queues:  priority (0)    Regular (1)
 Number of acceptances: 0, Number of rejections: 0
 day 18 update population took 0 seconds
 day 18 update_infectious_people took 0 seconds
-day 18 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      1002
-Number of infectious households    =>       504
-Number of infectious neighborhoods =>       193
-Number of infectious schools       =>        18
-Number of infectious classrooms    =>        90
-Number of infectious workplaces    =>        92
-Number of infectious offices       =>       105
+day 18 find_visitors_to_infectious_places took 1 seconds
+Number of infectious places        =>      1139
+Number of infectious households    =>       571
+Number of infectious neighborhoods =>       212
+Number of infectious schools       =>        19
+Number of infectious classrooms    =>       105
+Number of infectious workplaces    =>       110
+Number of infectious offices       =>       122
 Number of infectious hospitals     =>         0
 day 18 epidemic in schools for disease 0 took 0 seconds
 day 18 epidemic in classrooms for disease 0 took 0 seconds
@@ -33482,9 +33489,9 @@ day 18 update epidemic for disease 0 took 0 seconds
 Day 18 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 18 report population took 0 seconds
-day 18 maxrss 93605888
-day 18 finished Tue Feb  3 12:09:55 2015
-day 18 took 0 seconds
+day 18 maxrss 94437376
+day 18 finished Fri Feb  6 11:59:50 2015
+day 18 took 1 seconds
 
 day 19 update places took 0 seconds
 update entered day 19
@@ -33499,13 +33506,13 @@ Number of acceptances: 0, Number of rejections: 0
 day 19 update population took 0 seconds
 day 19 update_infectious_people took 0 seconds
 day 19 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       767
-Number of infectious households    =>       532
-Number of infectious neighborhoods =>       188
+Number of infectious places        =>       896
+Number of infectious households    =>       601
+Number of infectious neighborhoods =>       232
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>        23
-Number of infectious offices       =>        24
+Number of infectious workplaces    =>        31
+Number of infectious offices       =>        32
 Number of infectious hospitals     =>         0
 day 19 epidemic in schools for disease 0 took 0 seconds
 day 19 epidemic in classrooms for disease 0 took 0 seconds
@@ -33519,11 +33526,11 @@ day 19 update epidemic for disease 0 took 0 seconds
 Day 19 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 19 report population took 0 seconds
-day 19 maxrss 94068736
-day 19 finished Tue Feb  3 12:09:55 2015
+day 19 maxrss 95051776
+day 19 finished Fri Feb  6 11:59:50 2015
 day 19 took 0 seconds
 
 
 FRED simulation complete. Excluding initialization, 20 days took 2 seconds
-FRED finished Tue Feb  3 12:09:55 2015
-FRED took 3 seconds
+FRED finished Fri Feb  6 11:59:50 2015
+FRED took 2 seconds

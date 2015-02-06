@@ -141,8 +141,8 @@ void Place_List::report_household_distributions() {
             per = h->get_housemate(i);
         }
         if (per == NULL) {
-          FRED_WARNING("Help! No head of household found for household id %d label %s\n",
-              h->get_id(), h->get_label());
+          FRED_WARNING("Help! No head of household found for household id %d label %s groupquarters: %d\n",
+		       h->get_id(), h->get_label(), h->is_group_quarters()?1:0);
           count[0]++;
         }
         else {
@@ -266,16 +266,16 @@ void Place_List::report_household_distributions() {
     // age distribution of heads of households
     for (int c = 0; c < 100; c++) { count[c] = 0; }
     for (int p = 0; p < number_places; p++) {
-      Person * per = NULL;
       if (places[p]->is_household()) {
         Household *h = (Household *) places[p];
+	Person * per = NULL;
         for (int i = 0; i < h->get_size(); i++) {
           if (h->get_housemate(i)->is_householder())
             per = h->get_housemate(i);
         }
         if (per == NULL) {
-          FRED_WARNING("Help! No head of household found for household id %d label %s\n",
-              h->get_id(), h->get_label());
+          FRED_WARNING("Help! No head of household found for household id %d label %s groupquarters: %d\n",
+		       h->get_id(), h->get_label(), h->is_group_quarters()?1:0);
           count[0]++;
         }
         else {
@@ -311,8 +311,8 @@ void Place_List::report_household_distributions() {
             per = h->get_housemate(i);
         }
         if (per == NULL) {
-          FRED_WARNING("Help! No head of household found for household id %d label %s\n",
-              h->get_id(), h->get_label());
+          FRED_WARNING("Help! No head of household found for household id %d label %s groupquarters: %d\n",
+		       h->get_id(), h->get_label(), h->is_group_quarters()?1:0);
           count[0]++;
         }
         else {
@@ -527,8 +527,8 @@ void Place_List::quality_control() {
             per = h->get_housemate(i);
         }
         if (per == NULL) {
-          FRED_WARNING("Help! No head of household found for household id %d label %s\n",
-              h->get_id(), h->get_label());
+          FRED_WARNING("Help! No head of household found for household id %d label %s size %d groupquarters: %d\n",
+		       h->get_id(), h->get_label(), h->get_size(), h->is_group_quarters()?1:0);
           count[0]++;
         }
         else {
@@ -564,8 +564,8 @@ void Place_List::quality_control() {
             per = h->get_housemate(i);
         }
         if (per == NULL) {
-          FRED_WARNING("Help! No head of household found for household id %d label %s\n",
-              h->get_id(), h->get_label());
+          FRED_WARNING("Help! No head of household found for household id %d label %s groupquarters: %d\n",
+		       h->get_id(), h->get_label(), h->is_group_quarters()?1:0);
           count[0]++;
         }
         else {

@@ -1124,6 +1124,9 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
 	      number_of_units = capacity / Place_List::Nursing_home_room_mean_size;
 	      place_subtype = fred::PLACE_SUBTYPE_NURSING_HOME;
       }
+      if (number_of_units == 0) {
+	number_of_units = 1;
+      }
 
       // add a workplace for this group quarters
       place_type = Place::WORKPLACE;
@@ -1140,24 +1143,25 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       // add as household
       place_type = Place::HOUSEHOLD;
       sprintf(s, "%c%s", place_type, tokens[gq_id]);
-      
       result = 
 	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
 				    deme_id, county, tract_index, "0", true, 0, number_of_units, tokens[gq_type], wp));
       if(result.second) {
         ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s size %d %f %f\n", s, capacity, result.first->lat, result.first->lon);
+        FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s type %c size %d lat %f lon %f\n",
+		     s, place_type, capacity, result.first->lat, result.first->lon);
       }
 
       // generate additional household units associated with this group quarters
       for(int i = 1; i < number_of_units; i++) {
-	      sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
-	      result = 
-		pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
-					    deme_id, county, tract_index, "0", true, 0, 0, tokens[gq_type], wp));
-	      if(result.second) {
-	        ++(this->place_type_counts[place_type]);
-	      }
+	sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
+	result = 
+	  pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
+				      deme_id, county, tract_index, "0", true, 0, 0, tokens[gq_type], wp));
+	if(result.second) {
+	  ++(this->place_type_counts[place_type]);
+	}
+	FRED_VERBOSE(1,"Adding GQ Household %s out of %d units\n", s, number_of_units);
       }
     }
     tokens.clear();
@@ -1365,75 +1369,49 @@ void Place_List::setup_group_quarters() {
     if(house->is_group_quarters()) {
       int gq_size = house->get_size();
       int gq_units = house->get_group_quarters_units();
-      if(gq_units > 0) {
-	      FRED_VERBOSE(1,"GQ_setup: house index %d %s initial size %d\n", p, house->get_label(), house->get_size()); fflush(stdout);
-	      /*
-	        for (int h = p; h < p + gq_units - 1; ++h) {
-	          printf("other units: house index %d %s initial size %d\n", h, this->get_household_ptr(h)->get_label(), this->get_household_ptr(h)->get_size()); fflush(stdout);
-	        }
-	        printf("housemates:\n");
-	      */
-	      vector<Person*> housemates;
-	      housemates.clear();
-	      for(int i = 0; i < gq_size; ++i) {
-	        Person* person = house->get_housemate(i);
-	        //printf("housemate %d id %d house %s\n", i, person->get_id(), person->get_household()->get_label());fflush(stdout);
-	        housemates.push_back(person);
-		if (i == 0) {
-		  person->make_householder();
-		}
-	      }
-	      int units_filled = 1;
-	      int min_per_unit = gq_size / gq_units;
-	      int larger_units = gq_size - min_per_unit * gq_units;
-	      int smaller_units = gq_units - larger_units;
-	      // printf("min_per_unit %d smaller = %d  larger = %d total = %d\n", min_per_unit, smaller_units, larger_units,
-	      // smaller_units*min_per_unit + larger_units*(min_per_unit+1)); fflush(stdout);
-	      int next_person = min_per_unit;
-	      for(int i = 1; i < smaller_units; ++i) {
-	        // printf("p = %d\n",p); fflush(stdout);
-	        // assert(units_filled < gq_units);
-	        new_house = this->get_household_ptr(++p);
-	        // printf("GQ smaller new_house %s\n", new_house->get_label()); fflush(stdout);
-	        for(int j = 0; j < min_per_unit; ++j) {
-	          Person* person = housemates[next_person++];
-	          // printf("Move person %d (housemate %d) to new house %s\n", person->get_id(), next_person-1, new_house->get_label()); fflush(stdout);
-	          person->move_to_new_house(new_house);
-		  if (j == 0) {
-		    person->make_householder();
-		  }
-	        }
-	        units_filled++;
-	      }
-	      for(int i = 0; i < larger_units; ++i) {
-	        new_house = this->get_household_ptr(p++);
-	        // printf("GQ larger new_house %s\n", new_house->get_label()); fflush(stdout);
-	        for(int j = 0; j < min_per_unit + 1; ++j) {
-	          Person* person = housemates[next_person++];
-	          // printf("Move person %d (housemate %d) to new house %s\n", person->get_id(), next_person-1, new_house->get_label());  fflush(stdout);
-	          person->move_to_new_house(new_house);
-		  if (j == 0) {
-		    person->make_householder();
-		  }
-	        }
-	      }
+      FRED_VERBOSE(0,"GQ_setup: house %d label %s subtype %c initial size %d units %d\n",
+		   p, house->get_label(), house->get_subtype(), gq_size, gq_units);
+      if (gq_units > 1) {
+	vector<Person*> housemates;
+	housemates.clear();
+	for(int i = 0; i < gq_size; ++i) {
+	  Person* person = house->get_housemate(i);
+	  housemates.push_back(person);
+	}
+	int units_filled = 1;
+	int min_per_unit = gq_size / gq_units;
+	int larger_units = gq_size - min_per_unit * gq_units;
+	int smaller_units = gq_units - larger_units;
+	FRED_VERBOSE(1, "GQ min_per_unit %d smaller = %d  larger = %d total = %d  orig = %d\n",
+		     min_per_unit, smaller_units, larger_units,
+		     smaller_units*min_per_unit + larger_units*(min_per_unit+1),
+		     gq_size);
+	int next_person = min_per_unit;
+	for(int i = 1; i < smaller_units; ++i) {
+	  // assert(units_filled < gq_units);
+	  new_house = this->get_household_ptr(p++);
+	  // printf("GQ smaller new_house %s\n", new_house->get_label()); fflush(stdout);
+	  for(int j = 0; j < min_per_unit; ++j) {
+	    Person* person = housemates[next_person++];
+	    person->move_to_new_house(new_house);
+	  }
+	  units_filled++;
+	  // printf("GQ size of smaller unit %s = %d remaining in main house %d\n",
+	  // new_house->get_label(), new_house->get_size(), house->get_size());
+	}
+	for(int i = 0; i < larger_units; ++i) {
+	  new_house = this->get_household_ptr(p++);
+	  // printf("GQ larger new_house %s\n", new_house->get_label()); fflush(stdout);
+	  for(int j = 0; j < min_per_unit + 1; ++j) {
+	    Person* person = housemates[next_person++];
+	    person->move_to_new_house(new_house);
+	  }
+	  // printf("GQ size of larger unit %s = %d -- remaining in main house %d\n",
+	  // new_house->get_label(), new_house->get_size(), house->get_size());
+	}
       }
     }
   }
-
-  // quality control check
-  /*
-  for (int p = 0; p < num_households; p++) {
-    Household * house = this->get_household_ptr(p);
-    printf("%s is in county (%d) %d census_tract (%d) %ld \n", house->get_label(),
-	   house->get_county(), get_county_with_index(house->get_county()),
-	   house->get_census_tract(), get_census_tract_with_index(house->get_census_tract()));
-    if (1 || house->is_group_quarters()) {
-      printf("GQ_setup quality control: %s size %d  lat %.8f  lon %0.8f\n", house->get_label(), house->get_size(), house->get_latitude(), house->get_longitude()); fflush(stdout);
-    }
-  }
-  exit(0);
-  */
 }
 
 // Comparison used to sort households by income below
@@ -1450,25 +1428,46 @@ void Place_List::setup_households() {
   for(int p = 0; p < num_households; ++p) {
     Household* house = this->get_household_ptr(p);
     house->set_index(p);
-    int head = -1;
-    int max_age = -1;
+    if (house->get_size() == 0) {
+      FRED_VERBOSE(0, "Warning: house %d label %s has zero size.\n",
+		   house->get_id(), house->get_label());
+      continue;
+    }
     Person* person_with_max_age = NULL;
-    // printf("household %d label %s has size %d\n", p, house->get_label(), house->get_size());
-    for(int j = 0; j < house->get_size(); ++j) {
+    Person* head_of_household = NULL;
+    int max_age = -99;
+    for(int j = 0; j < house->get_size() && head_of_household == NULL; ++j) {
       Person* person = house->get_housemate(j);
       assert(person != NULL);
-      int age = person->get_age();
-      if(age > max_age) {
-        max_age = age;
-        person_with_max_age = person;
-      }
       if(person->is_householder()) {
-        head = j;
+	head_of_household = person;
+	continue;
+      }
+      else {
+	int age = person->get_age();
+	if(age > max_age) {
+	  max_age = age;
+	  person_with_max_age = person;
+	}
       }
     }
-    if(head == -1 && person_with_max_age != NULL) {
+    if (head_of_household == NULL) {
+      assert(person_with_max_age != NULL);
       person_with_max_age->make_householder();
+      head_of_household = person_with_max_age;
     }
+    assert(head_of_household != NULL);
+    // make sure everyone know who's the head
+    for(int j = 0; j < house->get_size(); j++) {
+      Person* person = house->get_housemate(j);
+      if (person != head_of_household && person->is_householder()) {
+	person->set_relationship(Global::HOUSEMATE);
+      }
+    }
+    assert(head_of_household != NULL);
+    FRED_VERBOSE(1, "HOLDER: house %d label %s is_group_quarters %d householder %d age %d\n",
+	   house->get_id(), house->get_label(), house->is_group_quarters()?1:0,
+	   head_of_household->get_id(), head_of_household->get_age());
   }
 
   // NOTE: the following sorts households from lowest income to highest
