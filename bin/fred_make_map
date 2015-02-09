@@ -96,10 +96,12 @@ set style line 11 lc rgb "red" lt 1 lw 0.2
 set style line 12 lc rgb "beige" lt 1 lw 0.2
 set style line 13 lc rgb "cornsilk" lt 1 lw 0.2
 set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
+set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
 
 set style line 999 lc rgb 'white' lt 1 lw 1
 set style line 99 lc rgb 'gray' lt 1 lw 1
 set style line 98 lc rgb 'gray10' lt 1 lw 1
+set style line 100 lc rgb 'black' lt 1 lw 1
 
 # read in a list of FIPS codes
 fips = system("cat " . fipsfile)
@@ -250,7 +252,7 @@ if (show_dots) {
    replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.7
   }
   if (show_incidence) {
-   replot household_incidence u 2:1 t '' wi po ls 7 pt 5 ps 0.7
+   replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps 0.7
   }
 }
 if (!filled) {
