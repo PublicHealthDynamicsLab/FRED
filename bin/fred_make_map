@@ -75,6 +75,9 @@ if (!exists("shapefile_dir")) {
   shapefile_dir = "SHAPES"
 }
 print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
+if (!exists("set_grid")) {
+   set_grid = 0
+}
 
 set palette maxcolors 10
 set palette defined ( 0 "blue", 1 "skyblue", 2 "sea-green", 3 "green", 4 "greenyellow", 5 "yellow", 6 "orange", 7 "orange-red", 8 "red", 9 "red")
@@ -90,6 +93,9 @@ set style line 8 lc rgb "orange-red" lt 1 lw 0.2
 set style line 9 lc rgb "red" lt 1 lw 0.2
 set style line 10 lc rgb "red" lt 1 lw 0.2
 set style line 11 lc rgb "red" lt 1 lw 0.2
+set style line 12 lc rgb "beige" lt 1 lw 0.2
+set style line 13 lc rgb "cornsilk" lt 1 lw 0.2
+set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
 
 set style line 999 lc rgb 'white' lt 1 lw 1
 set style line 99 lc rgb 'gray' lt 1 lw 1
@@ -117,12 +123,16 @@ if (filled) {
 get_raw(n) =  1 + int(10.0*word(values,n)/max)
 get_ls(n) = (get_raw(n) <= 10) ? get_raw(n) : 10
 
-set grid back
 set xlabel "Longitude\n" offset 0,0
 set ylabel "\nLatitude" offset 1.5,0
 set xtics font "arial,10"
 set ytics font "arial,10"
-
+if (set_grid) {
+ set grid back
+}
+else {
+ unset grid
+}
 set colorbox
 whole_max = sprintf("%.2f", max)
 half_max = sprintf("%.2f", max / 2.0)
@@ -225,28 +235,27 @@ if (filled) {
        '' u 1:2:3 t '' w p palette ps 0 pt 5
   replot for [n=1:words(fips)] filename(n) u 2:1 t '' w li ls 99 lw 0.5
 }
+else {
+  plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 12 w filledcurve
+}
 
 if (show_dots) {
-  if (filled) {
-     # plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 999 w filledcurve
-     replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l ls 99 lw linewidth
-  }
-  else {
-     # draw outlines
-     plot for [n=1:words(fips)] filename(n) u 2:1 t '' w l ls 99 lw linewidth
-  }
   if (show_all_households) {
-    replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
+   replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
   }
   if (show_recovered) {
-    replot recovered_households u 2:1 t '' wi po ls 4 pt 5 ps 0.2
+   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
   }
   if (show_infectious) {
-    replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.2
+   replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.7
   }
   if (show_incidence) {
-   replot household_incidence u 2:1 t '' wi po ls 9 pt 5 ps 0.2
+   replot household_incidence u 2:1 t '' wi po ls 7 pt 5 ps 0.7
   }
+}
+if (!filled) {
+ # draw outlines
+ replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth
 }
 
 unset multiplot

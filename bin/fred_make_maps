@@ -25,6 +25,7 @@ my $xmin = "-99999";
 my $xmax = "-99999";
 my $ymin = "-99999";
 my $ymax = "-99999";
+my $grid = 0;
 
 my $opt_result = GetOptions(
 			    "census_tracts=i" => \$census_tracts,
@@ -33,6 +34,8 @@ my $opt_result = GetOptions(
 			    "filled=i" => \$filled,
 			    "h" => \$help,
 			    "help" => \$help,
+			    "grid=i" => \$grid,
+			    "g=i" => \$grid,
 			    "key=s" => \$key,
 			    "max=s" => \$max,
 			    "parallelism=i" => \$parallelism,
@@ -182,6 +185,7 @@ for my $day (0..$days) {
   print LD "xmax = $xmax\n";
   print LD "ymin = $ymin\n";
   print LD "ymax = $ymax\n";
+  print LD "set_grid = $grid\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 

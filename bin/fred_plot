@@ -394,7 +394,7 @@ sub plot_command {
   # line width
   my $lw = "lt $n lw 5";
   $lw = "lt -1 lw 3" if ($run == 0 and $all);
-  $lw = "lt $run lw 0.5" if $run > 0;
+  $lw = "lt $run lw 1" if $run > 0;
   $lw = "" if $boxes;
 
   # plot with lines?

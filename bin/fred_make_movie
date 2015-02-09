@@ -9,6 +9,7 @@ my $country = "usa";
 my $disease_id = 0;
 my $filled = 1;
 my $help = 0;
+my $grid = 1;
 my $key = "";
 my $max = 10;
 my $parallelism = 1;
@@ -32,6 +33,7 @@ my $opt_result = GetOptions(
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
 			    "filled=i" => \$filled,
+			    "grid=i" => \$grid,
 			    "h" => \$help,
 			    "help" => \$help,
 			    "k=s" => \$key,
@@ -61,6 +63,7 @@ usage: $0 [ options ], where options include:
   --country <name> : plot the named country
   --disease <id> : plot results for the disease id
   --filled <0/1>:  if set, plot filled curves
+  --grid <0/1>: if set, show grid. (default = 1)
   --help: print this help message
   --key <id> : plot the job with given id 
   --max <val> : use the given value as the maximum for color plots
@@ -98,7 +101,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid";
 
 # print "$command\n"; exit;
 

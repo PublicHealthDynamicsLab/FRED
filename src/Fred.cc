@@ -304,7 +304,8 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   // initialize visualization data if desired
-  if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
+  // if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
+  if(Global::Enable_Visualization_Layer) {
     Global::Visualization->initialize();
   }
 
@@ -393,7 +394,8 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d report population", day);
 
   // print visualization data if desired
-  if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
+  // if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
+  if(Global::Enable_Visualization_Layer) {
     Global::Visualization->print_visualization_data(day);
     Utils::fred_print_lap_time("day %d print_visualization_data", day);
   }
