@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $help = "";
+my $key = "";
+my $var = "C";
+my $run = 1;
+my $dir = "";
+my $weekly = "";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "var=s" => \$var,
+			    "v=s" => \$var,
+			    "run=i" => \$run,
+			    "r=i" => \$run,
+			    "n=i" => \$run,
+			    "d=s" => \$dir,
+			    "weekly" => \$weekly,
+			    "w" => \$weekly,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | -k key [-v variable] [-n run_number]
+    -k or --key   the key for a FRED job (no default)
+    -v or --var   the variable to be reported. default: report C
+    -n or --run   if set, report a specific run number. default: 1
+EOH
+
+die $usage if $help;
+
+my @data = `fred_csv -k $key -v $var -n $run`;
+my $acc = 0;
+my $i = 0;
+for my $line (@data) {
+  chomp $line;
+  my @a = split ',', $line;
+  my $val = $a[$#a];
+  $acc += $val;
+  print "$i $acc\n";
+  $i++;
+}
+exit;

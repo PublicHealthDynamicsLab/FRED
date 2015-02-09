@@ -7,6 +7,7 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 my $census_tracts = 0;
 my $country = "usa";
 my $disease_id = 0;
+my $display = 0;
 my $filled = 1;
 my $help = 0;
 my $grid = 1;
@@ -32,6 +33,7 @@ my $opt_result = GetOptions(
 			    "census_tracts" => \$census_tracts,
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
+			    "display=i" => \$display,
 			    "filled=i" => \$filled,
 			    "grid=i" => \$grid,
 			    "h" => \$help,
@@ -114,7 +116,7 @@ if (-s "FIPS") {
   system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
   system "cp movie.$movie_format $cwd/$key.$movie_format";
   chdir $cwd;
-  system "open $key.$movie_format";
+  system "open $key.$movie_format" if $display;
 }
 else {
   die "$0: map data not found\n";
