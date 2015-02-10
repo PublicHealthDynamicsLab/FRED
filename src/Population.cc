@@ -56,7 +56,7 @@ Population::Population() {
   this->vacc_manager = NULL;
 
   // reserve memory for lists
-  death_list.reserve(1000);
+  this->death_list.reserve(1000);
 
 }
 
@@ -140,8 +140,8 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   //assert( id_to_index.find( id ) == id_to_index.end() );
   //id_to_index[ id ] = idx;
 
-  assert((unsigned ) this->pop_size == blq.size() - 1);
-  this->pop_size = blq.size();
+  assert((unsigned)this->pop_size == blq.size() - 1);
+  this->pop_size = this->blq.size();
 
   return person;
 }
@@ -177,7 +177,7 @@ void Population::delete_person(Person* person) {
   this->blq.mark_invalid_by_index(person->get_pop_index());
 
   this->pop_size--;
-  assert((unsigned ) this->pop_size == this->blq.size());
+  assert((unsigned)this->pop_size == this->blq.size());
 }
 
 void Population::prepare_to_die(int day, Person* person) {
@@ -652,7 +652,7 @@ void Population::update(int day) {
   }
 
   // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::get_month()==7 && Date::get_day_of_month()==1){
+  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1){
     FRED_VERBOSE(0, "Before update_activity_profile day = %d\n", day);
     Global::Places.print_status_of_schools(day);
     FRED_VERBOSE(0, "population::update_activity_profile day = %d\n", day);
@@ -693,14 +693,14 @@ void Population::update(int day) {
 void Population::remove_dead_from_population(int day) {
   size_t deaths = this->death_list.size();
   for(size_t i = 0; i < deaths; ++i) {
-    Person *person = death_list[i];
+    Person* person = this->death_list[i];
     remove_dead_person_from_population(day, person);
   }
   // clear the death list
   this->death_list.clear();
 }
 
-void Population::remove_dead_person_from_population(int day, Person *person) {
+void Population::remove_dead_person_from_population(int day, Person* person) {
   // remove from vaccine queues
   if(this->vacc_manager->do_vaccination()) {
     FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
@@ -1067,7 +1067,10 @@ void Population::report_mean_hh_distance_from_school() {
 
   for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
-    if(person == NULL) continue;
+    if(person == NULL) {
+      continue;
+    }
+
     if(person->get_school() == NULL) {
       continue;
     } else {
@@ -1123,7 +1126,7 @@ void Population::report_mean_hh_stats_per_income_category() {
   //First sort households into sets based on their income level
   std::set<Household*> household_sets[Household_income_level_code::UNCLASSIFIED + 1];
 
-  for(int p = 0; p < this->get_index_size(); p++) {
+  for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
     if(person == NULL) continue;
     if(person->get_household() == NULL) {
@@ -1165,7 +1168,7 @@ void Population::report_mean_hh_stats_per_income_category() {
     Global::Income_Category_Tracker->set_index_key_pair(i, "number_of_gq_school_children", (int)0);
     Global::Income_Category_Tracker->set_index_key_pair(i, "number_of_gq_workers", (int)0);
 
-    for(std::set<Household *>::iterator itr = household_sets[i].begin();
+    for(std::set<Household*>::iterator itr = household_sets[i].begin();
         itr !=household_sets[i].end(); ++itr) {
       count_people += (*itr)->get_size();
       count_children += (*itr)->get_children();
@@ -1223,8 +1226,8 @@ void Population::report_mean_hh_stats_per_census_tract() {
   //First sort households into sets based on their census tract and income category
   map<int, std::set<Household*> > household_sets;
 
-  for(int p = 0; p < this->get_index_size(); p++) {
-    Person * person = get_person_by_index(p);
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
     if(person == NULL) {
       continue;
     }
@@ -1285,7 +1288,7 @@ void Population::report_mean_hh_stats_per_census_tract() {
         Global::Tract_Tracker->increment_index_key_pair(*census_tract_itr, "number_of_children", (*itr)->get_children());
       }
       
-      hh_income_per_census_tract += (float)(*itr)->get_household_income();
+      hh_income_per_census_tract += static_cast<float>((*itr)->get_household_income());
       std::vector<Person*> inhab_vec = (*itr)->get_inhabitants();
       for(std::vector<Person*>::iterator inner_itr = inhab_vec.begin();
           inner_itr != inhab_vec.end(); ++inner_itr) {

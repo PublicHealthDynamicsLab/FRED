@@ -35,7 +35,7 @@ class Events {
 public:
 
   Events() {
-    for (int day = 0; day < MAX_DAYS; day++) {
+    for (int day = 0; day < MAX_DAYS; ++day) {
       clear_events(day);
     }
   }
@@ -44,13 +44,13 @@ public:
 
   void add_event(int day, event_t item) {
     assert(0 <= day && day < MAX_DAYS);
-    if (events[day].size() == events[day].capacity()) {
-      if (events[day].capacity() < 4) {
-	events[day].reserve(4);
+    if(this->events[day].size() == this->events[day].capacity()) {
+      if(events[day].capacity() < 4) {
+        this->events[day].reserve(4);
       }
-      events[day].reserve(2*events[day].capacity());
+      this->events[day].reserve(2 * this->events[day].capacity());
     }
-    events[day].push_back(item);
+    this->events[day].push_back(item);
     // printf("\nadd_event day %d new size %d\n", day, get_size(day));
     // print_events(day);
   }
@@ -60,15 +60,15 @@ public:
     assert(0 <= day && day < MAX_DAYS);
     // find item in the list
     int size = get_size(day);
-    for (int pos = 0; pos < size; pos++) {
-      if (events[day][pos] == item) {
-	// copy last item in list into this slot
-	events[day][pos] = events[day].back();
-	// delete last slot
-	events[day].pop_back();
-	// printf("\ndelete_event day %d final size %d\n", day, get_size(day));
-	// print_events(day);
-	return;
+    for(int pos = 0; pos < size; ++pos) {
+      if(this->events[day][pos] == item) {
+	      // copy last item in list into this slot
+        this->events[day][pos] = this->events[day].back();
+	      // delete last slot
+        this->events[day].pop_back();
+	      // printf("\ndelete_event day %d final size %d\n", day, get_size(day));
+	      // print_events(day);
+	      return;
       }
     }
     // item not found
@@ -78,21 +78,21 @@ public:
 
   void clear_events(int day) {
     assert(0 <= day && day < MAX_DAYS);
-    events[day] = events_t();
+    this->events[day] = events_t();
     // printf("clear_events day %d size %d\n", day, get_size(day));
   }
 
   int get_size(int day) {
     assert(0 <= day && day < MAX_DAYS);
-    return (int) events[day].size();
+    return static_cast<int>(this->events[day].size());
   }
 
-  void print_events(FILE *fp, int day);
+  void print_events(FILE* fp, int day);
   void print_events(int day);
 
   void event_handler(int day, void (*func)(int,event_t)) {
-    events_itr_t itr_end = events[day].end();
-    for (events_itr_t itr = events[day].begin(); itr != itr_end; itr++) {
+    events_itr_t itr_end = this->events[day].end();
+    for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
       func(day, *itr);
     }
     clear_events(day);

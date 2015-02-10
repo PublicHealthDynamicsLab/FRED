@@ -148,7 +148,7 @@ public:
   Person* get_person_by_index(int index);
 
   size_t get_index_size() {
-    return blq.get_index_size();
+    return this->blq.get_index_size();
   }
 
   /**
@@ -180,7 +180,7 @@ public:
 
   void read_all_populations();
 
-  void read_population( const char* pop_dir, const char* pop_id, const char* pop_type );
+  void read_population(const char* pop_dir, const char* pop_id, const char* pop_type );
 
   /**
    *
@@ -233,8 +233,8 @@ public:
     return this->blq.size();
   }
 
-  int size(fred::Pop_Masks mask ) {
-    return this->blq.size( mask );
+  int size(fred::Pop_Masks mask) {
+    return this->blq.size(mask);
   }
 
   void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
@@ -288,7 +288,7 @@ public:
 
 private:
 
-  void mother_gives_birth(int day, Person *mother);
+  void mother_gives_birth(int day, Person* mother);
 
   struct PopFileColIndex {
     // all populations
@@ -367,7 +367,7 @@ private:
 
 
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
-  vector <Person*> death_list;		  // list of agents to die today
+  vector<Person*> death_list;		  // list of agents to die today
   int pop_size;
   Disease* disease;
 
@@ -468,7 +468,7 @@ private:
   // functor for behavior updates
   struct Update_Population_Behaviors {
     int day;
-    Update_Population_Behaviors(int d) : day( d ) { }
+    Update_Population_Behaviors(int d) : day(d) { }
     void operator() (Person &p);
   };
 
@@ -482,8 +482,8 @@ private:
   fred::Mutex add_person_mutex;
   fred::Mutex batch_add_person_mutex;
 
-  void add_to_birthday_list(Person * person);
-  void delete_from_birthday_list(Person * person);
+  void add_to_birthday_list(Person* person);
+  void delete_from_birthday_list(Person* person);
   void update_people_on_birthday_list(int day);
 
 };

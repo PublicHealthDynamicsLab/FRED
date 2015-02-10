@@ -194,7 +194,7 @@ sqlite3.o:
 	cp sqlite3.o $(SRC_DIR)
 
 DEPENDS: $(SRC) $(HDR)
-	$(CPP) $(USE_STDLIB) -MM $(SRC) -I$(DSFMT_DIR) > DEPENDS
+	$(CPP) $(USE_STDLIB) -MM $(SRC) $(INCLUDE_DIRS) > DEPENDS
 
 include DEPENDS
 
@@ -213,9 +213,6 @@ clean:
 	rm -f *.o FRED FRED_Unit_Tracker ../bin/FRED fsz ../bin/fsz *~
 	(cd ../populations; make clean)
 	(cd ../tests; make clean)
-	(cd $(SNAPPY_DIR); make clean)
-	(cd $(SNAPPY_DIR); rm -r lib include share)
-	(cd $(SQLITE_DIR); make clean)
 
 tags:
 	find . -name \*.[ch]* | xargs etags
