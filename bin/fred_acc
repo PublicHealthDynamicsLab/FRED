@@ -43,12 +43,14 @@ die $usage if $help;
 my @data = `fred_csv -k $key -v $var -n $run`;
 my $acc = 0;
 my $i = 0;
+# discard header line
+shift @data;
 for my $line (@data) {
   chomp $line;
   my @a = split ',', $line;
   my $val = $a[$#a];
   $acc += $val;
-  print "$i $acc\n";
+  print "$i $val $acc\n";
   $i++;
 }
 exit;

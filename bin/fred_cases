@@ -1,0 +1,7 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+system "fred_acc @ARGV | tail -1 | awk '{print \$1, \$3}' ";
