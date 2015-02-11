@@ -17,6 +17,7 @@ my $parallelism = 1;
 my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
+my $subtitle = " ";
 my $show_dots = 0;
 my $show_all_households = 0;
 my $show_incidence = 0;
@@ -51,6 +52,7 @@ my $opt_result = GetOptions(
 			    "run=i" => \$run,
 			    "term=s" => \$term,
 			    "title=s" => \$title,
+			    "subtitle=s" => \$subtitle,
 			    "dots=i" => \$show_dots,
 			    "households=i" => \$show_all_households,
 			    "incidence=i" => \$show_incidence,
@@ -79,6 +81,7 @@ usage: $0 [ options ], where options include:
   --run <n> : plot results of run n
   --term <type> : plot using the specified terminal type
   --title <str> : title for each map
+  --subtitle <str> : subtitle for each map
   --dots <0/1> : if set plot dots
   --incidence <0/1> : if set and dots is set, plot households with incidence
   --infectious <0/1> : if set and dots is set, plot households with infectious members
@@ -109,7 +112,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval";
 
 # print "$command\n"; exit;
 

@@ -15,6 +15,7 @@ my $parallelism = 1;
 my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
+my $subtitle = " ";
 my $show_dots = 1;
 my $show_all_households = 0;
 my $show_incidence = 1;
@@ -48,6 +49,7 @@ my $opt_result = GetOptions(
 			    "run=i" => \$run,
 			    "term=s" => \$term,
 			    "title=s" => \$title,
+			    "subtitle=s" => \$subtitle,
 			    "dots=i" => \$show_dots,
 			    "households=i" => \$show_all_households,
 			    "incidence=i" => \$show_incidence,
@@ -73,6 +75,7 @@ usage: $0 [ options ], where options include:
   --run <n> : plot results of run n
   --term <type> : plot using the specified terminal type
   --title <str> : title for each map
+  --subtitle <str> : subtitle for each map
   --dots <0/1> : if set plot dots
   --incidence <0/1> : if set and dots is set, plot households with incidence
   --infectious <0/1> : if set and dots is set, plot households with infectious members
@@ -166,14 +169,15 @@ my @cmds = ();
 my @wait = ();
 my $index = 0;
 for (my $day = $start; $day <= $days; $day += $interval) {
-  my $longtitle = sprintf("{/Arial=14 %s}\\n{/Arial=10 Day %3d}", $title, $day);
   my $mapname = sprintf("map%04d.$term",$index);
   push @wait, $mapname;
   $index++;
   # print "make_map $mapname\n";
   my $loadfile = "load-run=$run-dis=$disease_id-day=$day.plt";
   open LD, ">$loadfile";
-  print LD "my_title = \"$longtitle\"\n";
+  print LD "my_title = \"$title\"\n";
+  print LD "my_subtitle = \"$subtitle\"\n";
+  print LD "day = $day\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";
   print LD "show_dots = $show_dots\n";
