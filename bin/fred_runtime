@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-my ($key) = @ARGV;
+my ($key, $run) = @ARGV;
+$run = 1 if not $run;
 die "usage: fred_runtime key\n" if (not $key);
 system "fred_cd -k $key >& tmp$$";
 my $cd = `cat tmp$$`;
@@ -12,13 +13,12 @@ if ($cd =~ /UNKNOWN/) {
 }
 my ($foo, $dir) = split " ", $cd;
 # print "dir $dir\n";
-my $file = "$dir/LOG1";
-$file = "$dir/../../META/LOG.1" if not -e $file;
+my $file = "$dir/LOG$run";
 ## print "file $file\n";
 if (-e $file) {
   my $secs = `tail -1 $file`;
   chomp $secs;
-  print "$secs for one run\n";
+  print "$secs for run $run\n";
 }
 exit;
 

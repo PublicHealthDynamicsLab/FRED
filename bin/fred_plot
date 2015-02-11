@@ -335,12 +335,13 @@ sub get_data {
   $week = "--weekly" if $weekly;
   if ($run > 0) {
     system "fred_csv -k $key -v $var -r $run $week > $tmpfile";
-    print "$0: error in get_data\n" if not -s $tmpfile;
   }
   else {
     system "fred_csv -k $key -v $var $week > $tmpfile";
-    print "$0: error in get_data\n" if not -s $tmpfile;
-
+  }
+  if (not -s $tmpfile) {
+    print "$0: error in get_data\n";
+    exit;
   }
   my @tmpdata = ();
   open IN, $tmpfile;

@@ -5,12 +5,14 @@ use Env;
 use Getopt::Std;
 
 my %options = ();
-getopts("k:o:", \%options);
+getopts("k:o:n:", \%options);
 my $mykey = "";
 $mykey = $options{k} if exists $options{k};
-die "usage: fred_log -k key\n" if not $mykey;
+die "usage: fred_log -k key [ -n run | -o options ]\n" if not $mykey;
 my $o = "";
 $o = "-$options{o}" if exists $options{o};
+my $n = 1;
+$n = $options{n} if exists $options{n};
 
 my $FRED = $ENV{FRED_HOME};
 die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
@@ -28,13 +30,13 @@ print "STARTED:  ";
 system "cat $dir/JOB/$id/META/START";
 print "FINISHED: ";
 system "cat $dir/JOB/$id/META/FINISHED";
-if (-e "$dir/JOB/$id/DATA/OUT/LOG1") {
-  print "tail $o LOG1:\n";
-  system "tail $o $dir/JOB/$id/DATA/OUT/LOG1";
+if (-e "$dir/JOB/$id/DATA/OUT/LOG$n") {
+  print "tail $o LOG$n:\n";
+  system "tail $o $dir/JOB/$id/DATA/OUT/LOG$n";
 }
-if (-e "$dir/JOB/$id/META/LOG.1") {
-  print "tail $o LOG.1:\n";
-  system "tail $o $dir/JOB/$id/META/LOG.1";
+elsif (-e "$dir/JOB/$id/META/LOG.$n") {
+  print "tail $o LOG.$n:\n";
+  system "tail $o $dir/JOB/$id/META/LOG.$n";
 }
 
 exit;

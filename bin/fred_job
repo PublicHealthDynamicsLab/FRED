@@ -24,7 +24,7 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $FREDRESULTS = $ENV{FRED_RESULTS};
 $FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
 
-my $usage = "usage: $0 [ -h | -k key | -p paramsfile | -s start_run_number | -n end_run_number | -P | -m cores | -M multiple_cpus | -t threads]\n";
+my $usage = "usage: $0 [ -h | -f | -k key | -p paramsfile | -s start_run_number | -n end_run_number | -P | -m cores | -M multiple_cpus | -t threads]\n";
 my $help = "";
 my $cache = "";
 my $cores = "";
@@ -168,7 +168,7 @@ if ($key) {
   while (<FH>) {
     chomp;
     my ($k, $i) = split;
-    if ($k eq $key and not $force) {
+    if ($k eq $key) {
       if ($force) {
 	$old_id = $i;
 	last;
@@ -211,10 +211,6 @@ my $id = "";
 if ($old_id > -1) {
   # use old id
   $id = $old_id;
-  # remove the old directory
-  system "rm -rf $fred_results/JOB/$id";
-  # use job id unless given command line key
-  $key = $id if $key eq "";
 }
 else {
   # get id for this job and update counter
@@ -236,9 +232,8 @@ else {
 # release semaphore
 close SEM;
 
-# make main directory for this job
+# make main directory for this job if needed
 my $dir = "$fred_results/JOB/$id";
-# die "fred_job: ID $id already used\n" if -d $dir;
 if (not -d $dir) {
   mkdir $dir or die "Can't make directory $dir\n";
 }
@@ -246,7 +241,7 @@ if (not -d $dir) {
 # return run_key association
 print "$key $id\n";
 
-# make working directory
+# make working directory if needed
 my $work = "$dir/WORK";
 if (not -d $work) {
   mkdir $work or die "Can't make directory $work\n";
@@ -311,7 +306,9 @@ my $logfile = "$meta/LOG";
 
 # copy source code
 my $version = "$meta/VERSION";
-mkdir $version or die "Can't make directory $version\n";
+if (not -d $version) {
+  mkdir $version or die "Can't make directory $version\n";
+}
 `cp -p $FRED/src/FRED.tar.gz $version`;
 `ls -l $FRED/populations > ${version}/POPULATIONS`;
 `ls -l $FRED/input_files > ${version}/INPUT_FILES`;
@@ -379,7 +376,8 @@ if (not $parallel) {
       close LP;
 
       # create instance-specific log file
-      my $logfilep = "$meta/LOG.$fred_instance";
+      # my $logfilep = "$meta/LOG.$fred_instance";
+      my $logfilep = "$out/LOG$fred_instance";
 
       # create child process
       if (fork() == 0) {
@@ -412,8 +410,8 @@ if (not $parallel) {
 } # if serial
 
 # check for errors
-my $errfiles = `ls $out`;
-chomp $errfiles;
+# my $errfiles = `ls $out`;
+# chomp $errfiles;
 # print "errfiles = |$errfiles|\n";
 # if ($errfiles =~ /err\d+.txt/) {
 #   print "FRED terminated with errors:\n";
@@ -422,7 +420,8 @@ chomp $errfiles;
 # }
 
 # record the POPULATION file used (in case it was altered by parameters)
-my $log1 = $parallel ? "$meta/LOG.1" : "$out/LOG1";
+# my $log1 = $parallel ? "$meta/LOG.1" : "$out/LOG1";
+my $log1 = (-e "$out/LOG1") ? "$out/LOG1" : "$meta/LOG.1";
 `grep POPULATION_FILE $log1 | awk \'{print \$2}\' > $meta/POPULATION`; 
 
 # record the FIPS codes
