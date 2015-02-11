@@ -28,8 +28,14 @@ my $xmin = "-99999";
 my $xmax = "-99999";
 my $ymin = "-99999";
 my $ymax = "-99999";
+my $border = 1;
+my $start = 0;
+my $interval = 1;
 
 my $opt_result = GetOptions(
+			    "border=i" => \$border,
+			    "start=i" => \$start,
+			    "interval=i" => \$interval,
 			    "census_tracts" => \$census_tracts,
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
@@ -103,19 +109,24 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --dots $show_dots --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval";
 
 # print "$command\n"; exit;
 
 system $command;
-
 chdir "VIS/run$run/dis$disease_id/MAPS";
+# system "pwd";
+# system "ls -l map*";
+# exit;
 if (-s "FIPS") {
-  system "rm -f $cwd/$key.$movie_format";
+  # system "rm -f $cwd/$key.$movie_format";
   # system "ffmpeg -r 5 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
+  # print "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet\n";
   system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
+  # print "cp movie.$movie_format $cwd/$key.$movie_format\n";
   system "cp movie.$movie_format $cwd/$key.$movie_format";
   chdir $cwd;
+  # system "ls -l $key.$movie_format";
   system "open $key.$movie_format" if $display;
 }
 else {

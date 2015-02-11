@@ -26,8 +26,14 @@ my $xmax = "-99999";
 my $ymin = "-99999";
 my $ymax = "-99999";
 my $grid = 0;
+my $border = 1;
+my $start = 0;
+my $interval = 1;
 
 my $opt_result = GetOptions(
+			    "border=i" => \$border,
+			    "start=i" => \$start,
+			    "interval=i" => \$interval,
 			    "census_tracts=i" => \$census_tracts,
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
@@ -136,7 +142,7 @@ else {
 }
 print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f map.* .done.* fred_make_maps.log; echo foo = 0 > RANGES.plt";
+system "rm -f map* load* fred_make_maps.log; echo foo = 0 > RANGES.plt";
 
 my $shapedir = "$FRED/SHAPEFILES/2010";
 my $shapefile = "x";
@@ -157,9 +163,14 @@ if ($country eq "usa" and $census_tracts eq 1) {
 print "making maps ";
 my $started = 0;
 my @cmds = ();
-for my $day (0..$days) {
+my @wait = ();
+my $index = 0;
+for (my $day = $start; $day <= $days; $day += $interval) {
   my $longtitle = sprintf("{/Arial=14 %s}\\n{/Arial=10 Day %3d}", $title, $day);
-  my $mapname = sprintf("map%04d.$term",$day);
+  my $mapname = sprintf("map%04d.$term",$index);
+  push @wait, $mapname;
+  $index++;
+  # print "make_map $mapname\n";
   my $loadfile = "load-run=$run-dis=$disease_id-day=$day.plt";
   open LD, ">$loadfile";
   print LD "my_title = \"$longtitle\"\n";
@@ -185,7 +196,8 @@ for my $day (0..$days) {
   print LD "xmax = $xmax\n";
   print LD "ymin = $ymin\n";
   print LD "ymax = $ymax\n";
-  print LD "set_grid = $grid\n";
+  print LD "show_grid = $grid\n";
+  print LD "show_border = $border\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
@@ -195,15 +207,16 @@ for my $day (0..$days) {
   print ".";
   $started++;
   if ($started eq $parallelism) {
-    for my $d (0..$day) {
-      while (not -e ".done.$d") { sleep 1; }
+    for my $file (@wait) {
+      while (not -s $file) { sleep 1; }
     }
     $started = 0;
   }
 }
-for my $d (0..$days) {
-  while (not -e ".done.$d") { sleep 1; }
+for my $file (@wait) {
+  while (not -s $file) { sleep 1; }
 }
+# system "ls -l map*";
 # system "rm -rf PCT* RAW* SHAPES load* .done* $shapefile.*";
 print " done\n";
 exit;

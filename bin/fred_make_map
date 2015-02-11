@@ -75,8 +75,11 @@ if (!exists("shapefile_dir")) {
   shapefile_dir = "SHAPES"
 }
 print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
-if (!exists("set_grid")) {
-   set_grid = 0
+if (!exists("show_grid")) {
+   show_grid = 0
+}
+if (!exists("show_border")) {
+   show_border = 1
 }
 
 set palette maxcolors 10
@@ -125,16 +128,27 @@ if (filled) {
 get_raw(n) =  1 + int(10.0*word(values,n)/max)
 get_ls(n) = (get_raw(n) <= 10) ? get_raw(n) : 10
 
-set xlabel "Longitude\n" offset 0,0
-set ylabel "\nLatitude" offset 1.5,0
-set xtics font "arial,10"
-set ytics font "arial,10"
-if (set_grid) {
- set grid back
+if (show_border) {
+   set xlabel "Longitude\n" offset 0,0
+   set ylabel "\nLatitude" offset 1.5,0
+   set xtics font "arial,10"
+   set ytics font "arial,10"
+   if (show_grid) {
+    set grid back
+   }
+   else {
+    unset grid
+   }
 }
 else {
- unset grid
+   unset border
+   unset xlabel
+   unset ylabel
+   unset xtics
+   unset ytics
+   unset grid
 }
+
 set colorbox
 whole_max = sprintf("%.2f", max)
 half_max = sprintf("%.2f", max / 2.0)
@@ -228,7 +242,7 @@ else {
 #  set term pdf enhanced font "Helvetica, 12" size 6,4.5
    set term pngcairo enhanced font "arial,12"
 }
-set title my_title offset 0,0.5
+set title my_title offset 0,0
 set output mapname
 
 set multiplot
