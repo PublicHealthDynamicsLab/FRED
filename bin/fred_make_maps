@@ -16,7 +16,6 @@ my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
 my $subtitle = " ";
-my $show_dots = 1;
 my $show_all_households = 0;
 my $show_incidence = 1;
 my $show_infectious = 0;
@@ -50,7 +49,6 @@ my $opt_result = GetOptions(
 			    "term=s" => \$term,
 			    "title=s" => \$title,
 			    "subtitle=s" => \$subtitle,
-			    "dots=i" => \$show_dots,
 			    "households=i" => \$show_all_households,
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
@@ -180,7 +178,6 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "day = $day\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";
-  print LD "show_dots = $show_dots\n";
   print LD "show_all_households = $show_all_households\n";
   print LD "show_incidence = $show_incidence\n";
   print LD "show_infectious = $show_infectious\n";

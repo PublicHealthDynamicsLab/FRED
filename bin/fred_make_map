@@ -20,9 +20,6 @@ if (!exists("mapname")) {
 if (!exists("show_all_households")) {
   show_all_households = 0
 }
-if (!exists("show_dots")) {
-  show_dots = 1
-}
 if (!exists("show_incidence")) {
   show_incidence = 1
 }
@@ -270,20 +267,19 @@ else {
   plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 12 w filledcurve
 }
 
-if (show_dots) {
-  if (show_all_households) {
-   replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
-  }
-  if (show_recovered) {
-   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
-  }
-  if (show_infectious) {
-   replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.7
-  }
-  if (show_incidence) {
-   replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps 0.7
-  }
+if (show_all_households) {
+ replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
 }
+if (show_recovered) {
+ replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
+}
+if (show_infectious) {
+ replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.7
+}
+if (show_incidence) {
+ replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps 0.7
+}
+
 if (!filled) {
  # draw outlines
  replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth
