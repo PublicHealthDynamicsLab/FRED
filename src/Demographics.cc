@@ -54,18 +54,18 @@ int Demographics::deaths_today = 0;
 int Demographics::deaths_ytd = 0;
 int Demographics::total_deaths = 0;
 int Demographics::houses = 0;
-int * Demographics::beds = NULL;
-int * Demographics::occupants = NULL;
-std::vector <Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
+int* Demographics::beds = NULL;
+int* Demographics::occupants = NULL;
+std::vector<Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
 std::map<Person*, int> Demographics::birthday_map;
 
-Events * Demographics::conception_queue = new Events;
-Events * Demographics::maternity_queue = new Events;
-Events * Demographics::mortality_queue = new Events;
+Events* Demographics::conception_queue = new Events;
+Events* Demographics::maternity_queue = new Events;
+Events* Demographics::mortality_queue = new Events;
 
 int max_beds = -1;
 int max_occupants = -1;
-std::vector < pair<Person *, int> > ready_to_move;
+std::vector< pair<Person*, int> > ready_to_move;
 
 Demographics::Demographics() {
   this->init_age = -1;
@@ -79,99 +79,95 @@ Demographics::Demographics() {
   this->deceased = false;
   this->relationship = -1;
   this->race = -1;
+  this->number_of_children = -1;
 }
 
-void Demographics::setup( Person * self, short int _age, char _sex, 
-			   short int _race, short int rel, int day, bool is_newborn ) {
+void Demographics::setup(Person* self, short int _age, char _sex,
+			   short int _race, short int rel, int day, bool is_newborn) {
 
   int self_index = self->get_pop_index();
 
   // adjust age for those over 89 (due to binning in the synthetic pop)
-  if (_age > 89) {
+  if(_age > 89) {
     _age = 90;
-    while (age < MAX_AGE && RANDOM() < 0.6) _age++;
+    while(this->age < Demographics::MAX_AGE && RANDOM() < 0.6) _age++;
   }
 
   // set demographic variables
-  init_age            = _age;
-  age                 = init_age;
-  sex                 = _sex;
-  race                = _race;
-  relationship        = rel;
-  deceased_sim_day    = -1;
-  conception_sim_day  = -1;
-  maternity_sim_day         = -1;
-  pregnant            = false;
-  deceased            = false;
-  number_of_children = 0;
+  this->init_age = _age;
+  this->age = this->init_age;
+  this->sex = _sex;
+  this->race = _race;
+  this->relationship = rel;
+  this->deceased_sim_day = -1;
+  this->conception_sim_day = -1;
+  this->maternity_sim_day = -1;
+  this->pregnant = false;
+  this->deceased = false;
+  this->number_of_children = 0;
 
-  if (is_newborn) {
+  if(is_newborn) {
     // today is birthday
-    birthday_sim_day = day;
-  }
-  else {
+    this->birthday_sim_day = day;
+  } else {
     // set the agent's birthday relative to simulation day
-    birthday_sim_day = day - 365*age;
+    this->birthday_sim_day = day - 365 * this->age;
     // adjust for leap years:
-    birthday_sim_day -= (age/4);
+    this->birthday_sim_day -= (this->age / 4);
     // pick a random birthday in the previous year
-    birthday_sim_day -= IRAND(1,365);
+    this->birthday_sim_day -= IRAND(1,365);
   }
 
-  if (Global::Enable_Population_Dynamics) {
+  if(Global::Enable_Population_Dynamics) {
 
     // will this person die in the next year?
     double age_specific_probability_of_death = 0.0;
-    if (Demographics::MAX_AGE <= age) {
+    if(Demographics::MAX_AGE <= this->age) {
       age_specific_probability_of_death = 1.0;
       // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
-    }
-    /*
-    else if (self->is_nursing_home_resident()) {
+    /*} else if (self->is_nursing_home_resident()) {
       age_specific_probability_of_death = 0.25;
-    }
-    */
-    else {
+    }*/
+    } else {
       // look up mortality in the mortality rate tables
-      if (this->sex == 'F') {
-	age_specific_probability_of_death = Demographics::adjusted_female_mortality_rate[age];
-      }
-      else {
-	age_specific_probability_of_death = Demographics::adjusted_male_mortality_rate[age];
+      if(this->sex == 'F') {
+	      age_specific_probability_of_death = Demographics::adjusted_female_mortality_rate[age];
+      } else {
+	      age_specific_probability_of_death = Demographics::adjusted_male_mortality_rate[age];
       }
     }
 
-    if ( RANDOM() <= age_specific_probability_of_death ) {
+    if(RANDOM() <= age_specific_probability_of_death) {
       //Yes, so set the death day (in simulation days)
-      this->deceased_sim_day = (day + IRAND(1,364));
-      Demographics::add_mortality_event(deceased_sim_day, self);
+      this->deceased_sim_day = (day + IRAND(1, 364));
+      Demographics::add_mortality_event(this->deceased_sim_day, self);
       FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
-		  day, self->get_id(),age,deceased_sim_day);
+		    day, self->get_id(), age, deceased_sim_day);
     }
 
     // set pregnancy status
-    if (sex == 'F' && 
-	Demographics::MIN_PREGNANCY_AGE <= age &&
-	age <= Demographics::MAX_PREGNANCY_AGE && 
-	self->lives_in_group_quarters() == false) {
+    if(this->sex == 'F' &&
+	     Demographics::MIN_PREGNANCY_AGE <= age &&
+       this->age <= Demographics::MAX_PREGNANCY_AGE &&
+	     self->lives_in_group_quarters() == false) {
 
       int current_day_of_year = Date::get_day_of_year(day);
-      int days_since_birthday = current_day_of_year - Date::get_day_of_year(birthday_sim_day);
-      if (days_since_birthday < 0) {
-	days_since_birthday += 365;
+      int days_since_birthday = current_day_of_year - Date::get_day_of_year(this->birthday_sim_day);
+      if(days_since_birthday < 0) {
+	      days_since_birthday += 365;
       }
       double frac_of_year = (double) days_since_birthday / 366.0;
 
-      if (RANDOM() < frac_of_year*Demographics::pregnancy_rate[age]) {
-	// already pregnant
-	int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-	conception_sim_day = day - IRAND(1,length_of_pregnancy-1);
-	maternity_sim_day = conception_sim_day + length_of_pregnancy;
-	pregnant = true;
-	Demographics::add_maternity_event(maternity_sim_day, self);
-	FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
-		    day, self->get_id(),age,maternity_sim_day);
-      }
+      if(RANDOM() < frac_of_year * Demographics::pregnancy_rate[age]) {
+	      // already pregnant
+	      int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+	      this->conception_sim_day = day - IRAND(1,length_of_pregnancy-1);
+	      this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
+	      this->pregnant = true;
+	      Demographics::add_maternity_event(this->maternity_sim_day, self);
+	      FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
+		      day, self->get_id(), age, maternity_sim_day);
+       }
     } // end test for pregnancy
   } // end population_dynamics
   if(Global::Enable_Population_Dynamics) {
@@ -183,62 +179,62 @@ Demographics::~Demographics() {
 }
 
 int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
-  int day_of_year = Date::get_day_of_year(birthday_sim_day);
-  int year = Date::get_year(birthday_sim_day);
-  if (Date::is_leap_year(year) && 59 < day_of_year) {
+  int day_of_year = Date::get_day_of_year(this->birthday_sim_day);
+  int year = Date::get_year(this->birthday_sim_day);
+  if(Date::is_leap_year(year) && 59 < day_of_year) {
     day_of_year--;
   }
   return day_of_year;
 }
 
-void Demographics::cancel_conception( Person * self ) {
-  assert(conception_sim_day > -1);
-  Demographics::delete_conception_event(conception_sim_day, self);
+void Demographics::cancel_conception(Person* self) {
+  assert(this->conception_sim_day > -1);
+  Demographics::delete_conception_event(this->conception_sim_day, self);
   FRED_STATUS(0, "CONCEPTION EVENT DELETED\n");
-  conception_sim_day = -1;
+  this->conception_sim_day = -1;
 }
 
-void Demographics::conception_handler( int day, Person * self ) {
+void Demographics::conception_handler(int day, Person* self) {
   self->get_demographics()->become_pregnant(day, self);
 }
 
-void Demographics::become_pregnant( int day, Person * self ) {
+void Demographics::become_pregnant(int day, Person* self) {
   // No pregnancies in group quarters
   if(self->lives_in_group_quarters()) {
     FRED_STATUS(0, "GQ PREVENTS PREGNANCY today %d id %d age %d\n",
 		day, self->get_id(), self->get_age());
-    conception_sim_day = -1;
+    this->conception_sim_day = -1;
     return;
   }
   int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-  maternity_sim_day = conception_sim_day + length_of_pregnancy;
+  this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
   Demographics::add_maternity_event(maternity_sim_day, self);
   FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
 	      day, self->get_id(),age,maternity_sim_day);
-  pregnant = true;
-  conception_sim_day = -1;
+  this->pregnant = true;
+  this->conception_sim_day = -1;
 }
 
 
-void Demographics::cancel_pregnancy( Person * self ) {
+void Demographics::cancel_pregnancy(Person* self ) {
   assert(pregnant == true);
   Demographics::delete_maternity_event(maternity_sim_day, self);
   FRED_STATUS(0, "MATERNITY EVENT DELETED\n");
-  maternity_sim_day = -1;
-  pregnant = false;
+  this->maternity_sim_day = -1;
+  this->pregnant = false;
 }
 
-void Demographics::maternity_handler( int day, Person * self ) {
+void Demographics::maternity_handler(int day, Person* self) {
   // NOTE: This calls Person::give_birth() to create the baby
   self->give_birth(day);
 }
 
-void Demographics::update_birth_stats( int day, Person * self ) {
+void Demographics::update_birth_stats(int day, Person* self) {
   // NOTE: This is called by Person::give_birth() to update stats.
   // The baby is actually created in Person::give_birth()
-  pregnant = false;
-  maternity_sim_day = -1;
-  number_of_children++;
+  this->pregnant = false;
+  this->maternity_sim_day = -1;
+  this->number_of_children++;
   Demographics::births_today++;
   Demographics::births_ytd++;
   Demographics::total_births++;
@@ -251,23 +247,23 @@ void Demographics::update_birth_stats( int day, Person * self ) {
 }
 
 
-void Demographics::mortality_handler( int day, Person * self ) {
+void Demographics::mortality_handler(int day, Person* self ) {
   self->get_demographics()->die(day, self);
 }
 
-void Demographics::die(int day, Person * self) {
+void Demographics::die(int day, Person* self) {
 
   // cancel any planned pregnancy
-  if (day <= conception_sim_day) {
+  if(day <= this->conception_sim_day) {
     printf("DEATH CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
-	   day, self->get_id(), age, conception_sim_day);
+	   day, self->get_id(), this->age, this->conception_sim_day);
     cancel_conception(self);
   }
 
   // cancel any current pregnancy
-  if (pregnant) {
+  if(this->pregnant) {
     printf("DEATH CANCELS PREGNANCY: today %d person %d age %d due %d\n",
-	   day, self->get_id(), age, maternity_sim_day);
+	   day, self->get_id(), this->age, this->maternity_sim_day);
     cancel_pregnancy(self);
   }
 
@@ -283,7 +279,7 @@ void Demographics::die(int day, Person * self) {
     fflush(Global::Deathfp);
   }
   self->die();
-  deceased = true;
+  this->deceased = true;
 
   // remove from the birthday lists
   if(Global::Enable_Population_Dynamics) {
@@ -294,33 +290,32 @@ void Demographics::die(int day, Person * self) {
   Global::Pop.prepare_to_die(day, self);
 }
 
-void Demographics::birthday( Person * self, int day ) {
+void Demographics::birthday(Person* self, int day ) {
 
-  if (Global::Enable_Population_Dynamics == false)
+  if(Global::Enable_Population_Dynamics == false) {
     return;
+  }
 
   FRED_STATUS(2, "birthday entered for person %d with (previous) age %d\n", self->get_id(), self->get_age());
   
   // change age
-  age++;
+  this->age++;
 
   // will this person die in the next year?
   double age_specific_probability_of_death = 0.0;
-  if (Demographics::MAX_AGE <= age) {
+  if(Demographics::MAX_AGE <= this->age) {
     age_specific_probability_of_death = 1.0;
     // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
-  }
   /*
-  else if (self->is_nursing_home_resident()) {
+  } else if (self->is_nursing_home_resident()) {
     age_specific_probability_of_death = 0.25;
   }
   */
-  else {
+  } else {
     // look up mortality in the mortality rate tables
     if (this->sex == 'F') {
       age_specific_probability_of_death = Demographics::adjusted_female_mortality_rate[age];
-    }
-    else {
+    } else {
       age_specific_probability_of_death = Demographics::adjusted_male_mortality_rate[age];
     }
   }
@@ -332,30 +327,29 @@ void Demographics::birthday( Person * self, int day ) {
     Demographics::add_mortality_event(deceased_sim_day, self);
     FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
 		day, self->get_id(),age,deceased_sim_day);
-  }
-  else {
+  } else {
     FRED_STATUS(2, "SURVIVER: AGE %d deceased_sim_day = %d\n", age, this->deceased_sim_day);
   }
   
   // Will this person conceive in the coming year year?
-  if (sex == 'F' && 
-      Demographics::MIN_PREGNANCY_AGE <= age &&
-      age <= Demographics::MAX_PREGNANCY_AGE && 
-      conception_sim_day == -1 && maternity_sim_day == -1 &&
+  if(this->sex == 'F' &&
+      Demographics::MIN_PREGNANCY_AGE <= this->age &&
+      this->age <= Demographics::MAX_PREGNANCY_AGE &&
+      this->conception_sim_day == -1 && this->maternity_sim_day == -1 &&
       self->lives_in_group_quarters() == false &&
-      RANDOM() < Demographics::pregnancy_rate[age]) {
+      RANDOM() < Demographics::pregnancy_rate[this->age]) {
     
-    assert(pregnant == false);
+    assert(this->pregnant == false);
     
     // ignore small distortion due to leap years
-    conception_sim_day = day + IRAND( 1, 365 );
-    Demographics::add_conception_event(conception_sim_day, self);
+    this->conception_sim_day = day + IRAND( 1, 365 );
+    Demographics::add_conception_event(this->conception_sim_day, self);
     FRED_STATUS(1, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
 		day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
   }
 
   // become responsible for health decisions when reaching adulthood
-  if ( age == Global::ADULT_AGE && self->is_health_decision_maker() == false) {
+  if(this->age == Global::ADULT_AGE && self->is_health_decision_maker() == false) {
     FRED_STATUS( 2, "become_health_decision_maker\n");
     self->become_health_decision_maker(self);
   }
@@ -367,7 +361,7 @@ void Demographics::print() {
 }
 
 double Demographics::get_real_age() const {
-  return double( Global::Simulation_Day - birthday_sim_day ) / 365.25;
+  return double(Global::Simulation_Day - this->birthday_sim_day) / 365.25;
 }
 
 //////// Static Methods
@@ -376,8 +370,8 @@ vector <int> fips_codes;
 
 int find_fips_code(int n) {
   int size = fips_codes.size();
-  for (int i = 0; i < size; i++) {
-    if (fips_codes[i] == n) {
+  for(int i = 0; i < size; ++i) {
+    if(fips_codes[i] == n) {
       return i;
     }
   }
@@ -386,16 +380,19 @@ int find_fips_code(int n) {
 
 void Demographics::initialize_static_variables() {
 
-  if ( Demographics::is_initialized ) { return; }
+  if(Demographics::is_initialized ) {
+    return;
+  }
   Demographics::is_initialized = true;
 
-  if (Global::Enable_Population_Dynamics == false)
+  if(Global::Enable_Population_Dynamics == false) {
     return;
+  }
 
   char mortality_rate_file[FRED_STRING_SIZE];
   char birth_rate_file[FRED_STRING_SIZE];
 
-  if (Global::Verbose) {
+  if(Global::Verbose) {
     fprintf(Global::Statusfp, "Demographics::initialize_static_variables() entered\n");
     fflush(Global::Statusfp);
   }
@@ -411,12 +408,12 @@ void Demographics::initialize_static_variables() {
   Params::get_param_from_string("adult_home_departure_rate", &(Demographics::adult_home_departure_rate));
   
   // initialize the birth rate array
-  for (int j = 0; j <= Demographics::MAX_AGE; j++) {
+  for(int j = 0; j <= Demographics::MAX_AGE; ++j) {
     Demographics::birth_rate[j] = 0.0;
   }
 
   // read the birth rates
-  FILE *fp = NULL;
+  FILE* fp = NULL;
   fp = Utils::fred_open_file(birth_rate_file);
   if (fp == NULL) {
     fprintf(Global::Statusfp, "Demographics birth_rate_file %s not found\n", birth_rate_file);
@@ -424,27 +421,27 @@ void Demographics::initialize_static_variables() {
   }
   int age;
   double rate;
-  while (fscanf(fp, "%d %lf", &age, &rate) == 2) {
-    if (age >= 0 && age <= Demographics::MAX_AGE) {
-      birth_rate[age] = rate;
+  while(fscanf(fp, "%d %lf", &age, &rate) == 2) {
+    if(age >= 0 && age <= Demographics::MAX_AGE) {
+      Demographics::birth_rate[age] = rate;
     }
   }
   fclose(fp);
-  if (Global::Verbose) {
+  if(Global::Verbose) {
     fprintf(Global::Statusfp, "finished reading birth_rate_file = %s\n", birth_rate_file);
     fflush(Global::Statusfp);
   }
 
   // set up pregnancy rates
-  for (int i = 0; i < Demographics::MAX_AGE; i++) {
+  for(int i = 0; i < Demographics::MAX_AGE; ++i) {
     // approx 3/4 of pregnancies deliver at the next age of the mother
     Demographics::pregnancy_rate[i] =
       0.25 * Demographics::birth_rate[i] + 0.75 * Demographics::birth_rate[i+1];
   }
   Demographics::pregnancy_rate[Demographics::MAX_AGE] = 0.0;
 
-  if (Global::Verbose) {
-    for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+  if(Global::Verbose) {
+    for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
       fprintf(Global::Statusfp, "BIRTH RATE     for age %d %e\n", i, birth_rate[i]);
       fprintf(Global::Statusfp, "PREGNANCY RATE for age %d %e\n", i, pregnancy_rate[i]);
     }
@@ -452,30 +449,30 @@ void Demographics::initialize_static_variables() {
 
   // read mortality rate file
   fp = Utils::fred_open_file(mortality_rate_file);
-  if (fp == NULL) {
+  if(fp == NULL) {
     fprintf(Global::Statusfp, "Demographic mortality_rate %s not found\n", mortality_rate_file);
     exit(1);
   }
-  for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     int age;
     double female_rate;
     double male_rate;
-    if (fscanf(fp, "%d %lf %lf", &age, &female_rate, &male_rate) != 3) {
+    if(fscanf(fp, "%d %lf %lf", &age, &female_rate, &male_rate) != 3) {
       Utils::fred_abort("Help! Read failure for age %d\n", i); 
     }
-    if (Global::Verbose) {
+    if(Global::Verbose) {
       fprintf(Global::Statusfp, "MORTALITY RATE for age %d: female: %e male: %e\n", age, female_rate, male_rate);
     }
     Demographics::female_mortality_rate[i] = female_rate;
     Demographics::male_mortality_rate[i] = male_rate;
   }
   fclose(fp);
-  if (Global::Verbose) {
+  if(Global::Verbose) {
     fprintf(Global::Statusfp, "finished reading mortality_rate_file = %s\n", mortality_rate_file);
     fflush(Global::Statusfp);
   }
 
-  for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     Demographics::adjusted_female_mortality_rate[i] = Demographics::female_mortality_rate[i];
     Demographics::adjusted_male_mortality_rate[i] = Demographics::male_mortality_rate[i];
   }
@@ -487,7 +484,7 @@ void Demographics::initialize_static_variables() {
     Demographics::birthday_vecs[i].clear();
   }
 
-  if (Global::Verbose) {
+  if(Global::Verbose) {
     fprintf(Global::Statusfp, "Demographics::initialize_static_vars finished\n"); fflush(Global::Statusfp);
   }
 }
@@ -557,18 +554,18 @@ void Demographics::update_population_dynamics(int day) {
   Global::Pop.get_age_distribution(count_males_by_age, count_females_by_age);
 
   // get total age distribution
-  for (int a = 0; a <= Demographics::MAX_AGE; a++) {
+  for(int a = 0; a <= Demographics::MAX_AGE; ++a) {
     count_by_age[a] = count_males_by_age[a] + count_females_by_age[a];
   }
 
   // compute projected number of births for coming year
   double projected_births = 0;
-  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     projected_births += Demographics::birth_rate[i] * count_females_by_age[i];
   }
   // compute projected number of deaths for coming year
   double projected_deaths = 0;
-  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     projected_deaths += Demographics::male_mortality_rate[i] * count_males_by_age[i];
     projected_deaths += Demographics::female_mortality_rate[i] * count_females_by_age[i];
   }
@@ -586,17 +583,21 @@ void Demographics::update_population_dynamics(int day) {
   // find the adjustment level that will achieve the target population, if possible.
   // Note: a value of 0.5 will leave birth and death rates as they are.
   double adjustment_factor = 0.5;
-  if (Demographics::control_population_growth_rate == 1 && projected_range > 0) {
+  if(Demographics::control_population_growth_rate == 1 && projected_range > 0) {
     adjustment_factor = (Demographics::target_popsize - min_projected_popsize) / projected_range;
   }
 
   // adjustment_factor = 1 means that births are doubled and deaths are eliminated.
   // the resulting population size will be max_projected_popsize.
-  if (adjustment_factor > 1.0) adjustment_factor = 1.0;
+  if(adjustment_factor > 1.0) {
+    adjustment_factor = 1.0;
+  }
 
   // adjustment_factor = 0 means that deaths are doubled and births are eliminated.
   // the resulting population size will be min_projected_popsize.
-  if (adjustment_factor < 0.0) adjustment_factor = 0.0;
+  if(adjustment_factor < 0.0) {
+    adjustment_factor = 0.0;
+  }
 
   // set birth_rate_adjustment to between 0 and 2, increasing linearly with adjustment_factor
   double birth_rate_adjustment = 2.0 * adjustment_factor;
@@ -604,14 +605,14 @@ void Demographics::update_population_dynamics(int day) {
   // set death_rate_adjustment to between 2 and 0, decreasing linearly with adjustment_factor
   double death_rate_adjustment = 2.0 * (1.0 - adjustment_factor);
 
-  for (int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     Demographics::adjusted_female_mortality_rate[i] = death_rate_adjustment * Demographics::female_mortality_rate[i];
     Demographics::adjusted_male_mortality_rate[i] = death_rate_adjustment * Demographics::male_mortality_rate[i];
     Demographics::adjusted_birth_rate[i] = birth_rate_adjustment * Demographics::birth_rate[i];
   }
 
   // adjust pregnancy rates
-  for (int i = 0; i < Demographics::MAX_AGE; i++) {
+  for(int i = 0; i < Demographics::MAX_AGE; ++i) {
     // approx 3/4 of pregnancies deliver at the next age of the mother
     Demographics::pregnancy_rate[i] =
       0.25 * Demographics::adjusted_birth_rate[i] + 0.75 * Demographics::adjusted_birth_rate[i+1];
@@ -620,13 +621,13 @@ void Demographics::update_population_dynamics(int day) {
 
   // projected number of births for coming year
   projected_births = 0;
-  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     projected_births += Demographics::adjusted_birth_rate[i] * count_females_by_age[i];
   }
 
   // projected number of deaths for coming year
   projected_deaths = 0;
-  for(int i = 0; i <= Demographics::MAX_AGE; i++) {
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     projected_deaths += Demographics::adjusted_male_mortality_rate[i] * count_males_by_age[i];
     projected_deaths += Demographics::adjusted_female_mortality_rate[i] * count_females_by_age[i];
   }
@@ -648,63 +649,69 @@ void Demographics::update_population_dynamics(int day) {
 void Demographics::get_housing_imbalance(int day) {
   Global::Places.get_housing_data(beds, occupants);
   int imbalance = 0;
-  for (int i = 0; i < houses; i++) {
+  for (int i = 0; i < Demographics::houses; ++i) {
     // skip group quarters
-    Place * houseptr = Global::Places.get_household(i);
+    Place* houseptr = Global::Places.get_household(i);
     if (houseptr->is_group_quarters()) continue;
-    imbalance += abs(beds[i] - occupants[i]);
+    imbalance += abs(Demographics::beds[i] - Demographics::occupants[i]);
   }
-  printf("DAY %d HOUSING: houses = %d, imbalance = %d\n", day, houses, imbalance);
+  printf("DAY %d HOUSING: houses = %d, imbalance = %d\n", day, Demographics::houses, imbalance);
 }
 
 int Demographics::fill_vacancies(int day) {
   // move ready_to_moves into underfilled units
   int moved = 0;
-  if (ready_to_move.size() > 0) {
+  if(ready_to_move.size() > 0) {
     // first focus on the empty units
-    for (int newhouse = 0; newhouse < houses; newhouse++) {
-      if (occupants[newhouse] > 0) continue;
-      int vacancies = beds[newhouse] - occupants[newhouse];
-      if (vacancies > 0) {
-	Place * houseptr = Global::Places.get_household(newhouse);
-	// skip group quarters
-	if (houseptr->is_group_quarters()) continue;
-	for (int j = 0; (j < vacancies) && (ready_to_move.size() > 0); j++) {
-	  Person * person = ready_to_move.back().first;
-	  int oldhouse = ready_to_move.back().second;
-	  Place * ohouseptr = Global::Places.get_household(oldhouse);
-	  ready_to_move.pop_back();
-	  if (ohouseptr->is_group_quarters() || (occupants[oldhouse]-beds[oldhouse] > 0)) {
-	    // move person to new home
-	    person->move_to_new_house(houseptr);
-	    occupants[oldhouse]--;
-	    occupants[newhouse]++;
-	    moved++;
-	  }
-	}
+    for (int newhouse = 0; newhouse < houses; ++newhouse) {
+      if(Demographics::occupants[newhouse] > 0) {
+        continue;
+      }
+      int vacancies = Demographics::beds[newhouse] - Demographics::occupants[newhouse];
+      if(vacancies > 0) {
+	      Place* houseptr = Global::Places.get_household(newhouse);
+	      // skip group quarters
+	      if(houseptr->is_group_quarters()) {
+	        continue;
+	      }
+	      for(int j = 0; (j < vacancies) && (ready_to_move.size() > 0); ++j) {
+	        Person* person = ready_to_move.back().first;
+	        int oldhouse = ready_to_move.back().second;
+	        Place* ohouseptr = Global::Places.get_household(oldhouse);
+	        ready_to_move.pop_back();
+	        if(ohouseptr->is_group_quarters() || (Demographics::occupants[oldhouse] - Demographics::beds[oldhouse] > 0)) {
+	          // move person to new home
+	          person->move_to_new_house(houseptr);
+	          Demographics::occupants[oldhouse]--;
+	          Demographics::occupants[newhouse]++;
+	          moved++;
+	        }
+	      }
       }
     }
 
     // now consider any vacancy
-    for (int newhouse = 0; newhouse < houses; newhouse++) {
-      int vacancies = beds[newhouse] - occupants[newhouse];
-      if (vacancies > 0) {
-	Place * houseptr = Global::Places.get_household(newhouse);
-	// skip group quarters
-	if (houseptr->is_group_quarters()) continue;
-	for (int j = 0; (j < vacancies) && (ready_to_move.size() > 0); j++) {
-	  Person * person = ready_to_move.back().first;
-	  int oldhouse = ready_to_move.back().second;
-	  Place * ohouseptr = Global::Places.get_household(oldhouse);
-	  ready_to_move.pop_back();
-	  if (ohouseptr->is_group_quarters() || (occupants[oldhouse]-beds[oldhouse] > 0)) {
-	    // move person to new home
-	    person->move_to_new_house(houseptr);
-	    occupants[oldhouse]--;
-	    occupants[newhouse]++;
-	    moved++;
-	  }
-	}
+    for(int newhouse = 0; newhouse < Demographics::houses; ++newhouse) {
+      int vacancies = beds[newhouse] - Demographics::occupants[newhouse];
+      if(vacancies > 0) {
+	      Place* houseptr = Global::Places.get_household(newhouse);
+	      // skip group quarters
+	      if(houseptr->is_group_quarters()) {
+	        continue;
+	      }
+	      for(int j = 0; (j < vacancies) && (ready_to_move.size() > 0); ++j) {
+	        Person* person = ready_to_move.back().first;
+	        int oldhouse = ready_to_move.back().second;
+	        Place* ohouseptr = Global::Places.get_household(oldhouse);
+	        ready_to_move.pop_back();
+	        if(ohouseptr->is_group_quarters() || (Demographics::occupants[oldhouse] - Demographics::beds[oldhouse] > 0)) {
+	          // move person to new home
+	          person->move_to_new_house(houseptr);
+	          Demographics::occupants[oldhouse]--;
+	          Demographics::occupants[newhouse]++;
+	          moved++;
+	        }
+	      }
       }
     }
   }
@@ -713,23 +720,27 @@ int Demographics::fill_vacancies(int day) {
 
 void Demographics::update_housing(int day) {
 
-  if (day == 0) {
+  if(day == 0) {
     // initialize house data structures
     Demographics::houses = Global::Places.get_number_of_households();
-    Demographics::beds = new int[houses];
-    Demographics::occupants = new int[houses];
+    Demographics::beds = new int[Demographics::houses];
+    Demographics::occupants = new int[Demographics::houses];
     Demographics::target_popsize = Global::Pop.get_pop_size();
   }
 
   // reserve ready_to_move vector:
   ready_to_move.reserve(Global::Pop.get_pop_size());
 
-  Global::Places.get_housing_data(beds, occupants);
+  Global::Places.get_housing_data(Demographics::beds, Demographics::occupants);
   max_beds = -1;
   max_occupants = -1;
-  for (int i = 0; i < houses; i++) {
-    if (beds[i] > max_beds) max_beds = beds[i];
-    if (occupants[i] > max_occupants) max_occupants = occupants[i];
+  for(int i = 0; i < Demographics::houses; ++i) {
+    if(Demographics::beds[i] > max_beds) {
+      max_beds = Demographics::beds[i];
+    }
+    if(Demographics::occupants[i] > max_occupants) {
+      max_occupants = Demographics::occupants[i];
+    }
   }
   // printf("DAY %d HOUSING: houses = %d, max_beds = %d max_occupants = %d\n",
   // day, houses, max_beds, max_occupants);
@@ -775,19 +786,19 @@ void Demographics::move_college_students_out_of_dorms(int day) {
   ready_to_move.clear();
   int college = 0;
   // find students ready to move off campus
-  for (int i = 0; i < houses; i++) {
+  for(int i = 0; i < Demographics::houses; ++i) {
     Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_college()) {
+    if(house->is_college()) {
       int hsize = house->get_size();
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	// printf("PERSON %d LIVES IN COLLEGE DORM %s\n", person->get_id(), house->get_label());
-	assert(person->is_college_dorm_resident());
-	college++;
-	// some college students leave each year
-	if (RANDOM() < Demographics::college_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      // printf("PERSON %d LIVES IN COLLEGE DORM %s\n", person->get_id(), house->get_label());
+	      assert(person->is_college_dorm_resident());
+	      college++;
+	      // some college students leave each year
+	      if(RANDOM() < Demographics::college_departure_rate) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -806,57 +817,61 @@ void Demographics::move_college_students_into_dorms(int day) {
   // find vacant doom rooms
   std::vector<int>dorm_rooms;
   dorm_rooms.clear();
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_college()) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_college()) {
       int vacancies = house->get_orig_size() - house->get_size();
-      for (int j = 0; j < vacancies; j++) { dorm_rooms.push_back(i); }
+      for(int j = 0; j < vacancies; ++j) {
+        dorm_rooms.push_back(i);
+      }
       college += house->get_size();
     }
   }
   int dorm_vacancies = (int)dorm_rooms.size();
   // printf("COLLEGE COUNT %d VACANCIES %d\n", college, dorm_vacancies);
-  if (dorm_vacancies == 0) {
+  if(dorm_vacancies == 0) {
     printf("NO COLLEGE VACANCIES FOUND\n");
     return;
   }
 
   // find students to fill the dorms
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_group_quarters()==false) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_group_quarters() == false) {
       int hsize = house->get_size();
-      if (hsize <= house->get_orig_size()) continue;
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	int age = person->get_age();
-	if (18 < age && age < 40 && person->get_number_of_children() == 0) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      if(hsize <= house->get_orig_size()) {
+        continue;
+      }
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      int age = person->get_age();
+	      if(18 < age && age < 40 && person->get_number_of_children() == 0) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("COLLEGE APPLICANTS %d\n", (int)ready_to_move.size());
 
-  if (ready_to_move.size() == 0) {
+  if(ready_to_move.size() == 0) {
     printf("NO COLLEGE APPLICANTS FOUND\n");
     return;
   }
 
   // shuffle the applicants
-  FYShuffle< pair<Person *, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(ready_to_move);
 
   // pick the top of the list to move into dorms
-  for (int i = 0; i < dorm_vacancies && ready_to_move.size() > 0; i++) {
+  for(int i = 0; i < dorm_vacancies && ready_to_move.size() > 0; ++i) {
     int newhouse = dorm_rooms[i];
-    Place * houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = Global::Places.get_household(newhouse);
     /*
       printf("VACANT DORM %s ORIG %d SIZE %d\n", houseptr->get_label(),
       houseptr->get_orig_size(),houseptr->get_size());
     */
-    Person * person = ready_to_move.back().first;
+    Person* person = ready_to_move.back().first;
     int oldhouse = ready_to_move.back().second;
-    Place * ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = Global::Places.get_household(oldhouse);
     ready_to_move.pop_back();
     // move person to new home
     /*
@@ -865,11 +880,11 @@ void Demographics::move_college_students_into_dorms(int day) {
       ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
     */
     person->move_to_new_house(houseptr);
-    occupants[oldhouse]--;
-    occupants[newhouse]++;
+    Demographics::occupants[oldhouse]--;
+    Demographics::occupants[newhouse]++;
     moved++;
   }
-  printf("DAY %d ACCEPTED %d COLLEGE STUDENTS, CURRENT = %d  MAX = %d\n",day,moved, college+moved, college+dorm_vacancies);
+  printf("DAY %d ACCEPTED %d COLLEGE STUDENTS, CURRENT = %d  MAX = %d\n", day, moved, college+moved, college + dorm_vacancies);
 }
 
 void Demographics::move_military_personnel_out_of_barracks(int day) {
@@ -877,19 +892,19 @@ void Demographics::move_military_personnel_out_of_barracks(int day) {
   ready_to_move.clear();
   int military = 0;
   // find military personnel to discharge
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_military_base()) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_military_base()) {
       int hsize = house->get_size();
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	// printf("PERSON %d LIVES IN MILITARY BARRACKS %s\n", person->get_id(), house->get_label());
-	assert(person->is_military_base_resident());
-	military++;
-	// some military leave each each year
-	if (RANDOM() < Demographics::military_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      // printf("PERSON %d LIVES IN MILITARY BARRACKS %s\n", person->get_id(), house->get_label());
+	      assert(person->is_military_base_resident());
+	      military++;
+	      // some military leave each each year
+	      if(RANDOM() < Demographics::military_departure_rate) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -907,63 +922,65 @@ void Demographics::move_military_personnel_into_barracks(int day) {
   // find unfilled barracks units
   std::vector<int>barracks_units;
   barracks_units.clear();
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_military_base()) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_military_base()) {
       int vacancies = house->get_orig_size() - house->get_size();
-      for (int j = 0; j < vacancies; j++) { barracks_units.push_back(i); }
+      for (int j = 0; j < vacancies; ++j) {
+        barracks_units.push_back(i);
+      }
       military += house->get_size();
     }
   }
   int barracks_vacancies = (int)barracks_units.size();
   // printf("MILITARY VACANCIES %d\n", barracks_vacancies);
-  if (barracks_vacancies == 0) {
+  if(barracks_vacancies == 0) {
     printf("NO MILITARY VACANCIES FOUND\n");
     return;
   }
 
   // find recruits to fill the dorms
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_group_quarters()==false) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_group_quarters()==false) {
       int hsize = house->get_size();
-      if (hsize <= house->get_orig_size()) continue;
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	int age = person->get_age();
-	if (18 < age && age < 40 && person->get_number_of_children() == 0) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      if(hsize <= house->get_orig_size()) continue;
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      int age = person->get_age();
+	      if(18 < age && age < 40 && person->get_number_of_children() == 0) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("MILITARY RECRUITS %d\n", (int)ready_to_move.size());
 
-  if (ready_to_move.size() == 0) {
+  if(ready_to_move.size() == 0) {
     printf("NO MILITARY RECRUITS FOUND\n");
     return;
   }
 
   // shuffle the recruits
-  FYShuffle< pair<Person *, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(ready_to_move);
 
   // pick the top of the list to move into dorms
-  for (int i = 0; i < barracks_vacancies && ready_to_move.size() > 0; i++) {
+  for(int i = 0; i < barracks_vacancies && ready_to_move.size() > 0; ++i) {
     int newhouse = barracks_units[i];
-    Place * houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED BARRACKS %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
-    Person * person = ready_to_move.back().first;
+    Person* person = ready_to_move.back().first;
     int oldhouse = ready_to_move.back().second;
-    Place * ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = Global::Places.get_household(oldhouse);
     ready_to_move.pop_back();
     // move person to new home
     // printf("RECRUIT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
     // person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
     // ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
     person->move_to_new_house(houseptr);
-    occupants[oldhouse]--;
-    occupants[newhouse]++;
+    Demographics::occupants[oldhouse]--;
+    Demographics::occupants[newhouse]++;
     moved++;
   }
   printf("DAY %d ADDED %d MILITARY, CURRENT = %d  MAX = %d\n",day,moved,military+moved,military+barracks_vacancies);
@@ -974,19 +991,19 @@ void Demographics::move_inmates_out_of_prisons(int day) {
   ready_to_move.clear();
   int prisoners = 0;
   // find former prisoners still in jail
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_prison()) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_prison()) {
       int hsize = house->get_size();
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	// printf("PERSON %d LIVES IN PRISON %s\n", person->get_id(), house->get_label());
-	assert(person->is_prisoner());
-	prisoners++;
-	// some prisoners get out each year
-	if (RANDOM() < Demographics::prison_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      // printf("PERSON %d LIVES IN PRISON %s\n", person->get_id(), house->get_label());
+	      assert(person->is_prisoner());
+	      prisoners++;
+	      // some prisoners get out each year
+	      if(RANDOM() < Demographics::prison_departure_rate) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -1004,63 +1021,65 @@ void Demographics::move_inmates_into_prisons(int day) {
   // find unfilled jail_cell units
   std::vector<int>jail_cell_units;
   jail_cell_units.clear();
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_prison()) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_prison()) {
       int vacancies = house->get_orig_size() - house->get_size();
-      for (int j = 0; j < vacancies; j++) { jail_cell_units.push_back(i); }
+      for(int j = 0; j < vacancies; ++j) {
+        jail_cell_units.push_back(i);
+      }
       prisoners += house->get_size();
     }
   }
   int jail_cell_vacancies = (int)jail_cell_units.size();
   // printf("PRISON VACANCIES %d\n", jail_cell_vacancies);
-  if (jail_cell_vacancies == 0) {
+  if(jail_cell_vacancies == 0) {
     printf("NO PRISON VACANCIES FOUND\n");
     return;
   }
 
   // find inmates to fill the jail_cells
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_group_quarters()==false) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_group_quarters()==false) {
       int hsize = house->get_size();
-      if (hsize <= house->get_orig_size()) continue;
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	int age = person->get_age();
-	if ((18 < age && person->get_number_of_children() == 0) || (age < 50)) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      if(hsize <= house->get_orig_size()) continue;
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      int age = person->get_age();
+	      if((18 < age && person->get_number_of_children() == 0) || (age < 50)) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("PRISON POSSIBLE INMATES %d\n", (int)ready_to_move.size());
 
-  if (ready_to_move.size() == 0) {
+  if(ready_to_move.size() == 0) {
     printf("NO INMATES FOUND\n");
     return;
   }
 
   // shuffle the inmates
-  FYShuffle< pair<Person *, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(ready_to_move);
 
   // pick the top of the list to move into dorms
-  for (int i = 0; i < jail_cell_vacancies && ready_to_move.size() > 0; i++) {
+  for(int i = 0; i < jail_cell_vacancies && ready_to_move.size() > 0; ++i) {
     int newhouse = jail_cell_units[i];
-    Place * houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED JAIL_CELL %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
-    Person * person = ready_to_move.back().first;
+    Person* person = ready_to_move.back().first;
     int oldhouse = ready_to_move.back().second;
-    Place * ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = Global::Places.get_household(oldhouse);
     ready_to_move.pop_back();
     // move person to new home
     // printf("INMATE %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
     // person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
     // ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
     person->move_to_new_house(houseptr);
-    occupants[oldhouse]--;
-    occupants[newhouse]++;
+    Demographics::occupants[oldhouse]--;
+    Demographics::occupants[newhouse]++;
     moved++;
   }
   printf("DAY %d ADDED %d PRISONERS, CURRENT = %d  MAX = %d\n",day,moved,prisoners+moved,prisoners+jail_cell_vacancies);
@@ -1076,50 +1095,52 @@ void Demographics::move_patients_into_nursing_homes(int day) {
   // find unfilled nursing_home units
   std::vector<int>nursing_home_units;
   nursing_home_units.clear();
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
     if (house->is_nursing_home()) {
       int vacancies = house->get_orig_size() - house->get_size();
-      for (int j = 0; j < vacancies; j++) { nursing_home_units.push_back(i); }
+      for (int j = 0; j < vacancies; ++j) { nursing_home_units.push_back(i); }
       nursing_home_residents += house->get_size();;
       beds += house->get_orig_size();
     }
   }
   int nursing_home_vacancies = (int)nursing_home_units.size();
   // printf("NURSING HOME VACANCIES %d\n", nursing_home_vacancies);
-  if (nursing_home_vacancies == 0) {
-    printf("DAY %d ADDED %d NURSING HOME PATIENTS, TOTAL NOW %d BEDS = %d\n",day,0,nursing_home_residents,beds);
+  if(nursing_home_vacancies == 0) {
+    printf("DAY %d ADDED %d NURSING HOME PATIENTS, TOTAL NOW %d BEDS = %d\n", day, 0, nursing_home_residents, beds);
     return;
   }
 
   // find patients to fill the nursing_homes
-  for (int i = 0; i < houses; i++) {
-    Household * house = Global::Places.get_household_ptr(i);
-    if (house->is_group_quarters()==false) {
+  for(int i = 0; i < Demographics::houses; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    if(house->is_group_quarters()==false) {
       int hsize = house->get_size();
-      if (hsize <= house->get_orig_size()) continue;
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	int age = person->get_age();
-	if (60 <= age) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      if(hsize <= house->get_orig_size()) {
+        continue;
+      }
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      int age = person->get_age();
+	      if(60 <= age) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("NURSING HOME POSSIBLE PATIENTS %d\n", (int)ready_to_move.size());
 
   // shuffle the patients
-  FYShuffle< pair<Person *, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(ready_to_move);
 
   // pick the top of the list to move into nursing_home
-  for (int i = 0; i < nursing_home_vacancies && ready_to_move.size() > 0; i++) {
+  for(int i = 0; i < nursing_home_vacancies && ready_to_move.size() > 0; ++i) {
     int newhouse = nursing_home_units[i];
-    Place * houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED NURSING_HOME UNIT %s ORIG %d SIZE %d\n", houseptr->get_label(),houseptr->get_orig_size(),houseptr->get_size());
-    Person * person = ready_to_move.back().first;
+    Person* person = ready_to_move.back().first;
     int oldhouse = ready_to_move.back().second;
-    Place * ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = Global::Places.get_household(oldhouse);
     ready_to_move.pop_back();
     // move person to new home
     /*
@@ -1128,8 +1149,8 @@ void Demographics::move_patients_into_nursing_homes(int day) {
 	   ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
     */
     person->move_to_new_house(houseptr);
-    occupants[oldhouse]--;
-    occupants[newhouse]++;
+    Demographics::occupants[oldhouse]--;
+    Demographics::occupants[newhouse]++;
     moved++;
   }
   printf("DAY %d ADDED %d NURSING HOME PATIENTS, CURRENT = %d  MAX = %d\n",day,moved,nursing_home_residents+moved,beds);
@@ -1140,19 +1161,19 @@ void Demographics::move_young_adults(int day) {
   ready_to_move.clear();
 
   // find young adults in overfilled units who are ready to move out
-  for (int i = 0; i < houses; i++) {
-    if (occupants[i] > beds[i]) {
-      Household * house = Global::Places.get_household_ptr(i);
+  for(int i = 0; i < Demographics::houses; ++i) {
+    if(Demographics::occupants[i] > Demographics::beds[i]) {
+      Household* house = Global::Places.get_household_ptr(i);
       int hsize = house->get_size();
-      for (int j = 0; j < hsize; j++) {
-	Person * person = house->get_housemate(j);
-	int age = person->get_age();
-	if (18 <= age && age < 30) {
-	  if (RANDOM() < Demographics::youth_home_departure_rate) {
-	    ready_to_move.push_back(make_pair(person,i));
-	    // printf("READY: PERSON %d AGE %d OLDHOUSE %d\n", person->get_id(), person->get_age(),i);
-	  }
-	}
+      for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_housemate(j);
+	      int age = person->get_age();
+	      if(18 <= age && age < 30) {
+	        if(RANDOM() < Demographics::youth_home_departure_rate) {
+	          ready_to_move.push_back(make_pair(person,i));
+	          // printf("READY: PERSON %d AGE %d OLDHOUSE %d\n", person->get_id(), person->get_age(),i);
+	        }
+	      }
       }
     }
   }
@@ -1167,27 +1188,29 @@ void Demographics::move_older_adults(int day) {
   ready_to_move.clear();
 
   // find older adults in overfilled units
-  for (int i = 0; i < houses; i++) {
-    int excess = occupants[i] - beds[i];
-    if (excess > 0) {
-      Household * house = Global::Places.get_household_ptr(i);
+  for(int i = 0; i < Demographics::houses; ++i) {
+    int excess = Demographics::occupants[i] - Demographics::beds[i];
+    if(excess > 0) {
+      Household* house = Global::Places.get_household_ptr(i);
       // find the oldest person in the house
       int hsize = house->get_size();
       int max_age = -1;
       int pos = -1;
       int adults = 0;
-      for (int j = 0; j < hsize; j++) {
-	int age = house->get_housemate(j)->get_age();
-	if (age > max_age) {
-	  max_age = age; pos = j;
-	}
-	if (age > 20) adults++;
+      for(int j = 0; j < hsize; ++j) {
+	      int age = house->get_housemate(j)->get_age();
+	      if(age > max_age) {
+	        max_age = age; pos = j;
+	      }
+	      if(age > 20) {
+	        adults++;
+	      }
       }
-      if (adults > 1) {
-	Person * person = house->get_housemate(pos);
-	if (RANDOM() < Demographics::adult_home_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+      if(adults > 1) {
+	      Person* person = house->get_housemate(pos);
+	      if(RANDOM() < Demographics::adult_home_departure_rate) {
+	        ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -1197,11 +1220,11 @@ void Demographics::move_older_adults(int day) {
 }
 
 void Demographics::report_ages(int day, int house_id) {
-  Household * house = Global::Places.get_household_ptr(house_id);
+  Household* house = Global::Places.get_household_ptr(house_id);
   printf("HOUSE %d BEDS %d OCC %d AGES ",
-	 house->get_id(), beds[house_id], occupants[house_id]);
+	 house->get_id(), Demographics::beds[house_id], Demographics::occupants[house_id]);
   int hsize = house->get_size();
-  for (int j = 0; j < hsize; j++) {
+  for(int j = 0; j < hsize; ++j) {
     int age = house->get_housemate(j)->get_age();
     printf("%d ", age);
   }
@@ -1215,39 +1238,46 @@ void Demographics::swap_houses(int day) {
   printf("SWAP HOUSES =======================\n");
 
   // two-dim array of vectors of imbalanced houses
-  HouselistT ** houselist;
-  houselist = new HouselistT * [13];
-  for (int i = 0; i < 13; i++) {
+  HouselistT** houselist;
+  houselist = new HouselistT* [13];
+  for(int i = 0; i < 13; ++i) {
     houselist[i] = new HouselistT [13];
-    for (int j = 0; j < 13; j++) {
+    for(int j = 0; j < 13; ++j) {
       houselist[i][j].clear();
     }
   }
-  for (int i = 0; i < houses; i++) {
+  for(int i = 0; i < Demographics::houses; ++i) {
     // skip group quarters
-    if (Global::Places.get_household(i)->is_group_quarters()) continue;
-    int b = beds[i];
-    if (b > 12) b = 12;
-    int occ = occupants[i];
-    if (occ > 12) occ = 12;
-    if (b != occ)
+    if(Global::Places.get_household(i)->is_group_quarters()) {
+      continue;
+    }
+    int b = Demographics::beds[i];
+    if(b > 12) {
+      b = 12;
+    }
+    int occ = Demographics::occupants[i];
+    if(occ > 12) {
+      occ = 12;
+    }
+    if(b != occ) {
       houselist[b][occ].push_back(i);
+    }
   }
 
   // find complementary pairs (beds=i,occ=j) and (beds=j,occ=i)
-  for (int i = 1; i < 10; i++) {
-    for (int j = i+1; j < 10; j++) {
-      while (houselist[i][j].size() > 0 && houselist[j][i].size() > 0) {
-	int hi = houselist[i][j].back();
-	houselist[i][j].pop_back();
-	int hj = houselist[j][i].back();
-	houselist[j][i].pop_back();
-	// swap houses hi and hj
-	// printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
-	Global::Places.swap_houses(hi, hj);
-	occupants[hi] = i;
-	occupants[hj] = j;
-	// printf("AFTER:\n"); report_ages(day,hi); report_ages(day,hj);
+  for(int i = 1; i < 10; ++i) {
+    for(int j = i+1; j < 10; ++j) {
+      while(houselist[i][j].size() > 0 && houselist[j][i].size() > 0) {
+	      int hi = houselist[i][j].back();
+	      houselist[i][j].pop_back();
+	      int hj = houselist[j][i].back();
+	      houselist[j][i].pop_back();
+	      // swap houses hi and hj
+	      // printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
+	      Global::Places.swap_houses(hi, hj);
+	      Demographics::occupants[hi] = i;
+	      Demographics::occupants[hj] = j;
+	      // printf("AFTER:\n"); report_ages(day,hi); report_ages(day,hj);
       }
     }
   }
@@ -1255,18 +1285,23 @@ void Demographics::swap_houses(int day) {
   return; 
 
   // refill-vectors
-  for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < 10; j++) {
+  for(int i = 0; i < 10; ++i) {
+    for (int j = 0; j < 10; ++j) {
       houselist[i][j].clear();
     }
   }
-  for (int i = 0; i < houses; i++) {
-    int b = beds[i];
-    if (b > 9) b = 9;
-    int occ = occupants[i];
-    if (occ > 9) occ = 9;
-    if (b > 0 && b != occ)
+  for(int i = 0; i < Demographics::houses; ++i) {
+    int b = Demographics::beds[i];
+    if(b > 9) {
+      b = 9;
+    }
+    int occ = Demographics::occupants[i];
+    if(occ > 9) {
+      occ = 9;
+    }
+    if(b > 0 && b != occ) {
       houselist[b][occ].push_back(i);
+    }
   }
 
   /*
@@ -1303,42 +1338,46 @@ void Demographics::swap_houses(int day) {
 
   // NOTE: This can be simplified using swap houses matrix
 
-  for (int i = 0; i < houses; i++) {
-    if (beds[i] == 0) continue;
-    int diff = occupants[i] - beds[i];
+  for(int i = 0; i < Demographics::houses; ++i) {
+    if(Demographics::beds[i] == 0) {
+      continue;
+    }
+    int diff = Demographics::occupants[i] - Demographics::beds[i];
     if(diff < -1 || diff > 1) {
       // take a look at this house
-      Household * house = Global::Places.get_household_ptr(i);
+      Household* house = Global::Places.get_household_ptr(i);
       printf("DAY %d PROBLEM HOUSE %d BEDS %d OCC %d AGES ",
 	     day, house->get_id(), beds[i], occupants[i]);
       int hsize = house->get_size();
-      for (int j = 0; j < hsize; j++) {
-	int age = house->get_housemate(j)->get_age();
-	printf("%d ", age);
+      for(int j = 0; j < hsize; ++j) {
+	      int age = house->get_housemate(j)->get_age();
+	      printf("%d ", age);
       }
       printf("\n");
     }
   }
 
   // make lists of overfilled houses
-  vector<int> * overfilled;
+  vector<int>* overfilled;
   overfilled = new vector<int> [max_beds+1];
-  for(int i = 0; i <= max_beds; i++) {
+  for(int i = 0; i <= max_beds; ++i) {
     overfilled[i].clear();
   }
   
   // make lists of underfilled houses
-  vector<int> * underfilled;
+  vector<int>* underfilled;
   underfilled = new vector<int> [max_beds + 1];
-  for(int i = 0; i <= max_beds; i++) {
+  for(int i = 0; i <= max_beds; ++i) {
     underfilled[i].clear();
   }
 
-  for (int i = 0; i < houses; i++) {
-    if (beds[i] == 0) continue;
-    int diff = occupants[i] - beds[i];
+  for(int i = 0; i < Demographics::houses; ++i) {
+    if(Demographics::beds[i] == 0) {
+      continue;
+    }
+    int diff = Demographics::occupants[i] - Demographics::beds[i];
     if(diff > 0) {
-      overfilled[beds[i]].push_back(i);
+      overfilled[Demographics::beds[i]].push_back(i);
     }
     if (diff < 0) {
       underfilled[beds[i]].push_back(i);
@@ -1346,28 +1385,30 @@ void Demographics::swap_houses(int day) {
   }
 
   int count[100];
-  for(int i = 0; i <= max_beds; i++) {
-    for (int j = 0; j <= max_beds+1; j++) {
+  for(int i = 0; i <= max_beds; ++i) {
+    for (int j = 0; j <= max_beds+1; ++j) {
       count[j] = 0;
     }
-    for (int k = 0; k < (int) overfilled[i].size(); k++) {
+    for(int k = 0; k < (int) overfilled[i].size(); ++k) {
       int kk = overfilled[i][k];
-      int occ = occupants[kk];
-      if (occ <= max_beds+1)
-	count[occ]++;
-      else
-	count[max_beds+1]++;
+      int occ = Demographics::occupants[kk];
+      if (occ <= max_beds + 1) {
+	      count[occ]++;
+      } else {
+	      count[max_beds+1]++;
+      }
     }
-    for (int k = 0; k < (int) underfilled[i].size(); k++) {
+    for(int k = 0; k < (int) underfilled[i].size(); ++k) {
       int kk = underfilled[i][k];
-      int occ = occupants[kk];
-      if (occ <= max_beds+1)
-	count[occ]++;
-      else
-	count[max_beds+1]++;
+      int occ = Demographics::occupants[kk];
+      if(occ <= max_beds+1) {
+	      count[occ]++;
+      } else {
+	      count[max_beds+1]++;
+      }
     }
     printf("DAY %4d BEDS %2d ", day, i);
-    for (int j = 0; j <= max_beds+1; j++) {
+    for(int j = 0; j <= max_beds+1; ++j) {
       printf("%3d ", count[j]);
     }
     printf("\n");
@@ -1376,7 +1417,7 @@ void Demographics::swap_houses(int day) {
 
 }
 
-void Demographics::add_to_birthday_list(Person * person) {
+void Demographics::add_to_birthday_list(Person* person) {
   int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
   Demographics::birthday_vecs[day_of_year].push_back(person);
   FRED_VERBOSE(2,
@@ -1385,7 +1426,7 @@ void Demographics::add_to_birthday_list(Person * person) {
   Demographics::birthday_map[person] = ((int)Demographics::birthday_vecs[day_of_year].size() - 1);
 }
 
-void Demographics::delete_from_birthday_list(Person * person) {
+void Demographics::delete_from_birthday_list(Person* person) {
   int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
   map<Person*, int>::iterator itr;
   itr = Demographics::birthday_map.find(person);
@@ -1399,7 +1440,7 @@ void Demographics::delete_from_birthday_list(Person * person) {
   // copy last person in birthday list into this person's slot
   Person* last = Demographics::birthday_vecs[day_of_year].back();
   Demographics::birthday_vecs[day_of_year][pos] = last;
-  birthday_map[last] = pos;
+  Demographics::birthday_map[last] = pos;
 
   // delete last slot
   Demographics::birthday_vecs[day_of_year].pop_back();
@@ -1410,20 +1451,20 @@ void Demographics::delete_from_birthday_list(Person * person) {
 
 void Demographics::update_people_on_birthday_list(int day) {
   int birthday_index = Date::get_day_of_year();
-  if (Date::is_leap_year()) {
+  if(Date::is_leap_year()) {
     // skip feb 29
-    if (birthday_index == 60) {
+    if(birthday_index == 60) {
       return;
     }
     // shift all days after feb 28 forward
-    if (60 < birthday_index) {
+    if(60 < birthday_index) {
       birthday_index--;
     }
   }
 
   // update everyone on today birthday list
   int birthday_count = 0;
-  int size = (int) Demographics::birthday_vecs[birthday_index].size();
+  int size = (int)Demographics::birthday_vecs[birthday_index].size();
   for(int p = 0; p < size; ++p) {
     Demographics::birthday_vecs[birthday_index][p]->birthday(day);
     birthday_count++;

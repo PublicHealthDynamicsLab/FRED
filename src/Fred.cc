@@ -287,7 +287,7 @@ void fred_setup(int argc, char* argv[]) {
   
   // initialize diseases
   for(int d = 0; d < Global::Diseases; ++d) {
-    Disease * disease = Global::Pop.get_disease(d);
+    Disease* disease = Global::Pop.get_disease(d);
     disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
     if(!Global::Enable_Vector_Layer){
       disease->init_prior_immunity();
@@ -345,7 +345,7 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d update places", day);
 
   // optional: update population dynamics 
-  if (Global::Enable_Population_Dynamics) {
+  if(Global::Enable_Population_Dynamics) {
     Demographics::update(day);
     Utils::fred_print_lap_time("day %d update population dynamics", day);
   }
@@ -372,7 +372,7 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d find_visitors_to_infectious_places", day);
 
   // shuffle the order of diseases to reduce systematic bias
-  vector<int>order;
+  vector<int> order;
   order.clear();
   for(int d = 0; d < Global::Diseases; ++d) {
     order.push_back(d);
@@ -384,7 +384,7 @@ void fred_step(int day) {
   // transmit each disease in turn
   for(int d = 0; d < Global::Diseases; ++d) {
     int disease_id = order[d];
-    Disease * disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Pop.get_disease(disease_id);
     disease->update(day);
     Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
   }

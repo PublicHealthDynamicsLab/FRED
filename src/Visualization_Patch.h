@@ -24,17 +24,34 @@ class Visualization_Layer;
 
 class Visualization_Patch : public Abstract_Patch {
 public:
-  Visualization_Patch() {}
+  Visualization_Patch() {
+    this->count = 0;
+    this->popsize = 0;
+  }
+
   ~Visualization_Patch() {}
   void setup(int i, int j, double patch_size, double grid_min_x, double grid_min_y);
   void quality_control();
-  double distance_to_patch(Visualization_Patch *patch2);
+  double distance_to_patch(Visualization_Patch* patch2);
   void print();
 
-  void reset_counts() { count = 0; popsize = 0; }
-  void update_patch_count(int n, int total) { count += n; popsize += total; } 
-  int get_count() { return count; }
-  int get_popsize() { return popsize; }
+  void reset_counts() {
+    this->count = 0;
+    this->popsize = 0;
+  }
+
+  void update_patch_count(int n, int total) {
+    this->count += n;
+    this->popsize += total;
+  }
+
+  int get_count() {
+    return this->count;
+  }
+
+  int get_popsize() {
+    return this->popsize;
+  }
 
 protected:
   int count;

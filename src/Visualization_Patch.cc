@@ -19,14 +19,14 @@
 #include "Utils.h"
 
 void Visualization_Patch::setup(int i, int j, double patch_size, double grid_min_x, double grid_min_y) {
-  row = i;
-  col = j;
-  min_x = grid_min_x + (col)*patch_size;
-  min_y = grid_min_y + (row)*patch_size;
-  max_x = grid_min_x + (col+1)*patch_size;
-  max_y = grid_min_y + (row+1)*patch_size;
-  center_y = (min_y+max_y)/2.0;
-  center_x = (min_x+max_x)/2.0;
+  this->row = i;
+  this->col = j;
+  this->min_x = grid_min_x + (this->col) * patch_size;
+  this->min_y = grid_min_y + (this->row) * patch_size;
+  this->max_x = grid_min_x + (this->col + 1)* patch_size;
+  this->max_y = grid_min_y + (this->row + 1) * patch_size;
+  this->center_y = (this->min_y + this->max_y) / 2.0;
+  this->center_x = (this->min_x + this->max_x) / 2.0;
   reset_counts();
 }
 
@@ -34,12 +34,12 @@ void Visualization_Patch::quality_control() {
   return;
 }
 
-double Visualization_Patch::distance_to_patch(Visualization_Patch *p2) {
-  double x1 = center_x;
-  double y1 = center_y;
+double Visualization_Patch::distance_to_patch(Visualization_Patch* p2) {
+  double x1 = this->center_x;
+  double y1 = this->center_y;
   double x2 = p2->get_center_x();
   double y2 = p2->get_center_y();
-  return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+  return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
 void Visualization_Patch::print() {

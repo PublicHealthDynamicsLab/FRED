@@ -14,28 +14,29 @@
 // File: Population.cc
 //
 
-#include "Population.h"
-#include "Params.h"
-#include "Global.h"
-#include "Place_List.h"
-#include "Household.h"
-#include "Disease.h"
-#include "Person.h"
-#include "Demographics.h"
-#include "Manager.h"
-#include "AV_Manager.h"
-#include "Vaccine_Manager.h"
+#include <unistd.h>
+
+#include "Activities.h"
 #include "Age_Map.h"
-#include "Random.h"
+#include "AV_Manager.h"
+#include "Behavior.h"
 #include "Date.h"
+#include "Demographics.h"
+#include "Disease.h"
+#include "Evolution.h"
+#include "Geo_Utils.h"
+#include "Global.h"
+#include "Household.h"
+#include "Manager.h"
+#include "Params.h"
+#include "Past_Infection.h"
+#include "Person.h"
+#include "Place_List.h"
+#include "Population.h"
+#include "Random.h"
 #include "Travel.h"
 #include "Utils.h"
-#include "Past_Infection.h"
-#include "Evolution.h"
-#include "Activities.h"
-#include "Behavior.h"
-#include "Geo_Utils.h"
-#include <unistd.h>
+#include "Vaccine_Manager.h"
 
 #if SNAPPY
 #include "Compression.h"
@@ -54,6 +55,7 @@ Population::Population() {
   this->disease = NULL;
   this->av_manager = NULL;
   this->vacc_manager = NULL;
+  this->enable_copy_files = 0;
 
   // reserve memory for lists
   this->death_list.reserve(1000);
@@ -441,7 +443,7 @@ void Population::split_synthetic_populations_by_deme() {
         this->demes[d].size() > 1 ? "s" : "");
     assert(this->demes[d].size() > 0);
     for(int i = 0; i < this->demes[d].size(); ++i) {
-      FRED_CONDITIONAL_WARNING(pop_id_set.find(this->demes[d][i] ) != pop_id_set.end(),
+      FRED_CONDITIONAL_WARNING(pop_id_set.find(this->demes[d][i]) != pop_id_set.end(),
           "%s %s %s %s\n", "Population ID ", this->demes[d][i], "was specified more than once!",
           "Population IDs must be unique across all Demes!");
       assert(pop_id_set.find(this->demes[d][i]) == pop_id_set.end());

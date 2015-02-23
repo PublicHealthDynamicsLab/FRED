@@ -26,8 +26,8 @@
 #include "Tracker.h"
 
 //Private static variables that will be set by parameter lookups
-double * School::school_contacts_per_day;
-double *** School::school_contact_prob;
+double* School::school_contacts_per_day;
+double*** School::school_contact_prob;
 int School::school_classroom_size = 0;
 char School::school_closure_policy[80];
 int School::school_closure_day = 0;
@@ -50,12 +50,12 @@ bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
 
-School::School(const char *lab, fred::place_subtype _subtype, double lon, double lat, Place* container, Population *pop) {
+School::School(const char* lab, fred::place_subtype _subtype, double lon, double lat, Place* container, Population* pop) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
   setup(lab, lon, lat, container, pop);
   get_parameters(Global::Diseases);
-  for(int i = 0; i < GRADES; i++) {
+  for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
     this->next_classroom[i] = 0;
@@ -72,7 +72,7 @@ void School::prepare() {
   Place::prepare();
 
   // record original size in each grade
-  for(int g = 0; g < GRADES; g++) {
+  for(int g = 0; g < GRADES; ++g) {
     this->orig_students_in_grade[g] = this->students_in_grade[g];
   }
 }
@@ -82,25 +82,25 @@ void School::get_parameters(int diseases) {
     return;
   }
 
-  if (Global::Enable_Vector_Transmission == false) {
+  if(Global::Enable_Vector_Transmission == false) {
     School::school_contacts_per_day = new double[diseases];
     School::school_contact_prob = new double**[diseases];
 
     char param_str[80];
-    for(int disease_id = 0; disease_id < diseases; disease_id++) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+    for(int disease_id = 0; disease_id < diseases; ++disease_id) {
+      Disease* disease = Global::Pop.get_disease(disease_id);
       sprintf(param_str, "%s_school_contacts", disease->get_disease_name());
       Params::get_param((char *) param_str, &School::school_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_school_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &School::school_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	printf("\nschool_contact_prob:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", School::school_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
+	      printf("\nschool_contact_prob:\n");
+	      for(int i  = 0; i < n; ++i)  {
+	        for(int j  = 0; j < n; ++j) {
+	          printf("%f ", School::school_contact_prob[disease_id][i][j]);
+	        }
+	        printf("\n");
+	      }
       }
     }
   }
@@ -135,7 +135,7 @@ void School::get_parameters(int diseases) {
   School::school_parameters_set = true;
 }
 
-int School::get_group(int disease_id, Person * per) {
+int School::get_group(int disease_id, Person* per) {
   int age = per->get_age();
   if(age < 12) {
     return 0;
@@ -143,11 +143,12 @@ int School::get_group(int disease_id, Person * per) {
     return 1;
   } else if(per->is_student()) {
     return 2;
-  } else
+  } else {
     return 3;
+  }
 }
 
-double School::get_transmission_prob(int disease_id, Person * i, Person * s) {
+double School::get_transmission_prob(int disease_id, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
   int row = get_group(disease_id, i);
@@ -159,19 +160,20 @@ double School::get_transmission_prob(int disease_id, Person * i, Person * s) {
 bool School::should_be_open(int day, int disease_id) {
 
   // no students
-  if(N == 0)
+  if(this->N == 0) {
     return false;
+  }
 
   // summer break
   if(School::school_summer_schedule > 0) {
     int month = Date::get_month();
     int day_of_month = Date::get_day_of_month();
-    if ((month == School::summer_start_month && School::summer_start_day <= day_of_month) ||
-	(month == School::summer_end_month && day_of_month <= School::summer_end_day) ||
-	(School::summer_start_month < month && month < School::summer_end_month)) {
+    if((month == School::summer_start_month && School::summer_start_day <= day_of_month) ||
+	     (month == School::summer_end_month && day_of_month <= School::summer_end_day) ||
+	     (School::summer_start_month < month && month < School::summer_end_month)) {
       if(Global::Verbose > 1) {
-	fprintf(Global::Statusfp, "School %s closed for summer\n", label);
-	fflush(Global::Statusfp);
+	      fprintf(Global::Statusfp, "School %s closed for summer\n", label);
+	      fflush(Global::Statusfp);
       }
       return false;
     }
@@ -214,7 +216,7 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
       }
     } else {
       // Close schools if the global symptomatic attack rate has reached the threshold (after a delay)
-      Disease * disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Pop.get_disease(disease_id);
       if(School::school_closure_threshold <= disease->get_symptomatic_attack_rate()) {
         // the following only happens once
         School::global_closure_is_active = true;
@@ -232,7 +234,7 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 1) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Pop.get_disease(disease_id);
       printf("School %d day %d ar %5.2f cases = %d / %d (%5.2f) close_date %d open_date %d\n",
           this->id, day, disease->get_symptomatic_attack_rate(), get_total_cases(disease_id), N,
           get_symptomatic_attack_rate(disease_id), this->close_date, this->open_date);
@@ -248,7 +250,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
   }
 
   // don't apply any policy before the epdemic reaches a noticeable threshold
-  Disease * disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
   if(disease->get_symptomatic_attack_rate() < School::school_closure_threshold) {
     return;
   }
@@ -272,7 +274,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 0) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Pop.get_disease(disease_id);
       printf("School %d day %d ar %5.2f cases = %d / %d (%5.2f) close_date %d open_date %d\n",
           this->id, day, disease->get_symptomatic_attack_rate(), get_total_cases(disease_id), N,
           get_symptomatic_attack_rate(disease_id), this->close_date, this->open_date);
@@ -284,8 +286,8 @@ double School::get_contacts_per_day(int disease_id) {
   return School::school_contacts_per_day[disease_id];
 }
 
-void School::enroll(Person * person) {
-  if (get_enrollee_index(person) == -1) {
+void School::enroll(Person* person) {
+  if(get_enrollee_index(person) == -1) {
     this->enrollees.push_back(person);
     this->N++;
     FRED_VERBOSE(1,"Enrolling person %d age %d in school %d %s new size %d\n",
@@ -294,22 +296,23 @@ void School::enroll(Person * person) {
       this->staff_size++;
     } else {
       int age = person->get_age();
-      int grade = (age < GRADES) ? age : GRADES-1;
+      int grade = ((age < GRADES) ? age : GRADES - 1);
       assert(grade > 0);
       this->students_in_grade[grade]++;
-      if (grade > max_grade) { max_grade = grade; }
+      if(grade > max_grade) {
+        this->max_grade = grade;
+      }
       person->set_grade(grade);
     }
-  }
-  else {
+  } else {
     FRED_VERBOSE(0,"Enroll E_WARNING person %d already in school %d %s\n",
 		 person->get_id(), this->id, this->label);
   }
 }
 
-void School::unenroll(Person * person) {
+void School::unenroll(Person* person) {
   int i = get_enrollee_index(person);
-  if (i == -1) {
+  if(i == -1) {
     FRED_VERBOSE(0,"Unenroll U_WARNING person %d not found in school %d %s\n",
 		 person->get_id(), this->id, this->label);
     return;
@@ -334,12 +337,12 @@ void School::unenroll(Person * person) {
 void School::print(int disease_id) {
   Place_State_Merge place_state_merge = Place_State_Merge();
   this->place_state[disease_id].apply(place_state_merge);
-  std::vector<Person *> & susceptibles = place_state_merge.get_susceptible_vector();
-  std::vector<Person *> & infectious = place_state_merge.get_infectious_vector();
+  std::vector<Person*> &susceptibles = place_state_merge.get_susceptible_vector();
+  std::vector<Person*> &infectious = place_state_merge.get_infectious_vector();
 
   fprintf(Global::Statusfp, "Place %d label %s type %c ", this->id, this->label, this->type);
   fprintf(Global::Statusfp, "S %zu I %zu N %d\n", susceptibles.size(), infectious.size(), this->N);
-  for(int g = 0; g < GRADES; g++) {
+  for(int g = 0; g < GRADES; ++g) {
     fprintf(Global::Statusfp, "%d students in grade %d | ", this->students_in_grade[g], g);
   }
   fprintf(Global::Statusfp, "\n");
@@ -348,39 +351,44 @@ void School::print(int disease_id) {
 
 int School::get_number_of_rooms() {
   int total_rooms = 0;
-  if(School::school_classroom_size == 0)
+  if(School::school_classroom_size == 0) {
     return 0;
-  for(int a = 0; a < GRADES; a++) {
+  }
+  for(int a = 0; a < GRADES; ++a) {
     int n = this->students_in_grade[a];
     if(n == 0)
       continue;
     int rooms = n / School::school_classroom_size;
-    if(n % School::school_classroom_size)
+    if(n % School::school_classroom_size) {
       rooms++;
+    }
     total_rooms += rooms;
   }
   return total_rooms;
 }
 
-void School::setup_classrooms(Allocator<Classroom> & classroom_allocator) {
-  if(School::school_classroom_size == 0)
+void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
+  if(School::school_classroom_size == 0) {
     return;
+  }
 
-  for(int a = 0; a < GRADES; a++) {
+  for(int a = 0; a < GRADES; ++a) {
     int n = this->students_in_grade[a];
-    if(n == 0)
+    if(n == 0) {
       continue;
+    }
     int rooms = n / School::school_classroom_size;
-    if(n % School::school_classroom_size)
+    if(n % School::school_classroom_size) {
       rooms++;
+    }
 
     FRED_STATUS(1, "school %d %s grade %d number %d rooms %d\n", id, label, a, n, rooms);
 
-    for(int c = 0; c < rooms; c++) {
+    for(int c = 0; c < rooms; ++c) {
       char new_label[128];
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
 
-      Place *p = new (classroom_allocator.get_free()) Classroom(new_label, fred::PLACE_SUBTYPE_NONE, this->get_longitude(),
+      Place* p = new (classroom_allocator.get_free()) Classroom(new_label, fred::PLACE_SUBTYPE_NONE, this->get_longitude(),
           this->get_latitude(), this, this->get_population());
 
       this->classrooms[a].push_back(p);
@@ -388,28 +396,31 @@ void School::setup_classrooms(Allocator<Classroom> & classroom_allocator) {
   }
 }
 
-Place * School::select_classroom_for_student(Person *per) {
-  if(School::school_classroom_size == 0)
+Place* School::select_classroom_for_student(Person* per) {
+  if(School::school_classroom_size == 0) {
     return NULL;
+  }
   int grade = per->get_age();
-  if(GRADES <= grade)
+  if(GRADES <= grade) {
     grade = GRADES - 1;
+  }
   if(Global::Verbose > 1) {
     fprintf(Global::Statusfp, "assign classroom for student %d in school %d %s grade %d\n",
         per->get_id(), this->id, this->label, grade);
     fflush(Global::Statusfp);
   }
 
-  if (this->classrooms[grade].size() == 0) {
+  if(this->classrooms[grade].size() == 0) {
     return NULL;
   }
 
   // pick next classroom for this grade, round-robin
   int room = this->next_classroom[grade];
-  if(room < (int) this->classrooms[grade].size() - 1)
+  if(room < (int) this->classrooms[grade].size() - 1) {
     this->next_classroom[grade]++;
-  else
+  } else {
     this->next_classroom[grade] = 0;
+  }
 
   // pick next classroom for this grade at random
   // int room = IRAND(0,(classrooms[grade].size()-1));
@@ -423,8 +434,8 @@ Place * School::select_classroom_for_student(Person *per) {
 }
 
 void School::print_size_distribution() {
-  for (int g = 1; g < GRADES; g++) {
-    if (this->orig_students_in_grade[g] > 0) {
+  for(int g = 1; g < GRADES; ++g) {
+    if(this->orig_students_in_grade[g] > 0) {
       printf("SCHOOL %s grade %d orig %d current %d\n", 
 	     this->get_label(), g, this->orig_students_in_grade[g], this->students_in_grade[g]);
     }

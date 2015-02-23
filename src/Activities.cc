@@ -278,7 +278,7 @@ void Activities::assign_initial_profile(Person* self) {
   int age = self->get_age();
   if(age == 0) {
     this->profile = PRESCHOOL_PROFILE;
-  } else if (get_school() != NULL) {
+  } else if(get_school() != NULL) {
     this->profile = STUDENT_PROFILE;
   } else if(age < Global::SCHOOL_AGE) {
     this->profile = PRESCHOOL_PROFILE;    // child at home
@@ -336,7 +336,7 @@ void Activities::update(int day) {
   Activities::School_sick_days_absent = 0;
 
   // print school change activities
-  if (Activities::entered_school + Activities::left_school > 0) {
+  if(Activities::entered_school + Activities::left_school > 0) {
     printf("DAY %d ENTERED_SCHOOL %d LEFT_SCHOOL %d\n",
 	   day, Activities::entered_school, Activities::left_school);
     Activities::entered_school = 0;

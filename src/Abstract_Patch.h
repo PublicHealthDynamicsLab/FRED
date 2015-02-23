@@ -17,15 +17,41 @@
 class Abstract_Patch {
 
 public:
-  int get_row() { return row; }
-  int get_col() { return col; }
-  double get_min_x() { return min_x;}
-  double get_max_x() { return max_x;}
-  double get_min_y() { return min_y;}
-  double get_max_y() { return max_y;}
-  double get_center_y() { return center_y;}
-  double get_center_x() { return center_x;}
-  void print() { printf("patch %d %d: %f, %f, %f, %f\n",row,col,min_x,min_y,max_x,max_y);}
+  int get_row() {
+    return this->row;
+  }
+
+  int get_col() {
+    return this->col;
+  }
+
+  double get_min_x() {
+    return this->min_x;
+  }
+
+  double get_max_x() {
+    return this->max_x;
+  }
+
+  double get_min_y() {
+    return this->min_y;
+  }
+
+  double get_max_y() {
+    return this->max_y;
+  }
+
+  double get_center_y() {
+    return this->center_y;
+  }
+
+  double get_center_x() {
+    return this->center_x;
+  }
+
+  void print() {
+    printf("patch %d %d: %f, %f, %f, %f\n", this->row, this->col, this->min_x, this->min_y, this->max_x, this->max_y);
+  }
 
 protected:
   int row;
