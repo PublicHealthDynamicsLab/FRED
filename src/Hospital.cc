@@ -25,6 +25,10 @@
 double* Hospital::Hospital_contacts_per_day;
 double*** Hospital::Hospital_contact_prob;
 std::vector<double> Hospital::Hospital_health_insurance_prob;
+int Hospital::HAZEL_disaster_start_day = -1;
+int Hospital::HAZEL_disaster_end_day = -1;
+double Hospital::HAZEL_disaster_max_bed_usage_multiplier = 1.0;
+std::vector<double> Hospital::HAZEL_reopening_CDF;
 
 //Private static variable to assure we only lookup parameters once
 bool Hospital::Hospital_parameters_set = false;
@@ -32,6 +36,7 @@ bool Hospital::Hospital_parameters_set = false;
 Hospital::Hospital() {
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
+  this->is_open = true;
   get_parameters(Global::Diseases);
 }
 
@@ -51,6 +56,10 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
       set_accepts_insurance(insr, (RANDOM() < *itr));
     }
   }
+
+  if(Global::Enable_HAZEL) {
+    this->checked_open_day_vec = new std::vector<bool>();
+  }
 }
 
 void Hospital::get_parameters(int diseases) {
@@ -60,7 +69,7 @@ void Hospital::get_parameters(int diseases) {
     return;
   }
   
-  if(Global::Enable_Vector_Transmission == false) {
+  if(!Global::Enable_Vector_Transmission) {
     Hospital::Hospital_contacts_per_day = new double[diseases];
     Hospital::Hospital_contact_prob = new double**[diseases];
 
@@ -86,6 +95,20 @@ void Hospital::get_parameters(int diseases) {
   if(Global::Enable_Health_Insurance) {
     Params::get_param_vector((char*)"hospital_health_insurance_prob", Hospital::Hospital_health_insurance_prob);
     assert(static_cast<int>(Hospital::Hospital_health_insurance_prob.size()) == static_cast<int>(Insurance_assignment_index::UNSET));
+  }
+
+  if(Global::Enable_HAZEL) {
+    Params::get_param_vector((char*)"HAZEL_reopening_CDF", Hospital::HAZEL_reopening_CDF);
+    Params::get_param((char*)"HAZEL_disaster_start_day", &Hospital::HAZEL_disaster_start_day);
+    Params::get_param((char*)"HAZEL_disaster_end_day", &Hospital::HAZEL_disaster_end_day);
+    Params::get_param((char*)"HAZEL_disaster_max_bed_usage_multiplier", &Hospital::HAZEL_disaster_max_bed_usage_multiplier);
+//    printf("**************************************\n");
+//    printf("BEGIN HAZEL_reopening_CDF\n");
+//    for(int i = 0; i < static_cast<int>(Hospital::Hospital_health_insurance_prob.size()); ++i) {
+//      printf("HAZEL_reopening_CDF[%d]: %.2f\n", i, Hospital::Hospital_health_insurance_prob[i]);
+//    }
+//    printf("END HAZEL_reopening_CDF\n");
+//    printf("**************************************\n");
   }
 
   Hospital::Hospital_parameters_set = true;
@@ -118,6 +141,39 @@ double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {
 
 double Hospital::get_contacts_per_day(int disease) {
   return Hospital::Hospital_contacts_per_day[disease];
+}
+
+bool Hospital::should_be_open(int day) {
+  if(Global::Diseases == 0) {
+    return true;
+  } else {
+    return should_be_open(day, 0);
+  }
+}
+
+bool Hospital::should_be_open(int day, int disease) {
+  if(Global::Enable_HAZEL) {
+    if(day < Hospital::HAZEL_disaster_start_day) {
+      this->is_open = true;
+    } else if(Hospital::HAZEL_disaster_start_day <= day && day <= Hospital::HAZEL_disaster_end_day) {
+      this->is_open = false;
+    } else if(day > Hospital::HAZEL_disaster_end_day) {
+      if(!this->is_open) {
+        int cdf_day = day - Hospital::HAZEL_disaster_end_day;
+
+        if(this->checked_open_day_vec->size() == cdf_day) {
+          return this->checked_open_day_vec->at(cdf_day - 1);
+        } else {
+          int cdf_size = static_cast<int>(Hospital::HAZEL_reopening_CDF.size());
+          cdf_day = (cdf_day < 0 ? 0 : cdf_day - 1);
+          cdf_day = (cdf_day >= cdf_size ? cdf_size - 1 : cdf_day);
+          this->is_open = (RANDOM() < Hospital::HAZEL_reopening_CDF[cdf_day]);
+          this->checked_open_day_vec->push_back(this->is_open);
+        }
+      }
+    }
+  }
+  return this->is_open;
 }
 
 void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept) {

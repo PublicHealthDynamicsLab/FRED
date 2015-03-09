@@ -100,7 +100,7 @@ Visualization_Layer::Visualization_Layer() {
 
 Visualization_Patch* Visualization_Layer::get_patch(int row, int col) {
   if(row >= 0 && col >= 0 && row < this->rows && col < this->cols) {
-    return &grid[row][col];
+    return &(this->grid[row][col]);
   } else {
     return NULL;
   }
@@ -121,7 +121,7 @@ Visualization_Patch* Visualization_Layer::get_patch(double x, double y) {
 Visualization_Patch* Visualization_Layer::select_random_patch() {
   int row = IRAND(0, this->rows-1);
   int col = IRAND(0, this->cols-1);
-  return &grid[row][col];
+  return &(this->grid[row][col]);
 }
 
 void Visualization_Layer::quality_control() {
@@ -243,6 +243,15 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
     Utils::fred_make_directory(vis_var_dir);
     sprintf(vis_var_dir, "%s/Vec", vis_dis_dir);
     Utils::fred_make_directory(vis_var_dir);
+
+    if(this->household_mode && Global::Enable_HAZEL) {
+      sprintf(vis_var_dir, "%s/HH_primary_hc_open", vis_dis_dir);
+      Utils::fred_make_directory(vis_var_dir);
+      sprintf(vis_var_dir, "%s/HH_accept_insr_hc_open", vis_dis_dir);
+      Utils::fred_make_directory(vis_var_dir);
+      sprintf(vis_var_dir, "%s/HH_receive_hc", vis_dis_dir);
+      Utils::fred_make_directory(vis_var_dir);
+    }
   }
 }
 
@@ -322,11 +331,53 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
-    if (house->is_recovered(disease_id)) {
+    if(house->is_recovered(disease_id)) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
   fclose(fp);
+
+  // household with Healthcare availability deficiency
+  if(Global::Enable_HAZEL) {
+
+    //primary_healthcare_location_open
+    sprintf(filename, "%s/dis%d/HH_primary_hc_open/households-%d.txt", dir, disease_id, day);
+    fp = fopen(filename, "w");
+    assert(fp != NULL);
+    fprintf(fp, "lat long\n");
+    for(int i = 0; i < size; ++i) {
+      Household* house = static_cast<Household*>(this->households[i]);
+      if(house->is_primary_healthcare_location_open()) {
+        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      }
+    }
+    fclose(fp);
+
+    //other_healthcare_location_that_accepts_insurance_open
+    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_open/households-%d.txt", dir, disease_id, day);
+    fp = fopen(filename, "w");
+    fprintf(fp, "lat long\n");
+    for(int i = 0; i < size; ++i) {
+      Household* house = static_cast<Household*>(this->households[i]);
+      if(house->is_other_healthcare_location_that_accepts_insurance_open()) {
+        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      }
+    }
+    fclose(fp);
+
+    //is_able_to_receive_healthcare
+    sprintf(filename, "%s/dis%d/HH_receive_hc/households-%d.txt", dir, disease_id, day);
+    fp = fopen(filename, "w");
+    fprintf(fp, "lat long\n");
+    for(int i = 0; i < size; ++i) {
+      Household* house = static_cast<Household*>(this->households[i]);
+      if(house->is_able_to_receive_healthcare()) {
+        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      }
+    }
+    fclose(fp);
+
+  }
 
 }
 
@@ -363,7 +414,7 @@ void Visualization_Layer::print_output_data(char* dir, int disease_id, int outpu
   // print out the non-zero patches
   for(int i = 0; i < this->rows; ++i) {
     for (int j = 0; j < this->cols; ++j) {
-      Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];
+      Visualization_Patch* patch = (Visualization_Patch*) &(this->grid[i][j]);
       int count = patch->get_count();
       if(count > 0) {
 	      int popsize = patch->get_popsize();
@@ -458,6 +509,16 @@ void Visualization_Layer::update_data(fred::geo latitude, fred::geo longitude, i
     Visualization_Patch* patch = get_patch(latitude, longitude);
     if(patch != NULL) {
       patch->update_patch_count(count, popsize);
+    }
+  }
+
+  if(Global::Enable_HAZEL) {
+    int size = this->households.size();
+    for(int i = 0; i < size; ++i) {
+      Household* house = static_cast<Household*>(this->households[i]);
+      house->set_is_primary_healthcare_location_open(true);
+      house->set_other_healthcare_location_that_accepts_insurance_open(true);
+      house->set_is_able_to_receive_healthcare(true);
     }
   }
   /*

@@ -82,7 +82,7 @@ struct Disease_Count_Info {
 
 class Epidemic {
 public:
-  Epidemic(Disease * disease);
+  Epidemic(Disease* disease);
   ~Epidemic();
  
   void setup();
@@ -110,21 +110,21 @@ public:
    * Add an infectious place of a given type to this Epidemic's list
    * @param p the Place to be added
    */
-  void add_infectious_place(Place *p);
+  void add_infectious_place(Place* p);
 
   /**
    *
    */
   void get_infectious_places(int day);
   void get_imported_infections(int day);
-  void become_susceptible(Person *person);
-  void become_unsusceptible(Person *person);
-  void become_exposed(Person *person);
-  void become_infectious(Person *person);
-  void become_uninfectious(Person *person);
-  void become_symptomatic(Person *person);
-  void become_removed(Person *person, bool susceptible, bool infectious, bool symptomatic);
-  void become_immune(Person *person, bool susceptible, bool infectious, bool symptomatic);
+  void become_susceptible(Person* person);
+  void become_unsusceptible(Person* person);
+  void become_exposed(Person* person);
+  void become_infectious(Person* person);
+  void become_uninfectious(Person* person);
+  void become_symptomatic(Person* person);
+  void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic);
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
   void update_visited_places(int day, int disease_id);
   void find_infectious_places(int day, int disease_id);
@@ -132,9 +132,9 @@ public:
 
   void increment_cohort_infectee_count(int cohort_day) {
     //if ( cohort_day > 0 ) {
-      assert( cohort_day < Global::Days );
+      assert(cohort_day < Global::Days);
       #pragma omp atomic
-      ++(this->number_infected_by_cohort[ cohort_day ]);
+      ++(this->number_infected_by_cohort[cohort_day]);
     //}
   }
 
@@ -195,7 +195,7 @@ public:
   }
 
   double get_symptomatic_prevalence() {
-    return (double) this->people_with_current_symptoms / (double) this->N;
+    return static_cast<double>(this->people_with_current_symptoms) / static_cast<double>(this->N);
   }
 
   int get_incidence() {
@@ -207,8 +207,11 @@ public:
   }
 
   int get_prevalence_count() {
-    return this->prevalence_count; }
-  double get_prevalence() { return this->prevalence;
+    return this->prevalence_count;
+  }
+
+  double get_prevalence() {
+    return this->prevalence;
   }
 
   int get_incident_infections() {
@@ -219,12 +222,12 @@ public:
 
   void get_visitors_to_infectious_places(int day);
 
-  void track_value(int day, char * key, int value);
-  void track_value(int day, char * key, double value);
-  void track_value(int day, char * key, string value);
+  void track_value(int day, char* key, int value);
+  void track_value(int day, char* key, double value);
+  void track_value(int day, char* key, string value);
 
 private:
-  Disease * disease;
+  Disease* disease;
   int id;
   int N;          // current population size
   int N_init;     // initial population size
@@ -232,7 +235,7 @@ private:
   bool report_generation_time;
 
   // seeding imported cases
-  std::vector <Time_Step_Map *> imported_cases_map;
+  std::vector<Time_Step_Map*> imported_cases_map;
   bool import_by_age;
   double import_age_lower_bound;
   double import_age_upper_bound;
@@ -249,19 +252,19 @@ private:
   /// or to a random day in the trajectory (SEED_RANDOM)
   /// this is accomplished by moving the exposure date back as appropriate;
   /// (ultimately done in Infection::advance_infection)
-  void advance_seed_infection( Person * person );
+  void advance_seed_infection(Person* person );
 
   // lists of susceptible and infectious Persons now kept as
   // bit maskes in Population "Bloque"
-  vector <Person *> daily_infections_list;
+  vector <Person*> daily_infections_list;
 
-  vector <Place *> inf_households;
-  vector <Place *> inf_neighborhoods;
-  vector <Place *> inf_classrooms;
-  vector <Place *> inf_schools;
-  vector <Place *> inf_workplaces;
-  vector <Place *> inf_offices;
-  vector <Place *> inf_hospitals;
+  vector<Place*> inf_households;
+  vector<Place*> inf_neighborhoods;
+  vector<Place*> inf_classrooms;
+  vector<Place*> inf_schools;
+  vector<Place*> inf_workplaces;
+  vector<Place*> inf_offices;
+  vector<Place*> inf_hospitals;
 
   // population health state counters
   int susceptible_people;
@@ -286,8 +289,8 @@ private:
 
   // used for computing reproductive rate:
   double RR;
-  int * daily_cohort_size;
-  int * number_infected_by_cohort;
+  int* daily_cohort_size;
+  int* number_infected_by_cohort;
 
   // attack rates
   double attack_rate;
@@ -306,11 +309,11 @@ private:
 
   // used for incidence counts by county
   int counties;
-  int * county_incidence; 
+  int* county_incidence;
 
   // used for incidence counts by census_tracts
   int census_tracts;
-  int * census_tract_incidence; 
+  int* census_tract_incidence;
 
   //fred::Mutex mutex;
   fred::Spin_Mutex neighborhood_mutex;

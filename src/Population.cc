@@ -531,7 +531,6 @@ void Population::Setup_Population_Health_Insurance::operator() (Person &p) {
   for(std::vector<Person*>::iterator itr = inhab_vec.begin();
       itr != inhab_vec.end(); ++itr) {
     (*itr)->get_health()->set_insurance_type(insr);
-    //printf("Agent %d has insurance %s\n", (*itr)->get_id(), Health::insurance_lookup((*itr)->get_health()->get_insurance_type()));
   }
 }
 

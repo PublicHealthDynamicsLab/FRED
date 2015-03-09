@@ -313,6 +313,30 @@ public:
     return this->shelter_end_day;
   }
 
+  void set_is_primary_healthcare_location_open(bool _primary_healthcare_location_open) {
+    this->primary_healthcare_location_open = _primary_healthcare_location_open;
+  }
+
+  bool is_primary_healthcare_location_open() {
+    return this->primary_healthcare_location_open;
+  }
+
+  void set_other_healthcare_location_that_accepts_insurance_open(bool _other_healthcare_location_that_accepts_insurance_open) {
+    this->other_healthcare_location_that_accepts_insurance_open = _other_healthcare_location_that_accepts_insurance_open;
+  }
+
+  bool is_other_healthcare_location_that_accepts_insurance_open() {
+    return this->other_healthcare_location_that_accepts_insurance_open;
+  }
+
+  void set_is_able_to_receive_healthcare(bool _able_to_receive_healthcare) {
+    this->able_to_receive_healthcare = _able_to_receive_healthcare;
+  }
+
+  bool is_able_to_receive_healthcare() {
+    return this->able_to_receive_healthcare;
+  }
+
   int get_household_income_code() const {
     return this->household_income_code;
   }
@@ -366,11 +390,14 @@ private:
 
   Place* group_quarters_workplace;
   bool sheltering;
+  bool primary_healthcare_location_open;
+  bool other_healthcare_location_that_accepts_insurance_open;
+  bool able_to_receive_healthcare;
   unsigned char deme_id;	      // deme == synthetic population id
   int group_quarters_units;
   int shelter_start_day;
   int shelter_end_day;
-  int household_income;		      // household income
+  int household_income;
   int household_income_code;
   int county_index;
   int census_tract_index;

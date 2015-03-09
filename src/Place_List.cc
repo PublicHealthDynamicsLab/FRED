@@ -82,6 +82,8 @@ double Place_List::Shelter_decay_rate = 0.0;
 bool Place_List::Household_hospital_map_file_exists = false;
 int Place_List::Hospital_fixed_staff = 1.0;
 double Place_List::Hospital_worker_to_bed_ratio = 1.0;
+double Place_List::Hospital_outpatients_per_day_per_employee = 0.0;
+double Place_List::Healthcare_clinic_outpatients_per_day_per_employee = 0;
 int Place_List::Hospital_min_bed_threshold = 0;
 double Place_List::Hospitalization_radius = 0.0;
 int Place_List::Enable_copy_files = 0;
@@ -167,6 +169,9 @@ void Place_List::get_parameters() {
     Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
     Params::get_param_from_string("household_hospital_map_file", map_file_name);
     Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
+    Place_List::Hospital_worker_to_bed_ratio = (Place_List::Hospital_worker_to_bed_ratio == 0.0 ? 1.0 : Place_List::Hospital_worker_to_bed_ratio);
+    Params::get_param_from_string("hospital_outpatients_per_day_per_employee", &Place_List::Hospital_outpatients_per_day_per_employee);
+    Params::get_param_from_string("healthcare_clinic_outpatients_per_day_per_employee", &Place_List::Healthcare_clinic_outpatients_per_day_per_employee);
     Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
     Params::get_param_from_string("hospitalization_radius", &Place_List::Hospitalization_radius);
     Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
@@ -589,9 +594,15 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     } else if(place_type == Place::HOSPITAL) {
       place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat, container, &Global::Pop);
       Hospital* hosp = static_cast<Hospital*>(place);
-      hosp->set_bed_count((int)((double)(*itr).num_workers_assigned / Place_List::Hospital_worker_to_bed_ratio) + 1.0);
+      hosp->set_bed_count(static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0));
+
       if(hosp->get_bed_count() < Place_List::Hospital_min_bed_threshold) {
         hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
+        hosp->set_capacity(static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Healthcare_clinic_outpatients_per_day_per_employee);
+      } else {
+        int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Hospital_outpatients_per_day_per_employee;
+        capacity += hosp->get_bed_count();
+        hosp->set_capacity(capacity);
       }
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);
@@ -672,51 +683,6 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       Place* place = places[p];
       Global::Simulation_Region->add_workplace(place);
     }
-  }
-
-  if(Global::Enable_Hospitals) {
-    int number_hh = (int)this->households.size();
-    for(int i = 0; i < number_hh; ++i) {
-      Household* hh = static_cast<Household*>(this->households[i]);
-      Hospital* hosp = static_cast<Hospital*>(this->get_hospital_assigned_to_household(hh));
-      assert(hosp != NULL);
-      if(hosp != NULL) {
-        hh->set_household_visitation_hospital(hosp);
-        string hh_id_str(hh->get_label());
-        string hosp_id_str(hosp->get_label());
-        this->household_hospital_map.insert(std::pair<string, string>(hh_id_str, hosp_id_str));
-      }
-    }
-
-    //Write the mapping file if it did not already exist (or if it was incomplete)
-    if(!Place_List::Household_hospital_map_file_exists) {
-
-      char map_file_dir[FRED_STRING_SIZE];
-      char map_file_name[FRED_STRING_SIZE];
-      Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
-      Params::get_param_from_string("household_hospital_map_file", map_file_name);
-
-
-      char filename[FRED_STRING_SIZE];
-      sprintf(filename, "%s%s", map_file_dir, map_file_name);
-
-      Utils::get_fred_file_name(filename);
-      FILE* hospital_household_map_fp = fopen(filename, "w");
-      if(hospital_household_map_fp == NULL) {
-        Utils::fred_abort("Can't open %s\n", filename);
-      }
-
-      for(std::map<std::string, std::string>::iterator itr = this->household_hospital_map.begin();
-          itr != this->household_hospital_map.end(); ++itr) {
-        fprintf(hospital_household_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
-      }
-
-      fflush(hospital_household_map_fp);
-      fclose(hospital_household_map_fp);
-    }
-
-    this->household_hospital_map.clear();
-
   }
 
   FRED_STATUS(0, "read places finished: Places = %d\n", (int) places.size());
@@ -1010,8 +976,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
 
       sprintf(s, "%c%s", place_type, tokens[school_id]);
 
-      SetInsertResultT result =
-	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, county));
+      SetInsertResultT result = pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, county));
       
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -1108,32 +1073,31 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
 
       // set number of units and subtype for this group quarters
       int number_of_units = 0;
-      if (strcmp(tokens[gq_type], "C")==0) {
+      if(strcmp(tokens[gq_type], "C") == 0) {
 	      number_of_units = capacity / Place_List::College_dorm_mean_size;
 	      place_subtype = fred::PLACE_SUBTYPE_COLLEGE;
       }
-      if (strcmp(tokens[gq_type], "M")==0) {
+      if(strcmp(tokens[gq_type], "M") == 0) {
 	      number_of_units = capacity / Place_List::Military_barracks_mean_size;
 	      place_subtype = fred::PLACE_SUBTYPE_MILITARY_BASE;
       }
-      if (strcmp(tokens[gq_type], "P")==0) {
+      if(strcmp(tokens[gq_type], "P") == 0) {
 	      number_of_units = capacity / Place_List::Prison_cell_mean_size;
 	      place_subtype = fred::PLACE_SUBTYPE_PRISON;
       }
-      if (strcmp(tokens[gq_type], "N")==0) {
+      if(strcmp(tokens[gq_type], "N") == 0) {
 	      number_of_units = capacity / Place_List::Nursing_home_room_mean_size;
 	      place_subtype = fred::PLACE_SUBTYPE_NURSING_HOME;
       }
-      if (number_of_units == 0) {
-	number_of_units = 1;
+      if(number_of_units == 0) {
+	      number_of_units = 1;
       }
 
       // add a workplace for this group quarters
       place_type = Place::WORKPLACE;
       sprintf(wp, "%c%s", place_type, tokens[gq_id]);
 
-      result =
-	pids.insert(Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
+      result = pids.insert(Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
 				    tokens[longitude], deme_id, county, tract_index, "0", true));
       
       if(result.second) {
@@ -1143,8 +1107,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       // add as household
       place_type = Place::HOUSEHOLD;
       sprintf(s, "%c%s", place_type, tokens[gq_id]);
-      result = 
-	pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
+      result = pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
 				    deme_id, county, tract_index, "0", true, 0, number_of_units, tokens[gq_type], wp));
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -1153,15 +1116,14 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       }
 
       // generate additional household units associated with this group quarters
-      for(int i = 1; i < number_of_units; i++) {
-	sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
-	result = 
-	  pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
+      for(int i = 1; i < number_of_units; ++i) {
+	      sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
+	      result = pids.insert(Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude],
 				      deme_id, county, tract_index, "0", true, 0, 0, tokens[gq_type], wp));
-	if(result.second) {
-	  ++(this->place_type_counts[place_type]);
-	}
-	FRED_VERBOSE(1,"Adding GQ Household %s out of %d units\n", s, number_of_units);
+	      if(result.second) {
+	        ++(this->place_type_counts[place_type]);
+	      }
+	      FRED_VERBOSE(1,"Adding GQ Household %s out of %d units\n", s, number_of_units);
       }
     }
     tokens.clear();
@@ -1217,25 +1179,25 @@ void Place_List::prepare() {
 void Place_List::print_status_of_schools(int day) {
   int number_places = places.size();
   int students_per_grade[GRADES];
-  for (int i = 0; i < GRADES; i++) {
+  for(int i = 0; i < GRADES; ++i) {
     students_per_grade[i] = 0;
   }
   for(int p = 0; p < number_places; ++p) {
     if(places[p]->get_type() == Place::SCHOOL) {
-      Place * place = places[p];
-      for (int grade = 0; grade < GRADES; grade++) {
-	int total = (static_cast<School*>(place))->get_orig_number_of_students();
-	int orig = (static_cast<School*>(place))->get_orig_students_in_grade(grade);
-	int now = (static_cast<School*>(place))->get_students_in_grade(grade);
-	students_per_grade[grade] += now;
-	if (0 && total > 1500 && orig > 0) {
-	  printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n",
-		 place->get_label(), grade,
-		 (static_cast<School*>(place))->get_orig_students_in_grade(grade),
-		 (static_cast<School*>(place))->get_students_in_grade(grade),
-		 (static_cast<School*>(place))->get_students_in_grade(grade) -
-		 (static_cast<School*>(place))->get_orig_students_in_grade(grade));
-	}
+      Place* place = places[p];
+      for(int grade = 0; grade < GRADES; ++grade) {
+	      int total = (static_cast<School*>(place))->get_orig_number_of_students();
+	      int orig = (static_cast<School*>(place))->get_orig_students_in_grade(grade);
+	      int now = (static_cast<School*>(place))->get_students_in_grade(grade);
+	      students_per_grade[grade] += now;
+	      if(0 && total > 1500 && orig > 0) {
+	        printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n",
+		        place->get_label(), grade,
+		        (static_cast<School*>(place))->get_orig_students_in_grade(grade),
+		        (static_cast<School*>(place))->get_students_in_grade(grade),
+		        (static_cast<School*>(place))->get_students_in_grade(grade) -
+		        (static_cast<School*>(place))->get_orig_students_in_grade(grade));
+	      }
       }
     }
   }
@@ -1245,7 +1207,7 @@ void Place_List::print_status_of_schools(int day) {
   // sprintf(filename, "students.%d", year);
   // FILE *fp = fopen(filename,"w");
   int total_students = 0;
-  for (int i = 0; i < GRADES; i++) {
+  for(int i = 0; i < GRADES; ++i) {
     // fprintf(fp, "%d %d\n", i,students_per_grade[i]);
     printf("YEAR %d GRADE %d STUDENTS %d\n", year,i,students_per_grade[i]);
     total_students += students_per_grade[i];
@@ -1283,7 +1245,7 @@ void Place_List::update(int day) {
   if(Global::Enable_Visualization_Layer) {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
-      Place *place = this->places[p];
+      Place* place = this->places[p];
       place->reset_visualization_data(day);
     }
   }
@@ -1299,7 +1261,7 @@ void Place_List::update(int day) {
   FRED_STATUS(1, "update places finished\n", "");
 }
 
-Place * Place_List::get_place_from_label(const char *s) const {
+Place* Place_List::get_place_from_label(const char* s) const {
   if(strcmp(s, "-1") == 0) {
     return NULL;
   }
@@ -1313,7 +1275,7 @@ Place * Place_List::get_place_from_label(const char *s) const {
   }
 }
 
-bool Place_List::add_place(Place * p) {
+bool Place_List::add_place(Place* p) {
 
   FRED_CONDITIONAL_WARNING(p->get_id() != -1, "Place id (%d) was overwritten!", p->get_id());
   assert(p->get_id() == -1);
@@ -1371,44 +1333,44 @@ void Place_List::setup_group_quarters() {
       int gq_units = house->get_group_quarters_units();
       FRED_VERBOSE(0,"GQ_setup: house %d label %s subtype %c initial size %d units %d\n",
 		   p, house->get_label(), house->get_subtype(), gq_size, gq_units);
-      if (gq_units > 1) {
-	vector<Person*> housemates;
-	housemates.clear();
-	for(int i = 0; i < gq_size; ++i) {
-	  Person* person = house->get_housemate(i);
-	  housemates.push_back(person);
-	}
-	int units_filled = 1;
-	int min_per_unit = gq_size / gq_units;
-	int larger_units = gq_size - min_per_unit * gq_units;
-	int smaller_units = gq_units - larger_units;
-	FRED_VERBOSE(1, "GQ min_per_unit %d smaller = %d  larger = %d total = %d  orig = %d\n",
-		     min_per_unit, smaller_units, larger_units,
-		     smaller_units*min_per_unit + larger_units*(min_per_unit+1),
-		     gq_size);
-	int next_person = min_per_unit;
-	for(int i = 1; i < smaller_units; ++i) {
-	  // assert(units_filled < gq_units);
-	  new_house = this->get_household_ptr(p++);
-	  // printf("GQ smaller new_house %s\n", new_house->get_label()); fflush(stdout);
-	  for(int j = 0; j < min_per_unit; ++j) {
-	    Person* person = housemates[next_person++];
-	    person->move_to_new_house(new_house);
-	  }
-	  units_filled++;
-	  // printf("GQ size of smaller unit %s = %d remaining in main house %d\n",
-	  // new_house->get_label(), new_house->get_size(), house->get_size());
-	}
-	for(int i = 0; i < larger_units; ++i) {
-	  new_house = this->get_household_ptr(p++);
-	  // printf("GQ larger new_house %s\n", new_house->get_label()); fflush(stdout);
-	  for(int j = 0; j < min_per_unit + 1; ++j) {
-	    Person* person = housemates[next_person++];
-	    person->move_to_new_house(new_house);
-	  }
-	  // printf("GQ size of larger unit %s = %d -- remaining in main house %d\n",
-	  // new_house->get_label(), new_house->get_size(), house->get_size());
-	}
+      if(gq_units > 1) {
+	      vector<Person*> housemates;
+	      housemates.clear();
+	      for(int i = 0; i < gq_size; ++i) {
+	        Person* person = house->get_housemate(i);
+	        housemates.push_back(person);
+	      }
+	      int units_filled = 1;
+	      int min_per_unit = gq_size / gq_units;
+	      int larger_units = gq_size - min_per_unit * gq_units;
+        int smaller_units = gq_units - larger_units;
+	      FRED_VERBOSE(1, "GQ min_per_unit %d smaller = %d  larger = %d total = %d  orig = %d\n",
+		      min_per_unit, smaller_units, larger_units,
+		      smaller_units*min_per_unit + larger_units*(min_per_unit+1),
+		      gq_size);
+	      int next_person = min_per_unit;
+	      for(int i = 1; i < smaller_units; ++i) {
+	        // assert(units_filled < gq_units);
+	        new_house = this->get_household_ptr(p++);
+	        // printf("GQ smaller new_house %s\n", new_house->get_label()); fflush(stdout);
+	        for(int j = 0; j < min_per_unit; ++j) {
+	          Person* person = housemates[next_person++];
+	          person->move_to_new_house(new_house);
+	        }
+	        units_filled++;
+	        // printf("GQ size of smaller unit %s = %d remaining in main house %d\n",
+	        // new_house->get_label(), new_house->get_size(), house->get_size());
+	      }
+	      for(int i = 0; i < larger_units; ++i) {
+	        new_house = this->get_household_ptr(p++);
+	        // printf("GQ larger new_house %s\n", new_house->get_label()); fflush(stdout);
+	        for(int j = 0; j < min_per_unit + 1; ++j) {
+	          Person* person = housemates[next_person++];
+	          person->move_to_new_house(new_house);
+	        }
+	        // printf("GQ size of larger unit %s = %d -- remaining in main house %d\n",
+	        // new_house->get_label(), new_house->get_size(), house->get_size());
+	      }
       }
     }
   }
@@ -1428,7 +1390,7 @@ void Place_List::setup_households() {
   for(int p = 0; p < num_households; ++p) {
     Household* house = this->get_household_ptr(p);
     house->set_index(p);
-    if (house->get_size() == 0) {
+    if(house->get_size() == 0) {
       FRED_VERBOSE(0, "Warning: house %d label %s has zero size.\n",
 		   house->get_id(), house->get_label());
       continue;
@@ -1440,18 +1402,17 @@ void Place_List::setup_households() {
       Person* person = house->get_housemate(j);
       assert(person != NULL);
       if(person->is_householder()) {
-	head_of_household = person;
-	continue;
-      }
-      else {
-	int age = person->get_age();
-	if(age > max_age) {
-	  max_age = age;
-	  person_with_max_age = person;
-	}
+	      head_of_household = person;
+	      continue;
+      } else {
+	      int age = person->get_age();
+	      if(age > max_age) {
+	        max_age = age;
+	        person_with_max_age = person;
+	      }
       }
     }
-    if (head_of_household == NULL) {
+    if(head_of_household == NULL) {
       assert(person_with_max_age != NULL);
       person_with_max_age->make_householder();
       head_of_household = person_with_max_age;
@@ -1460,8 +1421,8 @@ void Place_List::setup_households() {
     // make sure everyone know who's the head
     for(int j = 0; j < house->get_size(); j++) {
       Person* person = house->get_housemate(j);
-      if (person != head_of_household && person->is_householder()) {
-	person->set_relationship(Global::HOUSEMATE);
+      if(person != head_of_household && person->is_householder()) {
+	      person->set_relationship(Global::HOUSEMATE);
       }
     }
     assert(head_of_household != NULL);
@@ -1485,7 +1446,7 @@ void Place_List::setup_households() {
   }
 
   // initialize the vector layer in proportion to the household population
-  if (Global::Enable_Vector_Layer) {
+  if(Global::Enable_Vector_Layer) {
     for(int i = 0; i < num_households; ++i) {
       Household * house = this->get_household_ptr(i);
       Global::Vectors->add_hosts(house);
@@ -1699,9 +1660,129 @@ void Place_List::setup_offices() {
 }
 
 Place* Place_List::get_random_workplace() {
-  int size = this->workplaces.size();
+  int size = static_cast<int>(this->workplaces.size());
   if(size > 0) {
     return this->workplaces[IRAND(0, size - 1)];
+  } else {
+    return NULL;
+  }
+}
+
+void Place_List::assign_hospitals_to_households() {
+  if(Global::Enable_Hospitals) {
+    int number_hh = (int)this->households.size();
+    for(int i = 0; i < number_hh; ++i) {
+      Household* hh = static_cast<Household*>(this->households[i]);
+      Hospital* hosp = static_cast<Hospital*>(this->get_hospital_assigned_to_household(hh));
+      assert(hosp != NULL);
+      if(hosp != NULL) {
+        hh->set_household_visitation_hospital(hosp);
+        string hh_id_str(hh->get_label());
+        string hosp_id_str(hosp->get_label());
+        this->household_hospital_map.insert(std::pair<string, string>(hh_id_str, hosp_id_str));
+      }
+    }
+
+    //Write the mapping file if it did not already exist (or if it was incomplete)
+    if(!Place_List::Household_hospital_map_file_exists) {
+
+      char map_file_dir[FRED_STRING_SIZE];
+      char map_file_name[FRED_STRING_SIZE];
+      Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
+      Params::get_param_from_string("household_hospital_map_file", map_file_name);
+
+
+      char filename[FRED_STRING_SIZE];
+      sprintf(filename, "%s%s", map_file_dir, map_file_name);
+
+      Utils::get_fred_file_name(filename);
+      FILE* hospital_household_map_fp = fopen(filename, "w");
+      if(hospital_household_map_fp == NULL) {
+        Utils::fred_abort("Can't open %s\n", filename);
+      }
+
+      for(std::map<std::string, std::string>::iterator itr = this->household_hospital_map.begin();
+          itr != this->household_hospital_map.end(); ++itr) {
+        fprintf(hospital_household_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
+      }
+
+      fflush(hospital_household_map_fp);
+      fclose(hospital_household_map_fp);
+    }
+
+    this->household_hospital_map.clear();
+  }
+}
+
+Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight) {
+  if(!Global::Enable_Hospitals) {
+    return NULL;
+  }
+  int size = static_cast<int>(this->hospitals.size());
+  if(size > 0) {
+    int start_pos = IRAND(0, size - 1); //Get a random start point
+    for(int i = start_pos; i < size; ++i) {
+      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+      if(check_hospital->should_be_open(day)) {
+        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+          return check_hospital;
+        }
+      }
+    }
+    //Didn't find match yet, so wrap to beginning of list
+    for(int i = 0; i < start_pos; ++i) {
+      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+      if(check_hospital->should_be_open(day)) {
+        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+          return check_hospital;
+        }
+      }
+    }
+    //Still couldn't find a match so return NULL
+    return NULL;
+  } else {
+    return NULL;
+  }
+}
+
+Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight, Insurance_assignment_index::e insr_accepted) {
+  if(!Global::Enable_Hospitals) {
+    return NULL;
+  }
+  int size = static_cast<int>(this->hospitals.size());
+  if(size > 0) {
+    int start_pos = IRAND(0, size - 1); //Get a random start point
+    for(int i = start_pos; i < size; ++i) {
+      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+      if(check_hospital->should_be_open(day)) {
+        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+          if(Global::Enable_Health_Insurance) {
+            if(check_hospital->accepts_insurance(insr_accepted)) {
+              return check_hospital;
+            }
+          } else {
+            return check_hospital;
+          }
+        }
+      }
+    }
+    //Didn't find match yet, so wrap to beginning of list
+    for(int i = 0; i < start_pos; ++i) {
+      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+      if(check_hospital->should_be_open(day)) {
+        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+          if(Global::Enable_Health_Insurance) {
+            if(check_hospital->accepts_insurance(insr_accepted)) {
+              return check_hospital;
+            }
+          } else {
+            return check_hospital;
+          }
+        }
+      }
+    }
+    //Still couldn't find a match so return NULL
+    return NULL;
   } else {
     return NULL;
   }
@@ -1920,10 +2001,10 @@ void Place_List::report_shelter_stats(int day) {
     }
   }
   if(sheltering_total_pop > 0) {
-    sheltering_ar = 100.0 * (double) sheltering_total_infections / (double) sheltering_total_pop;
+    sheltering_ar = 100.0 * (double) sheltering_total_infections / static_cast<double>(sheltering_total_pop);
   }
   if(non_sheltering_pop > 0) {
-    non_sheltering_ar = 100.0 * (double) non_sheltering_total_infections / (double) non_sheltering_pop;
+    non_sheltering_ar = 100.0 * (double) non_sheltering_total_infections / static_cast<double>(non_sheltering_pop);
   }
   Global::Daily_Tracker->set_index_key_pair(day,"H_sheltering",sheltering_households);
   Global::Daily_Tracker->set_index_key_pair(day,"N_sheltering",sheltering_pop);
@@ -1991,7 +2072,7 @@ void Place_List::end_of_run() {
 int Place_List::get_housing_data(int* target_size, int* current_size) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    Household * h = this->get_household_ptr(i);
+    Household* h = this->get_household_ptr(i);
     current_size[i] = h->get_size();
     target_size[i] = h->get_orig_size();
   }
@@ -2109,7 +2190,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
             Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
             if(hospital->accepts_insurance(per_insur)) {
               //Hospital accepts the insurance so we are good
-              cur_prob = (double)bed_count / (distance * distance);
+              cur_prob = static_cast<double>(bed_count) / (distance * distance);
               increment = 1;
             } else {
               //Not possible
@@ -2118,12 +2199,12 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
             }
           } else {
             //No one lives here right now, so really who cares?
-            cur_prob = (double)bed_count / (distance * distance);
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
             increment = 1;
           }
         } else {
           //We don't care about Insurance so go ahead and allow this one
-          cur_prob = (double)bed_count / (distance * distance);
+          cur_prob = static_cast<double>(bed_count) / (distance * distance);
           increment = 1;
         }
       } else {
@@ -2148,7 +2229,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
       double rand = RANDOM();
       double cum_prob = 0.0;
       int i = 0;
-      while(i < number_possible_hospitals) {
+      while(i < number_hospitals) {
         cum_prob += hosp_probs[i];
         if(rand < cum_prob) {
           return static_cast<Hospital*>(this->hospitals[i]);
@@ -2173,7 +2254,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
             Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
             if(hospital->accepts_insurance(per_insur)) {
               //Hospital accepts the insurance so we are good
-              cur_prob = (double)bed_count / (distance * distance);
+              cur_prob = static_cast<double>(bed_count) / (distance * distance);
               increment = 1;
             } else {
               //Not possible
@@ -2182,12 +2263,12 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
             }
           } else {
             //No one lives here right now, so really who cares?
-            cur_prob = (double)bed_count / (distance * distance);
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
             increment = 1;
           }
         } else {
           //We don't care about Insurance so go ahead and allow this one
-          cur_prob = (double)bed_count / (distance * distance);
+          cur_prob = static_cast<double>(bed_count) / (distance * distance);
           increment = 1;
         }
 
@@ -2221,7 +2302,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
           Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
           int bed_count = hospital->get_bed_count();
           double distance = distance_between_places(hh, hospital);
-          double cur_prob = (double)bed_count / (distance * distance);
+          double cur_prob = static_cast<double>(bed_count) / (distance * distance);
           hosp_probs.push_back(cur_prob);
           probability_total += cur_prob;
           number_possible_hospitals++;
@@ -2244,7 +2325,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
         return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
       } else {
         //No hospitals in the simulation
-        Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
+        Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization\n", "");
       }
     }
   }
@@ -2278,14 +2359,14 @@ Place* Place_List::select_school(int county_index, int grade) {
     int now = school->get_students_in_grade(grade);
     if(now <= orig) {
       // school has vacancy
-      double vac_pct = (double)(orig - now)/(double) orig;
+      double vac_pct = static_cast<double>((orig - now)) / static_cast<double>(orig);
       if(vac_pct > vacancy) {
 	      vacancy = vac_pct;
 	      school_with_vacancy = school;
       }
     } else {
       // school is at or over capacity
-      double over_pct = (double)(now - orig)/(double) orig;
+      double over_pct = static_cast<double>((now - orig)) / static_cast<double>(orig);
       if(over_pct < overcap) {
 	      overcap = over_pct;
 	      school_with_overcrowding = school;

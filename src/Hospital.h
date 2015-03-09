@@ -32,7 +32,11 @@ public:
    * Default constructor
    */
   Hospital();
-  ~Hospital() {}
+  ~Hospital() {
+    if(Global::Enable_HAZEL && this->checked_open_day_vec != NULL) {
+      delete this->checked_open_day_vec;
+    }
+  }
 
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
@@ -74,22 +78,26 @@ public:
    */
   double get_contacts_per_day(int disease);
 
+
+  // If we don't really care about the disease
+  bool should_be_open(int day);
+
   /**
+   * @see Place::should_be_open(int day, int disease)
+   *
    * Determine if the Hospital should be open. It is dependent on the disease and simulation day.
    *
    * @param day the simulation day
    * @param disease an integer representation of the disease
    * @return whether or not the hospital is open on the given day for the given disease
    */
-  bool should_be_open(int day, int disease) {
-    return true;
-  }
+  bool should_be_open(int day, int disease);
 
   void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
   void set_accepts_insurance(int insr_indx, bool does_accept);
 
   bool accepts_insurance(Insurance_assignment_index::e insr) {
-    return this->accepted_insurance_bitset[insr];
+    return this->accepted_insurance_bitset[static_cast<int>(insr)];
   }
 
   int get_bed_count() {
@@ -100,14 +108,29 @@ public:
     this->bed_count = _bed_count;
   }
 
+  int get_capacity() {
+    return this->capacity;
+  }
+
+  void set_capacity(int _capacity) {
+    this->capacity = _capacity;
+  }
+
 private:
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
   static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
+  static int HAZEL_disaster_start_day;
+  static int HAZEL_disaster_end_day;
+  static double HAZEL_disaster_max_bed_usage_multiplier;
+  static std::vector<double> HAZEL_reopening_CDF;
   int bed_count;
+  int capacity;
+  bool is_open;
+  std::vector<bool>* checked_open_day_vec;
   // true iff a the hospital accepts the indexed Insurance Coverage
-  std::bitset<Insurance_assignment_index::UNSET> accepted_insurance_bitset;
+  std::bitset<static_cast<size_t>(Insurance_assignment_index::UNSET)> accepted_insurance_bitset;
 };
 
 #endif // _FRED_HOSPITAL_H

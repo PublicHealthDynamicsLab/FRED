@@ -67,6 +67,7 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
+  this->able_to_receive_healthcare = true;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->county_index = -1;
@@ -84,7 +85,7 @@ void Household::get_parameters(int diseases) {
     return;
   }
 
-  if (Global::Enable_Vector_Transmission == false) {
+  if(Global::Enable_Vector_Transmission == false) {
     char param_str[80];
     Household::Household_contacts_per_day = new double [diseases];
     Household::Household_contact_prob = new double** [diseases];
@@ -107,12 +108,12 @@ void Household::get_parameters(int diseases) {
   }
 
   //Get the Household Income Cutoffs
-  Params::get_param((char*) "cat_I_max_income", &Household::Cat_I_Max_Income);
-  Params::get_param((char*) "cat_II_max_income", &Household::Cat_II_Max_Income);
-  Params::get_param((char*) "cat_III_max_income", &Household::Cat_III_Max_Income);
-  Params::get_param((char*) "cat_IV_max_income", &Household::Cat_IV_Max_Income);
-  Params::get_param((char*) "cat_V_max_income", &Household::Cat_V_Max_Income);
-  Params::get_param((char*) "cat_VI_max_income", &Household::Cat_VI_Max_Income);
+  Params::get_param((char*)"cat_I_max_income", &Household::Cat_I_Max_Income);
+  Params::get_param((char*)"cat_II_max_income", &Household::Cat_II_Max_Income);
+  Params::get_param((char*)"cat_III_max_income", &Household::Cat_III_Max_Income);
+  Params::get_param((char*)"cat_IV_max_income", &Household::Cat_IV_Max_Income);
+  Params::get_param((char*)"cat_V_max_income", &Household::Cat_V_Max_Income);
+  Params::get_param((char*)"cat_VI_max_income", &Household::Cat_VI_Max_Income);
 
   Household::Household_parameters_set = true;
 }

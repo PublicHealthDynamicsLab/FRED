@@ -283,6 +283,8 @@ outpatient_healthcare_prob_values = 0
 prob_of_visiting_hospitalized_housemate = 0.0
 hospital_fixed_staff = 20
 hospital_worker_to_bed_ratio = 1.0
+hospital_outpatients_per_day_per_employee = 3.0
+healthcare_clinic_outpatients_per_day_per_employee = 12.0;
 hospitalization_radius = 25.0
 #If there aren’t this many beds, then the Hospital is subtype Clinic (no overnights)
 hospital_min_bed_threshold = 10
@@ -470,10 +472,32 @@ isolation_rate = 1.0
 ##########################################################
 #
 # HAZard-area primary carE Locator
+# 
+# Note: HAZEL is concerned with Hospitals, Health 
+#  Insurance, Chronic conditions, and visualization of 
+#  such. Also it is not so much about disease transmission.
+#  So, at least the following should be set 
+#  (along with any specific params needed:
+#
+#  # NO DISEASE TRANSMISSION
+#  influenza_trans = 0.0
+#  # HOSPITALS
+#  enable_hospitals = 1
+#  # HEALTH INSURANCE
+#  enable_health_insurance = 1 
+#  # CHRONIC CONDITIONS
+#  enable_chronic_condition = 1
+#  # VISUALIZATION
+#  enable_visualization_layer = 1
+#  household_visualization_mode = 1
+#  report_incidence_by_county = 1
 #
 ##########################################################
 enable_HAZEL = 0
-
+HAZEL_reopening_CDF = 0
+HAZEL_disaster_start_day = -1
+HAZEL_disaster_end_day = -1
+HAZEL_disaster_max_bed_usage_multiplier = 1.0
 
 ##########################################################
 #

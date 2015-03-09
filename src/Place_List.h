@@ -34,6 +34,8 @@ typedef std::tr1::unordered_map<string, int> LabelMapT;
 typedef std::unordered_map<string, int> LabelMapT;
 #endif
 
+#include "Health.h"
+#include "Household.h"
 #include "Place.h"
 #include "Utils.h"
 
@@ -109,6 +111,9 @@ public:
   void setup_classrooms();
   void setup_offices();
   Place* get_random_workplace();
+  void assign_hospitals_to_households();
+  Hospital* get_random_open_hospital_matching_criteria(int day, bool allows_overnight);
+  Hospital* get_random_open_hospital_matching_criteria(int day, bool allows_overnight, Insurance_assignment_index::e insr_accepted);
   void print_household_size_distribution(char* dir, char* date_string, int run);
   void report_shelter_stats(int day);
   void end_of_run();
@@ -140,7 +145,7 @@ public:
   // access function for when we need a Household pointer
   Household* get_household_ptr(int i) {
     if(0 <= i && i < (int)this->households.size()) {
-      return (Household*)this->households[i];
+      return static_cast<Household*>(this->households[i]);
     } else {
       return NULL;
     }
@@ -234,11 +239,17 @@ private:
   static bool High_income_households_sheltering;
   static double Early_shelter_rate;
   static double Shelter_decay_rate;
+
+  // Hospital support
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
+  static double Hospital_outpatients_per_day_per_employee;
+  static double Healthcare_clinic_outpatients_per_day_per_employee;
   static int Hospital_min_bed_threshold;
   static double Hospitalization_radius;
+
+  // School support
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 

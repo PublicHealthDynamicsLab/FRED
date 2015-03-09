@@ -560,8 +560,15 @@ public:
 
   void update_activities_while_traveling(Person* self, int day);
 
-  void set_return_from_travel_sim_day(int day) { return_from_travel_sim_day = day; }
-  int get_return_from_travel_sim_day() { return return_from_travel_sim_day; }
+  void set_return_from_travel_sim_day(int day) {
+    this->return_from_travel_sim_day = day;
+  }
+
+  int get_return_from_travel_sim_day() {
+    return this->return_from_travel_sim_day;
+  }
+
+  static void print_stats(int day);
 
 private:
 
@@ -629,6 +636,12 @@ private:
   static int Employees_xlarge_with_sick_leave;
   static int Employees_xlarge_without_sick_leave;
 
+  // Statistics for Healthcare deficits
+  static int Seeking_healthcare;
+  static int Primary_healthcare_unavailable;
+  static int Healthcare_accepting_insurance_unavailable;
+  static int Healthcare_unavailable;
+
   // school change statistics
   static int entered_school;
   static int left_school;
@@ -648,7 +661,6 @@ private:
   void unenroll_from_favorite_places(Person* self) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
       if(get_favorite_place(i) != NULL) {
-	      // printf("UNENROLLING ACTIVITY %d\n", i); fflush(stdout);
         get_favorite_place(i)->unenroll(self);
       }
     }
