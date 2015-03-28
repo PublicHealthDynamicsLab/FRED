@@ -31,6 +31,7 @@ my $ymax = "-99999";
 my $border = 1;
 my $start = 0;
 my $interval = 1;
+my $google = 0;
 
 my $opt_result = GetOptions(
 			    "border=i" => \$border,
@@ -41,6 +42,7 @@ my $opt_result = GetOptions(
 			    "disease=i" => \$disease_id,
 			    "display=i" => \$display,
 			    "filled=i" => \$filled,
+			    "google" => \$google,
 			    "grid=i" => \$grid,
 			    "h" => \$help,
 			    "help" => \$help,
@@ -72,6 +74,7 @@ usage: $0 [ options ], where options include [default values]
   --disease <id> : plot results for the disease id [0]
   --display <0/1> : if set, play the movie after it is made [1]
   --filled <0/1>:  if set, plot filled curves [0]
+  --google : if set, use a google map as a background image
   --grid <0/1>: if set, show grid. [1]
   --help: print this help message
   --households <0/1> : plot all households [1]
@@ -115,7 +118,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval";
+my $command = "fred_make_maps --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google";
 
 # print "$command\n"; exit;
 

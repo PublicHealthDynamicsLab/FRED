@@ -29,6 +29,7 @@ my $grid = 0;
 my $border = 1;
 my $start = 0;
 my $interval = 1;
+my $google = 0;
 
 my $opt_result = GetOptions(
 			    "border=i" => \$border,
@@ -40,6 +41,7 @@ my $opt_result = GetOptions(
 			    "filled=i" => \$filled,
 			    "h" => \$help,
 			    "help" => \$help,
+			    "google=i" => \$google,
 			    "grid=i" => \$grid,
 			    "g=i" => \$grid,
 			    "key=s" => \$key,
@@ -141,9 +143,9 @@ if ($country eq "usa" and $census_tracts eq 1) {
 else {
   make_county_map_data($run);
 }
-print "max_pct = $max_pct\n";
+# print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f map* load* fred_make_maps.log; echo foo = 0 > RANGES.plt";
+system "rm -f RANGES.plt google_map.png map* load* fred_make_maps.log";
 
 my $shapedir = "$FRED/SHAPEFILES/2010";
 my $shapefile = "x";
@@ -176,6 +178,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "my_title = \"$title\"\n";
   print LD "my_subtitle = \"$subtitle\"\n";
   print LD "day = $day\n";
+  print LD "google = $google\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";
   print LD "show_all_households = $show_all_households\n";
@@ -207,7 +210,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   # print "$mapname\n";
   print ".";
   $started++;
-  if ($started eq $parallelism) {
+  if (($day eq $start) or ($started eq $parallelism)) {
     for my $file (@wait) {
       while (not -s $file) { sleep 1; }
     }

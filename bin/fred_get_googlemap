@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $gsize = 640;
+my $usage = "usage: $0 bottom left top right filename\n";
+
+my ($bottom, $left, $top, $right, $file) = @ARGV;
+die $usage if not $file;
+unlink $file;
+
+my $tmpimage = "google-$$.png";
+my $tmpcrop = "crop-$$.png";
+my $tmpfile = "tmp.$$";
+system "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage &> $tmpfile";
+my $bbox = `tail -1 $tmpfile`;
+# unlink $tmpfile;
+
+chomp $bbox;
+# print "|$bbox|\n";
+# print "google bbox: $bbox\n";
+# system "open $file";
+
+my ($gbottom, $gleft, $gtop, $gright) = split " ", $bbox;
+my $xrange = $right-$left;
+my $yrange = $top-$bottom;
+my $gxrange = $gright-$gleft;
+my $gyrange = $gtop-$gbottom;
+my $xsize = int($gsize*$xrange/$gxrange);
+my $ysize = int($gsize*$yrange/$gyrange);
+my $xoffset = int(0.5*($gsize-$xsize));
+my $yoffset = int(0.5*($gsize-$ysize));
+# print "want $xrange $yrange got $gxrange $gyrange size $xsize $ysize\n";
+ 
+my $cmd = "convert -size ${gsize}x${gsize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
+print "$cmd\n";
+system "$cmd";
+
+my $y = 498.0;
+my $x = 640.0;
+
+my $xres = int(72*($x/$xsize));
+my $yres = int(72*($y/$ysize));
+$cmd = "convert -resample ${xres}x${yres} $tmpcrop $file";
+print "$cmd\n";
+system "$cmd";
+
+unlink $tmpimage;
+unlink $tmpcrop;
+
+exit;
+

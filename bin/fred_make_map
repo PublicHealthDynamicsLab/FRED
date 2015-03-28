@@ -2,6 +2,9 @@
 
 # default parameters
 
+if (!exists("google")) {
+   google = 0
+}
 if (!exists("my_title")) {
    my_title = "FRED Allegheny County, PA"
 }
@@ -77,7 +80,7 @@ if (!exists("pctfile")) {
 if (!exists("shapefile_dir")) {
   shapefile_dir = "SHAPES"
 }
-print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
+# print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
 if (!exists("show_grid")) {
    show_grid = 0
 }
@@ -109,6 +112,8 @@ set style line 99 lc rgb 'gray' lt 1 lw 1
 set style line 98 lc rgb 'gray10' lt 1 lw 1
 set style line 100 lc rgb 'black' lt 1 lw 1
 
+unset key; unset tics;
+
 # read in a list of FIPS codes
 fips = system("cat " . fipsfile)
 # print "fips = " . fips
@@ -122,7 +127,7 @@ filename(n) = sprintf("%s/%s.txt", shapefile_dir, county(n))
 values = ""
 if (filled) {
   cmd = "cat " . pctfile
-  print cmd
+  # print cmd
   values = system(cmd)
 }
 # print values
@@ -135,7 +140,7 @@ set colorbox
 whole_max = sprintf("%.2f", max)
 half_max = sprintf("%.2f", max / 2.0)
 no_max = "0.00"
-print "whole_max = " . whole_max . "  half_max = " . half_max
+# print "whole_max = " . whole_max . "  half_max = " . half_max
 set cbtics axis nomirror out scale 0.5 (no_max . "%%" -10, half_max."%%" 0, whole_max."%%" 10) font "arial,10"
 
 # read RANGES.plt file if it exists
@@ -145,74 +150,111 @@ if (ranges) {
  # read in previously cmputed values for xmin, xmax, ymin and ymax
  load 'RANGES.plt'
 }
+else {
 
-print xmin, xmax, ymin, ymax
+ # create a fake plot in order to gather the x and y ranges
+ set term unknown
+ plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+ 
+ # initialize the new x and y boundaries
+ xmin = GPVAL_DATA_X_MIN
+ xmax = GPVAL_DATA_X_MAX
+ ymin = GPVAL_DATA_Y_MIN
+ ymax = GPVAL_DATA_Y_MAX
+ 
+ # find the x and y ranges in the data
+ xrng = xmax - xmin
+ yrng = ymax - ymin
+ 
+ # add some space on each side
+ xmin = xmin - 0.075*xrng
+ xmax = xmax + 0.075*xrng
+ ymin = ymin - 0.025*yrng
+ ymax = ymax + 0.025*yrng
+ 
+ # earth geometry
+ km_per_deg_lat = 111.325
+ mean_lat = (ymax + ymin) / 2.0
+ km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
+ lat_lon_ratio = km_per_deg_lon / km_per_deg_lat
+ 
+ # print sprintf("mean latitude = %0.5f", mean_lat)
+ # print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
+ # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
+ # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
+ 
+ # adjust the x range if too small
+ xtarg = yrng / lat_lon_ratio
+ xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+ xmin = xmin - xxtra
+ xmax = xmax + xxtra
+ 
+ # adjust the y range if too small
+ ytarg = lat_lon_ratio * xrng
+ yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ ymin = ymin - yxtra
+ ymax = ymax + yxtra
+ 
+ # adjust the x range if too small
+ xtarg = yrng / lat_lon_ratio
+ xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+ xmin = xmin - xxtra
+ xmax = xmax + xxtra
+ 
+ # adjust the y range if too small
+ ytarg = lat_lon_ratio * xrng
+ yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ ymin = ymin - yxtra
+ ymax = ymax + yxtra
+ 
+ # save the ranges to a file
+ print "writing ranges to  RANGES.plt"
+ set print "RANGES.plt"
+ print sprintf("ymin = %f",ymin)
+ print sprintf("xmin = %f",xmin)
+ print sprintf("ymax = %f",ymax)
+ print sprintf("xmax = %f",xmax)
 
-if (xmax == -99999) {
+ if (google) {
+  cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png", ymin, xmin, ymax, xmax)
+  system(cmd)
+ }
 
-# create a fake plot in order to gather the x and y ranges
-set term unknown
-plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+}
 
-# initialize the new x and y boundaries
-xmin = GPVAL_DATA_X_MIN
-xmax = GPVAL_DATA_X_MAX
-ymin = GPVAL_DATA_Y_MIN
-ymax = GPVAL_DATA_Y_MAX
+# ready for the actual plot:
 
-# find the x and y ranges in the data
-xrng = xmax - xmin
-yrng = ymax - ymin
-
-# mean latitude
-mean_lat = (ymax + ymin) / 2.0
-
-# earth geometry
-km_per_deg_lat = 111.325
-km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
-
-lat_lon_ratio = 50.0 / km_per_deg_lat
-
-# print sprintf("mean latitude = %0.5f", mean_lat)
-# print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
-# print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
-# print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
-
-# adjust the x range if too small
-xtarg = yrng / lat_lon_ratio
-xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
-xmin = xmin - xxtra
-xmax = xmax + xxtra
-
-# adjust the y range if too small
-ytarg = lat_lon_ratio * xrng
-yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
-ymin = ymin - yxtra
-ymax = ymax + yxtra
-
-# get the updated ranges
-xrng = xmax - xmin
-yrng = ymax - ymin
-
-# add 5% on each side
-xmin = xmin - 0.05*xrng
-xmax = xmax + 0.05*xrng
-ymin = ymin - 0.05*yrng
-ymax = ymax + 0.05*yrng
-
-# save the ranges to a file
-print "writing ranges to  RANGES.plt"
-set print "RANGES.plt"
-print sprintf("xmin = %f",xmin)
-print sprintf("xmax = %f",xmax)
-print sprintf("ymin = %f",ymin)
-print sprintf("ymax = %f",ymax)
-
+if (filled) {
+#  set term pdf enhanced font "Helvetica, 12" size 6.8,4.5
+   set term pngcairo enhanced font "arial,12" size 720,480
+}
+else {
+#  set term pdf enhanced font "Helvetica, 12" size 6,4.5
+   set term pngcairo enhanced font "arial,12" size 640,640
 }
 
 # set the ranges for the axes
 set xrange [ xmin:xmax ]
 set yrange [ ymin:ymax ]
+
+# get the center of the map
+xcenter = (xmin+xmax)/2.0
+ycenter = (ymin+ymax)/2.0
+xsize = xmax-xmin
+ysize = ymax-ymin
+
+# set plot margins
+set lmargin 0
+set rmargin 0
+set tmargin 6
+set bmargin 2
+
+unset xlabel
+unset ylabel
+unset xtics
+unset ytics
+unset grid
+set border lw 1
 
 if (show_border) {
    set xlabel "Longitude\n" offset 0,0
@@ -226,34 +268,14 @@ if (show_border) {
     unset grid
    }
 }
-else {
-   unset border
-   unset xlabel
-   unset ylabel
-   unset xtics
-   unset ytics
-   unset grid
-   set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
-   set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
-}
-
-# ready for the actual plot:
-# set term pngcairo enhanced font "Helvetica, 12"
-if (filled) {
-#  set term pdf enhanced font "Helvetica, 12" size 6.8,4.5
-   set term pngcairo enhanced font "arial,12" size 720,480
-}
-else {
-#  set term pdf enhanced font "Helvetica, 12" size 6,4.5
-   set term pngcairo enhanced font "arial,12"
-}
 
 # set the title
-title_string = sprintf("%s\n%s\nDay %d", my_title, my_subtitle, day)
+title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
 # day_string = sprintf("Day %d", day)
 set title title_string offset 0,0 font "Arial, 16"
-# set label my_subtitle at screen 0.5, char -2 center font "Arial, 14"
-# set label day_string at screen 0.5, char -3 center font "Arial, 12"
+
+set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
+set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
 
 set output mapname
 
@@ -264,14 +286,21 @@ if (filled) {
   replot for [n=1:words(fips)] filename(n) u 2:1 t '' w li ls 99 lw 0.5
 }
 else {
-  plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 12 w filledcurve
+  if(!google) {
+   plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 12 w filledcurve
+  }
 }
 
 if (show_all_households) {
  replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
 }
 if (show_recovered) {
- replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
+ if (google) {
+   plot 'googlemap.png' binary filetype=png center=(xcenter,ycenter) dx=xsize/640 dy=ysize/498 with rgbimage notitle, recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
+ }
+ else {
+   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
+ }
 }
 if (show_infectious) {
  replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.7
