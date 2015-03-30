@@ -21,15 +21,16 @@ my $show_incidence = 1;
 my $show_infectious = 0;
 my $show_recovered = 0;
 my $linewidth = 1;
-my $xmin = "-99999";
-my $xmax = "-99999";
-my $ymin = "-99999";
-my $ymax = "-99999";
+my $xmin = 0;
+my $xmax = 0;
+my $ymin = 0;
+my $ymax = 0;
 my $grid = 0;
 my $border = 1;
 my $start = 0;
 my $interval = 1;
 my $google = 0;
+my $use_shapefile = 1;
 
 my $opt_result = GetOptions(
 			    "border=i" => \$border,
@@ -55,6 +56,7 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "shapefile=i" => \$use_shapefile,
 			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
@@ -194,12 +196,13 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
   print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
   print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
+  print LD "use_shapefile = $use_shapefile\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
   print LD "linewidth = $linewidth\n";
-  print LD "xmin = $xmin\n";
-  print LD "xmax = $xmax\n";
-  print LD "ymin = $ymin\n";
-  print LD "ymax = $ymax\n";
+  print LD "force_xmin = $xmin\n";
+  print LD "force_xmax = $xmax\n";
+  print LD "force_ymin = $ymin\n";
+  print LD "force_ymax = $ymax\n";
   print LD "show_grid = $grid\n";
   print LD "show_border = $border\n";
   close LD;

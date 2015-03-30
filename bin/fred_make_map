@@ -43,17 +43,17 @@ if (!exists("max")) {
 }
 print sprintf("max = %f", max);
 
-if (!exists("xmin")) {
-  xmin = -99999
+if (!exists("force_xmin")) {
+  force_xmin = 0
 }
-if (!exists("xmax")) {
-  xmax = -99999
+if (!exists("force_xmax")) {
+  force_xmax = 0
 }
-if (!exists("ymin")) {
-  ymin = -99999
+if (!exists("force_ymin")) {
+  force_ymin = 0
 }
-if (!exists("ymax")) {
-  ymax = -99999
+if (!exists("force_ymax")) {
+  force_ymax = 0
 }
 
 if (!exists("household_locations")) {
@@ -77,6 +77,9 @@ if (!exists("rawfile")) {
 if (!exists("pctfile")) {
   valuefile = "PCT"
 }
+if (!exists("use_shapefile")) {
+  use_shapefile = 1
+}
 if (!exists("shapefile_dir")) {
   shapefile_dir = "SHAPES"
 }
@@ -85,7 +88,7 @@ if (!exists("show_grid")) {
    show_grid = 0
 }
 if (!exists("show_border")) {
-   show_border = 1
+   show_border = 0
 }
 
 set palette maxcolors 10
@@ -161,6 +164,7 @@ else {
  xmax = GPVAL_DATA_X_MAX
  ymin = GPVAL_DATA_Y_MIN
  ymax = GPVAL_DATA_Y_MAX
+ # print xmin, xmax, ymin, ymax
  
  # find the x and y ranges in the data
  xrng = xmax - xmin
@@ -171,7 +175,14 @@ else {
  xmax = xmax + 0.075*xrng
  ymin = ymin - 0.025*yrng
  ymax = ymax + 0.025*yrng
+ print xmin, xmax, ymin, ymax
  
+ if (force_xmin) { xmin = force_xmin }
+ if (force_xmax) { xmax = force_xmax }
+ if (force_ymin) { ymin = force_ymin }
+ if (force_ymax) { ymax = force_ymax }
+ # print xmin, xmax, ymin, ymax
+
  # earth geometry
  km_per_deg_lat = 111.325
  mean_lat = (ymax + ymin) / 2.0
@@ -183,17 +194,9 @@ else {
  # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
  # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
  
- # adjust the x range if too small
- xtarg = yrng / lat_lon_ratio
- xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
- xmin = xmin - xxtra
- xmax = xmax + xxtra
- 
- # adjust the y range if too small
- ytarg = lat_lon_ratio * xrng
- yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
- ymin = ymin - yxtra
- ymax = ymax + yxtra
+ # find the x and y ranges
+ xrng = xmax - xmin
+ yrng = ymax - ymin
  
  # adjust the x range if too small
  xtarg = yrng / lat_lon_ratio
@@ -206,9 +209,28 @@ else {
  yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
  ymin = ymin - yxtra
  ymax = ymax + yxtra
+ # print xmin, xmax, ymin, ymax
+ 
+ # find the x and y ranges
+ xrng = xmax - xmin
+ yrng = ymax - ymin
+ 
+ # adjust the x range if too small
+ xtarg = yrng / lat_lon_ratio
+ xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+ xmin = xmin - xxtra
+ xmax = xmax + xxtra
+ 
+ # adjust the y range if too small
+ ytarg = lat_lon_ratio * xrng
+ yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ ymin = ymin - yxtra
+ ymax = ymax + yxtra
+ # print xmin, xmax, ymin, ymax
  
  # save the ranges to a file
  print "writing ranges to  RANGES.plt"
+ print xmin, xmax, ymin, ymax
  set print "RANGES.plt"
  print sprintf("ymin = %f",ymin)
  print sprintf("xmin = %f",xmin)
@@ -254,7 +276,7 @@ unset ylabel
 unset xtics
 unset ytics
 unset grid
-set border lw 1
+unset border
 
 if (show_border) {
    set xlabel "Longitude\n" offset 0,0
@@ -310,8 +332,10 @@ if (show_incidence) {
 }
 
 if (!filled) {
- # draw outlines
- replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth
+ if (use_shapefile) {
+  # draw outlines
+  replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth
+ }
 }
 
 unset multiplot

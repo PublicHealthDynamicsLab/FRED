@@ -39,7 +39,7 @@ while(clipped == TRUE) {
 	# get the google map from center point
 	# uses get_googlemap because get_map doesn't allow for style attribute
 
-	map <- get_googlemap(center, zoom=myzoom, maptype="roadmap", style="feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off", size=c(gsize,gsize), scale=4)
+	map <- get_googlemap(center, zoom=myzoom, maptype="roadmap", style="lightness:0&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off", size=c(gsize,gsize), scale=4)
 
 	# retreive bounding box from square google map
 	gbottom <- attr(map, "bb")$ll.lat

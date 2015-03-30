@@ -16,7 +16,9 @@ unlink $file;
 my $tmpimage = "google-$$.png";
 my $tmpcrop = "crop-$$.png";
 my $tmpfile = "tmp.$$";
-system "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage &> $tmpfile";
+my $cmd = "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage \&> $tmpfile";
+# print "$cmd\n";
+system "$cmd";
 my $bbox = `tail -1 $tmpfile`;
 # unlink $tmpfile;
 
@@ -36,8 +38,8 @@ my $xoffset = int(0.5*($gsize-$xsize));
 my $yoffset = int(0.5*($gsize-$ysize));
 # print "want $xrange $yrange got $gxrange $gyrange size $xsize $ysize\n";
  
-my $cmd = "convert -size ${gsize}x${gsize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
-print "$cmd\n";
+$cmd = "convert -size ${gsize}x${gsize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
+# print "$cmd\n";
 system "$cmd";
 
 my $y = 498.0;

@@ -20,7 +20,7 @@ seed = 123456
 reseed_day = -1
 
 ##### Geographical grids
-use_mean_latitude = 0
+use_mean_latitude = 1
 
 # Size of large-scale grid patches in km
 regional_patch_size = 20.0
