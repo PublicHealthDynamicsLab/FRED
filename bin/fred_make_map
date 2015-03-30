@@ -321,7 +321,7 @@ if (show_recovered) {
    plot 'googlemap.png' binary filetype=png center=(xcenter,ycenter) dx=xsize/640 dy=ysize/498 with rgbimage notitle, recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
  }
  else {
-   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.4
+   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.7
  }
 }
 if (show_infectious) {
