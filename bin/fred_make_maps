@@ -4,6 +4,7 @@ use warnings;
 use Env;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
+my $api_key = "none";
 my $census_tracts = 0;
 my $country = "usa";
 my $disease_id = 0;
@@ -11,28 +12,29 @@ my $filled = 0;
 my $help = 0;
 my $key = "";
 my $max = 10;
-my $parallelism = 1;
+my $parallelism = 10;
 my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
 my $subtitle = " ";
 my $show_all_households = 0;
-my $show_incidence = 1;
-my $show_infectious = 0;
-my $show_recovered = 0;
-my $linewidth = 1;
+my $show_incidence = 0;
+my $show_infectious = 1;
+my $show_recovered = 1;
+my $linewidth = 2;
 my $xmin = 0;
 my $xmax = 0;
 my $ymin = 0;
 my $ymax = 0;
 my $grid = 0;
-my $border = 1;
+my $border = 0;
 my $start = 0;
 my $interval = 1;
-my $google = 0;
+my $google = 1;
 my $use_shapefile = 1;
 
 my $opt_result = GetOptions(
+			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
 			    "start=i" => \$start,
 			    "interval=i" => \$interval,
@@ -66,24 +68,34 @@ my $opt_result = GetOptions(
 
 my $usage = <<EOH;
 usage: $0 [ options ], where options include:
-  --census_tracts 0/1: plot census tracts
-  --country <name> : plot the named country
-  --disease <id> : plot results for the disease id
-  --filled <0/1>:  if set, plot filled curves
+  --api_key <key>: if set, use this api_key to obtain Google maps ["none"]
+  --border 0/1: if set, display border around map with lat-lon labels [0]
+  --census_tracts 0/1: plot census tracts [0]
+  --country <name> : plot the named country [usa]
+  --disease <id> : plot results for the disease id [0]
+  --display <0/1> : if set, play the movie after it is made [0]
+  --filled <0/1>:  if set, plot filled curves [0]
+  --google : if set, use a google map as a background image [1]
+  --grid <0/1>: if set, show grid. [0]
   --help: print this help message
-  --key <id> : plot the job with given id 
-  --max <val> : use the given value as the maximum for color plots
-  --parallelism <n> : plot n maps in parallel
-  --run <n> : plot results of run n
-  --term <type> : plot using the specified terminal type
-  --title <str> : title for each map
-  --subtitle <str> : subtitle for each map
-  --dots <0/1> : if set plot dots
-  --incidence <0/1> : if set and dots is set, plot households with incidence
-  --infectious <0/1> : if set and dots is set, plot households with infectious members
-  --recovered <0/1> :  if set and dots is set, plot households with recovered members
-  -x <xmin> : min value for x axis
-  -X <xmax> : max value for x axis
+  --households <0/1> : plot all households [0]
+  --incidence <0/1> : if set and dots is set, plot households with incidence [0]
+  --infectious <0/1> : if set and dots is set, plot households with infectious members [1]
+  --interval <n> : movie include every nth day [1] 
+  --key <id> : plot the job with given id [none - must be specified]
+  --lw <n> : use linewidth n to outline counties [2]
+  --max <val> : use the given value as the maximum for color plots [10]
+  --movie_format <str> : use the specified movie format [mp4]
+  --parallelism <n> : plot n maps in parallel [10]
+  --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
+  --run <n> : plot results of run n [1]
+  --shapefile <0/1> : if set, draw the shapefile for each fips code
+  --start day: start movie on specified day [0]
+  --subtitle <str> : subtitle for each map [" "]
+  --term <type> : plot using the specified terminal type [png]
+  --title <str> : title for each map ["FRED Allegheny County"]
+  -x <xmin> : min value for x axis 
+  -X <xmax> : max value for x axis 
   -y <ymin> : min value for y axis
   -Y <xmax> : max value for x axis
 EOH
@@ -205,6 +217,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "force_ymax = $ymax\n";
   print LD "show_grid = $grid\n";
   print LD "show_border = $border\n";
+  print LD "api_key = '$api_key'\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 

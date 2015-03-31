@@ -5,6 +5,9 @@
 if (!exists("google")) {
    google = 0
 }
+if (!exists("api_key")) {
+   api_key = "none"
+}
 if (!exists("my_title")) {
    my_title = "FRED Allegheny County, PA"
 }
@@ -238,7 +241,7 @@ else {
  print sprintf("xmax = %f",xmax)
 
  if (google) {
-  cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png", ymin, xmin, ymax, xmax)
+  cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s", ymin, xmin, ymax, xmax, api_key)
   system(cmd)
  }
 
