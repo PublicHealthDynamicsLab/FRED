@@ -159,7 +159,23 @@ else {
 }
 # print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f RANGES.plt google_map.png map* load* fred_make_maps.log";
+system "rm -f RANGES.plt googlemap.png map* load* fred_make_maps.log";
+if (scalar @fips eq 1) {
+  # use background image if it already exists
+  my $fip = sprintf("%05d", $fips[0]);
+  my $imgdir = "$FRED/input_files/countries/$country/IMAGES";
+  # system "echo $imgdir; ls -l $imgdir";
+  my $imfile = "$imgdir/$fip.png";
+  # print "|$imfile|\n";
+  if (-e $imfile) {
+    system "cp $FRED/input_files/countries/$country/IMAGES/$fip.png googlemap.png";
+    system "cp $FRED/input_files/countries/$country/IMAGES/$fip.boundaries RANGES.plt";
+    $use_shapefile = 0;
+  }
+  else {
+    # print "NOPE\n";
+  }
+}
 
 my $shapedir = "$FRED/SHAPEFILES/2010";
 my $shapefile = "x";
