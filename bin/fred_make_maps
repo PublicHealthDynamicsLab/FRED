@@ -4,7 +4,10 @@ use warnings;
 use Env;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $api_key = "none";
+# use default api_key if it exists
+my $api_key = $ENV{FRED_API_KEY};
+$api_key = "none" if not $api_key;
+
 my $census_tracts = 0;
 my $country = "usa";
 my $disease_id = 0;
