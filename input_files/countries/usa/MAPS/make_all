@@ -8,11 +8,6 @@ $fipslist =~ s/\.txt\n/ /g;
 # print "$fipslist\n"; exit;
 my @allfips = split " ", $fipslist;
 for my $fips (@allfips) {
-  # print "$fips\n";
-  system "echo $fips > FIPS";
-  system "./make_map";
-  system "mv map.png $fips.png";
-  system "mv RANGES.plt $fips.boundaries";
-  system "rm back* tmp* google* crop*";
+  system "make_fips $fips";
 }
 

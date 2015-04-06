@@ -9,8 +9,7 @@ if (!exists("adjust")) {
    adjust = 1
 }
 if (!exists("api_key")) {
-   # api_key = "none"
-   api_key = "AIzaSyAEmy7rId-J9l550pogdhvXFWg3nCQRMBg"
+   api_key = "none"
 }
 if (!exists("terminal")) {
   terminal = "png"
@@ -174,6 +173,12 @@ mydy = ysize/498.0
 print sprintf("xsize = %f ysize = %f dx = %f dy = %f",xsize,ysize,mydx,mydy) 
 
 set output mapname
+
+# no shapefiles for Hawaii
+if (word(fips,1)[1:2] eq "15") {
+   use_shapefile = 0
+}
+
 if (use_shapefile) {
   plot 'background.png' binary filetype=png center=(xcenter,ycenter) dx=mydx dy=mydy with rgbimage notitle, \
    for [n=1:words(fips)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth

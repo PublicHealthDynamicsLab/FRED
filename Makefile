@@ -9,6 +9,10 @@ all:
 		(cd $$i; make); \
 	done
 
+us_maps:
+	tar xzvf us_maps.tgz
+	mv MAPS input_files/countries/usa
+
 clean:
 	@for i in $(DIRS); do \
 		echo $$i; \

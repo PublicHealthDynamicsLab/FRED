@@ -15,7 +15,7 @@ my $max = 10;
 my $parallelism = 10;
 my $run = 1;
 my $term = "png";
-my $title = "FRED Allegheny County";
+my $title = "FRED Simulation";
 my $subtitle = " ";
 my $show_all_households = 0;
 my $show_incidence = 0;
@@ -159,21 +159,18 @@ else {
 }
 # print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f RANGES.plt googlemap.png map* load* fred_make_maps.log";
+system "rm -f BBOX googlemap.png map* load* fred_make_maps.log";
 if (scalar @fips eq 1) {
   # use background image if it already exists
-  my $fip = sprintf("%05d", $fips[0]);
-  my $imgdir = "$FRED/input_files/countries/$country/IMAGES";
-  # system "echo $imgdir; ls -l $imgdir";
-  my $imfile = "$imgdir/$fip.png";
-  # print "|$imfile|\n";
-  if (-e $imfile) {
-    system "cp $FRED/input_files/countries/$country/IMAGES/$fip.png googlemap.png";
-    system "cp $FRED/input_files/countries/$country/IMAGES/$fip.boundaries RANGES.plt";
+  my $loc = sprintf("%05d", $fips[0]);
+  my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
+  # system "echo $mapsdir; ls -l $mapsdir";
+  my $background_map = "$mapsdir/$loc.png";
+  # print "|$background_map|\n";
+  if (-e $background_map) {
+    system "cp $background_map googlemap.png";
+    system "cp $mapsdir/$loc.bbox BBOX";
     $use_shapefile = 0;
-  }
-  else {
-    # print "NOPE\n";
   }
 }
 
@@ -300,10 +297,12 @@ sub make_county_map_data {
       }
       close OUT;
     }
-    write_values_to_file(0,$day, @values_0);
-    write_values_to_file(1,$day, @values_1);
-    write_values_to_file(2,$day, @values_2);
-    write_values_to_file(3,$day, @values_3);
+    if ($filled) {
+      write_values_to_file(0,$day, @values_0);
+      write_values_to_file(1,$day, @values_1);
+      write_values_to_file(2,$day, @values_2);
+      write_values_to_file(3,$day, @values_3);
+    }
   }
   close FH;
 }

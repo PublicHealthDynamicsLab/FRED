@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+
+
+my ($fips) = @ARGV;
+die "usage: $0 fips\n" if not $fips;
+# print "$fips\n";
+system "echo $fips > FIPS";
+
+my $api_key = $ENV{FRED_API_KEY};
+$api_key = "none" if not $api_key;
+
+system "gnuplot -e 'api_key=\"$api_key\"' ./make_map";
+system "mv map.png $fips.png";
+system "mv RANGES.plt $fips.bbox";
+system "rm back* tmp* google* crop*";
+

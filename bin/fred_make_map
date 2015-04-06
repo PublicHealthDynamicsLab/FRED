@@ -149,16 +149,16 @@ no_max = "0.00"
 # print "whole_max = " . whole_max . "  half_max = " . half_max
 set cbtics axis nomirror out scale 0.5 (no_max . "%%" -10, half_max."%%" 0, whole_max."%%" 10) font "arial,10"
 
-# read RANGES.plt file if it exists
-ranges = system("perl -e 'if(-e \"RANGES.plt\"){print \"1\"}else{print \"0\"}' ")
-print "ranges = " . ranges
-if (ranges) {
- # read in previously cmputed values for xmin, xmax, ymin and ymax
- load 'RANGES.plt'
+# read BBOX file if it exists
+bbox = system("perl -e 'if(-e \"BBOX\"){print \"1\"}else{print \"0\"}' ")
+print "bbox = " . bbox
+if (bbox) {
+ # read in previously computed values for bounding box: xmin, xmax, ymin and ymax
+ load 'BBOX'
 }
 else {
 
- # create a fake plot in order to gather the x and y ranges
+ # create a fake plot in order to gather the x and y bbox
  set term unknown
  plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
  
@@ -169,7 +169,7 @@ else {
  ymax = GPVAL_DATA_Y_MAX
  # print xmin, xmax, ymin, ymax
  
- # find the x and y ranges in the data
+ # find the x and y bbox in the data
  xrng = xmax - xmin
  yrng = ymax - ymin
  
@@ -197,7 +197,7 @@ else {
  # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
  # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
  
- # find the x and y ranges
+ # find the x and y bbox
  xrng = xmax - xmin
  yrng = ymax - ymin
  
@@ -214,7 +214,7 @@ else {
  ymax = ymax + yxtra
  # print xmin, xmax, ymin, ymax
  
- # find the x and y ranges
+ # find the x and y bbox
  xrng = xmax - xmin
  yrng = ymax - ymin
  
@@ -231,10 +231,10 @@ else {
  ymax = ymax + yxtra
  # print xmin, xmax, ymin, ymax
  
- # save the ranges to a file
- print "writing ranges to  RANGES.plt"
+ # save the bbox to a file
+ print "writing bbox to  BBOX"
  print xmin, xmax, ymin, ymax
- set print "RANGES.plt"
+ set print "BBOX"
  print sprintf("ymin = %f",ymin)
  print sprintf("xmin = %f",xmin)
  print sprintf("ymax = %f",ymax)
@@ -249,13 +249,23 @@ else {
 
 # ready for the actual plot:
 
+# set the title
+title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
+# day_string = sprintf("Day %d", day)
+
 if (filled) {
 #  set term pdf enhanced font "Helvetica, 12" size 6.8,4.5
    set term pngcairo enhanced font "arial,12" size 720,480
 }
 else {
-#  set term pdf enhanced font "Helvetica, 12" size 6,4.5
+ if (terminal eq "png") {
    set term pngcairo enhanced font "arial,12" size 640,640
+   set title title_string offset 0,0 font "Arial, 16"
+ }
+ if (terminal eq "pdf") {
+  set term pdf enhanced font "Helvetica,18" size 8.888,8.888
+  set title title_string offset 0,0 font "Helvetica,24"
+ }
 }
 
 # set the ranges for the axes
@@ -293,11 +303,6 @@ if (show_border) {
     unset grid
    }
 }
-
-# set the title
-title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
-# day_string = sprintf("Day %d", day)
-set title title_string offset 0,0 font "Arial, 16"
 
 set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
 set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
