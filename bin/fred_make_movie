@@ -4,7 +4,11 @@ use warnings;
 use Env;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $api_key = "none";
+# use default api_key if it exists
+my $api_key = $ENV{FRED_API_KEY};
+$api_key = "none" if not $api_key;
+# print "api_key = '$api_key'\n";
+
 my $census_tracts = 0;
 my $country = "usa";
 my $disease_id = 0;
@@ -19,6 +23,7 @@ my $run = 1;
 my $term = "png";
 my $title = "FRED Allegheny County";
 my $subtitle = " ";
+my $lightness = 0;
 my $show_all_households = 0;
 my $show_incidence = 0;
 my $show_infectious = 1;
@@ -51,6 +56,7 @@ my $opt_result = GetOptions(
 			    "help" => \$help,
 			    "k=s" => \$key,
 			    "key=s" => \$key,
+			    "lightness=i" => \$lightness,
 			    "max=s" => \$max,
 			    "parallelism=i" => \$parallelism,
 			    "run=i" => \$run,
@@ -87,6 +93,7 @@ usage: $0 [ options ], where options include [default values]
   --infectious <0/1> : if set and dots is set, plot households with infectious members [1]
   --interval <n> : movie include every nth day [1] 
   --key <id> : plot the job with given id [none - must be specified]
+  --lightness <n> : set lightness of background map [0]
   --lw <n> : use linewidth n to outline counties [2]
   --max <val> : use the given value as the maximum for color plots [10]
   --movie_format <str> : use the specified movie format [mp4]
@@ -124,7 +131,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness";
 
 # print "$command\n"; exit;
 

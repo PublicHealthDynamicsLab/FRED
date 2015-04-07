@@ -8,6 +8,7 @@ api_key <- args[6]
 if (api_key == "none") {
  api_key = ''
 }
+lightness <- args[7]
 
 library(ggmap)
 
@@ -45,6 +46,10 @@ while(clipped == TRUE) {
 
 	# used in FRED/measles
 	my_style <- "lightness:0&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off"
+
+	if (lightness>0) {
+		my_style <- "lightness:25&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off"
+	}
 
 	map <- get_googlemap(center, key=api_key,zoom=myzoom, maptype="roadmap", style=my_style, size=c(gsize,gsize), scale=4)
 

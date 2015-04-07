@@ -7,6 +7,7 @@ use Getopt::Long qw(:config no_ignore_case bundling);
 # use default api_key if it exists
 my $api_key = $ENV{FRED_API_KEY};
 $api_key = "none" if not $api_key;
+# print "api_key = '$api_key'\n";
 
 my $census_tracts = 0;
 my $country = "usa";
@@ -14,6 +15,7 @@ my $disease_id = 0;
 my $filled = 0;
 my $help = 0;
 my $key = "";
+my $lightness = 0;
 my $max = 10;
 my $parallelism = 10;
 my $run = 1;
@@ -51,6 +53,7 @@ my $opt_result = GetOptions(
 			    "grid=i" => \$grid,
 			    "g=i" => \$grid,
 			    "key=s" => \$key,
+			    "lightness=i" => \$lightness,
 			    "max=s" => \$max,
 			    "parallelism=i" => \$parallelism,
 			    "run=i" => \$run,
@@ -234,6 +237,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_grid = $grid\n";
   print LD "show_border = $border\n";
   print LD "api_key = '$api_key'\n";
+  print LD "lightness =  $lightness\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 

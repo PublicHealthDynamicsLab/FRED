@@ -9,15 +9,16 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $gsize = 640;
 my $usage = "usage: $0 bottom left top right filename\n";
 
-my ($bottom, $left, $top, $right, $file, $api_key) = @ARGV;
+my ($bottom, $left, $top, $right, $file, $api_key, $lightness) = @ARGV;
 die $usage if not $file;
 unlink $file;
 $api_key = "none" if not $api_key;
+$lightness = 0 if not $lightness;
 
 my $tmpimage = "google-$$.png";
 my $tmpcrop = "crop-$$.png";
 my $tmpfile = "tmp.$$";
-my $cmd = "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage $api_key \&> $tmpfile";
+my $cmd = "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage $api_key $lightness \&> $tmpfile";
 print "$cmd\n";
 system "$cmd";
 my $bbox = `tail -1 $tmpfile`;
