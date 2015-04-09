@@ -35,24 +35,24 @@ class Disease;
 class Person;
 
 struct Time_Step_Map {
-  int simDayStart;
-  int simDayEnd;
-  int numSeedingAttempts;
+  int sim_day_start;
+  int sim_day_end;
+  int num_seeding_attempts;
   int disease_id;
-  double seedingAttemptProb;
-  int minNumSuccessful;
+  double seeding_attempt_prob;
+  int min_num_successful;
   double lat;
   double lon;
   double radius;
   const std::string to_string() const {
     std::stringstream ss;
     ss << "Time Step Map ";
-    ss << " simDayStart " << simDayStart;
-    ss << " simDayEnd " << simDayEnd;
-    ss << " numSeedingAttempts " << numSeedingAttempts;
+    ss << " sim_day_start " << sim_day_start;
+    ss << " sim_day_end " << sim_day_end;
+    ss << " num_seeding_attempts " << num_seeding_attempts;
     ss << " disease_id " << disease_id;
-    ss << " seedingAttemptProb " << seedingAttemptProb;
-    ss << " minNumSuccessful " << minNumSuccessful;
+    ss << " seeding_attempt_prob " << seeding_attempt_prob;
+    ss << " min_num_successful " << min_num_successful;
     ss << " lat " << lat;
     ss << " lon " << lon;
     ss << " radius " << radius;
@@ -63,18 +63,27 @@ struct Time_Step_Map {
 
 
 struct Disease_Count_Info {
-  int total_people_ever_infected;
-  int total_people_ever_symptomatic;
-  int total_children_ever_infected;
-  int total_children_ever_symptomatic;
+  int tot_ppl_evr_inf;
+  int tot_ppl_evr_sympt;
+  int tot_chldrn_evr_inf;
+  int tot_chldrn_evr_sympt;
+  int tot_sch_age_chldrn_evr_inf;
+  int tot_sch_age_chldrn_ever_sympt;
+  int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
+  int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
 
   const std::string to_string() const {
     std::stringstream ss;
     ss << "Disease Count Info ";
-    ss << total_people_ever_infected << " ";
-    ss << total_people_ever_symptomatic << " ";
-    ss << total_children_ever_infected << " ";
-    ss << total_children_ever_symptomatic << std::endl;
+    ss << " tot_ppl_evr_inf " << tot_ppl_evr_inf;
+    ss << " tot_ppl_evr_sympt " << tot_ppl_evr_sympt;
+    ss << " tot_chldrn_evr_inf " << tot_chldrn_evr_inf;
+    ss << " tot_chldrn_evr_sympt " << tot_chldrn_evr_sympt;
+    ss << " tot_sch_age_chldrn_evr_inf " << tot_sch_age_chldrn_evr_inf;
+    ss << " tot_sch_age_chldrn_ever_sympt " << tot_sch_age_chldrn_ever_sympt;
+    ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
+    ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
+    ss << std::endl;
     return ss.str();
   }
 };
@@ -100,6 +109,7 @@ public:
   void report_incidence_by_census_tract(int day);
   void report_place_of_infection(int day);
   void report_presenteeism(int day);
+  void report_school_attack_rates_by_income_level(int day);
   void report_serial_interval(int day);
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);
@@ -163,7 +173,7 @@ public:
   }
 
   int get_total_people_ever_infected() {
-    return this->population_infection_counts.total_people_ever_infected;
+    return this->population_infection_counts.tot_ppl_evr_inf;
   }
 
   int get_people_becoming_symptomatic_today() {
@@ -256,7 +266,7 @@ private:
 
   // lists of susceptible and infectious Persons now kept as
   // bit maskes in Population "Bloque"
-  vector <Person*> daily_infections_list;
+  vector<Person*> daily_infections_list;
 
   vector<Place*> inf_households;
   vector<Place*> inf_neighborhoods;
@@ -280,6 +290,9 @@ private:
   //Values for household income based stratification
   std::map<int, struct Disease_Count_Info> household_income_infection_counts_map;
   std::map<int, struct Disease_Count_Info> census_tract_infection_counts_map;
+
+  //Values for school income based stratification
+  std::map<int, struct Disease_Count_Info> school_income_infection_counts_map;
 
   int people_becoming_symptomatic_today;
   int people_with_current_symptoms;

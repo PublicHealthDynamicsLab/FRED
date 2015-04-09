@@ -221,6 +221,7 @@ public:
     return this->blq.mask_is_set( mask, person_index );
   }
 
+  void set_school_income_levels();
   void report_mean_hh_income_per_school();
   void report_mean_hh_size_per_school();
   void report_mean_hh_distance_from_school();
@@ -286,7 +287,13 @@ public:
 
   void update_traveling_people(int day);
 
+  bool is_load_completed() {
+    return this->load_completed;
+  }
+
 private:
+
+  bool load_completed;
 
   void mother_gives_birth(int day, Person* mother);
 

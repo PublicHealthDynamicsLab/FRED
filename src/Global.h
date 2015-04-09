@@ -138,6 +138,12 @@ class Global {
     static const int LOG_LEVEL_HIGH = 3;
     static const int LOG_LEVEL_MAX = 4;
 
+    //Income quartile
+    static const int Q1 = 1;
+    static const int Q2 = 2;
+    static const int Q3 = 3;
+    static const int Q4 = 4;
+
     /*
     // OLD RELATIONSHIP CODE (VER 1)
     static const int UNKNOWN_RELATION = 0;
@@ -250,6 +256,7 @@ class Global {
     static bool Report_Place_Of_Infection;
     static bool Report_Distance_Of_Infection;
     static bool Report_Presenteeism;
+    static bool Report_Childhood_Presenteeism;
     static bool Report_Serial_Interval;
     static bool Report_Incidence_By_County;
     static bool Report_Incidence_By_Census_Tract;

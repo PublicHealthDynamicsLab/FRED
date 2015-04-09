@@ -43,12 +43,12 @@ int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
 Workplace::Workplace(const char *lab, fred::place_subtype _subtype, double lon, double lat, Place *container, Population *pop) {
-  type = WORKPLACE;
-  subtype = _subtype;
+  this->type = WORKPLACE;
+  this->subtype = _subtype;
   setup(lab, lon, lat, container, pop);
   get_parameters(Global::Diseases);
-  offices.clear();
-  next_office = 0;
+  this->offices.clear();
+  this->next_office = 0;
 }
 
 void Workplace::get_parameters(int diseases) {
@@ -93,6 +93,7 @@ void Workplace::get_parameters(int diseases) {
 // this method is called after all workers are assigned to workplaces
 void Workplace::prepare() {
 
+  assert(Global::Pop.is_load_completed());
   // update employment stats based on size of workplace
   if(this->N < Workplace::Small_workplace_size) {
     Workplace::workers_in_small_workplaces += this->N;
@@ -132,7 +133,7 @@ int Workplace::get_number_of_rooms() {
     rooms++;
   }
   if(rooms == 0) {
-    ++rooms;
+    rooms++;
   }
   return rooms;
 }

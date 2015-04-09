@@ -187,8 +187,9 @@ public:
    * @see Activities::assign_classroom()
    */
   void assign_classroom() {
-    if (this->activities.get_school())
+    if(this->activities.get_school()) {
       this->activities.assign_classroom(this);
+    }
   }
 
   /**
@@ -836,19 +837,19 @@ public:
   }
 
   bool is_prisoner() {
-    return activities.is_prisoner();
+    return this->activities.is_prisoner();
   }
 
   bool is_college_dorm_resident() {
-    return activities.is_college_dorm_resident();
+    return this->activities.is_college_dorm_resident();
   }
 
   bool is_military_base_resident() {
-    return activities.is_military_base_resident();
+    return this->activities.is_military_base_resident();
   }
 
   bool is_nursing_home_resident() {
-    return activities.is_nursing_home_resident();
+    return this->activities.is_nursing_home_resident();
   }
 
   bool lives_in_group_quarters() {
@@ -857,18 +858,19 @@ public:
   }
 
   char get_profile() {
-    return activities.get_profile();
+    return this->activities.get_profile();
   }
 
   int get_number_of_children() {
-    return demographics.get_number_of_children();
+    return this->demographics.get_number_of_children();
   }
 
   int get_grade() {
     return this->activities.get_grade();
   }
 
-  void set_grade(int n) { this->activities.set_grade(n);
+  void set_grade(int n) {
+    this->activities.set_grade(n);
   }
 
 private:

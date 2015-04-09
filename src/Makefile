@@ -124,7 +124,7 @@ FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(N
 # CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 ## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
-CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+CPPFLAGS = $(USE_STDLIB) -g $(M64) -O1 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
 
 
 

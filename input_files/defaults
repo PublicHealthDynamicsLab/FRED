@@ -57,6 +57,7 @@ age_of_infection_log_level = 0
 report_place_of_infection = 0
 report_distance_of_infection = 0
 report_presenteeism = 0
+report_childhood_presenteeism = 0
 report_generation_time = 0
 report_serial_interval = 0 
 report_incidence_by_county = 0
@@ -1019,6 +1020,15 @@ enable_default_sick_behavior = 1
 # on each day the agent is symptomatic
 sick_day_prob = 0.5
 
+# Determine how sick leave is given 
+# Don’t use default_sick_behavior
+# 1 - By Workplace Size
+# 2 - By Household Income Quartile
+sick_leave_dist_method = 1
+
+wp_size_sl_prob = 4 0.53 0.58 0.7 0.85
+hh_income_qtile_sl_prob = 4 0.416 0.718 0.728 0.778
+
 ## behavior if sick leave is available (SLA)
 SLA_absent_prob = 0.72
 SLA_mean_sick_days_absent = 2.7
@@ -1029,6 +1039,8 @@ SLU_mean_sick_days_absent = 2.7
 
 work_absenteeism = 0.0
 school_absenteeism = 0.0
+
+standard_sicktime_allocated_per_child = 0.0
 
 #### BEHAVIOR MARKET SEGMENTS (EXPERIMENTAL!)
 #

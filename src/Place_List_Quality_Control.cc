@@ -91,7 +91,7 @@ void Place_List::report_school_distributions(int day) {
 void Place_List::report_household_distributions() {
   int number_places = this->places.size();
 
-  if (Global::Verbose) {
+  if(Global::Verbose) {
     int count[20];
     int total = 0;
     // size distribution of households
@@ -388,62 +388,41 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\n");
   }
 
+  if(Global::Verbose) {
+    int count_has_school_age = 0;
+    int count_has_school_age_and_unemployed_adult = 0;
+    int total_hh = 0;
 
-
-
-
-  if (Global::Verbose) {
-     int count = 0;
-     int total_hh = 0;
-
-     //Households with school-age children and at least one unemployed adult
-     for(int p = 0; p < number_places; ++p) {
-       Person* per = NULL;
-       if(this->places[p]->is_household()) {
-         total_hh++;
-         Household* h = static_cast<Household*>(this->places[p]);
-         if(h->get_children() == 0) {
-           continue;
-         }
-         int hh_size = h->get_size();
-         bool has_school_aged_child = false;
-         bool has_unemployed_adult = false;
-         for(int i = 0; i < hh_size; ++i) {
-           if(has_unemployed_adult) { //Don't need to look any further
-             break;
-           }
-           per = h->get_housemate(i);
-           if(per->is_student() && per->is_child()) {
-             has_school_aged_child = true;
-             for(int j = 0; j < hh_size; ++j) {
-               if(j == i) {
-                 continue;
-               }
-               per = h->get_housemate(j);
-               if(per->is_adult() &&
-                  (per->get_activities()->get_profile() == RETIRED_PROFILE ||
-                   per->get_activities()->get_profile() == UNEMPLOYED_PROFILE)) {
-                 has_unemployed_adult = true;
-                 break;
-               }
-             }
-           }
-         }
-
-         if(has_school_aged_child && has_unemployed_adult) {
-           count++;
-         }
-       }
-     }
-     fprintf(Global::Statusfp, "\nHouseholds with school-aged children and at least one unemployed adult: %d Households\n", total_hh);
-     fprintf(Global::Statusfp, "Count: %6d (%.2f%%)\n", count, (100.0 * (double)count) / total_hh);
-   }
-
+    //Households with school-age children and at least one unemployed adult
+    for(int p = 0; p < number_places; ++p) {
+      Person* per = NULL;
+      if(this->places[p]->is_household()) {
+        total_hh++;
+        Household* h = static_cast<Household*>(this->places[p]);
+        if(h->get_children() == 0) {
+          continue;
+        }
+        if(h->has_school_aged_child()) {
+          count_has_school_age++;
+        }
+        if(h->has_school_aged_child_and_unemployed_adult()) {
+          count_has_school_age_and_unemployed_adult++;
+        }
+      }
+    }
+    fprintf(Global::Statusfp, "\nHouseholds with school-aged children and at least one unemployed adult\n");
+    fprintf(Global::Statusfp, "Total Households: %d\n", total_hh);
+    fprintf(Global::Statusfp, "Total Households with school-age children: %d\n", count_has_school_age);
+    fprintf(Global::Statusfp, "Total Households with school-age children and at least one unemployed adult: %d\n", count_has_school_age_and_unemployed_adult);
+  }
 
 }
 
 
 void Place_List::quality_control() {
+  //Can't do the quality control until all of the population files have been read
+  assert(Global::Pop.is_load_completed());
+
   int number_places = this->places.size();
 
   FRED_STATUS(0, "places quality control check for %d places\n", number_places);
@@ -733,6 +712,34 @@ void Place_List::quality_control() {
     }
     fprintf(Global::Statusfp, "children = %d\n", children);
     fprintf(Global::Statusfp, "\n");
+  }
+
+  if(Global::Verbose) {
+    int count_has_school_age = 0;
+    int count_has_school_age_and_unemployed_adult = 0;
+    int total_hh = 0;
+
+    //Households with school-age children and at least one unemployed adult
+    for(int p = 0; p < number_places; ++p) {
+      Person* per = NULL;
+      if(this->places[p]->is_household()) {
+        total_hh++;
+        Household* h = static_cast<Household*>(this->places[p]);
+        if(h->get_children() == 0) {
+          continue;
+        }
+        if(h->has_school_aged_child()) {
+          count_has_school_age++;
+        }
+        if(h->has_school_aged_child_and_unemployed_adult()) {
+          count_has_school_age_and_unemployed_adult++;
+        }
+      }
+    }
+    fprintf(Global::Statusfp, "\nHouseholds with school-aged children and at least one unemployed adult\n");
+    fprintf(Global::Statusfp, "Total Households: %d\n", total_hh);
+    fprintf(Global::Statusfp, "Total Households with school-age children: %d\n", count_has_school_age);
+    fprintf(Global::Statusfp, "Total Households with school-age children and at least one unemployed adult: %d\n", count_has_school_age_and_unemployed_adult);
   }
 
   if(Global::Verbose) {
