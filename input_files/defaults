@@ -50,6 +50,7 @@ track_age_distribution = 0
 track_household_distribution = 0
 track_network_stats = 0
 report_age_of_infection = 0
+report_transmission_by_age = 0
 
 # log_level 0 (min) - 4 (max) 
 age_of_infection_log_level = 0

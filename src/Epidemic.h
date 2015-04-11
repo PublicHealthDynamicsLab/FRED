@@ -105,6 +105,7 @@ public:
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
   void report_transmission_by_age_group(int day);
+  void report_transmission_by_age_group_to_file(int day);
   void report_incidence_by_county(int day);
   void report_incidence_by_census_tract(int day);
   void report_place_of_infection(int day);
@@ -243,6 +244,7 @@ private:
   int N_init;     // initial population size
   
   bool report_generation_time;
+  bool report_transmission_by_age;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;

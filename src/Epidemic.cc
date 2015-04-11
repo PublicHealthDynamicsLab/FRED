@@ -78,6 +78,7 @@ Epidemic::Epidemic(Disease* dis) {
   this->immune_people = 0;
   this->vaccinated_people = 0;
   this->report_generation_time = false;
+  this->report_transmission_by_age = false;
 
   this->people_becoming_infected_today = 0;
   this->people_becoming_symptomatic_today = 0;
@@ -214,6 +215,8 @@ void Epidemic::setup() {
   Params::get_param_from_string("seed_age_upper_bound", &import_age_upper_bound);
   Params::get_param_from_string("report_generation_time", &temp);
   this->report_generation_time = (temp > 0);
+  Params::get_param_from_string("report_transmission_by_age", &temp);
+  this->report_transmission_by_age = (temp > 0);
   Params::get_param_from_string("advanced_seeding", this->seeding_type_name);
   if(!strcmp(this->seeding_type_name, "random")) {
     this->seeding_type = SEED_RANDOM;
@@ -546,6 +549,10 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"ARs", this->symptomatic_attack_rate);
   track_value(day, (char*)"RR", this->RR);
 
+  if(this->report_transmission_by_age) {
+    report_transmission_by_age_group(day);
+  }
+
   /*
    if(Global::Enable_Seasonality) {
      double average_seasonality_multiplier = 1.0;
@@ -735,7 +742,7 @@ void Epidemic::report_age_of_infection(int day) {
     }
   } else {
     if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
-      report_transmission_by_age_group(day);
+      report_transmission_by_age_group_to_file(day);
     }
     if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
       for(int i = 0; i <= 20; ++i) {
@@ -781,7 +788,52 @@ void Epidemic::report_serial_interval(int day) {
   track_value(day, (char*)"Tg", mean_serial_interval);
 }
 
+int get_age_group(int age) {
+  if (age < 5) return 0;
+  if (age < 19) return 1;
+  if (age < 65) return 2;
+  return 3;
+}
+
+
 void Epidemic::report_transmission_by_age_group(int day) {
+  int groups = 4;
+  int age_count[groups][groups];				// age group counts
+  for(int i = 0; i < groups; ++i) {
+    for(int j = 0; j < groups; ++j) {
+      age_count[i][j] = 0;
+    }
+  }
+  for(int i = 0; i < this->people_becoming_infected_today; ++i) {
+    Person* infectee = this->daily_infections_list[i];
+    Person* infector = this->daily_infections_list[i]->get_infector(id);
+    if(infector == NULL) {
+      continue;
+    }
+    int g1 = get_age_group(infector->get_age());
+    int g2 = get_age_group(infectee->get_age());
+    age_count[g1][g2]++;
+  }
+  //Store for daily output file
+  track_value(day,(char*)"T_4_to_4", age_count[0][0]);
+  track_value(day,(char*)"T_4_to_18", age_count[0][1]);
+  track_value(day,(char*)"T_4_to_64", age_count[0][2]);
+  track_value(day,(char*)"T_4_to_99", age_count[0][3]);
+  track_value(day,(char*)"T_18_to_4", age_count[1][0]);
+  track_value(day,(char*)"T_18_to_18", age_count[1][1]);
+  track_value(day,(char*)"T_18_to_64", age_count[1][2]);
+  track_value(day,(char*)"T_18_to_99", age_count[1][3]);
+  track_value(day,(char*)"T_64_to_4", age_count[2][0]);
+  track_value(day,(char*)"T_64_to_18", age_count[2][1]);
+  track_value(day,(char*)"T_64_to_64", age_count[2][2]);
+  track_value(day,(char*)"T_64_to_99", age_count[2][3]);
+  track_value(day,(char*)"T_99_to_4", age_count[3][0]);
+  track_value(day,(char*)"T_99_to_18", age_count[3][1]);
+  track_value(day,(char*)"T_99_to_64", age_count[3][2]);
+  track_value(day,(char*)"T_99_to_99", age_count[3][3]);
+}  
+
+void Epidemic::report_transmission_by_age_group_to_file(int day) {
   FILE* fp;
   char file[1024];
   sprintf(file, "%s/AGE.%d", Global::Output_directory, day);

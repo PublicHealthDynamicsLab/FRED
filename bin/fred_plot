@@ -68,6 +68,7 @@ my $help = "";
 my $show_year = 0;
 my $show_vars = 0;
 my $run = 0;
+my $total = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
@@ -103,6 +104,7 @@ my $opt_result = GetOptions(
 			    "scale=f" => \$scale,
 			    "smooth" => \$smooth,
 			    "title=s" => \$title,
+			    "total" => \$total,
 			    "var=s" => \@varlist,
 			    "w" => \$weekly,
 			    "weekly" => \$weekly,
@@ -333,12 +335,11 @@ sub get_data {
   my $tmpfile = ".tmpfile";
   my $week = "";
   $week = "--weekly" if $weekly;
-  if ($run > 0) {
-    system "fred_csv -k $key -v $var -r $run $week > $tmpfile";
-  }
-  else {
-    system "fred_csv -k $key -v $var $week > $tmpfile";
-  }
+  my $options = "-k $key -v $var";
+  $options .= " --weekly" if $weekly;
+  $options .= " -r $run" if $run > 0;
+  $options .= " --total" if $total;
+  system "fred_csv $options > $tmpfile";
   if (not -s $tmpfile) {
     print "$0: error in get_data\n";
     exit;
@@ -366,9 +367,17 @@ sub plot_command {
   $x = "(\$0+get_shift($n)):" if $boxes;
 
   # y-axis value
-  my $y = $weekly ? "\$6" : "\$9";
-  if ($run > 0) {
-    $y = $weekly ? "\$5" : "\$8";
+  # daily values
+  my $y = $run ? "\$8" :"\$9";
+  if ($total) {
+    $y = $run ? "\$9" : "\$11";
+  }
+
+  if ($weekly) {
+    $y = $run ? "\$5" :"\$6";
+    if ($total) {
+      $y = $run ? "(7*\$6)" : "(7*\$8)";
+    }
   }
 
   # errorbars

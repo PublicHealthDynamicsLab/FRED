@@ -16,6 +16,7 @@ my $var = "";
 my $run = -1;
 my $dir = "";
 my $weekly = "";
+my $total = 0;
 my $opt_result = GetOptions(
 			    "help" => \$help,
 			    "h" => \$help,
@@ -27,6 +28,8 @@ my $opt_result = GetOptions(
 			    "r=i" => \$run,
 			    "n=i" => \$run,
 			    "d=s" => \$dir,
+			    "total" => \$total,
+			    "t" => \$total,
 			    "weekly" => \$weekly,
 			    "w" => \$weekly,
 );
@@ -176,10 +179,22 @@ for my $v (@vars) {
   die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
   open FH, $datafile or die "$0: ERROR READING $datafile\n";
   my $i = 0;
+  my $tot = 0;
   while (my $in = <FH>) {
     chomp $in; 
     if ($run > 0) {
-      $line[$i++] .= " $in";
+      if ($total) {
+	if ($i == 0) {
+	  $line[$i++] .= " $in $in\_total";
+	}
+	else {
+	  $tot += $in;
+	  $line[$i++] .= " $in $tot";
+	}
+      }
+      else {
+	$line[$i++] .= " $in";
+      }
     }
     else {
       my ($mean, $std) = split " ", $in;
@@ -187,7 +202,18 @@ for my $v (@vars) {
 	$mean = cleanup($mean);
 	$std = cleanup($std);
       }
-      $line[$i++] .= " $mean $std";
+      if ($total) {
+	if ($i == 0) {
+	  $line[$i++] .= " $mean $std $mean\_total";
+	}
+	else {
+	  $tot += $mean;
+	  $line[$i++] .= " $mean $std $tot";
+	}
+      }
+      else {
+	$line[$i++] .= " $mean $std";
+    }
     }
   }
 }
