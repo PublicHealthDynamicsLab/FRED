@@ -158,7 +158,6 @@ my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
 my $max_pct = 0.0;
 if ($country eq "usa" and $census_tracts eq 1) {
   make_census_tract_map_data();
-  $shapefiledir = "$vis/MAPS/SHAPES";
 }
 else {
   make_county_map_data($run);
@@ -166,7 +165,7 @@ else {
 # print "max_pct = $max_pct\n";
 chdir "MAPS";
 system "rm -f BBOX googlemap.png map* load* fred_make_maps.log";
-if (scalar @fips eq 1) {
+if ((scalar @fips eq 1) and $google) {
   # use background image if it already exists
   my $loc = sprintf("%05d", $fips[0]);
   my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
@@ -180,9 +179,11 @@ if (scalar @fips eq 1) {
   }
 }
 
-my $shapedir = "$FRED/SHAPEFILES/2010";
-my $shapefile = "x";
+# get census tract shapefiles if needed
 if ($country eq "usa" and $census_tracts eq 1) {
+  my $shapedir = "$FRED/SHAPEFILES/2010";
+  my $shapefile = "x";
+  $shapefiledir ="SHAPES";
   if (not -d "SHAPES") {
     # get county
     open FH, "FIPS";
@@ -196,6 +197,9 @@ if ($country eq "usa" and $census_tracts eq 1) {
   }
 }
 
+##
+## MAIN LOOP
+##
 print "making maps ";
 my $started = 0;
 my @cmds = ();
@@ -342,24 +346,27 @@ sub make_census_tract_map_data {
     open CT,$file or die "$0: ERROR reading file $file\n";
     my $rawfile = "RAW-$disease_id.$day";
     my $pctfile = "PCT-$disease_id.$day";
-    open RAW,">MAPS/$rawfile";
-    open PCT,">MAPS/$pctfile";
+    if ($filled) {
+      open RAW,">MAPS/$rawfile";
+      open PCT,">MAPS/$pctfile";
+    }
     my $line = <CT>; # skip header line
     while ($line = <CT>) {
       chomp $line;
       my ($tract,$count,$pop) = split " ", $line;
+      my $pct = 100.0 * $count / $pop;
+      $max_pct = $pct if $pct > $max_pct;
+      print RAW "$count $pop\n" if $filled;
+      print PCT "$pct\n" if $filled;
+
       my $format = "\%05d\n";
       my $str = "x$tract";
       $format = "\%011d\n" if length($str) > 6;
-      my $pct = 100.0 * $count / $pop;
-      $max_pct = $pct if $pct > $max_pct;
-      print RAW "$count $pop\n";
-      print PCT "$pct\n";
       printf FIPS $format, $tract if $day == 0;
     }
     close CT;
-    close RAW;
-    close PCT;
+    close RAW if $filled;
+    close PCT if $filled;
   }
   close FIPS;
   return;

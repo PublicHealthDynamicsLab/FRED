@@ -12,7 +12,7 @@ if (!exists("lightness")) {
    lightness = 0
 }
 if (!exists("my_title")) {
-   my_title = "FRED Allegheny County, PA"
+   my_title = "FRED Simulation"
 }
 if (!exists("my_subtitle")) {
    my_subtitle = " "
@@ -127,11 +127,11 @@ unset key; unset tics;
 fips = system("cat " . fipsfile)
 # print "fips = " . fips
 
-# associate a county with each FIPS code
-county(n) = word(fips,n)
+# associate a region with each FIPS code
+region(n) = word(fips,n)
 
-# name of the file containing boundaries for county
-filename(n) = sprintf("%s/%s.txt", shapefile_dir, county(n))
+# name of the file containing boundaries for the region
+filename(n) = sprintf("%s/%s.txt", shapefile_dir, region(n))
 
 values = ""
 if (filled) {
@@ -163,7 +163,8 @@ else {
 
  # create a fake plot in order to gather the x and y bbox
  set term unknown
- plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+ # plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+ plot for [n=1:1] filename(n) u ($2):($1) ls 99 w filledcurve notitle
  
  # initialize the new x and y boundaries
  xmin = GPVAL_DATA_X_MIN

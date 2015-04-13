@@ -50,7 +50,7 @@ my $opt_result = GetOptions(
 			    "disease=i" => \$disease_id,
 			    "display=i" => \$display,
 			    "filled=i" => \$filled,
-			    "google" => \$google,
+			    "google=i" => \$google,
 			    "grid=i" => \$grid,
 			    "h" => \$help,
 			    "help" => \$help,

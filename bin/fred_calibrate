@@ -98,10 +98,10 @@ while ($error > 10*$threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "$disease\_household_contacts = %0.3f\n", $h;
-  printf CAL "$disease\_neighborhood_contacts = %0.2e\n", $n;
-  printf CAL "$disease\_school_contacts = %0.1f\n", $s;
-  printf CAL "$disease\_workplace_contacts = %0.1f\n", $w;
+  printf CAL "$disease\_household_contacts = %0.4f\n", $h;
+  printf CAL "$disease\_neighborhood_contacts = %0.2f\n", $n;
+  printf CAL "$disease\_school_contacts = %0.2f\n", $s;
+  printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
   print CAL "$disease\_classroom_contacts = -1\n";
   print CAL "$disease\_office_contacts = -1\n";
   print CAL "track_infection_events = 0\n";
@@ -112,10 +112,10 @@ while ($error > 10*$threshold) {
 
   print "###  CALIBRATION PHASE I STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "$disease\_household_contacts = %0.3f\n", $h;
-  printf "$disease\_neighborhood_contacts = %0.2e\n", $n;
-  printf "$disease\_school_contacts = %0.1f\n", $s;
-  printf "$disease\_workplace_contacts = %0.1f\n", $w;
+  printf "$disease\_household_contacts = %0.4f\n", $h;
+  printf "$disease\_neighborhood_contacts = %0.2f\n", $n;
+  printf "$disease\_school_contacts = %0.2f\n", $s;
+  printf "$disease\_workplace_contacts = %0.2f\n", $w;
   print "$disease\_classroom_contacts = -1\n";
   print "$disease\_office_contacts = -1\n";
   print "track_infection_events = 0\n";
@@ -187,10 +187,10 @@ while ($error > $threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "$disease\_household_contacts = %0.3f\n", $h;
-  printf CAL "$disease\_neighborhood_contacts = %0.2e\n", $n;
-  printf CAL "$disease\_school_contacts = %0.1f\n", $s;
-  printf CAL "$disease\_workplace_contacts = %0.1f\n", $w;
+  printf CAL "$disease\_household_contacts = %0.4f\n", $h;
+  printf CAL "$disease\_neighborhood_contacts = %0.2f\n", $n;
+  printf CAL "$disease\_school_contacts = %0.2f\n", $s;
+  printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
   print CAL "$disease\_classroom_contacts = -1\n";
   print CAL "$disease\_office_contacts = -1\n";
   print CAL "track_infection_events = 0\n";
@@ -201,10 +201,10 @@ while ($error > $threshold) {
 
   print "###  CALIBRATION PHASE II STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "$disease\_household_contacts = %0.3f\n", $h;
-  printf "$disease\_neighborhood_contacts = %0.2e\n", $n;
-  printf "$disease\_school_contacts = %0.1f\n", $s;
-  printf "$disease\_workplace_contacts = %0.1f\n", $w;
+  printf "$disease\_household_contacts = %0.4f\n", $h;
+  printf "$disease\_neighborhood_contacts = %0.2f\n", $n;
+  printf "$disease\_school_contacts = %0.2f\n", $s;
+  printf "$disease\_workplace_contacts = %0.2f\n", $w;
   print "$disease\_classroom_contacts = -1\n";
   print "$disease\_office_contacts = -1\n";
   print "track_infection_events = 0\n";
