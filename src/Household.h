@@ -20,14 +20,11 @@
 #include <bitset>
 #include <set>
 
-#include "Activities.h"
-#include "Hospital.h"
-#include "Neighborhood_Patch.h"
-#include "Person.h"
 #include "Place.h"
+#include "Hospital.h"
+#include "Person.h"
+#include "Neighborhood_Patch.h"
 #include "Random.h"
-
-class HH_Adult_Sickleave_Data;
 
 // The following enum defines symbolic names for Household Income. These categories are defined by the RTI Synthetic
 // Population (see Quickstart Guide https://www.epimodels.org/midas/Rpubsyntdata1.do for description)
@@ -206,7 +203,7 @@ public:
    */
   void set_household_income(int x) {
     this->household_income = x;
-    this->set_household_income_code(static_cast<int>(Household::get_household_income_level_code_from_income(x)));
+    this->set_household_income_code(Household::get_household_income_level_code_from_income(x));
   }
 
   /**
@@ -245,7 +242,7 @@ public:
    * @return the original count of agents in this Household
    */
   int get_orig_size() {
-    return static_cast<int>(this->ids.size());
+    return (int)this->ids.size();
   }
 
   /*
@@ -377,42 +374,6 @@ public:
     return this->group_quarters_workplace;
   }
 
-  bool has_school_aged_child();
-  bool has_school_aged_child_and_unemployed_adult();
-
-  void set_sympt_child(bool _hh_sympt_childl) {
-    this->hh_sympt_child = _hh_sympt_childl;
-  }
-
-  bool has_sympt_child() {
-    return this->hh_sympt_child;
-  }
-
-  void set_hh_schl_aged_chld_unemplyd_adlt_chng(bool _hh_status_changed) {
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = _hh_status_changed;
-  }
-
-  void set_working_adult_using_sick_leave(bool _is_using_sl) {
-    this->hh_working_adult_using_sick_leave = _is_using_sl;
-  }
-
-  bool has_working_adult_using_sick_leave() {
-    return this->hh_working_adult_using_sick_leave;
-  }
-
-  void prepare_person_childcare_sickleave_map();
-
-  bool have_working_adult_use_sickleave_for_child(Person* adult, Person* child);
-
-  void set_income_quartile(int _income_quartile) {
-    assert(_income_quartile >= Global::Q1 && _income_quartile <= Global::Q4);
-    this->income_quartile = _income_quartile;
-  }
-
-  int get_income_quartile() {
-    return this->income_quartile;
-  }
-
 private:
 
   static double* Household_contacts_per_day;
@@ -432,12 +393,6 @@ private:
   bool primary_healthcare_location_open;
   bool other_healthcare_location_that_accepts_insurance_open;
   bool able_to_receive_healthcare;
-  bool hh_schl_aged_chld_unemplyd_adlt_chng;
-  bool hh_schl_aged_chld;
-  bool hh_schl_aged_chld_unemplyd_adlt;
-  bool hh_sympt_child;
-  bool hh_working_adult_using_sick_leave;
-
   unsigned char deme_id;	      // deme == synthetic population id
   int group_quarters_units;
   int shelter_start_day;
@@ -446,7 +401,6 @@ private:
   int household_income_code;
   int county_index;
   int census_tract_index;
-  int income_quartile;
 
   // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
@@ -456,11 +410,8 @@ private:
   std::map<Household_visitation_place_index::e, Place*> household_visitation_places_map;
 
   // profile of original housemates
-  std::vector<unsigned char> ages;
-  std::vector<int> ids;
-
-  // Sicktime available to watch children for adult housemates
-  std::map<Person*, HH_Adult_Sickleave_Data> adult_childcare_sickleave_map;
+  vector<unsigned char> ages;
+  vector<int> ids;
 
   void set_household_income_code(int _household_income_code) {
     if(_household_income_code >= 0 ||
@@ -491,43 +442,6 @@ private:
       }
     }
   }
-
-};
-
-
-/**
- * This is a helper class that is used to store information about the children in the household
- * The adults in the household who work will each be mapped to one of these objects to keep
- * track of whether or not they have already used a sick day for a given child
- */
-class HH_Adult_Sickleave_Data {
- public:
-  HH_Adult_Sickleave_Data() { }
-
-  void add_child_to_maps(Person* child) {
-    std::pair<std::map<Person*, bool>::iterator, bool> ret;
-    ret = this->stayed_home_for_child_map.insert(std::pair<Person*, bool>(child, false));
-    assert(ret.second); // Shouldn't insert the child twice
-  }
-
-  bool stay_home_with_child(Person* child) {
-    std::map<Person*, bool>::iterator itr;
-
-    bool ret_val = false;
-
-    itr = this->stayed_home_for_child_map.find(child);
-    if(itr != this->stayed_home_for_child_map.end()) {
-      if(!itr->second) { //didn't already stay home with this child
-        itr->second = true;
-        ret_val = true;
-      }
-    }
-
-    return ret_val;
-  }
-
- private:
-  std::map<Person*, bool> stayed_home_for_child_map;
 
 };
 

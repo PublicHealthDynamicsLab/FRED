@@ -28,10 +28,10 @@ using namespace std;
 
 #ifdef __GLIBCXX__
 #include <tr1/unordered_map>
-typedef std::tr1::unordered_map<std::string, int> LabelMapT;
+typedef std::tr1::unordered_map<string, int> LabelMapT;
 #else
 #include <unordered_map>
-typedef std::unordered_map<std::string, int> LabelMapT;
+typedef std::unordered_map<string, int> LabelMapT;
 #endif
 
 #include "Health.h"
@@ -60,14 +60,13 @@ class Place_List {
 
   typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
-  typedef std::map<char, std::string> TypeNameMapT;
+  typedef std::map<char, string> TypeNameMapT;
 
-  typedef std::map<std::string, std::string> HouseholdHospitalIDMapT;
+  typedef std::map<string, string> HouseholdHospitalIDMapT;
 
 public:
 
   Place_List() {
-    this->load_completed = false;
     this->places.clear();
     this->schools.clear();
     this->workplaces.clear();
@@ -90,6 +89,7 @@ public:
   void report_school_distributions(int day);
   void report_household_distributions();
   void get_parameters();
+  Place* get_place_from_label(const char* s) const;
   Place* get_place_at_position(int i) {
     return this->places[i];
   }
@@ -110,9 +110,6 @@ public:
   void setup_households();
   void setup_classrooms();
   void setup_offices();
-  void setup_school_income_quartile_pop_sizes();
-  void setup_household_income_quartile_sick_days();
-  Place* get_place_from_label(const char* s) const;
   Place* get_random_workplace();
   void assign_hospitals_to_households();
   Hospital* get_random_open_hospital_matching_criteria(int day, bool allows_overnight);
@@ -126,7 +123,7 @@ public:
   }
 
   Place* get_household(int i) {
-    if(i < static_cast<int>(this->households.size())) {
+    if(i < (int)this->households.size()) {
       return this->households[i];
     } else {
       return NULL;
@@ -134,7 +131,7 @@ public:
   }
 
   int get_number_of_households() {
-    return static_cast<int>(this->households.size());
+    return (int)this->households.size();
   }
 
   int get_housing_data(int* target_size, int* current_size);
@@ -186,10 +183,6 @@ public:
   }
 
   void find_visitors_to_infectious_places(int day);
-
-  bool is_load_completed() {
-    return this->load_completed;
-  }
 
 private:
 
@@ -260,7 +253,7 @@ private:
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 
-  bool load_completed;
+
   int min_household_income;
   int max_household_income;
   int median_household_income;

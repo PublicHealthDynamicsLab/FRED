@@ -685,7 +685,6 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     }
   }
 
-  this->load_completed = true;
   FRED_STATUS(0, "read places finished: Places = %d\n", (int) places.size());
 }
 
@@ -954,7 +953,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
 
       // get county index for this school
       int county = -1;
-      if(strcmp(tokens[stco], "-1") != 0) {
+      if(strcmp(tokens[stco],"-1") != 0) {
 	      char fipstr[8];
 	      int fips = 0;
 	      // grab the first five digits of stcotrbg to get the county fips code
@@ -1254,7 +1253,7 @@ void Place_List::update(int day) {
   if(Global::Enable_Vector_Transmission) {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
+      Place *place = this->places[p];
       place->reset_vector_data(day);
     }
   }
@@ -1262,118 +1261,16 @@ void Place_List::update(int day) {
   FRED_STATUS(1, "update places finished\n", "");
 }
 
-void Place_List::setup_school_income_quartile_pop_sizes() {
-  assert(this->is_load_completed());
-  assert(Global::Pop.is_load_completed());
-  if(Global::Report_Childhood_Presenteeism) {
-    int number_places = this->places.size();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      if(places[p]->get_type() == Place::SCHOOL) {
-        static_cast<School*>(places[p])->prepare_income_quartile_pop_size();
-      }
-    }
-  }
-}
-
-void Place_List::setup_household_income_quartile_sick_days() {
-  assert(this->is_load_completed());
-  assert(Global::Pop.is_load_completed());
-  if(Global::Report_Childhood_Presenteeism) {
-    typedef std::multimap<double, Household*> HouseholdMultiMapT;
-
-    HouseholdMultiMapT* household_income_hh_mm = new HouseholdMultiMapT();
-    int number_places = this->places.size();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      if(places[p]->get_type() == Place::SCHOOL) {
-        assert(Global::Places.is_load_completed());
-        assert(Global::Pop.is_load_completed());
-
-        Household* hh = static_cast<Household*>(places[p]);
-        double hh_income = hh->get_household_income();
-        std::pair<double, Household*> my_insert(hh_income, hh);
-        household_income_hh_mm->insert(my_insert);
-      }
-    }
-
-    int total = static_cast<int>(household_income_hh_mm->size());
-    int q1 = total / 4;
-    int q2 = q1 * 2;
-    int q3 = q1 * 3;
-
-    FRED_STATUS(0, "\nPROBABILITY WORKERS HAVE PAID SICK DAYS BY HOUSEHOLD INCOME QUARTILE:\n");
-    double q1_sick_leave = 0.0;
-    double q1_count = 0.0;
-    double q2_sick_leave = 0.0;
-    double q2_count = 0.0;
-    double q3_sick_leave = 0.0;
-    double q3_count = 0.0;
-    double q4_sick_leave = 0.0;
-    double q4_count = 0.0;
-    int counter = 0;
-    for(HouseholdMultiMapT::iterator itr = household_income_hh_mm->begin();
-        itr != household_income_hh_mm->end(); ++itr) {
-      double hh_sick_leave_total = 0.0;
-      double hh_employee_total = 0.0;
-
-      for(int i = 0; i < static_cast<int>((*itr).second->enrollees.size()); ++i) {
-        Person* per = (*itr).second->enrollees[i];
-        if(per->is_adult() &&
-           !per->is_student() &&
-           (per->get_activities()->is_teacher() ||
-            per->get_activities()->get_profile() == WORKER_PROFILE ||
-            per->get_activities()->get_profile() == WEEKEND_WORKER_PROFILE)) {
-          hh_sick_leave_total += (per->get_activities()->is_sick_leave_available() ? 1.0 : 0.0);
-          hh_employee_total += 1.0;
-        }
-      }
-
-      if(counter < q1) {
-        (*itr).second->set_income_quartile(Global::Q1);
-        q1_sick_leave += hh_sick_leave_total;
-        q1_count += hh_employee_total;
-      } else if(counter < q2) {
-        (*itr).second->set_income_quartile(Global::Q2);
-        q2_sick_leave += hh_sick_leave_total;
-        q2_count += hh_employee_total;
-      } else if(counter < q3) {
-        (*itr).second->set_income_quartile(Global::Q3);
-        q3_sick_leave += hh_sick_leave_total;
-        q3_count += hh_employee_total;
-      } else {
-        (*itr).second->set_income_quartile(Global::Q4);
-        q4_sick_leave += hh_sick_leave_total;
-        q4_count += hh_employee_total;
-      }
-
-      counter++;
-    }
-
-    FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q1,
-        (q1_count == 0.0 ? 0.0 : (q1_sick_leave / q1_count)));
-    FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q2,
-        (q2_count == 0.0 ? 0.0 : (q2_sick_leave / q2_count)));
-    FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q3,
-        (q3_count == 0.0 ? 0.0 : (q3_sick_leave / q3_count)));
-    FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q4,
-        (q4_count == 0.0 ? 0.0 : (q4_sick_leave / q4_count)));
-
-    delete household_income_hh_mm;
-  }
-}
-
 Place* Place_List::get_place_from_label(const char* s) const {
-  assert(this->place_label_map != NULL);
   if(strcmp(s, "-1") == 0) {
     return NULL;
   }
-  string str(s);
-
-  if(this->place_label_map->find(str) != this->place_label_map->end()) {
-    return this->places[(*this->place_label_map)[str]];
+  string str;
+  str.assign(s);
+  if(this->place_label_map->find(s) != this->place_label_map->end()) {
+    return this->places[(*this->place_label_map)[s]];
   } else {
-    FRED_VERBOSE(1, "Help!  can't find place with label = %s\n", str.c_str());
+    FRED_VERBOSE(1, "Help!  can't find place with label = %s\n", s);
     return NULL;
   }
 }

@@ -96,11 +96,11 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   }
 
   this->grid = new Regional_Patch *[this->rows];
-  for(int i = 0; i < this->rows; ++i) {
+  for(int i = 0; i < this->rows; i++) {
     this->grid[i] = new Regional_Patch[this->cols];
   }
-  for(int i = 0; i < this->rows; ++i) {
-    for(int j = 0; j < this->cols; ++j) {
+  for(int i = 0; i < this->rows; i++) {
+    for(int j = 0; j < this->cols; j++) {
       this->grid[i][j].setup(this, i, j);
       if(Global::Verbose > 1) {
         printf("print grid[%d][%d]:\n", i, j);
@@ -112,33 +112,31 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   }
 }
 
-Regional_Patch* Regional_Layer::get_patch(int row, int col) {
-  if(row >= 0 && col >= 0 && row < this->rows && col < this->cols) {
+Regional_Patch * Regional_Layer::get_patch(int row, int col) {
+  if(row >= 0 && col >= 0 && row < this->rows && col < this->cols)
     return &this->grid[row][col];
-  } else {
+  else
     return NULL;
-  }
 }
 
-Regional_Patch* Regional_Layer::get_patch(fred::geo lat, fred::geo lon) {
+Regional_Patch * Regional_Layer::get_patch(fred::geo lat, fred::geo lon) {
   int row = get_row(lat);
   int col = get_col(lon);
-  if(row >= 0 && col >= 0 && row < this->rows && col < this->cols) {
+  if(row >= 0 && col >= 0 && row < this->rows && col < this->cols)
     return &this->grid[row][col];
-  } else {
+  else
     return NULL;
-  }
 }
 
-Regional_Patch* Regional_Layer::get_patch(Place* place) {
+Regional_Patch * Regional_Layer::get_patch(Place *place) {
   return get_patch(place->get_latitude(), place->get_longitude());
 }
 
-Regional_Patch* Regional_Layer::get_patch_with_global_coords(int row, int col) {
+Regional_Patch * Regional_Layer::get_patch_with_global_coords(int row, int col) {
   return get_patch(row - this->global_row_min, col - this->global_col_min);
 }
 
-Regional_Patch* Regional_Layer::get_patch_from_id(int id) {
+Regional_Patch * Regional_Layer::get_patch_from_id(int id) {
   int row = id / this->cols;
   int col = id % this->cols;
   FRED_VERBOSE(4,
@@ -148,7 +146,7 @@ Regional_Patch* Regional_Layer::get_patch_from_id(int id) {
   return &(this->grid[row][col]);
 }
 
-Regional_Patch* Regional_Layer::select_random_patch() {
+Regional_Patch * Regional_Layer::select_random_patch() {
   int row = IRAND(0, this->rows - 1);
   int col = IRAND(0, this->cols - 1);
   return &this->grid[row][col];
@@ -160,8 +158,8 @@ void Regional_Layer::quality_control() {
     fflush(Global::Statusfp);
   }
 
-  for(int row = 0; row < this->rows; ++row) {
-    for(int col = 0; col < this->cols; ++col) {
+  for(int row = 0; row < this->rows; row++) {
+    for(int col = 0; col < this->cols; col++) {
       this->grid[row][col].quality_control();
     }
   }
@@ -169,16 +167,16 @@ void Regional_Layer::quality_control() {
   if(Global::Verbose > 1) {
     char filename[FRED_STRING_SIZE];
     sprintf(filename, "%s/large_grid.dat", Global::Simulation_directory);
-    FILE* fp = fopen(filename, "w");
-    for(int row = 0; row < this->rows; ++row) {
+    FILE *fp = fopen(filename, "w");
+    for(int row = 0; row < this->rows; row++) {
       if(row % 2) {
-        for(int col = this->cols - 1; col >= 0; --col) {
+        for(int col = this->cols - 1; col >= 0; col--) {
           double x = this->grid[row][col].get_center_x();
           double y = this->grid[row][col].get_center_y();
           fprintf(fp, "%f %f\n", x, y);
         }
       } else {
-        for(int col = 0; col < this->cols; ++col) {
+        for(int col = 0; col < this->cols; col++) {
           double x = this->grid[row][col].get_center_x();
           double y = this->grid[row][col].get_center_y();
           fprintf(fp, "%f %f\n", x, y);
@@ -220,13 +218,13 @@ void Regional_Layer::read_max_popsize() {
   char filename[FRED_STRING_SIZE];
   if(Global::Enable_Travel) {
     Params::get_param_from_string("regional_patch_popfile", filename);
-    FILE* fp = Utils::fred_open_file(filename);
+    FILE *fp = Utils::fred_open_file(filename);
     if(fp == NULL) {
       Utils::fred_abort("Help! Can't open patch_pop_file %s\n", filename);
     }
     printf("reading %s\n", filename);
     while(fscanf(fp, "%d %d %d ", &c, &r, &n) == 3) {
-      Regional_Patch* patch = get_patch_with_global_coords(r, c);
+      Regional_Patch * patch = get_patch_with_global_coords(r, c);
       if(patch != NULL) {
         patch->set_max_popsize(n);
       }
@@ -249,8 +247,8 @@ void Regional_Layer::report_grid_stats(int day) {
 #endif
 }
 
-void Regional_Layer::add_workplace(Place* place) {
-  Regional_Patch* patch = this->get_patch(place);
+void Regional_Layer::add_workplace(Place *place) {
+  Regional_Patch * patch = this->get_patch(place);
   if(patch != NULL) {
     patch->add_workplace(place);
   }
@@ -258,31 +256,32 @@ void Regional_Layer::add_workplace(Place* place) {
 
 
 Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y, int min_staff,
-    int max_staff, double* min_dist) {
+    int max_staff, double * min_dist) {
   //find nearest workplace that has right number of employees
-  Place* nearby_workplace = NULL;
+  Place * nearby_workplace = NULL;
   *min_dist = 1e99;
-  for(int i = row - 1; i <= row + 1; ++i) {
-    for(int j = col - 1; j <= col + 1; ++j) {
+  for(int i = row - 1; i <= row + 1; i++) {
+    for(int j = col - 1; j <= col + 1; j++) {
       Regional_Patch * patch = get_patch(i, j);
       if(patch != NULL) {
 	// printf("Looking for nearby workplace in row %d col %d\n", i, j); fflush(stdout);
-        Place* closest_workplace = patch->get_closest_workplace(x, y, min_staff, max_staff,
+        Place * closest_workplace = patch->get_closest_workplace(x, y, min_staff, max_staff,
             min_dist);
         if(closest_workplace != NULL) {
           nearby_workplace = closest_workplace;
-        } else {
-	        // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
-	      }
+        }
+	else {
+	  // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
+	}
       }
     }
   }
   return nearby_workplace;
 }
 
-void Regional_Layer::unenroll(fred::geo lat, fred::geo lon, Person* person) {
-  Regional_Patch* regional_patch = this->get_patch(lat, lon);
-  if(regional_patch != NULL) {
+void Regional_Layer::unenroll(fred::geo lat, fred::geo lon, Person * person) {
+  Regional_Patch *regional_patch = this->get_patch(lat, lon);
+  if( regional_patch != NULL) {
     regional_patch->unenroll(person);
   }
 }

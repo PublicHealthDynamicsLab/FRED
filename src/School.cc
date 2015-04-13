@@ -43,11 +43,6 @@ int School::summer_start_month = 0;
 int School::summer_start_day = 0;
 int School::summer_end_month = 0;
 int School::summer_end_day = 0;
-int School::total_school_pop = 0;
-int School::pop_income_Q1 = 0;
-int School::pop_income_Q2 = 0;
-int School::pop_income_Q3 = 0;
-int School::pop_income_Q4 = 0;
 
 //Private static variable to assure we only lookup parameters once
 bool School::school_parameters_set = false;
@@ -70,11 +65,9 @@ School::School(const char* lab, fred::place_subtype _subtype, double lon, double
   this->staff_size = 0;
   this->max_grade = -1;
   this->county_index = -1;
-  this->income_quartile = -1;
 }
 
 void School::prepare() {
-  assert(Global::Pop.is_load_completed());
   // call base class function to perform preparations common to all Places 
   Place::prepare();
 
