@@ -17,15 +17,16 @@
 #ifndef _FRED_Disease_H
 #define _FRED_Disease_H
 
-#include <map>
 #include <fstream>
+#include <map>
 #include <string>
 using namespace std;
 
-#include "Global.h"
-#include "Epidemic.h"
-#include "Transmission.h"
 #include "Age_Map.h"
+#include "Epidemic.h"
+#include "Global.h"
+#include "Transmission.h"
+
 
 class Person;
 class Population;
@@ -197,8 +198,8 @@ public:
   int get_num_strains();
   int get_num_strain_data_elements(int strain);
   int get_strain_data_element(int strain, int i);
-  const Strain_Data & get_strain_data(int strain);
-  const Strain & get_strain(int strain_id);
+  const Strain_Data &get_strain_data(int strain);
+  const Strain &get_strain(int strain_id);
 
   static void get_disease_parameters();
 
@@ -302,7 +303,7 @@ public:
   }
 
   char* get_disease_name() {
-    return disease_name;
+    return this->disease_name;
   }
 
 private:

@@ -273,6 +273,12 @@ void fred_setup(int argc, char* argv[]) {
     Global::Pop.report_mean_hh_distance_from_school();
   }
 
+  if(Global::Report_Childhood_Presenteeism) {
+    Global::Pop.set_school_income_levels();
+    Global::Places.setup_school_income_quartile_pop_sizes();
+    //Global::Places.setup_household_income_quartile_sick_days();
+  }
+
   if(Global::Report_Mean_Household_Stats_Per_Income_Category &&
      Global::Report_Epidemic_Data_By_Census_Tract) {
     Global::Income_Category_Tracker = new Tracker<int>("Income Category Tracker","income_cat");
@@ -287,14 +293,14 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   // Global tracker allows us to have as many variables we
-  // want from whereever in the output file
+  // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
   // initialize diseases
   for(int d = 0; d < Global::Diseases; ++d) {
     Disease* disease = Global::Pop.get_disease(d);
     disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer){
+    if(!Global::Enable_Vector_Layer) {
       disease->init_prior_immunity();
     }
   }
@@ -302,7 +308,7 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for (int d = 0;d<Global::Diseases;++d){
+    for (int d = 0; d<Global::Diseases; ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
@@ -335,7 +341,7 @@ void fred_step(int day) {
 
   // optional: periodically output distributions of the population demographics
   if(Global::Track_age_distribution) {
-    if(Date::get_month()==1 && Date::get_day_of_month()==1) {
+    if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
       /*
       char date_string[80];
       strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
@@ -382,7 +388,7 @@ void fred_step(int day) {
   for(int d = 0; d < Global::Diseases; ++d) {
     order.push_back(d);
   }
-  if (Global::Diseases > 1) {
+  if(Global::Diseases > 1) {
     FYShuffle<int>(order);
   }
 
@@ -411,7 +417,7 @@ void fred_step(int day) {
 
   // optional: report change in demographics and end of each year
   if(Global::Enable_Population_Dynamics && Global::Verbose
-     && Date::get_month()==12 && Date::get_day_of_month()==31) {
+     && Date::get_month() == 12 && Date::get_day_of_month() == 31) {
     Global::Pop.quality_control();
   }
 

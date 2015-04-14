@@ -47,11 +47,19 @@ int Household::Cat_IV_Max_Income = 0;
 int Household::Cat_V_Max_Income = 0;
 int Household::Cat_VI_Max_Income = 0;
 
+int Household::Min_hh_income = -1;
+int Household::Max_hh_income = -1;
+
 Household::Household() {
   get_parameters(Global::Diseases);
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld = false;
+  this->hh_schl_aged_chld_unemplyd_adlt = false;
+  this->hh_sympt_child = false;
+  this->hh_working_adult_using_sick_leave = false;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->county_index = -1;
@@ -59,6 +67,7 @@ Household::Household() {
   this->deme_id = ' ';
   this->N = 0;
   this->group_quarters_units = 0;
+  this->income_quartile = -1;
   set_household_income(-1);
 }
 
@@ -67,6 +76,11 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld = false;
+  this->hh_schl_aged_chld_unemplyd_adlt = false;
+  this->hh_sympt_child = false;
+  this->hh_working_adult_using_sick_leave = false;
   this->able_to_receive_healthcare = true;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
@@ -77,6 +91,7 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->N = 0;
   this->group_quarters_units = 0;
   this->group_quarters_workplace = NULL;
+  this->income_quartile = -1;
   set_household_income(-1);
 }
 
@@ -87,8 +102,8 @@ void Household::get_parameters(int diseases) {
 
   if(Global::Enable_Vector_Transmission == false) {
     char param_str[80];
-    Household::Household_contacts_per_day = new double [diseases];
-    Household::Household_contact_prob = new double** [diseases];
+    Household::Household_contacts_per_day = new double[diseases];
+    Household::Household_contact_prob = new double**[diseases];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
       Disease* disease = Global::Pop.get_disease(disease_id);
       sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
@@ -141,6 +156,7 @@ double Household::get_contacts_per_day(int disease) {
 }
 
 void Household::set_household_has_hospitalized_member(bool does_have) {
+  this->hh_schl_aged_chld_unemplyd_adlt_chng = true;
   if(does_have) {
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
   } else {
@@ -159,6 +175,137 @@ void Household::set_household_has_hospitalized_member(bool does_have) {
       }
     }
   }
+}
+
+bool Household::has_school_aged_child() {
+  //Household has been loaded
+  assert(Global::Pop.is_load_completed());
+  //If the household status hasn't changed, just return the flag
+  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+    return this->hh_schl_aged_chld;
+  } else {
+    bool ret_val = false;
+    for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
+      Person* per = this->enrollees[i];
+      if(per->is_student() && per->is_child()) {
+        ret_val = true;
+        break;
+      }
+    }
+    this->hh_schl_aged_chld = ret_val;
+    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+    return ret_val;
+  }
+}
+
+bool Household::has_school_aged_child_and_unemployed_adult() {
+  //Household has been loaded
+  assert(Global::Pop.is_load_completed());
+  //If the household status hasn't changed, just return the flag
+  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+    return this->hh_schl_aged_chld_unemplyd_adlt;
+  } else {
+    bool ret_val = false;
+    if(has_school_aged_child()) {
+      for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
+        Person* per = this->enrollees[i];
+        if(per->is_child()) {
+          continue;
+        }
+
+        //Person is an adult, but is also a student
+        if(per->is_adult() && per->is_student()) {
+          continue;
+        }
+
+        //Person is an adult, but isn't at home
+        if(per->is_adult() &&
+           (per->is_hospitalized() ||
+            per->is_college_dorm_resident() ||
+            per->is_military_base_resident() ||
+            per->is_nursing_home_resident() ||
+            per->is_prisoner())) {
+          continue;
+        }
+
+        //Person is an adult AND is either retired or unemployed
+        if(per->is_adult() &&
+           (per->get_activities()->get_profile() == RETIRED_PROFILE ||
+            per->get_activities()->get_profile() == UNEMPLOYED_PROFILE)) {
+          ret_val = true;
+          break;
+        }
+      }
+    }
+    this->hh_schl_aged_chld_unemplyd_adlt = ret_val;
+    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+    return ret_val;
+  }
+}
+
+void Household::prepare_person_childcare_sickleave_map() {
+  //Household has been loaded
+  assert(Global::Pop.is_load_completed());
+  assert(Household::Household_parameters_set);
+
+  if(Global::Report_Childhood_Presenteeism) {
+    if(has_school_aged_child() && !has_school_aged_child_and_unemployed_adult()) {
+      for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
+        Person* per = this->enrollees[i];
+        if(per->is_child()) {
+          continue;
+        }
+
+        //Person is an adult, but is also a student
+        if(per->is_adult() && per->is_student()) {
+          continue;
+        }
+
+        //Person is an adult, but isn't at home
+        if(per->is_adult() &&
+           (per->is_hospitalized() ||
+            per->is_college_dorm_resident() ||
+            per->is_military_base_resident() ||
+            per->is_nursing_home_resident() ||
+            per->is_prisoner())) {
+          continue;
+        }
+
+        //Person is an adult AND is neither retired nor unemployed
+        if(per->is_adult() &&
+           per->get_activities()->get_profile() != RETIRED_PROFILE &&
+           per->get_activities()->get_profile() != UNEMPLOYED_PROFILE) {
+          //Insert the adult into the sickleave info map
+          HH_Adult_Sickleave_Data sickleave_info;
+
+          //Add any school-aged children to that person's info
+          for(int j = 0; j < static_cast<int>(this->enrollees.size()); ++j) {
+            Person* child_check = this->enrollees[j];
+            if(child_check->is_student() && child_check->is_child()) {
+              sickleave_info.add_child_to_maps(child_check);
+            }
+          }
+          std::pair<std::map<Person*, HH_Adult_Sickleave_Data>::iterator, bool> ret;
+          ret = this->adult_childcare_sickleave_map.insert(
+              std::pair<Person*, HH_Adult_Sickleave_Data>(per, sickleave_info));
+          assert(ret.second); // Shouldn't insert the same person twice
+        }
+      }
+    }
+  } else {
+    return;
+  }
+}
+
+bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person* child) {
+  std::map<Person*, HH_Adult_Sickleave_Data>::iterator itr;
+  itr = this->adult_childcare_sickleave_map.find(adult);
+  if(itr != this->adult_childcare_sickleave_map.end()) {
+    if(!itr->second.stay_home_with_child(adult)) { //didn't already stayed home with this child
+      return itr->second.stay_home_with_child(child);
+    }
+  }
+  return false;
 }
 
 void Household::record_profile() {

@@ -75,6 +75,9 @@ int Health::Days_to_wear_face_masks = 0;
 double Health::Face_mask_compliance = 0.0;
 double Health::Hand_washing_compliance = 0.0;
 
+bool Health::Enable_hh_income_based_susc_mod = false;
+double Health::Hh_income_susc_mod_floor = 0.0;
+
 double Health::health_insurance_distribution[Insurance_assignment_index::UNSET];
 int Health::health_insurance_cdf_size = 0;
 
@@ -87,7 +90,15 @@ void Health::initialize_static_variables() {
     Params::get_param_from_string("days_to_wear_face_masks", &(Health::Days_to_wear_face_masks));
     Params::get_param_from_string("face_mask_compliance", &(Health::Face_mask_compliance));
     Params::get_param_from_string("hand_washing_compliance", &(Health::Hand_washing_compliance));
-  
+
+    int temp_int = 0;
+
+    Params::get_param_from_string("enable_hh_income_based_susc_mod", &temp_int);
+    Health::Enable_hh_income_based_susc_mod = (temp_int == 0 ? false : true);
+    if(Health::Enable_hh_income_based_susc_mod) {
+      Params::get_param_from_string("hh_income_susc_mod_floor", &(Health::Hh_income_susc_mod_floor));
+    }
+
     if(Global::Enable_Chronic_Condition) {
       Health::asthma_prob = new Age_Map("Asthma Probability");
       Health::asthma_prob->read_from_input("asthma_prob");
@@ -828,6 +839,24 @@ double Health::get_susceptibility_modifier_due_to_hygiene(int disease_id) {
     return (1.0 - disease->get_hand_washing_susceptibility_efficacy());
   }
   return 1.0;
+}
+
+double Health::get_susceptibility_modifier_due_to_household_income(int hh_income) {
+
+  if(Health::Enable_hh_income_based_susc_mod) {
+    double rise = 1.0 - Health::Hh_income_susc_mod_floor;
+    double run = static_cast<double>(Household::get_max_hh_income() - Household::get_min_hh_income());
+
+    double m = rise / run;
+
+    // Equation of line is y - y1 = m(x - x1)
+    // y = m*x - m*x1 + y1
+    double x = static_cast<double>(hh_income);
+    return m * x - m * Household::get_max_hh_income() + 1.0;
+  } else {
+    return 1.0;
+  }
+
 }
 
 void Health::modify_susceptibility(int disease_id, double multp) {

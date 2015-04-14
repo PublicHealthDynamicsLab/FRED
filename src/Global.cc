@@ -111,6 +111,7 @@ int Global::Age_Of_Infection_Log_Level = Global::LOG_LEVEL_MIN;
 bool Global::Report_Place_Of_Infection = false;
 bool Global::Report_Distance_Of_Infection = false;
 bool Global::Report_Presenteeism = false;
+bool Global::Report_Childhood_Presenteeism = false;
 bool Global::Report_Serial_Interval = false;
 bool Global::Report_Incidence_By_County = false;
 bool Global::Report_Incidence_By_Census_Tract = false;
@@ -266,6 +267,8 @@ void Global::get_global_parameters() {
   Global::Report_Distance_Of_Infection = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_presenteeism", &temp_int);
   Global::Report_Presenteeism = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_childhood_presenteeism", &temp_int);
+  Global::Report_Childhood_Presenteeism = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_serial_interval", &temp_int);
   Global::Report_Serial_Interval = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_incidence_by_county",&temp_int);

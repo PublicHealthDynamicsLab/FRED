@@ -22,27 +22,28 @@
 
 using namespace std;
 
-#include "Epidemic.h"
-#include "Global.h"
+#include "Date.h"
 #include "Disease.h"
-#include "Random.h"
+#include "Epidemic.h"
+#include "Evolution.h"
+#include "Geo_Utils.h"
+#include "Global.h"
+#include "Household.h"
+#include "Infection.h"
+#include "Neighborhood_Layer.h"
 #include "Params.h"
 #include "Person.h"
-#include "Population.h"
-#include "Infection.h"
-#include "Place_List.h"
 #include "Place.h"
-#include "Transmission.h"
-#include "Date.h"
-#include "Neighborhood_Layer.h"
-#include "Vector_Layer.h"
-#include "Household.h"
-#include "Utils.h"
-#include "Geo_Utils.h"
+#include "Place_List.h"
+#include "Population.h"
+#include "Random.h"
+#include "School.h"
 #include "Seasonality.h"
-#include "Evolution.h"
-#include "Workplace.h"
 #include "Tracker.h"
+#include "Transmission.h"
+#include "Utils.h"
+#include "Vector_Layer.h"
+#include "Workplace.h"
 
 Epidemic::Epidemic(Disease* dis) {
   this->disease = dis;
@@ -83,16 +84,16 @@ Epidemic::Epidemic(Disease* dis) {
   this->people_becoming_symptomatic_today = 0;
   this->people_with_current_symptoms = 0;
 
-  this->population_infection_counts.total_people_ever_infected = 0;
-  this->population_infection_counts.total_people_ever_symptomatic = 0;
+  this->population_infection_counts.tot_ppl_evr_inf = 0;
+  this->population_infection_counts.tot_ppl_evr_sympt = 0;
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     //Values for household income based stratification
     for(int i = 0; i < Household_income_level_code::UNCLASSIFIED; ++i) {
-      this->household_income_infection_counts_map[i].total_people_ever_infected = 0;
-      this->household_income_infection_counts_map[i].total_people_ever_symptomatic = 0;
-      this->household_income_infection_counts_map[i].total_children_ever_infected = 0;
-      this->household_income_infection_counts_map[i].total_children_ever_symptomatic = 0;
+      this->household_income_infection_counts_map[i].tot_ppl_evr_inf = 0;
+      this->household_income_infection_counts_map[i].tot_ppl_evr_sympt = 0;
+      this->household_income_infection_counts_map[i].tot_chldrn_evr_inf = 0;
+      this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt = 0;
     }
   }
 
@@ -100,11 +101,22 @@ Epidemic::Epidemic(Disease* dis) {
     //Values for household census_tract based stratification
     for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
           census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
-      this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_infected = 0;
-      this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_symptomatic = 0;
-      this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_infected = 0;
-      this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_symptomatic = 0;
+      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
+      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
+      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
+      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt = 0;
     }
+  }
+
+  if(Global::Report_Childhood_Presenteeism) {
+//    //Values for household census_tract based stratification
+//    for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
+//          census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
+//      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
+//      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
+//      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
+//      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt = 0;
+//    }
   }
 
   this->attack_rate = 0.0;
@@ -168,9 +180,9 @@ void Epidemic::setup() {
       Time_Step_Map * tmap = new Time_Step_Map;
       int n = sscanf(cstr,
 		     "%d %d %d %d %lf %d %lf %lf %lf",
-		     &tmap->simDayStart,&tmap->simDayEnd,&tmap->numSeedingAttempts,
-		     &tmap->disease_id,&tmap->seedingAttemptProb,&tmap->minNumSuccessful,
-		     &tmap->lat,&tmap->lon,&tmap->radius);
+		     &tmap->sim_day_start, &tmap->sim_day_end, &tmap->num_seeding_attempts,
+		     &tmap->disease_id, &tmap->seeding_attempt_prob, &tmap->min_num_successful,
+		     &tmap->lat, &tmap->lon, &tmap->radius);
       if(n < 3) {
 	      Utils::fred_abort("Need to specify at least SimulationDayStart, SimulationDayEnd and NumSeedingAttempts for Time_Step_Map. ");
       }
@@ -180,10 +192,10 @@ void Epidemic::setup() {
         tmap->radius = -1;
       }
       if(n < 6) {
-        tmap->minNumSuccessful = 0;
+        tmap->min_num_successful = 0;
       }
       if(n < 5) {
-        tmap->seedingAttemptProb = 1;
+        tmap->seeding_attempt_prob = 1;
       }
       if(n < 4) {
         tmap->disease_id = 0;
@@ -259,28 +271,43 @@ void Epidemic::become_exposed(Person* person) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
-    if(person->get_household() == NULL) {
-      return;
-    } else {
+    if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
       int income_level = hh->get_household_income_code();
       if(income_level >= Household_income_level_code::CAT_I &&
          income_level < Household_income_level_code::UNCLASSIFIED) {
-        this->household_income_infection_counts_map[income_level].total_people_ever_infected++;
+        this->household_income_infection_counts_map[income_level].tot_ppl_evr_inf++;
       }
     }
   }
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
-    if(person->get_household() == NULL) {
-      return;
-    } else {
+    if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
       long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
-        this->census_tract_infection_counts_map[census_tract].total_people_ever_infected++;
-        if(person->get_age() < 18) {
-          this->census_tract_infection_counts_map[census_tract].total_children_ever_infected++;
+        this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_inf++;
+        if(person->is_child()) {
+          this->census_tract_infection_counts_map[census_tract].tot_chldrn_evr_inf++;
         }
+      }
+    }
+  }
+
+  if(Global::Report_Childhood_Presenteeism) {
+    if(person->is_student() &&
+       person->get_school() != NULL &&
+       person->get_household() != NULL) {
+      School* schl = static_cast<School*>(person->get_school());
+      Household* hh = static_cast<Household*>(person->get_household());
+      int income_quartile = schl->get_income_quartile();
+
+      if(person->is_child()) { //Already know person is student
+        this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_inf++;
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_evr_inf++;
+      }
+
+      if(hh->has_school_aged_child_and_unemployed_adult()) {
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf++;
       }
     }
   }
@@ -319,30 +346,46 @@ void Epidemic::become_symptomatic(Person* person) {
 #pragma omp atomic
   this->people_with_current_symptoms++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
-    if(person->get_household() == NULL) {
-      return;
-    } else {
+    if(person->get_household() != NULL) {
       int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
       if(income_level >= Household_income_level_code::CAT_I &&
          income_level < Household_income_level_code::UNCLASSIFIED) {
-        this->household_income_infection_counts_map[income_level].total_people_ever_symptomatic++;
+        this->household_income_infection_counts_map[income_level].tot_ppl_evr_sympt++;
       }
     }
   }
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
-    if(person->get_household() == NULL) {
-      return;
-    } else {
+    if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
       long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
-        this->census_tract_infection_counts_map[census_tract].total_people_ever_symptomatic++;
-        if(person->get_age() < 18) {
-          this->census_tract_infection_counts_map[census_tract].total_children_ever_symptomatic++;
+        this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
+        if(person->is_child()) {
+          this->census_tract_infection_counts_map[census_tract].tot_chldrn_evr_sympt++;
         }
       }
     }
   }
+
+  if(Global::Report_Childhood_Presenteeism) {
+    if(person->is_student() &&
+        person->get_school() != NULL &&
+        person->get_household() != NULL) {
+      School* schl = static_cast<School*>(person->get_school());
+      Household* hh = static_cast<Household*>(person->get_household());
+      int income_quartile = schl->get_income_quartile();
+
+      if(person->is_child()) { //Already know person is student
+        this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_ever_sympt++;
+      }
+
+      if(hh->has_school_aged_child_and_unemployed_adult()) {
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt++;
+      }
+    }
+  }
+
 #pragma omp atomic
   this->people_becoming_symptomatic_today++;
 }
@@ -456,29 +499,29 @@ void Epidemic::print_stats(int day) {
     int cohort_size = this->daily_cohort_size[cohort_day];        // size of cohort
     if(cohort_size > 0) {
       // compute reproductive rate for this cohort
-      this->RR = (double) this->number_infected_by_cohort[cohort_day] / (double) cohort_size;
+      this->RR = static_cast<double>(this->number_infected_by_cohort[cohort_day]) / static_cast<double>(cohort_size);
     }
   }
 
   this->susceptible_people = Global::Pop.size(fred::Susceptible);
   this->infectious_people = Global::Pop.size(fred::Infectious);
 
-  this->population_infection_counts.total_people_ever_infected += this->people_becoming_infected_today;
-  this->population_infection_counts.total_people_ever_symptomatic += this->people_becoming_symptomatic_today;
+  this->population_infection_counts.tot_ppl_evr_inf += this->people_becoming_infected_today;
+  this->population_infection_counts.tot_ppl_evr_sympt += this->people_becoming_symptomatic_today;
 
-  this->attack_rate = (100.0 * this->population_infection_counts.total_people_ever_infected) / (double) this->N_init;
-  this->symptomatic_attack_rate = (100.0 * this->population_infection_counts.total_people_ever_symptomatic) / (double) this->N_init;
+  this->attack_rate = (100.0 * this->population_infection_counts.tot_ppl_evr_inf) / static_cast<double>(this->N_init);
+  this->symptomatic_attack_rate = (100.0 * this->population_infection_counts.tot_ppl_evr_sympt) / static_cast<double>(this->N_init);
 
   // preserve these quantities for use during the next day
   this->incidence = this->people_becoming_infected_today;
   this->symptomatic_incidence = this->people_becoming_symptomatic_today;
   this->prevalence_count = this->exposed_people + this->infectious_people;
-  this->prevalence = (double) this->prevalence_count / (double) this->N;
+  this->prevalence = static_cast<double>(this->prevalence_count) / static_cast<double>(this->N);
   this->case_fatality_incidence = this->daily_case_fatality_count;
   double case_fatality_rate = 0.0;
-  if(this->population_infection_counts.total_people_ever_symptomatic > 0) {
-    case_fatality_rate = 100.0 * (double) this->total_case_fatality_count
-        / (double) this->population_infection_counts.total_people_ever_symptomatic;
+  if(this->population_infection_counts.tot_ppl_evr_sympt > 0) {
+    case_fatality_rate = 100.0 * static_cast<double>(this->total_case_fatality_count)
+        / static_cast<double>(this->population_infection_counts.tot_ppl_evr_sympt);
   }
 
   if(this->id == 0) {
@@ -505,11 +548,10 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"AR", this->attack_rate);
   track_value(day, (char*)"ARs", this->symptomatic_attack_rate);
   track_value(day, (char*)"RR", this->RR);
-  
+
   if(this->report_transmission_by_age) {
     report_transmission_by_age_group(day);
   }
-
   /*
    if(Global::Enable_Seasonality) {
      double average_seasonality_multiplier = 1.0;
@@ -522,6 +564,10 @@ void Epidemic::print_stats(int day) {
 
   if(Global::Report_Presenteeism) {
     report_presenteeism(day);
+  }
+
+  if(Global::Report_Childhood_Presenteeism) {
+    report_school_attack_rates_by_income_level(day);
   }
 
   if(Global::Report_Place_Of_Infection) {
@@ -659,7 +705,7 @@ void Epidemic::report_age_of_infection(int day) {
   Utils::fred_log("\nAge_at_infection %f", mean_age);
 
   //Store for daily output file
-  track_value(day,(char*)"Age_at_infection", mean_age);
+  track_value(day, (char*)"Age_at_infection", mean_age);
 
   if(Global::Report_Age_Of_Infection == 1) {
     track_value(day, (char*)"Infants", infants);
@@ -690,7 +736,7 @@ void Epidemic::report_age_of_infection(int day) {
       sprintf(temp_str, "Age%d", i);
       track_value(day,temp_str, 
 		  Global::Popsize_by_age[i] ?
-		  (100000.0*age_count[i]/(double)Global::Popsize_by_age[i])
+		  (100000.0 * age_count[i] / static_cast<double>(Global::Popsize_by_age[i]))
 		  : 0.0);
     }
   } else {
@@ -703,7 +749,7 @@ void Epidemic::report_age_of_infection(int day) {
 	      //Write to log file
 	      sprintf(temp_str, "A%d", i * 5);
 	      //Store for daily output file
-	      track_value(day,temp_str, age_count[i]);
+	      track_value(day, temp_str, age_count[i]);
 	      Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
       }
     }
@@ -719,14 +765,14 @@ void Epidemic::report_serial_interval(int day) {
     if(infector != NULL) {
       int serial_interval = infectee->get_exposure_date(this->id)
 	       - infector->get_exposure_date(this->id);
-      this->total_serial_interval += (double) serial_interval;
+      this->total_serial_interval += static_cast<double>(serial_interval);
       this->total_secondary_cases++;
     }
   }
 
   double mean_serial_interval = 0.0;
   if(this->total_secondary_cases > 0) {
-    mean_serial_interval = this->total_serial_interval / (double) this->total_secondary_cases;
+    mean_serial_interval = this->total_serial_interval / static_cast<double>(this->total_secondary_cases);
   }
 
   if(Global::Report_Serial_Interval) {
@@ -741,7 +787,7 @@ void Epidemic::report_serial_interval(int day) {
   track_value(day, (char*)"Tg", mean_serial_interval);
 }
 
-int get_age_group(int age) {
+int Epidemic::get_age_group(int age) {
   if(age < 5) {
     return 0;
   }
@@ -753,7 +799,8 @@ int get_age_group(int age) {
   }
   return 3;
 }
- void Epidemic::report_transmission_by_age_group(int day) {
+
+void Epidemic::report_transmission_by_age_group(int day) {
   int groups = 4;
   int age_count[groups][groups];    // age group counts
   for(int i = 0; i < groups; ++i) {
@@ -789,7 +836,7 @@ int get_age_group(int age) {
   track_value(day,(char*)"T_99_to_18", age_count[3][1]);
   track_value(day,(char*)"T_99_to_64", age_count[3][2]);
   track_value(day,(char*)"T_99_to_99", age_count[3][3]);
-}  
+} 
 
 void Epidemic::report_transmission_by_age_group_to_file(int day) {
   FILE* fp;
@@ -839,7 +886,7 @@ void Epidemic::report_incidence_by_county(int day) {
     // set up county counts
     this->counties = Global::Places.get_number_of_counties();
     this->county_incidence = new int[this->counties];
-    for(int i = 0; i < this->counties; i++) {
+    for(int i = 0; i < this->counties; ++i) {
       this->county_incidence[i] = 0;
     }
   }
@@ -872,7 +919,7 @@ void Epidemic::report_incidence_by_census_tract(int day) {
     // set up census_tract counts
     this->census_tracts = Global::Places.get_number_of_census_tracts();
     this->census_tract_incidence = new int[this->census_tracts];
-    for(int i = 0; i < this->census_tracts; i++) {
+    for(int i = 0; i < this->census_tracts; ++i) {
       this->census_tract_incidence[i] = 0;
     }
   }
@@ -906,9 +953,9 @@ void Epidemic::report_group_quarters_incidence(int day) {
   int B = 0;
 
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
-    Person * infectee = this->daily_infections_list[i];
+    Person* infectee = this->daily_infections_list[i];
     // record infections occurring in group quarters
-    Place * place = infectee->get_infected_place(id);
+    Place* place = infectee->get_infected_place(id);
     if(place != NULL && place->is_group_quarters()) {
       G++;
       if(place->is_college()) {
@@ -1062,11 +1109,11 @@ void Epidemic::report_presenteeism(int day) {
 
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
-    char c = infectee->get_infected_place_type(id);
+    char c = infectee->get_infected_place_type(this->id);
     infections_in_pop++;
 
     // presenteeism requires that place of infection is work or office
-    if(c != 'W' && c != 'O') {
+    if(c != Place::WORKPLACE && c != Place::OFFICE) {
       continue;
     }
     infections_at_work++;
@@ -1086,20 +1133,24 @@ void Epidemic::report_presenteeism(int day) {
 
       if(size < small) {			// small workplace
         presenteeism_small++;
-        if(infector_has_sick_leave)
+        if(infector_has_sick_leave) {
           presenteeism_small_with_sl++;
+        }
       } else if(size < medium) {		// medium workplace
         presenteeism_med++;
-        if(infector_has_sick_leave)
+        if(infector_has_sick_leave) {
           presenteeism_med_with_sl++;
+        }
       } else if(size < large) {		// large workplace
         presenteeism_large++;
-        if(infector_has_sick_leave)
+        if(infector_has_sick_leave) {
           presenteeism_large_with_sl++;
+        }
       } else {					// xlarge workplace
         presenteeism_xlarge++;
-        if(infector_has_sick_leave)
+        if(infector_has_sick_leave) {
           presenteeism_xlarge_with_sl++;
+        }
       }
     }
   } // end loop over infectees
@@ -1127,19 +1178,106 @@ void Epidemic::report_presenteeism(int day) {
   Utils::fred_log("N %d\n", this->N);
 
   //Store for daily output file
-  Global::Daily_Tracker->set_index_key_pair(day,"small", presenteeism_small);
-  Global::Daily_Tracker->set_index_key_pair(day,"small_n", Workplace::get_workers_in_small_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day,"med", presenteeism_med);
-  Global::Daily_Tracker->set_index_key_pair(day,"med_n", Workplace::get_workers_in_medium_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day,"large", presenteeism_large);
-  Global::Daily_Tracker->set_index_key_pair(day,"large_n", Workplace::get_workers_in_large_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day,"xlarge", presenteeism_xlarge);
-  Global::Daily_Tracker->set_index_key_pair(day,"xlarge_n", Workplace::get_workers_in_xlarge_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day,"pres", presenteeism);
-  Global::Daily_Tracker->set_index_key_pair(day,"pres_sl", presenteeism_with_sl);
-  Global::Daily_Tracker->set_index_key_pair(day,"inf_at_work", infections_at_work);
-  Global::Daily_Tracker->set_index_key_pair(day,"tot_emp", Workplace::get_total_workers());
-  Global::Daily_Tracker->set_index_key_pair(day,"N", this->N);
+  Global::Daily_Tracker->set_index_key_pair(day, "small", presenteeism_small);
+  Global::Daily_Tracker->set_index_key_pair(day, "small_n", Workplace::get_workers_in_small_workplaces());
+  Global::Daily_Tracker->set_index_key_pair(day, "med", presenteeism_med);
+  Global::Daily_Tracker->set_index_key_pair(day, "med_n", Workplace::get_workers_in_medium_workplaces());
+  Global::Daily_Tracker->set_index_key_pair(day, "large", presenteeism_large);
+  Global::Daily_Tracker->set_index_key_pair(day, "large_n", Workplace::get_workers_in_large_workplaces());
+  Global::Daily_Tracker->set_index_key_pair(day, "xlarge", presenteeism_xlarge);
+  Global::Daily_Tracker->set_index_key_pair(day, "xlarge_n", Workplace::get_workers_in_xlarge_workplaces());
+  Global::Daily_Tracker->set_index_key_pair(day, "pres", presenteeism);
+  Global::Daily_Tracker->set_index_key_pair(day, "pres_sl", presenteeism_with_sl);
+  Global::Daily_Tracker->set_index_key_pair(day, "inf_at_work", infections_at_work);
+  Global::Daily_Tracker->set_index_key_pair(day, "tot_emp", Workplace::get_total_workers());
+  Global::Daily_Tracker->set_index_key_pair(day, "N", this->N);
+}
+
+void Epidemic::report_school_attack_rates_by_income_level(int day) {
+
+  // daily totals
+  int presenteeism_Q1 = 0;
+  int presenteeism_Q2 = 0;
+  int presenteeism_Q3 = 0;
+  int presenteeism_Q4 = 0;
+  int presenteeism_Q1_with_sl = 0;
+  int presenteeism_Q2_with_sl = 0;
+  int presenteeism_Q3_with_sl = 0;
+  int presenteeism_Q4_with_sl = 0;
+  int infections_at_school = 0;
+
+  for(int i = 0; i < this->people_becoming_infected_today; ++i) {
+
+    Person* infectee = this->daily_infections_list[i];
+    assert(infectee != NULL);
+    char c = infectee->get_infected_place_type(this->id);
+
+    // school presenteeism requires that place of infection is school or classroom
+    if(c != Place::SCHOOL && c != Place::CLASSROOM) {
+      continue;
+    }
+    infections_at_school++;
+
+    // get the school income quartile
+    School* school = static_cast<School*>(infectee->get_school());
+    assert(school != NULL);
+    int income_quartile = school->get_income_quartile();
+
+    // presenteeism requires that the infector have symptoms
+    Person* infector = infectee->get_infector(this->id);
+    assert(infector != NULL);
+    if(infector->is_symptomatic()) {
+
+      // determine whether anyone was at home to watch child
+      Household* hh = static_cast<Household*>(infector->get_household());
+      assert(hh != NULL);
+      bool infector_could_stay_home = hh->has_school_aged_child_and_unemployed_adult();
+
+      if(income_quartile == Global::Q1) {  // Quartile 1
+        presenteeism_Q1++;
+        if(infector_could_stay_home) {
+          presenteeism_Q1_with_sl++;
+        }
+      } else if(income_quartile == Global::Q2) {  // Quartile 2
+        presenteeism_Q2++;
+        if(infector_could_stay_home) {
+          presenteeism_Q2_with_sl++;
+        }
+      } else if(income_quartile == Global::Q3) {  // Quartile 3
+        presenteeism_Q3++;
+        if(infector_could_stay_home) {
+          presenteeism_Q3_with_sl++;
+        }
+      } else if(income_quartile == Global::Q4) {  // Quartile 4
+        presenteeism_Q4++;
+        if(infector_could_stay_home) {
+          presenteeism_Q4_with_sl++;
+        }
+      }
+    }
+  } // end loop over infectees
+
+   // raw counts
+  int presenteeism = presenteeism_Q1 + presenteeism_Q2 + presenteeism_Q3
+       + presenteeism_Q4;
+  int presenteeism_with_sl = presenteeism_Q1_with_sl + presenteeism_Q2_with_sl
+       + presenteeism_Q3_with_sl + presenteeism_Q4_with_sl;
+
+   //Store for daily output file
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q1", presenteeism_Q1);
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pop_Q1", School::get_school_pop_income_quartile_1());
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q2", presenteeism_Q2);
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pop_Q2", School::get_school_pop_income_quartile_2());
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q3", presenteeism_Q3);
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pop_Q3", School::get_school_pop_income_quartile_3());
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q4", presenteeism_Q4);
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pop_Q4", School::get_school_pop_income_quartile_4());
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres", presenteeism);
+  Global::Daily_Tracker->set_index_key_pair(day, "school_pres_sl", presenteeism_with_sl);
+  Global::Daily_Tracker->set_index_key_pair(day, "inf_at_school", infections_at_school);
+  Global::Daily_Tracker->set_index_key_pair(day, "tot_school_pop", School::get_total_school_pop());
+  Global::Daily_Tracker->set_index_key_pair(day, "N", this->N);
+
 }
 
 void Epidemic::report_household_income_stratified_results(int day) {
@@ -1151,54 +1289,60 @@ void Epidemic::report_household_income_stratified_results(int day) {
     
     //AR
     if(Household::count_inhabitants_by_household_income_level_map[i] > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR", (100.0 * (double)this->household_income_infection_counts_map[i].total_people_ever_infected
-                                                                    / (double)Household::count_inhabitants_by_household_income_level_map[i]));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR",
+          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_inf)
+            / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
     } else {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR", (double)0.0);
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR", static_cast<double>(0.0));
     }
     
     //AR_under_18
     if(Household::count_children_by_household_income_level_map[i] > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18", (100.0 * (double)this->household_income_infection_counts_map[i].total_children_ever_infected
-                                                                             / (double)Household::count_children_by_household_income_level_map[i]));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18",
+          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_inf)
+            / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
     } else {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18", (double)0.0);
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18", static_cast<double>(0.0));
     }
     
     //AR_adult
     temp_adult_count = Household::count_inhabitants_by_household_income_level_map[i]
       - Household::count_children_by_household_income_level_map[i];
-    temp_adult_inf_count = this->household_income_infection_counts_map[i].total_people_ever_infected
-      - this->household_income_infection_counts_map[i].total_children_ever_infected;
+    temp_adult_inf_count = this->household_income_infection_counts_map[i].tot_ppl_evr_inf
+      - this->household_income_infection_counts_map[i].tot_chldrn_evr_inf;
     if(temp_adult_count > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult", (100.0 * (double)temp_adult_inf_count / (double)temp_adult_count));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult",
+          (100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
     } else {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult", (double)0.0);
+      Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult", static_cast<double>(0.0));
     }
     
     //ARs
     if(Household::count_inhabitants_by_household_income_level_map[i] > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs", (100.0 * (double)this->household_income_infection_counts_map[i].total_people_ever_symptomatic
-                                                                     / (double)Household::count_inhabitants_by_household_income_level_map[i]));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs",
+          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_sympt)
+            / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs", (double)0.0);
     }
     
     //ARs_under_18
     if(Household::count_children_by_household_income_level_map[i] > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18", (100.0 * (double)this->household_income_infection_counts_map[i].total_children_ever_symptomatic
-                                                                              / (double)Household::count_children_by_household_income_level_map[i]));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18",
+          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt)
+            / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
     } else {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18", (double)0.0);
+      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18", static_cast<double>(0.0));
     }
     
     //ARs_adult
-    temp_adult_symp_count = this->household_income_infection_counts_map[i].total_people_ever_symptomatic
-      - this->household_income_infection_counts_map[i].total_children_ever_symptomatic;
+    temp_adult_symp_count = this->household_income_infection_counts_map[i].tot_ppl_evr_sympt
+      - this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt;
     if(temp_adult_count > 0) {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult", (100.0 * (double)temp_adult_symp_count / (double)temp_adult_count));
+      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult",
+          (100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
     } else {
-      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult", (double)0.0);
+      Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult", static_cast<double>(0.0));
     }
   }
 
@@ -1214,56 +1358,62 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     
     //AR
     if(Household::count_inhabitants_by_census_tract_map[*census_tract_itr] > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR", (100.0 * (double)this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_infected
-                                                                          / (double)Household::count_inhabitants_by_census_tract_map[*census_tract_itr]));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR",
+          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf)
+            / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR", static_cast<double>(0.0));
     }
     
     //AR_under_18
     if(Household::count_children_by_census_tract_map[*census_tract_itr] > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18", (100.0 * (double)this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_infected
-                                                                                   / (double)Household::count_children_by_census_tract_map[*census_tract_itr]));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18",
+          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf)
+             / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18", static_cast<double>(0.0));
     }
     
     //AR_adult
     temp_adult_count = Household::count_inhabitants_by_census_tract_map[*census_tract_itr]
       - Household::count_children_by_census_tract_map[*census_tract_itr];
-    temp_adult_inf_count = this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_infected
-      - this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_infected;
+    temp_adult_inf_count = this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf
+      - this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf;
     if(temp_adult_count > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult", (100.0 * (double)temp_adult_inf_count / (double)temp_adult_count));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult",
+          (100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult", static_cast<double>(0.0));
     }
     
     //Symptomatic AR
     if(Household::count_inhabitants_by_census_tract_map[*census_tract_itr] > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs", (100.0 * (double)this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_symptomatic
-                                                                           / (double)Household::count_inhabitants_by_census_tract_map[*census_tract_itr]));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs",
+          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt)
+            / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs", static_cast<double>(0.0));
     }
     
     
     //ARs_under_18
     if(Household::count_children_by_census_tract_map[*census_tract_itr] > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18", (100.0 * (double)this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_symptomatic
-                                                                                    / (double)Household::count_children_by_census_tract_map[*census_tract_itr]));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18",
+          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt)
+            / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18", static_cast<double>(0.0));
     }
     
     
     //ARs_adult
-    temp_adult_symp_count = this->census_tract_infection_counts_map[*census_tract_itr].total_people_ever_symptomatic
-                            - this->census_tract_infection_counts_map[*census_tract_itr].total_children_ever_symptomatic;
+    temp_adult_symp_count = this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt
+                            - this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt;
     if(temp_adult_count > 0) {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult", (100.0 * (double)temp_adult_symp_count / (double)temp_adult_count));
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult",
+          (100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
     } else {
-      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult", (double)0.0);
+      Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult", static_cast<double>(0.0));
     }
   }
 }
@@ -1297,17 +1447,17 @@ void Epidemic::get_imported_infections(int day) {
   Population* pop = this->disease->get_population();
   this->N = pop->get_pop_size();
 
-  for(int i = 0; i < imported_cases_map.size(); ++i) {
-    Time_Step_Map* tmap = imported_cases_map[i];
-    if (tmap->simDayStart <= day && day <= tmap->simDayEnd) {
+  for(int i = 0; i < this->imported_cases_map.size(); ++i) {
+    Time_Step_Map* tmap = this->imported_cases_map[i];
+    if(tmap->sim_day_start <= day && day <= tmap->sim_day_end) {
       FRED_VERBOSE(0,"IMPORT MST:\n"); // tmap->print();
-      int imported_cases_requested = tmap->numSeedingAttempts;
+      int imported_cases_requested = tmap->num_seeding_attempts;
       int imported_cases = 0;
       double lat = tmap->lat;
       double lon = tmap->lon;
       double radius = tmap->radius;
       // list of susceptible people that qualify by distance and age
-      std::vector<Person *>people;
+      std::vector<Person*> people;
       if(this->import_by_age) {
 	      FRED_VERBOSE(0, "IMPORT import by age %0.2f %0.2f\n",
 		     this->import_age_lower_bound, this->import_age_upper_bound);

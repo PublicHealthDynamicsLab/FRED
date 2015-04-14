@@ -21,25 +21,25 @@
 #include <map>
 using namespace std;
 
-#include "Disease.h"
-#include "Global.h"
-#include "Params.h"
-#include "Population.h"
-#include "Random.h"
 #include "Age_Map.h"
+#include "Disease.h"
 #include "Epidemic.h"
-#include "Timestep_Map.h"
-#include "StrainTable.h"
-#include "IntraHost.h"
 #include "Evolution.h"
 #include "EvolutionFactory.h"
-#include "Transmission.h"
+#include "Global.h"
+#include "Health.h"
+#include "Household.h"
+#include "IntraHost.h"
+#include "Params.h"
+#include "Person.h"
+#include "Place_List.h"
+#include "Population.h"
+#include "Random.h"
 #include "Seasonality.h"
 #include "Strain.h"
-#include "Person.h"
-#include "Household.h"
-#include "Health.h"
-#include "Place_List.h"
+#include "StrainTable.h"
+#include "Timestep_Map.h"
+#include "Transmission.h"
 
 std::string* Disease::Disease_name = NULL;
 
@@ -74,6 +74,16 @@ Disease::Disease() {
   this->R0 = -1.0;
   this->R0_a = -1.0;
   this->R0_b = -1.0;
+
+  this->enable_face_mask_usage = 0;
+  this->face_mask_transmission_efficacy = -1.0;
+  this->face_mask_susceptibility_efficacy = -1.0;
+  this->enable_hand_washing = 0;
+  this->hand_washing_transmission_efficacy = -1.0;
+  this->hand_washing_susceptibility_efficacy = -1.0;
+  this->face_mask_plus_hand_washing_transmission_efficacy = -1.0;
+  this->face_mask_plus_hand_washing_susceptibility_efficacy = -1.0;
+
 }
 
 Disease::~Disease() {

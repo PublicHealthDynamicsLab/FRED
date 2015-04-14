@@ -993,6 +993,14 @@ pregnancy_case_fatality_prob_mult_values = 1 1.0
 
 ##########################################################
 #
+# INCOME BASED SUSCEPTIBILITY MODIFIER PARAMETERS (OPTIONAL)
+#
+##########################################################
+enable_hh_income_based_susc_mod = 0;
+hh_income_susc_mod_floor = 0.0
+
+##########################################################
+#
 # BEHAVIORAL PARAMETERS (OPTIONAL)
 #
 ##########################################################

@@ -16,26 +16,25 @@
 #ifndef _FRED_HEALTH_H
 #define _FRED_HEALTH_H
 
-#include <vector>
 #include <bitset>
+#include <vector>
 using namespace std;
 
-#include "Infection.h"
 #include "Disease.h"
 #include "Global.h"
+#include "Infection.h"
 #include "Past_Infection.h"
 
 class Antiviral;
 class Antivirals;
-class Person;
-class Disease;
-
-class AV_Manager;
 class AV_Health;
+class AV_Manager;
+class Disease;
+class Person;
+class Place;
 class Vaccine;
 class Vaccine_Health;
 class Vaccine_Manager;
-class Place;
 
 // The following enum defines symbolic names for Chronic Medical Conditions.
 // The last element should always be CHRONIC_MEDICAL_CONDITIONS.
@@ -398,14 +397,14 @@ public:
    * @param transmission a pointer to a Transmission object
    */
   void infect(Person* self, Person* infectee, int disease_id,
-      Transmission & transmission);
+      Transmission &transmission);
 
   /**
    * @param disease pointer to a Disease object
    * @param transmission pointer to a Transmission object
    */
   void become_exposed(Person* self, Disease* disease,
-      Transmission & transmission);
+      Transmission &transmission);
 
   //Medication operators
   /**
@@ -581,6 +580,8 @@ public:
 
   double get_transmission_modifier_due_to_hygiene(int disease_id);
   double get_susceptibility_modifier_due_to_hygiene(int disease_id);
+
+  double get_susceptibility_modifier_due_to_household_income(int disease_id);
 
   void terminate(Person* self);
 
@@ -817,6 +818,9 @@ private:
   static int Days_to_wear_face_masks;
   static double Face_mask_compliance;
   static double Hand_washing_compliance;
+
+  static bool Enable_hh_income_based_susc_mod;
+  static double Hh_income_susc_mod_floor;
 
   // health insurance probabilities
   static double health_insurance_distribution[Insurance_assignment_index::UNSET];
