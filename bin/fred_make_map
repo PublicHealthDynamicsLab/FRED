@@ -306,7 +306,9 @@ if (filled) {
   half_max = sprintf("%.1f", max / 2.0)
   no_max = "0.0"
   print "whole_max = " . whole_max . "  half_max = " . half_max
-  set cbtics axis nomirror out scale 0.5 offset 0,0.5 (no_max . "%%" 0, half_max."%%" (42*max), whole_max."%%" (84*max)) font "arial,12"
+  # set cbtics axis nomirror out scale 0.5 offset 0,0.5 (no_max . "%%" 0, half_max."%%" (42*max), whole_max."%%" (84*max)) font "arial,12"
+  set cbtics axis nomirror out scale 0.5 offset 0,0.5 (no_max . "%%" 0, half_max."%%" 128, whole_max."%%" 255) font "arial,12"
+  show cbtics
   # set cbtics axis nomirror out scale 0.5 offset 0,0.5 font "arial,12"
 }
 else {
