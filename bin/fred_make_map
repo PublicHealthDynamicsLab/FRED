@@ -163,8 +163,7 @@ else {
 
  # create a fake plot in order to gather the x and y bbox
  set term unknown
- # plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
- plot for [n=1:1] filename(n) u ($2):($1) ls 99 w filledcurve notitle
+ plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
  
  # initialize the new x and y boundaries
  xmin = GPVAL_DATA_X_MIN
@@ -249,8 +248,14 @@ else {
   cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s %d", ymin, xmin, ymax, xmax, api_key, lightness)
   # print cmd
   system(cmd)
+  # make sure googlemap.png exists
+  ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
+  if (ok == 0) {
+    system("echo 1 > FAILED");    
+    print "FAILED TO CREATE googlemap.png"
+    exit;
+  }
  }
-
 }
 
 # ready for the actual plot:

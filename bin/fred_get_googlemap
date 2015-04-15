@@ -17,16 +17,19 @@ $lightness = 0 if not $lightness;
 
 my $tmpimage = "google-$$.png";
 my $tmpcrop = "crop-$$.png";
-my $tmpfile = "tmp.$$";
+my $tmpfile = "Rscript.out";
 my $cmd = "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage $api_key $lightness \&> $tmpfile";
-print "$cmd\n";
+# print "$cmd\n";
 system "$cmd";
 my $bbox = `tail -1 $tmpfile`;
 # unlink $tmpfile;
 
 chomp $bbox;
+if ($bbox =~ /halted/i) {
+  die "$0: get_googlemap_from_bbox failed. Check API key\n";
+}
 # print "|$bbox|\n";
-print "google bbox: $bbox\n";
+# print "google bbox: $bbox\n";
 # system "open $tmpfile";
 
 my ($gbottom, $gleft, $gtop, $gright) = split " ", $bbox;
@@ -41,7 +44,7 @@ my $yoffset = int(0.5*($gsize-$ysize));
 # print "want $xrange $yrange got $gxrange $gyrange size $xsize $ysize\n";
  
 $cmd = "convert -size ${gsize}x${gsize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
-print "$cmd\n";
+# print "$cmd\n";
 system "$cmd";
 
 my $y = 498.0;
@@ -50,11 +53,11 @@ my $x = 640.0;
 my $xres = int(72*($x/$xsize));
 my $yres = int(72*($y/$ysize));
 $cmd = "convert -resample ${xres}x${yres} $tmpcrop $file";
-print "$cmd\n";
+# print "$cmd\n";
 system "$cmd";
 
-# unlink $tmpimage;
-# unlink $tmpcrop;
+unlink $tmpimage;
+unlink $tmpcrop;
 
 exit;
 

@@ -164,8 +164,9 @@ else {
 }
 # print "max_pct = $max_pct\n";
 chdir "MAPS";
-system "rm -f BBOX googlemap.png map* load* fred_make_maps.log";
+system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
 if ((scalar @fips eq 1) and $google) {
+  # print "using existing county image\n";
   # use background image if it already exists
   my $loc = sprintf("%05d", $fips[0]);
   my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
@@ -252,7 +253,13 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   $started++;
   if (($day eq $start) or ($started eq $parallelism)) {
     for my $file (@wait) {
-      while (not -s $file) { sleep 1; }
+      while (not -s $file) {
+	if (-e "FAILED") {
+	  system "mv FIPS FIPS.failed";
+	  die "$0: fred_make_map failed\n";
+	}
+	sleep 1;
+      }
     }
     $started = 0;
   }
@@ -270,10 +277,12 @@ exit;
 
 sub make_county_map_data {
   my $run = shift;
+  # print "make_county_map_data\n";
   my $filename = "$outdir/out$run.txt";
   die "$0: outfile $filename not found\n" if not -e "$filename";
 
   @fips = ();
+  my $first = 1;
   open FH, $filename or die "ERROR: $0 can't open file $filename\n";
   while (<FH>) {
     chomp;
@@ -287,11 +296,19 @@ sub make_county_map_data {
       my $key = shift @a;
       my $val = shift @a;
       if ($key =~ /^County_/) {
-	# print "key = |$key|\n";
-	my ($code) = $key =~ /^County_(\d+)/;
-	# my ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
+	my $code = "";
 	my $dis = 0;
-	push @fips, $code if ($dis == 0 and $day == 0);
+	if ($key =~ /^County_(\d+)_(\d+)/) {
+	  ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
+	}
+	else {
+	  ($code) = $key =~ /^County_(\d+)/;
+	  $dis = 0;
+	}
+	if ($dis == 0 and $day == 0) {
+	  $code = sprintf("%05d", $code);
+	  push @fips, $code;
+	}
 	push @values_0, $val if $dis == 0;
 	push @values_1, $val if $dis == 1;
 	push @values_2, $val if $dis == 2;
@@ -299,14 +316,13 @@ sub make_county_map_data {
       }
     }
     exit if not @fips;
-    if ($day == 0) {
+    if ($first) {
+      # print "fips = @fips\n";
       my $outfile = "MAPS/FIPS";
       open OUT,">$outfile";
-      for my $i (0..$#fips) {
-	my $f = sprintf("%05d", $fips[$i]);
-	print OUT "$f\n" for @fips;
-      }
+      print OUT "$_\n" for @fips;
       close OUT;
+      $first = 0;
     }
     if ($filled) {
       write_values_to_file(0,$day, @values_0);

@@ -21,7 +21,7 @@ my $max = 10;
 my $parallelism = 10;
 my $run = 1;
 my $term = "png";
-my $title = "FRED Allegheny County";
+my $title = "FRED Simulation";
 my $subtitle = " ";
 my $lightness = 0;
 my $show_all_households = 0;
@@ -141,8 +141,6 @@ chdir "VIS/run$run/dis$disease_id/MAPS";
 # system "ls -l map*";
 # exit;
 if (-s "FIPS") {
-  # system "rm -f $cwd/$key.$movie_format";
-  # system "ffmpeg -r 5 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
   # print "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet\n";
   system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
   # print "cp movie.$movie_format $cwd/$key.$movie_format\n";
