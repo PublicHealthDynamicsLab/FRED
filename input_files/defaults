@@ -547,6 +547,9 @@ disease_names = 1 influenza
 <disease_name>_residual_immunity_values = 0
 <disease_name>_infection_immunity_prob_upper_ages = 1 120
 <disease_name>_infection_immunity_prob_values = 1 1.0
+enable_residual_immunity_by_FIPS = 0
+# enable_residual_immunity_by_FIPS = 1
+# residual_immunity_by_FIPS_file = residual_immunity_by_FIPS.txt
 
 ### PLACE-SPECIFIC CONTACTS
 <disease_name>_weekend_contact_rate = 1.5

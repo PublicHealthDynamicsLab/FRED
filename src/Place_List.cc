@@ -570,6 +570,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     }
     if(place_type == Place::HOUSEHOLD) {
       place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat, container, &Global::Pop);
+      place->set_household_fips(this->counties[(*itr).county]);  //resid_imm
       Household* h = static_cast<Household*>(place);
       // ensure that household income is non-negative
       h->set_household_income((*itr).income > 0 ? (*itr).income : 0);

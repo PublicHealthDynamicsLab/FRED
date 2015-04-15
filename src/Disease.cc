@@ -43,6 +43,7 @@ using namespace std;
 
 std::string* Disease::Disease_name = NULL;
 
+
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
   // periods has been moved to the IntraHost class (or classes derived from it).
@@ -230,6 +231,12 @@ void Disease::get_parameters(int disease) {
 
   if(this->residual_immunity->is_empty() == false) {
     this->residual_immunity->print();
+  }
+  
+  if(Global::Residual_Immunity_by_FIPS) {
+  	//std::map<string, Age_Map> res_imm;
+  	this->read_residual_immunity_by_FIPS();
+  	fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled \n");
   }
 
   // Probability of developing an immune response by past infections
@@ -445,4 +452,32 @@ double Disease::get_hospitalization_prob(Person* per) {
 
 double Disease::get_outpatient_healthcare_prob(Person* per) {
   return this->outpatient_healthcare_prob->find_value(per->get_real_age());
+}
+
+void Disease::read_residual_immunity_by_FIPS() {  
+	//Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
+	char fips_string[FRED_STRING_SIZE];
+	int fips_int;
+	//char ages_string[FRED_STRING_SIZE];
+	char values_string[FRED_STRING_SIZE];
+	FILE *fp = NULL;
+	fp = Utils::fred_open_file(Global::Residual_Immunity_File);
+	if (fp == NULL) {
+    fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled but residual_immunity_by_FIPS_file %s not found\n", Global::Residual_Immunity_File);
+    exit(1);
+   }
+	while(fgets(fips_string, FRED_STRING_SIZE - 1, fp) != NULL) {  //fips 2 lines fips first residual immunity second
+    	if ( ! (istringstream(fips_string) >> fips_int) ) fips_int = 0;
+    	if (fgets(values_string, FRED_STRING_SIZE - 1, fp) == NULL) {  //values
+    		fprintf(Global::Statusfp, "Residual Immunity by FIPS file %s not properly formed\n", Global::Residual_Immunity_File);
+    		exit(1);
+    	}
+		std::vector<double> temp_vector;
+		Params::get_param_vector_from_string(values_string, temp_vector);
+  		this->residual_immunity_by_FIPS.insert(std::pair<int, vector<double> > (fips_int,temp_vector) );
+  	}
+}
+
+vector<double> Disease::get_residual_immunity_values_by_FIPS(int FIPS_int) {
+	return residual_immunity_by_FIPS[FIPS_int];
 }

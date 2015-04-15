@@ -857,6 +857,15 @@ public:
   static Place * get_infectious_place(int n) {
     return infectious_places[n];
   }
+  
+  int get_household_fips() {
+  	return this->household_fips;
+  }
+
+  void set_household_fips(int input_fips) {
+  	this->household_fips = input_fips;
+  }
+  
 
 protected:
   // list of places that are infectious today
@@ -897,6 +906,8 @@ protected:
   static double** prob_contact;
   int index;		  // index for households
   int staff_size;			// outside workers in this place
+
+  int household_fips;
 
   Population* population;
   Neighborhood_Patch* patch;       // geo patch for this place

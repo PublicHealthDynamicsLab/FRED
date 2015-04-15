@@ -42,7 +42,7 @@ Person::~Person() {
 void Person::setup(int _index, int _id, int age, char sex,
        int race, int rel, Place* house, Place* school, Place* work,
        int day, bool today_is_birthday) {
-
+  int myFIPS;
   this->index = _index;
   this->id = _id;
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
@@ -50,7 +50,7 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->activities.setup(this, house, school, work);
   // behavior setup called externally, after entire population is available
   // (in Population::read... methods for the initial population) 
-
+  myFIPS = house->get_household_fips();
   if (today_is_birthday) {
     FRED_VERBOSE(1, "Baby index %d id %d age %d born on day %d household = %s  new_size %d orig_size %d\n",
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
@@ -58,14 +58,24 @@ void Person::setup(int _index, int _id, int age, char sex,
     // residual immunity does NOT apply to newborns
     for (int disease = 0; disease < Global::Diseases; disease++) {
       Disease* dis = Global::Pop.get_disease(disease);
-      if(!dis->get_residual_immunity()->is_empty()) {
-	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	      // printf("RESID: age %d prob %f\n",age,residual_immunity_prob);
-	      if(RANDOM() < residual_immunity_prob) {
+      
+      if(Global::Residual_Immunity_by_FIPS) {
+  		Age_Map* temp_map = new Age_Map();
+  		vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
+  		vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
+  		temp_map->set_ages(temp_ages);
+  		temp_map->set_values(temp_values);
+     	double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
+	    if(RANDOM() < residual_immunity_by_fips_prob) 
 	        become_immune(dis);
-	      }
-      }
-    }
+  		}  
+     	else if(!dis->get_residual_immunity()->is_empty()) { 
+	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
+	     if(RANDOM() < residual_immunity_prob) 
+	        become_immune(dis);
+	    }
+	}
+    
   }
 }
 

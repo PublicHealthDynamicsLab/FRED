@@ -124,6 +124,10 @@ char Global::PSA_Method[FRED_STRING_SIZE];
 char Global::PSA_List_File[FRED_STRING_SIZE];
 int Global::PSA_Sample_Size = 0;
 int Global::PSA_Sample = 0;
+// added for residual_immunity_by_FIPS
+bool Global::Residual_Immunity_by_FIPS = false;
+char Global::Residual_Immunity_File[FRED_STRING_SIZE];
+
 
 // per-strain immunity reporting off by default
 // will be enabled in Utils::fred_open_output_files (called from Fred.cc)
@@ -281,6 +285,13 @@ void Global::get_global_parameters() {
   Global::Enable_Isolation = (temp_int == 0 ? false : true);
   Params::get_param_from_string("isolation_delay", &Global::Isolation_Delay);
   Params::get_param_from_string("isolation_rate", &Global::Isolation_Rate);
+// added for residual_immunity_by_FIPS
+  Params::get_param_from_string("enable_residual_immunity_by_FIPS", &temp_int);
+  Global::Residual_Immunity_by_FIPS = (temp_int == 0 ? false : true);
+  if (Global::Residual_Immunity_by_FIPS) {
+  Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
+  }
+
 
   // Sanity Checks
   if(Global::Diseases > Global::MAX_NUM_DISEASES) {
