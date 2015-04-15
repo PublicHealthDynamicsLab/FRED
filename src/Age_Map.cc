@@ -80,6 +80,19 @@ void Age_Map::read_from_input(string input) {
   return;
 }
 
+//overload to set ages and values from input string
+void Age_Map::read_from_string(string ages_string, string values_string) {
+
+  char * astr = new char [ages_string.length()+1];
+  std::strcpy (astr, ages_string.c_str());
+  char * vstr = new char [values_string.length()+1];
+  std::strcpy (vstr, values_string.c_str());
+  Params::get_param_vector_from_string(astr, this->ages);
+  Params::get_param_vector_from_string(vstr, this->values);
+
+  return;
+}
+
 void Age_Map::set_all_values(double val) {
   if (this->ages.size()) {
     this->ages.clear();
@@ -91,7 +104,7 @@ void Age_Map::set_all_values(double val) {
   this->values.push_back(val);
 }
 
-double Age_Map::find_value(double age) const {
+double Age_Map::find_value(double age) {
   // printf("find_value: age = %.1f  groups %d \n", age, (int) this->ages.size());
   for(unsigned int i = 0; i < this->ages.size(); i++) {
     if (age < this->ages[i]) {

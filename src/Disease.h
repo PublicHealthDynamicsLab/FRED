@@ -40,6 +40,9 @@ class Strain_Data;
 class Disease {
 public:
 
+
+ 
+
   /**
    * Default constructor
    */
@@ -306,6 +309,10 @@ public:
     return this->disease_name;
   }
 
+  void read_residual_immunity_by_FIPS();
+  
+  vector<double> get_residual_immunity_values_by_FIPS(int FIPS_string);
+   
 private:
 
   static std::string* Disease_name;
@@ -344,6 +351,7 @@ private:
   IntraHost* ihm;
   Evolution* evol;
 
+
   // intervention efficacies
   int enable_face_mask_usage;
   double face_mask_transmission_efficacy;
@@ -358,6 +366,10 @@ private:
   double R0;
   double R0_a;
   double R0_b;
+  
+   /// added for residual_immunity_by FIPS
+  std::map<int, vector<double> > residual_immunity_by_FIPS;
+  /// end added
 
   // Vars that are not Disease-specific (for updating global stats).
   Population* population;

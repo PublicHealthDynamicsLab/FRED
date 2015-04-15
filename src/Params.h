@@ -107,6 +107,12 @@ class Params {
      */
     static int get_param_vector(char* s, vector<double> &p);
 
+ 	/**
+     * @param s char* with value to be vectorized
+     * @param p a pointer to the vector of doubles that will be set
+     * @return 1 if found
+     */
+    static int get_param_vector_from_string(char *s, vector < double > &p);
 
     static int get_param_vector(char* s, double* p);
 

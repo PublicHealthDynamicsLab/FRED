@@ -76,7 +76,7 @@ public:
   void read_from_input(string input, int i);
 
   /**
-   * Will concatenate tow indices onto the input string and then pass to <code>Age_Map::read_from_input(string Input)</code>
+   * Will concatenate two indices onto the input string and then pass to <code>Age_Map::read_from_input(string Input)</code>
    *
    * @param Input a string that will be parsed to use for a parameter lookup
    * @param i an index that will be appended
@@ -85,7 +85,25 @@ public:
   void read_from_input(string input, int i, int j);
 
   void set_all_values(double val);
+  
+  vector<double> get_ages(){
+  	 return this->ages;		
+  }
 
+  vector<double> get_values(){
+  	 return this->values;		
+  }
+  
+  void set_ages(vector<double> input_ages){
+  	ages = input_ages;
+  }
+  
+  void set_values(vector<double> input_values){
+  	values = input_values;
+  }
+  
+  void read_from_string(string ages_string, string values_string);
+  
   // Operations
   /**
    * Find a value given an age. Will return 0.0 if no matching range is found.
@@ -93,7 +111,7 @@ public:
    * @param (double) age the age to find
    * @return the found value
    */
-  double find_value(double age) const;
+  double find_value(double age);
 
   // Utility functions
   /**

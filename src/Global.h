@@ -269,6 +269,9 @@ class Global {
     static char PSA_List_File[];
     static int PSA_Sample_Size;
     static int PSA_Sample;
+    	// for residual immunity by FIPS
+	static bool Residual_Immunity_by_FIPS;
+	static char Residual_Immunity_File[];
 
     // global singleton objects
     static Population Pop;
