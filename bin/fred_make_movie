@@ -17,7 +17,7 @@ my $filled = 0;
 my $help = 0;
 my $grid = 0;
 my $key = "";
-my $max = 10;
+my $max = 0;
 my $parallelism = 10;
 my $run = 1;
 my $term = "png";
@@ -57,7 +57,7 @@ my $opt_result = GetOptions(
 			    "k=s" => \$key,
 			    "key=s" => \$key,
 			    "lightness=i" => \$lightness,
-			    "max=s" => \$max,
+			    "max=f" => \$max,
 			    "parallelism=i" => \$parallelism,
 			    "run=i" => \$run,
 			    "term=s" => \$term,

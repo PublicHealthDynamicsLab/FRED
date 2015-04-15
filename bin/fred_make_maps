@@ -16,7 +16,7 @@ my $filled = 0;
 my $help = 0;
 my $key = "";
 my $lightness = 0;
-my $max = 10;
+my $max = 0;
 my $parallelism = 10;
 my $run = 1;
 my $term = "png";
@@ -54,7 +54,7 @@ my $opt_result = GetOptions(
 			    "g=i" => \$grid,
 			    "key=s" => \$key,
 			    "lightness=i" => \$lightness,
-			    "max=s" => \$max,
+			    "max=f" => \$max,
 			    "parallelism=i" => \$parallelism,
 			    "run=i" => \$run,
 			    "term=s" => \$term,
@@ -155,14 +155,16 @@ while (<IN>) {
 close IN;
 
 my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
-my $max_pct = 0.0;
+my $max_ar = 0.0;
+my @ar = ();
 if ($country eq "usa" and $census_tracts eq 1) {
   make_census_tract_map_data();
 }
 else {
   make_county_map_data($run);
 }
-# print "max_pct = $max_pct\n";
+$max_ar = $max if $max;
+# print "max_ar = $max_ar\n";
 chdir "MAPS";
 system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
 if ((scalar @fips eq 1) and $google) {
@@ -224,13 +226,13 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_infectious = $show_infectious\n";
   print LD "show_recovered = $show_recovered\n";
   print LD "filled = $filled\n";
-  print LD "max = $max\n";
+  print LD "max = $max_ar\n";
   print LD "household_locations = '$vis/households.txt'\n";
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
-  print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
+  # print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
   print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
   print LD "use_shapefile = $use_shapefile\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
@@ -322,6 +324,9 @@ sub make_county_map_data {
       open OUT,">$outfile";
       print OUT "$_\n" for @fips;
       close OUT;
+      for my $i (0..$#values_0) {
+	$ar[$i] = 0.0;
+      }
       $first = 0;
     }
     if ($filled) {
@@ -346,9 +351,10 @@ sub write_values_to_file {
     die "$0: can't find pop for fips = |$fips[$i]|\n" if not exists $pop{$f};
     die "$0: zero pop for fips = |$fips[$i]|\n" if not $pop{$f};
     my $pct = 100.0 * $values[$i] / $pop{$f};
-    $max_pct = $pct if $pct > $max_pct;
+    $ar[$i] += $pct;
+    $max_ar = $ar[$i] if $ar[$i] > $max_ar;
     print RAW "$values[$i] $pop{$f}\n";
-    print PCT "$pct\n";
+    print PCT "$ar[$i]\n";
   }
   close RAW;
   close PCT;
@@ -356,6 +362,7 @@ sub write_values_to_file {
 
 sub make_census_tract_map_data {
   open FIPS,">MAPS/FIPS";
+  my @ar = ();
   for my $day (0..$days) {
     my $file = "C/census_tracts-$day.txt";
     die "$0: ERROR file $file not found\n" if not -e $file;
@@ -367,18 +374,23 @@ sub make_census_tract_map_data {
       open PCT,">MAPS/$pctfile";
     }
     my $line = <CT>; # skip header line
+    my $i = 0;
     while ($line = <CT>) {
       chomp $line;
       my ($tract,$count,$pop) = split " ", $line;
+      if ($day == 0) {
+	my $format = "\%05d\n";
+	my $str = "x$tract";
+	$format = "\%011d\n" if length($str) > 6;
+	printf FIPS $format, $tract;
+	$ar[$i] = 0.0;
+      }
       my $pct = 100.0 * $count / $pop;
-      $max_pct = $pct if $pct > $max_pct;
+      $ar[$i] += $pct;
+      $max_ar = $ar[$i] if $ar[$i] > $max_ar;
       print RAW "$count $pop\n" if $filled;
-      print PCT "$pct\n" if $filled;
-
-      my $format = "\%05d\n";
-      my $str = "x$tract";
-      $format = "\%011d\n" if length($str) > 6;
-      printf FIPS $format, $tract if $day == 0;
+      print PCT "$ar[$i]\n" if $filled;
+      $i++;
     }
     close CT;
     close RAW if $filled;
