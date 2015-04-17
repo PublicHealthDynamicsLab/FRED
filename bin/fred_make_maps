@@ -385,7 +385,8 @@ sub make_census_tract_map_data {
 	printf FIPS $format, $tract;
 	$ar[$i] = 0.0;
       }
-      my $pct = 100.0 * $count / $pop;
+      my $pct = 0.0;
+      $pct = 100.0 * $count / $pop if $pop;
       $ar[$i] += $pct;
       $max_ar = $ar[$i] if $ar[$i] > $max_ar;
       print RAW "$count $pop\n" if $filled;
