@@ -1,7 +1,7 @@
-FRED started Mon Mar 30 13:03:25 2015
+FRED started Mon Apr 20 07:50:15 2015
 param file = params.test
-fred_open_file: opening file /Users/gref/FRED/input_files/defaults for reading
-FRED reading parameter file /Users/gref/FRED/input_files/defaults
+fred_open_file: opening file /Users/ddg5/FRED/input_files/defaults for reading
+FRED reading parameter file /Users/ddg5/FRED/input_files/defaults
 fred_open_file: opening file params.test for reading
 FRED reading parameter file params.test
 PARAMS: debug = 1
@@ -60,6 +60,7 @@ PARAMS: age_of_infection_log_level = 0
 PARAMS: report_place_of_infection = 0
 PARAMS: report_distance_of_infection = 0
 PARAMS: report_presenteeism = 0
+PARAMS: report_childhood_presenteeism = 0
 PARAMS: report_serial_interval = 0
 PARAMS: report_incidence_by_county = 0
 PARAMS: report_incidence_by_census_tract = 0
@@ -67,6 +68,7 @@ PARAMS: enable_shelter_in_place = 0
 PARAMS: enable_isolation = 0
 PARAMS: isolation_delay = 1
 PARAMS: isolation_rate = 1.000000
+PARAMS: enable_residual_immunity_by_FIPS = 0
 PARAMS: enable_copy_files = 0
 PARAMS: output_population = 0
 PARAMS: disease_names = 1 influenza
@@ -93,7 +95,7 @@ Overridden from command line: Output_directory = OUT.TEST
 seed = 123456
 RNG setup took 0 seconds
 
-FRED run 1 started Mon Mar 30 13:03:25 2015
+FRED run 1 started Mon Apr 20 07:50:15 2015
 PARAMS: enable_copy_files = 0
 PARAMS: msa_file = $FRED_HOME/input_files/countries/usa/US_msa.txt
 PARAMS: counties_file = $FRED_HOME/input_files/countries/usa/US_counties.txt
@@ -120,7 +122,7 @@ PARAMS: nursing_home_fixed_staff = 5
 PARAMS: nursing_home_resident_to_staff_ratio = 10.000000
 PARAMS: military_fixed_staff = 5
 PARAMS: military_resident_to_staff_ratio = 10.000000
-fred_open_file: opening file /Users/gref/FRED/input_files/countries/usa/US_counties.txt for reading
+fred_open_file: opening file /Users/ddg5/FRED/input_files/countries/usa/US_counties.txt for reading
 FOUND a county = |Jefferson County PA| for fips = |42065|
 Validating synthetic population identifiers before reading.
 Using population directory: $FRED_HOME/populations
@@ -131,18 +133,18 @@ Split ID string "2010_ver1_42065" into 1 token using delimiter: ' '
 Deme 0 comprises 1 synthetic population id:
 --> Deme 0, Synth. Pop. ID 0: 2010_ver1_42065
 
-FRED read_places started Mon Mar 30 13:03:25 2015
+FRED read_places started Mon Apr 20 07:50:15 2015
 Reading Places for Deme 0:
 read places entered
 POPULATION_FILE: $FRED_HOME/populations/2010_ver1_42065
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_households.txt for reading
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_households.txt for reading
 COUNTIES AFTER READING HOUSEHOLDS
 COUNTIES[0] = 42065
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_workplaces.txt for reading
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_schools.txt for reading
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_workplaces.txt for reading
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_schools.txt for reading
 COUNTIES AFTER READING SCHOOLS
 COUNTIES[0] = 42065
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq.txt for reading
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq.txt for reading
 COUNTIES AFTER READING GQ
 COUNTIES[0] = 42065
 FRED_VERBOSE: <Place_List.cc, LINE:521> COUNTIES[0] = 42065
@@ -221,8 +223,8 @@ PARAMS: influenza_neighborhood_prob = 4
 PARAMS: influenza_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
 Added     834     NEIGHBORHOOD places to Place_List
 read places finished: Places = 24030
-Places.read_places took 0 seconds
-FRED read_places finished Mon Mar 30 13:03:25 2015
+Places.read_places took 1 seconds
+FRED read_places finished Mon Apr 20 07:50:16 2015
 PARAMS: enable_neighborhood_density_transmission = 0
 PARAMS: enable_density_transmission_maximum_infectees = 1
 PARAMS: density_transmission_maximum_infectees = 10
@@ -235,6 +237,7 @@ PARAMS: SLA_absent_prob = 0.720000
 PARAMS: SLU_absent_prob = 0.520000
 PARAMS: flu_days = 0.000000
 PARAMS: prob_of_visiting_hospitalized_housemate = 0.000000
+PARAMS: sick_leave_dist_method = 1
 PARAMS: hospitalization_prob_upper_ages = 0
 PARAMS: hospitalization_prob_values = 0
 PARAMS: outpatient_healthcare_prob_upper_ages = 0
@@ -445,18 +448,20 @@ behavior_change_model_population = 0 0 0 0 0 0 0
 PARAMS: days_to_wear_face_masks = 2
 PARAMS: face_mask_compliance = 0.000000
 PARAMS: hand_washing_compliance = 0.000000
+PARAMS: enable_hh_income_based_susc_mod = 0
 initialize_static_variables took 0 seconds
 
-FRED Pop.setup started Mon Mar 30 13:03:25 2015
+FRED Pop.setup started Mon Apr 20 07:50:16 2015
 setup population entered
 disease 0 influenza setup entered
 PARAMS: primary_cases_file = $FRED_HOME/input_files/primary_cases_10_on_day_0.txt
-Time Step Map  simDayStart 0 simDayEnd 0 numSeedingAttempts 10 disease_id 0 seedingAttemptProb 1 minNumSuccessful 0 lat 0 lon 0 radius -1
+Time Step Map  sim_day_start 0 sim_day_end 0 num_seeding_attempts 10 disease_id 0 seeding_attempt_prob 1 min_num_successful 0 lat 0 lon 0 radius -1
 
 PARAMS: seed_by_age = 0
 PARAMS: seed_age_lower_bound = 0.000000
 PARAMS: seed_age_upper_bound = 120.000000
 PARAMS: report_generation_time = 0
+PARAMS: report_transmission_by_age = 0
 PARAMS: advanced_seeding = exposed
 PARAMS: influenza_intra_host_model = 0
 PARAMS: influenza_symp = 0.670000
@@ -478,35 +483,35 @@ disease 0 influenza setup finished
 Loading population for Deme 0:
 Loading population 0 for Deme 0: 2010_ver1_42065
 read population entered
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt.fsz for reading
-FRED_VERBOSE: <Population.cc, LINE:579> calling SnappyFileCompression on pop_file = /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt.fsz
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt.fsz for reading
+FRED_VERBOSE: <Population.cc, LINE:584> calling SnappyFileCompression on pop_file = /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_people.txt.fsz
 Is this an fsz-compressed file?  Magic bytes match.  Treat this file as fsz-compressed.
 PARAMS: number_antivirals = 0
-FRED_VERBOSE: <Population.cc, LINE:597> finished reading compressed population, pop_size = 44594
+FRED_VERBOSE: <Population.cc, LINE:602> finished reading compressed population, pop_size = 44594
 Loading group quarters population 0 for Deme 0: 2010_ver1_42065
 read population entered
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt.fsz for reading
-fred_open_file: opening file /Users/gref/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt for reading
-FRED_VERBOSE: <Population.cc, LINE:624> finished reading uncompressed population, pop_size = 45318
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt.fsz for reading
+fred_open_file: opening file /Users/ddg5/FRED/populations/2010_ver1_42065/2010_ver1_42065_synth_gq_people.txt for reading
+FRED_VERBOSE: <Population.cc, LINE:629> finished reading uncompressed population, pop_size = 45318
 reading populations took 0 seconds
 number of residually immune people for disease 0 = 0
 population setup finished
 setup group quarters entered
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18562 label H450004650 subtype C initial size 148 units 59
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18621 label H450004651 subtype C initial size 20 units 8
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18629 label H450008460 subtype P initial size 79 units 52
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18681 label H450022046 subtype P initial size 17 units 11
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18692 label H450030495 subtype N initial size 141 units 94
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18786 label H450030496 subtype N initial size 189 units 126
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18912 label H450036345 subtype N initial size 34 units 22
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18934 label H450040313 subtype N initial size 45 units 30
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18964 label H450042411 subtype N initial size 33 units 22
-FRED_VERBOSE: <Place_List.cc, LINE:1335> GQ_setup: house 18986 label H450047487 subtype N initial size 18 units 12
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18562 label H450004650 subtype C initial size 148 units 59
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18621 label H450004651 subtype C initial size 20 units 8
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18629 label H450008460 subtype P initial size 79 units 52
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18681 label H450022046 subtype P initial size 17 units 11
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18692 label H450030495 subtype N initial size 141 units 94
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18786 label H450030496 subtype N initial size 189 units 126
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18912 label H450036345 subtype N initial size 34 units 22
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18934 label H450040313 subtype N initial size 45 units 30
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18964 label H450042411 subtype N initial size 33 units 22
+FRED_VERBOSE: <Place_List.cc, LINE:1439> GQ_setup: house 18986 label H450047487 subtype N initial size 18 units 12
 setup households entered
-FRED_VERBOSE: <Place_List.cc, LINE:1894> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
+FRED_VERBOSE: <Place_List.cc, LINE:1998> INCOME_STATS: households: 18997  min 0  first_quartile 19000  median 37800  third_quartile 62000  max 794300
 setup households finished
 Pop.setup took 0 seconds
-FRED Pop.setup finished Mon Mar 30 13:03:25 2015
+FRED Pop.setup finished Mon Apr 20 07:50:16 2015
 setup classrooms entered
 Allocating space for 291 classrooms in 26 schools (out of 24030 total places)
 PARAMS: influenza_classroom_contacts = -1.000000
@@ -515,13 +520,13 @@ PARAMS: influenza_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.
 Added     291        CLASSROOM places to Place_List
 setup classrooms finished
 assign classrooms entered
-FRED_VERBOSE: <Population.cc, LINE:905> assign classrooms finished
+FRED_VERBOSE: <Population.cc, LINE:910> assign classrooms finished
 assign classrooms took 0 seconds
 reassign workers entered. places = 24321
-FRED_VERBOSE: <Place_List.cc, LINE:1562> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1562> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1562> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
-FRED_VERBOSE: <Place_List.cc, LINE:1562> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
+FRED_VERBOSE: <Place_List.cc, LINE:1666> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1666> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1666> place OUTSIDE_REGION lat 0.000000 lon 0.000000 
+FRED_VERBOSE: <Place_List.cc, LINE:1666> place OUTSIDE_REGION lat 40.468769 lon -79.917847 
 reassign workers entered. places = 24321
 reassign workers entered. places = 24321
 reassign workers entered. places = 24321
@@ -535,7 +540,7 @@ PARAMS: influenza_office_prob = 1 0.0575
 Added    4295           OFFICE places to Place_List
 setup offices finished
 assign offices entered
-FRED_VERBOSE: <Population.cc, LINE:922> assign offices finished
+FRED_VERBOSE: <Population.cc, LINE:927> assign offices finished
 assign offices took 0 seconds
 prepare places entered
 FRED_VERBOSE: <Neighborhood_Layer.cc, LINE:118> setup gravity model ...
@@ -563,27 +568,27 @@ YEAR 0 GRADE 19 STUDENTS 0
 YEAR 0 TOTAL_STUDENTS 7662
 deleting place_label_map
 prepare places finished
-place preparation took 1 seconds
+place preparation took 0 seconds
 disease_initialization took 0 seconds
-FRED initialization complete Mon Mar 30 13:03:26 2015
+FRED initialization complete Mon Apr 20 07:50:16 2015
 FRED initialization took 1 seconds
 
 day 0 update places took 0 seconds
 update entered day 0
-employees at small workplaces with sick leave: 6843
-employees at small workplaces without sick leave: 5955
-employees at med workplaces with sick leave: 1336
-employees at med workplaces without sick leave: 941
-employees at large workplaces with sick leave: 2540
-employees at large workplaces without sick leave: 1112
-employees at xlarge workplaces with sick leave: 1100
-employees at xlarge workplaces without sick leave: 185
+employees at small workplaces with sick leave: 0
+employees at small workplaces without sick leave: 0
+employees at med workplaces with sick leave: 0
+employees at med workplaces without sick leave: 0
+employees at large workplaces with sick leave: 0
+employees at large workplaces without sick leave: 0
+employees at xlarge workplaces with sick leave: 0
+employees at xlarge workplaces without sick leave: 0
 day 0 update population took 0 seconds
 day 0 update_infectious_people took 0 seconds
 day 0 find_visitors_to_infectious_places took 0 seconds
-FRED_VERBOSE: <Epidemic.cc, LINE:1246> IMPORT MST:
-FRED_VERBOSE: <Epidemic.cc, LINE:1261> IMPORT search number 1 FRED_VERBOSE: <Epidemic.cc, LINE:1293> IMPORT: seeking 10 candidates, found 45318
-FRED_VERBOSE: <Epidemic.cc, LINE:1313> IMPORT SUCCESS: 10 imported cases
+FRED_VERBOSE: <Epidemic.cc, LINE:1453> IMPORT MST:
+FRED_VERBOSE: <Epidemic.cc, LINE:1468> IMPORT search number 1 FRED_VERBOSE: <Epidemic.cc, LINE:1500> IMPORT: seeking 10 candidates, found 45318
+FRED_VERBOSE: <Epidemic.cc, LINE:1520> IMPORT SUCCESS: 10 imported cases
 Number of infectious places        =>         0
 Number of infectious households    =>         0
 Number of infectious neighborhoods =>         0
@@ -604,8 +609,8 @@ day 0 update epidemic for disease 0 took 0 seconds
 Day 0 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 0 report population took 0 seconds
-day 0 maxrss 83243008
-day 0 finished Mon Mar 30 13:03:26 2015
+day 0 maxrss 79417344
+day 0 finished Mon Apr 20 07:50:16 2015
 day 0 took 0 seconds
 
 day 1 update places took 0 seconds
@@ -613,13 +618,13 @@ update entered day 1
 day 1 update population took 0 seconds
 day 1 update_infectious_people took 0 seconds
 day 1 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        17
-Number of infectious households    =>         7
-Number of infectious neighborhoods =>         4
-Number of infectious schools       =>         0
-Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>         3
-Number of infectious offices       =>         3
+Number of infectious places        =>        20
+Number of infectious households    =>         8
+Number of infectious neighborhoods =>         6
+Number of infectious schools       =>         1
+Number of infectious classrooms    =>         1
+Number of infectious workplaces    =>         2
+Number of infectious offices       =>         2
 Number of infectious hospitals     =>         0
 day 1 epidemic in schools for disease 0 took 0 seconds
 day 1 epidemic in classrooms for disease 0 took 0 seconds
@@ -633,8 +638,8 @@ day 1 update epidemic for disease 0 took 0 seconds
 Day 1 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 1 report population took 0 seconds
-day 1 maxrss 83243008
-day 1 finished Mon Mar 30 13:03:26 2015
+day 1 maxrss 79417344
+day 1 finished Mon Apr 20 07:50:16 2015
 day 1 took 0 seconds
 
 day 2 update places took 0 seconds
@@ -642,13 +647,13 @@ update entered day 2
 day 2 update population took 0 seconds
 day 2 update_infectious_people took 0 seconds
 day 2 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        32
+Number of infectious places        =>        24
 Number of infectious households    =>        11
-Number of infectious neighborhoods =>         7
-Number of infectious schools       =>         3
-Number of infectious classrooms    =>         3
-Number of infectious workplaces    =>         4
-Number of infectious offices       =>         4
+Number of infectious neighborhoods =>         6
+Number of infectious schools       =>         1
+Number of infectious classrooms    =>         2
+Number of infectious workplaces    =>         2
+Number of infectious offices       =>         2
 Number of infectious hospitals     =>         0
 day 2 epidemic in schools for disease 0 took 0 seconds
 day 2 epidemic in classrooms for disease 0 took 0 seconds
@@ -662,8 +667,8 @@ day 2 update epidemic for disease 0 took 0 seconds
 Day 2 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 2 report population took 0 seconds
-day 2 maxrss 83243008
-day 2 finished Mon Mar 30 13:03:26 2015
+day 2 maxrss 79417344
+day 2 finished Mon Apr 20 07:50:16 2015
 day 2 took 0 seconds
 
 day 3 update places took 0 seconds
@@ -671,10 +676,10 @@ update entered day 3
 day 3 update population took 0 seconds
 day 3 update_infectious_people took 0 seconds
 day 3 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        40
-Number of infectious households    =>        16
-Number of infectious neighborhoods =>         9
-Number of infectious schools       =>         3
+Number of infectious places        =>        42
+Number of infectious households    =>        17
+Number of infectious neighborhoods =>        12
+Number of infectious schools       =>         1
 Number of infectious classrooms    =>         4
 Number of infectious workplaces    =>         4
 Number of infectious offices       =>         4
@@ -691,8 +696,8 @@ day 3 update epidemic for disease 0 took 0 seconds
 Day 3 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 3 report population took 0 seconds
-day 3 maxrss 83243008
-day 3 finished Mon Mar 30 13:03:26 2015
+day 3 maxrss 79581184
+day 3 finished Mon Apr 20 07:50:16 2015
 day 3 took 0 seconds
 
 day 4 update places took 0 seconds
@@ -700,13 +705,13 @@ update entered day 4
 day 4 update population took 0 seconds
 day 4 update_infectious_people took 0 seconds
 day 4 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        57
-Number of infectious households    =>        28
-Number of infectious neighborhoods =>        14
-Number of infectious schools       =>         3
-Number of infectious classrooms    =>         6
-Number of infectious workplaces    =>         3
-Number of infectious offices       =>         3
+Number of infectious places        =>        54
+Number of infectious households    =>        18
+Number of infectious neighborhoods =>        15
+Number of infectious schools       =>         2
+Number of infectious classrooms    =>         5
+Number of infectious workplaces    =>         7
+Number of infectious offices       =>         7
 Number of infectious hospitals     =>         0
 day 4 epidemic in schools for disease 0 took 0 seconds
 day 4 epidemic in classrooms for disease 0 took 0 seconds
@@ -720,8 +725,8 @@ day 4 update epidemic for disease 0 took 0 seconds
 Day 4 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 4 report population took 0 seconds
-day 4 maxrss 83529728
-day 4 finished Mon Mar 30 13:03:26 2015
+day 4 maxrss 79622144
+day 4 finished Mon Apr 20 07:50:16 2015
 day 4 took 0 seconds
 
 day 5 update places took 0 seconds
@@ -729,13 +734,13 @@ update entered day 5
 day 5 update population took 0 seconds
 day 5 update_infectious_people took 0 seconds
 day 5 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        59
-Number of infectious households    =>        38
-Number of infectious neighborhoods =>        21
+Number of infectious places        =>        47
+Number of infectious households    =>        26
+Number of infectious neighborhoods =>        19
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>         0
-Number of infectious offices       =>         0
+Number of infectious workplaces    =>         1
+Number of infectious offices       =>         1
 Number of infectious hospitals     =>         0
 day 5 epidemic in schools for disease 0 took 0 seconds
 day 5 epidemic in classrooms for disease 0 took 0 seconds
@@ -749,8 +754,8 @@ day 5 update epidemic for disease 0 took 0 seconds
 Day 5 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 5 report population took 0 seconds
-day 5 maxrss 83906560
-day 5 finished Mon Mar 30 13:03:26 2015
+day 5 maxrss 79831040
+day 5 finished Mon Apr 20 07:50:16 2015
 day 5 took 0 seconds
 
 day 6 update places took 0 seconds
@@ -758,13 +763,13 @@ update entered day 6
 day 6 update population took 0 seconds
 day 6 update_infectious_people took 0 seconds
 day 6 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>        93
-Number of infectious households    =>        52
-Number of infectious neighborhoods =>        35
+Number of infectious places        =>        56
+Number of infectious households    =>        30
+Number of infectious neighborhoods =>        23
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>         3
-Number of infectious offices       =>         3
+Number of infectious workplaces    =>         1
+Number of infectious offices       =>         2
 Number of infectious hospitals     =>         0
 day 6 epidemic in schools for disease 0 took 0 seconds
 day 6 epidemic in classrooms for disease 0 took 0 seconds
@@ -778,8 +783,8 @@ day 6 update epidemic for disease 0 took 0 seconds
 Day 6 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 6 report population took 0 seconds
-day 6 maxrss 84545536
-day 6 finished Mon Mar 30 13:03:26 2015
+day 6 maxrss 80093184
+day 6 finished Mon Apr 20 07:50:16 2015
 day 6 took 0 seconds
 
 day 7 update places took 0 seconds
@@ -787,13 +792,13 @@ update entered day 7
 day 7 update population took 0 seconds
 day 7 update_infectious_people took 0 seconds
 day 7 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       144
-Number of infectious households    =>        56
-Number of infectious neighborhoods =>        37
-Number of infectious schools       =>         7
-Number of infectious classrooms    =>        18
-Number of infectious workplaces    =>        13
-Number of infectious offices       =>        13
+Number of infectious places        =>       118
+Number of infectious households    =>        40
+Number of infectious neighborhoods =>        30
+Number of infectious schools       =>         4
+Number of infectious classrooms    =>         9
+Number of infectious workplaces    =>        17
+Number of infectious offices       =>        18
 Number of infectious hospitals     =>         0
 day 7 epidemic in schools for disease 0 took 0 seconds
 day 7 epidemic in classrooms for disease 0 took 0 seconds
@@ -804,11 +809,11 @@ day 7 epidemic in households for disease 0 took 0 seconds
 day 7 epidemic in hospitals for disease 0 took 0 seconds
 day 7 update epidemic for disease 0 took 0 seconds
 
-Day 7 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
+Day 7 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
 
 day 7 report population took 0 seconds
-day 7 maxrss 85377024
-day 7 finished Mon Mar 30 13:03:26 2015
+day 7 maxrss 80801792
+day 7 finished Mon Apr 20 07:50:16 2015
 day 7 took 0 seconds
 
 day 8 update places took 0 seconds
@@ -816,13 +821,13 @@ update entered day 8
 day 8 update population took 0 seconds
 day 8 update_infectious_people took 0 seconds
 day 8 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       208
-Number of infectious households    =>        94
-Number of infectious neighborhoods =>        48
-Number of infectious schools       =>        10
-Number of infectious classrooms    =>        26
-Number of infectious workplaces    =>        15
-Number of infectious offices       =>        15
+Number of infectious places        =>       124
+Number of infectious households    =>        46
+Number of infectious neighborhoods =>        31
+Number of infectious schools       =>         4
+Number of infectious classrooms    =>         9
+Number of infectious workplaces    =>        16
+Number of infectious offices       =>        18
 Number of infectious hospitals     =>         0
 day 8 epidemic in schools for disease 0 took 0 seconds
 day 8 epidemic in classrooms for disease 0 took 0 seconds
@@ -836,8 +841,8 @@ day 8 update epidemic for disease 0 took 0 seconds
 Day 8 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 8 report population took 0 seconds
-day 8 maxrss 86355968
-day 8 finished Mon Mar 30 13:03:26 2015
+day 8 maxrss 81240064
+day 8 finished Mon Apr 20 07:50:16 2015
 day 8 took 0 seconds
 
 day 9 update places took 0 seconds
@@ -845,13 +850,13 @@ update entered day 9
 day 9 update population took 0 seconds
 day 9 update_infectious_people took 0 seconds
 day 9 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       329
-Number of infectious households    =>       160
-Number of infectious neighborhoods =>        75
-Number of infectious schools       =>        11
-Number of infectious classrooms    =>        36
-Number of infectious workplaces    =>        23
-Number of infectious offices       =>        24
+Number of infectious places        =>       140
+Number of infectious households    =>        64
+Number of infectious neighborhoods =>        37
+Number of infectious schools       =>         4
+Number of infectious classrooms    =>        10
+Number of infectious workplaces    =>        12
+Number of infectious offices       =>        13
 Number of infectious hospitals     =>         0
 day 9 epidemic in schools for disease 0 took 0 seconds
 day 9 epidemic in classrooms for disease 0 took 0 seconds
@@ -865,8 +870,8 @@ day 9 update epidemic for disease 0 took 0 seconds
 Day 9 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 9 report population took 0 seconds
-day 9 maxrss 87343104
-day 9 finished Mon Mar 30 13:03:26 2015
+day 9 maxrss 81825792
+day 9 finished Mon Apr 20 07:50:16 2015
 day 9 took 0 seconds
 
 day 10 update places took 0 seconds
@@ -874,13 +879,13 @@ update entered day 10
 day 10 update population took 0 seconds
 day 10 update_infectious_people took 0 seconds
 day 10 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       535
-Number of infectious households    =>       274
-Number of infectious neighborhoods =>       124
-Number of infectious schools       =>        12
-Number of infectious classrooms    =>        51
-Number of infectious workplaces    =>        35
-Number of infectious offices       =>        39
+Number of infectious places        =>       163
+Number of infectious households    =>        79
+Number of infectious neighborhoods =>        46
+Number of infectious schools       =>         4
+Number of infectious classrooms    =>        13
+Number of infectious workplaces    =>        10
+Number of infectious offices       =>        11
 Number of infectious hospitals     =>         0
 day 10 epidemic in schools for disease 0 took 0 seconds
 day 10 epidemic in classrooms for disease 0 took 0 seconds
@@ -894,8 +899,8 @@ day 10 update epidemic for disease 0 took 0 seconds
 Day 10 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 10 report population took 0 seconds
-day 10 maxrss 88690688
-day 10 finished Mon Mar 30 13:03:26 2015
+day 10 maxrss 82509824
+day 10 finished Mon Apr 20 07:50:16 2015
 day 10 took 0 seconds
 
 day 11 update places took 0 seconds
@@ -903,13 +908,13 @@ update entered day 11
 day 11 update population took 0 seconds
 day 11 update_infectious_people took 0 seconds
 day 11 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       805
-Number of infectious households    =>       446
-Number of infectious neighborhoods =>       162
-Number of infectious schools       =>        16
-Number of infectious classrooms    =>        78
-Number of infectious workplaces    =>        48
-Number of infectious offices       =>        55
+Number of infectious places        =>       225
+Number of infectious households    =>       107
+Number of infectious neighborhoods =>        65
+Number of infectious schools       =>         5
+Number of infectious classrooms    =>        19
+Number of infectious workplaces    =>        14
+Number of infectious offices       =>        15
 Number of infectious hospitals     =>         0
 day 11 epidemic in schools for disease 0 took 0 seconds
 day 11 epidemic in classrooms for disease 0 took 0 seconds
@@ -923,8 +928,8 @@ day 11 update epidemic for disease 0 took 0 seconds
 Day 11 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 11 report population took 0 seconds
-day 11 maxrss 90320896
-day 11 finished Mon Mar 30 13:03:26 2015
+day 11 maxrss 83324928
+day 11 finished Mon Apr 20 07:50:16 2015
 day 11 took 0 seconds
 
 day 12 update places took 0 seconds
@@ -932,13 +937,13 @@ update entered day 12
 day 12 update population took 0 seconds
 day 12 update_infectious_people took 0 seconds
 day 12 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>       940
-Number of infectious households    =>       696
-Number of infectious neighborhoods =>       210
+Number of infectious places        =>       256
+Number of infectious households    =>       154
+Number of infectious neighborhoods =>        90
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>        16
-Number of infectious offices       =>        18
+Number of infectious workplaces    =>         6
+Number of infectious offices       =>         6
 Number of infectious hospitals     =>         0
 day 12 epidemic in schools for disease 0 took 0 seconds
 day 12 epidemic in classrooms for disease 0 took 0 seconds
@@ -952,8 +957,8 @@ day 12 update epidemic for disease 0 took 0 seconds
 Day 12 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 12 report population took 0 seconds
-day 12 maxrss 90918912
-day 12 finished Mon Mar 30 13:03:26 2015
+day 12 maxrss 84164608
+day 12 finished Mon Apr 20 07:50:16 2015
 day 12 took 0 seconds
 
 day 13 update places took 0 seconds
@@ -961,13 +966,13 @@ update entered day 13
 day 13 update population took 0 seconds
 day 13 update_infectious_people took 0 seconds
 day 13 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      1065
-Number of infectious households    =>       774
-Number of infectious neighborhoods =>       233
+Number of infectious places        =>       266
+Number of infectious households    =>       165
+Number of infectious neighborhoods =>        87
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>        27
-Number of infectious offices       =>        31
+Number of infectious workplaces    =>         7
+Number of infectious offices       =>         7
 Number of infectious hospitals     =>         0
 day 13 epidemic in schools for disease 0 took 0 seconds
 day 13 epidemic in classrooms for disease 0 took 0 seconds
@@ -981,8 +986,8 @@ day 13 update epidemic for disease 0 took 0 seconds
 Day 13 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 13 report population took 0 seconds
-day 13 maxrss 92200960
-day 13 finished Mon Mar 30 13:03:26 2015
+day 13 maxrss 84983808
+day 13 finished Mon Apr 20 07:50:16 2015
 day 13 took 0 seconds
 
 day 14 update places took 0 seconds
@@ -990,13 +995,13 @@ update entered day 14
 day 14 update population took 0 seconds
 day 14 update_infectious_people took 0 seconds
 day 14 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      1581
-Number of infectious households    =>       834
-Number of infectious neighborhoods =>       241
-Number of infectious schools       =>        21
-Number of infectious classrooms    =>       156
-Number of infectious workplaces    =>       156
-Number of infectious offices       =>       173
+Number of infectious places        =>       404
+Number of infectious households    =>       182
+Number of infectious neighborhoods =>        98
+Number of infectious schools       =>         9
+Number of infectious classrooms    =>        42
+Number of infectious workplaces    =>        35
+Number of infectious offices       =>        38
 Number of infectious hospitals     =>         0
 day 14 epidemic in schools for disease 0 took 0 seconds
 day 14 epidemic in classrooms for disease 0 took 0 seconds
@@ -1010,22 +1015,22 @@ day 14 update epidemic for disease 0 took 0 seconds
 Day 14 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 14 report population took 0 seconds
-day 14 maxrss 94007296
-day 14 finished Mon Mar 30 13:03:26 2015
+day 14 maxrss 86171648
+day 14 finished Mon Apr 20 07:50:16 2015
 day 14 took 0 seconds
 
 day 15 update places took 0 seconds
 update entered day 15
 day 15 update population took 0 seconds
 day 15 update_infectious_people took 0 seconds
-day 15 find_visitors_to_infectious_places took 1 seconds
-Number of infectious places        =>      2050
-Number of infectious households    =>      1143
-Number of infectious neighborhoods =>       295
-Number of infectious schools       =>        22
-Number of infectious classrooms    =>       179
-Number of infectious workplaces    =>       192
-Number of infectious offices       =>       219
+day 15 find_visitors_to_infectious_places took 0 seconds
+Number of infectious places        =>       561
+Number of infectious households    =>       279
+Number of infectious neighborhoods =>       128
+Number of infectious schools       =>        11
+Number of infectious classrooms    =>        52
+Number of infectious workplaces    =>        44
+Number of infectious offices       =>        47
 Number of infectious hospitals     =>         0
 day 15 epidemic in schools for disease 0 took 0 seconds
 day 15 epidemic in classrooms for disease 0 took 0 seconds
@@ -1039,22 +1044,22 @@ day 15 update epidemic for disease 0 took 0 seconds
 Day 15 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 15 report population took 0 seconds
-day 15 maxrss 95801344
-day 15 finished Mon Mar 30 13:03:27 2015
-day 15 took 1 seconds
+day 15 maxrss 87154688
+day 15 finished Mon Apr 20 07:50:16 2015
+day 15 took 0 seconds
 
 day 16 update places took 0 seconds
 update entered day 16
 day 16 update population took 0 seconds
 day 16 update_infectious_people took 0 seconds
 day 16 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      2552
-Number of infectious households    =>      1526
-Number of infectious neighborhoods =>       331
-Number of infectious schools       =>        22
-Number of infectious classrooms    =>       202
-Number of infectious workplaces    =>       217
-Number of infectious offices       =>       254
+Number of infectious places        =>       766
+Number of infectious households    =>       411
+Number of infectious neighborhoods =>       162
+Number of infectious schools       =>        14
+Number of infectious classrooms    =>        66
+Number of infectious workplaces    =>        56
+Number of infectious offices       =>        57
 Number of infectious hospitals     =>         0
 day 16 epidemic in schools for disease 0 took 0 seconds
 day 16 epidemic in classrooms for disease 0 took 0 seconds
@@ -1068,22 +1073,22 @@ day 16 update epidemic for disease 0 took 0 seconds
 Day 16 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 16 report population took 0 seconds
-day 16 maxrss 97845248
-day 16 finished Mon Mar 30 13:03:27 2015
+day 16 maxrss 88432640
+day 16 finished Mon Apr 20 07:50:16 2015
 day 16 took 0 seconds
 
 day 17 update places took 0 seconds
 update entered day 17
 day 17 update population took 0 seconds
-day 17 update_infectious_people took 0 seconds
+day 17 update_infectious_people took 1 seconds
 day 17 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      3269
-Number of infectious households    =>      2023
-Number of infectious neighborhoods =>       406
-Number of infectious schools       =>        22
-Number of infectious classrooms    =>       224
-Number of infectious workplaces    =>       275
-Number of infectious offices       =>       319
+Number of infectious places        =>      1076
+Number of infectious households    =>       594
+Number of infectious neighborhoods =>       214
+Number of infectious schools       =>        17
+Number of infectious classrooms    =>       102
+Number of infectious workplaces    =>        72
+Number of infectious offices       =>        77
 Number of infectious hospitals     =>         0
 day 17 epidemic in schools for disease 0 took 0 seconds
 day 17 epidemic in classrooms for disease 0 took 0 seconds
@@ -1097,22 +1102,22 @@ day 17 update epidemic for disease 0 took 0 seconds
 Day 17 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 17 report population took 0 seconds
-day 17 maxrss 100032512
-day 17 finished Mon Mar 30 13:03:27 2015
-day 17 took 0 seconds
+day 17 maxrss 89989120
+day 17 finished Mon Apr 20 07:50:17 2015
+day 17 took 1 seconds
 
 day 18 update places took 0 seconds
 update entered day 18
 day 18 update population took 0 seconds
 day 18 update_infectious_people took 0 seconds
 day 18 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      4002
-Number of infectious households    =>      2582
-Number of infectious neighborhoods =>       445
-Number of infectious schools       =>        22
-Number of infectious classrooms    =>       241
-Number of infectious workplaces    =>       328
-Number of infectious offices       =>       384
+Number of infectious places        =>      1507
+Number of infectious households    =>       863
+Number of infectious neighborhoods =>       268
+Number of infectious schools       =>        18
+Number of infectious classrooms    =>       133
+Number of infectious workplaces    =>       107
+Number of infectious offices       =>       118
 Number of infectious hospitals     =>         0
 day 18 epidemic in schools for disease 0 took 0 seconds
 day 18 epidemic in classrooms for disease 0 took 0 seconds
@@ -1123,11 +1128,11 @@ day 18 epidemic in households for disease 0 took 0 seconds
 day 18 epidemic in hospitals for disease 0 took 0 seconds
 day 18 update epidemic for disease 0 took 0 seconds
 
-Day 18 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+Day 18 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 18 report population took 0 seconds
-day 18 maxrss 102227968
-day 18 finished Mon Mar 30 13:03:27 2015
+day 18 maxrss 91627520
+day 18 finished Mon Apr 20 07:50:17 2015
 day 18 took 0 seconds
 
 day 19 update places took 0 seconds
@@ -1135,13 +1140,13 @@ update entered day 19
 day 19 update population took 0 seconds
 day 19 update_infectious_people took 0 seconds
 day 19 find_visitors_to_infectious_places took 0 seconds
-Number of infectious places        =>      3875
-Number of infectious households    =>      3127
-Number of infectious neighborhoods =>       467
+Number of infectious places        =>      1672
+Number of infectious households    =>      1234
+Number of infectious neighborhoods =>       333
 Number of infectious schools       =>         0
 Number of infectious classrooms    =>         0
-Number of infectious workplaces    =>       133
-Number of infectious offices       =>       148
+Number of infectious workplaces    =>        50
+Number of infectious offices       =>        55
 Number of infectious hospitals     =>         0
 day 19 epidemic in schools for disease 0 took 0 seconds
 day 19 epidemic in classrooms for disease 0 took 0 seconds
@@ -1152,14 +1157,14 @@ day 19 epidemic in households for disease 0 took 0 seconds
 day 19 epidemic in hospitals for disease 0 took 0 seconds
 day 19 update epidemic for disease 0 took 0 seconds
 
-Day 19 GQ_INF:  GQ 1 College 1 Prison 0 Nursing_Home 0 Military 0
+Day 19 GQ_INF:  GQ 0 College 0 Prison 0 Nursing_Home 0 Military 0
 
 day 19 report population took 0 seconds
-day 19 maxrss 104071168
-day 19 finished Mon Mar 30 13:03:27 2015
+day 19 maxrss 93179904
+day 19 finished Mon Apr 20 07:50:17 2015
 day 19 took 0 seconds
 
 
 FRED simulation complete. Excluding initialization, 20 days took 1 seconds
-FRED finished Mon Mar 30 13:03:27 2015
+FRED finished Mon Apr 20 07:50:17 2015
 FRED took 2 seconds

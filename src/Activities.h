@@ -129,6 +129,7 @@ public:
   /**
    * Perform the daily update to the schedule
    *
+   * @param self the agent
    * @param day the simulation day
    */
   void update_schedule(Person* self, int day);
@@ -419,6 +420,10 @@ public:
     return size;
   }
 
+//  float get_sick_days_remaining() {
+//    return this->sick_days_remaining;
+//  }
+
   bool is_sick_leave_available() {
     return this->sick_leave_available;
   }
@@ -625,6 +630,13 @@ private:
   static int Sick_days_absent;
   static int School_sick_days_present;
   static int School_sick_days_absent;
+  static double Standard_sicktime_allocated_per_child;
+
+  static const int WP_SIZE_DIST = 1;
+  static const int HH_INCOME_QTILE_DIST = 2;
+  static int Sick_leave_dist_method;
+  static std::vector<double> WP_size_sl_prob_vec;
+  static std::vector<double> HH_income_qtile_sl_prob_vec;
 
   // Statistics for presenteeism study
   static int Employees_small_with_sick_leave;
@@ -635,6 +647,10 @@ private:
   static int Employees_large_without_sick_leave;
   static int Employees_xlarge_with_sick_leave;
   static int Employees_xlarge_without_sick_leave;
+
+  // Statistics for childhood presenteeism study
+  static double Sim_based_prob_stay_home_not_needed;
+  static double Census_based_prob_stay_home_not_needed;
 
   // Statistics for Healthcare deficits
   static int Seeking_healthcare;

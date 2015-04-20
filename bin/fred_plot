@@ -69,6 +69,7 @@ my $show_year = 0;
 my $show_vars = 0;
 my $run = 0;
 my $total = 0;
+my $make_png = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
@@ -120,6 +121,7 @@ my $opt_result = GetOptions(
 			    "year=i" => \$show_year,
 			    "o=s" => \$outfile,
 			    "output=s" => \$outfile,
+			    "png" => \$make_png,
 			   );
 
 my $usage = <<EOH;
@@ -148,6 +150,7 @@ usage: fred_plot -k key -v var [ options ], where options include:
        --xlabel <s>: label the x axis with "s".
        --ylabel <s>: label the y axis with "s".
        --year 1: show year in xtics.
+       --png 0/1: output to png rather than pdf (default = 0).
 EOH
 
 die $usage if $help;
@@ -191,12 +194,25 @@ show_vars() if $show_vars;
 my $varstr = join "-", @varlist;
 my $pltfile = "plot-$varstr.plt";
 if (not $outfile) {
-  # user did not supply a name as -o option
-  $outfile = "plot-$varstr.pdf";
+  if ($make_png == 0) {
+    # user did not supply a name as -o option
+    $outfile = "plot-$varstr.pdf";
+  }
+  else {
+    # user did not supply a name as -o option
+    $outfile = "plot-$varstr.png";
+  }
 }
 else {
+  if ($make_png == 1) {
+    # user did not supply a name as -o option
+    $outfile = "$outfile.png";
+  }
+  else {
+    # user did not supply a name as -o option
+    $outfile = "$outfile.pdf";
+  }
   $pltfile = "plot-$outfile.plt";
-  $outfile = "$outfile.pdf";
 }
 
 for my $v (@varlist) {
@@ -216,9 +232,15 @@ for my $v (@varlist) {
 
 my $date = scalar localtime;
 my $titlefontsize = $fontsize + 4;
-
+my $terminal;
 open FH, ">$pltfile";
-my $terminal = "pdf font '$font,$fontsize' linewidth 3 size 7,5";
+if ($make_png == 1) {
+  $terminal = "png font '$font,$fontsize' linewidth 1";
+}
+else {
+  $terminal = "pdf font '$font,$fontsize' linewidth 3 size 7,5";
+}
+
 my $setkey = "set key at graph 0.96, graph 0.96 right";
 
 print FH <<"EOF";
