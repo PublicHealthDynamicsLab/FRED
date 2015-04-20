@@ -52,6 +52,7 @@ double Activities::Hospitalization_visit_housemate_prob = 0.0;
 Age_Map* Activities::Hospitalization_prob = NULL;
 Age_Map* Activities::Outpatient_healthcare_prob = NULL;
 
+// Presenteeism parameters
 int Activities::Employees_small_with_sick_leave = 0;
 int Activities::Employees_small_without_sick_leave = 0;
 int Activities::Employees_med_with_sick_leave = 0;
@@ -61,11 +62,20 @@ int Activities::Employees_large_without_sick_leave = 0;
 int Activities::Employees_xlarge_with_sick_leave = 0;
 int Activities::Employees_xlarge_without_sick_leave = 0;
 
+// Childhood Presenteeism parameters
+double Activities::Sim_based_prob_stay_home_not_needed = 0.0;
+double Activities::Census_based_prob_stay_home_not_needed = 0.0;
+
 // sick leave statistics
 int Activities::Sick_days_present = 0;
 int Activities::Sick_days_absent = 0;
 int Activities::School_sick_days_present = 0;
 int Activities::School_sick_days_absent = 0;
+double Activities::Standard_sicktime_allocated_per_child = 0.0;
+
+int Activities::Sick_leave_dist_method = 0;
+std::vector<double> Activities::WP_size_sl_prob_vec; //wp_size_sl_prob
+std::vector<double> Activities::HH_income_qtile_sl_prob_vec; //hh_income_qtile_sl_prob
 
 // Healthcare deficit statistics
 int Activities::Seeking_healthcare = 0;
@@ -95,15 +105,52 @@ void Activities::initialize_static_variables() {
   Params::get_param_from_string("flu_days", &Activities::Flu_days);
   Params::get_param_from_string("prob_of_visiting_hospitalized_housemate", &Activities::Hospitalization_visit_housemate_prob);
 
+  Params::get_param_from_string("sick_leave_dist_method", &Activities::Sick_leave_dist_method);
+
+  if(!Activities::Enable_default_sick_behavior) {
+    if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
+      Params::get_param_vector((char*)"wp_size_sl_prob", Activities::WP_size_sl_prob_vec);
+      assert(static_cast<int>(Activities::WP_size_sl_prob_vec.size()) == 4);
+    } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
+      Params::get_param_vector((char*)"hh_income_qtile_sl_prob", Activities::HH_income_qtile_sl_prob_vec);
+      assert(static_cast<int>(Activities::HH_income_qtile_sl_prob_vec.size()) == 4);
+    } else {
+      Utils::fred_abort("Invalid sick_leave_dist_method: %d", Activities::Sick_leave_dist_method);
+    }
+  }
+
   Activities::Hospitalization_prob = new Age_Map("Hospitalization Probability");
   Activities::Hospitalization_prob->read_from_input("hospitalization_prob");
   Activities::Outpatient_healthcare_prob = new Age_Map("Outpatient Healthcare Probability");
   Activities::Outpatient_healthcare_prob->read_from_input("outpatient_healthcare_prob");
 
+  if(Global::Report_Childhood_Presenteeism) {
+
+    Params::get_param_from_string("standard_sicktime_allocated_per_child", &Activities::Standard_sicktime_allocated_per_child);
+
+    int count_has_school_age = 0;
+    int count_has_school_age_and_unemployed_adult = 0;
+
+    //Households with school-age children and at least one unemployed adult
+    int number_places = Global::Places.get_number_of_places();
+    for(int p = 0; p < number_places; ++p) {
+      Person* per = NULL;
+      if(Global::Places.get_place_at_position(p)->is_household()) {
+        Household* h = static_cast<Household*>(Global::Places.get_place_at_position(p));
+        if(h->get_children() == 0) {
+          continue;
+        }
+        if(h->has_school_aged_child()) {
+          count_has_school_age++;
+        }
+        if(h->has_school_aged_child_and_unemployed_adult()) {
+          count_has_school_age_and_unemployed_adult++;
+        }
+      }
+    }
+    Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
+  }
 }
-
-////////////////////////////////////////////////
-
 
 Activities::Activities() {
   this->my_sick_days_absent = -1;
@@ -166,13 +213,13 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   if(self->lives_in_group_quarters()) {
     int day = Global::Simulation_Day;
     // no pregnancies in group_quarters
-    if (self->get_demographics()->is_pregnant()) {
+    if(self->get_demographics()->is_pregnant()) {
       printf("GQ CANCELS PREGNANCY: today %d person %d age %d due %d\n",
 	     day, self->get_id(), self->get_age(), self->get_demographics()->get_maternity_sim_day());
       self->get_demographics()->cancel_pregnancy(self);
     }
     // cancel any planned pregnancy
-    if (day <= self->get_demographics()->get_conception_sim_day()) {
+    if(day <= self->get_demographics()->get_conception_sim_day()) {
       printf("GQ CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
 	     day, self->get_id(), self->get_age(), self->get_demographics()->get_conception_sim_day());
       self->get_demographics()->cancel_conception(self);
@@ -199,62 +246,82 @@ void Activities::initialize_sick_leave() {
   this->sick_days_remaining = 0.0;
   this->sick_leave_available = false;
 
-  if(get_workplace() != NULL) {
-    workplace_size = get_workplace()->get_size();
-  } else {
-    if(is_teacher()) {
-      workplace_size = get_school()->get_staff_size();
-    }
-  }
+  if(!Activities::Enable_default_sick_behavior) {
+    if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
+      if(get_workplace() != NULL) {
+        workplace_size = get_workplace()->get_size();
+      } else {
+        if(is_teacher()) {
+          workplace_size = get_school()->get_staff_size();
+        }
+      }
 
-  // is sick leave available?
-  if(workplace_size > 0) {
-    if(workplace_size <= SMALL_COMPANY_MAXSIZE) {
-      this->sick_leave_available = (RANDOM()< 0.53);
-      if(this->sick_leave_available) {
-        Activities::Employees_small_with_sick_leave++;
+      // is sick leave available?
+      if(workplace_size > 0) {
+        if(workplace_size <= SMALL_COMPANY_MAXSIZE) {
+          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[0]);
+          if(this->sick_leave_available) {
+            Activities::Employees_small_with_sick_leave++;
+          } else {
+            Activities::Employees_small_without_sick_leave++;
+          }
+        } else if(workplace_size <= MID_COMPANY_MAXSIZE) {
+          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[1]);
+          if(this->sick_leave_available) {
+            Activities::Employees_med_with_sick_leave++;
+          } else {
+            Activities::Employees_med_without_sick_leave++;
+          }
+        } else if(workplace_size <= MEDIUM_COMPANY_MAXSIZE) {
+          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[2]);
+          if(this->sick_leave_available) {
+            Activities::Employees_large_with_sick_leave++;
+          } else {
+            Activities::Employees_large_without_sick_leave++;
+          }
+        } else {
+          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[3]);
+          if(this->sick_leave_available) {
+            Activities::Employees_xlarge_with_sick_leave++;
+          } else {
+            Activities::Employees_xlarge_without_sick_leave++;
+          }
+        }
       } else {
-        Activities::Employees_small_without_sick_leave++;
+        this->sick_leave_available = false;
       }
-    } else if(workplace_size <= MID_COMPANY_MAXSIZE) {
-      this->sick_leave_available = (RANDOM() < 0.58);
-      if(this->sick_leave_available) {
-        Activities::Employees_med_with_sick_leave++;
-      } else {
-        Activities::Employees_med_without_sick_leave++;
-      }
-    } else if(workplace_size <= MEDIUM_COMPANY_MAXSIZE) {
-      this->sick_leave_available = (RANDOM() < 0.70);
-      if(this->sick_leave_available) {
-        Activities::Employees_large_with_sick_leave++;
-      } else {
-        Activities::Employees_large_without_sick_leave++;
-      }
-    } else {
-      this->sick_leave_available = (RANDOM() < 0.85);
-      if (this->sick_leave_available) {
-        Activities::Employees_xlarge_with_sick_leave++;
-      } else {
-        Activities::Employees_xlarge_without_sick_leave++;
+
+    } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
+      Household* hh = static_cast<Household*>(get_household());
+      switch(hh->get_income_quartile()) {
+        case Global::Q1:
+          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[0]);
+          break;
+        case Global::Q2:
+          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[1]);
+          break;
+        case Global::Q3:
+          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[2]);
+          break;
+        case Global::Q4:
+          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[3]);
+          break;
       }
     }
-  } else {
-    this->sick_leave_available = false;
+    FRED_VERBOSE(1, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
+        (this->sick_leave_available ? 1 : 0));
   }
-  FRED_VERBOSE(1, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
-      (sick_leave_available ? 1 : 0));
 
   // compute sick days remaining (for flu)
   this->sick_days_remaining = 0.0;
   if(this->sick_leave_available) {
-    if(RANDOM()< Activities::SLA_absent_prob) {
+    if(RANDOM() < Activities::SLA_absent_prob) {
       this->sick_days_remaining = Activities::SLA_mean_sick_days_absent + Activities::Flu_days;
     }
   } else {
     if(RANDOM() < Activities::SLU_absent_prob) {
       this->sick_days_remaining = Activities::SLU_mean_sick_days_absent + Activities::Flu_days;
-    }
-    else if(RANDOM() < Activities::SLA_absent_prob - Activities::SLU_absent_prob) {
+    } else if(RANDOM() < Activities::SLA_absent_prob - Activities::SLU_absent_prob) {
       this->sick_days_remaining = Activities::Flu_days;
     }
   }
@@ -278,6 +345,10 @@ void Activities::before_run() {
       Activities::Employees_xlarge_with_sick_leave);
   FRED_STATUS(0, "employees at xlarge workplaces without sick leave: %d\n",
       Activities::Employees_xlarge_without_sick_leave);
+
+  if(Global::Report_Childhood_Presenteeism) {
+    Global::Places.setup_household_income_quartile_sick_days();
+  }
 }
 
 void Activities::assign_initial_profile(Person* self) {
@@ -398,6 +469,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
       }
     }
   }
+
   for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
     if(self->is_infectious(disease_id)) {
       make_favorite_places_infectious(self, disease_id);
@@ -548,7 +620,7 @@ void Activities::update_schedule(Person* self, int day) {
         }
       }
       if(hh != NULL) {
-        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < 0.25) {
+        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < Activities::Hospitalization_visit_housemate_prob) {
           set_ad_hoc(hh->get_household_visitation_hospital());
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
         }
@@ -565,7 +637,7 @@ void Activities::update_schedule(Person* self, int day) {
 
     // skip school at background school absenteeism rate
     if(Global::School_absenteeism > 0.0 && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-      if(RANDOM()< Global::School_absenteeism) {
+      if(RANDOM() < Global::School_absenteeism) {
         this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
         this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
       }
@@ -578,10 +650,36 @@ void Activities::update_schedule(Person* self, int day) {
       // printf("\nHOME NEIGHBORHOOD %d\n", (int) (destination_neighborhood == home_neighborhood));
     }
 
-    // decide whether to visit hospital
-    if(Global::Enable_Hospitals && !self->is_hospitalized()) {
-      decide_whether_to_seek_healthcare(self, day);
+    if(Global::Report_Childhood_Presenteeism) {
+      if(self->is_adult() && this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]) {
+        Household* my_hh = static_cast<Household*>(self->get_household());
+        //my_hh->have_working_adult_use_sickleave_for_child()
+        if(my_hh->has_sympt_child() &&
+           my_hh->has_school_aged_child() &&
+           !my_hh->has_school_aged_child_and_unemployed_adult() &&
+           !my_hh->has_working_adult_using_sick_leave()) {
+          for(int i = 0; i < static_cast<int>(my_hh->get_size()); ++i) {
+            Person* child_check = my_hh->get_housemate(i);
+            if(child_check->is_child() &&
+               child_check->is_student() &&
+               child_check->is_symptomatic() &&
+               child_check->get_activities()->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+              // Do I have enough sick time?
+              if(this->sick_days_remaining >= Activities::Standard_sicktime_allocated_per_child) {
+                if(my_hh->have_working_adult_use_sickleave_for_child(self, child_check)) {
+                  //Stay Home from work
+                  this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
+                  this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
+                  my_hh->set_working_adult_using_sick_leave(true);
+                  this->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
+                }
+              }
+            }
+          }
+        }
+      }
     }
+
   }
   FRED_STATUS( 1, "update_schedule on day %d\n%s\n", day, schedule_to_string( self, day ).c_str());
 }
@@ -602,8 +700,6 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
         if(this->sick_days_remaining > 0.0) {
           stay_home = (RANDOM() < this->sick_days_remaining);
           this->sick_days_remaining--;
-        } else {
-          stay_home = false;
         }
       } else {
         // it is a not work day
@@ -611,8 +707,67 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
       }
     }
   } else {
-    // sick child: use default sick behavior, for now.
-    stay_home = default_sick_leave_behavior();
+    // sick child
+    if(Global::Report_Childhood_Presenteeism) {
+      bool it_is_a_schoolday = self->is_student() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY];
+      if(it_is_a_schoolday) {
+        Household* my_hh = static_cast<Household*>(self->get_household());
+        assert(my_hh != NULL);
+        if(this->my_sick_leave_decision_has_been_made) {
+          //Child has already made decision to stay home
+          stay_home = this->my_sick_leave_decision;
+        } else if(my_hh->has_working_adult_using_sick_leave()) {
+          //An adult has already decided to stay home
+          stay_home = true;
+        } else if(my_hh->has_school_aged_child_and_unemployed_adult()) {
+          //The agent will stay home because someone is there to watch him/her
+          double prob_diff = Activities::Sim_based_prob_stay_home_not_needed - Activities::Census_based_prob_stay_home_not_needed;
+          if(prob_diff > 0) {
+            //There is a prob_diff chance that the agent will NOT stay home
+            stay_home = (RANDOM() < (1 - prob_diff));
+          } else {
+            //The agent will stay home because someone is there to watch him/her
+            stay_home = true;
+          }
+        } else {
+          //No one would be home so we need to force an adult to stay home, if s/he has sick time
+          //First find an adult in the house
+          if(my_hh->get_adults() > 0) {
+            std::vector<Person*> inhab_vec = my_hh->get_inhabitants();
+            for(std::vector<Person*>::iterator itr = inhab_vec.begin(); itr != inhab_vec.end(); ++itr) {
+              if((*itr)->is_child()) {
+                continue;
+              }
+
+              //Person is an adult, but is also a student
+              if((*itr)->is_adult() && (*itr)->is_student()) {
+                continue;
+              }
+
+              //Person is an adult, but isn't at home
+              if(my_hh->have_working_adult_use_sickleave_for_child((*itr), self)) {
+                stay_home = true;
+                (*itr)->get_activities()->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
+                my_hh->set_working_adult_using_sick_leave(true);
+                break;
+              }
+            }
+          }
+        }
+        if(!this->my_sick_leave_decision_has_been_made) {
+          // Kids will stick to that decision even after the parent goes back to work
+          // i.e. some kind of external daycare is setup
+          this->my_sick_leave_decision = stay_home;
+          this->my_sick_leave_decision_has_been_made = true;
+        }
+      } else {
+        //Preschool or no school today, so we use default sick behavior, for now
+        stay_home = default_sick_leave_behavior();
+      }
+    } else {
+      //use default sick behavior, for now.
+      stay_home = default_sick_leave_behavior();
+    }
   }
 
   // record work absent/present decision if it is a workday
@@ -627,7 +782,7 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
   }
 
   // record school absent/present decision if it is a school day
-  if(!is_teacher() && on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+  if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
     if(stay_home) {
       Activities::School_sick_days_absent++;
       this->my_sick_days_absent++;
@@ -1261,6 +1416,14 @@ void Activities::start_traveling(Person* self, Person* visited) {
     return;
   }
 
+  //Notify the household that someone is not going to be there
+  if(Global::Report_Childhood_Presenteeism) {
+    Household* my_hh = static_cast<Household*>(self->get_household());
+    if(my_hh != NULL) {
+      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_chng(true);
+    }
+  }
+
   if(visited == NULL) {
     this->is_traveling_outside = true;
   } else {
@@ -1285,7 +1448,13 @@ void Activities::stop_traveling(Person* self) {
   this->is_traveling = false;
   this->is_traveling_outside = false;
   this->return_from_travel_sim_day = -1;
-  Global::Pop.clear_mask_by_index( fred::Travel, self->get_pop_index() );
+  Global::Pop.clear_mask_by_index( fred::Travel, self->get_pop_index());
+  if(Global::Report_Childhood_Presenteeism) {
+    Household* my_hh = static_cast<Household*>(self->get_household());
+    if(my_hh != NULL) {
+      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_chng(true);
+    }
+  }
   FRED_STATUS(1, "stop traveling: id = %d\n", self->get_id());
 }
 
@@ -1505,10 +1674,10 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
   // see if the given place is on my schedule today
   for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
     if(this->on_schedule[i] && get_favorite_place(i) == place) {
-      if (self->is_susceptible(disease_id)) {
+      if(self->is_susceptible(disease_id)) {
 	      status = 1;
 	      break;
-      } else if (self->is_infectious(disease_id)) {
+      } else if(self->is_infectious(disease_id)) {
 	      status = 2;
 	      break;
       } else {
