@@ -921,6 +921,7 @@ shelter_in_place_by_income = 0
 enable_population_dynamics = 0 
 mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
+birth_rate_multiplier = 1
 control_population_growth_rate = 1
 population_growth_rate = 0
 # assume 4 years
