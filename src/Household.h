@@ -207,11 +207,15 @@ public:
   void set_household_income(int x) {
     this->household_income = x;
     this->set_household_income_code(static_cast<int>(Household::get_household_income_level_code_from_income(x)));
-    if(Household::Min_hh_income == -1 || x < Household::Min_hh_income) {
-      Household::Min_hh_income = x;
-    }
-    if(Household::Min_hh_income == -1 || x > Household::Max_hh_income) {
-      Household::Max_hh_income = x;
+    if(x != -1) {
+      if(x >= 0 && x < Household::Min_hh_income) {
+        Household::Min_hh_income = x;
+        //Utils::fred_log("HH_INCOME: Min[%i]\n", Household::Min_hh_income);
+      }
+      if(x > Household::Max_hh_income) {
+        Household::Max_hh_income = x;
+        //Utils::fred_log("HH_INCOME: Max[%i]\n", Household::Max_hh_income);
+      }
     }
   }
 
