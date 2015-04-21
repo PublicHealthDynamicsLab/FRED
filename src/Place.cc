@@ -13,20 +13,23 @@
 //
 // File: Place.cc
 //
-#include "Place.h"
+#include <algorithm>
+
+#include "Date.h"
+#include "Disease.h"
 #include "Global.h"
+#include "Household.h"
+#include "Infection.h"
+#include "Neighborhood.h"
+#include "Neighborhood_Patch.h"
 #include "Params.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Infection.h"
-#include "Transmission.h"
-#include "Date.h"
-#include "Neighborhood.h"
+#include "Place.h"
 #include "Seasonality.h"
+#include "Transmission.h"
 #include "Utils.h"
-#include "Neighborhood_Patch.h"
 #include "Vector_Layer.h"
-#include <algorithm>
+
 
 // static place type codes
 char Place::HOUSEHOLD = 'H';
@@ -223,7 +226,7 @@ void Place::reset_visualization_data(int day) {
 }
 
 void Place::reset_vector_data(int day) {
-  if (!this->is_neighborhood()){
+  if(!this->is_neighborhood()){
     this->update_vector_population(day);
     this->vectors_not_infected_yet = true;
     this->unique_visitors.clear();
@@ -528,6 +531,16 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 
   // reduce susceptibility due to infectee's hygiene (face masks or hand washing)
   susceptibility *= infectee->get_susceptibility_modifier_due_to_hygiene(disease_id);
+    
+  if(Health::Enable_hh_income_based_susc_mod) {
+    int hh_income = Household::get_max_hh_income(); //Default to max (no modifier)
+    Household* hh = static_cast<Household*>(infectee->get_household());
+    if(hh != NULL) {
+      hh_income = hh->get_household_income();
+    }
+    susceptibility *= infectee->get_health()->get_susceptibility_modifier_due_to_household_income(hh_income);
+    //Utils::fred_log("SUSC Modifier [%.4f] for HH Income [%i] modified suscepitibility to [%.4f]\n", hh_income, infectee->get_health()->get_susceptibility_modifier_due_to_household_income(hh_income), susceptibility);
+  }
 
   FRED_VERBOSE(2, "susceptibility = %f\n", susceptibility);
 
@@ -840,7 +853,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 	      printf("PICKED INFECTOR pos %d with infectivity %e\n", pos, infectivity_of_agent[pos]); fflush(stdout);
 
 	      // successful transmission; create a new infection in infectee
-        Transmission transmission = Transmission(infector, this, day);
+          Transmission transmission = Transmission(infector, this, day);
 	      infector->infect(infectee, disease_id, transmission);
 
 	      FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
@@ -908,7 +921,7 @@ void Place::density_transmission_model(int day, int disease_id) {
   int exposed = 0;
       
   // each host's probability of infection
-  double prob_infection = 1.0 - pow((1.0-contact_prob), inf_hosts);
+  double prob_infection = 1.0 - pow((1.0 - contact_prob), inf_hosts);
   
   // select a number of hosts to be infected
   double expected_infections = sus_hosts * prob_infection;
@@ -943,7 +956,7 @@ void Place::density_transmission_model(int day, int disease_id) {
 
       // get the transmission probs for this infector  pair
       double transmission_prob = infector->get_infectivity(disease_id, day);
-      if (attempt_transmission(transmission_prob, infector, infectee, disease_id, day)) {
+      if(attempt_transmission(transmission_prob, infector, infectee, disease_id, day)) {
 	    // successful transmission
 	    infectee_count[infector_pos]++;
 	    // if the infector has reached the max allowed, remove from infector list

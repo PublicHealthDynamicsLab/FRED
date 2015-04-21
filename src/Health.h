@@ -779,7 +779,9 @@ public:
   /*
    * Initialize any static variables needed by the Health class
    */
-  static void initialize_static_variables() ;
+  static void initialize_static_variables();
+    
+  static bool Enable_hh_income_based_susc_mod;
 
 private:
 
@@ -819,7 +821,6 @@ private:
   static double Face_mask_compliance;
   static double Hand_washing_compliance;
 
-  static bool Enable_hh_income_based_susc_mod;
   static double Hh_income_susc_mod_floor;
 
   // health insurance probabilities

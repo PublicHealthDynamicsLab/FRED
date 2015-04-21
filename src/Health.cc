@@ -845,14 +845,13 @@ double Health::get_susceptibility_modifier_due_to_household_income(int hh_income
 
   if(Health::Enable_hh_income_based_susc_mod) {
     double rise = 1.0 - Health::Hh_income_susc_mod_floor;
-    double run = static_cast<double>(Household::get_max_hh_income() - Household::get_min_hh_income());
-
+    double run = static_cast<double>(Household::get_min_hh_income() - Household::get_max_hh_income());
     double m = rise / run;
 
     // Equation of line is y - y1 = m(x - x1)
     // y = m*x - m*x1 + y1
     double x = static_cast<double>(hh_income);
-    return m * x - m * Household::get_max_hh_income() + 1.0;
+    return m * x - m * Household::get_min_hh_income() + 1.0;
   } else {
     return 1.0;
   }

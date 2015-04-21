@@ -47,7 +47,7 @@ int Household::Cat_IV_Max_Income = 0;
 int Household::Cat_V_Max_Income = 0;
 int Household::Cat_VI_Max_Income = 0;
 
-int Household::Min_hh_income = -1;
+int Household::Min_hh_income = INT_MAX;
 int Household::Max_hh_income = -1;
 
 Household::Household() {
