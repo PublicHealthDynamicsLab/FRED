@@ -93,6 +93,9 @@ if (!exists("show_grid")) {
 if (!exists("show_border")) {
    show_border = 0
 }
+if (!exists("point_size")) {
+   point_size = 0.5
+}
 
 set palette maxcolors 10
 set palette defined ( 0 "blue", 1 "skyblue", 2 "sea-green", 3 "green", 4 "greenyellow", 5 "yellow", 6 "orange", 7 "orange-red", 8 "red", 9 "red")
@@ -339,15 +342,30 @@ if (show_all_households) {
 }
 
 if (show_recovered) {
-  replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps 0.5
+  if (point_size > 0) {
+   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps point_size
+  }
+  else {
+   replot recovered_households u 2:1 t '' wi dots ls 1
+  }
 }
 
 if (show_infectious) {
- replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps 0.5
+  if (point_size > 0) {
+   replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
+  }
+  else {
+   replot infectious_households u 2:1 t '' wi dots ls 9
+  }
 }
 
 if (show_incidence) {
- replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps 1.0
+  if (point_size > 0) {
+   replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps (2*point_size)
+  }
+  else {
+   replot household_incidence u 2:1 t '' wi dots ls 15
+  }
 }
 
 if (use_shapefile) {

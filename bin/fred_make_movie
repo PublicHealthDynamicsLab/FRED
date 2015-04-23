@@ -36,9 +36,11 @@ my $ymin = 0;
 my $ymax = 0;
 my $border = 0;
 my $start = 0;
+my $finish = 0;
 my $interval = 1;
 my $google = 1;
 my $shapefile = 1;
+my $point_size = 0.5;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -50,6 +52,7 @@ my $opt_result = GetOptions(
 			    "disease=i" => \$disease_id,
 			    "display=i" => \$display,
 			    "filled=i" => \$filled,
+			    "finish=i" => \$finish,
 			    "google=i" => \$google,
 			    "grid=i" => \$grid,
 			    "h" => \$help,
@@ -59,6 +62,7 @@ my $opt_result = GetOptions(
 			    "lightness=i" => \$lightness,
 			    "max=f" => \$max,
 			    "parallelism=i" => \$parallelism,
+			    "point_size=f" => \$point_size,
 			    "run=i" => \$run,
 			    "term=s" => \$term,
 			    "title=s" => \$title,
@@ -98,6 +102,7 @@ usage: $0 [ options ], where options include [default values]
   --max <val> : use the given value as the maximum for color plots [10]
   --movie_format <str> : use the specified movie format [mp4]
   --parallelism <n> : plot n maps in parallel [10]
+  --point_size <n> : plot dots using point size [0.5]
   --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
   --run <n> : plot results of run n [1]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
@@ -131,7 +136,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish";
 
 # print "$command\n"; exit;
 

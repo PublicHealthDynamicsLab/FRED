@@ -34,9 +34,11 @@ my $ymax = 0;
 my $grid = 0;
 my $border = 0;
 my $start = 0;
+my $finish = 0;
 my $interval = 1;
 my $google = 1;
 my $use_shapefile = 1;
+my $point_size = 0.5;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -47,6 +49,7 @@ my $opt_result = GetOptions(
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
 			    "filled=i" => \$filled,
+			    "finish=i" => \$finish,
 			    "h" => \$help,
 			    "help" => \$help,
 			    "google=i" => \$google,
@@ -56,6 +59,7 @@ my $opt_result = GetOptions(
 			    "lightness=i" => \$lightness,
 			    "max=f" => \$max,
 			    "parallelism=i" => \$parallelism,
+			    "point_size=f" => \$point_size,
 			    "run=i" => \$run,
 			    "term=s" => \$term,
 			    "title=s" => \$title,
@@ -126,6 +130,7 @@ chdir $outdir or die "Can't chdir to $outdir\n";
 my $days = `wc -l out1.txt`;
 chomp $days;
 $days--;
+$days = $finish if (0 < $finish and $finish < $days);
 $parallelism = $days if ($days < $parallelism);
 # print "days = $days\n";
 
@@ -245,6 +250,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_border = $border\n";
   print LD "api_key = '$api_key'\n";
   print LD "lightness =  $lightness\n";
+  print LD "point_size =  $point_size\n";
   close LD;
 
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
