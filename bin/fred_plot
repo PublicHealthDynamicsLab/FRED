@@ -60,6 +60,7 @@ my $normalize;
 my $scale = 100000;
 my $smooth;
 my $legend;
+my $linewidth = 0;
 my $xlabel = "Days";
 my $ylabel = "Individuals";
 my $xtics = "";
@@ -84,6 +85,7 @@ my $opt_result = GetOptions(
 			    "e" => \$errorbars,
 			    "f=s" => \$font,
 			    "k=s" => \@keys,
+			    "lw=f" => \$linewidth,
 			    "T=s" => \$title,
 			    "t=s" => \$title,
 			    "v=s" => \@varlist,
@@ -425,7 +427,13 @@ sub plot_command {
 
   # line width
   my $lw = "lt $n lw 5";
-  $lw = "lt -1 lw 3" if ($run == 0 and $all);
+  if ($linewidth) {
+    $lw = "lt $n lw $linewidth";
+  }
+  if ($run == 0 and $all) {
+    $lw = "lt -1 lw 3";
+    $lw = "lt -1 lw $linewidth" if $linewidth;
+  }
   $lw = "lt $run lw 1" if $run > 0;
   $lw = "" if $boxes;
 
