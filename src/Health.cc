@@ -75,7 +75,6 @@ int Health::Days_to_wear_face_masks = 0;
 double Health::Face_mask_compliance = 0.0;
 double Health::Hand_washing_compliance = 0.0;
 
-bool Health::Enable_hh_income_based_susc_mod = false;
 double Health::Hh_income_susc_mod_floor = 0.0;
 
 double Health::health_insurance_distribution[Insurance_assignment_index::UNSET];
@@ -93,9 +92,7 @@ void Health::initialize_static_variables() {
 
     int temp_int = 0;
 
-    Params::get_param_from_string("enable_hh_income_based_susc_mod", &temp_int);
-    Health::Enable_hh_income_based_susc_mod = (temp_int == 0 ? false : true);
-    if(Health::Enable_hh_income_based_susc_mod) {
+    if(Global::Enable_hh_income_based_susc_mod) {
       Params::get_param_from_string("hh_income_susc_mod_floor", &(Health::Hh_income_susc_mod_floor));
     }
 
@@ -843,19 +840,22 @@ double Health::get_susceptibility_modifier_due_to_hygiene(int disease_id) {
 
 double Health::get_susceptibility_modifier_due_to_household_income(int hh_income) {
 
-  if(Health::Enable_hh_income_based_susc_mod) {
-    double rise = 1.0 - Health::Hh_income_susc_mod_floor;
-    double run = static_cast<double>(Household::get_min_hh_income() - Household::get_max_hh_income());
-    double m = rise / run;
+  if(Global::Enable_hh_income_based_susc_mod) {
+    if(hh_income >= Household::get_min_hh_income_90_pct()) {
+      return Health::Hh_income_susc_mod_floor;
+    } else {
+      double rise = 1.0 - Health::Hh_income_susc_mod_floor;
+      double run = static_cast<double>(Household::get_min_hh_income() - Household::get_min_hh_income_90_pct());
+      double m = rise / run;
 
-    // Equation of line is y - y1 = m(x - x1)
-    // y = m*x - m*x1 + y1
-    double x = static_cast<double>(hh_income);
-    return m * x - m * Household::get_min_hh_income() + 1.0;
+      // Equation of line is y - y1 = m(x - x1)
+      // y = m*x - m*x1 + y1
+      double x = static_cast<double>(hh_income);
+      return m * x - m * Household::get_min_hh_income() + 1.0;
+    }
   } else {
     return 1.0;
   }
-
 }
 
 void Health::modify_susceptibility(int disease_id, double multp) {

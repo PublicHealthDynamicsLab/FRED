@@ -532,7 +532,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
   // reduce susceptibility due to infectee's hygiene (face masks or hand washing)
   susceptibility *= infectee->get_susceptibility_modifier_due_to_hygiene(disease_id);
     
-  if(Health::Enable_hh_income_based_susc_mod) {
+  if(Global::Enable_hh_income_based_susc_mod) {
     int hh_income = Household::get_max_hh_income(); //Default to max (no modifier)
     Household* hh = static_cast<Household*>(infectee->get_household());
     if(hh != NULL) {

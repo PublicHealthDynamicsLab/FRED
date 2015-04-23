@@ -249,6 +249,7 @@ class Global {
     static bool Enable_Vaccination;
     static bool Enable_Antivirals;
     static bool Enable_HAZEL;
+    static bool Enable_hh_income_based_susc_mod;
     static bool Use_Mean_Latitude;
     static bool Print_Household_Locations;
     static int Report_Age_Of_Infection;

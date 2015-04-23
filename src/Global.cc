@@ -104,6 +104,7 @@ bool Global::Enable_Chronic_Condition = false;
 bool Global::Enable_Vaccination = true;
 bool Global::Enable_Antivirals = true;
 bool Global::Enable_HAZEL = false;
+bool Global::Enable_hh_income_based_susc_mod = false;
 bool Global::Use_Mean_Latitude = false;
 bool Global::Print_Household_Locations = false;
 int Global::Report_Age_Of_Infection = 0;
@@ -256,6 +257,8 @@ void Global::get_global_parameters() {
   Global::Enable_Antivirals = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_HAZEL", &temp_int);
   Global::Enable_HAZEL = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_hh_income_based_susc_mod", &temp_int);
+  Global::Enable_hh_income_based_susc_mod = (temp_int == 0 ? false : true);
   Params::get_param_from_string("use_mean_latitude", &temp_int);
   Global::Use_Mean_Latitude = (temp_int == 0 ? false : true);
   Params::get_param_from_string("print_household_locations", &temp_int);

@@ -112,6 +112,7 @@ public:
   void setup_offices();
   void setup_school_income_quartile_pop_sizes();
   void setup_household_income_quartile_sick_days();
+  int get_min_household_income_by_percentile(int percentile);
   Place* get_place_from_label(const char* s) const;
   Place* get_random_workplace();
   void assign_hospitals_to_households();

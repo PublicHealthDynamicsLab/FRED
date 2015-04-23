@@ -279,6 +279,11 @@ void fred_setup(int argc, char* argv[]) {
     //Global::Places.setup_household_income_quartile_sick_days();
   }
 
+  if(Global::Enable_hh_income_based_susc_mod) {
+    int pct_90_min = Global::Places.get_min_household_income_by_percentile(90);
+    Household::set_min_hh_income_90_pct(pct_90_min);
+  }
+
   if(Global::Report_Mean_Household_Stats_Per_Income_Category &&
      Global::Report_Epidemic_Data_By_Census_Tract) {
     Global::Income_Category_Tracker = new Tracker<int>("Income Category Tracker","income_cat");
@@ -308,7 +313,7 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for (int d = 0; d<Global::Diseases; ++d) {
+    for(int d = 0; d < Global::Diseases; ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");

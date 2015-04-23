@@ -1287,10 +1287,7 @@ void Place_List::setup_household_income_quartile_sick_days() {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
       Place* place = this->places[p];
-      if(places[p]->get_type() == Place::SCHOOL) {
-        assert(Global::Places.is_load_completed());
-        assert(Global::Pop.is_load_completed());
-
+      if(places[p]->get_type() == Place::HOUSEHOLD) {
         Household* hh = static_cast<Household*>(places[p]);
         double hh_income = hh->get_household_income();
         std::pair<double, Household*> my_insert(hh_income, hh);
@@ -1362,6 +1359,44 @@ void Place_List::setup_household_income_quartile_sick_days() {
 
     delete household_income_hh_mm;
   }
+}
+
+int Place_List::get_min_household_income_by_percentile(int percentile) {
+  assert(this->is_load_completed());
+  assert(Global::Pop.is_load_completed());
+  assert(percentile > 0);
+  assert(percentile <= 100);
+  if(Global::Enable_hh_income_based_susc_mod) {
+    typedef std::multimap<double, Household*> HouseholdMultiMapT;
+        
+    HouseholdMultiMapT* household_income_hh_mm = new HouseholdMultiMapT();
+    int number_places = this->places.size();
+    for(int p = 0; p < number_places; ++p) {
+      Place* place = this->places[p];
+      if(places[p]->get_type() == Place::HOUSEHOLD) {
+        Household* hh = static_cast<Household*>(places[p]);
+        double hh_income = hh->get_household_income();
+        std::pair<double, Household*> my_insert(hh_income, hh);
+        household_income_hh_mm->insert(my_insert);
+      }
+    }
+    int total = static_cast<int>(household_income_hh_mm->size());
+    int percentile_goal = static_cast<int>((static_cast<float>(percentile) / static_cast<float>(100)) * total);
+    int ret_value = 0;
+    int counter = 1;
+    for(HouseholdMultiMapT::iterator itr = household_income_hh_mm->begin();
+          itr != household_income_hh_mm->end(); ++itr) {
+      double hh_sick_leave_total = 0.0;
+      if(counter == percentile_goal) {
+        ret_value = (*itr).second->get_household_income();
+        break;
+      }
+      counter++;
+    }
+    delete household_income_hh_mm;
+    return ret_value;
+  }
+  return -1;
 }
 
 Place* Place_List::get_place_from_label(const char* s) const {

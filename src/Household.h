@@ -431,6 +431,14 @@ public:
     return Household::Max_hh_income;
   }
 
+  static int get_min_hh_income_90_pct() {
+    return Household::Min_hh_income_90_pct;
+  }
+
+  static void set_min_hh_income_90_pct(int _hh_income) {
+    Household::Min_hh_income_90_pct = _hh_income;
+  }
+
 private:
 
   static double* Household_contacts_per_day;
@@ -447,6 +455,7 @@ private:
 
   static int Min_hh_income;
   static int Max_hh_income;
+  static int Min_hh_income_90_pct;
 
   Place* group_quarters_workplace;
   bool sheltering;
