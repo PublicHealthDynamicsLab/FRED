@@ -549,7 +549,7 @@ disease_names = 1 influenza
 <disease_name>_infection_immunity_prob_values = 1 1.0
 enable_residual_immunity_by_FIPS = 0
 # enable_residual_immunity_by_FIPS = 1
-# residual_immunity_by_FIPS_file = residual_immunity_by_FIPS.txt
+residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIPS.txt
 
 ### PLACE-SPECIFIC CONTACTS
 <disease_name>_weekend_contact_rate = 1.5
@@ -888,6 +888,7 @@ influenza_face_mask_plus_hand_washing_susceptibility_efficacy = 0.33
 #
 ##########################################################
 
+enable_seasonal_transmission = 0
 enable_seasonality = 0
 enable_climate = 0
 seasonality_timestep_file = none
@@ -920,6 +921,7 @@ shelter_in_place_by_income = 0
 
 enable_population_dynamics = 0 
 mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
+mortality_rate_multiplier = 1
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
 control_population_growth_rate = 1
