@@ -29,7 +29,7 @@
 #include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
-
+#define PI 3.14159265359
 
 // static place type codes
 char Place::HOUSEHOLD = 'H';
@@ -50,6 +50,9 @@ bool Place::Enable_Neighborhood_Density_Transmission = false;
 bool Place::Enable_Density_Transmission_Maximum_Infectees = false;
 int Place::Density_Transmission_Maximum_Infectees = 10.0;
 
+bool Place::Enable_Seasonality_Reduction = false;
+double * Place::Seasonality_multiplier = NULL;
+
 place_vec Place::infectious_places;
 
 
@@ -61,6 +64,30 @@ void Place::initialize_static_variables() {
   Place::Enable_Density_Transmission_Maximum_Infectees = (temp_int == 1);
   Params::get_param_from_string("density_transmission_maximum_infectees",
 				&Place::Density_Transmission_Maximum_Infectees);
+
+  // all-disease seasonality reduction
+  Params::get_param_from_string("enable_seasonality_reduction", &temp_int);
+  Place::Enable_Seasonality_Reduction = (temp_int == 1);
+
+  if (Place::Enable_Seasonality_Reduction) {
+    int peak_transmissible_day_of_year; // e.g. Jan 1
+    double max_seasonal_reduction = 1.0; // e.g., on July 1
+
+    Params::get_param_from_string("peak_transmissible_day_of_year", &peak_transmissible_day_of_year);
+    Params::get_param_from_string("max_seasonal_reduction", &max_seasonal_reduction);
+
+    // setup seasonal multipliers
+    Place::Seasonality_multiplier = new double [367];
+    for (int day = 1; day <= 366; day++) {
+      int days_from_peak_transmissibility = abs(peak_transmissible_day_of_year - day);
+      Place::Seasonality_multiplier[day] = 0.5*(1.0 + cos(days_from_peak_transmissibility*(2*PI/365.0)));
+      if (Place::Seasonality_multiplier[day] < 0.0) {
+	Place::Seasonality_multiplier[day] = 0.0;
+      }
+      printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
+    }
+  }
+
   infectious_places.clear();
 }
 
@@ -543,6 +570,12 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
   }
 
   FRED_VERBOSE(2, "susceptibility = %f\n", susceptibility);
+
+  // reduce transmissibility due to seasonality
+  if (Place::Enable_Seasonality_Reduction) {
+    int day_of_year = Date::get_day_of_year(day);
+    transmission_prob *= Place::Seasonality_multiplier[day_of_year];
+  }
 
   double r = RANDOM();
   double infection_prob = transmission_prob * susceptibility;

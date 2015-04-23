@@ -120,6 +120,10 @@ public:
   static bool Enable_Density_Transmission_Maximum_Infectees;
   static int Density_Transmission_Maximum_Infectees;
 
+  // static seasonal transmission parameters
+  static bool Enable_Seasonality_Reduction;
+  static double * Seasonality_multiplier;
+
   // place type codes
   static char HOUSEHOLD;
   static char NEIGHBORHOOD;
