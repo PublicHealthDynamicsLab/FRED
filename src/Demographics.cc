@@ -392,6 +392,7 @@ void Demographics::initialize_static_variables() {
   char mortality_rate_file[FRED_STRING_SIZE];
   char birth_rate_file[FRED_STRING_SIZE];
   double birth_rate_multiplier;
+  double mortality_rate_multiplier;
 
   if(Global::Verbose) {
     fprintf(Global::Statusfp, "Demographics::initialize_static_variables() entered\n");
@@ -402,6 +403,7 @@ void Demographics::initialize_static_variables() {
   Params::get_param_from_string("population_growth_rate", &(Demographics::population_growth_rate));
   Params::get_param_from_string("birth_rate_file", birth_rate_file);
   Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
+  Params::get_param_from_string("mortality_rate_multiplier", &mortality_rate_multiplier);
   Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
   Params::get_param_from_string("college_departure_rate", &(Demographics::college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(Demographics::military_departure_rate));
@@ -465,8 +467,8 @@ void Demographics::initialize_static_variables() {
     if(Global::Verbose) {
       fprintf(Global::Statusfp, "MORTALITY RATE for age %d: female: %e male: %e\n", age, female_rate, male_rate);
     }
-    Demographics::female_mortality_rate[i] = female_rate;
-    Demographics::male_mortality_rate[i] = male_rate;
+    Demographics::female_mortality_rate[i] = mortality_rate_multiplier*female_rate;
+    Demographics::male_mortality_rate[i] = mortality_rate_multiplier*male_rate;
   }
   fclose(fp);
   if(Global::Verbose) {
