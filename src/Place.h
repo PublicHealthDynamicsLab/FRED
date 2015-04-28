@@ -121,7 +121,7 @@ public:
   static int Density_Transmission_Maximum_Infectees;
 
   // static seasonal transmission parameters
-  static bool Enable_Seasonality_Reduction;
+  static double Seasonal_Reduction;
   static double * Seasonality_multiplier;
 
   // place type codes

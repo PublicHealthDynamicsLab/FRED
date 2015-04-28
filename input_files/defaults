@@ -888,15 +888,18 @@ influenza_face_mask_plus_hand_washing_susceptibility_efficacy = 0.33
 #
 ##########################################################
 
-# the following parameters provide a sinusoidal reduction in transmission
-# applied to all diseases.
-enable_seasonality_reduction = 0
+# The following parameters provide a sinusoidal reduction in
+# transmission in all diseases, with a peak tranmissibility of the given
+# day of the year, and the minimum transmissibility 183 days before or
+# after the peak.
+#
+# The day_of_year with maximum seasonal transmissibility (e.g. Jan 1 -> day_of_year = 1)
+seasonal_peak_day_of_year = 1
+#
 
-# this specifies max transmissibility on Jan 1 (day_of_year = 1)
-peak_transmissible_day_of_year = 1
-
-# this specifies no transmission 183 days before or after the peak transmissibility
-max_seasonal_reduction = 1
+# Amount of reduction in seasonal transmissibility (default = 0 -> no seasonal change).
+# Note: If set to a value > 1, then transmission will be 0 for part of the year.
+seasonal_reduction = 0
 
 #########
 # the following use a climate model to affect seasonality (experimental)
