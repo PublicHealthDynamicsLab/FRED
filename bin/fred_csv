@@ -164,7 +164,7 @@ while (<FH>) {
 }
 
 for my $v (@vars) {
-  next if $v eq "Day" or $v eq "Date" or $v eq "Week" or $v eq "Year" or $v eq "WkDay" or $v eq "N";
+  next if $v eq "Day" or $v eq "Date" or $v eq "Week" or $v eq "Year" or $v eq "WkDay";
   # print "v = |$v|\n";
   if ($run > 0) {
     $datafile = "$dir/$weekly$v-$run.txt";

@@ -177,6 +177,24 @@ public:
     return this->county_population[index];
   }
 
+  void increment_population_of_county_with_index(int index) {
+    if(index < 0) {
+      return;
+    }
+    assert (index < this->counties.size());
+    this->county_population[index]++;
+    return;
+  }
+
+  void decrement_population_of_county_with_index(int index) {
+    if(index < 0) {
+      return;
+    }
+    assert (index < this->counties.size());
+    this->county_population[index]--;
+    return;
+  }
+
   int get_number_of_census_tracts() {
     return (int)this->census_tracts.size();
   }

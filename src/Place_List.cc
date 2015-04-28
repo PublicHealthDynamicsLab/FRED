@@ -1601,6 +1601,7 @@ void Place_List::setup_households() {
   }
 
   // get the initial populations of all counties
+  /* NOTE: now done in Activities::setup()
   for(int i = 0; i < num_households; ++i) {
     Household * h = this->get_household_ptr(i);
     int size = h->get_size();
@@ -1608,6 +1609,7 @@ void Place_List::setup_households() {
     // add to county population
     county_population[c] += size;
   }
+  */
 
   FRED_STATUS(0, "setup households finished\n", "");
 }

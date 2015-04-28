@@ -181,6 +181,10 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d age %d household %s\n",
 	       self->get_id(), self->get_age(), house->get_label());
 
+  // increase the population in county of residence
+  int index = ((Household *)get_household())->get_county();
+  Global::Places.increment_population_of_county_with_index(index);
+
   // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
   FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
@@ -1640,10 +1644,18 @@ void Activities::terminate(Person* self) {
     }
     Travel::terminate_person(self);
   }
+
+
   //If the agent was hospitalized, restore original favorite places
   if(this->is_hospitalized) {
     restore_favorite_places();
   }
+
+  // decrease the population in county of residence
+  int index = ((Household *)get_household())->get_county();
+  Global::Places.decrement_population_of_county_with_index(index);
+
+  // withdraw from society
   unenroll_from_favorite_places(self);
 }
 
