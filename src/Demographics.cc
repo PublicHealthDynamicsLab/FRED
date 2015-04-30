@@ -500,9 +500,10 @@ void Demographics::update(int day) {
   // reset counts of births and deaths
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
-  if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
+  if(Date::get_day_of_year(day) == 1) {
     Demographics::births_ytd = 0;
     Demographics::deaths_ytd = 0;
+    Demographics::report(day);
   }
 
   Demographics::update_people_on_birthday_list(day);
@@ -1478,3 +1479,60 @@ void Demographics::update_people_on_birthday_list(int day) {
 	       birthday_index, birthday_count);
 }
 
+void Demographics::report(int day) {
+  char filename[FRED_STRING_SIZE];
+  FILE* fp = NULL;
+
+  // get the current year
+  int year = Date::get_year();
+
+  sprintf(filename, "%s/ages-%d.txt", Global::Simulation_directory, year);
+  fp = fopen(filename, "w");
+
+  int n0, n5, n18, n65;
+  int count[20];
+  int total = 0;
+  n0 = n5 = n18 = n65 = 0;
+  // age distribution
+  for(int c = 0; c < 20; ++c) {
+    count[c] = 0;
+  }
+  int current_popsize = Global::Pop.get_pop_size();
+  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
+    Person* person = Global::Pop.get_person_by_index(p);
+    if(person == NULL) {
+      continue;
+    }
+    int a = person->get_age();
+    if(a < 5) {
+      n0++;
+    } else if(a < 18) {
+      n5++;
+    } else if(a < 65) {
+      n18++;
+    } else {
+      n65++;
+    }
+    int n = a / 5;
+    if(n < 20) {
+      count[n]++;
+    } else {
+      count[19]++;
+    }
+    total++;
+  }
+  // fprintf(fp, "\nAge distribution: %d people\n", total);
+  for(int c = 0; c < 20; ++c) {
+    fprintf(fp, "age %2d to %d: %6d %e %d\n", 5 * c, 5 * (c + 1) - 1, count[c],
+	    (1.0 * count[c]) / total, total);
+  }
+  /*
+  fprintf(fp, "AGE 0-4: %d %.2f%%\n", n0, (100.0 * n0) / total);
+  fprintf(fp, "AGE 5-17: %d %.2f%%\n", n5, (100.0 * n5) / total);
+  fprintf(fp, "AGE 18-64: %d %.2f%%\n", n18, (100.0 * n18) / total);
+  fprintf(fp, "AGE 65-100: %d %.2f%%\n", n65, (100.0 * n65) / total);
+  fprintf(fp, "\n");
+  */
+  fclose(fp);
+
+}

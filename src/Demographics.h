@@ -185,6 +185,8 @@ public:
     mortality_queue->delete_event(day, person);
   }
 
+  static void report(int day); 
+
 private:
 
   static Events * conception_queue;
