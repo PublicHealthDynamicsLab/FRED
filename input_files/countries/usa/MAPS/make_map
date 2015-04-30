@@ -1,0 +1,191 @@
+#!/usr/local/bin/gnuplot
+
+# default parameters
+
+if (!exists("google")) {
+   google = 1
+}
+if (!exists("adjust")) {
+   adjust = 1
+}
+if (!exists("api_key")) {
+   api_key = "none"
+}
+if (!exists("terminal")) {
+  terminal = "png"
+}
+if (!exists("mapname")) {
+  mapname = "map." . terminal
+}
+if (!exists("linewidth")) {
+  linewidth = 2.0
+}
+if (!exists("force_xmin")) {
+  force_xmin = 0
+}
+if (!exists("force_xmax")) {
+  force_xmax = 0
+}
+if (!exists("force_ymin")) {
+  force_ymin = 0
+}
+if (!exists("force_ymax")) {
+  force_ymax = 0
+}
+if (!exists("fipsfile")) {
+  fipsfile = "FIPS"
+}
+if (!exists("use_shapefile")) {
+  use_shapefile = 1
+}
+if (!exists("shapefile_dir")) {
+  shapefile_dir = "/Users/gref/FRED/input_files/countries/usa/SHAPES"
+}
+# print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
+
+unset key; unset tics;
+
+# read in a list of FIPS codes
+fips = system("cat " . fipsfile)
+print "fips = " . fips
+
+# name of the file containing boundaries for each fips code
+shapefile(n) = sprintf("%s/%s.txt", shapefile_dir, word(fips,n))
+
+# create a fake plot in order to gather the x and y ranges
+set term unknown
+plot for [n=1:words(fips)] shapefile(n) u ($2):($1) ls 99 w filledcurve notitle
+ 
+# initialize the new x and y boundaries
+xmin = GPVAL_DATA_X_MIN
+xmax = GPVAL_DATA_X_MAX
+ymin = GPVAL_DATA_Y_MIN
+ymax = GPVAL_DATA_Y_MAX
+# print xmin, xmax, ymin, ymax
+ 
+# find the x and y ranges in the data
+xrng = xmax - xmin
+yrng = ymax - ymin
+
+# add some space on each side
+xmin = xmin - 0.025*xrng
+xmax = xmax + 0.025*xrng
+ymin = ymin - 0.025*yrng
+ymax = ymax + 0.025*yrng
+print xmin, xmax, ymin, ymax
+
+if (force_xmin) { xmin = force_xmin }
+if (force_xmax) { xmax = force_xmax }
+if (force_ymin) { ymin = force_ymin }
+if (force_ymax) { ymax = force_ymax }
+print "after force:"
+print xmin, xmax, ymin, ymax
+
+if (adjust) {
+
+# earth geometry
+km_per_deg_lat = 111.325
+mean_lat = (ymax + ymin) / 2.0
+km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
+lat_lon_ratio = km_per_deg_lon / km_per_deg_lat
+
+# find the x and y ranges
+xrng = xmax - xmin
+yrng = ymax - ymin
+
+# adjust the x range if too small
+xtarg = yrng / lat_lon_ratio
+xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+xmin = xmin - xxtra
+xmax = xmax + xxtra
+
+# adjust the y range if too small
+ytarg = lat_lon_ratio * xrng
+yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ymin = ymin - yxtra
+ymax = ymax + yxtra
+# print xmin, xmax, ymin, ymax
+
+# find the x and y ranges
+xrng = xmax - xmin
+yrng = ymax - ymin
+
+# adjust the x range if too small
+xtarg = yrng / lat_lon_ratio
+xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+xmin = xmin - xxtra
+xmax = xmax + xxtra
+
+# adjust the y range if too small
+ytarg = lat_lon_ratio * xrng
+yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+ymin = ymin - yxtra
+ymax = ymax + yxtra
+# print xmin, xmax, ymin, ymax
+}
+
+xmin = sprintf("%0.5f", xmin) + 0.0
+xmax = sprintf("%0.5f", xmax) + 0.0
+ymin = sprintf("%0.5f", ymin) + 0.0
+ymax = sprintf("%0.5f", ymax) + 0.0
+
+# save the ranges to a file
+print "writing ranges to  RANGES.plt"
+print xmin, xmax, ymin, ymax
+set print "RANGES.plt"
+print sprintf("ymin = %f",ymin)
+print sprintf("xmin = %f",xmin)
+print sprintf("ymax = %f",ymax)
+print sprintf("xmax = %f",xmax)
+set print 
+
+cmd = sprintf("fred_get_googlemap %f %f %f %f background.png %s", ymin, xmin, ymax, xmax, api_key)
+system(cmd)
+
+# ready for the actual plot:
+set term pngcairo enhanced font "arial,12" size 640,498
+
+# set the ranges for the axes
+set xrange [ xmin:xmax ]
+set yrange [ ymin:ymax ]
+
+# get the center of the map
+xcenter = (xmin+xmax)/2.0
+ycenter = (ymin+ymax)/2.0
+xsize = xmax-xmin
+ysize = ymax-ymin
+
+# set plot margins
+set lmargin 0
+set rmargin 0
+set tmargin 0
+set bmargin 0
+
+unset xlabel
+unset ylabel
+unset xtics
+unset ytics
+unset grid
+unset border
+
+mydx = xsize/640.0
+mydy = ysize/498.0
+print sprintf("xsize = %f ysize = %f dx = %f dy = %f",xsize,ysize,mydx,mydy) 
+
+set output mapname
+
+# no shapefiles for Hawaii
+if (word(fips,1)[1:2] eq "15") {
+   use_shapefile = 0
+}
+
+if (use_shapefile) {
+  plot 'background.png' binary filetype=png center=(xcenter,ycenter) dx=mydx dy=mydy with rgbimage notitle, \
+   for [n=1:words(fips)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth
+}
+else {
+  plot 'background.png' binary filetype=png center=(xcenter,ycenter) dx=mydx dy=mydy with rgbimage notitle
+}
+
+# system("open " . mapname)
+exit
