@@ -941,6 +941,7 @@ birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
 control_population_growth_rate = 1
 population_growth_rate = 0
+compensatory_death_rates = 0
 # assume 4 years
 college_departure_rate = 0.25
 # assume 4 years

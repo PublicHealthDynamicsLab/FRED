@@ -41,6 +41,7 @@ double Demographics::adjusted_birth_rate[Demographics::MAX_AGE + 1];
 double Demographics::pregnancy_rate[Demographics::MAX_AGE + 1];
 int Demographics::target_popsize = 0;
 int Demographics::control_population_growth_rate = 1;
+int Demographics::compensatory_death_rates = 0;
 double Demographics::population_growth_rate = 0.0;
 double Demographics::college_departure_rate = 0.0;
 double Demographics::military_departure_rate = 0.0;
@@ -400,6 +401,7 @@ void Demographics::initialize_static_variables() {
   }
 
   Params::get_param_from_string("control_population_growth_rate", &(Demographics::control_population_growth_rate));
+  Params::get_param_from_string("compensatory_death_rates", &(Demographics::compensatory_death_rates));
   Params::get_param_from_string("population_growth_rate", &(Demographics::population_growth_rate));
   Params::get_param_from_string("birth_rate_file", birth_rate_file);
   Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
@@ -575,6 +577,19 @@ void Demographics::update_population_dynamics(int day) {
     projected_deaths += Demographics::female_mortality_rate[i] * count_females_by_age[i];
   }
 
+  if (Demographics::compensatory_death_rates) {
+    double death_rate_adjustment = 1.0 + ((births-deaths) / (1.0*deaths));
+    for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
+      Demographics::adjusted_female_mortality_rate[i] = death_rate_adjustment * Demographics::adjusted_female_mortality_rate[i];
+      Demographics::adjusted_male_mortality_rate[i] = death_rate_adjustment * Demographics::adjusted_male_mortality_rate[i];
+    }
+    FRED_VERBOSE(0,
+		 "POPULATION_DYNAMICS: year %d popsize %d births = %d deaths = %d target = %d death_adj %0.3f\n",
+		 year, current_popsize, births, deaths, target_popsize, death_rate_adjustment); 
+
+    return;
+  }
+
   // projected population size
   int projected_popsize = current_popsize + projected_births - projected_deaths;
 
@@ -646,9 +661,6 @@ void Demographics::update_population_dynamics(int day) {
 	       projected_popsize, projected_births, projected_deaths,
 	       birth_rate_adjustment, death_rate_adjustment); 
 
-  // reset counters for coming year:
-  births = 0;
-  deaths = 0;
 }
 
 void Demographics::get_housing_imbalance(int day) {

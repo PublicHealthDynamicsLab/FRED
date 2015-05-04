@@ -41,7 +41,7 @@ void Place_List::report_school_distributions(int day) {
   }
   fprintf(Global::Statusfp, "\n");
 
-  // return;
+  return;
 
   int year = day / 365;
   char filename[FRED_STRING_SIZE];
