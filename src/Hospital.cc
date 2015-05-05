@@ -36,6 +36,7 @@ bool Hospital::Hospital_parameters_set = false;
 Hospital::Hospital() {
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
+  this->capacity = 0;
   this->is_open = true;
   get_parameters(Global::Diseases);
 }
@@ -46,6 +47,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
   }
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;
+  this->capacity = 0;
   this->bed_count = 0;
   setup(lab, lon, lat, container, pop);
 

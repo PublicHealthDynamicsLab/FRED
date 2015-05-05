@@ -615,7 +615,9 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
     sprintf(cmd, "cp %s %s", population_file, temp_file);
     printf("COPY_FILE: %s\n", cmd);
     fflush(stdout);
-    system(cmd);
+    if(system(cmd) != 0) {
+      Utils::fred_abort("Error using system command \"%s\"\n", cmd);
+    }
     // printf("copy finished\n"); fflush(stdout);
     pop_file = temp_file;
   } else {

@@ -119,10 +119,12 @@ void Activities::initialize_static_variables() {
     }
   }
 
-  Activities::Hospitalization_prob = new Age_Map("Hospitalization Probability");
-  Activities::Hospitalization_prob->read_from_input("hospitalization_prob");
-  Activities::Outpatient_healthcare_prob = new Age_Map("Outpatient Healthcare Probability");
-  Activities::Outpatient_healthcare_prob->read_from_input("outpatient_healthcare_prob");
+  if(Global::Enable_Hospitals) {
+    Activities::Hospitalization_prob = new Age_Map("Hospitalization Probability");
+    Activities::Hospitalization_prob->read_from_input("hospitalization_prob");
+    Activities::Outpatient_healthcare_prob = new Age_Map("Outpatient Healthcare Probability");
+    Activities::Outpatient_healthcare_prob->read_from_input("outpatient_healthcare_prob");
+  }
 
   if(Global::Report_Childhood_Presenteeism) {
 
@@ -416,10 +418,12 @@ void Activities::update(int day) {
   Activities::School_sick_days_present = 0;
   Activities::School_sick_days_absent = 0;
 
-  Activities::Seeking_healthcare = 0;
-  Activities::Primary_healthcare_unavailable = 0;
-  Activities::Healthcare_accepting_insurance_unavailable = 0;
-  Activities::Healthcare_unavailable = 0;
+  if(Global::Enable_HAZEL) {
+    Activities::Seeking_healthcare = 0;
+    Activities::Primary_healthcare_unavailable = 0;
+    Activities::Healthcare_accepting_insurance_unavailable = 0;
+    Activities::Healthcare_unavailable = 0;
+  }
 
   // print school change activities
   if(Activities::entered_school + Activities::left_school > 0) {
@@ -428,7 +432,6 @@ void Activities::update(int day) {
     Activities::entered_school = 0;
     Activities::left_school = 0;
   }
-
 
   FRED_STATUS(1, "Activities update completed\n");
 }
@@ -613,8 +616,13 @@ void Activities::update_schedule(Person* self, int day) {
       }
     }
 
+    //Decide whether to visit healthcare if ASYMPTOMATIC (Background)
+    if(Global::Enable_Hospitals && !self->is_symptomatic() && !self->is_hospitalized()) {
+      decide_whether_to_seek_healthcare(self, day);
+    }
+
     //Decide whether to visit hospitalized housemates
-    if(Global::Enable_Hospitals && static_cast<Household*>(self->get_household())->has_hospitalized_member()) {
+    if(Global::Enable_Hospitals && !self->is_hospitalized() && static_cast<Household*>(self->get_household())->has_hospitalized_member()) {
 
       Household* hh = static_cast<Household*>(self->get_household());
 
@@ -623,6 +631,7 @@ void Activities::update_schedule(Person* self, int day) {
           hh = static_cast<Household*>(self->get_permanent_household());
         }
       }
+
       if(hh != NULL) {
         if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < Activities::Hospitalization_visit_housemate_prob) {
           set_ad_hoc(hh->get_household_visitation_hospital());
@@ -818,10 +827,8 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
     if(!this->is_hospitalized) {
 
       double rand = RANDOM();
-      double background_hospitalization_prob = Activities::Hospitalization_prob->find_value(self->get_real_age());
-      double background_seek_healthcare_prob = Activities::Outpatient_healthcare_prob->find_value(self->get_real_age());
-      double hospitalization_prob = background_hospitalization_prob;
-      double seek_healthcare_prob = background_seek_healthcare_prob;
+      double hospitalization_prob = Activities::Hospitalization_prob->find_value(self->get_real_age()); //Background probability
+      double seek_healthcare_prob = Activities::Outpatient_healthcare_prob->find_value(self->get_real_age()); //Background probability
 
       //First check to see if agent will seek health care for any active symptomatic infection
       if(self->is_symptomatic()) {
@@ -840,54 +847,53 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
       // If the agent has chronic conditions, multiply the probability by the appropriate modifiers
       if(Global::Enable_Chronic_Condition) {
         if(self->has_chronic_condition()) {
+          double mult = 1.0;
           if(self->is_asthmatic()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::ASTHMA);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::ASTHMA);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::ASTHMA);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->has_COPD()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::COPD);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::COPD);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::COPD);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->has_chronic_renal_disease()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->is_diabetic()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::DIABETES);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::DIABETES);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::DIABETES);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->has_heart_disease()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HEART_DISEASE);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HEART_DISEASE);
-          }
-          if(self->is_diabetic()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::DIABETES);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::DIABETES);
-          }
-          if(self->has_heart_disease()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HEART_DISEASE);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HEART_DISEASE);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HEART_DISEASE);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->has_hypertension()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERTENSION);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERTENSION);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERTENSION);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->has_hypercholestrolemia()) {
-            hospitalization_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERCHOLESTROLEMIA);
-            seek_healthcare_prob *= Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERCHOLESTROLEMIA);
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(self->get_age(), Chronic_condition_index::HYPERCHOLESTROLEMIA);
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
           if(self->get_demographics()->is_pregnant()) {
-            hospitalization_prob *= Health::get_pregnancy_hospitalization_prob_mult(self->get_age());
-            seek_healthcare_prob *= Health::get_pregnancy_hospitalization_prob_mult(self->get_age());
+            mult = Health::get_pregnancy_hospitalization_prob_mult(self->get_age());
+            hospitalization_prob *= mult;
+            seek_healthcare_prob *= mult;
           }
         }
       }
 
       //First check to see if agent will visit a Hospital for an overnight stay, then check for an outpatient visit
       if(rand < hospitalization_prob) {
-
         start_hospitalization(self, day, 2);
-
       } else if(rand < seek_healthcare_prob) {
 
         Activities::Seeking_healthcare++;
@@ -901,8 +907,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
             hh->set_is_primary_healthcare_location_open(false);
             Activities::Primary_healthcare_unavailable++;
 
-            //Find an open healthcare provider
-            // bool allows_overnight, Insurance_assignment_index::e insr_accepted
+            //Find an open health care provider
             hosp = Global::Places.get_random_open_hospital_matching_criteria(day, false, self->get_health()->get_insurance_type());
             if(hosp == NULL) {
               hh->set_other_healthcare_location_that_accepts_insurance_open(false);
@@ -926,6 +931,18 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
               this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
               this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
               this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
+
+              // record work absent/present decision if it is a work day
+              if(is_a_workday) {
+                Activities::Sick_days_absent++;
+                this->my_sick_days_absent++;
+              }
+
+              // record school absent/present decision if it is a school day
+              if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+                Activities::School_sick_days_absent++;
+                this->my_sick_days_absent++;
+              }
             } else {
               this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
               this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
@@ -948,20 +965,22 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
           this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
           this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
+
+          // record work absent/present decision if it is a workday
+          if(is_a_workday) {
+            Activities::Sick_days_absent++;
+            this->my_sick_days_absent++;
+          }
+
+          // record school absent/present decision if it is a school day
+          if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+            Activities::School_sick_days_absent++;
+            this->my_sick_days_absent++;
+          }
         }
       }
 
-      // record work absent/present decision if it is a workday
-      if(is_a_workday) {
-        Activities::Sick_days_absent++;
-        this->my_sick_days_absent++;
-      }
 
-      // record school absent/present decision if it is a school day
-      if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-        Activities::School_sick_days_absent++;
-        this->my_sick_days_absent++;
-      }
     }
   }
 }

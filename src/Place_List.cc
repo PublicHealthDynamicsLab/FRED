@@ -720,7 +720,9 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
     sprintf(cmd, "cp %s %s", location_file, temp_file);
     printf("COPY_FILE: %s\n", cmd);
     fflush(stdout);
-    system(cmd);
+    if(system(cmd) != 0) {
+      Utils::fred_abort("Error using system command \"%s\"\n", cmd);
+    }
     strcpy(location_file, temp_file);
   }
   read_household_file(deme_id, location_file, pids);

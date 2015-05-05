@@ -223,7 +223,9 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
       // create symbolic links
       char cmd[FRED_STRING_SIZE];
       sprintf(cmd, "ln -s %s/dis0/households.txt %s/households.txt", vis_run_dir, vis_dis_dir);
-      system(cmd);
+      if(system(cmd) != 0) {
+        Utils::fred_abort("Error using system command \"%s\"\n", cmd);
+      }
     }
 
     // create directories for specific output variables

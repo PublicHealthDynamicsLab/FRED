@@ -36,7 +36,7 @@ endif
 ## compressed population files.  If you have snappy installed,
 ## set the following flag to 1, and make sure the library locations
 ## below are coreect.
-SNAPPY = 1
+SNAPPY = 0 
 ifeq ($(SNAPPY),1)
 SNAPPY_DIR = /usr/local
 SNAPPY_INC_DIR = $(SNAPPY_DIR)/include

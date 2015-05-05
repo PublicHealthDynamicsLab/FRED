@@ -20,36 +20,94 @@ class Abstract_Grid {
   
 public:
   
-  int get_rows() { return rows; }
-  int get_cols() { return cols; }
-  int get_number_of_patches() { return rows*cols; }
-  fred::geo get_min_lat() { return min_lat; }
-  fred::geo get_min_lon() { return min_lon; }
-  fred::geo get_max_lat() { return max_lat; }
-  fred::geo get_max_lon() { return max_lon; }
-  double get_min_x() { return min_x; }
-  double get_min_y() { return min_y; }
-  double get_max_x() { return max_x; }
-  double get_max_y() { return max_y; }
-  double get_patch_size() { return patch_size; }
-  int get_row(double y) {return (int) ((y-min_y)/patch_size); }
-  int get_col(double x) {return (int) ((x-min_x)/patch_size); }
-  int get_row(fred::geo lat) {double y = Geo_Utils::get_y(lat); return (int) ((y-min_y)/patch_size); }
-  int get_col(fred::geo lon) {double x = Geo_Utils::get_x(lon); return (int) ((x-min_x)/patch_size); }
-  int getGlobalRow(int row) { return row + global_row_min; } // ???
-  int getGlobalCol(int col) { return col + global_col_min; } // ???
+  int get_rows() {
+    return this->rows;
+  }
+
+  int get_cols() {
+    return this->cols;
+  }
+
+  int get_number_of_patches() {
+    return this->rows * this->cols;
+  }
+
+  fred::geo get_min_lat() {
+    return this->min_lat;
+  }
+
+  fred::geo get_min_lon() {
+    return this->min_lon;
+  }
+
+  fred::geo get_max_lat() {
+    return this->max_lat;
+  }
+
+  fred::geo get_max_lon() {
+    return this->max_lon;
+  }
+
+  double get_min_x() {
+    return this->min_x;
+  }
+
+  double get_min_y() {
+    return this->min_y;
+  }
+
+  double get_max_x() {
+    return this->max_x;
+  }
+
+  double get_max_y() {
+    return this->max_y;
+  }
+
+  double get_patch_size() {
+    return this->patch_size;
+  }
+
+  int get_row(double y) {
+    return static_cast<int>(((y - this->min_y) / this->patch_size));
+  }
+
+  int get_col(double x) {
+    return static_cast<int>(((x - this->min_x) / this->patch_size));
+  }
+
+  int get_row(fred::geo lat) {
+    double y = Geo_Utils::get_y(lat);
+    return (int) ((y-min_y)/patch_size);
+  }
+
+  int get_col(fred::geo lon) {
+    double x = Geo_Utils::get_x(lon);
+    return static_cast<int>(((x - this->min_x) / this->patch_size));
+  }
+
+  int getGlobalRow(int row) {
+    return row + this->global_row_min;
+  } // ???
+
+  int getGlobalCol(int col) {
+    return col + this->global_col_min;
+  } // ???
 
   int get_global_row_min() {
-    return global_row_min;				// global row coord of S row
+    return this->global_row_min;				// global row coord of S row
   }
+
   int get_global_col_min() {
-    return global_col_min;				// global col coord of W col
+    return this->global_col_min;				// global col coord of W col
   }
+
   int get_global_row_max() {
-    return global_row_max;				// global row coord of N row
+    return this->global_row_max;				// global row coord of N row
   }
+
   int get_global_col_max() {
-    return global_col_max;				// global col coord of E col
+    return this->global_col_max;				// global col coord of E col
   }
   
 protected:
