@@ -18,6 +18,7 @@
 #define DATE_H_
 
 #include <string>
+#include <cstdio>
 
 #define MAX_DATES (250*366)
 
