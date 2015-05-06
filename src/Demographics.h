@@ -217,8 +217,6 @@ private:
   static double pregnancy_rate[MAX_AGE + 1];
   static bool is_initialized;
   static int target_popsize;
-  static int control_population_growth_rate;
-  static int compensatory_death_rates;
   static double population_growth_rate;
   static double college_departure_rate;
   static double military_departure_rate;
