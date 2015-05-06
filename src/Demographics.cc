@@ -515,11 +515,6 @@ void Demographics::update(int day) {
   // reset counts of births and deaths
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
-  if(Date::get_day_of_year(day) == 1) {
-    Demographics::births_ytd = 0;
-    Demographics::deaths_ytd = 0;
-    Demographics::report(day);
-  }
 
   Demographics::update_people_on_birthday_list(day);
 
@@ -537,23 +532,27 @@ void Demographics::update(int day) {
     Demographics::update_housing(day);
   }
 
-  // update birth and death rates at end of each year
-  if(Date::get_month() == 12 && Date::get_day_of_month() == 31) {
+  // update birth and death rates on July 1. Also reset yearly counters.
+  if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
     Demographics::update_population_dynamics(day);
+    Demographics::births_ytd = 0;
+    Demographics::deaths_ytd = 0;
+    Demographics::report(day);
   }
 
 }
 
 void Demographics::update_population_dynamics(int day) {
   static int first = 1;
+
+  // no adjustment for first year, to avoid overreacting to low birth rate
+  if (first) {
+    first = 0;
+    return;
+  }
+
   int births = Demographics::births_ytd;
   int deaths = Demographics::deaths_ytd;
-
-  // adjust for partial first year
-  if(day < 364) {
-    births *= 365.0 / (day + 1);
-    deaths *= 365.0 / (day + 1);
-  }
 
   // get the current popsize
   int current_popsize = Global::Pop.get_pop_size();
@@ -572,12 +571,6 @@ void Demographics::update_population_dynamics(int day) {
   double adjustment_weight = 7.5;
   
   double death_rate_adjustment = 1.0 + adjustment_weight * error;
-  
-  // no adjustment for first year, to avoid overreacting to low birth rate
-  if (first) {
-    death_rate_adjustment = 1.0;
-    first = 0;
-  }
   
   // adjust mortality rates
   for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
