@@ -120,8 +120,6 @@ public:
   void unset_pregnant() { pregnant = false; }
 
   static void initialize_static_variables();
-  static void set_initial_popsize(int popsize) { target_popsize = popsize; }
-  static void update_population_dynamics(int day);
   static int get_births_ytd() { return births_ytd; }
   static int get_total_births() { return total_births; }
   static int get_deaths_today() { return deaths_today; }
@@ -144,22 +142,6 @@ public:
   static void add_to_birthday_list(Person * person);
   static void delete_from_birthday_list(Person * person);
   static void update_people_on_birthday_list(int day);
-
-  // methods to rebalance household sizes
-  static void get_housing_imbalance(int day);
-  static int fill_vacancies(int day);
-  static void update_housing(int day);
-  static void move_college_students_out_of_dorms(int day);
-  static void move_college_students_into_dorms(int day);
-  static void move_military_personnel_out_of_barracks(int day);
-  static void move_military_personnel_into_barracks(int day);
-  static void move_inmates_out_of_prisons(int day);
-  static void move_inmates_into_prisons(int day);
-  static void move_patients_into_nursing_homes(int day);
-  static void move_young_adults(int day);
-  static void move_older_adults(int day);
-  static void report_ages(int day, int house_id);
-  static void swap_houses(int day);
 
   static void add_conception_event(int day, Person *person) {
     conception_queue->add_event(day, person);
@@ -208,31 +190,13 @@ private:
   int conception_sim_day;	  // When the agent will become pregnant
   int maternity_sim_day;	       // When the agent will give birth
 
-  static double male_mortality_rate[MAX_AGE + 1];
-  static double female_mortality_rate[MAX_AGE + 1];
-  static double adjusted_male_mortality_rate[MAX_AGE + 1];
-  static double adjusted_female_mortality_rate[MAX_AGE + 1];
-  static double birth_rate[MAX_AGE + 1];
-  static double adjusted_birth_rate[MAX_AGE + 1];
-  static double pregnancy_rate[MAX_AGE + 1];
   static bool is_initialized;
-  static int target_popsize;
-  static double population_growth_rate;
-  static double college_departure_rate;
-  static double military_departure_rate;
-  static double prison_departure_rate;
-  static double youth_home_departure_rate;
-  static double adult_home_departure_rate;
   static int births_today;
   static int births_ytd;
   static int total_births;
   static int deaths_today;
   static int deaths_ytd;
   static int total_deaths;
-  static int houses;
-  static int * beds;
-  static int * occupants;
-
   static std::vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
   static std::map<Person*, int> birthday_map;
 

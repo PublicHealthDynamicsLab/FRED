@@ -149,7 +149,8 @@ OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.
 	Abstract_Grid.o Abstract_Patch.o \
 	Seasonality_Timestep_Map.o Seasonality.o \
 	Past_Infection.o MSEvolution.o Piecewise_Linear.o \
-	Vector_Layer.o Vector_Patch.o $(SNAPPY_OBJ)
+	Vector_Layer.o Vector_Patch.o $(SNAPPY_OBJ) \
+	County.o
 	# ODEIntraHost.o ODE.o
 
 SRC = $(OBJ:.o=.cc)

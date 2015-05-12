@@ -63,8 +63,6 @@ Household::Household() {
   this->hh_working_adult_using_sick_leave = false;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
-  this->county_index = -1;
-  this->census_tract_index = -1;
   this->deme_id = ' ';
   this->N = 0;
   this->group_quarters_units = 0;
@@ -85,8 +83,6 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->able_to_receive_healthcare = true;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
-  this->county_index = -1;
-  this->census_tract_index = -1;
   this->deme_id = ' ';
   setup(lab, lon, lat, container, pop);
   this->N = 0;

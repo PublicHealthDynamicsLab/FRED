@@ -125,8 +125,8 @@ public:
           hh = static_cast<Household*>(p->get_permanent_household());
         }
       }
-      int c = hh->get_county();
-      int h_county = Global::Places.get_county_with_index(c);
+      int c = hh->get_county_index();
+      int h_county = Global::Places.get_fips_of_county_with_index(c);
       this->counties.insert(h_county);
       if(p->is_student()){
 	      int age_ = 0;

@@ -282,22 +282,6 @@ public:
     return this->group_quarters_units;
   }
 
-  void set_county(int _county_index) {
-    this->county_index = _county_index;
-  }
-
-  int get_county() {
-    return this->county_index;
-  }
-
-  int get_census_tract_index() {
-    return this->census_tract_index;
-  }
-
-  void set_census_tract_index(int _census_tract_index) {
-    this->census_tract_index = _census_tract_index;
-  }
-
   void set_shelter(bool _sheltering) {
     this->sheltering = _sheltering;
   }
@@ -474,8 +458,6 @@ private:
   int shelter_end_day;
   int household_income;
   int household_income_code;
-  int county_index;
-  int census_tract_index;
   int income_quartile;
 
   // true iff a household member is at one of the places for an extended absence

@@ -139,8 +139,8 @@ void Travel::setup_travelers_per_hub() {
     double h_lon = h->get_longitude();
     int census_tract_index = h->get_census_tract_index();
     long int h_id = Global::Places.get_census_tract_with_index(census_tract_index);
-    int c = h->get_county();
-    int h_county = Global::Places.get_county_with_index(c);
+    int c = h->get_county_index();
+    int h_county = Global::Places.get_fips_of_county_with_index(c);
     FRED_VERBOSE(2,"h_id: %li h_county: %i \n", h_id, h_county);
     // find the travel hub closest to this household
     double max_distance = 166.0;		// travel at most 100 miles to nearest airport

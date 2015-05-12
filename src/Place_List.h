@@ -38,7 +38,7 @@ typedef std::unordered_map<std::string, int> LabelMapT;
 #include "Household.h"
 #include "Place.h"
 #include "Utils.h"
-
+#include "County.h"
 
 class School;
 class Neighborhood;
@@ -161,12 +161,17 @@ public:
     return (int)this->counties.size();
   }
 
-  int get_county_with_index(int index) {
+  County * get_county_with_index(int index) {
+    assert (index < this->counties.size());
+    return this->counties[index];
+  }
+
+  int get_fips_of_county_with_index(int index) {
     if(index < 0) {
       return 99999;
     }
     assert (index < this->counties.size());
-    return this->counties[index];
+    return this->counties[index]->get_fips();
   }
 
   int get_population_of_county_with_index(int index) {
@@ -174,7 +179,7 @@ public:
       return 0;
     }
     assert (index < this->counties.size());
-    return this->county_population[index];
+    return this->counties[index]->get_popsize();
   }
 
   void increment_population_of_county_with_index(int index) {
@@ -182,7 +187,9 @@ public:
       return;
     }
     assert (index < this->counties.size());
-    this->county_population[index]++;
+    int fips = this->counties[index]->get_fips();
+    printf("increment pop of count with index = %d anf fips = %d\n", index, fips);
+    this->counties[index]->increment_popsize();
     return;
   }
 
@@ -191,7 +198,7 @@ public:
       return;
     }
     assert (index < this->counties.size());
-    this->county_population[index]--;
+    this->counties[index]->decrement_popsize();
     return;
   }
 
@@ -209,6 +216,9 @@ public:
   bool is_load_completed() {
     return this->load_completed;
   }
+
+  void update_population_dynamics(int day);
+
 
 private:
 
@@ -231,13 +241,10 @@ private:
   std::vector<Place*> households;
 
   // list of counties
-  vector<int> counties;
-
-  // list of county populations
-  vector<int> county_population;
+  std::vector<County *> counties;
 
   // list of census_tracts
-  vector<long int> census_tracts;
+  std::vector<long int> census_tracts;
 
   // mean size of "household" associated with group quarters
   static double College_dorm_mean_size;

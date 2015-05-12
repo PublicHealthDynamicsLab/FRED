@@ -175,6 +175,8 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
       }
     */
   }
+  this->county_index = -1;
+  this->census_tract_index = -1;
 }
 
 void Place::reset_place_state(int disease_id) {

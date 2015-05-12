@@ -338,7 +338,7 @@ void Place_List::get_parameters() {
     }
   } else if(strcmp(Global::City, "none") != 0) {
 
-    // city param overrides the  synthetic_population_id
+    // city param overrides the synthetic_population_id
 
     // delete any commas and periods
     Utils::delete_char(Global::City, ',', FRED_STRING_SIZE);
@@ -475,7 +475,6 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   this->households.clear();
   this->hospitals.clear();
   this->counties.clear();
-  this->county_population.clear();
   this->census_tracts.clear();
 
   // store the number of demes as member variable
@@ -518,7 +517,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   }
 
   for(int i = 0; i < this->counties.size(); ++i) {
-    FRED_VERBOSE(0, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+    int fips = this->counties[i]->get_fips();
+    FRED_VERBOSE(0, "COUNTIES[%d] = %d\n", i, fips);
   }
   for(int i = 0; i < this->census_tracts.size(); ++i) {
     FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %ld\n", i, this->census_tracts[i]);
@@ -570,7 +570,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     }
     if(place_type == Place::HOUSEHOLD) {
       place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat, container, &Global::Pop);
-      place->set_household_fips(this->counties[(*itr).county]);  //resid_imm
+      place->set_household_fips(this->counties[(*itr).county]->get_fips());  //resid_imm
       Household* h = static_cast<Household*>(place);
       // ensure that household income is non-negative
       h->set_household_income((*itr).income > 0 ? (*itr).income : 0);
@@ -579,17 +579,18 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 	      h->set_group_quarters_units((*itr).group_quarters_units);
 	      h->set_group_quarters_workplace(get_place_from_label((*itr).gq_workplace));
       }
-      h->set_county((*itr).county);
+      h->set_county_index((*itr).county);
       h->set_census_tract_index((*itr).census_tract_index);
       h->set_shelter(false);
       this->households.push_back(h);
+      this->counties[(*itr).county]->add_household(h);
       if(Global::Enable_Visualization_Layer) {
 	    long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
 	    Global::Visualization->add_census_tract(census_tract);
       }
     } else if(place_type == Place::SCHOOL) {
       place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat, container, &Global::Pop);
-      (static_cast<School*>(place))->set_county((*itr).county);
+      (static_cast<School*>(place))->set_county_index((*itr).county);
     } else if(place_type == Place::WORKPLACE) {
       place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat, container, &Global::Pop);
     } else if(place_type == Place::HOSPITAL) {
@@ -726,7 +727,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   read_household_file(deme_id, location_file, pids);
   fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
   }
 
   // read workplace locations
@@ -738,7 +739,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   read_school_file(deme_id, location_file, pids);
   fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
   for(int i = 0; i < this->counties.size(); i++) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
   }
 
   // read hospital locations
@@ -755,7 +756,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   }
   fprintf(Global::Statusfp, "COUNTIES AFTER READING GQ\n");
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]);
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
   }
 }
 
@@ -818,13 +819,13 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       // find the county index for this fips code
       int n_counties = this->counties.size();
       for(county = 0; county < n_counties; county++) {
-        if(this->counties[county] == fips) {
+        if(this->counties[county]->get_fips() == fips) {
           break;
         }
       }
       if(county == n_counties) {
-        this->counties.push_back(fips);
-        this->county_population.push_back(0);
+	County * new_county = new County(fips);
+        this->counties.push_back(new_county);
       }
 
       SetInsertResultT result =
@@ -966,7 +967,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
 	      // find the county index for this fips code
 	      int n_counties = counties.size();
 	      for(county = 0; county < n_counties; ++county) {
-	        if(counties[county] == fips) {
+	        if(counties[county]->get_fips() == fips) {
 	          break;
 	        }
 	      }
@@ -983,7 +984,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
       if(result.second) {
         ++(this->place_type_counts[place_type]);
         FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| county %d\n", s, place_type, result.first->lat,
-		     result.first->lon, tokens[ name ], get_county_with_index(county));
+		     result.first->lon, tokens[ name ], get_fips_of_county_with_index(county));
       }
     }
     tokens.clear();
@@ -1064,13 +1065,13 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       // find the county index for this fips code
       int n_counties = counties.size();
       for(county = 0; county < n_counties; county++) {
-        if(counties[county] == fips) {
+        if(counties[county]->get_fips() == fips) {
           break;
         }
       }
       if(county == n_counties) {
-        counties.push_back(fips);
-        this->county_population.push_back(0);
+	County * new_county = new County(fips);
+        this->counties.push_back(new_county);
       }
 
       // set number of units and subtype for this group quarters
@@ -1600,17 +1601,6 @@ void Place_List::setup_households() {
     }
   }
 
-  // get the initial populations of all counties
-  /* NOTE: now done in Activities::setup()
-  for(int i = 0; i < num_households; ++i) {
-    Household * h = this->get_household_ptr(i);
-    int size = h->get_size();
-    int c = h->get_county();
-    // add to county population
-    county_population[c] += size;
-  }
-  */
-
   FRED_STATUS(0, "setup households finished\n", "");
 }
 
@@ -2023,8 +2013,8 @@ void Place_List::report_household_incomes() {
   if(Global::Verbose > 1) {
     for(int i = 0; i < num_households; ++i) {
       Household* h = this->get_household_ptr(i);
-      int c = h->get_county();
-      int h_county = Global::Places.get_county_with_index(c);
+      int c = h->get_county_index();
+      int h_county = Global::Places.get_fips_of_county_with_index(c);
       FRED_VERBOSE(0, "INCOME: %s %c %f %f %d %d\n", h->get_label(), h->get_type(), h->get_latitude(),
 		   h->get_longitude(), h->get_household_income(), h_county);
     }
@@ -2484,10 +2474,6 @@ Place* Place_List::select_school(int county_index, int grade) {
   int size = this->schools_by_grade[grade].size();
   for(int i = 0; i < size; ++i) {
     School* school = static_cast<School*>(this->schools_by_grade[grade][i]);
-    /*
-    if (county_index != school->get_county())
-      continue;
-    */
     int orig = school->get_orig_students_in_grade(grade);
     // the following treats schools with fewer than 20 original
     // students as an anomaly due to incomplete representation of
@@ -2560,3 +2546,9 @@ void Place_List::find_visitors_to_infectious_places(int day) {
   }
 }
 
+void Place_List::update_population_dynamics(int day) {
+  int number_counties = this->counties.size();
+  for (int i = 0; i < number_counties; ++i) {
+    this->counties[i]->update(day);
+  }
+}
