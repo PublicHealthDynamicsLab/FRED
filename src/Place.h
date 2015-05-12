@@ -858,7 +858,7 @@ public:
     return infectious_places.size();
   }
 
-  static Place * get_infectious_place(int n) {
+  static Place* get_infectious_place(int n) {
     return infectious_places[n];
   }
   

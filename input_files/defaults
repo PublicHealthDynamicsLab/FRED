@@ -49,6 +49,13 @@ track_infection_events = 0
 track_age_distribution = 0
 track_household_distribution = 0
 track_network_stats = 0
+
+# report_age_of_infection
+# 1 (Infants, Toddlers, Preschool, Students, Elementary, Highschool, Young_adults, Adults, Elderly)
+# 2 = (Infants, Toddlers, Pre-k, Elementary, Highschool, Young_adults, Adults, Elderly)
+# 3 = (0_4, 5_17, 18_49, 50_64, 65_up)
+# 4 = (Every age from 0 to MAX_AGE)
+# 5+ Report by age_of_infection_log_level
 report_age_of_infection = 0
 report_transmission_by_age = 0
 
@@ -500,6 +507,8 @@ HAZEL_reopening_CDF = 0
 HAZEL_disaster_start_day = -1
 HAZEL_disaster_end_day = -1
 HAZEL_disaster_max_bed_usage_multiplier = 1.0
+HAZEL_hospital_init_file_directory = $FRED_HOME/input_files
+HAZEL_hospital_init_file_name = none
 
 ##########################################################
 #

@@ -535,6 +535,22 @@ public:
   }
 
   /**
+   * @return a pointer to this Person's Hospital
+   * @see Activities::get_hospital()
+   */
+  Place* get_hospital() {
+    return this->activities.get_hospital();
+  }
+
+  /**
+   * @return a pointer to this Person's Ad Hoc location
+   * @see Activities::get_ad_hoc()
+   */
+  Place* get_ad_hoc() {
+    return this->activities.get_ad_hoc();
+  }
+
+  /**
    *  @return the number of other agents in an agent's neighborhood, school, and workplace.
    *  @see Activities::get_degree()
    */

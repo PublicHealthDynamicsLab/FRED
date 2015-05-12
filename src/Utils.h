@@ -155,6 +155,7 @@ namespace Utils {
   void get_next_token(char* out_string, char** input_string);
   void delete_char(char* s, char c, int maxlen);
   void normalize_white_space(char* s);
+  bool to_bool(string s);
 
   class Tokens {
     std::vector<std::string> tokens;

@@ -1761,20 +1761,19 @@ void Population::write_population_output_file(int day) {
   //Loop over the whole population and write the output of each Person's to_string to the file
   char population_output_file[FRED_STRING_SIZE];
   sprintf(population_output_file, "%s/%s_%s.txt", Global::Output_directory, Population::pop_outfile,
-      (char *)Date::get_date_string().c_str());
+      Date::get_date_string().c_str());
   FILE* fp = fopen(population_output_file, "w");
   if(fp == NULL) {
     Utils::fred_abort("Help! population_output_file %s not found\n", population_output_file);
   }
 
-  //  fprintf(fp, "Population for day %d\n", day);
-  //  fprintf(fp, "------------------------------------------------------------------\n");
-  for(int p = 0; p < this->blq.get_index_size(); ++p) {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
+    if(person != NULL) {
+      fprintf(fp, "%s\n", person->to_string().c_str());
     }
-    fprintf(fp, "%s\n", person->to_string().c_str());
   }
   fflush(fp);
   fclose(fp);

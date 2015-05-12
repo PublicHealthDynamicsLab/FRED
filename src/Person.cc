@@ -170,7 +170,7 @@ char* get_place_label(Place* p) {
 string Person::to_string() {
 
   stringstream tmp_string_stream;
-  // (i.e *ID* Age Sex Household School *Classroom* Workplace *Office* Relationship)
+  // (i.e *ID* Age Sex Race Household School Classroom Workplace Office Neighborhood Hospital Ad_Hoc Relationship)
   tmp_string_stream << this->id << " " << get_age() << " " <<  get_sex() << " " ;
   tmp_string_stream << get_race() << " " ;
   tmp_string_stream << get_place_label(get_household()) << " ";
@@ -178,6 +178,9 @@ string Person::to_string() {
   tmp_string_stream << get_place_label(get_classroom()) << " ";
   tmp_string_stream << get_place_label(get_workplace()) << " ";
   tmp_string_stream << get_place_label(get_office()) << " ";
+  tmp_string_stream << get_place_label(get_neighborhood()) << " ";
+  tmp_string_stream << get_place_label(get_hospital()) << " ";
+  tmp_string_stream << get_place_label(get_ad_hoc()) << " ";
   tmp_string_stream << get_relationship();
 
   return tmp_string_stream.str();

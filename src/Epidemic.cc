@@ -649,7 +649,7 @@ void Epidemic::report_age_of_infection(int day) {
     if(age_group > 20) {
       age_group = 20;
     }
-    if(Global::Report_Age_Of_Infection > 2) {
+    if(Global::Report_Age_Of_Infection > 3) {
       age_group = age;
       if(age_group > Demographics::MAX_AGE) {
         age_group = Demographics::MAX_AGE;
@@ -676,8 +676,7 @@ void Epidemic::report_age_of_infection(int day) {
       } else if(65 <= real_age) {
         elderly++;
       }
-    }
-    else if (Global::Report_Age_Of_Infection == 2) {
+    } else if (Global::Report_Age_Of_Infection == 2) {
       if(real_age < 19.0/12.0) {
         infants++;
       } else if(real_age < 3.0) {
@@ -689,6 +688,18 @@ void Epidemic::report_age_of_infection(int day) {
       } else if(real_age < 18.0) {
         high_school++;
       } else if(real_age < 21.0) {
+        young_adults++;
+      } else if(real_age < 65.0) {
+        adults++;
+      } else if(65 <= real_age) {
+        elderly++;
+      }
+    } else if (Global::Report_Age_Of_Infection == 3) {
+      if(real_age < 5.0) {
+        pre_school++;
+      } else if(real_age < 18.0) {
+        high_school++;
+      } else if(real_age < 50.0) {
         young_adults++;
       } else if(real_age < 65.0) {
         adults++;
@@ -707,52 +718,62 @@ void Epidemic::report_age_of_infection(int day) {
   //Store for daily output file
   track_value(day, (char*)"Age_at_infection", mean_age);
 
-  if(Global::Report_Age_Of_Infection == 1) {
-    track_value(day, (char*)"Infants", infants);
-    track_value(day, (char*)"Toddlers", toddlers);
-    track_value(day, (char*)"Preschool", pre_school);
-    track_value(day, (char*)"Students", elementary+high_school);
-    track_value(day, (char*)"Elementary", elementary);
-    track_value(day, (char*)"Highschool", high_school);
-    track_value(day, (char*)"Young_adults", young_adults);
-    track_value(day, (char*)"Adults", adults);
-    track_value(day, (char*)"Elderly", elderly);
-  }
-  if(Global::Report_Age_Of_Infection == 2) {
-    track_value(day, (char*)"Infants", infants);
-    track_value(day, (char*)"Toddlers", toddlers);
-    track_value(day, (char*)"Pre-k", pre_school);
-    track_value(day, (char*)"Elementary", elementary);
-    track_value(day, (char*)"Highschool", high_school);
-    track_value(day, (char*)"Young_adults", young_adults);
-    track_value(day, (char*)"Adults", adults);
-    track_value(day, (char*)"Elderly", elderly);
-  }
-  if(Global::Report_Age_Of_Infection == 3) {
-    for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-      char temp_str[10];
-      sprintf(temp_str, "A%d", i);
-      track_value(day,temp_str, age_count[i]);
-      sprintf(temp_str, "Age%d", i);
-      track_value(day,temp_str, 
-		  Global::Popsize_by_age[i] ?
-		  (100000.0 * age_count[i] / static_cast<double>(Global::Popsize_by_age[i]))
-		  : 0.0);
-    }
-  } else {
-    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
-      report_transmission_by_age_group_to_file(day);
-    }
-    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
-      for(int i = 0; i <= 20; ++i) {
-	      char temp_str[10];
-	      //Write to log file
-	      sprintf(temp_str, "A%d", i * 5);
-	      //Store for daily output file
-	      track_value(day, temp_str, age_count[i]);
-	      Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
+  switch(Global::Report_Age_Of_Infection) {
+    case 1:
+      track_value(day, (char*)"Infants", infants);
+      track_value(day, (char*)"Toddlers", toddlers);
+      track_value(day, (char*)"Preschool", pre_school);
+      track_value(day, (char*)"Students", elementary+high_school);
+      track_value(day, (char*)"Elementary", elementary);
+      track_value(day, (char*)"Highschool", high_school);
+      track_value(day, (char*)"Young_adults", young_adults);
+      track_value(day, (char*)"Adults", adults);
+      track_value(day, (char*)"Elderly", elderly);
+      break;
+    case 2:
+      track_value(day, (char*)"Infants", infants);
+      track_value(day, (char*)"Toddlers", toddlers);
+      track_value(day, (char*)"Pre-k", pre_school);
+      track_value(day, (char*)"Elementary", elementary);
+      track_value(day, (char*)"Highschool", high_school);
+      track_value(day, (char*)"Young_adults", young_adults);
+      track_value(day, (char*)"Adults", adults);
+      track_value(day, (char*)"Elderly", elderly);
+      break;
+    case 3:
+      track_value(day, (char*)"0_4", pre_school);
+      track_value(day, (char*)"5_17", high_school);
+      track_value(day, (char*)"18_49", young_adults);
+      track_value(day, (char*)"50_64", adults);
+      track_value(day, (char*)"65_up", elderly);
+      break;
+    case 4:
+      for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
+        char temp_str[10];
+        sprintf(temp_str, "A%d", i);
+        track_value(day,temp_str, age_count[i]);
+        sprintf(temp_str, "Age%d", i);
+        track_value(day, temp_str,
+          Global::Popsize_by_age[i] ?
+            (100000.0 * age_count[i] / static_cast<double>(Global::Popsize_by_age[i]))
+            : 0.0);
       }
-    }
+      break;
+    default:
+      if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
+        report_transmission_by_age_group_to_file(day);
+      }
+      if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
+        for(int i = 0; i <= 20; ++i) {
+          char temp_str[10];
+          //Write to log file
+          sprintf(temp_str, "A%d", i * 5);
+          //Store for daily output file
+          track_value(day, temp_str, age_count[i]);
+          Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
+        }
+      }
+      break;
   }
   Utils::fred_log("\n");
 }
