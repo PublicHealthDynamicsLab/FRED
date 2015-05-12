@@ -48,7 +48,7 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
-  // behavior setup called externally, after entire population is available
+  // Note: behavior setup is called externally, after entire population is available
 
   myFIPS = house->get_household_fips();
   if (today_is_birthday) {
@@ -75,7 +75,6 @@ void Person::setup(int _index, int _id, int age, char sex,
 	        become_immune(dis);
 	    }
 	}
-    
   }
 }
 

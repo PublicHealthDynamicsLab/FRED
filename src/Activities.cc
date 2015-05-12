@@ -182,7 +182,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 	       self->get_id(), self->get_age(), house->get_label());
 
   // increase the population in county of residence
-  int index = ((Household *)get_household())->get_county();
+  int index = get_household()->get_county_index();
   Global::Places.increment_population_of_county_with_index(index);
 
   // get the neighborhood from the household
@@ -1089,7 +1089,7 @@ void Activities::assign_school(Person* self) {
     }
   }
   assert(hh != NULL);
-  Place* school = Global::Places.select_school(hh->get_county(), grade);
+  Place* school = Global::Places.select_school(hh->get_county_index(), grade);
   assert(school != NULL);
   FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
 	       school->get_label(), self->get_id(), self->get_age());
@@ -1652,7 +1652,7 @@ void Activities::terminate(Person* self) {
   }
 
   // decrease the population in county of residence
-  int index = ((Household *)get_household())->get_county();
+  int index = get_household()->get_county_index();
   Global::Places.decrement_population_of_county_with_index(index);
 
   // withdraw from society

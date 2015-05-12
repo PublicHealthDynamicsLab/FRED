@@ -188,7 +188,7 @@ public:
     }
     assert (index < this->counties.size());
     int fips = this->counties[index]->get_fips();
-    printf("increment pop of count with index = %d anf fips = %d\n", index, fips);
+    // printf("increment pop of count with index = %d and fips = %d\n", index, fips);
     this->counties[index]->increment_popsize();
     return;
   }

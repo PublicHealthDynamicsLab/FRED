@@ -219,7 +219,6 @@ void Population::setup() {
   this->pop_size = 0;
   this->death_list.clear();
   read_all_populations();
-  Demographics::set_initial_popsize(this->pop_size);
 
   if(Global::Verbose > 0) {
     for(int d = 0; d < Global::Diseases; ++d) {
@@ -332,6 +331,7 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
   // flag for 2010_ver1 format
   bool is_2010_ver1_format = false;
 
+  int n = 0;
   while(stream.good()) {
     char line[FRED_STRING_SIZE];
     stream.getline(line, FRED_STRING_SIZE);
@@ -347,7 +347,7 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
       continue;
     }
 
-    //printf("line: |%s|\n", line); fflush(stdout); // exit(0);
+    // printf("line: |%s|\n", line); fflush(stdout); // exit(0);
     const Person_Init_Data &pid = get_person_init_data(line,
 							is_group_quarters_pop,
 							is_2010_ver1_format);
@@ -361,16 +361,6 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
     if(strcmp(pid.label, "p_id") == 0) {
       continue;
     }
-    /*
-     printf("|%s %d %c %d %s %s %s %d|\n", label, age, sex, race
-     house_label, work_label, school_label, relationship);
-     fflush(stdout);
-
-     if (strcmp(work_label,"-1") && strcmp(school_label,"-1")) {
-     printf("STUDENT-WORKER: %s %d %c %s %s\n", label, age, sex, work_label, school_label);
-     fflush(stdout);
-     }
-     */
     if(pid.house != NULL) {
       // create a Person_Init_Data object
       pidv.push_back(pid);
@@ -380,7 +370,10 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
       FRED_VERBOSE(0, "WARNING: skipping person %s -- %s %s\n", pid.label,
           "no household found for label =", pid.house_label);
     }
+    FRED_VERBOSE(1, "person %d = %s -- house_label %s\n", n, pid.label, pid.house_label);
+    n++;
   } // <----- end while loop over stream
+  FRED_VERBOSE(0, "end of stream, persons = %d\n", n);
 
   // Iterate through vector of already parsed initialization data and
   // add to population bloque.  More efficient to do this in batches; also
@@ -495,6 +488,10 @@ void Population::read_all_populations() {
   }
 
   this->load_completed = true;
+
+  if(Global::Enable_Population_Dynamics) {
+    initialize_demographic_dynamics();
+  }
 }
 
 void Population::Setup_Population_Behavior::operator() (Person &p) {
@@ -1836,6 +1833,18 @@ void Population::add_visitors_to_infectious_places(int day) {
     Person* person = get_person_by_index(p);
     if(person != NULL) {
       person->get_activities()->add_visitor_to_infectious_places(person,day);
+    }
+  }
+}
+
+
+void Population::initialize_demographic_dynamics() {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person != NULL) {
+      person->get_demographics()->initialize_demographic_dynamics(person);
     }
   }
 }

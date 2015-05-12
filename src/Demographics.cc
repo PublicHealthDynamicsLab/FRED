@@ -31,19 +31,31 @@ class Global;
 const double Demographics::MEAN_PREG_DAYS = 280.0; //40 weeks
 const double Demographics::STDDEV_PREG_DAYS = 7.0; //1 week
 
-bool Demographics::is_initialized = false;
+// birth and death stats
 int Demographics::births_today = 0;
 int Demographics::births_ytd = 0;
 int Demographics::total_births = 0;
 int Demographics::deaths_today = 0;
 int Demographics::deaths_ytd = 0;
 int Demographics::total_deaths = 0;
+
 std::vector<Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
 std::map<Person*, int> Demographics::birthday_map;
 
 Events* Demographics::conception_queue = new Events;
 Events* Demographics::maternity_queue = new Events;
 Events* Demographics::mortality_queue = new Events;
+
+
+void Demographics::initialize_static_variables() {
+  // clear birthday lists
+  Demographics::birthday_map.clear();
+  for(int i = 0; i < 367; ++i) {
+    Demographics::birthday_vecs[i].reserve(100);
+    Demographics::birthday_vecs[i].clear();
+  }
+}
+
 
 Demographics::Demographics() {
   this->init_age = -1;
@@ -95,82 +107,88 @@ void Demographics::setup(Person* self, short int _age, char _sex,
     // pick a random birthday in the previous year
     this->birthday_sim_day -= IRAND(1,365);
   }
-
-  if(Global::Enable_Population_Dynamics) {
-
-    // will this person die in the next year?
-    double age_specific_probability_of_death = 0.0;
-    if(Demographics::MAX_AGE <= this->age) {
-      age_specific_probability_of_death = 1.0;
-      // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
-    /*} else if (self->is_nursing_home_resident()) {
-      age_specific_probability_of_death = 0.25;
-    }*/
-    } else {
-      // look up mortality in the mortality rate tables
-      int county_index = self->get_household()->get_county_index();
-      age_specific_probability_of_death = Global::Places.get_county_with_index(county_index)->get_mortality_rate(this->age, this->sex);
-    }
-
-    if(RANDOM() <= age_specific_probability_of_death) {
-      //Yes, so set the death day (in simulation days)
-      this->deceased_sim_day = (day + IRAND(1, 364));
-      Demographics::add_mortality_event(this->deceased_sim_day, self);
-      FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
-		    day, self->get_id(), age, deceased_sim_day);
-    }
-
-    // set pregnancy status
-    int county_index = self->get_household()->get_county_index();
-    double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
-    if(this->sex == 'F' &&
-       Demographics::MIN_PREGNANCY_AGE <= this->age &&
-       this->age <= Demographics::MAX_PREGNANCY_AGE &&
-       self->lives_in_group_quarters() == false &&
-       RANDOM() < pregnancy_rate) {
-
-      // decide if already pregnant
-      int current_day_of_year = Date::get_day_of_year(day);
-      int days_since_birthday = current_day_of_year - Date::get_day_of_year(this->birthday_sim_day);
-      if(days_since_birthday < 0) {
-	days_since_birthday += 365;
-      }
-      double fraction_of_year = (double) days_since_birthday / 366.0;
-
-      if(RANDOM() < fraction_of_year) {
-	// already pregnant
-	this->conception_sim_day = day - IRAND(0,days_since_birthday); 
-	int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
-	this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
-	if (this->maternity_sim_day > 0) {
-	  Demographics::add_maternity_event(maternity_sim_day, self);
-	  FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
-		      day, self->get_id(),age,maternity_sim_day);
-	  this->pregnant = true;
-	  this->conception_sim_day = -1;
-	}
-	else {
-	  // already gave birth before start of sim
-	  this->pregnant = false;
-	  this->conception_sim_day = -1;
-	}
-      }
-      else {
-	// will conceive before next birthday
-	this->conception_sim_day = day + IRAND(1,365-days_since_birthday);
-	Demographics::add_conception_event(this->conception_sim_day, self);
-	FRED_STATUS(1, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
-		    day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
-      }
-    } // end test for pregnancy
-
-    Demographics::add_to_birthday_list(self);
-  } // end population_dynamics
-
 }
 
 Demographics::~Demographics() {
 }
+
+void Demographics::initialize_demographic_dynamics(Person *self) {
+
+  FRED_VERBOSE(1, "demographic dynamics: id = %d age = %d\n", self->get_id(), this->age);
+
+  int day = 0;
+
+  // add self to birthday list
+  Demographics::add_to_birthday_list(self);
+
+  // will this person die in the next year?
+  double age_specific_probability_of_death = 0.0;
+  if(Demographics::MAX_AGE <= this->age) {
+    age_specific_probability_of_death = 1.0;
+    printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
+    /*} else if (self->is_nursing_home_resident()) {
+      age_specific_probability_of_death = 0.25;
+      }*/
+  } else {
+    // look up mortality in the mortality rate tables
+    int county_index = self->get_household()->get_county_index();
+    int fips = Global::Places.get_fips_of_county_with_index(county_index);
+    age_specific_probability_of_death = Global::Places.get_county_with_index(county_index)->get_mortality_rate(this->age, this->sex);
+  }
+  
+  if(RANDOM() <= age_specific_probability_of_death) {
+    //Yes, so set the death day (in simulation days)
+    this->deceased_sim_day = (day + IRAND(1, 364));
+    Demographics::add_mortality_event(this->deceased_sim_day, self);
+    FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
+		day, self->get_id(), age, deceased_sim_day);
+  }
+  
+  // set pregnancy status
+  int county_index = self->get_household()->get_county_index();
+  double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
+  if(this->sex == 'F' &&
+     Demographics::MIN_PREGNANCY_AGE <= this->age &&
+     this->age <= Demographics::MAX_PREGNANCY_AGE &&
+     self->lives_in_group_quarters() == false &&
+     RANDOM() < pregnancy_rate) {
+    
+    // decide if already pregnant
+    int current_day_of_year = Date::get_day_of_year(day);
+    int days_since_birthday = current_day_of_year - Date::get_day_of_year(this->birthday_sim_day);
+    if(days_since_birthday < 0) {
+      days_since_birthday += 365;
+    }
+    double fraction_of_year = (double) days_since_birthday / 366.0;
+    
+    if(RANDOM() < fraction_of_year) {
+      // already pregnant
+      this->conception_sim_day = day - IRAND(0,days_since_birthday); 
+      int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+      this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
+      if (this->maternity_sim_day > 0) {
+	Demographics::add_maternity_event(maternity_sim_day, self);
+	FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",
+		    day, self->get_id(),age,maternity_sim_day);
+	this->pregnant = true;
+	this->conception_sim_day = -1;
+      }
+      else {
+	// already gave birth before start of sim
+	this->pregnant = false;
+	this->conception_sim_day = -1;
+      }
+    }
+    else {
+      // will conceive before next birthday
+      this->conception_sim_day = day + IRAND(1,365-days_since_birthday);
+      Demographics::add_conception_event(this->conception_sim_day, self);
+      FRED_STATUS(1, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
+		  day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
+    }
+  } // end test for pregnancy
+}
+
 
 int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
   int day_of_year = Date::get_day_of_year(this->birthday_sim_day);
@@ -371,30 +389,6 @@ int find_fips_code(int n) {
   return -1;
 }
 
-void Demographics::initialize_static_variables() {
-
-  if(Demographics::is_initialized ) {
-    return;
-  }
-  Demographics::is_initialized = true;
-
-  if(Global::Verbose) {
-    fprintf(Global::Statusfp, "Demographics::initialize_static_variables() entered\n");
-    fflush(Global::Statusfp);
-  }
-
-  // clear birthday lists
-  Demographics::birthday_map.clear();
-  for(int i = 0; i < 367; ++i) {
-    Demographics::birthday_vecs[i].reserve(100);
-    Demographics::birthday_vecs[i].clear();
-  }
-
-  if(Global::Verbose) {
-    fprintf(Global::Statusfp, "Demographics::initialize_static_vars finished\n"); fflush(Global::Statusfp);
-  }
-}
-
 
 void Demographics::update(int day) {
 
@@ -405,12 +399,15 @@ void Demographics::update(int day) {
   Demographics::update_people_on_birthday_list(day);
 
   // initiate pregnancies
+  // FRED_VERBOSE(0, "conception queue\n");
   Demographics::conception_queue->event_handler(day, Demographics::conception_handler);
 
   // add newborns to the population
+  // FRED_VERBOSE(0, "maternity queue\n");
   Demographics::maternity_queue->event_handler(day, Demographics::maternity_handler);
 
   // remove dead from population
+  // FRED_VERBOSE(0, "mortality queue\n");
   Demographics::mortality_queue->event_handler(day, Demographics::mortality_handler);
 
   return;
@@ -470,7 +467,7 @@ void Demographics::update_people_on_birthday_list(int day) {
     birthday_count++;
   }
   
-  FRED_VERBOSE(0, "update_people_on_birthday_list: index = %d count = %d\n",
+  FRED_VERBOSE(1, "update_people_on_birthday_list: index = %d count = %d\n",
 	       birthday_index, birthday_count);
 }
 

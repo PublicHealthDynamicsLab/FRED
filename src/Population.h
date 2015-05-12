@@ -285,6 +285,8 @@ public:
 
   void add_visitors_to_infectious_places(int day);
 
+  void initialize_demographic_dynamics();
+
   void update_traveling_people(int day);
 
   bool is_load_completed() {

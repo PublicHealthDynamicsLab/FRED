@@ -82,7 +82,7 @@ void Place::initialize_static_variables() {
       if (Place::Seasonality_multiplier[day] < 0.0) {
 	Place::Seasonality_multiplier[day] = 0.0;
       }
-      printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
+      // printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
     }
   }
 

@@ -30,14 +30,30 @@ class Date;
 class Demographics {
 public:
 
-  static const int MAX_AGE = 110;
+  static const int MAX_AGE = 100;
   static const int MIN_PREGNANCY_AGE = 12;
   static const int MAX_PREGNANCY_AGE = 60;
-
   static const double MEAN_PREG_DAYS;
   static const double STDDEV_PREG_DAYS;
 
+  // default constructor and destructor
+  Demographics();
   ~Demographics();
+
+  /**
+   * setup for two-phase construction; sets all of the attributes of a Demographics object
+   * @param self pointer to the Person object with which this Demographics object is associated
+   * @param _age
+   * @param _sex (M or F)
+   * @param day the simulation day
+   * @param is_newborn needed to know how to set the date of birth
+   */
+  void setup( Person * self, short int _age, char _sex, short int _race,
+	       short int rel, int day, bool is_newborn = false );
+
+  static void initialize_static_variables();
+
+  void initialize_demographic_dynamics(Person *self);
 
   /**
    * Perform the daily update for this object
@@ -119,7 +135,6 @@ public:
   void set_pregnant() { pregnant = true; }
   void unset_pregnant() { pregnant = false; }
 
-  static void initialize_static_variables();
   static int get_births_ytd() { return births_ytd; }
   static int get_total_births() { return total_births; }
   static int get_deaths_today() { return deaths_today; }
@@ -127,15 +142,13 @@ public:
   static int get_total_deaths() { return total_deaths; }
 
   // event handlers:
-  void cancel_conception( Person * self );
   static void conception_handler( int day, Person * self );
-
+  static void maternity_handler( int day, Person * self );
+  static void mortality_handler( int day, Person * self );
+  void cancel_conception( Person * self );
   void become_pregnant( int day, Person * self );
   void cancel_pregnancy( Person * self );
-  static void maternity_handler( int day, Person * self );
   void update_birth_stats( int day, Person * self );
-
-  static void mortality_handler( int day, Person * self );
   void die(int day, Person * self);
 
   // birthday lists
@@ -190,35 +203,19 @@ private:
   int conception_sim_day;	  // When the agent will become pregnant
   int maternity_sim_day;	       // When the agent will give birth
 
-  static bool is_initialized;
   static int births_today;
   static int births_ytd;
   static int total_births;
   static int deaths_today;
   static int deaths_ytd;
   static int total_deaths;
+
   static std::vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
   static std::map<Person*, int> birthday_map;
 
 protected:
 
   friend class Person;
-  /**
-   * Default constructor
-   */
-  Demographics();
-
-  /**
-   * setup for two-phase construction; sets all of the attributes of a Demographics object
-   * @param self pointer to the Person object with which this Demographics object is associated
-   * @param _age
-   * @param _sex (M or F)
-   * @param day the simulation day
-   * @param is_newborn needed to know how to set the date of birth
-   */
-  void setup( Person * self, short int _age, char _sex, short int _race,
-	       short int rel, int day, bool is_newborn = false );
-
 
 };
 
