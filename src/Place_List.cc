@@ -164,10 +164,11 @@ void Place_List::get_parameters() {
   }
 
   if(Global::Enable_Hospitals) {
-    char map_file_dir[FRED_STRING_SIZE];
-    char map_file_name[FRED_STRING_SIZE];
-    Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
-    Params::get_param_from_string("household_hospital_map_file", map_file_name);
+    char hosp_file_dir[FRED_STRING_SIZE];
+    char hh_hosp_map_file_name[FRED_STRING_SIZE];
+
+    Params::get_param_from_string("household_hospital_map_file_directory", hosp_file_dir);
+    Params::get_param_from_string("household_hospital_map_file", hh_hosp_map_file_name);
     Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
     Place_List::Hospital_worker_to_bed_ratio = (Place_List::Hospital_worker_to_bed_ratio == 0.0 ? 1.0 : Place_List::Hospital_worker_to_bed_ratio);
     Params::get_param_from_string("hospital_outpatients_per_day_per_employee", &Place_List::Hospital_outpatients_per_day_per_employee);
@@ -175,7 +176,7 @@ void Place_List::get_parameters() {
     Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
     Params::get_param_from_string("hospitalization_radius", &Place_List::Hospitalization_radius);
     Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
-    if(strcmp(map_file_name, "none") == 0) {
+    if(strcmp(hh_hosp_map_file_name, "none") == 0) {
       Place_List::Household_hospital_map_file_exists = false;
     } else {
       //If there is a file mapping Households to Hospitals, open it
@@ -183,7 +184,7 @@ void Place_List::get_parameters() {
 
       char filename[FRED_STRING_SIZE];
 
-      sprintf(filename, "%s%s", map_file_dir, map_file_name);
+      sprintf(filename, "%s%s", hosp_file_dir, hh_hosp_map_file_name);
 
       hospital_household_map_fp = Utils::fred_open_file(filename);
       if(hospital_household_map_fp != NULL) {
@@ -197,7 +198,6 @@ void Place_List::get_parameters() {
           tokens = Utils::split_by_delim(line, ',', tokens, false);
           // skip header line
           if(strcmp(tokens[hh_id], "hh_id") != 0 && strcmp(tokens[hh_id], "sp_id") != 0) {
-            char place_type = Place::WORKPLACE;
             char s[80];
 
             sprintf(s, "%s", tokens[hh_id]);
@@ -597,14 +597,12 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       Hospital* hosp = static_cast<Hospital*>(place);
       hosp->set_bed_count(static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0));
 
-      if(hosp->get_bed_count() < Place_List::Hospital_min_bed_threshold) {
-        hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
-        hosp->set_capacity(static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Healthcare_clinic_outpatients_per_day_per_employee);
-      } else {
+      if(Global::Enable_HAZEL && hosp->get_capacity() == -1) {
         int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Hospital_outpatients_per_day_per_employee;
         capacity += hosp->get_bed_count();
         hosp->set_capacity(capacity);
       }
+
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);
     }
@@ -1589,7 +1587,7 @@ void Place_List::setup_households() {
   // initialize the vector layer in proportion to the household population
   if(Global::Enable_Vector_Layer) {
     for(int i = 0; i < num_households; ++i) {
-      Household * house = this->get_household_ptr(i);
+      Household* house = this->get_household_ptr(i);
       Global::Vectors->add_hosts(house);
     }
   }
@@ -1597,21 +1595,10 @@ void Place_List::setup_households() {
   // add household list to visualization layer if needed
   if(Global::Enable_Visualization_Layer) {
     for(int i = 0; i < num_households; ++i) {
-      Household * h = this->get_household_ptr(i);
+      Household* h = this->get_household_ptr(i);
       Global::Visualization->add_household(h);
     }
   }
-
-  // get the initial populations of all counties
-  /* NOTE: now done in Activities::setup()
-  for(int i = 0; i < num_households; ++i) {
-    Household * h = this->get_household_ptr(i);
-    int size = h->get_size();
-    int c = h->get_county();
-    // add to county population
-    county_population[c] += size;
-  }
-  */
 
   FRED_STATUS(0, "setup households finished\n", "");
 }
@@ -1727,6 +1714,7 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
 	        // make all the workers in selected workplace as workers in the target place
 	        nearby_workplace->reassign_workers(place);
 	      }
+	      return;
       } else {
         FRED_VERBOSE(0, "NO NEARBY_WORKPLACE FOUND for place at lat %f lon %f \n", lat, lon);
       }
@@ -1764,6 +1752,7 @@ void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype,
       if(nearby_workplace != NULL) {
 	      // make all the workers in selected workplace as workers in the target place
 	      nearby_workplace->reassign_workers(place);
+	      return;
       } else {
         FRED_VERBOSE(0, "NO NEARBY_WORKPLACE FOUND for place at lat %f lon %f \n", lat, lon);
       }
@@ -1834,6 +1823,10 @@ void Place_List::assign_hospitals_to_households() {
       Params::get_param_from_string("household_hospital_map_file_directory", map_file_dir);
       Params::get_param_from_string("household_hospital_map_file", map_file_name);
 
+      if(strcmp(map_file_name, "none") == 0) {
+        this->household_hospital_map.clear();
+        return;
+      }
 
       char filename[FRED_STRING_SIZE];
       sprintf(filename, "%s%s", map_file_dir, map_file_name);
@@ -1858,34 +1851,30 @@ void Place_List::assign_hospitals_to_households() {
 }
 
 Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight) {
-  if(!Global::Enable_Hospitals) {
-    return NULL;
-  }
-  int size = static_cast<int>(this->hospitals.size());
-  if(size > 0) {
-    int start_pos = IRAND(0, size - 1); //Get a random start point
-    for(int i = start_pos; i < size; ++i) {
-      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-      if(check_hospital->should_be_open(day)) {
-        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-          return check_hospital;
+  if(Global::Enable_Hospitals) {
+    int size = static_cast<int>(this->hospitals.size());
+    if(size > 0) {
+      int start_pos = IRAND(0, size - 1); //Get a random start point
+      for(int i = start_pos; i < size; ++i) {
+        Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+        if(check_hospital->should_be_open(day)) {
+          if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+            return check_hospital;
+          }
+        }
+      }
+      //Didn't find match yet, so wrap to beginning of list
+      for(int i = 0; i < start_pos; ++i) {
+        Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
+        if(check_hospital->should_be_open(day)) {
+          if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
+            return check_hospital;
+          }
         }
       }
     }
-    //Didn't find match yet, so wrap to beginning of list
-    for(int i = 0; i < start_pos; ++i) {
-      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-      if(check_hospital->should_be_open(day)) {
-        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-          return check_hospital;
-        }
-      }
-    }
-    //Still couldn't find a match so return NULL
-    return NULL;
-  } else {
-    return NULL;
   }
+  return NULL;
 }
 
 Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight, Insurance_assignment_index::e insr_accepted) {

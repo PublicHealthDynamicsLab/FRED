@@ -54,6 +54,7 @@ class Workplace;
 // after Place_List class
 class Place_Init_Data;
 
+
 class Place_List {
 
   typedef std::set<Place_Init_Data> InitSetT;
@@ -274,6 +275,8 @@ private:
   static double Healthcare_clinic_outpatients_per_day_per_employee;
   static int Hospital_min_bed_threshold;
   static double Hospitalization_radius;
+
+  static bool HAZEL_hospital_init_map_file_exists ;
 
   // School support
   static int School_fixed_staff;

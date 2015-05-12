@@ -486,7 +486,7 @@ void Utils::get_next_token(char* out_string, char** input_string) {
       c++;    // search for closing quote
     }
     if(*c == '\0') {				// no closing quote
-      char *remainder;
+      char* remainder;
       remainder = strsep(input_string, "\"");
       // concatenate remainder of field onto out_string
       (void)strncat(out_string, remainder, sizeof(out_string) - strlen(remainder) - 1);
@@ -547,6 +547,12 @@ void Utils::normalize_white_space(char* s) {
       // printf("new_s = |%s|\n", new_s); fflush(stdout);
     }
   }
+}
+
+bool Utils::to_bool(string s) {
+  assert(s.size() == 1 && s[0] >= '0' && s[0] <= '1' );
+  bool b = (s[0] == '1');
+  return b;
 }
 
 // TODO Utils::tokens class for split_by_delim

@@ -20,6 +20,8 @@
 #include "Place.h"
 #include "Health.h"
 
+class HAZEL_Hospital_Init_Data;
+
 /**
  * This class represents a hospital location in the FRED application. It inherits from <code>Place</code>.
  * The class contains static variables that will be filled with values from the parameter file.
@@ -27,16 +29,17 @@
  * @see Place
  */
 class Hospital : public Place {
+
+  typedef std::map<std::string, HAZEL_Hospital_Init_Data> HospitalInitMapT;
+
 public: 
   /**
    * Default constructor
    */
   Hospital();
-  ~Hospital() {
-    if(Global::Enable_HAZEL && this->checked_open_day_vec != NULL) {
-      delete this->checked_open_day_vec;
-    }
-  }
+  ~Hospital() { }
+
+  static bool HAZEL_hospital_init_map_file_exists;
 
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
@@ -78,8 +81,14 @@ public:
    */
   double get_contacts_per_day(int disease);
 
-
-  // If we don't really care about the disease
+  /**
+   * @see Place::should_be_open(int day)
+   *
+   * Determine if the Hospital should be open. This is independent of any disease.
+   *
+   * @param day the simulation day
+   * @return whether or not the hospital is open on the given day for the given disease
+   */
   bool should_be_open(int day);
 
   /**
@@ -121,16 +130,61 @@ private:
   static double*** Hospital_contact_prob;
   static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
+  static double HAZEL_disaster_max_bed_usage_multiplier;
+  static HospitalInitMapT HAZEL_hospital_init_map;
   static int HAZEL_disaster_start_day;
   static int HAZEL_disaster_end_day;
-  static double HAZEL_disaster_max_bed_usage_multiplier;
   static std::vector<double> HAZEL_reopening_CDF;
+
   int bed_count;
   int capacity;
-  bool is_open;
-  std::vector<bool>* checked_open_day_vec;
+  bool HAZEL_closure_dates_have_been_set;
+
   // true iff a the hospital accepts the indexed Insurance Coverage
   std::bitset<static_cast<size_t>(Insurance_assignment_index::UNSET)> accepted_insurance_bitset;
+
+  void apply_individual_HAZEL_closure_policy();
+};
+
+struct HAZEL_Hospital_Init_Data {
+  int panel_week;
+  bool accpt_private;
+  bool accpt_medicare;
+  bool accpt_medicaid;
+  bool accpt_highmark;
+  bool accpt_upmc;
+  bool accpt_uninsured; // Person has no insurance and pays out of pocket
+  int reopen_after_days;
+
+  void setup(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
+      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+      const char* _accpt_uninsured, const char* _reopen_after_days) {
+
+    string accpt_priv_str = string(_accpt_private);
+    string accpt_medicr_str = string(_accpt_medicare);
+    string accpt_medicd_str = string(_accpt_medicaid);
+    string accpt_hghmrk_str = string(_accpt_highmark);
+    string accpt_upmc_str = string(_accpt_medicare);
+    string accpt_uninsrd_str = string(_accpt_uninsured);
+
+    sscanf(_panel_week, "%d", &panel_week);
+    accpt_private = Utils::to_bool(accpt_priv_str);
+    accpt_medicare = Utils::to_bool(accpt_medicr_str);
+    accpt_medicaid = Utils::to_bool(accpt_medicd_str);
+    accpt_highmark = Utils::to_bool(accpt_hghmrk_str);
+    accpt_upmc = Utils::to_bool(accpt_upmc_str);
+    accpt_uninsured = Utils::to_bool(accpt_uninsrd_str);
+    sscanf(_reopen_after_days, "%d", &reopen_after_days);
+  }
+
+  HAZEL_Hospital_Init_Data(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
+      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+      const char* _accpt_uninsured, const char* _reopen_after_days) {
+     setup(_panel_week, _accpt_private, _accpt_medicare,
+           _accpt_medicaid, _accpt_highmark, _accpt_upmc,
+           _accpt_uninsured, _reopen_after_days);
+   }
+
 };
 
 #endif // _FRED_HOSPITAL_H

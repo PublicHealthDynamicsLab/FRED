@@ -51,7 +51,7 @@ bool Place::Enable_Density_Transmission_Maximum_Infectees = false;
 int Place::Density_Transmission_Maximum_Infectees = 10.0;
 
 double Place::Seasonal_Reduction = 0.0;
-double * Place::Seasonality_multiplier = NULL;
+double* Place::Seasonality_multiplier = NULL;
 
 place_vec Place::infectious_places;
 
@@ -159,7 +159,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
       }
     }
     for(int i = 0; i <= 100; ++i) {
-      for(int j = i-4; j <= i+4; ++j) {
+      for(int j = i - 4; j <= i+4; ++j) {
         if(j < 0 || j > 100) {
           continue;
         }
