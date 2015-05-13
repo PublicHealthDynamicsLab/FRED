@@ -140,23 +140,22 @@ void County::update(int day) {
   // update housing periodically
   if(day == 0 || (Date::get_month() == 6 && Date::get_day_of_month() == 30)) {
     FRED_VERBOSE(0, "County::update_housing = %d\n", day);
-    this->update_housing(day);
+    update_housing(day);
     FRED_VERBOSE(0, "County::update_housing = %d\n", day);
   }
 
   // update birth and death rates on July 1
-  if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-    this->update_population_dynamics(day);
+  if((Date::get_month() == 7 && Date::get_day_of_month() == 1) ||
+     (Date::get_month() == 1 && Date::get_day_of_month() == 1)) {
+    update_population_dynamics(day);
   }
 
 }
 
 void County::update_population_dynamics(int day) {
-  static int first = 1;
 
   // no adjustment for first year, to avoid overreacting to low birth rate
-  if (first) {
-    first = 0;
+  if (day < 370) {
     return;
   }
 
@@ -164,7 +163,7 @@ void County::update_population_dynamics(int day) {
   int year = Date::get_year();
 
   // get the target population size for the end of the coming year
-  this->target_popsize = (1.0 + 0.01 * this->population_growth_rate)
+  this->target_popsize = (1.0 + 0.01 * this->population_growth_rate * 0.5)
     * this->target_popsize;
 
   double error = (this->current_popsize - this->target_popsize) / (1.0*this->target_popsize);
@@ -182,8 +181,8 @@ void County::update_population_dynamics(int day) {
 
   // message to LOG file
   FRED_VERBOSE(0,
-	       "COUNTY POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f\n",
-	       year, this->current_popsize, this->target_popsize, 100.0*error, death_rate_adjustment); 
+	       "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f\n",
+	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, death_rate_adjustment); 
   
 }
 
