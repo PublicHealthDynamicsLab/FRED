@@ -145,8 +145,7 @@ void County::update(int day) {
   }
 
   // update birth and death rates on July 1
-  if((Date::get_month() == 7 && Date::get_day_of_month() == 1) ||
-     (Date::get_month() == 1 && Date::get_day_of_month() == 1)) {
+  if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
     update_population_dynamics(day);
   }
 
@@ -154,8 +153,10 @@ void County::update(int day) {
 
 void County::update_population_dynamics(int day) {
 
+  static double total_adj = 1.0;
+
   // no adjustment for first year, to avoid overreacting to low birth rate
-  if (day < 370) {
+  if (day < 1) {
     return;
   }
 
@@ -163,16 +164,17 @@ void County::update_population_dynamics(int day) {
   int year = Date::get_year();
 
   // get the target population size for the end of the coming year
-  this->target_popsize = (1.0 + 0.01 * this->population_growth_rate * 0.5)
-    * this->target_popsize;
+  this->target_popsize = (1.0 + 0.01 * this->population_growth_rate) * this->target_popsize;
 
   double error = (this->current_popsize - this->target_popsize) / (1.0*this->target_popsize);
   
   // empirical tuning parameter
-  double adjustment_weight = 7.5;
+  double adjustment_weight = 5.0;
   
   double death_rate_adjustment = 1.0 + adjustment_weight * error;
   
+  total_adj *= death_rate_adjustment;
+
   // adjust mortality rates
   for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
     this->adjusted_female_mortality_rate[i] = death_rate_adjustment * this->adjusted_female_mortality_rate[i];
@@ -181,8 +183,8 @@ void County::update_population_dynamics(int day) {
 
   // message to LOG file
   FRED_VERBOSE(0,
-	       "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f\n",
-	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, death_rate_adjustment); 
+	       "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f  total_adj = %0.4f\n",
+	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, death_rate_adjustment, total_adj); 
   
 }
 
