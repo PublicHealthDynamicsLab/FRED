@@ -1,5 +1,3 @@
-# copy this file to $FRED_HOME/.gitignore
-
 # exclude everything other than FRED core directories
 /*
 !LICENSE
@@ -24,6 +22,10 @@ populations/*
 input_files/countries/*
 !input_files/countries/usa
 
+#exclude src/snappy except for tar file
+src/snappy/*
+!src/snappy/snappy-*.tar.gz
+
 # exclude RESULTS
 RESULTS/**
 
@@ -31,8 +33,13 @@ RESULTS/**
 src/FRED
 bin/FRED
 
+# exclude fsz executables
+src/fsz
+bin/fsz
+
 # exclude DEPENDS file created by make
 src/DEPENDS
+src/params
 
 # ignore file that start with period
 **/\.*
@@ -45,5 +52,14 @@ src/DEPENDS
 
 # ignore all CVS directories
 **/CVS/
+
+# ignore all OUT directories
+src/OUT*/
+tests/*/OUT.TEST/
+tests/*/compare.test
+
+# ignore LOG files
+**/LOG*
+
 
 
