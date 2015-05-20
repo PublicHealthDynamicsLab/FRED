@@ -424,11 +424,11 @@ void Vector_Layer::get_county_ids(){
   for(int i = 0; i < num_households; ++i) {
     int household_county = -1;
     Household* h = Global::Places.get_household_ptr(i);
-    int c = h->get_county();
-    int h_county = Global::Places.get_county_with_index(c);
-    for(int j = 0; j<county_set.size(); ++j) {
-      if(h_county == county_set[j].id) {
-	      household_county = j;
+    int c = h->get_county_index();
+    int h_county = Global::Places.get_fips_of_county_with_index(c);
+    for (int j = 0;j<county_set.size();j++){
+      if(h_county == county_set[j].id){
+	household_county = j;
       }
     }
     //find the county for each household

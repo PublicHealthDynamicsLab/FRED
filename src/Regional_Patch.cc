@@ -220,11 +220,11 @@ void Regional_Patch::swap_county_people(){
 	          Place* s1 = p->get_school();
 	          Place* s2 = p2->get_school();
 	          Household* h1 =  (Household*)p->get_household();
-	          int c1 = h1->get_county();
-	          int h1_county = Global::Places.get_county_with_index(c1);
+	          int c1 = h1->get_county_index();
+	          int h1_county = Global::Places.get_fips_of_county_with_index(c1);
 	          Household* h2 =  (Household*)p2->get_household();
-	          int c2 = h2->get_county();
-	          int h2_county = Global::Places.get_county_with_index(c2);
+	          int c2 = h2->get_county_index();
+	          int h2_county = Global::Places.get_fips_of_county_with_index(c2);
 	          if(h1_county != h2_county) {
 	            p->change_school(s2);
 	            p2->change_school(s1);
@@ -239,11 +239,11 @@ void Regional_Patch::swap_county_people(){
 	          Place* w1 = p->get_workplace();
 	          Place* w2 = p2->get_workplace();
 	          Household* h1 = (Household*)p->get_household();
-	          int c1 = h1->get_county();
-	          int h1_county = Global::Places.get_county_with_index(c1);
+	          int c1 = h1->get_county_index();
+	          int h1_county = Global::Places.get_fips_of_county_with_index(c1);
 	          Household* h2 = (Household*)p2->get_household();
-	          int c2 = h2->get_county();
-	          int h2_county = Global::Places.get_county_with_index(c2);
+	          int c2 = h2->get_county_index();
+	          int h2_county = Global::Places.get_fips_of_county_with_index(c2);
 	          if(h1_county != h2_county) {
 	            p->change_workplace(w2);
 	            p2->change_workplace(w1);

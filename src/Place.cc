@@ -82,7 +82,7 @@ void Place::initialize_static_variables() {
       if (Place::Seasonality_multiplier[day] < 0.0) {
 	Place::Seasonality_multiplier[day] = 0.0;
       }
-      printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
+      // printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
     }
   }
 
@@ -175,6 +175,8 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
       }
     */
   }
+  this->county_index = -1;
+  this->census_tract_index = -1;
 }
 
 void Place::reset_place_state(int disease_id) {

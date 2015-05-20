@@ -871,6 +871,22 @@ public:
   }
   
 
+  void set_county_index(int _county_index) {
+    this->county_index = _county_index;
+  }
+
+  int get_county_index() {
+    return this->county_index;
+  }
+
+  void set_census_tract_index(int _census_tract_index) {
+    this->census_tract_index = _census_tract_index;
+  }
+
+  int get_census_tract_index() {
+    return this->census_tract_index;
+  }
+
 protected:
   // list of places that are infectious today
   static place_vec infectious_places;
@@ -912,6 +928,8 @@ protected:
   int staff_size;			// outside workers in this place
 
   int household_fips;
+  int county_index;
+  int census_tract_index;
 
   Population* population;
   Neighborhood_Patch* patch;       // geo patch for this place

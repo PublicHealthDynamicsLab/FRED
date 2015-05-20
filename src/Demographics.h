@@ -30,14 +30,30 @@ class Date;
 class Demographics {
 public:
 
-  static const int MAX_AGE = 110;
+  static const int MAX_AGE = 100;
   static const int MIN_PREGNANCY_AGE = 12;
   static const int MAX_PREGNANCY_AGE = 60;
-
   static const double MEAN_PREG_DAYS;
   static const double STDDEV_PREG_DAYS;
 
+  // default constructor and destructor
+  Demographics();
   ~Demographics();
+
+  /**
+   * setup for two-phase construction; sets all of the attributes of a Demographics object
+   * @param self pointer to the Person object with which this Demographics object is associated
+   * @param _age
+   * @param _sex (M or F)
+   * @param day the simulation day
+   * @param is_newborn needed to know how to set the date of birth
+   */
+  void setup( Person * self, short int _age, char _sex, short int _race,
+	       short int rel, int day, bool is_newborn = false );
+
+  static void initialize_static_variables();
+
+  void initialize_demographic_dynamics(Person *self);
 
   /**
    * Perform the daily update for this object
@@ -119,9 +135,6 @@ public:
   void set_pregnant() { pregnant = true; }
   void unset_pregnant() { pregnant = false; }
 
-  static void initialize_static_variables();
-  static void set_initial_popsize(int popsize) { target_popsize = popsize; }
-  static void update_population_dynamics(int day);
   static int get_births_ytd() { return births_ytd; }
   static int get_total_births() { return total_births; }
   static int get_deaths_today() { return deaths_today; }
@@ -129,37 +142,19 @@ public:
   static int get_total_deaths() { return total_deaths; }
 
   // event handlers:
-  void cancel_conception( Person * self );
   static void conception_handler( int day, Person * self );
-
+  static void maternity_handler( int day, Person * self );
+  static void mortality_handler( int day, Person * self );
+  void cancel_conception( Person * self );
   void become_pregnant( int day, Person * self );
   void cancel_pregnancy( Person * self );
-  static void maternity_handler( int day, Person * self );
   void update_birth_stats( int day, Person * self );
-
-  static void mortality_handler( int day, Person * self );
   void die(int day, Person * self);
 
   // birthday lists
   static void add_to_birthday_list(Person * person);
   static void delete_from_birthday_list(Person * person);
   static void update_people_on_birthday_list(int day);
-
-  // methods to rebalance household sizes
-  static void get_housing_imbalance(int day);
-  static int fill_vacancies(int day);
-  static void update_housing(int day);
-  static void move_college_students_out_of_dorms(int day);
-  static void move_college_students_into_dorms(int day);
-  static void move_military_personnel_out_of_barracks(int day);
-  static void move_military_personnel_into_barracks(int day);
-  static void move_inmates_out_of_prisons(int day);
-  static void move_inmates_into_prisons(int day);
-  static void move_patients_into_nursing_homes(int day);
-  static void move_young_adults(int day);
-  static void move_older_adults(int day);
-  static void report_ages(int day, int house_id);
-  static void swap_houses(int day);
 
   static void add_conception_event(int day, Person *person) {
     conception_queue->add_event(day, person);
@@ -208,31 +203,12 @@ private:
   int conception_sim_day;	  // When the agent will become pregnant
   int maternity_sim_day;	       // When the agent will give birth
 
-  static double male_mortality_rate[MAX_AGE + 1];
-  static double female_mortality_rate[MAX_AGE + 1];
-  static double adjusted_male_mortality_rate[MAX_AGE + 1];
-  static double adjusted_female_mortality_rate[MAX_AGE + 1];
-  static double birth_rate[MAX_AGE + 1];
-  static double adjusted_birth_rate[MAX_AGE + 1];
-  static double pregnancy_rate[MAX_AGE + 1];
-  static bool is_initialized;
-  static int target_popsize;
-  static int control_population_growth_rate;
-  static double population_growth_rate;
-  static double college_departure_rate;
-  static double military_departure_rate;
-  static double prison_departure_rate;
-  static double youth_home_departure_rate;
-  static double adult_home_departure_rate;
   static int births_today;
   static int births_ytd;
   static int total_births;
   static int deaths_today;
   static int deaths_ytd;
   static int total_deaths;
-  static int houses;
-  static int * beds;
-  static int * occupants;
 
   static std::vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
   static std::map<Person*, int> birthday_map;
@@ -240,22 +216,6 @@ private:
 protected:
 
   friend class Person;
-  /**
-   * Default constructor
-   */
-  Demographics();
-
-  /**
-   * setup for two-phase construction; sets all of the attributes of a Demographics object
-   * @param self pointer to the Person object with which this Demographics object is associated
-   * @param _age
-   * @param _sex (M or F)
-   * @param day the simulation day
-   * @param is_newborn needed to know how to set the date of birth
-   */
-  void setup( Person * self, short int _age, char _sex, short int _race,
-	       short int rel, int day, bool is_newborn = false );
-
 
 };
 

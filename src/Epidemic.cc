@@ -204,9 +204,11 @@ void Epidemic::setup() {
     }
     ts_input->close();
   }
-  for(int i = 0; i < this->imported_cases_map.size(); ++i) {
-    string ss = this->imported_cases_map[i]->to_string();
-    printf("%s\n", ss.c_str());
+  if (Global::Verbose > 1) {
+    for(int i = 0; i < this->imported_cases_map.size(); ++i) {
+      string ss = this->imported_cases_map[i]->to_string();
+      printf("%s\n", ss.c_str());
+    }
   }
 
   Params::get_param_from_string("seed_by_age", &temp);
@@ -920,15 +922,15 @@ void Epidemic::report_incidence_by_county(int day) {
       }
     }
 
-    int c = hh->get_county();
+    int c = hh->get_county_index();
     assert(0 <= c && c < this->counties);
     this->county_incidence[c]++;
   }
   for(int c = 0; c < this->counties; ++c) {
     char name[80];
-    sprintf(name, "County_%d", Global::Places.get_county_with_index(c));
+    sprintf(name, "County_%d", Global::Places.get_fips_of_county_with_index(c));
     track_value(day,name, this->county_incidence[c]);
-    sprintf(name, "N_%d", Global::Places.get_county_with_index(c));
+    sprintf(name, "N_%d", Global::Places.get_fips_of_county_with_index(c));
     track_value(day,name, Global::Places.get_population_of_county_with_index(c));
     // prepare for next day
     this->county_incidence[c] = 0;

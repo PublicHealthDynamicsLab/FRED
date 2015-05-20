@@ -363,6 +363,7 @@ void fred_step(int day) {
   // optional: update population dynamics 
   if(Global::Enable_Population_Dynamics) {
     Demographics::update(day);
+    Global::Places.update_population_dynamics(day);
     Utils::fred_print_lap_time("day %d update population dynamics", day);
   }
 

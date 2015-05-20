@@ -944,18 +944,26 @@ shelter_in_place_by_income = 0
 ##########################################################
 
 enable_population_dynamics = 0 
+
 mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
 mortality_rate_multiplier = 1
+mortality_rate_adjustment_weight = 0
+
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
-control_population_growth_rate = 1
+
+# this the percent per year population growth, e.g. 1 => 1% growth each year
 population_growth_rate = 0
-# assume 4 years
+
+# assume a mean of 4 years in college
 college_departure_rate = 0.25
-# assume 4 years
+
+# assume a mean of 4 years enlistment
 military_departure_rate = 0.25
-# assume 2 years: http://www.bjs.gov/content/pub/pdf/p10.pdf
+
+# assume a mean of 2 years: http://www.bjs.gov/content/pub/pdf/p10.pdf
 prison_departure_rate = 0.5
+
 # assuming mean age of leaving home about 21
 youth_home_departure_rate = 0.3
 adult_home_departure_rate = 0.3
