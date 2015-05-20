@@ -938,11 +938,10 @@ enable_population_dynamics = 0
 
 mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
 mortality_rate_multiplier = 1
+mortality_rate_adjustment_weight = 0
 
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
-
-enable_population_rate_adjustment = 0
 
 # this the percent per year population growth, e.g. 1 => 1% growth each year
 population_growth_rate = 0

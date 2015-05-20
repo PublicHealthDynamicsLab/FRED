@@ -75,6 +75,7 @@ private:
   int target_popsize;
   double male_mortality_rate[Demographics::MAX_AGE + 1];
   double female_mortality_rate[Demographics::MAX_AGE + 1];
+  double mortality_rate_adjustment_weight;
   double adjusted_male_mortality_rate[Demographics::MAX_AGE + 1];
   double adjusted_female_mortality_rate[Demographics::MAX_AGE + 1];
   double birth_rate[Demographics::MAX_AGE + 1];

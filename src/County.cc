@@ -49,6 +49,7 @@ County::County(int _fips) {
   this->max_occupants = -1;
   this->ready_to_move.clear();
   this->households.clear();
+  this->mortality_rate_adjustment_weight = 0.0;
 
   if(Global::Enable_Population_Dynamics == false) {
     return;
@@ -64,6 +65,7 @@ County::County(int _fips) {
   Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
   Params::get_param_from_string("mortality_rate_multiplier", &mortality_rate_multiplier);
   Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
+  Params::get_param_from_string("mortality_rate_adjustment_weight", &(this->mortality_rate_adjustment_weight));
   Params::get_param_from_string("college_departure_rate", &(this->college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(this->military_departure_rate));
   Params::get_param_from_string("prison_departure_rate", &(this->prison_departure_rate));
@@ -168,23 +170,20 @@ void County::update_population_dynamics(int day) {
 
   double error = (this->current_popsize - this->target_popsize) / (1.0*this->target_popsize);
   
-  // empirical tuning parameter
-  double adjustment_weight = 5.0;
+  double mortality_rate_adjustment = 1.0 + mortality_rate_adjustment_weight * error;
   
-  double death_rate_adjustment = 1.0 + adjustment_weight * error;
-  
-  total_adj *= death_rate_adjustment;
+  total_adj *= mortality_rate_adjustment;
 
   // adjust mortality rates
   for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-    this->adjusted_female_mortality_rate[i] = death_rate_adjustment * this->adjusted_female_mortality_rate[i];
-    this->adjusted_male_mortality_rate[i] = death_rate_adjustment * this->adjusted_male_mortality_rate[i];
+    this->adjusted_female_mortality_rate[i] = mortality_rate_adjustment * this->adjusted_female_mortality_rate[i];
+    this->adjusted_male_mortality_rate[i] = mortality_rate_adjustment * this->adjusted_male_mortality_rate[i];
   }
 
   // message to LOG file
   FRED_VERBOSE(0,
 	       "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f  total_adj = %0.4f\n",
-	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, death_rate_adjustment, total_adj); 
+	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, mortality_rate_adjustment, total_adj); 
   
 }
 
