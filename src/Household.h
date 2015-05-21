@@ -310,28 +310,28 @@ public:
     return this->shelter_end_day;
   }
 
-  void set_is_primary_healthcare_location_open(bool _primary_healthcare_location_open) {
-    this->primary_healthcare_location_open = _primary_healthcare_location_open;
+  void set_is_primary_healthcare_available(bool _primary_healthcare_available) {
+    this->primary_healthcare_available = _primary_healthcare_available;
   }
 
-  bool is_primary_healthcare_location_open() {
-    return this->primary_healthcare_location_open;
+  bool is_primary_healthcare_available() {
+    return this->primary_healthcare_available;
   }
 
-  void set_other_healthcare_location_that_accepts_insurance_open(bool _other_healthcare_location_that_accepts_insurance_open) {
-    this->other_healthcare_location_that_accepts_insurance_open = _other_healthcare_location_that_accepts_insurance_open;
+  void set_other_healthcare_location_that_accepts_insurance_available(bool _other_healthcare_location_that_accepts_insurance_available) {
+    this->other_healthcare_location_that_accepts_insurance_available = _other_healthcare_location_that_accepts_insurance_available;
   }
 
-  bool is_other_healthcare_location_that_accepts_insurance_open() {
-    return this->other_healthcare_location_that_accepts_insurance_open;
+  bool is_other_healthcare_location_that_accepts_insurance_available() {
+    return this->other_healthcare_location_that_accepts_insurance_available;
   }
 
-  void set_is_able_to_receive_healthcare(bool _able_to_receive_healthcare) {
-    this->able_to_receive_healthcare = _able_to_receive_healthcare;
+  void set_is_healthcare_available(bool _healthcare_available) {
+    this->healthcare_available = _healthcare_available;
   }
 
-  bool is_able_to_receive_healthcare() {
-    return this->able_to_receive_healthcare;
+  bool is_healthcare_available() {
+    return this->healthcare_available;
   }
 
   int get_household_income_code() const {
@@ -443,9 +443,10 @@ private:
 
   Place* group_quarters_workplace;
   bool sheltering;
-  bool primary_healthcare_location_open;
-  bool other_healthcare_location_that_accepts_insurance_open;
-  bool able_to_receive_healthcare;
+  bool primary_healthcare_available;
+  bool other_healthcare_location_that_accepts_insurance_available;
+  bool healthcare_available;
+
   bool hh_schl_aged_chld_unemplyd_adlt_chng;
   bool hh_schl_aged_chld;
   bool hh_schl_aged_chld_unemplyd_adlt;

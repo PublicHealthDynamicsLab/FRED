@@ -34,6 +34,7 @@
 Person::Person() {
   this->id = -1;
   this->index = -1;
+  this->exposed_household_index = -1;
 }
 
 Person::~Person() {
@@ -48,15 +49,15 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
-  // Note: behavior setup is called externally, after entire population is available
+  // behavior setup called externally, after entire population is available
 
   myFIPS = house->get_household_fips();
-  if (today_is_birthday) {
+  if(today_is_birthday) {
     FRED_VERBOSE(1, "Baby index %d id %d age %d born on day %d household = %s  new_size %d orig_size %d\n",
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
   } else {
     // residual immunity does NOT apply to newborns
-    for (int disease = 0; disease < Global::Diseases; disease++) {
+    for(int disease = 0; disease < Global::Diseases; ++disease) {
       Disease* dis = Global::Pop.get_disease(disease);
       
       if(Global::Residual_Immunity_by_FIPS) {
@@ -67,19 +68,21 @@ void Person::setup(int _index, int _id, int age, char sex,
   		temp_map->set_values(temp_values);
      	double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
 	    if(RANDOM() < residual_immunity_by_fips_prob) 
-	        become_immune(dis);
-  		}  
-     	else if(!dis->get_residual_immunity()->is_empty()) { 
+	      become_immune(dis);
+  		} else if(!dis->get_residual_immunity()->is_empty()) {
 	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	     if(RANDOM() < residual_immunity_prob) 
+	      if(RANDOM() < residual_immunity_prob) {
 	        become_immune(dis);
+	      }
 	    }
-	}
+	  }
   }
 }
 
 void Person::print(FILE* fp, int disease) {
-  if (fp == NULL) return;
+  if(fp == NULL) {
+    return;
+  }
   fprintf(fp, "%d id %7d  a %3d  s %c %d",
           disease, id,
           this->demographics.get_age(),
@@ -96,7 +99,7 @@ void Person::print(FILE* fp, int disease) {
           this->health.get_infected_place_id(disease));
   Person* infector = this->health.get_infector(disease);
   int infector_id;
-  if (infector == NULL) {
+  if(infector == NULL) {
     infector_id = -1;
   } else {
     infector_id = infector->get_id();
@@ -143,7 +146,7 @@ Person* Person::give_birth(int day) {
   Place* work = NULL;
   bool today_is_birthday = true;
   Person* baby = Global::Pop.add_person(age, sex, race, rel,
-           house, school, work, day, today_is_birthday);
+                   house, school, work, day, today_is_birthday);
 
   if(Global::Enable_Behaviors) {
     // turn mother into an adult decision maker, if not already
@@ -162,24 +165,20 @@ Person* Person::give_birth(int day) {
   return baby;
 }
 
-char* get_place_label(Place* p) {
-  return (p==NULL) ? (char*) "-1" : p->get_label();
-}
-
 string Person::to_string() {
 
   stringstream tmp_string_stream;
   // (i.e *ID* Age Sex Race Household School Classroom Workplace Office Neighborhood Hospital Ad_Hoc Relationship)
   tmp_string_stream << this->id << " " << get_age() << " " <<  get_sex() << " " ;
   tmp_string_stream << get_race() << " " ;
-  tmp_string_stream << get_place_label(get_household()) << " ";
-  tmp_string_stream << get_place_label(get_school()) << " ";
-  tmp_string_stream << get_place_label(get_classroom()) << " ";
-  tmp_string_stream << get_place_label(get_workplace()) << " ";
-  tmp_string_stream << get_place_label(get_office()) << " ";
-  tmp_string_stream << get_place_label(get_neighborhood()) << " ";
-  tmp_string_stream << get_place_label(get_hospital()) << " ";
-  tmp_string_stream << get_place_label(get_ad_hoc()) << " ";
+  tmp_string_stream << Place::get_place_label(get_household()) << " ";
+  tmp_string_stream << Place::get_place_label(get_school()) << " ";
+  tmp_string_stream << Place::get_place_label(get_classroom()) << " ";
+  tmp_string_stream << Place::get_place_label(get_workplace()) << " ";
+  tmp_string_stream << Place::get_place_label(get_office()) << " ";
+  tmp_string_stream << Place::get_place_label(get_neighborhood()) << " ";
+  tmp_string_stream << Place::get_place_label(get_hospital()) << " ";
+  tmp_string_stream << Place::get_place_label(get_ad_hoc()) << " ";
   tmp_string_stream << get_relationship();
 
   return tmp_string_stream.str();

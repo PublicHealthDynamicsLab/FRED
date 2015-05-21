@@ -132,12 +132,7 @@ public:
   static char WORKPLACE;
   static char OFFICE;
   static char HOSPITAL;
-  static char HEALTHCARE_CLINIC;
   static char COMMUNITY;
-  static char COLLEGE_DORM;
-  static char PRISON;
-  static char NURSING_HOME;
-  static char MILITARY_BASE;
 
   virtual ~Place() {}
 
@@ -833,6 +828,7 @@ public:
     }
     return n;
   }
+
   int get_infectious_vectors() {
     int n = 0;
     for (int i = 0; i < DISEASE_TYPES; ++i) {
@@ -840,6 +836,7 @@ public:
     }
     return n;
   }
+
   void add_host(Person* person) {
     this->unique_visitors.insert(person);
   }
@@ -870,7 +867,6 @@ public:
   	this->household_fips = input_fips;
   }
   
-
   void set_county_index(int _county_index) {
     this->county_index = _county_index;
   }
@@ -886,6 +882,8 @@ public:
   int get_census_tract_index() {
     return this->census_tract_index;
   }
+  
+  static char* get_place_label(Place* p);
 
 protected:
   // list of places that are infectious today
@@ -930,7 +928,7 @@ protected:
   int household_fips;
   int county_index;
   int census_tract_index;
-
+  
   Population* population;
   Neighborhood_Patch* patch;       // geo patch for this place
   

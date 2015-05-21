@@ -162,11 +162,12 @@ public:
     return (int)this->counties.size();
   }
 
-  County * get_county_with_index(int index) {
+
+  County* get_county_with_index(int index) {
     assert (index < this->counties.size());
     return this->counties[index];
   }
-
+  
   int get_fips_of_county_with_index(int index) {
     if(index < 0) {
       return 99999;
@@ -174,6 +175,7 @@ public:
     assert (index < this->counties.size());
     return this->counties[index]->get_fips();
   }
+
 
   int get_population_of_county_with_index(int index) {
     if(index < 0) {
@@ -189,7 +191,6 @@ public:
     }
     assert (index < this->counties.size());
     int fips = this->counties[index]->get_fips();
-    // printf("increment pop of count with index = %d and fips = %d\n", index, fips);
     this->counties[index]->increment_popsize();
     return;
   }
@@ -217,9 +218,8 @@ public:
   bool is_load_completed() {
     return this->load_completed;
   }
-
+  
   void update_population_dynamics(int day);
-
 
 private:
 
@@ -242,7 +242,7 @@ private:
   std::vector<Place*> households;
 
   // list of counties
-  std::vector<County *> counties;
+  std::vector<County*> counties;
 
   // list of census_tracts
   std::vector<long int> census_tracts;
