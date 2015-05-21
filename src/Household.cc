@@ -61,6 +61,9 @@ Household::Household() {
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
   this->hh_working_adult_using_sick_leave = false;
+  this->primary_healthcare_available = true;
+  this->other_healthcare_location_that_accepts_insurance_available = true;
+  this->healthcare_available = true;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
@@ -80,7 +83,9 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
   this->hh_working_adult_using_sick_leave = false;
-  this->able_to_receive_healthcare = true;
+  this->primary_healthcare_available = true;
+  this->other_healthcare_location_that_accepts_insurance_available = true;
+  this->healthcare_available = true;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';

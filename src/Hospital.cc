@@ -40,9 +40,14 @@ HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 bool Hospital::Hospital_parameters_set = false;
 
 Hospital::Hospital() {
+  if(!Hospital::Hospital_parameters_set) {
+    get_parameters(Global::Diseases);
+  }
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
-  this->capacity = -1;
+  this->occupied_bed_count = 0;
+  this->daily_patient_capacity = -1;
+  this->current_daily_patient_count = 0;
   this->HAZEL_closure_dates_have_been_set = false;
   std::vector<bool>* checked_open_day_vec;
   get_parameters(Global::Diseases);
@@ -54,8 +59,10 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
   }
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;
-  this->capacity = 0;
   this->bed_count = 0;
+  this->occupied_bed_count = 0;
+  this->daily_patient_capacity = -1;
+  this->current_daily_patient_count = 0;
   setup(lab, lon, lat, container, pop);
 
   if(Global::Enable_Health_Insurance) {
@@ -76,18 +83,18 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
       this->set_accepts_insurance(Insurance_assignment_index::PRIVATE, init_data.accpt_private);
       this->set_accepts_insurance(Insurance_assignment_index::UNINSURED, init_data.accpt_uninsured);
       this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
-      this->set_capacity((init_data.panel_week / 5) + 1);
+      this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
     }
   }
 }
 
 void Hospital::get_parameters(int diseases) {
-  char param_str[80];
-  
   if(Hospital::Hospital_parameters_set) {
     return;
   }
   
+  char param_str[80];
+
   if(!Global::Enable_Vector_Transmission) {
     Hospital::Hospital_contacts_per_day = new double[diseases];
     Hospital::Hospital_contact_prob = new double**[diseases];
@@ -110,8 +117,6 @@ void Hospital::get_parameters(int diseases) {
       }
     }
   }
-  
-
 
   if(Global::Enable_HAZEL) {
     char HAZEL_hosp_init_file_name[FRED_STRING_SIZE];

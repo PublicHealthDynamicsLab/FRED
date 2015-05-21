@@ -117,13 +117,42 @@ public:
     this->bed_count = _bed_count;
   }
 
-  int get_capacity() {
-    return this->capacity;
+  int get_daily_patient_capacity() {
+    return this->daily_patient_capacity;
   }
 
-  void set_capacity(int _capacity) {
-    this->capacity = _capacity;
+  void set_daily_patient_capacity(int _capacity) {
+    this->daily_patient_capacity = _capacity;
   }
+
+  int get_current_daily_patient_count() {
+    return this->current_daily_patient_count;
+  }
+
+  void increment_current_daily_patient_count() {
+    this->current_daily_patient_count++;
+  }
+
+  void reset_current_daily_patient_count() {
+    this->current_daily_patient_count = 0;
+  }
+
+  int get_occupied_bed_count() {
+    return this->occupied_bed_count;
+  }
+
+  void increment_occupied_bed_count() {
+    this->occupied_bed_count++;
+  }
+
+  void decrement_occupied_bed_count() {
+    this->occupied_bed_count--;
+  }
+
+  void reset_occupied_bed_count() {
+    this->occupied_bed_count = 0;
+  }
+
 
 private:
   static double* Hospital_contacts_per_day;
@@ -137,7 +166,9 @@ private:
   static std::vector<double> HAZEL_reopening_CDF;
 
   int bed_count;
-  int capacity;
+  int occupied_bed_count;
+  int daily_patient_capacity;
+  int current_daily_patient_count;
   bool HAZEL_closure_dates_have_been_set;
 
   // true iff a the hospital accepts the indexed Insurance Coverage
@@ -183,7 +214,7 @@ struct HAZEL_Hospital_Init_Data {
      setup(_panel_week, _accpt_private, _accpt_medicare,
            _accpt_medicaid, _accpt_highmark, _accpt_upmc,
            _accpt_uninsured, _reopen_after_days);
-   }
+  }
 
 };
 

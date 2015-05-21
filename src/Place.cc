@@ -39,12 +39,7 @@ char Place::CLASSROOM = 'C';
 char Place::WORKPLACE = 'W';
 char Place::OFFICE = 'O';
 char Place::HOSPITAL = 'M';
-char Place::HEALTHCARE_CLINIC = 'I';
 char Place::COMMUNITY = 'X';
-char Place::COLLEGE_DORM = 'D';
-char Place::PRISON = 'P';
-char Place::NURSING_HOME = 'L';
-char Place::MILITARY_BASE = 'B';
 
 bool Place::Enable_Neighborhood_Density_Transmission = false;
 bool Place::Enable_Density_Transmission_Maximum_Infectees = false;
@@ -75,12 +70,12 @@ void Place::initialize_static_variables() {
 
     // setup seasonal multipliers
     Place::Seasonality_multiplier = new double [367];
-    for (int day = 1; day <= 366; day++) {
+    for(int day = 1; day <= 366; ++day) {
       int days_from_peak_transmissibility = abs(seasonal_peak_day_of_year - day);
       Place::Seasonality_multiplier[day] = (1.0 - Place::Seasonal_Reduction) +
-	Place::Seasonal_Reduction*0.5*(1.0 + cos(days_from_peak_transmissibility*(2*PI/365.0)));
-      if (Place::Seasonality_multiplier[day] < 0.0) {
-	Place::Seasonality_multiplier[day] = 0.0;
+	    Place::Seasonal_Reduction * 0.5 * (1.0 + cos(days_from_peak_transmissibility * (2 * PI / 365.0)));
+      if(Place::Seasonality_multiplier[day] < 0.0) {
+	      Place::Seasonality_multiplier[day] = 0.0;
       }
       // printf("Seasonality_multiplier[%d] = %e %d\n", day, Place::Seasonality_multiplier[day], days_from_peak_transmissibility);
     }
@@ -166,14 +161,6 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Po
         Place::prob_contact[i][j] = 1.0 - 0.2 * abs(i - j);
       }
     }
-
-    /*
-      for (int i = 0; i <=100; i++) {
-      for (int j = 0; j <=100; j++) {
-      printf("pc[%d][%d] = %e\n",i,j,prob_contact[i][j]);
-      }
-      }
-    */
   }
   this->county_index = -1;
   this->census_tract_index = -1;
@@ -1309,6 +1296,10 @@ void Place::update_vector_population(int day) {
     }
   }
 }
+
+char* Place::get_place_label(Place* p) {
+   return ((p == NULL) ? (char*) "-1" : p->get_label());
+ }
 
 void Place::add_visitors_if_infectious(int day) {
   /*

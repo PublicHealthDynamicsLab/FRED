@@ -347,7 +347,6 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
       continue;
     }
 
-    // printf("line: |%s|\n", line); fflush(stdout); // exit(0);
     const Person_Init_Data &pid = get_person_init_data(line,
 							is_group_quarters_pop,
 							is_2010_ver1_format);
@@ -361,6 +360,7 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
     if(strcmp(pid.label, "p_id") == 0) {
       continue;
     }
+
     if(pid.house != NULL) {
       // create a Person_Init_Data object
       pidv.push_back(pid);
@@ -488,7 +488,7 @@ void Population::read_all_populations() {
   }
 
   this->load_completed = true;
-
+  
   if(Global::Enable_Population_Dynamics) {
     initialize_demographic_dynamics();
   }
@@ -675,7 +675,7 @@ void Population::update(int day) {
 
   FRED_VERBOSE(1, "population::update_behavior day = %d\n", day);
 
-  if (Global::Enable_Behaviors) {
+  if(Global::Enable_Behaviors) {
     // update decisions about behaviors
     Update_Population_Behaviors update_population_behaviors(day);
     this->blq.apply(update_population_behaviors);
@@ -1838,7 +1838,6 @@ void Population::add_visitors_to_infectious_places(int day) {
   }
 }
 
-
 void Population::initialize_demographic_dynamics() {
   // NOTE: use this idiom to loop through pop.
   // Note that pop_size is the number of valid indexes, NOT the size of blq.
@@ -1849,7 +1848,6 @@ void Population::initialize_demographic_dynamics() {
     }
   }
 }
-
 
 void Population::update_traveling_people(int day) {
   FRED_STATUS(1, "update_traveling_people entered\n", "");

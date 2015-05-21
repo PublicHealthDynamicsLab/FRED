@@ -471,6 +471,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
     // if symptomatic, decide whether or not to stay home
     if(self->is_symptomatic() && !self->is_hospitalized()) {
       decide_whether_to_stay_home(self, day);
+      //For Symptomatics - background will be in update_schedule()
       if(Global::Enable_Hospitals) {
 	      decide_whether_to_seek_healthcare(self, day);
       }
@@ -694,7 +695,7 @@ void Activities::update_schedule(Person* self, int day) {
     }
 
   }
-  FRED_STATUS( 1, "update_schedule on day %d\n%s\n", day, schedule_to_string( self, day ).c_str());
+  FRED_STATUS(1, "update_schedule on day %d\n%s\n", day, schedule_to_string(self, day).c_str());
 }
 
 void Activities::decide_whether_to_stay_home(Person* self, int day) {
@@ -820,10 +821,9 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
 void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
   if(Global::Enable_Hospitals) {
-    bool seek_healthcare = false;
     bool is_a_workday = (this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]
         || (is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]));
-          
+
     if(!this->is_hospitalized) {
 
       double rand = RANDOM();
@@ -896,67 +896,70 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         start_hospitalization(self, day, 2);
       } else if(rand < seek_healthcare_prob) {
 
-        Activities::Seeking_healthcare++;
-
         Household* hh = static_cast<Household*>(self->get_household());
         assert(hh != NULL);
         Hospital* hosp = hh->get_household_visitation_hospital();
+
         assert(hosp != NULL);
         if(Global::Enable_HAZEL) {
-          if(!hosp->should_be_open(day)) {
-            hh->set_is_primary_healthcare_location_open(false);
+          Activities::Seeking_healthcare++;
+
+          if(!hosp->should_be_open(day) || (hosp->get_current_daily_patient_count() >= hosp->get_daily_patient_capacity())) {
+            hh->set_is_primary_healthcare_available(false);
             Activities::Primary_healthcare_unavailable++;
 
             //Find an open health care provider
             hosp = Global::Places.get_random_open_hospital_matching_criteria(day, false, self->get_health()->get_insurance_type());
             if(hosp == NULL) {
-              hh->set_other_healthcare_location_that_accepts_insurance_open(false);
+              hh->set_other_healthcare_location_that_accepts_insurance_available(false);
               Activities::Healthcare_accepting_insurance_unavailable++;
 
               hosp = Global::Places.get_random_open_hospital_matching_criteria(day, false);
               if(hosp == NULL) {
-                hh->set_is_able_to_receive_healthcare(false);
+                hh->set_is_healthcare_available(false);
                 Activities::Healthcare_unavailable++;
               }
             }
-
-            if(hosp != NULL) {
-              assign_hospital(self, hosp);
-
-              this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
-              this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
-              this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
-              this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
-              this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
-              this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
-              this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
-              this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
-
-              // record work absent/present decision if it is a work day
-              if(is_a_workday) {
-                Activities::Sick_days_absent++;
-                this->my_sick_days_absent++;
-              }
-
-              // record school absent/present decision if it is a school day
-              if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-                Activities::School_sick_days_absent++;
-                this->my_sick_days_absent++;
-              }
-            } else {
-              this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
-              this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
-              this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
-              this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
-              this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
-              this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
-              this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = false;
-              this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
-            }
           }
+
+          if(hosp != NULL) {
+            assign_hospital(self, hosp);
+
+            this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
+            this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
+            this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
+            this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
+            this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
+            this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
+            this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
+            this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
+
+            hosp->increment_current_daily_patient_count();
+
+            // record work absent/present decision if it is a work day
+            if(is_a_workday) {
+              Activities::Sick_days_absent++;
+              this->my_sick_days_absent++;
+            }
+
+            // record school absent/present decision if it is a school day
+            if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+              Activities::School_sick_days_absent++;
+              this->my_sick_days_absent++;
+            }
+          } else {
+            this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
+            this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
+            this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
+            this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
+            this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
+            this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = true;
+            this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = false;
+            this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
+          }
+
         } else {
           assign_hospital(self, hosp);
-
           this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
           this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
           this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
@@ -979,8 +982,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
           }
         }
       }
-
-
     }
   }
 }
@@ -988,7 +989,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 void Activities::start_hospitalization(Person* self, int day, int length_of_stay) {
   assert(length_of_stay > 0);
   if(Global::Enable_Hospitals) {
-    Activities::Seeking_healthcare++;
     assert(!self->is_hospitalized());
     //If agent is traveling, return home first
     if(this->is_traveling || this->is_traveling_outside) {
@@ -998,27 +998,28 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
     //First see if this agent has a favorite hospital
     Hospital* tmp_hosp = static_cast<Hospital*>(get_favorite_place(Activity_index::HOSPITAL_ACTIVITY));
     Household* hh = static_cast<Household*>(self->get_household());
+    assert(hh != NULL);
+
     //If not, then use the household's hospital
     if(tmp_hosp == NULL) {
       tmp_hosp = hh->get_household_visitation_hospital();
       assert(tmp_hosp != NULL);
     }
 
-    assert(hh != NULL);
-
     if(Global::Enable_HAZEL) {
-      if(!tmp_hosp->should_be_open(day)) {
-        hh->set_is_primary_healthcare_location_open(false);
+      Activities::Seeking_healthcare++;
+      if(!tmp_hosp->should_be_open(day) || (tmp_hosp->get_occupied_bed_count() >= tmp_hosp->get_bed_count())) {
+        hh->set_is_primary_healthcare_available(false);
         Activities::Primary_healthcare_unavailable++;
 
         //Find an open healthcare provider
         tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(day, true, self->get_health()->get_insurance_type());
         if(tmp_hosp == NULL) {
-          hh->set_other_healthcare_location_that_accepts_insurance_open(false);
+          hh->set_other_healthcare_location_that_accepts_insurance_available(false);
           Activities::Healthcare_accepting_insurance_unavailable++;
           tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(day, true);
           if(tmp_hosp == NULL) {
-            hh->set_is_able_to_receive_healthcare(false);
+            hh->set_is_healthcare_available(false);
             Activities::Healthcare_unavailable++;
           }
         }
@@ -1037,29 +1038,36 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
           assign_hospital(self, tmp_hosp);
           this->is_hospitalized = true;
           this->sim_day_hospitalization_ends = day + length_of_stay;
+          tmp_hosp->increment_occupied_bed_count();
 
           //Set the flag for the household
           hh->set_household_has_hospitalized_member(true);
         }
       }
     } else {
-      store_favorite_places();
-      clear_favorite_places();
-      this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
-      this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
-      this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
-      this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
-      this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
-      this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = false;
-      this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
-      this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
-      assign_hospital(self, tmp_hosp);
+      if(tmp_hosp->get_occupied_bed_count() < tmp_hosp->get_bed_count()) {
+        store_favorite_places();
+        clear_favorite_places();
+        this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
+        this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
+        this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
+        this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
+        this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
+        this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = false;
+        this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
+        this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
+        assign_hospital(self, tmp_hosp);
 
-      this->is_hospitalized = true;
-      this->sim_day_hospitalization_ends = day + length_of_stay;
+        this->is_hospitalized = true;
+        this->sim_day_hospitalization_ends = day + length_of_stay;
+        tmp_hosp->increment_occupied_bed_count();
 
-      //Set the flag for the household
-      hh->set_household_has_hospitalized_member(true);
+        //Set the flag for the household
+        hh->set_household_has_hospitalized_member(true);
+      } else {
+        //No room in the hospital
+        //TODO: should we do something else?
+      }
     }
   }
 }
@@ -1068,6 +1076,9 @@ void Activities::end_hospitalization(Person* self) {
   if(Global::Enable_Hospitals) {
     this->is_hospitalized = false;
     this->sim_day_hospitalization_ends = -1;
+    Hospital* tmp_hosp = static_cast<Hospital*>(self->get_hospital());
+    assert(tmp_hosp != NULL);
+    tmp_hosp->decrement_occupied_bed_count();
     restore_favorite_places();
 
     //Set the flag for the household
@@ -1721,12 +1732,13 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
 }
 
 void Activities::print_stats(int day) {
-  FRED_VERBOSE(1, "Activities print stats for day %d\n", day);
-
-  Global::Daily_Tracker->set_index_key_pair(day, "Seek_hc", Activities::Seeking_healthcare);
-  Global::Daily_Tracker->set_index_key_pair(day, "Primary_hc_unav", Activities::Primary_healthcare_unavailable);
-  Global::Daily_Tracker->set_index_key_pair(day, "Hc_accep_ins_unav", Activities::Healthcare_accepting_insurance_unavailable);
-  Global::Daily_Tracker->set_index_key_pair(day, "Hc_unav", Activities::Healthcare_unavailable);
+  if(Global::Enable_HAZEL) {
+    FRED_VERBOSE(1, "Activities print stats for day %d\n", day);
+    Global::Daily_Tracker->set_index_key_pair(day, "Seek_hc", Activities::Seeking_healthcare);
+    Global::Daily_Tracker->set_index_key_pair(day, "Primary_hc_unav", Activities::Primary_healthcare_unavailable);
+    Global::Daily_Tracker->set_index_key_pair(day, "Hc_accep_ins_unav", Activities::Healthcare_accepting_insurance_unavailable);
+    Global::Daily_Tracker->set_index_key_pair(day, "Hc_unav", Activities::Healthcare_unavailable);
+  }
 }
 
 

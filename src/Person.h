@@ -478,11 +478,11 @@ public:
     return this->activities.get_household();
   }
 
-  int get_exposed_household_index(){
+  int get_exposed_household_index() {
     return this->exposed_household_index;
   }
 
-  void set_exposed_household(int index_){
+  void set_exposed_household(int index_) {
     this->exposed_household_index = index_;
   }
 

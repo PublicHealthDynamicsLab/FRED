@@ -598,12 +598,11 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       Hospital* hosp = static_cast<Hospital*>(place);
       hosp->set_bed_count(static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0));
 
-      if(Global::Enable_HAZEL && hosp->get_capacity() == -1) {
+      if(Global::Enable_HAZEL && hosp->get_daily_patient_capacity() == -1) {
         int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Hospital_outpatients_per_day_per_employee;
         capacity += hosp->get_bed_count();
-        hosp->set_capacity(capacity);
+        hosp->set_daily_patient_capacity(capacity);
       }
-
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);
     }
@@ -824,7 +823,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
         }
       }
       if(county == n_counties) {
-	County * new_county = new County(fips);
+	      County* new_county = new County(fips);
         this->counties.push_back(new_county);
       }
 
@@ -984,7 +983,7 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
       if(result.second) {
         ++(this->place_type_counts[place_type]);
         FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| county %d\n", s, place_type, result.first->lat,
-		     result.first->lon, tokens[ name ], get_fips_of_county_with_index(county));
+		     result.first->lon, tokens[name], get_fips_of_county_with_index(county));
       }
     }
     tokens.clear();
@@ -1070,7 +1069,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
         }
       }
       if(county == n_counties) {
-	County * new_county = new County(fips);
+	      County* new_county = new County(fips);
         this->counties.push_back(new_county);
       }
 
@@ -1223,41 +1222,28 @@ void Place_List::update(int day) {
 
   FRED_STATUS(1, "update places entered\n", "");
 
-  /*
-  int num_schools_closed = 0;
-  int number_places = this->places.size();
-#pragma omp parallel for reduction(+: num_schools_closed)
-  for(int p = 0; p < number_places; ++p) {
-    Place *place = this->places[p];
-    if(place->get_type() == Place::SCHOOL) {
-      if(place->should_be_open(day, 0) == false) {
-	num_schools_closed++;
-      }
-    }
-    // place->update(day);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day,"ScCl", num_schools_closed);
-  */
-
   Place::clear_infectious_places(get_number_of_places());
 
   if(Global::Enable_Seasonality) {
     Global::Clim->update(day);
   }
 
-  if(Global::Enable_Visualization_Layer) {
+  if(Global::Enable_Visualization_Layer || Global::Enable_Vector_Transmission || Global::Enable_HAZEL) {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
       Place* place = this->places[p];
-      place->reset_visualization_data(day);
-    }
-  }
+      if(Global::Enable_Visualization_Layer) {
+        place->reset_visualization_data(day);
+      }
 
-  if(Global::Enable_Vector_Transmission) {
-    int number_places = this->places.size();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      place->reset_vector_data(day);
+      if(Global::Enable_Vector_Transmission) {
+        place->reset_vector_data(day);
+      }
+
+      if(Global::Enable_HAZEL && (place->get_type() == Place::HOSPITAL)) {
+        Hospital* temp_hosp = static_cast<Hospital*>(place);
+        temp_hosp->reset_current_daily_patient_count();
+      }
     }
   }
 
@@ -1859,8 +1845,16 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool a
       for(int i = start_pos; i < size; ++i) {
         Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
         if(check_hospital->should_be_open(day)) {
-          if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-            return check_hospital;
+          if(allows_overnight) {
+            //Need to make sure place is not a healthcare clinic && there are beds available
+            if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
+              return check_hospital;
+            }
+          } else {
+            //Need to make sure that we haven't exceeded capacity for day
+            if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
+              return check_hospital;
+            }
           }
         }
       }
@@ -1868,8 +1862,16 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool a
       for(int i = 0; i < start_pos; ++i) {
         Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
         if(check_hospital->should_be_open(day)) {
-          if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-            return check_hospital;
+          if(allows_overnight) {
+            //Need to make sure place is not a healthcare clinic && there are beds available
+            if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
+              return check_hospital;
+            }
+          } else {
+            //Need to make sure that we haven't exceeded capacity for day
+            if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
+              return check_hospital;
+            }
           }
         }
       }
@@ -1888,13 +1890,27 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool a
     for(int i = start_pos; i < size; ++i) {
       Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
       if(check_hospital->should_be_open(day)) {
-        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-          if(Global::Enable_Health_Insurance) {
-            if(check_hospital->accepts_insurance(insr_accepted)) {
+        if(allows_overnight) {
+          //Need to make sure place is not a healthcare clinic && there are beds available
+          if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
+            if(Global::Enable_Health_Insurance) {
+              if(check_hospital->accepts_insurance(insr_accepted)) {
+                return check_hospital;
+              }
+            } else {
               return check_hospital;
             }
-          } else {
-            return check_hospital;
+          }
+        } else {
+          //Need to make sure that we haven't exceeded capacity for day
+          if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
+            if(Global::Enable_Health_Insurance) {
+              if(check_hospital->accepts_insurance(insr_accepted)) {
+                return check_hospital;
+              }
+            } else {
+              return check_hospital;
+            }
           }
         }
       }
@@ -1903,13 +1919,27 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool a
     for(int i = 0; i < start_pos; ++i) {
       Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
       if(check_hospital->should_be_open(day)) {
-        if(!allows_overnight == check_hospital->is_healthcare_clinic()) {
-          if(Global::Enable_Health_Insurance) {
-            if(check_hospital->accepts_insurance(insr_accepted)) {
+        if(allows_overnight) {
+          //Need to make sure place is not a healthcare clinic && there are beds available
+          if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
+            if(Global::Enable_Health_Insurance) {
+              if(check_hospital->accepts_insurance(insr_accepted)) {
+                return check_hospital;
+              }
+            } else {
               return check_hospital;
             }
-          } else {
-            return check_hospital;
+          }
+        } else {
+          //Need to make sure that we haven't exceeded capacity for day
+          if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
+            if(Global::Enable_Health_Insurance) {
+              if(check_hospital->accepts_insurance(insr_accepted)) {
+                return check_hospital;
+              }
+            } else {
+              return check_hospital;
+            }
           }
         }
       }
@@ -2550,7 +2580,7 @@ void Place_List::find_visitors_to_infectious_places(int day) {
 
 void Place_List::update_population_dynamics(int day) {
   int number_counties = this->counties.size();
-  for (int i = 0; i < number_counties; ++i) {
+  for(int i = 0; i < number_counties; ++i) {
     this->counties[i]->update(day);
   }
 }
