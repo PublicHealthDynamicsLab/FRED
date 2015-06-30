@@ -82,6 +82,14 @@ int Activities::Seeking_healthcare = 0;
 int Activities::Primary_healthcare_unavailable = 0;
 int Activities::Healthcare_accepting_insurance_unavailable = 0;
 int Activities::Healthcare_unavailable = 0;
+int Activities::ER_visit = 0;
+int Activities::Diabetes_hc_unav = 0;
+int Activities::Asthma_hc_unav = 0;
+int Activities::HTN_hc_unav = 0;
+int Activities::Medicaid_unav = 0;
+int Activities::Medicare_unav = 0;
+int Activities::Private_unav = 0;
+int Activities::Uninsured_unav = 0;
 
 int Activities::entered_school = 0;
 int Activities::left_school = 0;
@@ -231,7 +239,6 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
       self->get_demographics()->cancel_conception(self);
     }
   }
-
 }
 
 void Activities::prepare() {
@@ -423,6 +430,14 @@ void Activities::update(int day) {
     Activities::Primary_healthcare_unavailable = 0;
     Activities::Healthcare_accepting_insurance_unavailable = 0;
     Activities::Healthcare_unavailable = 0;
+    Activities::ER_visit = 0;
+    Activities::Diabetes_hc_unav = 0;
+    Activities::Asthma_hc_unav = 0;
+    Activities::HTN_hc_unav = 0;
+    Activities::Medicaid_unav = 0;
+    Activities::Medicare_unav = 0;
+    Activities::Private_unav = 0;
+    Activities::Uninsured_unav = 0;
   }
 
   // print school change activities
@@ -555,6 +570,13 @@ void Activities::update_schedule(Person* self, int day) {
   if(Global::Enable_Hospitals && this->is_hospitalized && !(this->sim_day_hospitalization_ends == day)) {
     // only visit the hospital
     this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
+    if(Global::Enable_HAZEL) {
+      Activities::Seeking_healthcare++;
+      Household* hh = static_cast<Household*>(self->get_permanent_household());
+      assert(hh != NULL);
+      hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
+      hh->set_count_receiving_hc(hh->get_count_receiving_hc() + 1);
+    }
   } else {
     //If the hospital stay should end today, go back to normal
     if(Global::Enable_Hospitals && this->is_hospitalized && (this->sim_day_hospitalization_ends == day)) {
@@ -565,7 +587,7 @@ void Activities::update_schedule(Person* self, int day) {
     this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
 
     // decide if my household is sheltering
-    if(Global::Enable_Household_Shelter) {
+    if(Global::Enable_Household_Shelter || Global::Enable_HAZEL) {
       Household* h = static_cast<Household*>(self->get_household());
       if(h->is_sheltering_today(day)) {
 	      FRED_STATUS(1, "update_schedule on day %d\n%s\n", day,
@@ -891,30 +913,116 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         }
       }
 
+
+      if(Global::Enable_HAZEL) {
+        double mult = 1.0;
+        //If we are within a week after the disaster
+        //Ramp up visits immediately after a disaster
+        if(day > Place_List::get_HAZEL_disaster_end_sim_day() && day <= (Place_List::get_HAZEL_disaster_end_sim_day() + 7)) {
+          int days_since_storm_end = day - Place_List::get_HAZEL_disaster_end_sim_day();
+          mult = 1.0 + ((1.0 / static_cast<double>(days_since_storm_end)) * 0.25);
+          hospitalization_prob *= mult;
+          seek_healthcare_prob *= mult;
+        }
+
+        //Multiplier by insurance type
+        mult = 1.0;
+        switch(self->get_health()->get_insurance_type()) {
+          case Insurance_assignment_index::PRIVATE:
+            mult = 1.0;
+            break;
+          case Insurance_assignment_index::MEDICARE:
+            mult = 1.037;
+            break;
+          case Insurance_assignment_index::MEDICAID:
+            mult = .909;
+            break;
+          case Insurance_assignment_index::HIGHMARK:
+            mult = 1.0;
+            break;
+          case Insurance_assignment_index::UPMC:
+            mult = 1.0;
+            break;
+          case Insurance_assignment_index::UNINSURED:
+            {
+              double age = self->get_real_age();
+              if(age < 5.0) { //These values are hard coded for HAZEL
+                mult = 1.0;
+              } else if(age < 18.0) {
+                mult = 0.59;
+              } else if(age < 25.0) {
+                mult = 0.33;
+              } else if(age < 45.0) {
+                mult = 0.43;
+              } else if(age < 65.0) {
+                mult = 0.5;
+              } else {
+                mult = 0.56;
+              }
+            }
+            break;
+          case Insurance_assignment_index::UNSET:
+            mult = 1.0;
+            break;
+        }
+        hospitalization_prob *= mult;
+        seek_healthcare_prob *= mult;
+      }
+
       //First check to see if agent will visit a Hospital for an overnight stay, then check for an outpatient visit
       if(rand < hospitalization_prob) {
-        start_hospitalization(self, day, 2);
+        double draw = draw_normal(3.0, 0.5);
+        int length = (draw > 0.0 ? static_cast<int>(draw) + 1 : 1);
+        start_hospitalization(self, day, length);
       } else if(rand < seek_healthcare_prob) {
 
         Household* hh = static_cast<Household*>(self->get_household());
         assert(hh != NULL);
-        Hospital* hosp = hh->get_household_visitation_hospital();
+
+        Hospital* hosp = static_cast<Hospital*>(self->get_hospital());
+        if(hosp == NULL) {
+          hosp = hh->get_household_visitation_hospital();
+        }
 
         assert(hosp != NULL);
         if(Global::Enable_HAZEL) {
           Activities::Seeking_healthcare++;
+          hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
+          if(!hh->is_seeking_healthcare()) {
+            hh->set_seeking_healthcare(true);
+          }
 
-          if(!hosp->should_be_open(day) || (hosp->get_current_daily_patient_count() >= hosp->get_daily_patient_capacity())) {
+          if(!hosp->should_be_open(day) || (hosp->get_current_daily_patient_count() >= hosp->get_daily_patient_capacity(day))) {
             hh->set_is_primary_healthcare_available(false);
+            if(self->is_asthmatic()) {
+              Activities::Asthma_hc_unav++;
+            }
+            if(self->is_diabetic()) {
+              Activities::Diabetes_hc_unav++;
+            }
+            if(self->has_hypertension()) {
+              Activities::HTN_hc_unav++;
+            }
+
+            if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICAID) {
+              Activities::Medicaid_unav++;
+            } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICARE) {
+              Activities::Medicare_unav++;
+            } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::PRIVATE) {
+              Activities::Private_unav++;
+            } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::UNINSURED) {
+              Activities::Uninsured_unav++;
+            }
+
             Activities::Primary_healthcare_unavailable++;
 
             //Find an open health care provider
-            hosp = Global::Places.get_random_open_hospital_matching_criteria(day, false, self->get_health()->get_insurance_type());
+            hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, false, true, true);
             if(hosp == NULL) {
               hh->set_other_healthcare_location_that_accepts_insurance_available(false);
               Activities::Healthcare_accepting_insurance_unavailable++;
 
-              hosp = Global::Places.get_random_open_hospital_matching_criteria(day, false);
+              hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, false, false, false);
               if(hosp == NULL) {
                 hh->set_is_healthcare_available(false);
                 Activities::Healthcare_unavailable++;
@@ -924,6 +1032,10 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
           if(hosp != NULL) {
             assign_hospital(self, hosp);
+            if(hosp->get_subtype() == fred::PLACE_SUBTYPE_NONE) {
+              //then it is an emergency room visit
+              Activities::ER_visit++;
+            }
 
             this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
             this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
@@ -935,6 +1047,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
             this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
 
             hosp->increment_current_daily_patient_count();
+            hh->set_count_receiving_hc(hh->get_count_receiving_hc() + 1);
 
             // record work absent/present decision if it is a work day
             if(is_a_workday) {
@@ -996,35 +1109,46 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
     }
 
     //First see if this agent has a favorite hospital
-    Hospital* tmp_hosp = static_cast<Hospital*>(get_favorite_place(Activity_index::HOSPITAL_ACTIVITY));
+    Hospital* hosp = static_cast<Hospital*>(get_favorite_place(Activity_index::HOSPITAL_ACTIVITY));
     Household* hh = static_cast<Household*>(self->get_household());
     assert(hh != NULL);
 
     //If not, then use the household's hospital
-    if(tmp_hosp == NULL) {
-      tmp_hosp = hh->get_household_visitation_hospital();
-      assert(tmp_hosp != NULL);
+    if(hosp == NULL) {
+      hosp = hh->get_household_visitation_hospital();
+      assert(hosp != NULL);
+    } else if(hosp->is_healthcare_clinic() ||
+              hosp->is_mobile_healthcare_clinic()) {
+      hosp = hh->get_household_visitation_hospital();
+      assert(hosp != NULL);
+    }
+
+    if(hosp != hh->get_household_visitation_hospital()) {
+      //Change the household visitation hospital so that visitors go to the right place
+      hh->set_household_visitation_hospital(hosp);
     }
 
     if(Global::Enable_HAZEL) {
       Activities::Seeking_healthcare++;
-      if(!tmp_hosp->should_be_open(day) || (tmp_hosp->get_occupied_bed_count() >= tmp_hosp->get_bed_count())) {
+
+      hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
+      if(!hosp->should_be_open(day) || (hosp->get_occupied_bed_count() >= hosp->get_bed_count(day))) {
         hh->set_is_primary_healthcare_available(false);
         Activities::Primary_healthcare_unavailable++;
 
         //Find an open healthcare provider
-        tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(day, true, self->get_health()->get_insurance_type());
-        if(tmp_hosp == NULL) {
+        hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, true, true, true);
+        if(hosp == NULL) {
           hh->set_other_healthcare_location_that_accepts_insurance_available(false);
           Activities::Healthcare_accepting_insurance_unavailable++;
-          tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(day, true);
-          if(tmp_hosp == NULL) {
+          hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, true, false, false);
+          if(hosp == NULL) {
             hh->set_is_healthcare_available(false);
             Activities::Healthcare_unavailable++;
           }
         }
 
-        if(tmp_hosp != NULL) {
+        if(hosp != NULL) {
           store_favorite_places();
           clear_favorite_places();
           this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
@@ -1035,17 +1159,19 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
           this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = false;
           this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
-          assign_hospital(self, tmp_hosp);
+          assign_hospital(self, hosp);
           this->is_hospitalized = true;
           this->sim_day_hospitalization_ends = day + length_of_stay;
-          tmp_hosp->increment_occupied_bed_count();
+          hosp->increment_occupied_bed_count();
+          hh->set_count_receiving_hc(hh->get_count_receiving_hc() + 1);
+          Activities::ER_visit++;
 
           //Set the flag for the household
           hh->set_household_has_hospitalized_member(true);
         }
       }
     } else {
-      if(tmp_hosp->get_occupied_bed_count() < tmp_hosp->get_bed_count()) {
+      if(hosp->get_occupied_bed_count() < hosp->get_bed_count(day)) {
         store_favorite_places();
         clear_favorite_places();
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
@@ -1056,11 +1182,11 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
         this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY] = false;
         this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
         this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
-        assign_hospital(self, tmp_hosp);
+        assign_hospital(self, hosp);
 
         this->is_hospitalized = true;
         this->sim_day_hospitalization_ends = day + length_of_stay;
-        tmp_hosp->increment_occupied_bed_count();
+        hosp->increment_occupied_bed_count();
 
         //Set the flag for the household
         hh->set_household_has_hospitalized_member(true);
@@ -1738,6 +1864,14 @@ void Activities::print_stats(int day) {
     Global::Daily_Tracker->set_index_key_pair(day, "Primary_hc_unav", Activities::Primary_healthcare_unavailable);
     Global::Daily_Tracker->set_index_key_pair(day, "Hc_accep_ins_unav", Activities::Healthcare_accepting_insurance_unavailable);
     Global::Daily_Tracker->set_index_key_pair(day, "Hc_unav", Activities::Healthcare_unavailable);
+    Global::Daily_Tracker->set_index_key_pair(day, "ER_visit", Activities::ER_visit);
+    Global::Daily_Tracker->set_index_key_pair(day, "Diabetes_hc_unav", Activities::Diabetes_hc_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "Asthma_hc_unav", Activities::Asthma_hc_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "HTN_hc_unav", Activities::HTN_hc_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "Medicaid_unav", Activities::Medicaid_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "Medicare_unav", Activities::Medicare_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "Private_unav", Activities::Private_unav);
+    Global::Daily_Tracker->set_index_key_pair(day, "Uninsured_unav", Activities::Uninsured_unav);
   }
 }
 

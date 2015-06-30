@@ -88,6 +88,16 @@ int Place_List::Hospital_min_bed_threshold = 0;
 double Place_List::Hospitalization_radius = 0.0;
 int Place_List::Enable_copy_files = 0;
 
+//HAZEL Parameters needed for multiple place types (not just hospitals)
+int Place_List::HAZEL_disaster_start_sim_day = -1;
+int Place_List::HAZEL_disaster_end_sim_day = -1;
+int Place_List::HAZEL_disaster_evac_start_offset = 0;
+int Place_List::HAZEL_disaster_evac_end_offset = 0;
+int Place_List::HAZEL_disaster_return_start_offset = 0;
+int Place_List::HAZEL_disaster_return_end_offset = 0;
+double Place_List::HAZEL_disaster_evac_prob_per_day = 0.0;
+double Place_List::HAZEL_disaster_return_prob_per_day = 0.0;
+
 double distance_between_places(Place* p1, Place* p2) {
   return Geo_Utils::xy_distance(p1->get_latitude(), p1->get_longitude(),
 				p2->get_latitude(), p2->get_longitude());
@@ -163,6 +173,18 @@ void Place_List::get_parameters() {
     Params::get_param_from_string("shelter_in_place_decay_rate", &Place_List::Shelter_decay_rate);
   }
 
+  // household evacuation parameters
+  if(Global::Enable_HAZEL) {
+    Params::get_param_from_string("HAZEL_disaster_start_sim_day", &Place_List::HAZEL_disaster_start_sim_day);
+    Params::get_param_from_string("HAZEL_disaster_end_sim_day", &Place_List::HAZEL_disaster_end_sim_day);
+    Params::get_param_from_string("HAZEL_disaster_evac_start_offset", &Place_List::HAZEL_disaster_evac_start_offset);
+    Params::get_param_from_string("HAZEL_disaster_evac_end_offset", &Place_List::HAZEL_disaster_evac_end_offset);
+    Params::get_param_from_string("HAZEL_disaster_return_start_offset", &Place_List::HAZEL_disaster_return_start_offset);
+    Params::get_param_from_string("HAZEL_disaster_return_end_offset", &Place_List::HAZEL_disaster_return_end_offset);
+    Params::get_param_from_string("HAZEL_disaster_evac_prob_per_day", &Place_List::HAZEL_disaster_evac_prob_per_day);
+    Params::get_param_from_string("HAZEL_disaster_return_prob_per_day", &Place_List::HAZEL_disaster_return_prob_per_day);
+  }
+
   if(Global::Enable_Hospitals) {
     char hosp_file_dir[FRED_STRING_SIZE];
     char hh_hosp_map_file_name[FRED_STRING_SIZE];
@@ -204,7 +226,9 @@ void Place_List::get_parameters() {
             string hh_id_str(s);
             sprintf(s, "%s", tokens[hospital_id]);
             string hosp_id_str(s);
-            this->household_hospital_map.insert(std::pair<string, string>(hh_id_str, hosp_id_str));
+            int hosp_id = 0;
+            sscanf(hosp_id_str.c_str(), "%d", &hosp_id);
+            this->household_hospital_map.insert(std::pair<string, int>(hh_id_str, hosp_id));
           }
           tokens.clear();
         }
@@ -576,8 +600,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       h->set_household_income((*itr).income > 0 ? (*itr).income : 0);
       h->set_deme_id((*itr).deme_id);
       if(itr->is_group_quarters) {
-	      h->set_group_quarters_units((*itr).group_quarters_units);
-	      h->set_group_quarters_workplace(get_place_from_label((*itr).gq_workplace));
+        h->set_group_quarters_units((*itr).group_quarters_units);
+        h->set_group_quarters_workplace(get_place_from_label((*itr).gq_workplace));
       }
       h->set_county_index((*itr).county);
       h->set_census_tract_index((*itr).census_tract_index);
@@ -585,8 +609,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       this->households.push_back(h);
       this->counties[(*itr).county]->add_household(h);
       if(Global::Enable_Visualization_Layer) {
-	    long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
-	    Global::Visualization->add_census_tract(census_tract);
+	      long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
+	      Global::Visualization->add_census_tract(census_tract);
       }
     } else if(place_type == Place::SCHOOL) {
       place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat, container, &Global::Pop);
@@ -596,11 +620,15 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     } else if(place_type == Place::HOSPITAL) {
       place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat, container, &Global::Pop);
       Hospital* hosp = static_cast<Hospital*>(place);
-      hosp->set_bed_count(static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0));
+      int bed_count = static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0);
+      if(bed_count < Place_List::Hospital_min_bed_threshold) {
+        hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
+      }
+      hosp->set_bed_count(bed_count);
 
-      if(Global::Enable_HAZEL && hosp->get_daily_patient_capacity() == -1) {
+      if(Global::Enable_HAZEL && hosp->get_daily_patient_capacity(0) == -1) {
         int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned)) * Place_List::Hospital_outpatients_per_day_per_employee;
-        capacity += hosp->get_bed_count();
+        capacity += hosp->get_bed_count(0);
         hosp->set_daily_patient_capacity(capacity);
       }
     } else {
@@ -1170,12 +1198,6 @@ void Place_List::prepare() {
     printf("\n");
   }
   print_status_of_schools(0);
-
-  FRED_STATUS(0, "deleting place_label_map\n", "");
-  delete_place_label_map();
-
-  FRED_STATUS(0, "prepare places finished\n", "");
-
 }
 
 void Place_List::print_status_of_schools(int day) {
@@ -1243,6 +1265,11 @@ void Place_List::update(int day) {
       if(Global::Enable_HAZEL && (place->get_type() == Place::HOSPITAL)) {
         Hospital* temp_hosp = static_cast<Hospital*>(place);
         temp_hosp->reset_current_daily_patient_count();
+      }
+
+      if(Global::Enable_HAZEL  && (place->get_type() == Place::HOUSEHOLD)) {
+        Household* temp_hh = static_cast<Household*>(place);
+        temp_hh->reset_healthcare_info();
       }
     }
   }
@@ -1388,6 +1415,7 @@ int Place_List::get_min_household_income_by_percentile(int percentile) {
 
 Place* Place_List::get_place_from_label(const char* s) const {
   assert(this->place_label_map != NULL);
+
   if(strcmp(s, "-1") == 0) {
     return NULL;
   }
@@ -1569,6 +1597,8 @@ void Place_List::setup_households() {
 
   if(Global::Enable_Household_Shelter) {
     select_households_for_shelter();
+  } else if(Global::Enable_HAZEL) {
+    select_households_for_evacuation();
   }
 
   // initialize the vector layer in proportion to the household population
@@ -1797,8 +1827,7 @@ void Place_List::assign_hospitals_to_households() {
       if(hosp != NULL) {
         hh->set_household_visitation_hospital(hosp);
         string hh_id_str(hh->get_label());
-        string hosp_id_str(hosp->get_label());
-        this->household_hospital_map.insert(std::pair<string, string>(hh_id_str, hosp_id_str));
+        this->household_hospital_map.insert(std::pair<string, int>(hh_id_str, hosp->get_id()));
       }
     }
 
@@ -1824,9 +1853,9 @@ void Place_List::assign_hospitals_to_households() {
         Utils::fred_abort("Can't open %s\n", filename);
       }
 
-      for(std::map<std::string, std::string>::iterator itr = this->household_hospital_map.begin();
+      for(std::map<std::string, int>::iterator itr = this->household_hospital_map.begin();
           itr != this->household_hospital_map.end(); ++itr) {
-        fprintf(hospital_household_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
+        fprintf(hospital_household_map_fp, "%s,%d\n", itr->first.c_str(), itr->second);
       }
 
       fflush(hospital_household_map_fp);
@@ -1837,117 +1866,231 @@ void Place_List::assign_hospitals_to_households() {
   }
 }
 
-Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight) {
-  if(Global::Enable_Hospitals) {
-    int size = static_cast<int>(this->hospitals.size());
-    if(size > 0) {
-      int start_pos = IRAND(0, size - 1); //Get a random start point
-      for(int i = start_pos; i < size; ++i) {
-        Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-        if(check_hospital->should_be_open(day)) {
-          if(allows_overnight) {
-            //Need to make sure place is not a healthcare clinic && there are beds available
-            if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
-              return check_hospital;
-            }
-          } else {
-            //Need to make sure that we haven't exceeded capacity for day
-            if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
-              return check_hospital;
-            }
-          }
-        }
-      }
-      //Didn't find match yet, so wrap to beginning of list
-      for(int i = 0; i < start_pos; ++i) {
-        Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-        if(check_hospital->should_be_open(day)) {
-          if(allows_overnight) {
-            //Need to make sure place is not a healthcare clinic && there are beds available
-            if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
-              return check_hospital;
-            }
-          } else {
-            //Need to make sure that we haven't exceeded capacity for day
-            if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
-              return check_hospital;
-            }
-          }
-        }
-      }
-    }
-  }
-  return NULL;
-}
-
-Hospital* Place_List::get_random_open_hospital_matching_criteria(int day, bool allows_overnight, Insurance_assignment_index::e insr_accepted) {
+Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool allows_overnight, bool check_insurance, bool use_search_radius_limit) {
   if(!Global::Enable_Hospitals) {
     return NULL;
   }
-  int size = static_cast<int>(this->hospitals.size());
-  if(size > 0) {
-    int start_pos = IRAND(0, size - 1); //Get a random start point
-    for(int i = start_pos; i < size; ++i) {
-      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-      if(check_hospital->should_be_open(day)) {
-        if(allows_overnight) {
-          //Need to make sure place is not a healthcare clinic && there are beds available
-          if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
-            if(Global::Enable_Health_Insurance) {
-              if(check_hospital->accepts_insurance(insr_accepted)) {
-                return check_hospital;
+
+  if(check_insurance) {
+    assert(Global::Enable_Health_Insurance);
+  }
+  assert(per != NULL);
+
+  Hospital* assigned_hospital = NULL;
+  int number_hospitals = this->hospitals.size();
+  int number_possible_hospitals = 0;
+  if(number_hospitals == 0) {
+    Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
+  }
+  Household* hh = static_cast<Household*>(per->get_household());
+  assert(hh != NULL);
+  //First, only try Hospitals within a certain radius (* that accept insurance)
+  std::vector<double> hosp_probs;
+  double probability_total = 0.0;
+  for(int i = 0; i < number_hospitals; ++i) {
+    Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+    int bed_count = hospital->get_bed_count(sim_day);
+    double distance = distance_between_places(hh, hospital);
+    double cur_prob = 0.0;
+    int increment = 0;
+    if(allows_overnight) {
+      //Need to make sure place is not a healthcare clinic && there are beds available
+      if(distance > 0.0 &&
+         !hospital->is_healthcare_clinic() &&
+         !hospital->is_mobile_healthcare_clinic() &&
+         (hospital->get_occupied_bed_count() < hospital->get_bed_count(sim_day))) {
+        if(use_search_radius_limit) {
+          if(check_insurance) {
+            if(distance <= Place_List::Hospitalization_radius) {
+              Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+              if(hospital->accepts_insurance(per_insur)) {
+                //Hospital accepts the insurance so we are good
+                cur_prob = static_cast<double>(bed_count) / (distance * distance);
+                increment = 1;
+              } else {
+                //Not possible
+                cur_prob = 0.0;
+                increment = 0;
               }
             } else {
-              return check_hospital;
+              //Not possible (Not within search radius)
+              cur_prob = 0.0;
+              increment = 0;
             }
+          } else {
+            //We don't care about insurance so good to go
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
+            increment = 1;
           }
         } else {
-          //Need to make sure that we haven't exceeded capacity for day
-          if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
-            if(Global::Enable_Health_Insurance) {
-              if(check_hospital->accepts_insurance(insr_accepted)) {
-                return check_hospital;
-              }
+          //We don't care about search radius
+          if(check_insurance) {
+            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+            if(hospital->accepts_insurance(per_insur)) {
+              //Hospital accepts the insurance so we are good
+              cur_prob = static_cast<double>(bed_count) / (distance * distance);
+              increment = 1;
             } else {
-              return check_hospital;
+              //Not possible
+              cur_prob = 0.0;
+              increment = 0;
             }
+          } else {
+            //We don't care about insurance so good to go
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
+            increment = 1;
           }
         }
+      } else {
+        //Not possible
+        cur_prob = 0.0;
+        increment = 0;
       }
-    }
-    //Didn't find match yet, so wrap to beginning of list
-    for(int i = 0; i < start_pos; ++i) {
-      Hospital* check_hospital = static_cast<Hospital*>(this->hospitals[i]);
-      if(check_hospital->should_be_open(day)) {
-        if(allows_overnight) {
-          //Need to make sure place is not a healthcare clinic && there are beds available
-          if(!check_hospital->is_healthcare_clinic() && (check_hospital->get_occupied_bed_count() < check_hospital->get_bed_count())) {
-            if(Global::Enable_Health_Insurance) {
-              if(check_hospital->accepts_insurance(insr_accepted)) {
-                return check_hospital;
-              }
-            } else {
-              return check_hospital;
-            }
+      hosp_probs.push_back(cur_prob);
+      probability_total += cur_prob;
+      number_possible_hospitals += increment;
+    } else {
+      //Need to make sure place is not over capacity for the day
+      if(distance <= Place_List::Hospitalization_radius && distance > 0.0 &&
+         hospital->get_current_daily_patient_count() < hospital->get_daily_patient_capacity(sim_day)) {
+        if(check_insurance) {
+          Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+          if(hospital->accepts_insurance(per_insur)) {
+            //Hospital accepts the insurance so we are good
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
+            increment = 1;
+          } else {
+            //Not possible
+            cur_prob = 0.0;
+            increment = 0;
           }
         } else {
-          //Need to make sure that we haven't exceeded capacity for day
-          if(check_hospital->get_current_daily_patient_count() < check_hospital->get_daily_patient_capacity()) {
-            if(Global::Enable_Health_Insurance) {
-              if(check_hospital->accepts_insurance(insr_accepted)) {
-                return check_hospital;
-              }
-            } else {
-              return check_hospital;
-            }
-          }
+          //We don't care about insurance so good to go
+          cur_prob = static_cast<double>(bed_count) / (distance * distance);
+          increment = 1;
         }
+      } else {
+        //Not possible
+        cur_prob = 0.0;
+        increment = 0;
+      }
+      hosp_probs.push_back(cur_prob);
+      probability_total += cur_prob;
+      number_possible_hospitals += increment;
+    }
+  }  // end for loop
+
+  assert(static_cast<int>(hosp_probs.size())  == number_hospitals);
+  if(number_possible_hospitals > 0) {
+    if(probability_total > 0.0) {
+      for(int i = 0; i < number_hospitals; ++i) {
+        hosp_probs[i] /= probability_total;
       }
     }
-    //Still couldn't find a match so return NULL
-    return NULL;
-  } else {
-    return NULL;
+
+    double rand = RANDOM();
+    double cum_prob = 0.0;
+    int i = 0;
+    while(i < number_hospitals) {
+      cum_prob += hosp_probs[i];
+      if(rand < cum_prob) {
+        return static_cast<Hospital*>(this->hospitals[i]);
+      }
+      ++i;
+    }
+    return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+  } else { //Expand the search radius to all hospitals in simulation
+    probability_total = 0.0;
+    hosp_probs.clear();
+    for(int i = 0; i < number_hospitals; ++i) {
+      Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+      int bed_count = hospital->get_bed_count(sim_day);
+      double distance = distance_between_places(hh, hospital);
+      double cur_prob = 0.0;
+      int increment = 0;
+      if(allows_overnight) {
+        //Need to make sure place is not a healthcare clinic && there are beds available
+        if(distance <= Place_List::Hospitalization_radius && distance > 0.0 &&
+           hospital->get_subtype() != fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC &&
+           hospital->get_subtype() != fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC &&
+           (hospital->get_occupied_bed_count() < hospital->get_bed_count(sim_day))) {
+          if(check_insurance) {
+            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+            if(hospital->accepts_insurance(per_insur)) {
+              //Hospital accepts the insurance so we are good
+              cur_prob = static_cast<double>(bed_count) / (distance * distance);
+              increment = 1;
+            } else {
+              //Not possible
+              cur_prob = 0.0;
+              increment = 0;
+            }
+          } else {
+            //We don't care about insurance so good to go
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
+            increment = 1;
+          }
+        } else {
+          //Not possible
+          cur_prob = 0.0;
+          increment = 0;
+        }
+        hosp_probs.push_back(cur_prob);
+        probability_total += cur_prob;
+        number_possible_hospitals += increment;
+      } else {
+        //Need to make sure place is not over capacity for the day
+        if(distance > 0.0 &&
+           hospital->get_current_daily_patient_count() < hospital->get_daily_patient_capacity(sim_day)) {
+          if(check_insurance) {
+            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+            if(hospital->accepts_insurance(per_insur)) {
+              //Hospital accepts the insurance so we are good
+              cur_prob = static_cast<double>(bed_count) / (distance * distance);
+              increment = 1;
+            } else {
+              //Not possible
+              cur_prob = 0.0;
+              increment = 0;
+            }
+          } else {
+            //We don't care about insurance so good to go
+            cur_prob = static_cast<double>(bed_count) / (distance * distance);
+            increment = 1;
+          }
+        } else {
+          //Not possible
+          cur_prob = 0.0;
+          increment = 0;
+        }
+        hosp_probs.push_back(cur_prob);
+        probability_total += cur_prob;
+        number_possible_hospitals += increment;
+      }
+    }  // end for loop
+    assert(static_cast<int>(hosp_probs.size()) == number_hospitals);
+    if(number_possible_hospitals > 0) {
+      if(probability_total > 0.0) {
+        for(int i = 0; i < number_hospitals; ++i) {
+          hosp_probs[i] /= probability_total;
+        }
+      }
+
+      double rand = RANDOM();
+      double cum_prob = 0.0;
+      int i = 0;
+      while(i < number_hospitals) {
+        cum_prob += hosp_probs[i];
+        if(rand < cum_prob) {
+          return static_cast<Hospital*>(this->hospitals[i]);
+        }
+        ++i;
+      }
+      return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+    } else {
+      //No hospitals in the simulation match search criteria
+      return NULL;
+    }
   }
 }
 
@@ -2134,6 +2277,66 @@ void Place_List::shelter_household(Household* h) {
 	       h->get_shelter_end_day(), h->get_shelter_end_day()-h->get_shelter_start_day());
 }
 
+void Place_List::select_households_for_evacuation() {
+  if(!Global::Enable_HAZEL) {
+    return;
+  }
+
+  FRED_VERBOSE(0, "HAZEL: select_households_for_evacuation entered.\n");
+  int num_households = this->households.size();
+  int evac_start_sim_day = Place_List::HAZEL_disaster_start_sim_day + Place_List::HAZEL_disaster_evac_start_offset;
+  int evac_end_sim_day = Place_List::HAZEL_disaster_end_sim_day + Place_List::HAZEL_disaster_evac_end_offset;
+  int return_start_sim_day = Place_List::HAZEL_disaster_end_sim_day + Place_List::HAZEL_disaster_return_start_offset;
+  int return_end_sim_day = Place_List::HAZEL_disaster_end_sim_day + Place_List::HAZEL_disaster_return_end_offset;
+  int count_hh_evacuating = 0;
+
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_start_sim_day = %d\n", Place_List::HAZEL_disaster_start_sim_day);
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_evac_start_offset = %d\n", Place_List::HAZEL_disaster_evac_start_offset);
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_end_sim_day = %d\n", Place_List::HAZEL_disaster_end_sim_day);
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_evac_end_offset = %d\n", Place_List::HAZEL_disaster_evac_end_offset);
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_return_start_offset = %d\n", Place_List::HAZEL_disaster_return_start_offset);
+  FRED_VERBOSE(0, "HAZEL: HAZEL_disaster_return_end_offset = %d\n", Place_List::HAZEL_disaster_return_end_offset);
+  FRED_VERBOSE(0, "HAZEL: evac_start_sim_day = %d\n", evac_start_sim_day);
+  FRED_VERBOSE(0, "HAZEL: evac_end_sim_day = %d\n", evac_end_sim_day);
+  FRED_VERBOSE(0, "HAZEL: return_start_sim_day = %d\n", return_start_sim_day);
+  FRED_VERBOSE(0, "HAZEL: return_end_sim_day = %d\n", return_end_sim_day);
+  if(evac_start_sim_day < 0 || evac_end_sim_day < evac_start_sim_day) {
+    return;
+  }
+
+  for(int i = 0; i < num_households; ++i) {
+    Household* tmp_hh = this->get_household_ptr(i);
+    bool evac_date_set = false;
+    bool return_date_set = false;
+    for(int j = evac_start_sim_day; j <= evac_end_sim_day; ++j) {
+      if(RANDOM() < Place_List::HAZEL_disaster_evac_prob_per_day) {
+        tmp_hh->set_shelter_start_day(j);
+        evac_date_set = true;
+        count_hh_evacuating++;
+        for(int k = return_start_sim_day; k <= return_end_sim_day; ++k) {
+          if(RANDOM() < Place_List::HAZEL_disaster_evac_prob_per_day || k == return_end_sim_day) {
+            if(k > j) { //Can't return before you leave
+              tmp_hh->set_shelter_end_day(k);
+              return_date_set = true;
+            }
+          }
+          if(return_date_set) {
+            break;
+          }
+        }
+        if(evac_date_set) {
+          assert(return_date_set);
+          break;
+        }
+      }
+    }
+  }
+
+  FRED_VERBOSE(0, "HAZEL: num_households = %d\n", num_households);
+  FRED_VERBOSE(0, "HAZEL: num_evacuating = %d\n", count_hh_evacuating);
+  FRED_VERBOSE(0, "HAZEL: pct_households_evacuating = %f\n", static_cast<float>(count_hh_evacuating) / static_cast<float>(num_households));
+  FRED_VERBOSE(0, "HAZEL: select_households_for_evacuation finished.\n");
+}
 
 void Place_List::report_shelter_stats(int day) {
   int sheltering_households = 0;
@@ -2300,7 +2503,7 @@ void Place_List::combine_households(int house_index1, int house_index2) {
   // get pointers to residents of house h2
   vector<Person*> temp2;
   temp2.clear();
-  vector <Person*> housemates2 = h2->get_inhabitants();
+  vector<Person*> housemates2 = h2->get_inhabitants();
   for(std::vector<Person*>::iterator itr = housemates2.begin();
       itr != housemates2.end(); ++itr) {
     temp2.push_back(*itr);
@@ -2319,9 +2522,9 @@ void Place_List::combine_households(int house_index1, int house_index2) {
 }
 
 Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
-
-  if(this->household_hospital_map.find(string(hh->get_label())) != this->household_hospital_map.end()){
-    return static_cast<Hospital*>(this->get_place_from_label((char*)this->household_hospital_map.find(string(hh->get_label()))->second.c_str()));
+  assert(this->is_load_completed());
+  if(this->household_hospital_map.find(string(hh->get_label())) != this->household_hospital_map.end()) {
+    return static_cast<Hospital*>(this->get_hospital_ptr(this->household_hospital_map.find(string(hh->get_label()))->second));
   } else {
 
     if(Place_List::Household_hospital_map_file_exists) {
@@ -2329,171 +2532,32 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
       Place_List::Household_hospital_map_file_exists = false;
     }
 
-    Hospital* assigned_hospital = NULL;
-    int number_hospitals = this->hospitals.size();
-    int number_possible_hospitals = 0;
-    if(number_hospitals == 0) {
-      Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
-    }
-
-    //First, only try Hospitals within a certain radius (* that accept insurance)
-    std::vector<double> hosp_probs;
-    double probability_total = 0.0;
-    for(int i = 0; i < number_hospitals; ++i) {
-      Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
-      int bed_count = hospital->get_bed_count();
-      double distance = distance_between_places(hh, hospital);
-      double cur_prob = 0.0;
-      int increment = 0;
-      if(distance <= Place_List::Hospitalization_radius) {
-        if(Global::Enable_Health_Insurance) {
-          //Get someone in the household (they should all have the same insurance)
-          Person* per = hh->get_housemate(0);
-          if(per != NULL) {
-            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
-            if(hospital->accepts_insurance(per_insur)) {
-              //Hospital accepts the insurance so we are good
-              cur_prob = static_cast<double>(bed_count) / (distance * distance);
-              increment = 1;
-            } else {
-              //Not possible
-              cur_prob = 0.0;
-              increment = 0;
-            }
-          } else {
-            //No one lives here right now, so really who cares?
-            cur_prob = static_cast<double>(bed_count) / (distance * distance);
-            increment = 1;
-          }
-        } else {
-          //We don't care about Insurance so go ahead and allow this one
-          cur_prob = static_cast<double>(bed_count) / (distance * distance);
-          increment = 1;
-        }
+    Hospital* hosp = NULL;
+    if(hh->get_size() > 0) {
+      Person* per = hh->get_housemate(0);
+      assert(per != NULL);
+      if(Global::Enable_Health_Insurance) {
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, true, true, true);
       } else {
-        //Not possible
-        cur_prob = 0.0;
-        increment = 0;
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, true, false, true);
       }
-
-      hosp_probs.push_back(cur_prob);
-      probability_total += cur_prob;
-      number_possible_hospitals += increment;
-    }
-    assert((int)hosp_probs.size() == number_hospitals);
-
-    if(number_possible_hospitals > 0) {
-      if(probability_total > 0.0) {
-        for(int i = 0; i < number_hospitals; ++i) {
-          hosp_probs[i] /= probability_total;
-        }
-      }
-
-      double rand = RANDOM();
-      double cum_prob = 0.0;
-      int i = 0;
-      while(i < number_hospitals) {
-        cum_prob += hosp_probs[i];
-        if(rand < cum_prob) {
-          return static_cast<Hospital*>(this->hospitals[i]);
-        }
-        ++i;
-      }
-      return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
-    } else { //Need to expand search to all hospitals (*still care about insurance)
-      number_possible_hospitals = 0;
-      probability_total = 0.0;
-      hosp_probs.clear();
-      for(int i = 0; i < number_hospitals; ++i) {
-        Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
-        int bed_count = hospital->get_bed_count();
-        double distance = distance_between_places(hh, hospital);
-        double cur_prob = 0;
-        int increment = 0;
+      //If it came back with nothing, expand the search radius
+      if(hosp == NULL) {
         if(Global::Enable_Health_Insurance) {
-          //Get someone in the household (they should all have the same insurance)
-          Person* per = hh->get_housemate(0);
-          if(per != NULL) {
-            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
-            if(hospital->accepts_insurance(per_insur)) {
-              //Hospital accepts the insurance so we are good
-              cur_prob = static_cast<double>(bed_count) / (distance * distance);
-              increment = 1;
-            } else {
-              //Not possible
-              cur_prob = 0.0;
-              increment = 0;
-            }
-          } else {
-            //No one lives here right now, so really who cares?
-            cur_prob = static_cast<double>(bed_count) / (distance * distance);
-            increment = 1;
-          }
+          hosp = this->get_random_open_hospital_matching_criteria(0, per, true, true, false);
         } else {
-          //We don't care about Insurance so go ahead and allow this one
-          cur_prob = static_cast<double>(bed_count) / (distance * distance);
-          increment = 1;
+          hosp = this->get_random_open_hospital_matching_criteria(0, per, true, false, false);
         }
-
-        hosp_probs.push_back(cur_prob);
-        probability_total += cur_prob;
-        number_possible_hospitals += increment;
+      }
+      //If it came back with nothing, ignore health insurance
+      if(hosp == NULL) {
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, true, false, false);
       }
 
-      assert((int)hosp_probs.size() == (int)this->hospitals.size());
-      if(number_possible_hospitals > 0) {
-        if(probability_total > 0.0) {
-          for(int i = 0; i < number_hospitals; ++i) {
-            hosp_probs[i] /= probability_total;
-          }
-        }
-        double rand = RANDOM();
-        double cum_prob = 0.0;
-        int i = 0;
-        while(i < number_hospitals) {
-          cum_prob += hosp_probs[i];
-          if(rand < cum_prob) {
-            return static_cast<Hospital*>(this->hospitals[i]);
-          }
-          ++i;
-        }
-        return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
-      } else if(Global::Enable_Health_Insurance) { //Try again without insurance lookup
-        probability_total = 0.0;
-        hosp_probs.clear();
-        for(int i = 0; i < number_hospitals; ++i) {
-          Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
-          int bed_count = hospital->get_bed_count();
-          double distance = distance_between_places(hh, hospital);
-          double cur_prob = static_cast<double>(bed_count) / (distance * distance);
-          hosp_probs.push_back(cur_prob);
-          probability_total += cur_prob;
-          number_possible_hospitals++;
-        }
-        if(probability_total > 0.0) {
-          for(int i = 0; i < number_hospitals; ++i) {
-            hosp_probs[i] /= probability_total;
-          }
-        }
-        double rand = RANDOM();
-        double cum_prob = 0.0;
-        int i = 0;
-        while(i < number_hospitals) {
-          cum_prob += hosp_probs[i];
-          if(rand < cum_prob) {
-            return static_cast<Hospital*>(this->hospitals[i]);
-          }
-          ++i;
-        }
-        return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
-      } else {
-        //No hospitals in the simulation
-        Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization\n", "");
-      }
     }
+    assert(hosp != NULL);
+    return hosp;
   }
-
-  return NULL;
 }
 
 Place* Place_List::select_school(int county_index, int grade) {
@@ -2582,5 +2646,55 @@ void Place_List::update_population_dynamics(int day) {
   int number_counties = this->counties.size();
   for(int i = 0; i < number_counties; ++i) {
     this->counties[i]->update(day);
+  }
+}
+
+int Place_List::get_HAZEL_disaster_start_sim_day() {
+  return Place_List::HAZEL_disaster_start_sim_day;
+}
+
+int Place_List::get_HAZEL_disaster_end_sim_day() {
+  return Place_List::HAZEL_disaster_end_sim_day;
+}
+
+void Place_List::print_stats(int day) {
+
+  if(Global::Enable_HAZEL) {
+    int num_open_hosp = 0;
+    int open_hosp_cap = 0;
+    int tot_hosp_cap = 0;
+    int num_hospitals = static_cast<int>(this->hospitals.size());
+    for(int i = 0; i < num_hospitals; ++i) {
+      Hospital* tmp_hosp = this->get_hospital_ptr(i);
+      int hosp_cap = tmp_hosp->get_daily_patient_capacity(day);
+      if(tmp_hosp->should_be_open(day)) {
+        num_open_hosp++;
+        open_hosp_cap += hosp_cap;
+        tot_hosp_cap += hosp_cap;
+      } else {
+        tot_hosp_cap += hosp_cap;
+      }
+    }
+
+    int num_households = this->households.size();
+    int tot_res_stayed = 0;
+    int tot_res_evac = 0;
+
+    for(int i = 0; i < num_households; ++i) {
+      Household* hh = this->get_household_ptr(i);
+      if(hh->is_sheltering_today(day)) {
+        tot_res_evac += hh->get_size();
+      } else {
+        tot_res_stayed += hh->get_size();
+      }
+    }
+
+    FRED_VERBOSE(1, "Place_List print stats for day %d\n", day);
+    Global::Daily_Tracker->set_index_key_pair(day, "Tot_hosp_cap", tot_hosp_cap);
+    Global::Daily_Tracker->set_index_key_pair(day, "Open_hosp_cap", open_hosp_cap);
+    Global::Daily_Tracker->set_index_key_pair(day, "Open_hosp", num_open_hosp);
+    Global::Daily_Tracker->set_index_key_pair(day, "Closed_hosp", num_hospitals - num_open_hosp);
+    Global::Daily_Tracker->set_index_key_pair(day, "Tot_res_stayed", tot_res_stayed);
+    Global::Daily_Tracker->set_index_key_pair(day, "Tot_res_evac", tot_res_evac);
   }
 }

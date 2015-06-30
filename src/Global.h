@@ -71,10 +71,6 @@ class Seasonality;
  */
 class Global {
   public:
-
-  // the following enum defines symbolic names for
-  // place subtypes.  The last element should always be
-  // NUM_PLACE_SUBTYPES
   
     // Output codes
     static const int OUTPUT_S = 0;
@@ -89,6 +85,8 @@ class Global {
     static const int OUTPUT_ARs = 9;
     static const int OUTPUT_P = 10;
     static const int OUTPUT_N = 11;
+    static const int OUTPUT_HC_DEFICIT = 12;
+
 
     // global constants
     static const int DAYS_PER_WEEK = 7;
@@ -270,9 +268,9 @@ class Global {
     static char PSA_List_File[];
     static int PSA_Sample_Size;
     static int PSA_Sample;
-    	// for residual immunity by FIPS
-	static bool Residual_Immunity_by_FIPS;
-	static char Residual_Immunity_File[];
+    // for residual immunity by FIPS
+	  static bool Residual_Immunity_by_FIPS;
+	  static char Residual_Immunity_File[];
 
     // global singleton objects
     static Population Pop;
@@ -281,8 +279,8 @@ class Global {
     static Regional_Layer* Simulation_Region;
     static Visualization_Layer* Visualization;
     static Vector_Layer* Vectors;
-  // static Date* Sim_Start_Date;
-  // static Date* Sim_Current_Date;
+    // static Date* Sim_Start_Date;
+    // static Date* Sim_Current_Date;
     static Evolution* Evol;
     static Seasonality* Clim;
     static Tracker<int>* Daily_Tracker;

@@ -420,10 +420,6 @@ public:
     return size;
   }
 
-//  float get_sick_days_remaining() {
-//    return this->sick_days_remaining;
-//  }
-
   bool is_sick_leave_available() {
     return this->sick_leave_available;
   }
@@ -657,6 +653,14 @@ private:
   static int Primary_healthcare_unavailable;
   static int Healthcare_accepting_insurance_unavailable;
   static int Healthcare_unavailable;
+  static int ER_visit;
+  static int Diabetes_hc_unav;
+  static int Asthma_hc_unav;
+  static int HTN_hc_unav;
+  static int Medicaid_unav;
+  static int Medicare_unav;
+  static int Private_unav;
+  static int Uninsured_unav;
 
   // school change statistics
   static int entered_school;

@@ -222,6 +222,10 @@ void fred_setup(int argc, char* argv[]) {
     Utils::fred_print_lap_time("assign hospitals to households");
   }
 
+  FRED_STATUS(0, "deleting place_label_map\n", "");
+  Global::Places.delete_place_label_map();
+  FRED_STATUS(0, "prepare places finished\n", "");
+
   if(Global::Enable_Travel) {
     Utils::fred_print_wall_time("\nFRED Travel setup started");
     Global::Simulation_Region->set_population_size();
@@ -412,6 +416,7 @@ void fred_step(int day) {
 
   if(Global::Enable_HAZEL) {
     Activities::print_stats(day);
+    Global::Places.print_stats(day);
   }
 
   // print visualization data if desired

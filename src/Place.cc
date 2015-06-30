@@ -439,29 +439,31 @@ int Place::get_output_count(int disease_id, int output_code) {
     case Global::OUTPUT_I:
       return get_current_infectious_visitors(disease_id);
       break;
-
     case Global::OUTPUT_Is:
       return get_current_symptomatic_visitors(disease_id);
       break;
-
     case Global::OUTPUT_C:
       return get_new_infections(disease_id);
       break;
-
     case Global::OUTPUT_Cs:
       return get_new_symptomatic_infections(disease_id);
       break;
-
     case Global::OUTPUT_P:
       return get_current_infections(disease_id);
       break;
-
     case Global::OUTPUT_R:
       return get_recovereds(disease_id);
       break;
-
     case Global::OUTPUT_N:
       return get_size();
+      break;
+    case Global::OUTPUT_HC_DEFICIT:
+      if(this->type == Place::HOUSEHOLD) {
+        Household* hh = static_cast<Household*>(this);
+        return hh->get_count_seeking_hc() - hh->get_count_receiving_hc();
+      } else {
+        return 0;
+      }
       break;
   }
   return 0;

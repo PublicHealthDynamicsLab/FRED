@@ -254,6 +254,11 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
       sprintf(vis_var_dir, "%s/HH_hc_avail", vis_dis_dir);
       Utils::fred_make_directory(vis_var_dir);
     }
+
+    if(this->census_tract_mode && Global::Enable_HAZEL) {
+      sprintf(vis_var_dir, "%s/HC_DEFICIT", vis_dis_dir);
+      Utils::fred_make_directory(vis_var_dir);
+    }
   }
 }
 
@@ -268,6 +273,11 @@ void Visualization_Layer::print_visualization_data(int day) {
       print_census_tract_data(dir, disease_id, Global::OUTPUT_C, (char*)"C", day);
       print_census_tract_data(dir, disease_id, Global::OUTPUT_Cs, (char*)"Cs", day);
       print_census_tract_data(dir, disease_id, Global::OUTPUT_P, (char*)"P", day);
+    }
+
+    if(Global::Enable_HAZEL) {
+      char dir[FRED_STRING_SIZE];
+      print_census_tract_data(dir, 0, Global::OUTPUT_HC_DEFICIT, (char*)"HC_DEFICIT", day);
     }
   }
 
@@ -342,39 +352,40 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   // household with Healthcare availability deficiency
   if(Global::Enable_HAZEL) {
 
-    //primary_healthcare_location_open
+    //TODO - CHANGE VARIABLE NAMES
+    //primary_healthcare_location_open  closed!
     sprintf(filename, "%s/dis%d/HH_primary_hc_avail/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     assert(fp != NULL);
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
-      Household* house = static_cast<Household*>(this->households[i]);
-      if(house->is_primary_healthcare_available()) {
-        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      Household* hh = static_cast<Household*>(this->households[i]);
+      if(hh->is_seeking_healthcare() && !hh->is_primary_healthcare_available()) {
+        fprintf(fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
       }
     }
     fclose(fp);
 
-    //other_healthcare_location_that_accepts_insurance_open
+    //other_healthcare_location_that_accepts_insurance_open NOT OPEN
     sprintf(filename, "%s/dis%d/HH_accept_insr_hc_avail/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
-      Household* house = static_cast<Household*>(this->households[i]);
-      if(house->is_other_healthcare_location_that_accepts_insurance_available()) {
-        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      Household* hh = static_cast<Household*>(this->households[i]);
+      if(hh->is_seeking_healthcare() && !hh->is_other_healthcare_location_that_accepts_insurance_available()) {
+        fprintf(fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
       }
     }
     fclose(fp);
 
-    //is_able_to_receive_healthcare
+    //is_able_to_receive_healthcare UNABLE
     sprintf(filename, "%s/dis%d/HH_hc_avail/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
-      Household* house = static_cast<Household*>(this->households[i]);
-      if(house->is_healthcare_available()) {
-        fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+      Household* hh = static_cast<Household*>(this->households[i]);
+      if(hh->is_seeking_healthcare() && !hh->is_healthcare_available()) {
+        fprintf(fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
       }
     }
     fclose(fp);
@@ -517,10 +528,8 @@ void Visualization_Layer::update_data(fred::geo latitude, fred::geo longitude, i
   if(Global::Enable_HAZEL) {
     int size = this->households.size();
     for(int i = 0; i < size; ++i) {
-      Household* house = static_cast<Household*>(this->households[i]);
-      house->set_is_primary_healthcare_available(true);
-      house->set_other_healthcare_location_that_accepts_insurance_available(true);
-      house->set_is_healthcare_available(true);
+      Household* hh = static_cast<Household*>(this->households[i]);
+      hh->reset_healthcare_info();
     }
   }
   /*

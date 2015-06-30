@@ -31,7 +31,7 @@ using namespace std;
 #include "Geo_Utils.h"
 #define DISEASE_TYPES 4
 
-typedef std::vector <Place *> place_vec;
+typedef std::vector<Place*> place_vec;
 
 class Neighborhood_Patch;
 class Person;
@@ -40,8 +40,8 @@ struct Place_State {
 
   fred::Spin_Mutex mutex;
   // working copies of susceptibles and infectious lists
-  std::vector<Person *> susceptibles;
-  std::vector<Person *> infectious;
+  std::vector<Person*> susceptibles;
+  std::vector<Person*> infectious;
 
   void add_susceptible(Person* p) {
     fred::Spin_Lock lock(mutex);
@@ -58,7 +58,7 @@ struct Place_State {
     return this->susceptibles.size();
   }
 
-  std::vector<Person*> & get_susceptible_vector() {
+  std::vector<Person*> &get_susceptible_vector() {
     return this->susceptibles;
   }
 
@@ -77,19 +77,20 @@ struct Place_State {
     return this->infectious.size();
   }
 
-  std::vector<Person*> & get_infectious_vector() {
+  std::vector<Person*> &get_infectious_vector() {
     return this->infectious;
   }
 
   void clear() {
-    susceptibles.clear();
-    infectious.clear();
+    this->susceptibles.clear();
+    this->infectious.clear();
   }
 
   void reset() {
-    if(susceptibles.size() > 0) {
+    if(this->susceptibles.size() > 0) {
       this->susceptibles = std::vector<Person*>();
     }
+
     if(this->infectious.size() > 0) {
       this->infectious = std::vector<Person*>();
     }
@@ -122,7 +123,7 @@ public:
 
   // static seasonal transmission parameters
   static double Seasonal_Reduction;
-  static double * Seasonality_multiplier;
+  static double* Seasonality_multiplier;
 
   // place type codes
   static char HOUSEHOLD;
@@ -434,6 +435,10 @@ public:
     
   bool is_healthcare_clinic(){
     return this->subtype == fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC;
+  }
+
+  bool is_mobile_healthcare_clinic(){
+    return this->subtype == fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC;
   }
     
   bool is_group_quarters() {
@@ -768,8 +773,8 @@ public:
   }
 
   int get_enrollee_index(Person* person) {
-    for (int i = 0; i < enrollees.size(); i++) {
-      if (enrollees[i] == person) {
+    for(int i = 0; i < this->enrollees.size(); i++) {
+      if(this->enrollees[i] == person) {
         return i;
       }
     }
@@ -777,27 +782,27 @@ public:
   }
 
   void set_index(int _index) {
-    index = _index;
+    this->index = _index;
   }
   
   int get_index() {
-    return index;
+    return this->index;
   }
 
   void set_subtype(fred::place_subtype _subtype) {
-    subtype = _subtype;
+    this->subtype = _subtype;
   }
   
   fred::place_subtype get_subtype() {
-    return subtype;
+    return this->subtype;
   }
   
   int get_staff_size() {
-    return staff_size;
+    return this->staff_size;
   }
   
   void set_staff_size(int _staff_size) {
-    staff_size = _staff_size;
+    this->staff_size = _staff_size;
   }
 
   // vector transmission model
@@ -842,21 +847,21 @@ public:
   }
 
   static void clear_infectious_places(int capacity) {
-    int size = infectious_places.size();
-    for (int i = 0; i < size; i++) {
-      Place *place = infectious_places[i];
+    int size = Place::infectious_places.size();
+    for (int i = 0; i < size; ++i) {
+      Place* place = Place::infectious_places[i];
       place->is_registered_as_an_infectous_place = false;
     }
-    infectious_places.clear();
-    infectious_places.reserve(capacity);
+    Place::infectious_places.clear();
+    Place::infectious_places.reserve(capacity);
   }
 
   static int count_infectious_places() {
-    return infectious_places.size();
+    return Place::infectious_places.size();
   }
 
   static Place* get_infectious_place(int n) {
-    return infectious_places[n];
+    return Place::infectious_places[n];
   }
   
   int get_household_fips() {
@@ -1067,7 +1072,7 @@ protected:
       return allocations_made;
     }
 
-    Place_Type * get_base_pointer() {
+    Place_Type* get_base_pointer() {
       return allocation_array;
     }
 

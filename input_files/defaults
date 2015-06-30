@@ -506,7 +506,7 @@ enable_HAZEL = 0
 HAZEL_reopening_CDF = 0
 HAZEL_disaster_start_day = -1
 HAZEL_disaster_end_day = -1
-HAZEL_disaster_max_bed_usage_multiplier = 1.0
+HAZEL_disaster_capacity_multiplier = 1.0
 HAZEL_hospital_init_file_directory = $FRED_HOME/input_files
 HAZEL_hospital_init_file_name = none
 

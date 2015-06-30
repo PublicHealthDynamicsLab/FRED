@@ -58,16 +58,16 @@ class Place_Init_Data;
 class Place_List {
 
   typedef std::set<Place_Init_Data> InitSetT;
-
   typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
   typedef std::map<char, std::string> TypeNameMapT;
-
-  typedef std::map<std::string, std::string> HouseholdHospitalIDMapT;
+  typedef std::map<std::string, int> HouseholdHospitalIDMapT;
 
 public:
 
+  /* Default Constructor */
   Place_List() {
+    
     this->load_completed = false;
     this->places.clear();
     this->schools.clear();
@@ -81,7 +81,7 @@ public:
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
   void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id,
-      InitSetT & pids);
+      InitSetT &pids);
 
   void reassign_workers();
   void prepare();
@@ -117,8 +117,7 @@ public:
   Place* get_place_from_label(const char* s) const;
   Place* get_random_workplace();
   void assign_hospitals_to_households();
-  Hospital* get_random_open_hospital_matching_criteria(int day, bool allows_overnight);
-  Hospital* get_random_open_hospital_matching_criteria(int day, bool allows_overnight, Insurance_assignment_index::e insr_accepted);
+  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool allows_overnight, bool check_insurance, bool use_search_radius_limit);
   void print_household_size_distribution(char* dir, char* date_string, int run);
   void report_shelter_stats(int day);
   void end_of_run();
@@ -151,6 +150,15 @@ public:
   Household* get_household_ptr(int i) {
     if(0 <= i && i < (int)this->households.size()) {
       return static_cast<Household*>(this->households[i]);
+    } else {
+      return NULL;
+    }
+  }
+
+  // access function for when we need a Hospital pointer
+  Hospital* get_hospital_ptr(int i) {
+    if(0 <= i && i < (int)this->hospitals.size()) {
+      return static_cast<Hospital*>(this->hospitals[i]);
     } else {
       return NULL;
     }
@@ -221,6 +229,13 @@ public:
   
   void update_population_dynamics(int day);
 
+  void delete_place_label_map();
+
+  void print_stats(int day);
+
+  static int get_HAZEL_disaster_start_sim_day();
+  static int get_HAZEL_disaster_end_sim_day();
+
 private:
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
@@ -230,6 +245,15 @@ private:
   void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
   void reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff, double resident_to_staff_ratio);
+
+  /**
+   * @param hh a pointer to a Household object
+   *
+   * If there is already a Hospital assigned to a Household int the map household_hospital_map, then just return it.
+   * Otherwise, find a suitable hospital (must allow overnight stays) and assign it to a household (put it in the map for later)
+   *
+   * @return a pointer to the Hospital that is assigned to the Household
+   */
   Hospital* get_hospital_assigned_to_household(Household* hh);
   int number_of_demes;
 
@@ -283,7 +307,14 @@ private:
   static int Hospital_min_bed_threshold;
   static double Hospitalization_radius;
 
-  static bool HAZEL_hospital_init_map_file_exists ;
+  static int HAZEL_disaster_start_sim_day;
+  static int HAZEL_disaster_end_sim_day;
+  static int HAZEL_disaster_evac_start_offset;
+  static int HAZEL_disaster_evac_end_offset;
+  static int HAZEL_disaster_return_start_offset;
+  static int HAZEL_disaster_return_end_offset;
+  static double HAZEL_disaster_evac_prob_per_day;
+  static double HAZEL_disaster_return_prob_per_day;
 
   // School support
   static int School_fixed_staff;
@@ -298,6 +329,8 @@ private:
   void report_household_incomes();
   void select_households_for_shelter();
   void shelter_household(Household* h);
+  void select_households_for_evacuation();
+  void evacuate_household(Household* h);
 
   // For hospitalization
   HouseholdHospitalIDMapT household_hospital_map;
@@ -307,8 +340,6 @@ private:
   }
 
   fred::geo min_lat, max_lat, min_lon, max_lon;
-
-  void delete_place_label_map();
 
   void parse_lines_from_stream(std::istream & stream, std::vector<Place_Init_Data> & pids);
 

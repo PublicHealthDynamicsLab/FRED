@@ -14,12 +14,17 @@
 // File: Hospital.cc
 //
 
-#include "Hospital.h"
-#include "Global.h"
-#include "Params.h"
-#include "Random.h"
-#include "Person.h"
+#include <math.h>
+#include <string>
+#include <sstream>
+
 #include "Disease.h"
+#include "Global.h"
+#include "Hospital.h"
+#include "Params.h"
+#include "Person.h"
+#include "Place_List.h"
+#include "Random.h"
 
 class HAZEL_Hospital_Init_Data;
 
@@ -29,10 +34,12 @@ typedef std::map<std::string, HAZEL_Hospital_Init_Data> HospitalInitMapT;
 double* Hospital::Hospital_contacts_per_day;
 double*** Hospital::Hospital_contact_prob;
 std::vector<double> Hospital::Hospital_health_insurance_prob;
+
 bool Hospital::HAZEL_hospital_init_map_file_exists = false;
-int Hospital::HAZEL_disaster_start_day = -1;
-int Hospital::HAZEL_disaster_end_day = -1;
-double Hospital::HAZEL_disaster_max_bed_usage_multiplier = 1.0;
+double Hospital::HAZEL_disaster_capacity_multiplier = 1.0;
+int Hospital::HAZEL_mobile_van_max = 0;
+int Hospital::HAZEL_mobile_van_count = 0;
+int Hospital::HAZEL_mobile_van_active_count = 0;
 std::vector<double> Hospital::HAZEL_reopening_CDF;
 HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 
@@ -50,7 +57,6 @@ Hospital::Hospital() {
   this->current_daily_patient_count = 0;
   this->HAZEL_closure_dates_have_been_set = false;
   std::vector<bool>* checked_open_day_vec;
-  get_parameters(Global::Diseases);
 }
 
 Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, double lat, Place* container, Population* pop) {
@@ -63,6 +69,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
   this->occupied_bed_count = 0;
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
+  this->add_capacity = false;
   setup(lab, lon, lat, container, pop);
 
   if(Global::Enable_Health_Insurance) {
@@ -83,7 +90,12 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, double lon, do
       this->set_accepts_insurance(Insurance_assignment_index::PRIVATE, init_data.accpt_private);
       this->set_accepts_insurance(Insurance_assignment_index::UNINSURED, init_data.accpt_uninsured);
       this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
+      if(init_data.is_mobile) {
+        this->set_subtype(fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
+        Hospital::HAZEL_mobile_van_count++;
+      }
       this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
+      this->add_capacity = init_data.add_capacity;
     }
   }
 }
@@ -124,9 +136,8 @@ void Hospital::get_parameters(int diseases) {
 
 
     Params::get_param_vector((char*)"HAZEL_reopening_CDF", Hospital::HAZEL_reopening_CDF);
-    Params::get_param((char*)"HAZEL_disaster_start_day", &Hospital::HAZEL_disaster_start_day);
-    Params::get_param((char*)"HAZEL_disaster_end_day", &Hospital::HAZEL_disaster_end_day);
-    Params::get_param((char*)"HAZEL_disaster_max_bed_usage_multiplier", &Hospital::HAZEL_disaster_max_bed_usage_multiplier);
+    Params::get_param_from_string("HAZEL_disaster_capacity_multiplier", &Hospital::HAZEL_disaster_capacity_multiplier);
+    Params::get_param_from_string("HAZEL_mobile_van_max", &Hospital::HAZEL_mobile_van_max);
 
     Params::get_param_from_string("HAZEL_hospital_init_file_directory", hosp_init_file_dir);
     Params::get_param_from_string("HAZEL_hospital_init_file_name", HAZEL_hosp_init_file_name);
@@ -137,7 +148,6 @@ void Hospital::get_parameters(int diseases) {
 
       char filename[FRED_STRING_SIZE];
       sprintf(filename, "%s%s", hosp_init_file_dir, HAZEL_hosp_init_file_name);
-
       HAZEL_hosp_init_map_fp = Utils::fred_open_file(filename);
       if(HAZEL_hosp_init_map_fp != NULL) {
         Hospital::HAZEL_hospital_init_map_file_exists = true;
@@ -150,8 +160,11 @@ void Hospital::get_parameters(int diseases) {
           ACCPT_HGHMRK = 5,
           ACCPT_UPMC = 6,
           ACCPT_UNINSRD = 7,
-          REOPEN_AFTR_DAYS = 8
+          REOPEN_AFTR_DAYS = 8,
+          IS_MOBILE = 9,
+          ADD_CAPACITY = 10
         };
+
         char line_str[255];
         int temp_int = 0;
         Utils::Tokens tokens;
@@ -165,7 +178,8 @@ void Hospital::get_parameters(int diseases) {
             string hosp_id_str(s);
             HAZEL_Hospital_Init_Data init_data = HAZEL_Hospital_Init_Data(tokens[PNL_WK], tokens[ACCPT_PRIV],
                 tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
-                tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS]);
+                tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
+                tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
             this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
@@ -209,6 +223,38 @@ double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {
   return tr_pr;
 }
 
+int Hospital::get_bed_count(int sim_day) {
+  if(Global::Enable_HAZEL) {
+    if(sim_day < Place_List::get_HAZEL_disaster_end_sim_day()) {
+      return this->bed_count;
+    } else {
+      if(this->add_capacity) {
+        return static_cast<int>(ceil(Hospital::HAZEL_disaster_capacity_multiplier * this->bed_count));
+      } else {
+        return this->bed_count;
+      }
+    }
+  } else {
+    return this->bed_count;
+  }
+}
+
+int Hospital::get_daily_patient_capacity(int sim_day) {
+  if(Global::Enable_HAZEL) {
+    if(sim_day < Place_List::get_HAZEL_disaster_end_sim_day()) {
+      return this->daily_patient_capacity;
+    } else {
+      if(this->add_capacity) {
+        return static_cast<int>(ceil(Hospital::HAZEL_disaster_capacity_multiplier * this->daily_patient_capacity));
+      } else {
+        return this->daily_patient_capacity;
+      }
+    }
+  } else {
+    return this->daily_patient_capacity;
+  }
+}
+
 double Hospital::get_contacts_per_day(int disease) {
   return Hospital::Hospital_contacts_per_day[disease];
 }
@@ -218,7 +264,37 @@ bool Hospital::should_be_open(int day) {
   if(Global::Enable_HAZEL) {
     // If we haven't made closure decision, do it now
     if(!this->HAZEL_closure_dates_have_been_set) {
-      apply_individual_HAZEL_closure_policy();
+      if(this->get_subtype() == fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
+        if(day <= Place_List::get_HAZEL_disaster_end_sim_day()) {
+          //Not open until after disaster
+          return false;
+        } else {
+          if(Hospital::HAZEL_mobile_van_max == 0) {
+            return false;
+          }
+          // First roll against the max number allowed to be open / number of mobile clinics in simulation
+          double prob = 0.0;
+          if(Hospital::HAZEL_mobile_van_max > Hospital::HAZEL_mobile_van_count) {
+            prob = 1.0;
+          } else if(Hospital::HAZEL_mobile_van_active_count < Hospital::HAZEL_mobile_van_max && Hospital::HAZEL_mobile_van_count != 0) {
+            prob = static_cast<double>(Hospital::HAZEL_mobile_van_max) / static_cast<double>(Hospital::HAZEL_mobile_van_count);
+          }
+          if(RANDOM() < prob) {
+            Hospital::HAZEL_mobile_van_active_count++;
+            //The Mobile Healthcare Clinics open 1 to 5 days after the disaster ends
+            double cdf_arr[5] = { 0.15, 0.35, 0.55, 0.75, 1.0 };
+            int cdf_day = draw_from_cdf(cdf_arr, 5);
+            this->set_close_date(Place_List::get_HAZEL_disaster_end_sim_day());
+            this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + cdf_day);
+            this->HAZEL_closure_dates_have_been_set = true;
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } else {
+        apply_individual_HAZEL_closure_policy();
+      }
     }
   }
 
@@ -240,22 +316,21 @@ void Hospital::apply_individual_HAZEL_closure_policy() {
     if(Hospital::HAZEL_hospital_init_map.find(string(this->get_label())) != Hospital::HAZEL_hospital_init_map.end()) {
       HAZEL_Hospital_Init_Data init_data = Hospital::HAZEL_hospital_init_map.find(string(this->get_label()))->second;
       if(init_data.reopen_after_days > 0) {
-        if(Hospital::HAZEL_disaster_start_day != -1 && Hospital::HAZEL_disaster_end_day != -1) {
-          this->set_close_date(Hospital::HAZEL_disaster_start_day);
-          this->set_open_date(Hospital::HAZEL_disaster_end_day + init_data.reopen_after_days);
+        if(Place_List::get_HAZEL_disaster_start_sim_day() != -1 && Place_List::get_HAZEL_disaster_end_sim_day() != -1) {
+          this->set_close_date(Place_List::get_HAZEL_disaster_start_sim_day());
+          this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + init_data.reopen_after_days);
           this->HAZEL_closure_dates_have_been_set = true;
         }
       }
     }
   }
+
   if(!this->HAZEL_closure_dates_have_been_set) {
     int cdf_day = draw_from_cdf_vector(Hospital::HAZEL_reopening_CDF);
-    this->set_close_date(Hospital::HAZEL_disaster_start_day);
-    this->set_open_date(Hospital::HAZEL_disaster_end_day + cdf_day);
+    this->set_close_date(Place_List::get_HAZEL_disaster_start_sim_day());
+    this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + cdf_day);
     this->HAZEL_closure_dates_have_been_set = true;
   }
-
-  printf("DEBUG HOSPITAL: Hospital %s will close on day %d and reopen on day %d\n", this->get_label(), this->get_close_date(), this->get_open_date());
 }
 
 void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept) {
@@ -311,3 +386,18 @@ void Hospital::set_accepts_insurance(int insr_indx, bool does_accept) {
       Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
+
+std::string Hospital::to_string() {
+  std::stringstream ss;
+  ss << "Hospital[" << this->get_label() << "]: bed_count: " << this->bed_count
+     << ", occupied_bed_count: " << this->occupied_bed_count
+     << ", daily_patient_capacity: " << this->daily_patient_capacity
+     << ", current_daily_patient_count: " << this->current_daily_patient_count
+     << ", add_capacity: " << this->add_capacity
+     << ", HAZEL_closure_dates_have_been_set: " << this->HAZEL_closure_dates_have_been_set
+     << ", subtype: " << this->subtype;
+
+  return ss.str();
+}
+
+

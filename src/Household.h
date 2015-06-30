@@ -310,6 +310,14 @@ public:
     return this->shelter_end_day;
   }
 
+  void set_seeking_healthcare(bool _seeking_healthcare) {
+    this->seeking_healthcare = _seeking_healthcare;
+  }
+
+  bool is_seeking_healthcare() {
+    return this->seeking_healthcare;
+  }
+
   void set_is_primary_healthcare_available(bool _primary_healthcare_available) {
     this->primary_healthcare_available = _primary_healthcare_available;
   }
@@ -407,6 +415,30 @@ public:
     return this->income_quartile;
   }
 
+  int get_count_seeking_hc() {
+    return this->count_seeking_hc;
+  }
+
+  void set_count_seeking_hc(int _count_seeking_hc) {
+   this->count_seeking_hc = _count_seeking_hc;
+  }
+
+  int get_count_receiving_hc() {
+    return this->count_receiving_hc;
+  }
+
+  void set_count_receiving_hc(int _count_receiving_hc) {
+   this->count_receiving_hc = _count_receiving_hc;
+  }
+
+  void reset_healthcare_info() {
+    this->set_is_primary_healthcare_available(true);
+    this->set_other_healthcare_location_that_accepts_insurance_available(true);
+    this->set_is_healthcare_available(true);
+    this->set_count_seeking_hc(0);
+    this->set_count_receiving_hc(0);
+  }
+
   static int get_min_hh_income() {
     return Household::Min_hh_income;
   }
@@ -446,6 +478,9 @@ private:
   bool primary_healthcare_available;
   bool other_healthcare_location_that_accepts_insurance_available;
   bool healthcare_available;
+  bool seeking_healthcare;
+  int count_seeking_hc;
+  int count_receiving_hc;
 
   bool hh_schl_aged_chld_unemplyd_adlt_chng;
   bool hh_schl_aged_chld;

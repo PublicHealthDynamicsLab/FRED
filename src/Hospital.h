@@ -17,8 +17,8 @@
 #ifndef _FRED_HOSPITAL_H
 #define _FRED_HOSPITAL_H
 
-#include "Place.h"
 #include "Health.h"
+#include "Place.h"
 
 class HAZEL_Hospital_Init_Data;
 
@@ -39,7 +39,7 @@ public:
   Hospital();
   ~Hospital() { }
 
-  static bool HAZEL_hospital_init_map_file_exists;
+  //static bool HAZEL_hospital_init_map_file_exists;
 
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
@@ -109,17 +109,13 @@ public:
     return this->accepted_insurance_bitset[static_cast<int>(insr)];
   }
 
-  int get_bed_count() {
-    return this->bed_count;
-  }
+  int get_bed_count(int sim_day);
 
   void set_bed_count(int _bed_count) {
     this->bed_count = _bed_count;
   }
 
-  int get_daily_patient_capacity() {
-    return this->daily_patient_capacity;
-  }
+  int get_daily_patient_capacity(int sim_day);
 
   void set_daily_patient_capacity(int _capacity) {
     this->daily_patient_capacity = _capacity;
@@ -153,22 +149,26 @@ public:
     this->occupied_bed_count = 0;
   }
 
+  std::string to_string();
 
 private:
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
   static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
-  static double HAZEL_disaster_max_bed_usage_multiplier;
+  static double HAZEL_disaster_capacity_multiplier;
+  static int HAZEL_mobile_van_max;
+  static int HAZEL_mobile_van_count;
+  static int HAZEL_mobile_van_active_count;
   static HospitalInitMapT HAZEL_hospital_init_map;
-  static int HAZEL_disaster_start_day;
-  static int HAZEL_disaster_end_day;
+  static bool HAZEL_hospital_init_map_file_exists;
   static std::vector<double> HAZEL_reopening_CDF;
 
   int bed_count;
   int occupied_bed_count;
   int daily_patient_capacity;
   int current_daily_patient_count;
+  bool add_capacity;
   bool HAZEL_closure_dates_have_been_set;
 
   // true iff a the hospital accepts the indexed Insurance Coverage
@@ -186,10 +186,13 @@ struct HAZEL_Hospital_Init_Data {
   bool accpt_upmc;
   bool accpt_uninsured; // Person has no insurance and pays out of pocket
   int reopen_after_days;
+  bool is_mobile;
+  bool add_capacity;
 
   void setup(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
       const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days) {
+      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
+      const char* _add_capacity) {
 
     string accpt_priv_str = string(_accpt_private);
     string accpt_medicr_str = string(_accpt_medicare);
@@ -197,23 +200,27 @@ struct HAZEL_Hospital_Init_Data {
     string accpt_hghmrk_str = string(_accpt_highmark);
     string accpt_upmc_str = string(_accpt_medicare);
     string accpt_uninsrd_str = string(_accpt_uninsured);
+    string is_mobile_str = string(_is_mobile);
+    string add_capacity_str = string(_add_capacity);
 
     sscanf(_panel_week, "%d", &panel_week);
-    accpt_private = Utils::to_bool(accpt_priv_str);
-    accpt_medicare = Utils::to_bool(accpt_medicr_str);
-    accpt_medicaid = Utils::to_bool(accpt_medicd_str);
-    accpt_highmark = Utils::to_bool(accpt_hghmrk_str);
-    accpt_upmc = Utils::to_bool(accpt_upmc_str);
-    accpt_uninsured = Utils::to_bool(accpt_uninsrd_str);
+    this->accpt_private = Utils::to_bool(accpt_priv_str);
+    this->accpt_medicare = Utils::to_bool(accpt_medicr_str);
+    this->accpt_medicaid = Utils::to_bool(accpt_medicd_str);
+    this->accpt_highmark = Utils::to_bool(accpt_hghmrk_str);
+    this->accpt_upmc = Utils::to_bool(accpt_upmc_str);
+    this->accpt_uninsured = Utils::to_bool(accpt_uninsrd_str);
+    this->is_mobile = Utils::to_bool(is_mobile_str);
+    this->add_capacity = Utils::to_bool(add_capacity_str);
     sscanf(_reopen_after_days, "%d", &reopen_after_days);
   }
 
   HAZEL_Hospital_Init_Data(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
       const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days) {
+      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
      setup(_panel_week, _accpt_private, _accpt_medicare,
            _accpt_medicaid, _accpt_highmark, _accpt_upmc,
-           _accpt_uninsured, _reopen_after_days);
+           _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
   }
 
 };
