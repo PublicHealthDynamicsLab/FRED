@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Std;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my %tract = ();
+my %hh_id = ();
+
+my $usage = "usage: $0 fipsfile name\n";
+my ($fipsfile, $name) = @ARGV;
+die $usage if not $name;
+
+my $county = "";
+
+open FIPS,$fipsfile;
+while (<FIPS>) {
+  chomp;
+  $tract{$_} = 1;
+  $county = substr $_,0,5 if $county eq "";
+}
+die "Can't find county\n" if not $county;
+
+my $in_households = "$FRED/populations/2010_ver1_$county/2010_ver1_$county\_synth_households.txt";
+my $in_people = "$FRED/populations/2010_ver1_$county/2010_ver1_$county\_synth_people.txt";
+
+my $out_households = "2010_ver1_$name\_synth_households.txt";
+my $out_people = "2010_ver1_$name\_synth_people.txt";
+
+open IN,$in_households;
+open OUT,">$out_households";
+my $line = <IN>;
+print OUT $line;
+while ($line = <IN>) {
+  my @a = split ',',$line;
+  my $fips = $a[2];
+  $fips =~ s/\"//g;
+  $fips =~ s/\d$//;
+  my ($id,$lat,$lon) = ($a[0],$a[7],$a[8]);
+  if (exists $tract{$fips}) {
+    print OUT $line;
+    $hh_id{$id} = 1;
+  }
+}
+close IN;
+close OUT;
+
+
+open IN,$in_people;
+open OUT,">$out_people";
+$line = <IN>;
+print OUT $line;
+while ($line = <IN>) {
+  my @a = split ',',$line;
+  my $fips = $a[3];
+  $fips =~ s/\"//g;
+  $fips =~ s/\d$//;
+  my $hhid = $a[1];
+  my ($lat,$lon) = ($a[7],$a[8]);
+  if (exists $tract{$fips}) {
+    print OUT $line;
+    # print "$fips\n";
+  }
+}
+close IN;
+close OUT;
+exit;
+
