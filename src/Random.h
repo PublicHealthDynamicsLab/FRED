@@ -27,24 +27,25 @@
 #include <dSFMT.h>
 #include <dSFMT-params19937.h>
 
+#include <random>
 
+// non-member functions 
 
-///////////// RANDOM NUMBER GENERATOR UTILITIES //////////////////////
+void INIT_RANDOM(unsigned long seed);
+double RANDOM();
+int draw_poisson(double lambda);
+double draw_exponential(double lambda);
+int draw_from_distribution(int n, double *dist);
+double draw_standard_normal();
+double draw_normal(double mu, double sigma);
+double draw_lognormal(double mu, double sigma);
+int draw_from_cdf(double *v, int size);
+int draw_from_cdf_vector(const std::vector <double>& v);
 
-// Using  double precision SIMD oriented Fast Mersenne Twister(dSFMT)
-// by M Saito, T. Nishimura and M. Matsumoto.
-// See FRED/src/PRNG__Mersenne_Twister/dSFMT-src-2.2/LICENSE.txt for acknowledgements.
-
-#define INIT_RANDOM(SEED)   RNG::init(SEED)
-#define RANDOM()        RNG::random_double()
-
-#define IRAND(LOW,HIGH) ( (int) ( (LOW) + (int) ( ( (HIGH)-(LOW)+1 ) * RNG::random_double() ) ) )
+#define IRAND(LOW,HIGH) ( (int) ( (LOW) + (int) ( ( (HIGH)-(LOW)+1 ) * RANDOM() ) ) )
 #define URAND(LOW,HIGH) ((double)((LOW)+(((HIGH)-(LOW))*RANDOM())))
-
-#define IRAND_0_7() ( RNG::random_int_0_7() )
+#define IRAND_0_7() ( IRAND(0,7) )
 #define draw_uniform(low,high) URAND(low,high)
-
-
 
 
 // BufferLengthChar must be multiple of 4
@@ -130,16 +131,6 @@ struct RNG {
 };
 
 
-// non-member functions 
-
-int draw_poisson(double lambda);
-double draw_exponential(double lambda);
-int draw_from_distribution(int n, double *dist);
-double draw_standard_normal();
-double draw_normal(double mu, double sigma);
-double draw_lognormal(double mu, double sigma);
-int draw_from_cdf(double *v, int size);
-int draw_from_cdf_vector(const std::vector <double>& v);
 double binomial_coefficient( int n, int k );
 void build_binomial_cdf( double p, int n, std::vector< double > & cdf );
 void build_lognormal_cdf( double mu, double sigma, std::vector< double > & cdf );

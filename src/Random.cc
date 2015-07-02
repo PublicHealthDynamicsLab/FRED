@@ -23,6 +23,18 @@
 using namespace std;
 
 // static
+
+std::mt19937 mt;
+std::uniform_real_distribution<> U(0,1);
+
+void INIT_RANDOM(unsigned long seed) {
+  mt.seed(seed);
+}
+
+double RANDOM() {
+  return U(mt);
+}
+
 int draw_from_distribution(int n, double* dist) {
   double r = RANDOM();
   int i = 0;
