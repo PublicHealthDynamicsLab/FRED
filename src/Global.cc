@@ -149,6 +149,7 @@ Seasonality* Global::Clim = NULL;
 Tracker<int>* Global::Daily_Tracker = NULL;
 Tracker<long int>* Global::Tract_Tracker = NULL;
 Tracker<int>* Global::Income_Category_Tracker = NULL;
+Random Global::Random_Number_Generator;
 
 #if SQLITE
 DB Global::db;

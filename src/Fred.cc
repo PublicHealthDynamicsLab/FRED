@@ -437,7 +437,7 @@ void fred_step(int day) {
 #pragma omp section
     {
       // this refreshes all RNG buffers in a new thread team
-      RNG::refresh_all_buffers();
+      REFRESH_RNG();
     }
 #pragma omp section
     {

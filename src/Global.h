@@ -58,6 +58,7 @@ class Vector_Layer;
 // class Date;
 class Evolution;
 class Seasonality;
+class Random;
 #include "Tracker.h"
 
 /**
@@ -287,6 +288,7 @@ class Global {
     static Tracker<long int>* Tract_Tracker;
     static Tracker<int>* Income_Category_Tracker;
     static int Popsize_by_age[];
+    static Random Random_Number_Generator;
 
 #if SQLITE
     static DB db;
