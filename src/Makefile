@@ -87,11 +87,6 @@ FRED_EXECUTABLE_NAME = FRED
 FRED_memcheck: FRED_EXECUTABLE_NAME = FRED_memcheck
 SRC_DIR = $(shell pwd)
 
-### random number generator
-PRNG_DIR = $(SRC_DIR)/PRNG__Mersenne_Twister
-DSFMT_DIR = $(PRNG_DIR)/dSFMT-src-2.2
-INCLUDE_DIRS += -I$(DSFMT_DIR)
-
 CPP = g++ 
 CXX = $(CPP)
 LDFLAGS =
@@ -102,12 +97,6 @@ LOGGING_PRESET_1 = -DFREDWARNING
 LOGGING_PRESET_2 = -DFREDSTATUS -DFREDWARNING
 LOGGING_PRESET_3 = -DFREDVERBOSE -DFREDSTATUS -DFREDWARNING -DFREDDEBUG
 
-DSFMT_CPPFLAGS = -DDSFMT_MEXP=19937 -DDSFMT_DO_NOT_USE_OLD_NAMES -finline-functions -fomit-frame-pointer -DNDEBUG \
--fno-strict-aliasing --param max-inline-insns-single=1800
-
-DSFMT_SRC = $(DSFMT_DIR)/dSFMT.c
-DSFMT_HDR = $(DSFMT_DIR)/dSFMT.h $(DSFMT_DIR)/dSFMT-params19937.h
-
 # use this for development:
 # CPPFLAGS = -g -O2 $(LOGGING_PRESET_3) -Wall -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY)
 
@@ -116,15 +105,15 @@ DSFMT_HDR = $(DSFMT_DIR)/dSFMT.h $(DSFMT_DIR)/dSFMT-params19937.h
 # CPPFLAGS = -pg $(M64) -O2 -DNDEBUG  -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(LOGGING_PRESET_3) -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls -fno-omit-frame-pointer
 
 ## Use this to run with multiple threads
-# CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+# CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
 
 FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 ## Use this to make reproducible serial runs
-# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS) #-fast #-Wall
 
 ## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
-CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS) #-fast #-Wall
+CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3  -mllvm -inline-threshold=5000 $(LOGGING_PRESET_0) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS) # -Wall
 
 
 
@@ -133,7 +122,7 @@ CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(S
 %.o:%.c %.h
 	$(CPP) $(CPPFLAG) -c $< $(INCLUDES)
 
-OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o \
+OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o RNG.o \
 	Geo_Utils.o Neighborhood_Layer.o Neighborhood_Patch.o Regional_Layer.o Regional_Patch.o \
 	Visualization_Layer.o Visualization_Patch.o Travel.o \
 	Decision.o Policy.o Manager.o \
@@ -161,8 +150,8 @@ MD5 := FRED.md5
 
 all: FRED FRED.tar.gz $(FSZ) $(MD5)
 
-FRED: dSFMT.o $(SQLITE_OBJ)  $(OBJ)
-	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) dSFMT.o $(SNAPPY_LFLAGS) -ldl
+FRED: $(SQLITE_OBJ)  $(OBJ) # dSFMT.o 
+	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) $(SNAPPY_LFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
 
 Compression.o: $(SNAPPY_LIB)

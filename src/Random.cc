@@ -27,6 +27,4 @@ void Random::initialize(unsigned long seed) {
   }
 }
 
-#include "RNG.cc"
-
 
