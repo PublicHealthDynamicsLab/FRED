@@ -16,13 +16,13 @@
 #include "Random.h"
 
 Random::Random() {
-  rng_list = new RNG [fred::omp_get_max_threads()];
+  thread_rng = new RNG [fred::omp_get_max_threads()];
 }
 
 void Random::initialize(unsigned long seed) {
   unsigned long new_seed = seed;
   for(int t = 0; t < fred::omp_get_max_threads(); ++t) {
-    rng_list[t].initialize(new_seed);
+    thread_rng[t].initialize(new_seed);
     new_seed = new_seed * 17;
   }
 }

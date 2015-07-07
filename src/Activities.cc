@@ -971,7 +971,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
       //First check to see if agent will visit a Hospital for an overnight stay, then check for an outpatient visit
       if(rand < hospitalization_prob) {
-        double draw = draw_normal(3.0, 0.5);
+        double draw = DRAW_NORMAL(3.0, 0.5);
         int length = (draw > 0.0 ? static_cast<int>(draw) + 1 : 1);
         start_hospitalization(self, day, length);
       } else if(rand < seek_healthcare_prob) {

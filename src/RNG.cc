@@ -25,7 +25,7 @@ double RNG::draw_u01() {
   return u01(mt_engine);
 }
 
-int RNG::rng_draw_from_distribution(int n, double* dist) {
+int RNG::draw_from_distribution(int n, double* dist) {
   double r = draw_u01();
   int i = 0;
   while(i <= n && dist[i] < r) {
@@ -44,32 +44,32 @@ int RNG::rng_draw_from_distribution(int n, double* dist) {
   }
 }
 
-double RNG::rng_draw_exponential(double lambda) {
+double RNG::draw_exponential(double lambda) {
   double u = draw_u01();
   return (-log(u) / lambda);
 }
 
 #define TWOPI (2.0*3.141592653589)
 
-double RNG::rng_draw_standard_normal() {
+double RNG::draw_standard_normal() {
   // Box-Muller method
   double U = draw_u01();
   double V = draw_u01();
   return (sqrt(-2.0 * log(U)) * cos(TWOPI * V));
 }
 
-double RNG::rng_draw_normal(double mu, double sigma) {
+double RNG::draw_normal(double mu, double sigma) {
   return mu + sigma * draw_standard_normal();
 }
 
 
-double RNG::rng_draw_lognormal(double mu, double sigma) {
+double RNG::draw_lognormal(double mu, double sigma) {
   double z = draw_standard_normal();
   return exp(mu + sigma * z);
 }
 
 
-int RNG::rng_draw_from_cdf(double* v, int size) {
+int RNG::draw_from_cdf(double* v, int size) {
   double r = draw_u01();
   int top = size - 1;
   int bottom = 0;
@@ -97,7 +97,7 @@ int RNG::rng_draw_from_cdf(double* v, int size) {
   return -1;
 }
 
-int RNG::rng_draw_from_cdf_vector(const vector<double>& v) {
+int RNG::draw_from_cdf_vector(const vector<double>& v) {
   int size = v.size();
   double r = draw_u01();
   int top = size - 1;
@@ -125,32 +125,6 @@ int RNG::rng_draw_from_cdf_vector(const vector<double>& v) {
   return -1;
 }
 
-/*
-   algorithm poisson random number (Knuth):
-init:
-Let L = exp(−lambda), k = 0 and p = 1.
-do:
-k = k + 1.
-Generate uniform random number u in [0,1] and let p = p × u.
-while p > L.
-return k − 1.
-*/
-
-int RNG::rng_draw_poisson(double lambda) {
-  if(lambda <= 0.0) {
-    return 0;
-  } else {
-    double L = exp(-lambda);
-    int k = 0;
-    double p = 1.0;
-    do {
-      p *= draw_u01();
-      k++;
-    } while(p > L);
-    return k - 1;
-  }
-}
-
 double binomial_coefficient(int n, int k) {
   if(k < 0 ||  k > n) {
     return 0;
@@ -166,7 +140,7 @@ double binomial_coefficient(int n, int k) {
   return c;
 }
 
-void RNG::rng_build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
+void RNG::build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
   for(int i = 0; i <= n; ++i) {
     double prob = 0.0;
     for(int j = 0; j <= i; ++j) {
@@ -186,7 +160,7 @@ void RNG::rng_build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
   cdf.back() = 1.0;
 }
 
-void RNG::rng_build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
+void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
   int maxval = -1;
   int count[1000];
   for(int i = 0; i < 1000; i++) {
@@ -218,7 +192,7 @@ void RNG::rng_build_lognormal_cdf(double mu, double sigma, std::vector<double> &
   cdf.back() = 1.0;
 }
 
-void RNG::rng_sample_range_without_replacement(int N, int s, int* result) {
+void RNG::sample_range_without_replacement(int N, int s, int* result) {
   std::vector<bool> selected(N, false);
   for(int n = 0; n < s; ++n) {
     int i = IRAND(0, N - 1);

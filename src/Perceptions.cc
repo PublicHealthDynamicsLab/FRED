@@ -32,7 +32,7 @@ Perceptions::Perceptions(Person *p) {
     get_parameters();
 
   // individual differences:
-  this->memory_decay = draw_normal(Perceptions::memory_decay_distr[0], Perceptions::memory_decay_distr[1]);
+  this->memory_decay = DRAW_NORMAL(Perceptions::memory_decay_distr[0], Perceptions::memory_decay_distr[1]);
   if(this->memory_decay < 0.00001) {
     this->memory_decay = 0.00001;
   }

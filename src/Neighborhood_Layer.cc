@@ -591,7 +591,7 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_gravity_model(Pla
     // use null gravity model
     i_src = j_src = 0;
   }
-  int offset_index = draw_from_cdf_vector( gravity_cdf[i_src][j_src] ) ;
+  int offset_index = DRAW_FROM_CDF_VECTOR( gravity_cdf[i_src][j_src] ) ;
   int off = offset[i_src][j_src][offset_index];
   int i_dest = i_src + max_offset - (off / 256);
   int j_dest = j_src + max_offset - (off % 256);

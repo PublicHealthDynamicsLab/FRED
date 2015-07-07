@@ -117,19 +117,19 @@ Trajectory * DefaultIntraHost::get_trajectory( Infection *infection, Transmissio
 
 int DefaultIntraHost::get_days_latent() {
   int days = 0;
-  days = draw_from_distribution(max_days_latent, days_latent);
+  days = DRAW_FROM_DISTRIBUTION(max_days_latent, days_latent);
   return days;
 }
 
 int DefaultIntraHost::get_days_asymp() {
   int days = 0;
-  days = draw_from_distribution(max_days_asymp, days_asymp);
+  days = DRAW_FROM_DISTRIBUTION(max_days_asymp, days_asymp);
   return days;
 }
 
 int DefaultIntraHost::get_days_symp() {
   int days = 0;
-  days = draw_from_distribution(max_days_symp, days_symp);
+  days = DRAW_FROM_DISTRIBUTION(max_days_symp, days_symp);
   return days;
 }
 

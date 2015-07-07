@@ -164,7 +164,7 @@ void Demographics::initialize_demographic_dynamics(Person *self) {
     if(RANDOM() < fraction_of_year) {
       // already pregnant
       this->conception_sim_day = day - IRAND(0,days_since_birthday); 
-      int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+      int length_of_pregnancy = (int) (DRAW_NORMAL(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
       this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
       if (this->maternity_sim_day > 0) {
 	Demographics::add_maternity_event(maternity_sim_day, self);
@@ -218,7 +218,7 @@ void Demographics::become_pregnant(int day, Person* self) {
     this->conception_sim_day = -1;
     return;
   }
-  int length_of_pregnancy = (int) (draw_normal(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
+  int length_of_pregnancy = (int) (DRAW_NORMAL(Demographics::MEAN_PREG_DAYS, Demographics::STDDEV_PREG_DAYS) + 0.5);
   this->maternity_sim_day = this->conception_sim_day + length_of_pregnancy;
   Demographics::add_maternity_event(maternity_sim_day, self);
   FRED_STATUS(1, "MATERNITY EVENT ADDDED today %d id %d age %d due %d\n",

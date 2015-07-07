@@ -2239,7 +2239,7 @@ void Place_List::shelter_household(Household* h) {
   h->set_shelter(true);
 
   // set shelter delay
-  int shelter_start_day  = 0.4999999 + draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
+  int shelter_start_day  = 0.4999999 + DRAW_NORMAL(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
   if(Place_List::Early_shelter_rate > 0.0) {
     double r = RANDOM();
     while(shelter_start_day > 0 && r < Place_List::Early_shelter_rate) {
@@ -2253,7 +2253,7 @@ void Place_List::shelter_household(Household* h) {
   h->set_shelter_start_day(shelter_start_day);
 
   // set shelter duration
-  int shelter_duration  = 0.4999999 + draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
+  int shelter_duration  = 0.4999999 + DRAW_NORMAL(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
   if(shelter_duration < 1) {
     shelter_duration = 1;
   }

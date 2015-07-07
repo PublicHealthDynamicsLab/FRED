@@ -436,11 +436,6 @@ void fred_step(int day) {
   {
 #pragma omp section
     {
-      // this refreshes all RNG buffers in a new thread team
-      REFRESH_RNG();
-    }
-#pragma omp section
-    {
       // flush infections file buffer
       fflush(Global::Infectionfp);
     }
