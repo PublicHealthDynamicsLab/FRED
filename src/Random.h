@@ -30,7 +30,7 @@ class Random {
   void initialize(unsigned long seed);
 
   double get_random() {
-    return thread_rng[fred::omp_get_thread_num()].draw_u01();
+    return thread_rng[fred::omp_get_thread_num()].random();
   }
 
   int draw_from_cdf(double *v, int size) {
@@ -45,12 +45,12 @@ class Random {
     return thread_rng[fred::omp_get_thread_num()].draw_from_distribution(n, dist);
   }
 
-  double draw_exponential(double lambda) {
-    return thread_rng[fred::omp_get_thread_num()].draw_exponential(lambda);
+  double exponential(double lambda) {
+    return thread_rng[fred::omp_get_thread_num()].exponential(lambda);
   }
 
-  double draw_normal(double mu, double sigma) {
-    return thread_rng[fred::omp_get_thread_num()].draw_normal(mu, sigma);
+  double normal(double mu, double sigma) {
+    return thread_rng[fred::omp_get_thread_num()].normal(mu, sigma);
   }
 
   void build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
@@ -71,8 +71,8 @@ class Random {
 #define DRAW_FROM_CDF_VECTOR(VEC) Global::Random_Number_Generator.draw_from_cdf_vector(VEC)
 #define DRAW_FROM_DISTRIBUTION(n, dist) Global::Random_Number_Generator.draw_from_distribution(n,dist)
 
-#define DRAW_EXPONENTIAL(lambda) Global::Random_Number_Generator.draw_exponential(lambda)
-#define DRAW_NORMAL(mu,sigma) Global::Random_Number_Generator.draw_normal(mu,sigma)
+#define DRAW_EXPONENTIAL(lambda) Global::Random_Number_Generator.exponential(lambda)
+#define DRAW_NORMAL(mu,sigma) Global::Random_Number_Generator.normal(mu,sigma)
 
 #define BUILD_BINOMIAL_CDF(p,n,cdf) Global::Random_Number_Generator.build_binomial_cdf(p,n,cdf)
 #define SAMPLE_RANGE_WITHOUT_REPLACEMENT(N,s,result) Global::Random_Number_Generator.sample_range_without_replacement(N,s,result)

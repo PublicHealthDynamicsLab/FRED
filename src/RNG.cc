@@ -21,12 +21,23 @@ void RNG::initialize(unsigned long seed) {
   mt_engine.seed(seed);
 }
 
-double RNG::draw_u01() {
+double RNG::random() {
   return u01(mt_engine);
 }
 
+double RNG::normal() {
+  return norm_dist(mt_engine);
+}
+
+
+double RNG::normal(double mu, double sigma) {
+  double x = norm_dist(mt_engine);
+  return mu + sigma*x;
+}
+
+
 int RNG::draw_from_distribution(int n, double* dist) {
-  double r = draw_u01();
+  double r = random();
   int i = 0;
   while(i <= n && dist[i] < r) {
     i++;
@@ -44,33 +55,19 @@ int RNG::draw_from_distribution(int n, double* dist) {
   }
 }
 
-double RNG::draw_exponential(double lambda) {
-  double u = draw_u01();
+double RNG::exponential(double lambda) {
+  double u = random();
   return (-log(u) / lambda);
 }
 
-#define TWOPI (2.0*3.141592653589)
-
-double RNG::draw_standard_normal() {
-  // Box-Muller method
-  double U = draw_u01();
-  double V = draw_u01();
-  return (sqrt(-2.0 * log(U)) * cos(TWOPI * V));
-}
-
-double RNG::draw_normal(double mu, double sigma) {
-  return mu + sigma * draw_standard_normal();
-}
-
-
-double RNG::draw_lognormal(double mu, double sigma) {
-  double z = draw_standard_normal();
+double RNG::lognormal(double mu, double sigma) {
+  double z = normal();
   return exp(mu + sigma * z);
 }
 
 
 int RNG::draw_from_cdf(double* v, int size) {
-  double r = draw_u01();
+  double r = random();
   int top = size - 1;
   int bottom = 0;
   int s = top / 2;
@@ -99,7 +96,7 @@ int RNG::draw_from_cdf(double* v, int size) {
 
 int RNG::draw_from_cdf_vector(const vector<double>& v) {
   int size = v.size();
-  double r = draw_u01();
+  double r = random();
   int top = size - 1;
   int bottom = 0;
   int s = top / 2;
@@ -167,7 +164,7 @@ void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf)
     count[i] = 0;
   }
   for(int i = 0; i < 1000; i++) {
-    double x = draw_lognormal(mu, sigma);
+    double x = lognormal(mu, sigma);
     int j = (int) x + 0.5;
     if(j > 999) {
       j = 999;
@@ -193,6 +190,7 @@ void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf)
 }
 
 void RNG::sample_range_without_replacement(int N, int s, int* result) {
+  /*
   std::vector<bool> selected(N, false);
   for(int n = 0; n < s; ++n) {
     int i = IRAND(0, N - 1);
@@ -209,5 +207,6 @@ void RNG::sample_range_without_replacement(int N, int s, int* result) {
     selected[i] = true;
     result[n] = i;
   }
+  */
 }
 

@@ -24,14 +24,17 @@ class RNG {
 
  public:
   void initialize(unsigned long seed);
-  double draw_u01();
+
+  double random();
+
+  double normal();
+  double normal(double mu, double sigma);
+
   int draw_from_cdf(double *v, int size);
   int draw_from_cdf_vector(const std::vector <double>& v);
   int draw_from_distribution(int n, double *dist);
-  double draw_exponential(double lambda);
-  double draw_standard_normal();
-  double draw_normal(double mu, double sigma);
-  double draw_lognormal(double mu, double sigma);
+  double exponential(double lambda);
+  double lognormal(double mu, double sigma);
   void build_binomial_cdf(double p, int n, std::vector<double> &cdf);
   void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
   void sample_range_without_replacement(int N, int s, int* result);
@@ -39,6 +42,7 @@ class RNG {
  private:
   std::mt19937 mt_engine;
   std::uniform_real_distribution<double> u01;
+  std::normal_distribution<double> norm_dist;
 };
 
 
