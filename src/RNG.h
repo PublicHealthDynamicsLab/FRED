@@ -26,6 +26,7 @@ class RNG {
   void initialize(unsigned long seed);
 
   double random();
+  int irandom(int low, int high);
 
   double normal();
   double normal(double mu, double sigma);
@@ -41,7 +42,7 @@ class RNG {
 
  private:
   std::mt19937 mt_engine;
-  std::uniform_real_distribution<double> u01;
+  std::uniform_real_distribution<double> unif_dist;
   std::normal_distribution<double> norm_dist;
 };
 

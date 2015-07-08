@@ -22,7 +22,11 @@ void RNG::initialize(unsigned long seed) {
 }
 
 double RNG::random() {
-  return u01(mt_engine);
+  return unif_dist(mt_engine);
+}
+
+int RNG::irandom(int low, int high) {
+  return low + (high-low+1) * random();
 }
 
 double RNG::normal() {
@@ -190,10 +194,9 @@ void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf)
 }
 
 void RNG::sample_range_without_replacement(int N, int s, int* result) {
-  /*
   std::vector<bool> selected(N, false);
   for(int n = 0; n < s; ++n) {
-    int i = IRAND(0, N - 1);
+    int i = irandom(0, N - 1);
     if(selected[i]) {
       if(i < N - 1 && !(selected[i + 1])) {
         ++i;
@@ -207,6 +210,5 @@ void RNG::sample_range_without_replacement(int N, int s, int* result) {
     selected[i] = true;
     result[n] = i;
   }
-  */
 }
 
