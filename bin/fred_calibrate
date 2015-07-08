@@ -39,7 +39,7 @@ my $opt_result = GetOptions(
 			    "N=s" => \$Ntarget,
 			    "S=s" => \$Starget,
 			    "W=s" => \$Wtarget,
-                            "d=s" => \$disease,
+                "d=s" => \$disease,
 			    "A=s" => \$CARtarget
 );
 
@@ -121,7 +121,7 @@ while ($error > 10*$threshold) {
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 
-  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
   my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
   chomp $dir;
@@ -172,7 +172,7 @@ while ($error > 10*$threshold) {
     $w *= $ar_ratio * $Wtarget / $W if $W > 0;
   }
   $h = 1.0 if $h > 1.0;
-  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_delete -f -k $paramsfile &> /dev/null";
   unlink $paramsfile;
 }
 
@@ -210,7 +210,7 @@ while ($error > $threshold) {
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 
-  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
 
   my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
@@ -246,7 +246,7 @@ while ($error > $threshold) {
   $w = ($w + $w * $ar_ratio ) / 2.0;
   $h = 1.0 if $h > 1.0;
 
-  system "fred_delete -f -k $paramsfile >& /dev/null";
+  system "fred_delete -f -k $paramsfile &> /dev/null";
   unlink $paramsfile;
 }
 
