@@ -87,7 +87,7 @@ FRED_EXECUTABLE_NAME = FRED
 FRED_memcheck: FRED_EXECUTABLE_NAME = FRED_memcheck
 SRC_DIR = $(shell pwd)
 
-CPP = g++ 
+CPP = g++
 CXX = $(CPP)
 LDFLAGS =
 LFLAGS =
