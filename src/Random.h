@@ -49,9 +49,9 @@ class RNG {
 };
 
 
-class Random {
+class Thread_RNG {
  public:
-  Random();
+  Thread_RNG();
 
   void initialize(unsigned long seed);
 
@@ -103,7 +103,7 @@ class Random {
   RNG * thread_rng;
 };
 
-class FRED_Random {
+class Random {
  public:
   static void initialize(unsigned long seed) { Random_Number_Generator.initialize(seed); }
   static double draw_random() { return Random_Number_Generator.get_random(); }
@@ -119,23 +119,23 @@ class FRED_Random {
   static void sample_range_without_replacement(int N, int s, int *result) { Random_Number_Generator.sample_range_without_replacement(N,s,result); }
 
  private:
-  static Random Random_Number_Generator;
+  static Thread_RNG Random_Number_Generator;
 };
 
-#define INIT_RANDOM(SEED) FRED_Random::initialize(SEED)
-#define RANDOM() FRED_Random::draw_random()
-#define IRAND(LOW,HIGH) FRED_Random::draw_random_int(LOW,HIGH)
-#define IRAND_0_7() FRED_Random::draw_random_int(0,7)
-#define URAND(LOW,HIGH) FRED_Random::draw_random(LOW,HIGH)
-#define DRAW_UNIFORM(LOW,HIGH) FRED_Random::draw_random(LOW,HIGH)
-#define DRAW_EXPONENTIAL(lambda) FRED_Random::draw_exponential(lambda)
-#define DRAW_NORMAL(mu,sigma) FRED_Random::draw_normal(mu,sigma)
-#define DRAW_LOGNORMAL(mu,sigma) FRED_Random::draw_lognormal(mu,sigma)
-#define DRAW_FROM_CDF(v,size) FRED_Random::draw_from_cdf(v,size)
-#define DRAW_FROM_CDF_VECTOR(VEC) FRED_Random::draw_from_cdf_vector(VEC)
-#define DRAW_FROM_DISTRIBUTION(n, dist) FRED_Random::draw_from_distribution(n,dist)
-#define BUILD_BINOMIAL_CDF(p,n,cdf) FRED_Random::build_binomial_cdf(p,n,cdf)
-#define SAMPLE_RANGE_WITHOUT_REPLACEMENT(N,s,result) FRED_Random::sample_range_without_replacement(N,s,result)
+#define INIT_RANDOM(SEED) Random::initialize(SEED)
+#define RANDOM() Random::draw_random()
+#define IRAND(LOW,HIGH) Random::draw_random_int(LOW,HIGH)
+#define IRAND_0_7() Random::draw_random_int(0,7)
+#define URAND(LOW,HIGH) Random::draw_random(LOW,HIGH)
+#define DRAW_UNIFORM(LOW,HIGH) Random::draw_random(LOW,HIGH)
+#define DRAW_EXPONENTIAL(lambda) Random::draw_exponential(lambda)
+#define DRAW_NORMAL(mu,sigma) Random::draw_normal(mu,sigma)
+#define DRAW_LOGNORMAL(mu,sigma) Random::draw_lognormal(mu,sigma)
+#define DRAW_FROM_CDF(v,size) Random::draw_from_cdf(v,size)
+#define DRAW_FROM_CDF_VECTOR(VEC) Random::draw_from_cdf_vector(VEC)
+#define DRAW_FROM_DISTRIBUTION(n, dist) Random::draw_from_distribution(n,dist)
+#define BUILD_BINOMIAL_CDF(p,n,cdf) Random::build_binomial_cdf(p,n,cdf)
+#define SAMPLE_RANGE_WITHOUT_REPLACEMENT(N,s,result) Random::sample_range_without_replacement(N,s,result)
 
 template <typename T> 
 void FYShuffle( std::vector <T> &array){
@@ -144,7 +144,7 @@ void FYShuffle( std::vector <T> &array){
   unsigned int n = array.size();
   m=n;
   while (m > 0){
-    randIndx = (int)(FRED_Random::draw_random()*n);
+    randIndx = (int)(Random::draw_random()*n);
     m--;
     tmp = array[m];
     array[m] = array[randIndx];
