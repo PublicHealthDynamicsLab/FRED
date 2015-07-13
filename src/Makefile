@@ -24,12 +24,9 @@ NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
 else ifeq ($(OS),Darwin)
 NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 = -m64
-OSX_VERSION = $(shell sw_vers -productVersion | sed 's/10.//' | sed 's/\..*//')
-ifeq ($(OSX_VERSION),10)
-# USE_STDLIB = -stdlib=libstdc++
+CLANG_FLAGS = -mllvm -inline-threshold=5000
 endif
-endif
-# NCPU = 1
+USE_STDLIB = -std=c++11
 
 ################   Snappy Compression  ###############################
 ## Snappy can significantly improve FRED startup time by reading
@@ -104,17 +101,13 @@ LOGGING_PRESET_3 = -DFREDVERBOSE -DFREDSTATUS -DFREDWARNING -DFREDDEBUG
 # CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) # -DNDEBUG -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY)
 # CPPFLAGS = -pg $(M64) -O2 -DNDEBUG  -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(LOGGING_PRESET_3) -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls -fno-omit-frame-pointer
 
+## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
+CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(CLANG_FLAGS) $(LOGGING_PRESET_0) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
+
 ## Use this to run with multiple threads
-# CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
+#CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(CLANG_FLAGS) -fopenmp $(LOGGING_PRESET_0) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
 
 FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
-
-## Use this to make reproducible serial runs
-# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS) #-fast #-Wall
-
-## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
-CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3  -mllvm -inline-threshold=5000 $(LOGGING_PRESET_0) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS) # -Wall
-
 
 
 ###############################################
@@ -150,7 +143,7 @@ MD5 := FRED.md5
 
 all: FRED FRED.tar.gz $(FSZ) $(MD5)
 
-FRED: $(SQLITE_OBJ)  $(OBJ) # dSFMT.o 
+FRED: $(SQLITE_OBJ)  $(OBJ)
 	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) $(SNAPPY_LFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
 
@@ -172,10 +165,6 @@ FRED_memcheck: FRED
 FRED_Unit_Tracker: 
 	cd TestSuite/Tracker; $(CPP) -g -O0 -fopenmp -DUNIT_TEST=1 -I../../ Tracker_Unit_Test.cc -c -o Tracker_Unit_Test.o
 	cd TestSuite/Tracker; $(CPP) -g -O0 -fopenmp -o FRED_Unit_Tracker -DUNIT_TEST=1 -I../../ Tracker_Unit_Test.o
-
-dSFMT.o:
-	@echo Compiling Random Number Generator
-	$(CPP) $(DSFMT_CPPFLAGS) $(DSFMT_SRC) -c $(DSFMT_HDR) 
 
 sqlite3.o:
 	@echo Extracting and compiling sqlite
