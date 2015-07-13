@@ -19,14 +19,14 @@ OS := $(shell uname)
 ifeq ($(OS),Linux)
 NCPU ?= $(shell grep -c ^processor /proc/cpuinfo)
 M64 = -m64
+USE_STDLIB = -std=c++11
 else ifeq ($(shell echo $(OS) | cut -f1 -d_),CYGWIN)
 NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
 else ifeq ($(OS),Darwin)
 NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 = -m64
-CLANG_FLAGS = -mllvm -inline-threshold=5000
+CLANG_FLAGS = -mllvm -inline-threshold=1000
 endif
-USE_STDLIB = -std=c++11
 
 ################   Snappy Compression  ###############################
 ## Snappy can significantly improve FRED startup time by reading
