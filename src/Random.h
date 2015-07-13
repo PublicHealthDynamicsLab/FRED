@@ -26,18 +26,17 @@ class RNG {
 
  public:
   void initialize(unsigned long seed);
-  double draw_u01();
-  int rng_draw_poisson(double lambda);
-  double rng_draw_exponential(double lambda);
-  int rng_draw_from_distribution(int n, double *dist);
-  double rng_draw_standard_normal();
-  double rng_draw_normal(double mu, double sigma);
-  double rng_draw_lognormal(double mu, double sigma);
-  int rng_draw_from_cdf(double *v, int size);
-  int rng_draw_from_cdf_vector(const std::vector <double>& v);
-  void rng_build_binomial_cdf(double p, int n, std::vector<double> &cdf);
-  void rng_build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
-  void rng_sample_range_without_replacement(int N, int s, int* result);
+  double random();
+  double exponential(double lambda);
+  int draw_from_distribution(int n, double *dist);
+  double standard_normal();
+  double normal(double mu, double sigma);
+  double lognormal(double mu, double sigma);
+  int draw_from_cdf(double *v, int size);
+  int draw_from_cdf_vector(const std::vector <double>& v);
+  void build_binomial_cdf(double p, int n, std::vector<double> &cdf);
+  void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
+  void sample_range_without_replacement(int N, int s, int* result);
 
  private:
   std::mt19937 mt_engine;
@@ -83,7 +82,6 @@ class Random {
     thread_rng[fred::omp_get_thread_num()].sample_range_without_replacement(N, s, result);
   }
 
-
  private:
   RNG * thread_rng;
 };
@@ -93,7 +91,6 @@ class FRED_Random {
   static Random Random_Number_Generator;
 };
 
-
 #define INIT_RANDOM(SEED) (FRED_Random::Random_Number_Generator.initialize(SEED))
 #define RANDOM() FRED_Random::Random_Number_Generator.get_random()
 #define IRAND(LOW,HIGH) ( (int) ( (LOW) + (int) ( ( (HIGH)-(LOW)+1 ) * RANDOM() ) ) )
@@ -101,17 +98,15 @@ class FRED_Random {
 #define URAND(LOW,HIGH) ((double)((LOW)+(((HIGH)-(LOW))*RANDOM())))
 #define DRAW_UNIFORM(low,high) URAND(low,high)
 
-#define draw_from_cdf_vector(VEC) FRED_Random::Random_Number_Generator.draw_from_cdf_vector(VEC)
-#define draw_from_distribution(n, dist) FRED_Random::Random_Number_Generator.draw_from_distribution(n,dist)
-#define draw_poisson(lambda) FRED_Random::Random_Number_Generator.draw_poisson(lambda)
-#define draw_exponential(lambda) FRED_Random::Random_Number_Generator.draw_exponential(lambda)
-#define draw_standard_normal() FRED_Random::Random_Number_Generator.draw_standard_normal()
-#define draw_normal(mu,sigma) FRED_Random::Random_Number_Generator.draw_normal(mu,sigma)
-#define draw_lognormal(mu,sigma) FRED_Random::Random_Number_Generator.draw_lognormal(mu,sigma)
-#define draw_from_cdf(v,size) FRED_Random::Random_Number_Generator.draw_from_cdf(v,size)
-#define build_binomial_cdf(p,n,cdf) FRED_Random::Random_Number_Generator.build_binomial_cdf(p,n,cdf)
-#define build_lognormal_cdf(mu,sigma,cdf) FRED_Random::Random_Number_Generator.build_lognormal_cdf(mu,sigma,cdf)
-#define sample_range_without_replacement(N,s,result) FRED_Random::Random_Number_Generator.sample_range_without_replacement(N,s,result)
+#define DRAW_FROM_CDF_VECTOR(VEC) FRED_Random::Random_Number_Generator.draw_from_cdf_vector(VEC)
+#define DRAW_FROM_DISTRIBUTION(n, dist) FRED_Random::Random_Number_Generator.draw_from_distribution(n,dist)
+#define DRAW_EXPONENTIAL(lambda) FRED_Random::Random_Number_Generator.exponential(lambda)
+#define DRAW_STANDARD_NORMAL() FRED_Random::Random_Number_Generator.standard_normal()
+#define DRAW_NORMAL(mu,sigma) FRED_Random::Random_Number_Generator.normal(mu,sigma)
+#define DRAW_LOGNORMAL(mu,sigma) FRED_Random::Random_Number_Generator.lognormal(mu,sigma)
+#define DRAW_FROM_CDF(v,size) FRED_Random::Random_Number_Generator.draw_from_cdf(v,size)
+#define BUILD_BINOMIAL_CDF(p,n,cdf) FRED_Random::Random_Number_Generator.build_binomial_cdf(p,n,cdf)
+#define SAMPLE_RANGE_WITHOUT_REPLACEMENT(N,s,result) FRED_Random::Random_Number_Generator.sample_range_without_replacement(N,s,result)
 
 template <typename T> 
 void FYShuffle( std::vector <T> &array){
