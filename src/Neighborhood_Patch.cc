@@ -135,28 +135,28 @@ void Neighborhood_Patch::record_favorite_places() {
 
 Person * Neighborhood_Patch::select_random_person() {
   if ((int)person.size() == 0) return NULL;
-  int i = IRAND(0, ((int) person.size())-1);
+  int i = Random::draw_random_int(0, ((int) person.size())-1);
   return person[i];
 }
 
 
 Place * Neighborhood_Patch::select_random_household() {
   if ((int)household.size() == 0) return NULL;
-  int i = IRAND(0, ((int) household.size())-1);
+  int i = Random::draw_random_int(0, ((int) household.size())-1);
   return household[i];
 }
 
 
 Place * Neighborhood_Patch::select_random_workplace() {
   if ((int)workplace.size() == 0) return NULL;
-  int i = IRAND(0, ((int) workplace.size())-1);
+  int i = Random::draw_random_int(0, ((int) workplace.size())-1);
   return workplace[i];
 }
 
 
 Place *Neighborhood_Patch::select_random_school(int age) {
   if ((int)school_by_age[age].size() == 0) return NULL;
-  int i = IRAND(0, ((int) school_by_age[age].size())-1);
+  int i = Random::draw_random_int(0, ((int) school_by_age[age].size())-1);
   return school_by_age[age][i];
 }
 

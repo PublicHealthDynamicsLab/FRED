@@ -78,7 +78,7 @@ double Regional_Patch::distance_to_patch(Regional_Patch* p2) {
 Person* Regional_Patch::select_random_person() {
   if((int)this->person.size() == 0)
     return NULL;
-  int i = IRAND(0, ((int )this->person.size()) - 1);
+  int i = Random::draw_random_int(0, ((int )this->person.size()) - 1);
 
   return this->person[i];
 }
@@ -97,7 +97,7 @@ void Regional_Patch::set_max_popsize(int n) {
 Person* Regional_Patch::select_random_student(int age_) {
   if((int)this->students_by_age[age_].size() == 0)
     return NULL;
-  int i = IRAND(0, ((int )this->students_by_age[age_].size()) - 1);
+  int i = Random::draw_random_int(0, ((int )this->students_by_age[age_].size()) - 1);
 
   return this->students_by_age[age_][i];
 }
@@ -106,7 +106,7 @@ Person* Regional_Patch::select_random_worker() {
   if((int)this->workers.size() == 0) {
     return NULL;
   }
-  int i = IRAND(0, ((int )this->workers.size()) - 1);
+  int i = Random::draw_random_int(0, ((int )this->workers.size()) - 1);
   
   return this->workers[i];
 }

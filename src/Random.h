@@ -25,7 +25,7 @@ using namespace std;
 class RNG {
 
  public:
-  void initialize(unsigned long seed);
+  void set_seed(unsigned long seed);
   double random() {
     return unif_dist(mt_engine);
   }
@@ -53,48 +53,37 @@ class Thread_RNG {
  public:
   Thread_RNG();
 
-  void initialize(unsigned long seed);
-
+  void set_seed(unsigned long seed);
   double get_random() {
     return thread_rng[fred::omp_get_thread_num()].random();
   }
-
   double get_random(double low, double high) {
     return low + (high-low)*thread_rng[fred::omp_get_thread_num()].random();
   }
-
   int get_random_int(int low, int high) {
     return thread_rng[fred::omp_get_thread_num()].random_int(low,high);
   }
-
   int draw_from_cdf(double *v, int size) {
     return thread_rng[fred::omp_get_thread_num()].draw_from_cdf(v, size);
   }
-
   int draw_from_cdf_vector(const std::vector <double>& v) {
     return thread_rng[fred::omp_get_thread_num()].draw_from_cdf_vector(v);
   }
-
   int draw_from_distribution(int n, double *dist) {
     return thread_rng[fred::omp_get_thread_num()].draw_from_distribution(n, dist);
   }
-
   double exponential(double lambda) {
     return thread_rng[fred::omp_get_thread_num()].exponential(lambda);
   }
-
   double normal(double mu, double sigma) {
     return thread_rng[fred::omp_get_thread_num()].normal(mu, sigma);
   }
-
   double lognormal(double mu, double sigma) {
     return thread_rng[fred::omp_get_thread_num()].lognormal(mu, sigma);
   }
-
   void build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
     thread_rng[fred::omp_get_thread_num()].build_binomial_cdf(p, n, cdf);
   }
-
   void sample_range_without_replacement(int N, int s, int* result) {
     thread_rng[fred::omp_get_thread_num()].sample_range_without_replacement(N, s, result);
   }
@@ -105,37 +94,47 @@ class Thread_RNG {
 
 class Random {
  public:
-  static void initialize(unsigned long seed) { Random_Number_Generator.initialize(seed); }
-  static double draw_random() { return Random_Number_Generator.get_random(); }
-  static double draw_random(double low, double high) { return Random_Number_Generator.get_random(low,high); }
-  static int draw_random_int(int low, int high) { return Random_Number_Generator.get_random_int(low,high); }
-  static double draw_exponential(double lambda) { return Random_Number_Generator.exponential(lambda); }
-  static double draw_normal(double mu, double sigma) { return Random_Number_Generator.normal(mu,sigma); }
-  static double draw_lognormal(double mu, double sigma) { return Random_Number_Generator.lognormal(mu,sigma); }
-  static int draw_from_cdf(double *v, int size) { return Random_Number_Generator.draw_from_cdf(v,size); }
-  static int draw_from_cdf_vector(const std::vector <double>& vec) { return Random_Number_Generator.draw_from_cdf_vector(vec); }
-  static int draw_from_distribution(int n, double *dist) { return Random_Number_Generator.draw_from_distribution(n,dist); }
-  static void build_binomial_cdf(double p, int n, std::vector<double> &cdf) { Random_Number_Generator.build_binomial_cdf(p,n,cdf); }
-  static void sample_range_without_replacement(int N, int s, int *result) { Random_Number_Generator.sample_range_without_replacement(N,s,result); }
+  static void set_seed(unsigned long seed) { 
+    Random_Number_Generator.set_seed(seed);
+  }
+  static double draw_random() { 
+    return Random_Number_Generator.get_random();
+  }
+  static double draw_random(double low, double high) { 
+    return Random_Number_Generator.get_random(low,high);
+  }
+  static int draw_random_int(int low, int high) { 
+    return Random_Number_Generator.get_random_int(low,high);
+  }
+  static double draw_exponential(double lambda) { 
+    return Random_Number_Generator.exponential(lambda);
+  }
+  static double draw_normal(double mu, double sigma) { 
+    return Random_Number_Generator.normal(mu,sigma);
+  }
+  static double draw_lognormal(double mu, double sigma) { 
+    return Random_Number_Generator.lognormal(mu,sigma);
+  }
+  static int draw_from_cdf(double *v, int size) { 
+    return Random_Number_Generator.draw_from_cdf(v,size);
+  }
+  static int draw_from_cdf_vector(const std::vector <double>& vec) { 
+    return Random_Number_Generator.draw_from_cdf_vector(vec);
+  }
+  static int draw_from_distribution(int n, double *dist) { 
+    return Random_Number_Generator.draw_from_distribution(n,dist);
+  }
+  static void build_binomial_cdf(double p, int n, std::vector<double> &cdf) { 
+    Random_Number_Generator.build_binomial_cdf(p,n,cdf);
+  }
+  static void sample_range_without_replacement(int N, int s, int *result) { 
+    Random_Number_Generator.sample_range_without_replacement(N,s,result);
+  }
 
  private:
   static Thread_RNG Random_Number_Generator;
 };
 
-#define INIT_RANDOM(SEED) Random::initialize(SEED)
-#define RANDOM() Random::draw_random()
-#define IRAND(LOW,HIGH) Random::draw_random_int(LOW,HIGH)
-#define IRAND_0_7() Random::draw_random_int(0,7)
-#define URAND(LOW,HIGH) Random::draw_random(LOW,HIGH)
-#define DRAW_UNIFORM(LOW,HIGH) Random::draw_random(LOW,HIGH)
-#define DRAW_EXPONENTIAL(lambda) Random::draw_exponential(lambda)
-#define DRAW_NORMAL(mu,sigma) Random::draw_normal(mu,sigma)
-#define DRAW_LOGNORMAL(mu,sigma) Random::draw_lognormal(mu,sigma)
-#define DRAW_FROM_CDF(v,size) Random::draw_from_cdf(v,size)
-#define DRAW_FROM_CDF_VECTOR(VEC) Random::draw_from_cdf_vector(VEC)
-#define DRAW_FROM_DISTRIBUTION(n, dist) Random::draw_from_distribution(n,dist)
-#define BUILD_BINOMIAL_CDF(p,n,cdf) Random::build_binomial_cdf(p,n,cdf)
-#define SAMPLE_RANGE_WITHOUT_REPLACEMENT(N,s,result) Random::sample_range_without_replacement(N,s,result)
 
 template <typename T> 
 void FYShuffle( std::vector <T> &array){

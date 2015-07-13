@@ -210,7 +210,7 @@ void Vaccine_Manager::remove_from_queue(Person* person) {
 void Vaccine_Manager::add_to_priority_queue_random(Person* person) {
   // Find a position to put the person in
   int size = this->priority_queue.size();
-  int position = (int)(RANDOM()*size);
+  int position = (int)(Random::draw_random()*size);
 
   list<Person*>::iterator pq = this->priority_queue.begin();
   for(int i = 0; i < position; ++i) {
@@ -222,7 +222,7 @@ void Vaccine_Manager::add_to_priority_queue_random(Person* person) {
 void Vaccine_Manager::add_to_regular_queue_random(Person* person) {
   // Find a position to put the person in
   int size = this->queue.size();
-  int position = (int)(RANDOM() * size);
+  int position = (int)(Random::draw_random() * size);
 
   list<Person*>::iterator pq = this->queue.begin();
   for(int i = 0; i < position; ++i) {

@@ -272,28 +272,28 @@ void Activities::initialize_sick_leave() {
       // is sick leave available?
       if(workplace_size > 0) {
         if(workplace_size <= SMALL_COMPANY_MAXSIZE) {
-          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[0]);
+          this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[0]);
           if(this->sick_leave_available) {
             Activities::Employees_small_with_sick_leave++;
           } else {
             Activities::Employees_small_without_sick_leave++;
           }
         } else if(workplace_size <= MID_COMPANY_MAXSIZE) {
-          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[1]);
+          this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[1]);
           if(this->sick_leave_available) {
             Activities::Employees_med_with_sick_leave++;
           } else {
             Activities::Employees_med_without_sick_leave++;
           }
         } else if(workplace_size <= MEDIUM_COMPANY_MAXSIZE) {
-          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[2]);
+          this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[2]);
           if(this->sick_leave_available) {
             Activities::Employees_large_with_sick_leave++;
           } else {
             Activities::Employees_large_without_sick_leave++;
           }
         } else {
-          this->sick_leave_available = (RANDOM() < Activities::WP_size_sl_prob_vec[3]);
+          this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[3]);
           if(this->sick_leave_available) {
             Activities::Employees_xlarge_with_sick_leave++;
           } else {
@@ -308,16 +308,16 @@ void Activities::initialize_sick_leave() {
       Household* hh = static_cast<Household*>(get_household());
       switch(hh->get_income_quartile()) {
         case Global::Q1:
-          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[0]);
+          this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[0]);
           break;
         case Global::Q2:
-          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[1]);
+          this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[1]);
           break;
         case Global::Q3:
-          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[2]);
+          this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[2]);
           break;
         case Global::Q4:
-          this->sick_leave_available = (RANDOM() < Activities::HH_income_qtile_sl_prob_vec[3]);
+          this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[3]);
           break;
       }
     }
@@ -328,13 +328,13 @@ void Activities::initialize_sick_leave() {
   // compute sick days remaining (for flu)
   this->sick_days_remaining = 0.0;
   if(this->sick_leave_available) {
-    if(RANDOM() < Activities::SLA_absent_prob) {
+    if(Random::draw_random() < Activities::SLA_absent_prob) {
       this->sick_days_remaining = Activities::SLA_mean_sick_days_absent + Activities::Flu_days;
     }
   } else {
-    if(RANDOM() < Activities::SLU_absent_prob) {
+    if(Random::draw_random() < Activities::SLU_absent_prob) {
       this->sick_days_remaining = Activities::SLU_mean_sick_days_absent + Activities::Flu_days;
-    } else if(RANDOM() < Activities::SLA_absent_prob - Activities::SLU_absent_prob) {
+    } else if(Random::draw_random() < Activities::SLA_absent_prob - Activities::SLU_absent_prob) {
       this->sick_days_remaining = Activities::Flu_days;
     }
   }
@@ -381,7 +381,7 @@ void Activities::assign_initial_profile(Person* self) {
   }
 
   // weekend worker
-  if((this->profile == WORKER_PROFILE && RANDOM() < 0.2)) {  // 20% weekend worker
+  if((this->profile == WORKER_PROFILE && Random::draw_random() < 0.2)) {  // 20% weekend worker
     this->profile = WEEKEND_WORKER_PROFILE;
   }
 
@@ -464,7 +464,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
 	      // are we passed the isolation delay period?
 	      if(Global::Isolation_Delay <= self->get_days_symptomatic()) {
 	        //decide whether to enter isolation
-	        if(RANDOM() < Global::Isolation_Rate) {
+	        if(Random::draw_random() < Global::Isolation_Rate) {
 	          this->is_isolated = true;
 	          update_schedule(self, day);
 	          return;
@@ -628,7 +628,7 @@ void Activities::update_schedule(Person* self, int day) {
           this->on_schedule[Activity_index::OFFICE_ACTIVITY] = true;
         }
       } else if(this->is_hospital_staff()) {
-        if(RANDOM() < 0.4) {
+        if(Random::draw_random() < 0.4) {
           if(get_workplace() != NULL) {
             this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = true;
           }
@@ -656,7 +656,7 @@ void Activities::update_schedule(Person* self, int day) {
       }
 
       if(hh != NULL) {
-        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && RANDOM() < Activities::Hospitalization_visit_housemate_prob) {
+        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && Random::draw_random() < Activities::Hospitalization_visit_housemate_prob) {
           set_ad_hoc(hh->get_household_visitation_hospital());
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
         }
@@ -665,7 +665,7 @@ void Activities::update_schedule(Person* self, int day) {
 
     // skip work at background absenteeism rate
     if(Global::Work_absenteeism > 0.0 && this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]) {
-      if(RANDOM() < Global::Work_absenteeism) {
+      if(Random::draw_random() < Global::Work_absenteeism) {
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
         this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
       }
@@ -673,7 +673,7 @@ void Activities::update_schedule(Person* self, int day) {
 
     // skip school at background school absenteeism rate
     if(Global::School_absenteeism > 0.0 && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-      if(RANDOM() < Global::School_absenteeism) {
+      if(Random::draw_random() < Global::School_absenteeism) {
         this->on_schedule[Activity_index::SCHOOL_ACTIVITY] = false;
         this->on_schedule[Activity_index::CLASSROOM_ACTIVITY] = false;
       }
@@ -734,12 +734,12 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
       if(it_is_a_workday) {
         // it is a work day
         if(this->sick_days_remaining > 0.0) {
-          stay_home = (RANDOM() < this->sick_days_remaining);
+          stay_home = (Random::draw_random() < this->sick_days_remaining);
           this->sick_days_remaining--;
         }
       } else {
         // it is a not work day
-        stay_home = (RANDOM() < Activities::Default_sick_day_prob);
+        stay_home = (Random::draw_random() < Activities::Default_sick_day_prob);
       }
     }
   } else {
@@ -760,7 +760,7 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
           double prob_diff = Activities::Sim_based_prob_stay_home_not_needed - Activities::Census_based_prob_stay_home_not_needed;
           if(prob_diff > 0) {
             //There is a prob_diff chance that the agent will NOT stay home
-            stay_home = (RANDOM() < (1 - prob_diff));
+            stay_home = (Random::draw_random() < (1 - prob_diff));
           } else {
             //The agent will stay home because someone is there to watch him/her
             stay_home = true;
@@ -848,7 +848,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
     if(!this->is_hospitalized) {
 
-      double rand = RANDOM();
+      double rand = Random::draw_random();
       double hospitalization_prob = Activities::Hospitalization_prob->find_value(self->get_real_age()); //Background probability
       double seek_healthcare_prob = Activities::Outpatient_healthcare_prob->find_value(self->get_real_age()); //Background probability
 
@@ -971,7 +971,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
       //First check to see if agent will visit a Hospital for an overnight stay, then check for an outpatient visit
       if(rand < hospitalization_prob) {
-        double draw = DRAW_NORMAL(3.0, 0.5);
+        double draw = Random::draw_normal(3.0, 0.5);
         int length = (draw > 0.0 ? static_cast<int>(draw) + 1 : 1);
         start_hospitalization(self, day, length);
       } else if(rand < seek_healthcare_prob) {
@@ -1217,7 +1217,7 @@ bool Activities::default_sick_leave_behavior() {
   if(this->my_sick_leave_decision_has_been_made) {
     stay_home = this->my_sick_leave_decision;
   } else {
-    stay_home = (RANDOM() < Activities::Default_sick_day_prob);
+    stay_home = (Random::draw_random() < Activities::Default_sick_day_prob);
     this->my_sick_leave_decision = stay_home;
     this->my_sick_leave_decision_has_been_made = true;
   }
@@ -1403,7 +1403,7 @@ void Activities::update_profile(Person* self) {
 
   // updates for students finishing college
   if(this->profile == COLLEGE_STUDENT_PROFILE && get_household()->is_college()==false) {
-    if(RANDOM() < 0.25) {
+    if(Random::draw_random() < 0.25) {
       // time to leave college for good
       change_school(self, NULL);
       change_workplace(self, NULL);
@@ -1550,7 +1550,7 @@ void Activities::update_profile(Person* self) {
   }
 
   if(this->profile != RETIRED_PROFILE && Global::RETIREMENT_AGE <= age) {
-    if( RANDOM()< 0.5 ) {
+    if( Random::draw_random()< 0.5 ) {
       FRED_STATUS( 1,
       "CHANGING PROFILE TO RETIRED: id %d age %d sex %c\n",
       self->get_id(), age, self->get_sex());

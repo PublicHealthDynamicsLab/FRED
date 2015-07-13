@@ -341,7 +341,7 @@ void County::move_college_students_out_of_dorms(int day) {
 	assert(person->is_college_dorm_resident());
 	college++;
 	// some college students leave each year
-	if(RANDOM() < this->college_departure_rate) {
+	if(Random::draw_random() < this->college_departure_rate) {
 	  ready_to_move.push_back(make_pair(person,i));
 	}
       }
@@ -447,7 +447,7 @@ void County::move_military_personnel_out_of_barracks(int day) {
 	assert(person->is_military_base_resident());
 	military++;
 	// some military leave each each year
-	if(RANDOM() < this->military_departure_rate) {
+	if(Random::draw_random() < this->military_departure_rate) {
 	  ready_to_move.push_back(make_pair(person,i));
 	}
       }
@@ -546,7 +546,7 @@ void County::move_inmates_out_of_prisons(int day) {
 	assert(person->is_prisoner());
 	prisoners++;
 	// some prisoners get out each year
-	if(RANDOM() < this->prison_departure_rate) {
+	if(Random::draw_random() < this->prison_departure_rate) {
 	  ready_to_move.push_back(make_pair(person,i));
 	}
       }
@@ -714,7 +714,7 @@ void County::move_young_adults(int day) {
 	Person* person = house->get_housemate(j);
 	int age = person->get_age();
 	if(18 <= age && age < 30) {
-	  if(RANDOM() < this->youth_home_departure_rate) {
+	  if(Random::draw_random() < this->youth_home_departure_rate) {
 	    ready_to_move.push_back(make_pair(person,i));
 	    // printf("READY: PERSON %d AGE %d OLDHOUSE %d\n", person->get_id(), person->get_age(),i);
 	  }
@@ -753,7 +753,7 @@ void County::move_older_adults(int day) {
       }
       if(adults > 1) {
 	Person* person = house->get_housemate(pos);
-	if(RANDOM() < this->adult_home_departure_rate) {
+	if(Random::draw_random() < this->adult_home_departure_rate) {
 	  ready_to_move.push_back(make_pair(person,i));
 	}
       }

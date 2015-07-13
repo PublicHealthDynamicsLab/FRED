@@ -178,7 +178,7 @@ void Health::initialize_static_variables() {
 
 Insurance_assignment_index::e Health::get_health_insurance_from_distribution() {
   if(Global::Enable_Health_Insurance && Health::is_initialized) {
-    int i = DRAW_FROM_DISTRIBUTION(Health::health_insurance_cdf_size, Health::health_insurance_distribution);
+    int i = Random::draw_from_distribution(Health::health_insurance_cdf_size, Health::health_insurance_distribution);
     return Health::get_insurance_type_from_int(i);
   } else {
     return Insurance_assignment_index::UNSET;
@@ -284,7 +284,7 @@ void Health::setup(Person* self) {
   // Determine if the agent washes hands
   this->washes_hands = false;
   if(Health::Hand_washing_compliance > 0.0) {
-    this->washes_hands = (RANDOM() < Health::Hand_washing_compliance);
+    this->washes_hands = (Random::draw_random() < Health::Hand_washing_compliance);
   }
 
   // Determine if the agent will wear a face mask if sick
@@ -292,7 +292,7 @@ void Health::setup(Person* self) {
   this->wears_face_mask_today = false;
   this->days_wearing_face_mask = 0;
   if(Health::Face_mask_compliance > 0.0) {
-    if(RANDOM()<Health::Face_mask_compliance) {
+    if(Random::draw_random()<Health::Face_mask_compliance) {
       this->has_face_mask_behavior = true;
     }
     // printf("FACEMASK: has_face_mask_behavior = %d\n", this->has_face_mask_behavior?1:0);
@@ -307,7 +307,7 @@ void Health::setup(Person* self) {
     Disease* disease = Global::Pop.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
       double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
-      if(RANDOM() < at_risk_prob) { // Now a probability <=1.0
+      if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
         declare_at_risk(disease);
       }
     }
@@ -326,25 +326,25 @@ void Health::setup(Person* self) {
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
     double prob = 0.0;
     prob = Health::asthma_prob->find_value(self->get_real_age());
-    set_is_asthmatic((RANDOM() < prob));
+    set_is_asthmatic((Random::draw_random() < prob));
 
     prob = Health::COPD_prob->find_value(self->get_real_age());
-    set_has_COPD((RANDOM() < prob));
+    set_has_COPD((Random::draw_random() < prob));
 
     prob = Health::chronic_renal_disease_prob->find_value(self->get_real_age());
-    set_has_chronic_renal_disease((RANDOM() < prob));
+    set_has_chronic_renal_disease((Random::draw_random() < prob));
 
     prob = Health::diabetes_prob->find_value(self->get_real_age());
-    set_is_diabetic((RANDOM() < prob));
+    set_is_diabetic((Random::draw_random() < prob));
 
     prob = Health::heart_disease_prob->find_value(self->get_real_age());
-    set_has_heart_disease((RANDOM() < prob));
+    set_has_heart_disease((Random::draw_random() < prob));
 
     prob = Health::hypertension_prob->find_value(self->get_real_age());
-    set_has_hypertension((RANDOM() < prob));
+    set_has_hypertension((Random::draw_random() < prob));
 
     prob = Health::hypercholestrolemia_prob->find_value(self->get_real_age());
-    set_has_hypercholestrolemia((RANDOM() < prob));
+    set_has_hypercholestrolemia((Random::draw_random() < prob));
   }
 }
 

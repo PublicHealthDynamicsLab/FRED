@@ -49,7 +49,7 @@ void FixedIntraHost::setup(Disease *disease) {
 }
 
 Trajectory * FixedIntraHost::get_trajectory( Infection * infection, Transmission::Loads * loads ) {
-  double r = RANDOM();
+  double r = Random::draw_random();
   int index = 0;
   vector<double> :: iterator it;
 
@@ -83,7 +83,7 @@ Trajectory * FixedIntraHost::get_trajectory( Infection * infection, Transmission
 int FixedIntraHost::get_days_symp() {
   // Change implementation to take exact trajectory values...
   int num = sympLibrary.size();
-  int idx = IRAND(0, num);
+  int idx = Random::draw_random_int(0, num);
   int days = 0;
   vector<double>& traj = sympLibrary[idx];
 

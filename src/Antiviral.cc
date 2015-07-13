@@ -55,16 +55,16 @@ Antiviral::Antiviral(int _disease, int _course_length, double _reduce_infectivit
 }
 
 int Antiviral::roll_will_have_symp() const {
-  return (RANDOM() < prob_symptoms);
+  return (Random::draw_random() < prob_symptoms);
 }
 
 int Antiviral::roll_efficacy() const {
-  return (RANDOM() < efficacy);
+  return (Random::draw_random() < efficacy);
 }
 
 int Antiviral::roll_course_start_day() const {
   int days = 0;
-  days = DRAW_FROM_DISTRIBUTION(max_av_course_start_day, av_course_start_day);
+  days = Random::draw_from_distribution(max_av_course_start_day, av_course_start_day);
   return days;
 }
 

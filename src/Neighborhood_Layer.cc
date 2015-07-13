@@ -138,8 +138,8 @@ Neighborhood_Patch * Neighborhood_Layer::select_random_patch(double x0, double y
   // select a random patch within given distance.
   // if no luck after 20 attempts, return NULL
   for(int i = 0; i < 20; i++) {
-    double r = RANDOM()*dist;      // random distance
-    double ang = Geo_Utils::DEG_TO_RAD * URAND(0,360);// random angle
+    double r = Random::draw_random()*dist;      // random distance
+    double ang = Geo_Utils::DEG_TO_RAD * Random::draw_random(0,360);// random angle
     double x = x0 + r*cos(ang);// corresponding x coord
     double y = y0 + r*sin(ang);// corresponding y coord
     int row = get_row(y);
@@ -151,13 +151,13 @@ Neighborhood_Patch * Neighborhood_Layer::select_random_patch(double x0, double y
 }
 
 Neighborhood_Patch * Neighborhood_Layer::select_random_patch() {
-  int row = IRAND(0, this->rows - 1);
-  int col = IRAND(0, this->cols - 1);
+  int row = Random::draw_random_int(0, this->rows - 1);
+  int col = Random::draw_random_int(0, this->cols - 1);
   return &grid[row][col];
 }
 
 Neighborhood_Patch * Neighborhood_Layer::select_random_neighbor(int row, int col) {
-  int n = IRAND_0_7();
+  int n = Random::draw_random_int(0,7);
   if(n > 3)
     n++;        // excludes local patch
   int r = row - 1 + (n / 3);
@@ -591,7 +591,7 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_gravity_model(Pla
     // use null gravity model
     i_src = j_src = 0;
   }
-  int offset_index = DRAW_FROM_CDF_VECTOR( gravity_cdf[i_src][j_src] ) ;
+  int offset_index = Random::draw_from_cdf_vector( gravity_cdf[i_src][j_src] ) ;
   int off = offset[i_src][j_src][offset_index];
   int i_dest = i_src + max_offset - (off / 256);
   int j_dest = j_src + max_offset - (off % 256);
@@ -612,7 +612,7 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_old_model(Place *
   int j_src = src_patch->get_col();
   double x_src = src_patch->get_center_x();
   double y_src = src_patch->get_center_y();
-  double r = RANDOM();
+  double r = Random::draw_random();
 
   if( r < this->Home_neighborhood_prob) {
     dest_patch = src_patch;

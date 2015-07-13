@@ -22,16 +22,16 @@ Thread_RNG::Thread_RNG() {
   thread_rng = new RNG [fred::omp_get_max_threads()];
 }
 
-void Thread_RNG::initialize(unsigned long seed) {
+void Thread_RNG::set_seed(unsigned long seed) {
   unsigned long new_seed = seed;
   for(int t = 0; t < fred::omp_get_max_threads(); ++t) {
-    thread_rng[t].initialize(new_seed);
+    thread_rng[t].set_seed(new_seed);
     new_seed = new_seed * 17;
   }
 }
 
 
-void RNG::initialize(unsigned long seed) {
+void RNG::set_seed(unsigned long seed) {
   mt_engine.seed(seed);
 }
 

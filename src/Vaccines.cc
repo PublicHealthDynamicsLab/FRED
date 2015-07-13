@@ -115,7 +115,7 @@ int Vaccines::pick_from_applicable_vaccines(double real_age) const {
   
   int randnum = 0;
   if(app_vaccs.size() > 1){
-    randnum = (int)(RANDOM()*app_vaccs.size());
+    randnum = (int)(Random::draw_random()*app_vaccs.size());
   }
   return app_vaccs[randnum];
 }

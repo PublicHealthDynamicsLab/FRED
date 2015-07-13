@@ -67,11 +67,11 @@ void Person::setup(int _index, int _id, int age, char sex,
   		temp_map->set_ages(temp_ages);
   		temp_map->set_values(temp_values);
      	double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
-	    if(RANDOM() < residual_immunity_by_fips_prob) 
+	    if(Random::draw_random() < residual_immunity_by_fips_prob) 
 	      become_immune(dis);
   		} else if(!dis->get_residual_immunity()->is_empty()) {
 	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	      if(RANDOM() < residual_immunity_prob) {
+	      if(Random::draw_random() < residual_immunity_prob) {
 	        become_immune(dis);
 	      }
 	    }
@@ -127,7 +127,7 @@ void Person::infect(Person* infectee, int disease, Transmission &transmission) {
 
 Person* Person::give_birth(int day) {
   int age = 0;
-  char sex = (URAND(0.0, 1.0) < 0.5 ? 'M' : 'F');
+  char sex = (Random::draw_random(0.0, 1.0) < 0.5 ? 'M' : 'F');
   int race = get_race();
   int rel = Global::CHILD;
   Place* house = this->get_household();

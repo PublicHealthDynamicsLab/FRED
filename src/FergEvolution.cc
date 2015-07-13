@@ -69,7 +69,7 @@ void FergEvolution :: setup( Disease * disease ) {
   // setup cdf for mutation probability
   mutation_cdf.clear();
   // pass mutation cdf in by reference
-  BUILD_BINOMIAL_CDF( delta, num_ntides, mutation_cdf );
+  Random::build_binomial_cdf( delta, num_ntides, mutation_cdf );
 
   for ( int n = 0; n < mutation_cdf.size(); ++n ) {
     std::cout << "mutation cdf " << mutation_cdf[ n ] << std::endl;
@@ -222,16 +222,16 @@ void FergEvolution::try_to_mutate( Infection * infection, Transmission & transmi
       mutated = false;
 
       // find out how many mutations we'll have
-      int n_mutations = DRAW_FROM_CDF_VECTOR( mutation_cdf );
+      int n_mutations = Random::draw_from_cdf_vector( mutation_cdf );
       // if zero, do nothing, otherwise pick which nucleotides will change
       // and report the mutation to the database
       if ( n_mutations > 0 ) {
         int mutated_nucleotides[ n_mutations ];
         if ( n_mutations == 1 ) {
-          mutated_nucleotides[ 0 ] = IRAND( 0, num_ntides - 1 );
+          mutated_nucleotides[ 0 ] = Random::draw_random_int( 0, num_ntides - 1 );
         }
         else {
-          SAMPLE_RANGE_WITHOUT_REPLACEMENT( num_ntides, n_mutations, mutated_nucleotides );
+          Random::sample_range_without_replacement( num_ntides, n_mutations, mutated_nucleotides );
         }
 
         const Strain & parent_strain = disease->get_strain( parent_strain_id ); 
@@ -248,7 +248,7 @@ void FergEvolution::try_to_mutate( Infection * infection, Transmission & transmi
           
           int bitmask = int( 3 ) << nt_index_in_codon; 
           new_data[ aa_index ] = 
-            ( ( IRAND(0,63) ^ new_data[ aa_index ] ) & bitmask ) | ( parent_strain_data[ aa_index ] & (~bitmask) );
+            ( ( Random::draw_random_int(0,63) ^ new_data[ aa_index ] ) & bitmask ) | ( parent_strain_data[ aa_index ] & (~bitmask) );
         }
      
         bool novel = false;
@@ -421,7 +421,7 @@ void FergEvolution::reignite_all_patches( int day ) {
   #pragma omp parallel for
   for ( int patch_id = 0; patch_id < num_clusters; ++patch_id ) {
     int strain = reignitors()[ patch_id ];
-    if ( strain >= 0 && RANDOM() < selection_probability ) { 
+    if ( strain >= 0 && Random::draw_random() < selection_probability ) { 
       Regional_Patch * patch = Global::Simulation_Region->get_patch_from_id( patch_id );
       FRED_STATUS( 0, "Reigniting person in patch %d with strain %d\n",
           patch_id, reignitors()[ patch_id ] );
@@ -579,7 +579,7 @@ void FergEvolution::Ferg_Evolution_Init_Past_Infections::operator() ( Person & p
   if ( num_in_bin > 0 ) {
     hist_itr = host_infection_histories.lower_bound( binned_age );
     // randomly select one of the histories in the bin:
-    int adv = IRAND( 0, num_in_bin - 1 );
+    int adv = Random::draw_random_int( 0, num_in_bin - 1 );
     //printf( "num_in_bin %d advance by %d\n", num_in_bin, adv );
     std::advance( hist_itr, adv );
     std::vector< Past_Infection > * history = (*hist_itr).second;

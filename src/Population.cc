@@ -521,7 +521,7 @@ void Population::Setup_Population_Health_Insurance::operator() (Person &p) {
 //
 //    double low_income_threshold = 2.0 * Household::get_min_hh_income();
 //    double hh_income = hh->get_household_income();
-//    if(hh_income <= low_income_threshold && RANDOM() < (1.0 - (hh_income / low_income_threshold))) {
+//    if(hh_income <= low_income_threshold && Random::draw_random() < (1.0 - (hh_income / low_income_threshold))) {
 //      p.get_health()->set_insurance_type(Insurance_assignment_index::MEDICAID);
 //    } else {
 //      std::vector<Person*> inhab_vec = hh->get_inhabitants();
@@ -1765,9 +1765,9 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
 }
 
 Person* Population::select_random_person() {
-  int i = IRAND(0, get_index_size() - 1);
+  int i = Random::draw_random_int(0, get_index_size() - 1);
   while(get_person_by_index(i) == NULL) {
-    i = IRAND(0, get_index_size() - 1);
+    i = Random::draw_random_int(0, get_index_size() - 1);
   }
   return get_person_by_index(i);
 }

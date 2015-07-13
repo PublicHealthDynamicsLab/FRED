@@ -59,7 +59,7 @@ double Vaccine_Dose::get_duration_of_immunity(double real_age) {
   // select a value from an exponential distribution with mean expected_duration
   double actual_duration = 0.0;
   if (expected_duration > 0.0) {
-    actual_duration = DRAW_EXPONENTIAL(1.0 / expected_duration);
+    actual_duration = Random::draw_exponential(1.0 / expected_duration);
   }
   return actual_duration;
 }

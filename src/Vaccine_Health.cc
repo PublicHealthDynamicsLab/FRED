@@ -40,7 +40,7 @@ Vaccine_Health::Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _
   effective = false;
 
   // decide on efficacy
-  if(RANDOM() < efficacy) {
+  if(Random::draw_random() < efficacy) {
     vaccination_effective_day = vaccination_day + efficacy_delay;
     vaccination_immunity_loss_day = vaccination_effective_day + 1 + efficacy_duration;
   }
@@ -141,7 +141,7 @@ void Vaccine_Health::update_for_next_dose(int day, double age){
   if(!is_effective()){
     double efficacy = vaccine->get_dose(current_dose)->get_efficacy(age);
     double efficacy_delay = vaccine->get_dose(current_dose)->get_efficacy_delay(age);
-    if (RANDOM() < efficacy)
+    if (Random::draw_random() < efficacy)
       vaccination_effective_day = day + efficacy_delay;        
   }
 }

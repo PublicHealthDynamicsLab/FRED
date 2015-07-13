@@ -149,8 +149,8 @@ Regional_Patch* Regional_Layer::get_patch_from_id(int id) {
 }
 
 Regional_Patch* Regional_Layer::select_random_patch() {
-  int row = IRAND(0, this->rows - 1);
-  int col = IRAND(0, this->cols - 1);
+  int row = Random::draw_random_int(0, this->rows - 1);
+  int col = Random::draw_random_int(0, this->cols - 1);
   return &this->grid[row][col];
 }
 

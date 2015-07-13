@@ -171,7 +171,7 @@ Infection * MSEvolution::transmit( Infection * infection,
     
     double trans = force ? 1.0 : get_prob_taking( infectee, it->first, it->second, day );
     
-    if ( RANDOM() <= trans ) {
+    if ( Random::draw_random() <= trans ) {
       it++;
     }
     else {
