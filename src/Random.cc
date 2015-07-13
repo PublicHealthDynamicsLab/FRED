@@ -35,10 +35,6 @@ void RNG::initialize(unsigned long seed) {
   mt_engine.seed(seed);
 }
 
-double RNG::random() {
-  return u01(mt_engine);
-}
-
 int RNG::draw_from_distribution(int n, double* dist) {
   double r = random();
   int i = 0;
@@ -63,22 +59,12 @@ double RNG::exponential(double lambda) {
   return (-log(u) / lambda);
 }
 
-#define TWOPI (2.0*3.141592653589)
-
-double RNG::standard_normal() {
-  // Box-Muller method
-  double U = random();
-  double V = random();
-  return (sqrt(-2.0 * log(U)) * cos(TWOPI * V));
-}
-
 double RNG::normal(double mu, double sigma) {
-  return mu + sigma * standard_normal();
+  return mu + sigma * normal_dist(mt_engine);
 }
-
 
 double RNG::lognormal(double mu, double sigma) {
-  double z = standard_normal();
+  double z = normal(0.0,1.0);
   return exp(mu + sigma * z);
 }
 
@@ -209,7 +195,7 @@ void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf)
 void RNG::sample_range_without_replacement(int N, int s, int* result) {
   std::vector<bool> selected(N, false);
   for(int n = 0; n < s; ++n) {
-    int i = IRAND(0, N - 1);
+    int i = random_int(0, N - 1);
     if(selected[i]) {
       if(i < N - 1 && !(selected[i + 1])) {
         ++i;

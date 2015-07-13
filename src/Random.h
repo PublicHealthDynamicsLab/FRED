@@ -26,10 +26,14 @@ class RNG {
 
  public:
   void initialize(unsigned long seed);
-  double random();
+  double random() {
+    return unif_dist(mt_engine);
+  }
+  int random_int(int low, int high) {
+    return low + (int) ((high - low + 1) * random());
+  }
   double exponential(double lambda);
   int draw_from_distribution(int n, double *dist);
-  double standard_normal();
   double normal(double mu, double sigma);
   double lognormal(double mu, double sigma);
   int draw_from_cdf(double *v, int size);
@@ -40,7 +44,8 @@ class RNG {
 
  private:
   std::mt19937 mt_engine;
-  std::uniform_real_distribution<double> u01;
+  std::uniform_real_distribution<double> unif_dist;
+  std::normal_distribution<double> normal_dist;
 };
 
 
@@ -52,6 +57,10 @@ class Random {
 
   double get_random() {
     return thread_rng[fred::omp_get_thread_num()].random();
+  }
+
+  double get_random_int(int low, int high) {
+    return thread_rng[fred::omp_get_thread_num()].random_int(low,high);
   }
 
   int draw_from_cdf(double *v, int size) {
@@ -93,7 +102,7 @@ class FRED_Random {
 
 #define INIT_RANDOM(SEED) (FRED_Random::Random_Number_Generator.initialize(SEED))
 #define RANDOM() FRED_Random::Random_Number_Generator.get_random()
-#define IRAND(LOW,HIGH) ( (int) ( (LOW) + (int) ( ( (HIGH)-(LOW)+1 ) * RANDOM() ) ) )
+#define IRAND(LOW,HIGH) FRED_Random::Random_Number_Generator.get_random_int(LOW,HIGH)
 #define IRAND_0_7() ( IRAND(0,7) )
 #define URAND(LOW,HIGH) ((double)((LOW)+(((HIGH)-(LOW))*RANDOM())))
 #define DRAW_UNIFORM(low,high) URAND(low,high)
@@ -101,7 +110,6 @@ class FRED_Random {
 #define DRAW_FROM_CDF_VECTOR(VEC) FRED_Random::Random_Number_Generator.draw_from_cdf_vector(VEC)
 #define DRAW_FROM_DISTRIBUTION(n, dist) FRED_Random::Random_Number_Generator.draw_from_distribution(n,dist)
 #define DRAW_EXPONENTIAL(lambda) FRED_Random::Random_Number_Generator.exponential(lambda)
-#define DRAW_STANDARD_NORMAL() FRED_Random::Random_Number_Generator.standard_normal()
 #define DRAW_NORMAL(mu,sigma) FRED_Random::Random_Number_Generator.normal(mu,sigma)
 #define DRAW_LOGNORMAL(mu,sigma) FRED_Random::Random_Number_Generator.lognormal(mu,sigma)
 #define DRAW_FROM_CDF(v,size) FRED_Random::Random_Number_Generator.draw_from_cdf(v,size)
