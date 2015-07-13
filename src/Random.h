@@ -43,7 +43,7 @@ class RNG {
   void sample_range_without_replacement(int N, int s, int* result);
 
  private:
-  std::mt19937 mt_engine;
+  std::mt19937_64 mt_engine;
   std::uniform_real_distribution<double> unif_dist;
   std::normal_distribution<double> normal_dist;
 };
