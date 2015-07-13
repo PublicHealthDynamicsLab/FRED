@@ -178,7 +178,7 @@ void Health::initialize_static_variables() {
 
 Insurance_assignment_index::e Health::get_health_insurance_from_distribution() {
   if(Global::Enable_Health_Insurance && Health::is_initialized) {
-    int i = draw_from_distribution(Health::health_insurance_cdf_size, Health::health_insurance_distribution);
+    int i = DRAW_FROM_DISTRIBUTION(Health::health_insurance_cdf_size, Health::health_insurance_distribution);
     return Health::get_insurance_type_from_int(i);
   } else {
     return Insurance_assignment_index::UNSET;

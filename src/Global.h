@@ -55,10 +55,9 @@ class Neighborhood_Layer;
 class Regional_Layer;
 class Visualization_Layer;
 class Vector_Layer;
-// class Date;
 class Evolution;
 class Seasonality;
-class Random;
+
 #include "Tracker.h"
 
 /**
@@ -270,8 +269,8 @@ class Global {
     static int PSA_Sample_Size;
     static int PSA_Sample;
     // for residual immunity by FIPS
-	  static bool Residual_Immunity_by_FIPS;
-	  static char Residual_Immunity_File[];
+    static bool Residual_Immunity_by_FIPS;
+    static char Residual_Immunity_File[];
 
     // global singleton objects
     static Population Pop;
@@ -280,15 +279,12 @@ class Global {
     static Regional_Layer* Simulation_Region;
     static Visualization_Layer* Visualization;
     static Vector_Layer* Vectors;
-    // static Date* Sim_Start_Date;
-    // static Date* Sim_Current_Date;
     static Evolution* Evol;
     static Seasonality* Clim;
     static Tracker<int>* Daily_Tracker;
     static Tracker<long int>* Tract_Tracker;
     static Tracker<int>* Income_Category_Tracker;
     static int Popsize_by_age[];
-    static Random Random_Number_Generator;
 
 #if SQLITE
     static DB db;

@@ -24,22 +24,26 @@ class RNG {
 
  public:
   void initialize(unsigned long seed);
-  double draw_u01();
-  int rng_draw_poisson(double lambda);
-  double rng_draw_exponential(double lambda);
-  int rng_draw_from_distribution(int n, double *dist);
-  double rng_draw_standard_normal();
-  double rng_draw_normal(double mu, double sigma);
-  double rng_draw_lognormal(double mu, double sigma);
-  int rng_draw_from_cdf(double *v, int size);
-  int rng_draw_from_cdf_vector(const std::vector <double>& v);
-  void rng_build_binomial_cdf(double p, int n, std::vector<double> &cdf);
-  void rng_build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
-  void rng_sample_range_without_replacement(int N, int s, int* result);
+
+  double random();
+  int irandom(int low, int high);
+
+  double normal();
+  double normal(double mu, double sigma);
+
+  int draw_from_cdf(double *v, int size);
+  int draw_from_cdf_vector(const std::vector <double>& v);
+  int draw_from_distribution(int n, double *dist);
+  double exponential(double lambda);
+  double lognormal(double mu, double sigma);
+  void build_binomial_cdf(double p, int n, std::vector<double> &cdf);
+  void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
+  void sample_range_without_replacement(int N, int s, int* result);
 
  private:
   std::mt19937 mt_engine;
-  std::uniform_real_distribution<double> u01;
+  std::uniform_real_distribution<double> unif_dist;
+  std::normal_distribution<double> norm_dist;
 };
 
 

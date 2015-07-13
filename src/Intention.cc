@@ -30,7 +30,7 @@ Intention::Intention(Person * _self, int _index) {
   this->perceptions = NULL;
 
   // pick a behavior_change_model for this individual based on the population market shares
-  this->behavior_change_model = draw_from_distribution(this->params->behavior_change_model_cdf_size,
+  this->behavior_change_model = DRAW_FROM_DISTRIBUTION(this->params->behavior_change_model_cdf_size,
       this->params->behavior_change_model_cdf);
 
   // set the other intention parameters based on the behavior_change_model
@@ -138,13 +138,13 @@ double Intention::update_hbm(int day) {
 
 void Intention::setup_hbm() {
   this->perceptions = new Perceptions(self);
-  this->susceptibility_threshold = draw_uniform(this->params->susceptibility_threshold_distr[0],
+  this->susceptibility_threshold = DRAW_UNIFORM(this->params->susceptibility_threshold_distr[0],
       this->params->susceptibility_threshold_distr[1]);
-  this->severity_threshold = draw_uniform(this->params->severity_threshold_distr[0],
+  this->severity_threshold = DRAW_UNIFORM(this->params->severity_threshold_distr[0],
       this->params->severity_threshold_distr[1]);
-  this->benefits_threshold = draw_uniform(this->params->benefits_threshold_distr[0],
+  this->benefits_threshold = DRAW_UNIFORM(this->params->benefits_threshold_distr[0],
       this->params->benefits_threshold_distr[1]);
-  this->barriers_threshold = draw_uniform(this->params->barriers_threshold_distr[0],
+  this->barriers_threshold = DRAW_UNIFORM(this->params->barriers_threshold_distr[0],
       this->params->barriers_threshold_distr[1]);
   FRED_VERBOSE(1, "setup_hbm: thresholds: sus= %f sev= %f  ben= %f bar = %f\n",
       this->susceptibility_threshold, this->severity_threshold,

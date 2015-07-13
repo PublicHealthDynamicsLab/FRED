@@ -69,7 +69,7 @@ void FergEvolution :: setup( Disease * disease ) {
   // setup cdf for mutation probability
   mutation_cdf.clear();
   // pass mutation cdf in by reference
-  build_binomial_cdf( delta, num_ntides, mutation_cdf );
+  BUILD_BINOMIAL_CDF( delta, num_ntides, mutation_cdf );
 
   for ( int n = 0; n < mutation_cdf.size(); ++n ) {
     std::cout << "mutation cdf " << mutation_cdf[ n ] << std::endl;
@@ -222,7 +222,7 @@ void FergEvolution::try_to_mutate( Infection * infection, Transmission & transmi
       mutated = false;
 
       // find out how many mutations we'll have
-      int n_mutations = draw_from_cdf_vector( mutation_cdf );
+      int n_mutations = DRAW_FROM_CDF_VECTOR( mutation_cdf );
       // if zero, do nothing, otherwise pick which nucleotides will change
       // and report the mutation to the database
       if ( n_mutations > 0 ) {
@@ -231,7 +231,7 @@ void FergEvolution::try_to_mutate( Infection * infection, Transmission & transmi
           mutated_nucleotides[ 0 ] = IRAND( 0, num_ntides - 1 );
         }
         else {
-          sample_range_without_replacement( num_ntides, n_mutations, mutated_nucleotides );
+          SAMPLE_RANGE_WITHOUT_REPLACEMENT( num_ntides, n_mutations, mutated_nucleotides );
         }
 
         const Strain & parent_strain = disease->get_strain( parent_strain_id ); 

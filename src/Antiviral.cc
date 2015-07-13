@@ -64,7 +64,7 @@ int Antiviral::roll_efficacy() const {
 
 int Antiviral::roll_course_start_day() const {
   int days = 0;
-  days = draw_from_distribution(max_av_course_start_day, av_course_start_day);
+  days = DRAW_FROM_DISTRIBUTION(max_av_course_start_day, av_course_start_day);
   return days;
 }
 

@@ -87,7 +87,7 @@ FRED_EXECUTABLE_NAME = FRED
 FRED_memcheck: FRED_EXECUTABLE_NAME = FRED_memcheck
 SRC_DIR = $(shell pwd)
 
-CPP = g++ 
+CPP = g++
 CXX = $(CPP)
 LDFLAGS =
 LFLAGS =
@@ -122,7 +122,7 @@ CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3  -mllvm -inline-threshold=5000 $(LOGGING_
 %.o:%.c %.h
 	$(CPP) $(CPPFLAG) -c $< $(INCLUDES)
 
-OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o RNG.o \
+OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o \
 	Geo_Utils.o Neighborhood_Layer.o Neighborhood_Patch.o Regional_Layer.o Regional_Patch.o \
 	Visualization_Layer.o Visualization_Patch.o Travel.o \
 	Decision.o Policy.o Manager.o \

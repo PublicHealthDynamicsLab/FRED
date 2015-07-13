@@ -273,7 +273,7 @@ void Travel::update_travel(int day) {
 	        traveler->start_traveling(host);
 	        if(traveler->get_travel_status()) {
 	          // put traveler on list for given number of days to travel
-	          int duration = draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
+	          int duration = DRAW_FROM_DISTRIBUTION(max_Travel_Duration, Travel_Duration_Cdf);
 	          int return_sim_day = day + duration;
 	          Travel::add_return_event(return_sim_day, traveler);
 	          traveler_list_ptr[duration]->insert(traveler);

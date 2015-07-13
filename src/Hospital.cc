@@ -283,7 +283,7 @@ bool Hospital::should_be_open(int day) {
             Hospital::HAZEL_mobile_van_active_count++;
             //The Mobile Healthcare Clinics open 1 to 5 days after the disaster ends
             double cdf_arr[5] = { 0.15, 0.35, 0.55, 0.75, 1.0 };
-            int cdf_day = draw_from_cdf(cdf_arr, 5);
+            int cdf_day = DRAW_FROM_CDF(cdf_arr, 5);
             this->set_close_date(Place_List::get_HAZEL_disaster_end_sim_day());
             this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + cdf_day);
             this->HAZEL_closure_dates_have_been_set = true;
@@ -326,7 +326,7 @@ void Hospital::apply_individual_HAZEL_closure_policy() {
   }
 
   if(!this->HAZEL_closure_dates_have_been_set) {
-    int cdf_day = draw_from_cdf_vector(Hospital::HAZEL_reopening_CDF);
+    int cdf_day = DRAW_FROM_CDF_VECTOR(Hospital::HAZEL_reopening_CDF);
     this->set_close_date(Place_List::get_HAZEL_disaster_start_sim_day());
     this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + cdf_day);
     this->HAZEL_closure_dates_have_been_set = true;
