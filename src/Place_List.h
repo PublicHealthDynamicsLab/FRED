@@ -22,8 +22,12 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <unordered_map>
 using namespace std;
 
+typedef std::unordered_map<std::string, int> LabelMapT;
+
+/*
 #include <cstddef> // for __GLIBCXX__
 
 #ifdef __GLIBCXX__
@@ -33,6 +37,7 @@ typedef std::tr1::unordered_map<std::string, int> LabelMapT;
 #include <unordered_map>
 typedef std::unordered_map<std::string, int> LabelMapT;
 #endif
+*/
 
 #include "Health.h"
 #include "Household.h"
