@@ -28,6 +28,7 @@
 #if SQLITE
 #include "DB.h"
 #endif
+
 // global simulation variables
 char Global::Simulation_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
@@ -142,8 +143,6 @@ Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;
 Visualization_Layer* Global::Visualization;
 Vector_Layer* Global::Vectors;
-// Date* Global::Sim_Start_Date = NULL;
-// Date* Global::Sim_Current_Date = NULL;
 Evolution* Global::Evol = NULL;
 Seasonality* Global::Clim = NULL;
 Tracker<int>* Global::Daily_Tracker = NULL;
@@ -288,7 +287,7 @@ void Global::get_global_parameters() {
   Global::Enable_Isolation = (temp_int == 0 ? false : true);
   Params::get_param_from_string("isolation_delay", &Global::Isolation_Delay);
   Params::get_param_from_string("isolation_rate", &Global::Isolation_Rate);
-// added for residual_immunity_by_FIPS
+  // added for residual_immunity_by_FIPS
   Params::get_param_from_string("enable_residual_immunity_by_FIPS", &temp_int);
   Global::Residual_Immunity_by_FIPS = (temp_int == 0 ? false : true);
   if (Global::Residual_Immunity_by_FIPS) {

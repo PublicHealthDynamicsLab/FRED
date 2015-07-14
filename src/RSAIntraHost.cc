@@ -129,7 +129,7 @@ double RSAIntraHost::get_recovery_phenotype_value(double age, double Ay, double 
 
 double RSAIntraHost::random_phenotypic_value(double scale) {
   // Picks a uniform random number in [-scale, scale] 
-  double r = RANDOM() ;
+  double r = Random::draw_random() ;
   double phenotype = (2.0*r - 1.0)*scale;	
   return phenotype;
 }

@@ -524,7 +524,7 @@ int Place::get_contact_count(Person* infector, int disease_id, int day, double c
 
   // randomly round off the expected value of the contact counts
   int contact_count = (int) infector_contacts;
-  double r = RANDOM();
+  double r = Random::draw_random();
   if(r < infector_contacts - contact_count) {
     contact_count++;
   }
@@ -566,7 +566,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
     transmission_prob *= Place::Seasonality_multiplier[day_of_year];
   }
 
-  double r = RANDOM();
+  double r = Random::draw_random();
   double infection_prob = transmission_prob * susceptibility;
 
   if(r < infection_prob) {
@@ -694,7 +694,7 @@ void Place::default_transmission_model(int day, int disease_id) {
     // get a susceptible target for each contact resulting in infection
     for(int c = 0; c < contact_count; ++c) {
       // select a target infectee from among susceptibles with replacement
-      int pos = IRAND(0, number_targets - 1);
+      int pos = Random::draw_random_int(0, number_targets - 1);
       if(pos < susceptibles.size()) {
         if(infector == susceptibles[pos]) {
           if(susceptibles.size() > 1) {
@@ -809,7 +809,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 	
       // convert to integer
       infectee_count[i] = (int) expected_infections;
-      double r = RANDOM();
+      double r = Random::draw_random();
       if(r < expected_infections - infectee_count[i]) {
         infectee_count[i]++;
       }
@@ -844,13 +844,13 @@ void Place::age_based_transmission_model(int day, int disease_id) {
     if(infectee_count[age] > 0) {
 
       // is this person susceptible?
-      double r = RANDOM();
+      double r = Random::draw_random();
       if(r < infectee->get_susceptibility(disease_id)) {
 
 	      printf("INFECTING pos %d age %d \n", sus_pos, age); fflush(stdout);
 
 	      // pick an age group of infector based on cdf in row p[i]
-	      r = URAND(0,p[age][100]);
+	      r = Random::draw_random(0,p[age][100]);
 	      int j = 0;
 	      for(j = 0; j <= 100; ++j) {
 	        printf("r %e p[%d][%d] %e\n",r,age,j,p[age][j]);
@@ -865,7 +865,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 	      printf("PICK INFECTOR age %d size %d start pos %d infectivity %e\n", j, size[j], start[j], infectivity_of_group[j]); fflush(stdout);
 
 	      // pick a infectious person from group j based on infectivity
-	      r = URAND(0, infectivity_of_group[j]);
+	      r = Random::draw_random(0, infectivity_of_group[j]);
 	      int pos = start[j];
 	      while(infectivity_of_agent[pos] < r) {
 	        r -= infectivity_of_agent[pos];
@@ -949,7 +949,7 @@ void Place::density_transmission_model(int day, int disease_id) {
   double expected_infections = sus_hosts * prob_infection;
   exposed = floor(expected_infections);
   double remainder = expected_infections - exposed;
-  if(RANDOM() < remainder) {
+  if(Random::draw_random() < remainder) {
     exposed++;
   }
 
@@ -972,7 +972,7 @@ void Place::density_transmission_model(int day, int disease_id) {
     // only proceed if person is susceptible
     if(infectee->is_susceptible(disease_id)) {
       // select a random infector
-      int infector_pos = IRAND(0,inf_hosts-1);
+      int infector_pos = Random::draw_random_int(0,inf_hosts-1);
       Person * infector = infectious[infector_pos];
       assert(infector->get_health()->is_infectious(disease_id));
 
@@ -1171,7 +1171,7 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
   double expected_infections = s_hosts * prob_infection;
   e_hosts = floor(expected_infections);
   double remainder = expected_infections - e_hosts;
-  if(RANDOM() < remainder) {
+  if(Random::draw_random() < remainder) {
     e_hosts++;
   }
   FRED_VERBOSE(1, "transmit_to_hosts: E_hosts[%d] = %d\n", disease_id, e_hosts);
@@ -1246,7 +1246,7 @@ void Place::update_vector_population(int day) {
     FRED_VERBOSE(1,"vector_update_population:: E_vectors[%d] = %d \n",i, this->E_vectors[i]);
     if(this->E_vectors[i] < 10){
       for(int k = 0; k < this->E_vectors[i]; ++k) {
-	      double r = URAND(0,1);
+	      double r = Random::draw_random(0,1);
 	      if(r < this->death_rate){
 	        this->E_vectors[i]--;
 	      }
@@ -1258,7 +1258,7 @@ void Place::update_vector_population(int day) {
     int become_infectious = 0;
     if(this->E_vectors[i] < 10) {
       for(int k = 0; k < this->E_vectors[i]; ++k) {
-	      double r = URAND(0,1);
+	      double r = Random::draw_random(0,1);
 	      if(r < this->incubation_rate) {
 	        become_infectious++;
 	      }

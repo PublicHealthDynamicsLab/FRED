@@ -30,7 +30,7 @@ Intention::Intention(Person * _self, int _index) {
   this->perceptions = NULL;
 
   // pick a behavior_change_model for this individual based on the population market shares
-  this->behavior_change_model = draw_from_distribution(this->params->behavior_change_model_cdf_size,
+  this->behavior_change_model = Random::draw_from_distribution(this->params->behavior_change_model_cdf_size,
       this->params->behavior_change_model_cdf);
 
   // set the other intention parameters based on the behavior_change_model
@@ -49,14 +49,14 @@ Intention::Intention(Person * _self, int _index) {
       break;
 
     case Behavior_change_model_enum::FLIP:
-      this->probability = URAND(this->params->min_prob, this->params->max_prob);
-      this->intention = (RANDOM()<= this->probability);
+      this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
+      this->intention = (Random::draw_random()<= this->probability);
       this->frequency = this->params->frequency;
       break;
 
     case Behavior_change_model_enum::HBM:
-      this->probability = URAND(this->params->min_prob, this->params->max_prob);
-      this->intention = (RANDOM() <= this->probability);
+      this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
+      this->intention = (Random::draw_random() <= this->probability);
       this->frequency = this->params->frequency;
       setup_hbm();
       break;
@@ -84,7 +84,7 @@ void Intention::update(int day) {
     if(this->behavior_change_model == Behavior_change_model_enum::HBM && day > 0) {
       this->probability = update_hbm(day);
     }
-    double r = RANDOM();
+    double r = Random::draw_random();
     this->intention = (r < this->probability);
     this->expiration = day + this->frequency;
   }
@@ -138,13 +138,13 @@ double Intention::update_hbm(int day) {
 
 void Intention::setup_hbm() {
   this->perceptions = new Perceptions(self);
-  this->susceptibility_threshold = draw_uniform(this->params->susceptibility_threshold_distr[0],
+  this->susceptibility_threshold = Random::draw_random(this->params->susceptibility_threshold_distr[0],
       this->params->susceptibility_threshold_distr[1]);
-  this->severity_threshold = draw_uniform(this->params->severity_threshold_distr[0],
+  this->severity_threshold = Random::draw_random(this->params->severity_threshold_distr[0],
       this->params->severity_threshold_distr[1]);
-  this->benefits_threshold = draw_uniform(this->params->benefits_threshold_distr[0],
+  this->benefits_threshold = Random::draw_random(this->params->benefits_threshold_distr[0],
       this->params->benefits_threshold_distr[1]);
-  this->barriers_threshold = draw_uniform(this->params->barriers_threshold_distr[0],
+  this->barriers_threshold = Random::draw_random(this->params->barriers_threshold_distr[0],
       this->params->barriers_threshold_distr[1]);
   FRED_VERBOSE(1, "setup_hbm: thresholds: sus= %f sev= %f  ben= %f bar = %f\n",
       this->susceptibility_threshold, this->severity_threshold,

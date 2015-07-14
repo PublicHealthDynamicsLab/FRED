@@ -299,7 +299,7 @@ int Disease::get_days_recovered() {
 
   if(this->immunity_loss_rate > 0.0) {
     // draw from exponential distribution
-    days = floor(0.5 + draw_exponential(this->immunity_loss_rate));
+    days = floor(0.5 + Random::draw_exponential(this->immunity_loss_rate));
     // printf("DAYS RECOVERED = %d\n", days);
   } else {
     days = -1;
@@ -342,7 +342,7 @@ Transmission::Loads* Disease::get_primary_loads(int day, int strain) {
 
 bool Disease::gen_immunity_infection(double real_age) {
   double prob = this->infection_immunity_prob->find_value(real_age);
-  return (RANDOM() <= prob);
+  return (Random::draw_random() <= prob);
 }
 
 int Disease::get_num_strain_data_elements(int strain) {
@@ -403,7 +403,7 @@ bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
       double age_prob = this->case_fatality_age_factor->find_value(real_age);
       double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
-      return (RANDOM() < age_prob * day_prob);
+      return (Random::draw_random() < age_prob * day_prob);
   }
   return false;
 }
@@ -437,7 +437,7 @@ bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
       if(per->get_demographics()->is_pregnant()) {
         age_prob *= Health::get_pregnancy_case_fatality_prob_mult(per->get_age());
       }
-      return (RANDOM() < age_prob * day_prob);
+      return (Random::draw_random() < age_prob * day_prob);
     } else {
       return is_fatal(per->get_age(), symptoms, days_symptomatic);
     }

@@ -119,8 +119,8 @@ Visualization_Patch* Visualization_Layer::get_patch(double x, double y) {
 }
 
 Visualization_Patch* Visualization_Layer::select_random_patch() {
-  int row = IRAND(0, this->rows-1);
-  int col = IRAND(0, this->cols-1);
+  int row = Random::draw_random_int(0, this->rows-1);
+  int col = Random::draw_random_int(0, this->cols-1);
   return &(this->grid[row][col]);
 }
 

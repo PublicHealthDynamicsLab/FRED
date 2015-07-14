@@ -13,18 +13,31 @@
 //
 // File: Random.cc
 //
-#include <limits>
-#include <vector>
-#include <bitset>
+#include "Random.h"
 #include <stdio.h>
 
-#include "Random.h"
+Thread_RNG Random::Random_Number_Generator;
 
-using namespace std;
+Thread_RNG::Thread_RNG() {
+  thread_rng = new RNG [fred::omp_get_max_threads()];
+}
 
-// static
-int draw_from_distribution(int n, double* dist) {
-  double r = RANDOM();
+void Thread_RNG::set_seed(unsigned long metaseed) {
+  std::mt19937_64 seed_generator;
+  seed_generator.seed(metaseed);
+  for(int t = 0; t < fred::omp_get_max_threads(); ++t) {
+    unsigned long new_seed = seed_generator();
+    thread_rng[t].set_seed(new_seed);
+  }
+}
+
+
+void RNG::set_seed(unsigned long seed) {
+  mt_engine.seed(seed);
+}
+
+int RNG::draw_from_distribution(int n, double* dist) {
+  double r = random();
   int i = 0;
   while(i <= n && dist[i] < r) {
     i++;
@@ -42,33 +55,23 @@ int draw_from_distribution(int n, double* dist) {
   }
 }
 
-double draw_exponential(double lambda) {
-  double u = RANDOM();
+double RNG::exponential(double lambda) {
+  double u = random();
   return (-log(u) / lambda);
 }
 
-#define TWOPI (2.0*3.141592653589)
-
-double draw_standard_normal() {
-  // Box-Muller method
-  double U = RANDOM();
-  double V = RANDOM();
-  return (sqrt(-2.0 * log(U)) * cos(TWOPI * V));
+double RNG::normal(double mu, double sigma) {
+  return mu + sigma * normal_dist(mt_engine);
 }
 
-double draw_normal(double mu, double sigma) {
-  return mu + sigma * draw_standard_normal();
-}
-
-
-double draw_lognormal(double mu, double sigma) {
-  double z = draw_standard_normal();
+double RNG::lognormal(double mu, double sigma) {
+  double z = normal(0.0,1.0);
   return exp(mu + sigma * z);
 }
 
 
-int draw_from_cdf(double* v, int size) {
-  double r = RANDOM();
+int RNG::draw_from_cdf(double* v, int size) {
+  double r = random();
   int top = size - 1;
   int bottom = 0;
   int s = top / 2;
@@ -95,9 +98,9 @@ int draw_from_cdf(double* v, int size) {
   return -1;
 }
 
-int draw_from_cdf_vector(const vector<double>& v) {
+int RNG::draw_from_cdf_vector(const vector<double>& v) {
   int size = v.size();
-  double r = RANDOM();
+  double r = random();
   int top = size - 1;
   int bottom = 0;
   int s = top / 2;
@@ -120,35 +123,7 @@ int draw_from_cdf_vector(const vector<double>& v) {
     }
     s = bottom + (top - bottom) / 2;
   }
-  // assert(bottom <= top);
   return -1;
-}
-
-using namespace std;
-/*
-   algorithm poisson random number (Knuth):
-init:
-Let L = exp(−lambda), k = 0 and p = 1.
-do:
-k = k + 1.
-Generate uniform random number u in [0,1] and let p = p × u.
-while p > L.
-return k − 1.
-*/
-
-int draw_poisson(double lambda) {
-  if(lambda <= 0.0) {
-    return 0;
-  } else {
-    double L = exp(-lambda);
-    int k = 0;
-    double p = 1.0;
-    do {
-      p *= RANDOM();
-      k++;
-    } while(p > L);
-    return k - 1;
-  }
 }
 
 double binomial_coefficient(int n, int k) {
@@ -166,7 +141,7 @@ double binomial_coefficient(int n, int k) {
   return c;
 }
 
-void build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
+void RNG::build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
   for(int i = 0; i <= n; ++i) {
     double prob = 0.0;
     for(int j = 0; j <= i; ++j) {
@@ -186,14 +161,14 @@ void build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
   cdf.back() = 1.0;
 }
 
-void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
+void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
   int maxval = -1;
   int count[1000];
   for(int i = 0; i < 1000; i++) {
     count[i] = 0;
   }
   for(int i = 0; i < 1000; i++) {
-    double x = draw_lognormal(mu, sigma);
+    double x = lognormal(mu, sigma);
     int j = (int) x + 0.5;
     if(j > 999) {
       j = 999;
@@ -218,10 +193,10 @@ void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
   cdf.back() = 1.0;
 }
 
-void sample_range_without_replacement(int N, int s, int* result) {
+void RNG::sample_range_without_replacement(int N, int s, int* result) {
   std::vector<bool> selected(N, false);
   for(int n = 0; n < s; ++n) {
-    int i = IRAND(0, N - 1);
+    int i = random_int(0, N - 1);
     if(selected[i]) {
       if(i < N - 1 && !(selected[i + 1])) {
         ++i;
@@ -237,39 +212,4 @@ void sample_range_without_replacement(int N, int s, int* result) {
   }
 }
 
-/////////////////////////////////////////////////////////////////
 
-RNG_State<8192, 1024, 1024, 2048> rng_state[Global::MAX_NUM_THREADS];
-
-void RNG::init(int seed) {
-  dsfmt_gv_init_gen_rand(seed);
-  for (int i = 0; i < Global::MAX_NUM_THREADS; ++i) {
-    rng_state[i] = RNG_State<8192, 1024, 1024, 2048>();
-    rng_state[i].init(dsfmt_gv_genrand_uint32());
-  }
-}
-
-double RNG::random_double() {
-  assert(fred::omp_get_thread_num() < Global::MAX_NUM_THREADS);
-  return rng_state[fred::omp_get_thread_num()].random_double();
-}
-
-unsigned char RNG::random_char() {
-  assert(fred::omp_get_thread_num() < Global::MAX_NUM_THREADS);
-  return rng_state[fred::omp_get_thread_num()].random_char();
-}
-
-int RNG::random_int_0_7() {
-  assert(fred::omp_get_thread_num() < Global::MAX_NUM_THREADS);
-  int int_0_7 = ((int)(rng_state[fred::omp_get_thread_num()].random_char() >> 5));
-  assert(int_0_7 < 8 && int_0_7 >= 0);
-  return int_0_7;
-}
-
-void RNG::refresh_all_buffers() {
-  assert(fred::omp_get_thread_num() < Global::MAX_NUM_THREADS);
-  #pragma omp parallel for
-  for(int t = 0; t < fred::omp_get_max_threads(); ++t) {
-    rng_state[ t ].refresh_all_buffers();
-  }
-}

@@ -181,7 +181,7 @@ void Vector_Patch::transmit_to_hosts(int day) {
     double expected_infections = s_hosts * prob_infection;
     E_hosts[disease_id] = floor(expected_infections);
     double remainder = expected_infections - E_hosts[disease_id];
-    if (RANDOM() < remainder) E_hosts[disease_id]++;
+    if (Random::draw_random() < remainder) E_hosts[disease_id]++;
     FRED_VERBOSE(1, "transmit_to_hosts: E_hosts[%d] = %d\n", disease_id, E_hosts[disease_id]);
     // randomize the order of the susceptibles list
     FYShuffle<Person *>(S_hosts[disease_id]);

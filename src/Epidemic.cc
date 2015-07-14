@@ -1526,7 +1526,7 @@ void Epidemic::get_imported_infections(int day) {
 	        // we have at least the minimum number of candidates.
 	        for(int n = 0; n < imported_cases_remaining; ++n) {
 	          // pick a candidate without replacement
-	          int pos = IRAND(0,people.size()-1);
+	          int pos = Random::draw_random_int(0,people.size()-1);
 	          Person* person = people[pos];
 	          people[pos] = people[people.size() - 1];
 	          people.pop_back();
@@ -1583,8 +1583,8 @@ void Epidemic::advance_seed_infection(Person* person) {
   int duration = person->get_recovered_date(d) - person->get_exposure_date(d);
   assert(duration > 0);
   if(this->seeding_type == SEED_RANDOM) {
-    advance = IRAND(0, duration);
-  } else if(RANDOM() < this->fraction_seeds_infectious ) {
+    advance = Random::draw_random_int(0, duration);
+  } else if(Random::draw_random() < this->fraction_seeds_infectious ) {
     advance = person->get_infectious_date(d) - person->get_exposure_date(d);
   }
   assert(advance <= duration);

@@ -56,7 +56,7 @@ int AV_Decision_Give_to_Sympt::evaluate(Person* person, int disease, int current
   double percentage = av->get_percent_symptomatics();
   if(person->get_health()->is_symptomatic(disease)){
     person->get_health()->flip_checked_for_av(disease);
-    double r = RANDOM(); // This is now a probability <=1.0;
+    double r = Random::draw_random(); // This is now a probability <=1.0;
     if( r < percentage ) return 0;
   }
   return -1;

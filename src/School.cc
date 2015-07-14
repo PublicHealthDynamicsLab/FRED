@@ -430,7 +430,7 @@ Place* School::select_classroom_for_student(Person* per) {
   }
 
   // pick next classroom for this grade at random
-  // int room = IRAND(0,(classrooms[grade].size()-1));
+  // int room = Random::draw_random_int(0,(classrooms[grade].size()-1));
 
   if(Global::Verbose > 1) {
     fprintf(Global::Statusfp, "room = %d %s %d\n", room, this->classrooms[grade][room]->get_label(),

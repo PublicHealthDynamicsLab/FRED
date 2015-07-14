@@ -241,8 +241,8 @@ Vector_Patch* Vector_Layer::get_patch(fred::geo lat, fred::geo lon) {
 }
 
 Vector_Patch* Vector_Layer::select_random_patch() {
-  int row = IRAND(0, this->rows - 1);
-  int col = IRAND(0, this->cols - 1);
+  int row = Random::draw_random_int(0, this->rows - 1);
+  int col = Random::draw_random_int(0, this->cols - 1);
   return &this->grid[row][col];
 }
 
@@ -356,7 +356,7 @@ double Vector_Layer::get_seeds(Place* p, int dis) {
   if(patch != NULL) {
     double seeds_ = patch->get_seeds(dis);
     if(seeds_ > 0) {
-      if(URAND(0,1) < this->place_seeding_probability) {
+      if(Random::draw_random(0,1) < this->place_seeding_probability) {
 	      return seeds_;
       } else {
 	      return 0.0;
@@ -538,7 +538,7 @@ void Vector_Layer::immunize_total_by_age() {
     if(county_set[i].habitants.size()>0){
       for(int j = 0; j < county_set[i].habitants.size(); ++j) {
 	      Person* per = county_set[i].habitants[j];
-	      double prob_immune_ = URAND(0,1);
+	      double prob_immune_ = Random::draw_random(0,1);
 	      double prob_immune = prob_immune_ * 100;
 	      int temp_age = per->get_age();
 	      if(temp_age > 101) {
@@ -563,7 +563,7 @@ void Vector_Layer::immunize_by_age(int d) {
     if(county_set[i].habitants.size() > 0) {
       for (int j = 0; j < county_set[i].habitants.size(); ++j) {
 	      Person* per = county_set[i].habitants[j];
-	      double prob_immune_ = URAND(0,1);
+	      double prob_immune_ = Random::draw_random(0,1);
 	      double prob_immune = prob_immune_ * 100;
 	      int temp_age = per->get_age();
 	      if(temp_age > 101) {

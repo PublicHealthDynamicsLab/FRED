@@ -125,7 +125,7 @@ void fred_setup(int argc, char* argv[]) {
   Utils::fred_open_output_files();
 
   // initialize RNG
-  INIT_RANDOM(Global::Seed);
+  Random::set_seed(Global::Seed);
 
   // Date Setup -- Start_date parameter must have format 'YYYY-MM-DD'
   // Global::Sim_Start_Date = new Date(string(Global::Start_date));
@@ -145,7 +145,7 @@ void fred_setup(int argc, char* argv[]) {
     Global::Simulation_seed = Global::Seed;
   }
   fprintf(Global::Statusfp, "seed = %lu\n", Global::Simulation_seed);
-  INIT_RANDOM(Global::Simulation_seed);
+  Random::set_seed(Global::Simulation_seed);
 
   Utils::fred_print_lap_time("RNG setup");
   Utils::fred_print_wall_time("\nFRED run %d started", Global::Simulation_run_number);
@@ -345,7 +345,7 @@ void fred_step(int day) {
   if(day == Global::Reseed_day) {
     fprintf(Global::Statusfp, "************** reseed day = %d\n", day);
     fflush(Global::Statusfp);
-    INIT_RANDOM(Global::Simulation_seed + Global::Simulation_run_number - 1);
+    Random::set_seed(Global::Simulation_seed + Global::Simulation_run_number - 1);
   }
 
   // optional: periodically output distributions of the population demographics
@@ -434,11 +434,6 @@ void fred_step(int day) {
 
 #pragma omp parallel sections
   {
-#pragma omp section
-    {
-      // this refreshes all RNG buffers in a new thread team
-      RNG::refresh_all_buffers();
-    }
 #pragma omp section
     {
       // flush infections file buffer

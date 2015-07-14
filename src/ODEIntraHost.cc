@@ -35,7 +35,7 @@ double ODEIntraHost :: get_inoculum_particles (double infectivity) {
   double v_max = 100.00;
 
   double mu = max (inoculum_particles_min, ( ( infectivity * viral_titer_scaling/ v_max ) * inoculum_particles_max ) );
-  double inoculum_particles = draw_normal(mu,sigma);
+  double inoculum_particles = Random::draw_normal(mu,sigma);
   return inoculum_particles;
   }
 

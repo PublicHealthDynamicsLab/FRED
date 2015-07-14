@@ -122,7 +122,7 @@ void Seasonality::nearest_neighbor_interpolation(vector <point> points, double *
           continue;
         }
         if (d1 == d2) {
-          if ((RANDOM()*((double)(ties+1)))>ties) {
+          if ((Random::draw_random()*((double)(ties+1)))>ties) {
             (*field)[r][c] = pit->value;
           }
           ties++;

@@ -1811,7 +1811,7 @@ void Place_List::setup_offices() {
 Place* Place_List::get_random_workplace() {
   int size = static_cast<int>(this->workplaces.size());
   if(size > 0) {
-    return this->workplaces[IRAND(0, size - 1)];
+    return this->workplaces[Random::draw_random_int(0, size - 1)];
   } else {
     return NULL;
   }
@@ -1988,7 +1988,7 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
       }
     }
 
-    double rand = RANDOM();
+    double rand = Random::draw_random();
     double cum_prob = 0.0;
     int i = 0;
     while(i < number_hospitals) {
@@ -2076,7 +2076,7 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
         }
       }
 
-      double rand = RANDOM();
+      double rand = Random::draw_random();
       double cum_prob = 0.0;
       int i = 0;
       while(i < number_hospitals) {
@@ -2239,12 +2239,12 @@ void Place_List::shelter_household(Household* h) {
   h->set_shelter(true);
 
   // set shelter delay
-  int shelter_start_day  = 0.4999999 + draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
+  int shelter_start_day  = 0.4999999 + Random::draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
   if(Place_List::Early_shelter_rate > 0.0) {
-    double r = RANDOM();
+    double r = Random::draw_random();
     while(shelter_start_day > 0 && r < Place_List::Early_shelter_rate) {
       shelter_start_day--;
-      r = RANDOM();
+      r = Random::draw_random();
     }
   }
   if(shelter_start_day < 0) {
@@ -2253,19 +2253,19 @@ void Place_List::shelter_household(Household* h) {
   h->set_shelter_start_day(shelter_start_day);
 
   // set shelter duration
-  int shelter_duration  = 0.4999999 + draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
+  int shelter_duration  = 0.4999999 + Random::draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
   if(shelter_duration < 1) {
     shelter_duration = 1;
   }
 
   if(Place_List::Shelter_decay_rate > 0.0) {
-    double r = RANDOM();
+    double r = Random::draw_random();
     if(r < 0.5) {
       shelter_duration = 1;
-      r = RANDOM();
+      r = Random::draw_random();
       while(shelter_duration < Place_List::Shelter_duration_mean && Place_List::Shelter_decay_rate < r) {
 	      shelter_duration++;
-	      r = RANDOM();
+	      r = Random::draw_random();
       }
     }
   }
@@ -2309,12 +2309,12 @@ void Place_List::select_households_for_evacuation() {
     bool evac_date_set = false;
     bool return_date_set = false;
     for(int j = evac_start_sim_day; j <= evac_end_sim_day; ++j) {
-      if(RANDOM() < Place_List::HAZEL_disaster_evac_prob_per_day) {
+      if(Random::draw_random() < Place_List::HAZEL_disaster_evac_prob_per_day) {
         tmp_hh->set_shelter_start_day(j);
         evac_date_set = true;
         count_hh_evacuating++;
         for(int k = return_start_sim_day; k <= return_end_sim_day; ++k) {
-          if(RANDOM() < Place_List::HAZEL_disaster_evac_prob_per_day || k == return_end_sim_day) {
+          if(Random::draw_random() < Place_List::HAZEL_disaster_evac_prob_per_day || k == return_end_sim_day) {
             if(k > j) { //Can't return before you leave
               tmp_hh->set_shelter_end_day(k);
               return_date_set = true;
