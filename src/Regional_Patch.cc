@@ -19,7 +19,7 @@
 #include "Global.h"
 #include "Regional_Patch.h"
 #include "Regional_Layer.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Random.h"
 #include "Utils.h"
 
@@ -141,8 +141,8 @@ Transaction* Regional_Patch::collect_patch_stats(int day, int disease_id) {
 
 Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   // printf("get_workplace_near_place entered\n"); print(); fflush(stdout);
-  double x = Geo_Utils::get_x(place->get_longitude());
-  double y = Geo_Utils::get_y(place->get_latitude());
+  double x = Geo::get_x(place->get_longitude());
+  double y = Geo::get_y(place->get_latitude());
 
   // allow staff size variation by 25%
   int min_staff = (int)(0.75 * staff);
@@ -158,8 +158,8 @@ Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   if(nearby_workplace == NULL)
     return NULL;
   assert(nearby_workplace != NULL);
-  double x2 = Geo_Utils::get_x(nearby_workplace->get_longitude());
-  double y2 = Geo_Utils::get_y(nearby_workplace->get_latitude());
+  double x2 = Geo::get_x(nearby_workplace->get_longitude());
+  double y2 = Geo::get_y(nearby_workplace->get_latitude());
   FRED_VERBOSE(1, "nearby workplace %s %f %f size %d dist %f\n", nearby_workplace->get_label(),
       x2, y2, nearby_workplace->get_size(), min_dist);
 
@@ -178,8 +178,8 @@ Place* Regional_Patch::get_closest_workplace(double x, double y, int min_size, i
     }
     int size = workplace->get_size();
     if(min_size <= size && size <= max_size) {
-      double x2 = Geo_Utils::get_x(workplace->get_longitude());
-      double y2 = Geo_Utils::get_y(workplace->get_latitude());
+      double x2 = Geo::get_x(workplace->get_longitude());
+      double y2 = Geo::get_y(workplace->get_latitude());
       double dist = sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
       if(dist < 20.0 && dist < *min_dist) {
         *min_dist = dist;

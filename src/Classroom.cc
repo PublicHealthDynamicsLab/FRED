@@ -32,7 +32,7 @@ int Classroom::Classroom_closure_delay = 0;
 //Private static variable to assure we only lookup parameters once
 bool Classroom::Classroom_parameters_set = false;
 
-Classroom::Classroom(const char *lab, fred::place_subtype _subtype, double lon, double lat, Place *container, Population *pop) {
+Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop) {
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
   setup(lab, lon, lat, container, pop);

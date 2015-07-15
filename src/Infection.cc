@@ -358,8 +358,8 @@ void Infection::report_infection(int day) const {
   infStrS << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
 
   if (place_type != 'X') {
-    double lat = this->place->get_latitude();
-    double lon = this->place->get_longitude();
+    fred::geo lat = this->place->get_latitude();
+    fred::geo lon = this->place->get_longitude();
     infStrS << " lat " << lat;
     infStrS << " lon " << lon;
   }

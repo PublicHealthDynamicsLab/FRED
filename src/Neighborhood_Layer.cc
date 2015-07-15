@@ -21,7 +21,7 @@
 using namespace std;
 
 #include "Global.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
 #include "Place_List.h"
@@ -139,7 +139,7 @@ Neighborhood_Patch * Neighborhood_Layer::select_random_patch(double x0, double y
   // if no luck after 20 attempts, return NULL
   for(int i = 0; i < 20; i++) {
     double r = Random::draw_random()*dist;      // random distance
-    double ang = Geo_Utils::DEG_TO_RAD * Random::draw_random(0,360);// random angle
+    double ang = Geo::DEG_TO_RAD * Random::draw_random(0,360);// random angle
     double x = x0 + r*cos(ang);// corresponding x coord
     double y = y0 + r*sin(ang);// corresponding y coord
     int row = get_row(y);
@@ -306,8 +306,8 @@ void Neighborhood_Layer::record_favorite_places() {
 
 vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fred::geo lon,
     double radius_in_km) {
-  double px = Geo_Utils::get_x(lon);
-  double py = Geo_Utils::get_y(lat);
+  double px = Geo::get_x(lon);
+  double py = Geo::get_y(lat);
   //  get patches around the point, make sure their rows & cols are in bounds
   int r1 = this->rows - 1 - (int)((py + radius_in_km) / this->patch_size);
   r1 = (r1 >= 0) ? r1 : 0;
@@ -326,10 +326,10 @@ vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fr
       Neighborhood_Patch * p = get_patch(r, c);
       vector<Place *> h = p->get_household_list();
       for(vector<Place *>::iterator hi = h.begin(); hi != h.end(); hi++) {
-        fred::geo hlat = (*hi)->get_latitude();
-        fred::geo hlon = (*hi)->get_longitude();
-        double hx = Geo_Utils::get_x(hlon);
-        double hy = Geo_Utils::get_y(hlat);
+        double hlat = (*hi)->get_latitude();
+        double hlon = (*hi)->get_longitude();
+        double hx = Geo::get_x(hlon);
+        double hy = Geo::get_y(hlat);
         if(sqrt((px - hx) * (px - hx) + (py - hy) * (py - hy)) <= radius_in_km) {
           households.push_back((*hi));
         }

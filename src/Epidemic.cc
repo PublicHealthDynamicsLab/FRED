@@ -26,7 +26,7 @@ using namespace std;
 #include "Disease.h"
 #include "Epidemic.h"
 #include "Evolution.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Global.h"
 #include "Household.h"
 #include "Infection.h"
@@ -1086,11 +1086,11 @@ void Epidemic::report_distance_of_infection(int day) {
     if(old_place == NULL) {
       continue;
     }
-    double lat1 = new_place->get_latitude();
-    double lon1 = new_place->get_longitude();
-    double lat2 = old_place->get_latitude();
-    double lon2 = old_place->get_longitude();
-    double dist = Geo_Utils::xy_distance(lat1, lon1, lat2, lon2);
+    fred::geo lat1 = new_place->get_latitude();
+    fred::geo lon1 = new_place->get_longitude();
+    fred::geo lat2 = old_place->get_latitude();
+    fred::geo lon2 = old_place->get_longitude();
+    double dist = Geo::xy_distance(lat1, lon1, lat2, lon2);
     tot_dist += dist;
     n++;
   }
@@ -1476,8 +1476,8 @@ void Epidemic::get_imported_infections(int day) {
       FRED_VERBOSE(0,"IMPORT MST:\n"); // tmap->print();
       int imported_cases_requested = tmap->num_seeding_attempts;
       int imported_cases = 0;
-      double lat = tmap->lat;
-      double lon = tmap->lon;
+      fred::geo lat = tmap->lat;
+      fred::geo lon = tmap->lon;
       double radius = tmap->radius;
       // list of susceptible people that qualify by distance and age
       std::vector<Person*> people;
@@ -1499,7 +1499,7 @@ void Epidemic::get_imported_infections(int day) {
 	  Household* house = Global::Places.get_household_ptr(i);
 	  double dist = 0.0;
 	  if(radius > 0) {
-	    dist = Geo_Utils::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
+	    dist = Geo::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
 	    if(radius < dist) {
 	      continue;
 	    }

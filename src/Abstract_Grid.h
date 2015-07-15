@@ -14,7 +14,7 @@
 #define _ABSTRACT_GRID_H
 
 #include "Global.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 
 class Abstract_Grid {
   
@@ -77,12 +77,12 @@ public:
   }
 
   int get_row(fred::geo lat) {
-    double y = Geo_Utils::get_y(lat);
+    double y = Geo::get_y(lat);
     return (int) ((y-min_y)/patch_size);
   }
 
   int get_col(fred::geo lon) {
-    double x = Geo_Utils::get_x(lon);
+    double x = Geo::get_x(lon);
     return static_cast<int>(((x - this->min_x) / this->patch_size));
   }
 

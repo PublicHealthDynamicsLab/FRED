@@ -136,7 +136,7 @@ public:
       return loc;
     }
 
-    fred::geo get_lon() { 
+    double get_lon() { 
       if(!loc) {
         Utils::fred_abort("Tried to access location that was not specified.\
             Calls to get_lon() and get_lat() should be preceeded by has_location()");
@@ -144,7 +144,7 @@ public:
       return lon;
     }
 
-    fred::geo get_lat() {
+    double get_lat() {
       if(!loc) {
         Utils::fred_abort("Tried to access location that was not specified.\
           Calls to get_lon() and get_lat() should be preceeded by has_location()");

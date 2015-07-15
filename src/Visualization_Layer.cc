@@ -184,8 +184,8 @@ void Visualization_Layer::initialize() {
     fprintf(fp, "cols = %d\n", this->cols);
     fprintf(fp, "min_lat = %f\n", this->min_lat);
     fprintf(fp, "min_lon = %f\n", this->min_lon);
-    fprintf(fp, "patch_x_size = %f\n", Geo_Utils::x_to_degree_longitude(patch_size));
-    fprintf(fp, "patch_y_size = %f\n", Geo_Utils::y_to_degree_latitude(patch_size));
+    fprintf(fp, "patch_x_size = %f\n", Geo::xsize_to_degree_longitude(patch_size));
+    fprintf(fp, "patch_y_size = %f\n", Geo::ysize_to_degree_latitude(patch_size));
     fclose(fp);
   }
 }

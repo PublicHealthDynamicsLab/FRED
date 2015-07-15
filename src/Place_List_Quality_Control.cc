@@ -479,8 +479,8 @@ void Place_List::quality_control() {
     for(int p = 0; p < number_places; p++) {
       if(this->places[p]->is_household()) {
 	      Place* h = this->places[p];
-	      double x = Geo_Utils::get_x(h->get_longitude());
-	      double y = Geo_Utils::get_y(h->get_latitude());
+	      double x = Geo::get_x(h->get_longitude());
+	      double y = Geo::get_y(h->get_latitude());
 	      fprintf(fp, "%f %f\n", x, y);
       }
     }

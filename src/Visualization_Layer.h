@@ -24,7 +24,7 @@
 #include "Place.h"
 
 
-typedef std::pair<fred::geo, fred::geo> point;
+typedef std::pair<double, double> point;
 
 class Visualization_Patch;
 

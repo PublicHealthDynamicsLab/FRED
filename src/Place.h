@@ -28,7 +28,7 @@ using namespace std;
 #include "Random.h"
 #include "Global.h"
 #include "State.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #define DISEASE_TYPES 4
 
 typedef std::vector<Place*> place_vec;
@@ -539,7 +539,7 @@ public:
    *
    * @param x the new latitude
    */
-  void set_latitude(fred::geo x) {
+  void set_latitude(double x) {
     this->latitude = x;
   }
 
@@ -548,7 +548,7 @@ public:
    *
    * @param x the new longitude
    */
-  void set_longitude(fred::geo x) {
+  void set_longitude(double x) {
     this->longitude = x;
   }
 
@@ -621,11 +621,11 @@ public:
   void reassign_workers(Place* place);
 
   double get_x() {
-    return Geo_Utils::get_x(this->longitude);
+    return Geo::get_x(this->longitude);
   }
 
   double get_y() {
-    return Geo_Utils::get_y(this->latitude);
+    return Geo::get_y(this->latitude);
   }
 
   void add_new_infection(int disease_id) {

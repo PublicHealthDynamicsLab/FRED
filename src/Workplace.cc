@@ -42,7 +42,7 @@ int Workplace::workers_in_large_workplaces = 0;
 int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
-Workplace::Workplace(const char *lab, fred::place_subtype _subtype, double lon, double lat, Place *container, Population *pop) {
+Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop) {
   this->type = WORKPLACE;
   this->subtype = _subtype;
   setup(lab, lon, lat, container, pop);

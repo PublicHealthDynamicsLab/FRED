@@ -19,7 +19,7 @@
 using namespace std;
 
 #include "Global.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Regional_Layer.h"
 #include "Regional_Patch.h"
 #include "Place_List.h"
@@ -47,8 +47,8 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   Params::get_param_from_string("regional_patch_size", &this->patch_size);
 
   // find the global x,y coordinates of SW corner of grid
-  this->min_x = Geo_Utils::get_x(this->min_lon);
-  this->min_y = Geo_Utils::get_y(this->min_lat);
+  this->min_x = Geo::get_x(this->min_lon);
+  this->min_y = Geo::get_y(this->min_lat);
 
   // find the global row and col in which SW corner occurs
   this->global_row_min = (int)(this->min_y / this->patch_size);
@@ -59,12 +59,12 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   this->min_y = this->global_row_min * this->patch_size;
 
   // compute lat,lon of SW corner of aligned grid
-  this->min_lat = Geo_Utils::get_latitude(this->min_y);
-  this->min_lon = Geo_Utils::get_longitude(this->min_x);
+  this->min_lat = Geo::get_latitude(this->min_y);
+  this->min_lon = Geo::get_longitude(this->min_x);
 
   // find x,y coords of NE corner of bounding box
-  this->max_x = Geo_Utils::get_x(this->max_lon);
-  this->max_y = Geo_Utils::get_y(this->max_lat);
+  this->max_x = Geo::get_x(this->max_lon);
+  this->max_y = Geo::get_y(this->max_lat);
 
   // find the global row and col in which NE corner occurs
   this->global_row_max = (int)(this->max_y / this->patch_size);
@@ -75,8 +75,8 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   this->max_y = (this->global_row_max + 1) * this->patch_size;
 
   // compute lat,lon of NE corner of aligned grid
-  this->max_lat = Geo_Utils::get_latitude(this->max_y);
-  this->max_lon = Geo_Utils::get_longitude(this->max_x);
+  this->max_lat = Geo::get_latitude(this->max_y);
+  this->max_lon = Geo::get_longitude(this->max_x);
 
   // number of rows and columns needed
   this->rows = this->global_row_max - this->global_row_min + 1;

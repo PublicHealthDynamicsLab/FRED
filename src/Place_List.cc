@@ -44,7 +44,7 @@ using namespace std;
 #include "Regional_Patch.h"
 #include "Vector_Layer.h"
 #include "Visualization_Layer.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Travel.h"
 #include "Seasonality.h"
 #include "Random.h"
@@ -101,7 +101,7 @@ double Place_List::HAZEL_disaster_evac_prob_per_day = 0.0;
 double Place_List::HAZEL_disaster_return_prob_per_day = 0.0;
 
 double distance_between_places(Place* p1, Place* p2) {
-  return Geo_Utils::xy_distance(p1->get_latitude(), p1->get_longitude(),
+  return Geo::xy_distance(p1->get_latitude(), p1->get_longitude(),
 				p2->get_latitude(), p2->get_longitude());
 }
 
@@ -660,10 +660,10 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   if(Global::Use_Mean_Latitude) {
     // Make projection based on the location file.
     fred::geo mean_lat = (min_lat + max_lat) / 2.0;
-    Geo_Utils::set_km_per_degree(mean_lat);
+    Geo::set_km_per_degree(mean_lat);
     Utils::fred_log("min_lat: %f  max_lat: %f  mean_lat: %f\n", min_lat, max_lat, mean_lat);
   } else {
-    // DEFAULT: Use mean US latitude (see Geo_Utils.cc)
+    // DEFAULT: Use mean US latitude (see Geo.cc)
     Utils::fred_log("min_lat: %f  max_lat: %f\n", min_lat, max_lat);
   }
 
@@ -1700,8 +1700,8 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
     if(place->get_type() == place_type) {
       fred::geo lat = place->get_latitude();
       fred::geo lon = place->get_longitude();
-      double x = Geo_Utils::get_x(lon);
-      double y = Geo_Utils::get_y(lat);
+      double x = Geo::get_x(lon);
+      double y = Geo::get_y(lat);
       if(place_type == Place::SCHOOL) {
 	      FRED_VERBOSE(1, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
       } else {
@@ -1752,8 +1752,8 @@ void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype,
     if(place->is_workplace() && place->get_subtype() == subtype) {
       fred::geo lat = place->get_latitude();
       fred::geo lon = place->get_longitude();
-      double x = Geo_Utils::get_x(lon);
-      double y = Geo_Utils::get_y(lat);
+      double x = Geo::get_x(lon);
+      double y = Geo::get_y(lat);
       FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
 
       // ignore place if it is outside the region

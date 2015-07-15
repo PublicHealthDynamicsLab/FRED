@@ -17,9 +17,6 @@
 #ifndef _FRED_REGIONAL_LAYER_H
 #define _FRED_REGIONAL_LAYER_H
 
-#include <string.h>
-#include <math.h>
-
 #include "Abstract_Grid.h"
 #include "Global.h"
 

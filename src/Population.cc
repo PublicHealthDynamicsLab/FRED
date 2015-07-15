@@ -24,7 +24,7 @@
 #include "Demographics.h"
 #include "Disease.h"
 #include "Evolution.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Global.h"
 #include "Household.h"
 #include "Manager.h"
@@ -1244,7 +1244,7 @@ void Population::report_mean_hh_distance_from_school() {
           }
         }
         assert(student_hh != NULL);
-        double distance = Geo_Utils::haversine_distance(person->get_school()->get_longitude(),
+        double distance = Geo::haversine_distance(person->get_school()->get_longitude(),
             person->get_school()->get_latitude(), student_hh->get_longitude(),
             student_hh->get_latitude());
         std::pair<School*, int> my_insert(schl, distance);
@@ -1259,7 +1259,7 @@ void Population::report_mean_hh_distance_from_school() {
           }
         }
         assert(student_hh != NULL);
-        double distance = Geo_Utils::haversine_distance(person->get_school()->get_longitude(),
+        double distance = Geo::haversine_distance(person->get_school()->get_longitude(),
             person->get_school()->get_latitude(), student_hh->get_longitude(),
             student_hh->get_latitude());
         school_hh_distance_map->at(schl) += distance;

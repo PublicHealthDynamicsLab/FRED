@@ -18,7 +18,7 @@
 #include "Params.h"
 #include "Random.h"
 #include "Utils.h"
-#include "Geo_Utils.h"
+#include "Geo.h"
 #include "Travel.h"
 #include "Person.h"
 #include "Place_List.h"
@@ -147,7 +147,7 @@ void Travel::setup_travelers_per_hub() {
     double min_dist = 100000000.0;
     int closest = -1;
     for(int j = 0; j < num_hubs; ++j) {
-      double dist = Geo_Utils::xy_distance(h_lat, h_lon, hubs[j].lat, hubs[j].lon);
+      double dist = Geo::xy_distance(h_lat, h_lon, hubs[j].lat, hubs[j].lon);
       if(dist < max_distance && dist < min_dist) {
 	      closest = j;
 	      min_dist = dist;

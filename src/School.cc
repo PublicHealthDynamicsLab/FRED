@@ -55,7 +55,7 @@ bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
 
-School::School(const char* lab, fred::place_subtype _subtype, double lon, double lat, Place* container, Population* pop) {
+School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
   setup(lab, lon, lat, container, pop);

@@ -29,8 +29,8 @@ double * Neighborhood::Weekend_contact_rate = NULL;
 //Private static variable to assure we only lookup parameters once
 bool Neighborhood::Neighborhood_parameters_set = false;
 
-Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, double lon,
-                           double lat, Place *container, Population *pop ) {
+Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
+                           fred::geo lat, Place *container, Population *pop ) {
   type = NEIGHBORHOOD;
   subtype = _subtype;
   setup( lab, lon, lat, container, pop );
