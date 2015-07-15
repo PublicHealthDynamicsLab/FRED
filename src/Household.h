@@ -239,17 +239,9 @@ public:
   }
 
   /**
-   * Record the ages in sorted order, and record the id's of the original members of the household
+   * Record the ages and the id's of the original members of the household
    */
   void record_profile();
-
-  /*
-   * @param i the index of the agent
-   * @return the age of the household member with index i
-   */
-  int get_age_of_member(int i) {
-    return this->ages[i];
-  }
 
   /**
    * @return the original count of agents in this Household
@@ -365,10 +357,6 @@ public:
 
   int get_size() {
     return this->N;
-  }
-
-  vector<unsigned char> get_original_ages() {
-    return this->ages;
   }
 
   void set_group_quarters_workplace(Place* p) {

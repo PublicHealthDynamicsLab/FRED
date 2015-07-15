@@ -318,15 +318,8 @@ bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person
   return false;
 }
 
-static bool sort_by_age(Person *p, Person *q) {
-  return ((p->get_age() == q->get_age()) ? (p->get_id() < q->get_id()) : (p->get_age() < q->get_age()));
-}
-
 void Household::record_profile() {
-  // sort by age
-  std::sort(this->enrollees.begin(), this->enrollees.end(), sort_by_age);
-
-  // record the ages in sorted order
+  // record the ages
   this->ages.clear();
   for(int i = 0; i < this->N; ++i) {
     this->ages.push_back(this->enrollees[i]->get_age());
