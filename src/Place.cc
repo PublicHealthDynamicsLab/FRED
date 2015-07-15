@@ -84,8 +84,8 @@ void Place::initialize_static_variables() {
   infectious_places.clear();
 }
 
-bool compare_age (Person* p1, Person* p2) {
-  return p1->get_age() < p2->get_age();
+static bool compare_age (Person* p1, Person* p2) {
+  return ((p1->get_age() == p2->get_age()) ? (p1->get_id() < p2->get_id()) : (p1->get_age() < p2->get_age()));
 }
 
 double** Place::prob_contact = NULL;
@@ -746,7 +746,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   double force = beta * this->intimacy;
 
   // sort the infectious list by age
-  std::sort (infectious.begin(), infectious.end(), compare_age);
+  std::sort(infectious.begin(), infectious.end(), compare_age);
 
   // get number of infectious and susceptible persons and infectivity of each age group
   for (int i = 0; i <=100; ++i) {

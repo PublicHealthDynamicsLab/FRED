@@ -26,6 +26,9 @@
 #include "Regional_Layer.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
+#include <algorithm>
+
+using namespace std;
 
 //Private static variables that will be set by parameter lookups
 double* Household::Household_contacts_per_day;
@@ -315,13 +318,19 @@ bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person
   return false;
 }
 
+static bool sort_by_age(Person *p, Person *q) {
+  return ((p->get_age() == q->get_age()) ? (p->get_id() < q->get_id()) : (p->get_age() < q->get_age()));
+}
+
 void Household::record_profile() {
+  // sort by age
+  std::sort(this->enrollees.begin(), this->enrollees.end(), sort_by_age);
+
   // record the ages in sorted order
   this->ages.clear();
   for(int i = 0; i < this->N; ++i) {
     this->ages.push_back(this->enrollees[i]->get_age());
   }
-  sort(this->ages.begin(), this->ages.end());
 
   // record the id's of the original members of the household
   this->ids.clear();

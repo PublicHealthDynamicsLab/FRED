@@ -124,9 +124,6 @@ void fred_setup(int argc, char* argv[]) {
   // open output files with global file pointers
   Utils::fred_open_output_files();
 
-  // initialize RNG
-  Random::set_seed(Global::Seed);
-
   // Date Setup -- Start_date parameter must have format 'YYYY-MM-DD'
   // Global::Sim_Start_Date = new Date(string(Global::Start_date));
   // Global::Sim_Current_Date = new Date(string(Global::Start_date));

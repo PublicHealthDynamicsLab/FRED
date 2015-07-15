@@ -13,19 +13,29 @@
 #
 # NCPU is defined to be 1 in Global.h if value not set here 
 #
+## select OpenMP if desired
+OPENMP =
+NCPU = 1
+# OPENMP = -fopenmp
+
 # Autodetect all available processors for linux or mac
 # Fall back to single-threaded operation
 OS := $(shell uname)
+
 ifeq ($(OS),Linux)
+
 NCPU ?= $(shell grep -c ^processor /proc/cpuinfo)
 M64 = -m64
-USE_STDLIB = -std=c++11
+
 else ifeq ($(shell echo $(OS) | cut -f1 -d_),CYGWIN)
+
 NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
+M64 =
+
 else ifeq ($(OS),Darwin)
+
 NCPU ?= $(shell sysctl -n hw.ncpu)
-M64 = -m64
-CLANG_FLAGS = -mllvm -inline-threshold=1000
+M64 =-m64
 endif
 
 ################   Snappy Compression  ###############################
@@ -67,7 +77,6 @@ SQLITE_OBJ = sqlite3.o FergEvolution.o
 endif
 
 #################  MD5 Program ##############################
-
 UNIX	:= $(shell uname)
 ifeq ($(UNIX), Linux)
 MD5SUM	:= md5sum
@@ -89,31 +98,31 @@ CXX = $(CPP)
 LDFLAGS =
 LFLAGS =
 
+# comment out if not using clang
+CLANG_FLAGS = -mllvm -inline-threshold=1000
+
+## FRED message levels
 LOGGING_PRESET_0 = 
 LOGGING_PRESET_1 = -DFREDWARNING
 LOGGING_PRESET_2 = -DFREDSTATUS -DFREDWARNING
 LOGGING_PRESET_3 = -DFREDVERBOSE -DFREDSTATUS -DFREDWARNING -DFREDDEBUG
 
-# use this for development:
-# CPPFLAGS = -g -O2 $(LOGGING_PRESET_3) -Wall -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY)
+## select desired level of FRED messages
+LOGGING_LEVEL = $(LOGGING_PRESET_3)
 
-# use one of these for profiling
-# CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) # -DNDEBUG -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY)
-# CPPFLAGS = -pg $(M64) -O2 -DNDEBUG  -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(LOGGING_PRESET_3) -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls -fno-omit-frame-pointer
+## recommended for development:
+# CPPFLAGS = -g -std=c++11 $(M64) -O2 $(LOGGING_PRESET_3) -Wall -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY)
 
-## Use this to make reproducible serial runs using clang/LLVM on MacOS, since clang does not currently support openMP.
-CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(CLANG_FLAGS) $(LOGGING_PRESET_0) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
+## recommended for production runs:
+CPPFLAGS = -std=c++11 $(M64) -O3 $(OPENMP) $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
 
-## Use this to run with multiple threads
-#CPPFLAGS = $(USE_STDLIB) -g $(M64) -O3 $(CLANG_FLAGS) -fopenmp $(LOGGING_PRESET_0) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
-
-FRED_memcheck: 	CPPFLAGS = -g $(M64) -O0 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 
 ###############################################
 
-%.o:%.c %.h
-	$(CPP) $(CPPFLAG) -c $< $(INCLUDES)
+%.o : %.cc %.h
+	$(CPP) $(CPPFLAGS) $(CLANG_FLAGS) -c $< $(INCLUDES)
 
 OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o \
 	Geo_Utils.o Neighborhood_Layer.o Neighborhood_Patch.o Regional_Layer.o Regional_Patch.o \
@@ -144,7 +153,7 @@ MD5 := FRED.md5
 all: FRED FRED.tar.gz $(FSZ) $(MD5)
 
 FRED: $(SQLITE_OBJ)  $(OBJ)
-	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(LDFLAGS) $(OBJ) $(SQLITE_OBJ) $(SNAPPY_LFLAGS) -ldl
+	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(OBJ) $(SQLITE_OBJ) $(LDFLAGS) $(SNAPPY_LFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
 
 Compression.o: $(SNAPPY_LIB)
@@ -173,7 +182,7 @@ sqlite3.o:
 	cp sqlite3.o $(SRC_DIR)
 
 DEPENDS: $(SRC) $(HDR)
-	$(CPP) $(USE_STDLIB) -MM $(SRC) $(INCLUDE_DIRS) > DEPENDS
+	$(CPP) -std=c++11 -MM $(SRC) $(INCLUDE_DIRS) > DEPENDS
 
 include DEPENDS
 

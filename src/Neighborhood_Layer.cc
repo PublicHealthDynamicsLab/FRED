@@ -340,7 +340,7 @@ vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fr
 }
 
 // Comparison used to sort by probability
-static bool compare( const pair<double,int>& p1, const pair<double,int>& p2) {
+static bool compare_pair( const pair<double,int>& p1, const pair<double,int>& p2) {
   return ((p1.first == p2.first) ? (p1.second < p2.second) : (p1.first > p2.first));
 }
 
@@ -413,7 +413,7 @@ void Neighborhood_Layer::setup_gravity_model() {
       for (int k = 0; k < count; k++) {
 	sort_pair.push_back(pair <double,int> (tmp_prob[k], tmp_offset[k]));
       }
-      sort(sort_pair.begin(), sort_pair.end(), compare);
+      std::sort(sort_pair.begin(), sort_pair.end(), compare_pair);
 
       // keep at most largest max_destinations
       if (count > max_destinations) count = max_destinations;
@@ -705,7 +705,8 @@ bool more_room(Place *p1, Place *p2){
   // return vac1 > vac2;
   double relvac1 = (vac1 + 0.000001) / (s1->get_orig_number_of_students() + 1.0);
   double relvac2 = (vac2 + 0.000001) / (s2->get_orig_number_of_students() + 1.0);
-  return relvac1 > relvac2;
+  // resolve ties by place id
+  return (relvac1 == relvac2) ? (s1->get_id() <= s2->get_id()) : (relvac1 > relvac2);
 }
 
 Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {

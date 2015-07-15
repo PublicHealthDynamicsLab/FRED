@@ -23,6 +23,8 @@
 #include <string>
 #include <unistd.h>
 
+using namespace std;
+
 #include "Place_List.h"
 #include "Population.h"
 #include "Disease.h"
@@ -607,6 +609,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       h->set_census_tract_index((*itr).census_tract_index);
       h->set_shelter(false);
       this->households.push_back(h);
+      FRED_VERBOSE(9, "pushing household %s\n", s);
       this->counties[(*itr).county]->add_household(h);
       if(Global::Enable_Visualization_Layer) {
 	      long int census_tract = this->get_census_tract_with_index((*itr).census_tract_index);
@@ -1530,9 +1533,11 @@ void Place_List::setup_group_quarters() {
   }
 }
 
-// Comparison used to sort households by income below
-bool compare_household_incomes(Place* h1, Place* h2) {
-  return (static_cast<Household*>(h1))->get_household_income() < (static_cast<Household*>(h2))->get_household_income();
+// Comparison used to sort households by income below (resolve ties by place id)
+static bool compare_household_incomes(Place* h1, Place* h2) {
+  int inc1 = (static_cast<Household*>(h1))->get_household_income();
+  int inc2 = (static_cast<Household*>(h2))->get_household_income();
+  return ((inc1 == inc2) ? (h1->get_id() < h2->get_id()) : (inc1 < inc2));
 }
 
 void Place_List::setup_households() {

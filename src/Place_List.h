@@ -25,20 +25,6 @@
 #include <unordered_map>
 using namespace std;
 
-typedef std::unordered_map<std::string, int> LabelMapT;
-
-/*
-#include <cstddef> // for __GLIBCXX__
-
-#ifdef __GLIBCXX__
-#include <tr1/unordered_map>
-typedef std::tr1::unordered_map<std::string, int> LabelMapT;
-#else
-#include <unordered_map>
-typedef std::unordered_map<std::string, int> LabelMapT;
-#endif
-*/
-
 #include "Health.h"
 #include "Household.h"
 #include "Place.h"
@@ -54,6 +40,8 @@ class Classroom;
 class Workplace;
 
 #define GRADES 20
+
+typedef std::unordered_map<std::string, int> LabelMapT;
 
 // Helper class used during read_all_places/read_places; definition
 // after Place_List class

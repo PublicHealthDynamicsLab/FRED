@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -100,7 +100,7 @@ Epidemic::Epidemic(Disease* dis) {
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     //Values for household census_tract based stratification
     for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
-          census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
+	census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
@@ -109,14 +109,14 @@ Epidemic::Epidemic(Disease* dis) {
   }
 
   if(Global::Report_Childhood_Presenteeism) {
-//    //Values for household census_tract based stratification
-//    for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
-//          census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
-//      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
-//      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
-//      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
-//      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt = 0;
-//    }
+    //    //Values for household census_tract based stratification
+    //    for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
+    //          census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
+    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
+    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
+    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
+    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt = 0;
+    //    }
   }
 
   this->attack_rate = 0.0;
@@ -173,7 +173,7 @@ void Epidemic::setup() {
     string line;
     while(getline(*ts_input,line)){
       if ( line[0] == '\n' || line[0] == '#' ) { // empty line or comment
-	      continue;
+	continue;
       }
       char cstr[FRED_STRING_SIZE];
       std::strcpy(cstr, line.c_str());
@@ -184,7 +184,7 @@ void Epidemic::setup() {
 		     &tmap->disease_id, &tmap->seeding_attempt_prob, &tmap->min_num_successful,
 		     &tmap->lat, &tmap->lon, &tmap->radius);
       if(n < 3) {
-	      Utils::fred_abort("Need to specify at least SimulationDayStart, SimulationDayEnd and NumSeedingAttempts for Time_Step_Map. ");
+	Utils::fred_abort("Need to specify at least SimulationDayStart, SimulationDayEnd and NumSeedingAttempts for Time_Step_Map. ");
       }
       if(n < 9) {
         tmap->lat = 0.0;
@@ -371,8 +371,8 @@ void Epidemic::become_symptomatic(Person* person) {
 
   if(Global::Report_Childhood_Presenteeism) {
     if(person->is_student() &&
-        person->get_school() != NULL &&
-        person->get_household() != NULL) {
+       person->get_school() != NULL &&
+       person->get_household() != NULL) {
       School* schl = static_cast<School*>(person->get_school());
       Household* hh = static_cast<Household*>(person->get_household());
       int income_quartile = schl->get_income_quartile();
@@ -399,10 +399,10 @@ void Epidemic::become_removed(Person* person, bool susceptible, bool infectious,
       Global::Pop.clear_mask_by_index(fred::Susceptible, person->get_pop_index());
       FRED_VERBOSE(1, "OK: become_removed: person %d removed from \
           susceptible_list\n",
-          person->get_id());
+		   person->get_id());
     } else {
       if(Global::Enable_Vector_Transmission == false) {
-	      FRED_VERBOSE(0,
+	FRED_VERBOSE(0,
 		     "WARNING: become_removed: person %d not removed \
           from susceptible_list\n",
 		     person->get_id());
@@ -414,10 +414,10 @@ void Epidemic::become_removed(Person* person, bool susceptible, bool infectious,
       Global::Pop.clear_mask_by_index(fred::Infectious, person->get_pop_index());
       FRED_VERBOSE(1, "OK: become_removed: person %d removed from \
           infectious_list\n",
-          person->get_id());
+		   person->get_id());
     } else {
       if(Global::Enable_Vector_Transmission == false) {
-	      FRED_VERBOSE(0,
+	FRED_VERBOSE(0,
 		     "WARNING: become_removed: person %d not removed from \
           infectious_list\n",
 		     person->get_id());
@@ -446,10 +446,10 @@ void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, 
       Global::Pop.clear_mask_by_index(fred::Susceptible, person->get_pop_index());
       FRED_VERBOSE(1, "OK: become_immune: person %d removed from \
           susceptible_list\n",
-          person->get_id());
+		   person->get_id());
     } else {
       if(!Global::Enable_Vector_Transmission) {
-	      FRED_VERBOSE(0,
+	FRED_VERBOSE(0,
 		     "WARNING: become_immune: person %d not removed from \
           susceptible_list\n",
 		     person->get_id());
@@ -461,10 +461,10 @@ void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, 
       Global::Pop.clear_mask_by_index(fred::Infectious, person->get_pop_index());
       FRED_VERBOSE(1, "OK: become_immune: person %d removed from \
           infectious_list\n",
-          person->get_id());
+		   person->get_id());
     } else {
       if(!Global::Enable_Vector_Transmission) {
-	      FRED_VERBOSE(0,
+	FRED_VERBOSE(0,
 		     "WARNING: become_immune: person %d not removed from \
           infectious_list\n",
 		     person->get_id());
@@ -523,7 +523,7 @@ void Epidemic::print_stats(int day) {
   double case_fatality_rate = 0.0;
   if(this->population_infection_counts.tot_ppl_evr_sympt > 0) {
     case_fatality_rate = 100.0 * static_cast<double>(this->total_case_fatality_count)
-        / static_cast<double>(this->population_infection_counts.tot_ppl_evr_sympt);
+      / static_cast<double>(this->population_infection_counts.tot_ppl_evr_sympt);
   }
 
   if(this->id == 0) {
@@ -555,13 +555,13 @@ void Epidemic::print_stats(int day) {
     report_transmission_by_age_group(day);
   }
   /*
-   if(Global::Enable_Seasonality) {
-     double average_seasonality_multiplier = 1.0;
-     average_seasonality_multiplier = Global::Clim->get_average_seasonality_multiplier(
-         this->disease->get_id());
-     fprintf(Global::Outfp, " SM %2.4f", average_seasonality_multiplier);
-     FRED_STATUS(0, " SM %2.4f", average_seasonality_multiplier);
-   }
+    if(Global::Enable_Seasonality) {
+    double average_seasonality_multiplier = 1.0;
+    average_seasonality_multiplier = Global::Clim->get_average_seasonality_multiplier(
+    this->disease->get_id());
+    fprintf(Global::Outfp, " SM %2.4f", average_seasonality_multiplier);
+    FRED_STATUS(0, " SM %2.4f", average_seasonality_multiplier);
+    }
   */
 
   if(Global::Report_Presenteeism) {
@@ -721,61 +721,61 @@ void Epidemic::report_age_of_infection(int day) {
   track_value(day, (char*)"Age_at_infection", mean_age);
 
   switch(Global::Report_Age_Of_Infection) {
-    case 1:
-      track_value(day, (char*)"Infants", infants);
-      track_value(day, (char*)"Toddlers", toddlers);
-      track_value(day, (char*)"Preschool", pre_school);
-      track_value(day, (char*)"Students", elementary+high_school);
-      track_value(day, (char*)"Elementary", elementary);
-      track_value(day, (char*)"Highschool", high_school);
-      track_value(day, (char*)"Young_adults", young_adults);
-      track_value(day, (char*)"Adults", adults);
-      track_value(day, (char*)"Elderly", elderly);
-      break;
-    case 2:
-      track_value(day, (char*)"Infants", infants);
-      track_value(day, (char*)"Toddlers", toddlers);
-      track_value(day, (char*)"Pre-k", pre_school);
-      track_value(day, (char*)"Elementary", elementary);
-      track_value(day, (char*)"Highschool", high_school);
-      track_value(day, (char*)"Young_adults", young_adults);
-      track_value(day, (char*)"Adults", adults);
-      track_value(day, (char*)"Elderly", elderly);
-      break;
-    case 3:
-      track_value(day, (char*)"0_4", pre_school);
-      track_value(day, (char*)"5_17", high_school);
-      track_value(day, (char*)"18_49", young_adults);
-      track_value(day, (char*)"50_64", adults);
-      track_value(day, (char*)"65_up", elderly);
-      break;
-    case 4:
-      for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-        char temp_str[10];
-        sprintf(temp_str, "A%d", i);
-        track_value(day,temp_str, age_count[i]);
-        sprintf(temp_str, "Age%d", i);
-        track_value(day, temp_str,
-          Global::Popsize_by_age[i] ?
-            (100000.0 * age_count[i] / static_cast<double>(Global::Popsize_by_age[i]))
-            : 0.0);
+  case 1:
+    track_value(day, (char*)"Infants", infants);
+    track_value(day, (char*)"Toddlers", toddlers);
+    track_value(day, (char*)"Preschool", pre_school);
+    track_value(day, (char*)"Students", elementary+high_school);
+    track_value(day, (char*)"Elementary", elementary);
+    track_value(day, (char*)"Highschool", high_school);
+    track_value(day, (char*)"Young_adults", young_adults);
+    track_value(day, (char*)"Adults", adults);
+    track_value(day, (char*)"Elderly", elderly);
+    break;
+  case 2:
+    track_value(day, (char*)"Infants", infants);
+    track_value(day, (char*)"Toddlers", toddlers);
+    track_value(day, (char*)"Pre-k", pre_school);
+    track_value(day, (char*)"Elementary", elementary);
+    track_value(day, (char*)"Highschool", high_school);
+    track_value(day, (char*)"Young_adults", young_adults);
+    track_value(day, (char*)"Adults", adults);
+    track_value(day, (char*)"Elderly", elderly);
+    break;
+  case 3:
+    track_value(day, (char*)"0_4", pre_school);
+    track_value(day, (char*)"5_17", high_school);
+    track_value(day, (char*)"18_49", young_adults);
+    track_value(day, (char*)"50_64", adults);
+    track_value(day, (char*)"65_up", elderly);
+    break;
+  case 4:
+    for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
+      char temp_str[10];
+      sprintf(temp_str, "A%d", i);
+      track_value(day,temp_str, age_count[i]);
+      sprintf(temp_str, "Age%d", i);
+      track_value(day, temp_str,
+		  Global::Popsize_by_age[i] ?
+		  (100000.0 * age_count[i] / static_cast<double>(Global::Popsize_by_age[i]))
+		  : 0.0);
+    }
+    break;
+  default:
+    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
+      report_transmission_by_age_group_to_file(day);
+    }
+    if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
+      for(int i = 0; i <= 20; ++i) {
+	char temp_str[10];
+	//Write to log file
+	sprintf(temp_str, "A%d", i * 5);
+	//Store for daily output file
+	track_value(day, temp_str, age_count[i]);
+	Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
       }
-      break;
-    default:
-      if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_LOW) {
-        report_transmission_by_age_group_to_file(day);
-      }
-      if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
-        for(int i = 0; i <= 20; ++i) {
-          char temp_str[10];
-          //Write to log file
-          sprintf(temp_str, "A%d", i * 5);
-          //Store for daily output file
-          track_value(day, temp_str, age_count[i]);
-          Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
-        }
-      }
-      break;
+    }
+    break;
   }
   Utils::fred_log("\n");
 }
@@ -787,7 +787,7 @@ void Epidemic::report_serial_interval(int day) {
     Person* infector = infectee->get_infector(id);
     if(infector != NULL) {
       int serial_interval = infectee->get_exposure_date(this->id)
-	       - infector->get_exposure_date(this->id);
+	- infector->get_exposure_date(this->id);
       this->total_serial_interval += static_cast<double>(serial_interval);
       this->total_secondary_cases++;
     }
@@ -1024,30 +1024,30 @@ void Epidemic::report_place_of_infection(int day) {
     Person * infectee = this->daily_infections_list[i];
     char c = infectee->get_infected_place_type(id);
     switch(c) {
-      case 'X':
-        X++;
-        break;
-      case 'H':
-        H++;
-        break;
-      case 'N':
-        N++;
-        break;
-      case 'S':
-        S++;
-        break;
-      case 'C':
-        C++;
-        break;
-      case 'W':
-        W++;
-        break;
-      case 'O':
-        O++;
-        break;
-      case 'M':
-        M++;
-        break;
+    case 'X':
+      X++;
+      break;
+    case 'H':
+      H++;
+      break;
+    case 'N':
+      N++;
+      break;
+    case 'S':
+      S++;
+      break;
+    case 'C':
+      C++;
+      break;
+    case 'W':
+      W++;
+      break;
+    case 'O':
+      O++;
+      break;
+    case 'M':
+      M++;
+      break;
     }
   }
 
@@ -1180,9 +1180,9 @@ void Epidemic::report_presenteeism(int day) {
 
   // raw counts
   int presenteeism = presenteeism_small + presenteeism_med + presenteeism_large
-      + presenteeism_xlarge;
+    + presenteeism_xlarge;
   int presenteeism_with_sl = presenteeism_small_with_sl + presenteeism_med_with_sl
-      + presenteeism_large_with_sl + presenteeism_xlarge_with_sl;
+    + presenteeism_large_with_sl + presenteeism_xlarge_with_sl;
 
   //Write to log file
   Utils::fred_log("\nDay %d PRESENTEE: ", day);
@@ -1280,13 +1280,13 @@ void Epidemic::report_school_attack_rates_by_income_level(int day) {
     }
   } // end loop over infectees
 
-   // raw counts
+  // raw counts
   int presenteeism = presenteeism_Q1 + presenteeism_Q2 + presenteeism_Q3
-       + presenteeism_Q4;
+    + presenteeism_Q4;
   int presenteeism_with_sl = presenteeism_Q1_with_sl + presenteeism_Q2_with_sl
-       + presenteeism_Q3_with_sl + presenteeism_Q4_with_sl;
+    + presenteeism_Q3_with_sl + presenteeism_Q4_with_sl;
 
-   //Store for daily output file
+  //Store for daily output file
   Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q1", presenteeism_Q1);
   Global::Daily_Tracker->set_index_key_pair(day, "school_pop_Q1", School::get_school_pop_income_quartile_1());
   Global::Daily_Tracker->set_index_key_pair(day, "school_pres_Q2", presenteeism_Q2);
@@ -1313,8 +1313,8 @@ void Epidemic::report_household_income_stratified_results(int day) {
     //AR
     if(Household::count_inhabitants_by_household_income_level_map[i] > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR",
-          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_inf)
-            / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
+							  (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_inf)
+							   / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR", static_cast<double>(0.0));
     }
@@ -1322,8 +1322,8 @@ void Epidemic::report_household_income_stratified_results(int day) {
     //AR_under_18
     if(Household::count_children_by_household_income_level_map[i] > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18",
-          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_inf)
-            / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
+							  (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_inf)
+							   / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR_under_18", static_cast<double>(0.0));
     }
@@ -1335,7 +1335,7 @@ void Epidemic::report_household_income_stratified_results(int day) {
       - this->household_income_infection_counts_map[i].tot_chldrn_evr_inf;
     if(temp_adult_count > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult",
-          (100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
+							  (100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "AR_adult", static_cast<double>(0.0));
     }
@@ -1343,8 +1343,8 @@ void Epidemic::report_household_income_stratified_results(int day) {
     //ARs
     if(Household::count_inhabitants_by_household_income_level_map[i] > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs",
-          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_sympt)
-            / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
+							  (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_ppl_evr_sympt)
+							   / static_cast<double>(Household::count_inhabitants_by_household_income_level_map[i])));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs", (double)0.0);
     }
@@ -1352,8 +1352,8 @@ void Epidemic::report_household_income_stratified_results(int day) {
     //ARs_under_18
     if(Household::count_children_by_household_income_level_map[i] > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18",
-          (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt)
-            / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
+							  (100.0 * static_cast<double>(this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt)
+							   / static_cast<double>(Household::count_children_by_household_income_level_map[i])));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_under_18", static_cast<double>(0.0));
     }
@@ -1363,7 +1363,7 @@ void Epidemic::report_household_income_stratified_results(int day) {
       - this->household_income_infection_counts_map[i].tot_chldrn_evr_sympt;
     if(temp_adult_count > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult",
-          (100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
+							  (100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "ARs_adult", static_cast<double>(0.0));
     }
@@ -1382,8 +1382,8 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     //AR
     if(Household::count_inhabitants_by_census_tract_map[*census_tract_itr] > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR",
-          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf)
-            / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
+						(100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf)
+						 / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR", static_cast<double>(0.0));
     }
@@ -1391,8 +1391,8 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     //AR_under_18
     if(Household::count_children_by_census_tract_map[*census_tract_itr] > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18",
-          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf)
-             / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
+						(100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf)
+						 / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_under_18", static_cast<double>(0.0));
     }
@@ -1404,7 +1404,7 @@ void Epidemic::report_census_tract_stratified_results(int day) {
       - this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf;
     if(temp_adult_count > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult",
-          (100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
+						(100.0 * static_cast<double>(temp_adult_inf_count) / static_cast<double>(temp_adult_count)));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "AR_adult", static_cast<double>(0.0));
     }
@@ -1412,8 +1412,8 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     //Symptomatic AR
     if(Household::count_inhabitants_by_census_tract_map[*census_tract_itr] > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs",
-          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt)
-            / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
+						(100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt)
+						 / static_cast<double>(Household::count_inhabitants_by_census_tract_map[*census_tract_itr])));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs", static_cast<double>(0.0));
     }
@@ -1422,8 +1422,8 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     //ARs_under_18
     if(Household::count_children_by_census_tract_map[*census_tract_itr] > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18",
-          (100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt)
-            / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
+						(100.0 * static_cast<double>(this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt)
+						 / static_cast<double>(Household::count_children_by_census_tract_map[*census_tract_itr])));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_under_18", static_cast<double>(0.0));
     }
@@ -1431,10 +1431,10 @@ void Epidemic::report_census_tract_stratified_results(int day) {
     
     //ARs_adult
     temp_adult_symp_count = this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt
-                            - this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt;
+      - this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt;
     if(temp_adult_count > 0) {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult",
-          (100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
+						(100.0 * static_cast<double>(temp_adult_symp_count) / static_cast<double>(temp_adult_count)));
     } else {
       Global::Tract_Tracker->set_index_key_pair(*census_tract_itr, "ARs_adult", static_cast<double>(0.0));
     }
@@ -1482,91 +1482,91 @@ void Epidemic::get_imported_infections(int day) {
       // list of susceptible people that qualify by distance and age
       std::vector<Person*> people;
       if(this->import_by_age) {
-	      FRED_VERBOSE(0, "IMPORT import by age %0.2f %0.2f\n",
+	FRED_VERBOSE(0, "IMPORT import by age %0.2f %0.2f\n",
 		     this->import_age_lower_bound, this->import_age_upper_bound);
       }
 
       int searches_within_given_location = 1;
       while(searches_within_given_location <= 10) {
-	      FRED_VERBOSE(0,"IMPORT search number %d ", searches_within_given_location);
-
-	      // clear the list of candidates
-	      people.clear();
-
-	      // find households that qualify by distance
-	      int hsize = Global::Places.get_number_of_households();
-	      for(int i = 0; i < hsize; ++i) {
-	        Household* house = Global::Places.get_household_ptr(i);
-	        double dist = 0.0;
-	        if(radius > 0) {
-	          dist = Geo_Utils::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
-	          if(radius < dist) {
-	            continue;
-	          }
-	        }
-	        // this household qualifies by distance.
-	        // find all susceptible housemates who qualify by age.
-	        int size = house->get_size();
-	        for(int j = 0; j < size; ++j) {
-	          Person* person = house->get_housemate(j);
-	          if(person->get_health()->is_susceptible(this->id)) {
-	            double age = person->get_real_age();
-	            if(this->import_age_lower_bound <= age && age <= this->import_age_upper_bound) {
-		            people.push_back(person);
-	            }
-	          }
-	        }
+	FRED_VERBOSE(0,"IMPORT search number %d ", searches_within_given_location);
+	
+	// clear the list of candidates
+	people.clear();
+	
+	// find households that qualify by distance
+	int hsize = Global::Places.get_number_of_households();
+	for(int i = 0; i < hsize; ++i) {
+	  Household* house = Global::Places.get_household_ptr(i);
+	  double dist = 0.0;
+	  if(radius > 0) {
+	    dist = Geo_Utils::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
+	    if(radius < dist) {
+	      continue;
+	    }
+	  }
+	  // this household qualifies by distance.
+	  // find all susceptible housemates who qualify by age.
+	  int size = house->get_size();
+	  for(int j = 0; j < size; ++j) {
+	    Person* person = house->get_housemate(j);
+	    if(person->get_health()->is_susceptible(this->id)) {
+	      double age = person->get_real_age();
+	      if(this->import_age_lower_bound <= age && age <= this->import_age_upper_bound) {
+		people.push_back(person);
 	      }
+	    }
+	  }
+	}
 
-	      int imported_cases_remaining = imported_cases_requested - imported_cases;
+	int imported_cases_remaining = imported_cases_requested - imported_cases;
         FRED_VERBOSE(0, "IMPORT: seeking %d candidates, found %d\n",
-		       imported_cases_remaining, (int) people.size());
+		     imported_cases_remaining, (int) people.size());
 
-	      if(imported_cases_remaining <= people.size()) {
-	        // we have at least the minimum number of candidates.
-	        for(int n = 0; n < imported_cases_remaining; ++n) {
-	          // pick a candidate without replacement
-	          int pos = Random::draw_random_int(0,people.size()-1);
-	          Person* person = people[pos];
-	          people[pos] = people[people.size() - 1];
-	          people.pop_back();
+	if(imported_cases_remaining <= people.size()) {
+	  // we have at least the minimum number of candidates.
+	  for(int n = 0; n < imported_cases_remaining; ++n) {
+	    // pick a candidate without replacement
+	    int pos = Random::draw_random_int(0,people.size()-1);
+	    Person* person = people[pos];
+	    people[pos] = people[people.size() - 1];
+	    people.pop_back();
 
-	          // infect the candidate
-	          Transmission transmission = Transmission(NULL, NULL, day);
-	          transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	          person->become_exposed(this->disease, transmission);
-	          if(this->seeding_type != SEED_EXPOSED) {
-	            advance_seed_infection(person);
-	          }
-	          imported_cases++;
-	        }
-	        FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
-	        return; // success!
-	      } else {
-	        // infect all the candidates
-	        for(int n = 0; n < people.size(); ++n) {
-	          Person* person = people[n];
-	          Transmission transmission = Transmission(NULL, NULL, day);
-	          transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	          person->become_exposed(this->disease, transmission);
-	          if(this->seeding_type != SEED_EXPOSED) {
-	            advance_seed_infection(person);
-	          }
-	          imported_cases++;
-	        }
-	      }
+	    // infect the candidate
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    person->become_exposed(this->disease, transmission);
+	    if(this->seeding_type != SEED_EXPOSED) {
+	      advance_seed_infection(person);
+	    }
+	    imported_cases++;
+	  }
+	  FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
+	  return; // success!
+	} else {
+	  // infect all the candidates
+	  for(int n = 0; n < people.size(); ++n) {
+	    Person* person = people[n];
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    person->become_exposed(this->disease, transmission);
+	    if(this->seeding_type != SEED_EXPOSED) {
+	      advance_seed_infection(person);
+	    }
+	    imported_cases++;
+	  }
+	}
 
-	      if(radius > 0) {
-	        // expand the distance and try again
-	        radius = 2 * radius;
-	        FRED_VERBOSE(0, "IMPORT: increasing radius to %f\n", radius);
-	        searches_within_given_location++;
-	      }	else {
-	        // return with a warning
-	        FRED_VERBOSE(0, "IMPORT FAILURE: only %d imported cases out of %d\n",
-		        imported_cases, imported_cases_requested);
-	        return;
-	      }
+	if(radius > 0) {
+	  // expand the distance and try again
+	  radius = 2 * radius;
+	  FRED_VERBOSE(0, "IMPORT: increasing radius to %f\n", radius);
+	  searches_within_given_location++;
+	}	else {
+	  // return with a warning
+	  FRED_VERBOSE(0, "IMPORT FAILURE: only %d imported cases out of %d\n",
+		       imported_cases, imported_cases_requested);
+	  return;
+	}
       } //End while(searches_within_given_location <= 10)
       // after 10 tries, return with a warning
       FRED_VERBOSE(0, "IMPORT FAILURE: only %d imported cases out of %d\n",
@@ -1589,7 +1589,7 @@ void Epidemic::advance_seed_infection(Person* person) {
   }
   assert(advance <= duration);
   FRED_VERBOSE(0, "%s %s %s %d %s %d %s\n", "advanced_seeding:", seeding_type_name,
-      "=> advance infection trajectory of duration", duration, "by", advance, "days");
+	       "=> advance infection trajectory of duration", duration, "by", advance, "days");
   person->advance_seed_infection(d, advance);
 }
 

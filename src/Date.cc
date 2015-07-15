@@ -121,7 +121,7 @@ void Date::setup_dates(char * date_string) {
   date[0].day_of_year = 1;
 
   // assign the right epi week number:
-  int jan_1_day_of_week = date[0].day_of_week;
+  int jan_1_day_of_week = Date::get_day_of_week(epoch_year,1,1);
   int dec_31_day_of_week = (jan_1_day_of_week + (Date::is_leap_year(epoch_year)? 365 : 364)) % 7;
   bool short_week;
   if (jan_1_day_of_week < 3) {
