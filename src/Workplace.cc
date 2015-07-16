@@ -42,10 +42,10 @@ int Workplace::workers_in_large_workplaces = 0;
 int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
-Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop) {
+Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container) {
   this->type = WORKPLACE;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container, pop);
+  setup(lab, lon, lat, container);
   get_parameters(Global::Diseases);
   this->offices.clear();
   this->next_office = 0;
@@ -151,8 +151,7 @@ void Workplace::setup_offices(Allocator<Office> &office_allocator) {
 							   fred::PLACE_SUBTYPE_NONE,
 							   this->get_longitude(),
 							   this->get_latitude(),
-							   this,
-							   this->get_population() );
+							   this);
 
     this->offices.push_back(p);
     int id = p->get_id();

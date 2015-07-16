@@ -90,8 +90,7 @@ static bool compare_age (Person* p1, Person* p2) {
 
 double** Place::prob_contact = NULL;
 
-void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop) {
-  this->population = pop;
+void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont) {
   this->id = -1;		  // actual id assigned in Place_List::add_place
   this->container = cont;
   strcpy(this->label, lab);
@@ -295,7 +294,7 @@ int Place::get_adults() {
 
 void Place::register_as_an_infectious_place(int disease_id) {
   if(!(this->infectious_bitset.test(disease_id))) {
-    Disease * dis = this->population->get_disease(disease_id);
+    Disease * dis = Global::Pop.get_disease(disease_id);
     dis->add_infectious_place(this);
     this->infectious_bitset.set(disease_id);
     // printf("REGISTER place %s for disease %d\n", label, disease_id);
@@ -489,7 +488,7 @@ int Place::get_recovereds(int disease_id) {
 
 double Place::get_contact_rate(int day, int disease_id) {
 
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
   // expected number of susceptible contacts for each infectious person
   // OLD: double contacts = get_contacts_per_day(disease_id) * ((double) susceptibles[disease_id].size()) / ((double) (N-1));
   double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
@@ -597,7 +596,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 
 void Place::spread_infection(int day, int disease_id) {
 
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
   double beta = disease->get_transmissibility();
   if(beta == 0.0) {
     reset_place_state(disease_id);
@@ -659,7 +658,7 @@ void Place::spread_infection(int day, int disease_id) {
 
 void Place::default_transmission_model(int day, int disease_id) {
 
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
 
   // get reference to susceptibles and infectious lists for this disease_id
   place_state_merge = Place_State_Merge();
@@ -726,7 +725,7 @@ void Place::default_transmission_model(int day, int disease_id) {
 }
 
 void Place::age_based_transmission_model(int day, int disease_id) {
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
   this->place_state_merge = Place_State_Merge();
@@ -894,7 +893,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 }
 
 void Place::pairwise_transmission_model(int day, int disease_id) {
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
   double contact_prob = get_contact_rate(day, disease_id);
 
   // randomize the order of the infectious list
@@ -926,7 +925,7 @@ void Place::pairwise_transmission_model(int day, int disease_id) {
 }
 
 void Place::density_transmission_model(int day, int disease_id) {
-  Disease* disease = this->population->get_disease(disease_id);
+  Disease* disease = Global::Pop.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
   this->place_state_merge = Place_State_Merge();

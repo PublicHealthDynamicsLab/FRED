@@ -44,15 +44,15 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Hospital(int,const char*, double, double, Place*, Population*)</code>
+   * <code>Hospital(int,const char*, double, double, Place*)</code>
    */
   void get_parameters(int diseases);
 

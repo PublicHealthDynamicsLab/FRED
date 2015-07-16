@@ -42,7 +42,7 @@ public:
    *
    * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
    */
-  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop);
+  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container);
 
   /**
    * @see Place::get_parameters(int diseases)

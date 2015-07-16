@@ -55,10 +55,10 @@ bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
 
-School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
+School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container, pop);
+  setup(lab, lon, lat, container);
   get_parameters(Global::Diseases);
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
@@ -396,7 +396,7 @@ void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
 
       Place* p = new (classroom_allocator.get_free()) Classroom(new_label, fred::PLACE_SUBTYPE_NONE, this->get_longitude(),
-          this->get_latitude(), this, this->get_population());
+          this->get_latitude(), this);
 
       this->classrooms[a].push_back(p);
     }

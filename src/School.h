@@ -49,7 +49,7 @@ class School : public Place {
   ~School() {
   }
 
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
   void prepare();
   void get_parameters(int diseases);
   int get_group(int disease_id, Person* per);

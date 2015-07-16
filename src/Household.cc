@@ -78,7 +78,7 @@ Household::Household() {
   set_household_income(-1);
 }
 
-Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
+Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
   get_parameters(Global::Diseases);
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
@@ -97,7 +97,7 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
-  setup(lab, lon, lat, container, pop);
+  setup(lab, lon, lat, container);
   this->N = 0;
   this->group_quarters_units = 0;
   this->group_quarters_workplace = NULL;

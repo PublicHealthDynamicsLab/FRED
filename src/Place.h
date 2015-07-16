@@ -138,16 +138,15 @@ public:
   virtual ~Place() {}
 
   /**
-   *  Sets the id, label, logitude, latitude , container and population of this Place
+   *  Sets the id, label, logitude, latitude , container of this Place
    *  Allocates disease-related memory for this place
    *
    *  @param lab this Place's label
    *  @param lon this Place's longitude
    *  @param lat this Place's latitude
    *  @param cont this Place's container
-   *  @param pop this Place's population
    */
-  void setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop);
+  void setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont);
 
   static void initialize_static_variables();
 
@@ -517,15 +516,6 @@ public:
   }
 
   /**
-   * Get the population.
-   *
-   * @return the population
-   */
-  Population* get_population() {
-    return this->population;
-  }
-
-  /**
    * Set the type.
    *
    * @param t the new type
@@ -568,15 +558,6 @@ public:
    */
   void set_open_date(int day) {
     this->open_date = day;
-  }
-
-  /**
-   * Set the population.
-   *
-   * @param p the new population
-   */
-  void set_population(Population* p) {
-    this->population = p;
   }
 
   /**
@@ -934,7 +915,6 @@ protected:
   int county_index;
   int census_tract_index;
   
-  Population* population;
   Neighborhood_Patch* patch;       // geo patch for this place
   
   // infection stats

@@ -28,11 +28,11 @@ double *** Office::Office_contact_prob;
 //Private static variable to assure we only lookup parameters once
 bool Office::Office_parameters_set = false;
 
-Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop ) {
+Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container) {
   this->type = Place::OFFICE;
   this->subtype = _subtype;
   assert(container != NULL);
-  setup( lab, lon, lat, container, pop );
+  setup( lab, lon, lat, container);
   get_parameters(Global::Diseases);
 }
 

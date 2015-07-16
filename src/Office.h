@@ -37,15 +37,15 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
+   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population* pop );
+  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container, Population* pop)</code>
+   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
    */
   void get_parameters(int diseases);
 

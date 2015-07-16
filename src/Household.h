@@ -144,9 +144,9 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place* container);
 
   ~Household() {}
 
@@ -154,7 +154,7 @@ public:
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place* container, Population* pop)</code>
+   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place* container)</code>
    */
   void get_parameters(int diseases);
 
