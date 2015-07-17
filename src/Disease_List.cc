@@ -19,12 +19,20 @@
 #include "Disease.h"
 
 
-void Disease_List::get_parameters(int num_diseases) {
+void Disease_List::get_parameters(int num_of_diseases) {
   this->diseases.clear();
-  for(int disease_id = 0; disease_id < num_diseases; ++disease_id) {
+  for(int disease_id = 0; disease_id < num_of_diseases; ++disease_id) {
     Disease * disease = new Disease;
     disease->get_parameters(disease_id);
     this->diseases.push_back(disease);
   }
+  this->number_of_diseases = diseases.size();
 }
+
+void Disease_List::setup() {
+  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+    this->diseases[disease_id]->setup(&Global::Pop);
+  }
+}
+
 

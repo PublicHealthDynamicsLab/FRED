@@ -190,6 +190,9 @@ void fred_setup(int argc, char* argv[]) {
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
 
+  // finished setting up Diseases
+  Global::Dis.setup();
+
   // read in the population and have each person enroll
   // in each favorite place identified in the population file
   Utils::fred_print_wall_time("\nFRED Pop.setup started");

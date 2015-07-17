@@ -187,10 +187,6 @@ void Population::prepare_to_die(int day, Person* person) {
 void Population::setup() {
   FRED_STATUS(0, "setup population entered\n", "");
 
-  for(int d = 0; d < Global::Diseases; ++d) {
-    Global::Dis.get_disease(d)->setup(this);
-  }
-
   if(Global::Enable_Vaccination) {
     this->vacc_manager = new Vaccine_Manager(this);
   } else {

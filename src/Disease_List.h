@@ -28,16 +28,18 @@ class Disease_List {
 public:
   Disease_List() {};
   ~Disease_List() {};
-  void get_parameters(int _diseases);
+  void get_parameters(int num_of_diseases);
+  void setup();
   Disease* get_disease(int disease_id) {
     return diseases[disease_id];
   }
   int get_number_of_diseases() { 
-    return this->diseases.size();
+    return this->number_of_diseases;
   }
 
  private:
   std::vector <Disease*> diseases;
+  int number_of_diseases;
 };
 
 #endif // _FRED_DISEASE_LIST_H
