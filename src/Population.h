@@ -17,15 +17,19 @@
 #ifndef _FRED_POPULATION_H
 #define _FRED_POPULATION_H
 
-#include <stdio.h>
-#include <new>
-#include <string>
-#include <sstream>
 #include <fstream>
-#include <limits>
 #include <iostream>
-#include <vector>
+#include <limits>
 #include <map>
+#include <new>
+#include <sstream>
+#include <stdio.h>
+#include <string>
+#include <vector>
+#include "Bloque.h"
+#include "Demographics.h"
+#include "Global.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -36,10 +40,7 @@ class AV_Manager;
 class Vaccine_Manager;
 class Place;
 
-#include "Global.h"
-#include "Demographics.h"
-#include "Bloque.h"
-#include "Utils.h"
+
 
 class Person_Init_Data;
 
@@ -171,6 +172,11 @@ public:
   void assign_offices();
 
   /**
+   * Assign agents a primary healthcare facility (a Hospital that does not accept overnight visits)
+   */
+  void assign_primary_healthcare();
+
+  /**
    * Write degree information to a file degree.txt
    * @param directory the directory where the file will be written
    */
@@ -229,6 +235,9 @@ public:
   void report_mean_hh_stats_per_census_tract();
   void report_mean_hh_stats_per_income_category_per_census_tract();
 
+//  //TODO REMOVE
+//  void print_HAZEL_data();
+  
   int size() {
     assert(this->blq.size() == this->pop_size);
     return this->blq.size();

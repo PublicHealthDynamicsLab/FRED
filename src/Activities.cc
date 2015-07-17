@@ -15,27 +15,30 @@
 //
 #include "Activities.h"
 #include "Behavior.h"
+#include "Classroom.h"
+#include "Date.h"
+#include "Disease.h"
+#include "Geo.h"
 #include "Global.h"
+#include "Household.h"
+#include "Manager.h"
+#include "Neighborhood.h"
+#include "Neighborhood_Layer.h"
+#include "Neighborhood_Patch.h"
+#include "Params.h"
 #include "Person.h"
 #include "Place.h"
-#include "Random.h"
-#include "Disease.h"
-#include "Params.h"
-#include "Vaccine_Manager.h"
-#include "Manager.h"
-#include "Date.h"
-#include "Neighborhood_Patch.h"
-#include "Neighborhood_Layer.h"
-#include "Geo.h"
-#include "Household.h"
-#include "Neighborhood.h"
-#include "School.h"
-#include "Classroom.h"
-#include "Workplace.h"
 #include "Place_List.h"
-#include "Utils.h"
+#include "Random.h"
+#include "School.h"
 #include "Travel.h"
+#include "Utils.h"
+#include "Vaccine_Manager.h"
+#include "Workplace.h"
 
+class Activities_Tracking_Data;
+
+bool Activities::is_initialized = false;
 bool Activities::is_weekday = false;
 int Activities::day_of_week = 0;
 
@@ -52,51 +55,25 @@ double Activities::Hospitalization_visit_housemate_prob = 0.0;
 Age_Map* Activities::Hospitalization_prob = NULL;
 Age_Map* Activities::Outpatient_healthcare_prob = NULL;
 
-// Presenteeism parameters
-int Activities::Employees_small_with_sick_leave = 0;
-int Activities::Employees_small_without_sick_leave = 0;
-int Activities::Employees_med_with_sick_leave = 0;
-int Activities::Employees_med_without_sick_leave = 0;
-int Activities::Employees_large_with_sick_leave = 0;
-int Activities::Employees_large_without_sick_leave = 0;
-int Activities::Employees_xlarge_with_sick_leave = 0;
-int Activities::Employees_xlarge_without_sick_leave = 0;
+Activities_Tracking_Data Activities::Tracking_data;
 
 // Childhood Presenteeism parameters
 double Activities::Sim_based_prob_stay_home_not_needed = 0.0;
 double Activities::Census_based_prob_stay_home_not_needed = 0.0;
 
 // sick leave statistics
-int Activities::Sick_days_present = 0;
-int Activities::Sick_days_absent = 0;
-int Activities::School_sick_days_present = 0;
-int Activities::School_sick_days_absent = 0;
 double Activities::Standard_sicktime_allocated_per_child = 0.0;
 
 int Activities::Sick_leave_dist_method = 0;
 std::vector<double> Activities::WP_size_sl_prob_vec; //wp_size_sl_prob
 std::vector<double> Activities::HH_income_qtile_sl_prob_vec; //hh_income_qtile_sl_prob
 
-// Healthcare deficit statistics
-int Activities::Seeking_healthcare = 0;
-int Activities::Primary_healthcare_unavailable = 0;
-int Activities::Healthcare_accepting_insurance_unavailable = 0;
-int Activities::Healthcare_unavailable = 0;
-int Activities::ER_visit = 0;
-int Activities::Diabetes_hc_unav = 0;
-int Activities::Asthma_hc_unav = 0;
-int Activities::HTN_hc_unav = 0;
-int Activities::Medicaid_unav = 0;
-int Activities::Medicare_unav = 0;
-int Activities::Private_unav = 0;
-int Activities::Uninsured_unav = 0;
-
-int Activities::entered_school = 0;
-int Activities::left_school = 0;
-
 /// static method called in main (Fred.cc)
-
 void Activities::initialize_static_variables() {
+
+  if(Activities::is_initialized) {
+    return;
+  }
 
   FRED_STATUS(0, "Activities::initialize() entered\n", "");
 
@@ -160,6 +137,7 @@ void Activities::initialize_static_variables() {
     }
     Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
   }
+  Activities::is_initialized = true;
 }
 
 Activities::Activities() {
@@ -245,10 +223,6 @@ void Activities::prepare() {
   initialize_sick_leave();
 }
 
-#define SMALL_COMPANY_MAXSIZE 49
-#define MID_COMPANY_MAXSIZE 99
-#define MEDIUM_COMPANY_MAXSIZE 499
-
 void Activities::initialize_sick_leave() {
   FRED_VERBOSE(1, "Activities::initialize_sick_leave entered\n");
   int workplace_size = 0;
@@ -271,33 +245,33 @@ void Activities::initialize_sick_leave() {
 
       // is sick leave available?
       if(workplace_size > 0) {
-        if(workplace_size <= SMALL_COMPANY_MAXSIZE) {
+        if(workplace_size <= Workplace::get_small_workplace_size()) {
           this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[0]);
           if(this->sick_leave_available) {
-            Activities::Employees_small_with_sick_leave++;
+            Activities::Tracking_data.employees_small_with_sick_leave++;
           } else {
-            Activities::Employees_small_without_sick_leave++;
+            Activities::Tracking_data.employees_small_without_sick_leave++;
           }
-        } else if(workplace_size <= MID_COMPANY_MAXSIZE) {
+        } else if(workplace_size <= Workplace::get_medium_workplace_size()) {
           this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[1]);
           if(this->sick_leave_available) {
-            Activities::Employees_med_with_sick_leave++;
+            Activities::Tracking_data.employees_med_with_sick_leave++;
           } else {
-            Activities::Employees_med_without_sick_leave++;
+            Activities::Tracking_data.employees_med_without_sick_leave++;
           }
-        } else if(workplace_size <= MEDIUM_COMPANY_MAXSIZE) {
+        } else if(workplace_size <= Workplace::get_large_workplace_size()) {
           this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[2]);
           if(this->sick_leave_available) {
-            Activities::Employees_large_with_sick_leave++;
+            Activities::Tracking_data.employees_large_with_sick_leave++;
           } else {
-            Activities::Employees_large_without_sick_leave++;
+            Activities::Tracking_data.employees_large_without_sick_leave++;
           }
         } else {
           this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[3]);
           if(this->sick_leave_available) {
-            Activities::Employees_xlarge_with_sick_leave++;
+            Activities::Tracking_data.employees_xlarge_with_sick_leave++;
           } else {
-            Activities::Employees_xlarge_without_sick_leave++;
+            Activities::Tracking_data.employees_xlarge_without_sick_leave++;
           }
         }
       } else {
@@ -342,22 +316,24 @@ void Activities::initialize_sick_leave() {
 }
 
 void Activities::before_run() {
-  FRED_STATUS(0, "employees at small workplaces with sick leave: %d\n",
-      Activities::Employees_small_with_sick_leave);
-  FRED_STATUS(0, "employees at small workplaces without sick leave: %d\n",
-      Activities::Employees_small_without_sick_leave);
-  FRED_STATUS(0, "employees at med workplaces with sick leave: %d\n",
-      Activities::Employees_med_with_sick_leave);
-  FRED_STATUS(0, "employees at med workplaces without sick leave: %d\n",
-      Activities::Employees_med_without_sick_leave);
-  FRED_STATUS(0, "employees at large workplaces with sick leave: %d\n",
-      Activities::Employees_large_with_sick_leave);
-  FRED_STATUS(0, "employees at large workplaces without sick leave: %d\n",
-      Activities::Employees_large_without_sick_leave);
-  FRED_STATUS(0, "employees at xlarge workplaces with sick leave: %d\n",
-      Activities::Employees_xlarge_with_sick_leave);
-  FRED_STATUS(0, "employees at xlarge workplaces without sick leave: %d\n",
-      Activities::Employees_xlarge_without_sick_leave);
+  if(Global::Report_Presenteeism) {
+    FRED_STATUS(0, "employees at small workplaces with sick leave: %d\n",
+        Activities::Tracking_data.employees_small_with_sick_leave);
+    FRED_STATUS(0, "employees at small workplaces without sick leave: %d\n",
+        Activities::Tracking_data.employees_small_without_sick_leave);
+    FRED_STATUS(0, "employees at med workplaces with sick leave: %d\n",
+        Activities::Tracking_data.employees_med_with_sick_leave);
+    FRED_STATUS(0, "employees at med workplaces without sick leave: %d\n",
+        Activities::Tracking_data.employees_med_without_sick_leave);
+    FRED_STATUS(0, "employees at large workplaces with sick leave: %d\n",
+        Activities::Tracking_data.employees_large_with_sick_leave);
+    FRED_STATUS(0, "employees at large workplaces without sick leave: %d\n",
+        Activities::Tracking_data.employees_large_without_sick_leave);
+    FRED_STATUS(0, "employees at xlarge workplaces with sick leave: %d\n",
+        Activities::Tracking_data.employees_xlarge_with_sick_leave);
+    FRED_STATUS(0, "employees at xlarge workplaces without sick leave: %d\n",
+        Activities::Tracking_data.employees_xlarge_without_sick_leave);
+  }
 
   if(Global::Report_Childhood_Presenteeism) {
     Global::Places.setup_household_income_quartile_sick_days();
@@ -402,7 +378,7 @@ void Activities::assign_initial_profile(Person* self) {
   }
 }
 
-void Activities::update(int day) {
+void Activities::update(int sim_day) {
 
   FRED_STATUS(1, "Activities update entered\n");
 
@@ -411,52 +387,54 @@ void Activities::update(int day) {
   // Activities::is_weekday = (0 < Activities::day_of_week && Activities::day_of_week < 6);
   Activities::is_weekday = Date::is_weekday();
 
-  // print out absenteeism/presenteeism counts
-  FRED_CONDITIONAL_VERBOSE(1, day > 0,
-      "DAY %d ABSENTEEISM: work absent %d present %d %0.2f  school absent %d present %d %0.2f\n",
-      day-1, Activities::Sick_days_absent, Activities::Sick_days_present,
-      (double) (Activities::Sick_days_absent) / (double)(1 + Activities::Sick_days_absent + Activities::Sick_days_present),
-      Activities::School_sick_days_absent, Activities::School_sick_days_present,
-      (double) (Activities::School_sick_days_absent) / (double)(1 + Activities::School_sick_days_absent+Activities::School_sick_days_present));
-
-  // keep track of global activity counts
-  Activities::Sick_days_present = 0;
-  Activities::Sick_days_absent = 0;
-  Activities::School_sick_days_present = 0;
-  Activities::School_sick_days_absent = 0;
-
   if(Global::Enable_HAZEL) {
-    Activities::Seeking_healthcare = 0;
-    Activities::Primary_healthcare_unavailable = 0;
-    Activities::Healthcare_accepting_insurance_unavailable = 0;
-    Activities::Healthcare_unavailable = 0;
-    Activities::ER_visit = 0;
-    Activities::Diabetes_hc_unav = 0;
-    Activities::Asthma_hc_unav = 0;
-    Activities::HTN_hc_unav = 0;
-    Activities::Medicaid_unav = 0;
-    Activities::Medicare_unav = 0;
-    Activities::Private_unav = 0;
-    Activities::Uninsured_unav = 0;
+    Global::Daily_Tracker->set_index_key_pair(sim_day, SEEK_HC, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, PRIMARY_HC_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, HC_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, MEDICARE_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, ASTHMA_HC_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, DIABETES_HC_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, HTN_HC_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, MEDICAID_UNAV, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, MEDICARE_UNAV, 0);
+    Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIVATE_UNAV, 1);
+    Global::Daily_Tracker->increment_index_key_pair(sim_day, UNINSURED_UNAV, 1);
   }
 
+  // print out absenteeism/presenteeism counts
+  FRED_CONDITIONAL_VERBOSE(1, sim_day > 0,
+      "DAY %d ABSENTEEISM: work absent %d present %d %0.2f  school absent %d present %d %0.2f\n",
+      sim_day - 1, Activities::Tracking_data.sick_days_absent, Activities::Tracking_data.sick_days_present,
+      static_cast<double>(Activities::Tracking_data.sick_days_absent) / static_cast<double>(1 + Activities::Tracking_data.sick_days_absent +
+          Activities::Tracking_data.sick_days_present),
+          Activities::Tracking_data.school_sick_days_absent, Activities::Tracking_data.school_sick_days_present,
+      static_cast<double>(Activities::Tracking_data.school_sick_days_absent) /
+      static_cast<double>(1 + Activities::Tracking_data.school_sick_days_absent + Activities::Tracking_data.school_sick_days_present));
+
+  // keep track of global activity counts
+  Activities::Tracking_data.sick_days_present = 0;
+  Activities::Tracking_data.sick_days_absent = 0;
+  Activities::Tracking_data.school_sick_days_present = 0;
+  Activities::Tracking_data.school_sick_days_absent = 0;
+
   // print school change activities
-  if(Activities::entered_school + Activities::left_school > 0) {
+  if(Activities::Tracking_data.entered_school + Activities::Tracking_data.left_school > 0) {
     printf("DAY %d ENTERED_SCHOOL %d LEFT_SCHOOL %d\n",
-	   day, Activities::entered_school, Activities::left_school);
-    Activities::entered_school = 0;
-    Activities::left_school = 0;
+        sim_day, Activities::Tracking_data.entered_school, Activities::Tracking_data.left_school);
+    Activities::Tracking_data.entered_school = 0;
+    Activities::Tracking_data.left_school = 0;
   }
 
   FRED_STATUS(1, "Activities update completed\n");
 }
 
-void Activities::update_activities_of_infectious_person(Person* self, int day) {
+void Activities::update_activities_of_infectious_person(Person* self, int sim_day) {
 
   if(Global::Enable_Isolation) {
     if(this->is_isolated) {
       // once isolated, remain isolated
-      update_schedule(self, day);
+      update_schedule(self, sim_day);
       return;
     } else {
       // enter isolation if symptomatic, with a given probability
@@ -466,7 +444,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
 	        //decide whether to enter isolation
 	        if(Random::draw_random() < Global::Isolation_Rate) {
 	          this->is_isolated = true;
-	          update_schedule(self, day);
+	          update_schedule(self, sim_day);
 	          return;
 	        }
 	      }
@@ -479,16 +457,16 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
     return;
   }
 
-  if(day > this->schedule_updated) {
+  if(sim_day > this->schedule_updated) {
     // get list of places to visit today
-    update_schedule(self, day);
+    update_schedule(self, sim_day);
 
     // if symptomatic, decide whether or not to stay home
     if(self->is_symptomatic() && !self->is_hospitalized()) {
-      decide_whether_to_stay_home(self, day);
+      decide_whether_to_stay_home(self, sim_day);
       //For Symptomatics - background will be in update_schedule()
       if(Global::Enable_Hospitals) {
-	      decide_whether_to_seek_healthcare(self, day);
+	      decide_whether_to_seek_healthcare(self, sim_day);
       }
     }
   }
@@ -500,15 +478,15 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
   }
 }
 
-void Activities::add_visitor_to_infectious_places(Person* self, int day) {
+void Activities::add_visitor_to_infectious_places(Person* self, int sim_day) {
   // skip scheduled activities if traveling abroad
   if(this->is_traveling_outside) {
     return;
   }
 
-  if(day > this->schedule_updated) {
+  if(sim_day > this->schedule_updated) {
     // get list of places to visit today
-    update_schedule(self, day);
+    update_schedule(self, sim_day);
   }
 
   if(this->on_schedule.any()) {
@@ -526,16 +504,16 @@ void Activities::add_visitor_to_infectious_places(Person* self, int day) {
   }
 }
 
-void Activities::update_activities_while_traveling(Person* self, int day) {
+void Activities::update_activities_while_traveling(Person* self, int sim_day) {
 
   // skip scheduled activities if traveling abroad
   if(this->is_traveling_outside) {
     return;
   }
 
-  if(day > this->schedule_updated) {
+  if(sim_day > this->schedule_updated) {
     // get list of places to visit today
-    update_schedule(self, day);
+    update_schedule(self, sim_day);
   }
 
   if(this->on_schedule.any()) {
@@ -553,13 +531,13 @@ void Activities::update_activities_while_traveling(Person* self, int day) {
   }
 }
 
-void Activities::update_schedule(Person* self, int day) {
+void Activities::update_schedule(Person* self, int sim_day) {
   // update this schedule only once per day
-  if(day <= this->schedule_updated) {
+  if(sim_day <= this->schedule_updated) {
     return;
   }
 
-  this->schedule_updated = day;
+  this->schedule_updated = sim_day;
   this->on_schedule.reset();
 
   // if isolated, visit nowhere today
@@ -567,11 +545,11 @@ void Activities::update_schedule(Person* self, int day) {
     return;
   }
 
-  if(Global::Enable_Hospitals && this->is_hospitalized && !(this->sim_day_hospitalization_ends == day)) {
+  if(Global::Enable_Hospitals && this->is_hospitalized && !(this->sim_day_hospitalization_ends == sim_day)) {
     // only visit the hospital
     this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
     if(Global::Enable_HAZEL) {
-      Activities::Seeking_healthcare++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SEEK_HC, 1);
       Household* hh = static_cast<Household*>(self->get_permanent_household());
       assert(hh != NULL);
       hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
@@ -579,7 +557,7 @@ void Activities::update_schedule(Person* self, int day) {
     }
   } else {
     //If the hospital stay should end today, go back to normal
-    if(Global::Enable_Hospitals && this->is_hospitalized && (this->sim_day_hospitalization_ends == day)) {
+    if(Global::Enable_Hospitals && this->is_hospitalized && (this->sim_day_hospitalization_ends == sim_day)) {
       end_hospitalization(self);
     }
     
@@ -589,9 +567,9 @@ void Activities::update_schedule(Person* self, int day) {
     // decide if my household is sheltering
     if(Global::Enable_Household_Shelter || Global::Enable_HAZEL) {
       Household* h = static_cast<Household*>(self->get_household());
-      if(h->is_sheltering_today(day)) {
-	      FRED_STATUS(1, "update_schedule on day %d\n%s\n", day,
-		      schedule_to_string(self, day).c_str());
+      if(h->is_sheltering_today(sim_day)) {
+	      FRED_STATUS(1, "update_schedule on day %d\n%s\n", sim_day,
+		      schedule_to_string(self, sim_day).c_str());
 	      return;
       }
     }
@@ -641,7 +619,7 @@ void Activities::update_schedule(Person* self, int day) {
 
     //Decide whether to visit healthcare if ASYMPTOMATIC (Background)
     if(Global::Enable_Hospitals && !self->is_symptomatic() && !self->is_hospitalized()) {
-      decide_whether_to_seek_healthcare(self, day);
+      decide_whether_to_seek_healthcare(self, sim_day);
     }
 
     //Decide whether to visit hospitalized housemates
@@ -683,7 +661,6 @@ void Activities::update_schedule(Person* self, int day) {
     if(this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY]) {
       Place* destination_neighborhood = Global::Neighborhoods->select_destination_neighborhood(this->home_neighborhood);
       set_neighborhood(destination_neighborhood);
-      // printf("\nHOME NEIGHBORHOOD %d\n", (int) (destination_neighborhood == home_neighborhood));
     }
 
     if(Global::Report_Childhood_Presenteeism) {
@@ -717,10 +694,10 @@ void Activities::update_schedule(Person* self, int day) {
     }
 
   }
-  FRED_STATUS(1, "update_schedule on day %d\n%s\n", day, schedule_to_string(self, day).c_str());
+  FRED_STATUS(1, "update_schedule on day %d\n%s\n", sim_day, schedule_to_string(self, sim_day).c_str());
 }
 
-void Activities::decide_whether_to_stay_home(Person* self, int day) {
+void Activities::decide_whether_to_stay_home(Person* self, int sim_day) {
 
   assert(self->is_symptomatic());
   bool stay_home = false;
@@ -809,10 +786,10 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
   // record work absent/present decision if it is a workday
   if(it_is_a_workday) {
     if(stay_home) {
-      Activities::Sick_days_absent++;
+      Activities::Tracking_data.sick_days_absent++;
       this->my_sick_days_absent++;
     } else {
-      Activities::Sick_days_present++;
+      Activities::Tracking_data.sick_days_present++;
       this->my_sick_days_present++;
     }
   }
@@ -820,10 +797,10 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
   // record school absent/present decision if it is a school day
   if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
     if(stay_home) {
-      Activities::School_sick_days_absent++;
+      Activities::Tracking_data.school_sick_days_absent++;
       this->my_sick_days_absent++;
     } else {
-      Activities::School_sick_days_present++;
+      Activities::Tracking_data.school_sick_days_present++;
       this->my_sick_days_present++;
     }
   }
@@ -840,7 +817,7 @@ void Activities::decide_whether_to_stay_home(Person* self, int day) {
   }
 }
 
-void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
+void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
 
   if(Global::Enable_Hospitals) {
     bool is_a_workday = (this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]
@@ -858,7 +835,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
           if(self->get_health()->is_infected(disease_id)) {
             Disease* disease = Global::Pop.get_disease(disease_id);
-            if(self->get_health()->get_symptoms(disease_id, day) > disease->get_min_symptoms_for_seek_healthcare()) {
+            if(self->get_health()->get_symptoms(disease_id, sim_day) > disease->get_min_symptoms_for_seek_healthcare()) {
               hospitalization_prob += disease->get_hospitalization_prob(self);
               seek_healthcare_prob += disease->get_outpatient_healthcare_prob(self);
             }
@@ -913,13 +890,12 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         }
       }
 
-
       if(Global::Enable_HAZEL) {
         double mult = 1.0;
         //If we are within a week after the disaster
         //Ramp up visits immediately after a disaster
-        if(day > Place_List::get_HAZEL_disaster_end_sim_day() && day <= (Place_List::get_HAZEL_disaster_end_sim_day() + 7)) {
-          int days_since_storm_end = day - Place_List::get_HAZEL_disaster_end_sim_day();
+        if(sim_day > Place_List::get_HAZEL_disaster_end_sim_day() && sim_day <= (Place_List::get_HAZEL_disaster_end_sim_day() + 7)) {
+          int days_since_storm_end = sim_day - Place_List::get_HAZEL_disaster_end_sim_day();
           mult = 1.0 + ((1.0 / static_cast<double>(days_since_storm_end)) * 0.25);
           hospitalization_prob *= mult;
           seek_healthcare_prob *= mult;
@@ -973,7 +949,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
       if(rand < hospitalization_prob) {
         double draw = Random::draw_normal(3.0, 0.5);
         int length = (draw > 0.0 ? static_cast<int>(draw) + 1 : 1);
-        start_hospitalization(self, day, length);
+        start_hospitalization(self, sim_day, length);
       } else if(rand < seek_healthcare_prob) {
 
         Household* hh = static_cast<Household*>(self->get_household());
@@ -986,46 +962,46 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
         assert(hosp != NULL);
         if(Global::Enable_HAZEL) {
-          Activities::Seeking_healthcare++;
+          Global::Daily_Tracker->increment_index_key_pair(sim_day, SEEK_HC, 1);
           hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
           if(!hh->is_seeking_healthcare()) {
             hh->set_seeking_healthcare(true);
           }
 
-          if(!hosp->should_be_open(day) || (hosp->get_current_daily_patient_count() >= hosp->get_daily_patient_capacity(day))) {
+          if(!hosp->should_be_open(sim_day) || (hosp->get_current_daily_patient_count() >= hosp->get_daily_patient_capacity(sim_day))) {
             hh->set_is_primary_healthcare_available(false);
             if(self->is_asthmatic()) {
-              Activities::Asthma_hc_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, ASTHMA_HC_UNAV, 1);
             }
             if(self->is_diabetic()) {
-              Activities::Diabetes_hc_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, DIABETES_HC_UNAV, 1);
             }
             if(self->has_hypertension()) {
-              Activities::HTN_hc_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, HTN_HC_UNAV, 1);
             }
 
             if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICAID) {
-              Activities::Medicaid_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, MEDICAID_UNAV, 1);
             } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICARE) {
-              Activities::Medicare_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, MEDICARE_UNAV, 1);
             } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::PRIVATE) {
-              Activities::Private_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIVATE_UNAV, 1);
             } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::UNINSURED) {
-              Activities::Uninsured_unav++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, UNINSURED_UNAV, 1);
             }
 
-            Activities::Primary_healthcare_unavailable++;
+            Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIMARY_HC_UNAV, 1);
 
             //Find an open health care provider
-            hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, false, true, true);
+            hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, false, true, true);
             if(hosp == NULL) {
               hh->set_other_healthcare_location_that_accepts_insurance_available(false);
-              Activities::Healthcare_accepting_insurance_unavailable++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
 
-              hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, false, false, false);
+              hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, false, false, false);
               if(hosp == NULL) {
                 hh->set_is_healthcare_available(false);
-                Activities::Healthcare_unavailable++;
+                Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_UNAV, 1);
               }
             }
           }
@@ -1034,7 +1010,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
             assign_hospital(self, hosp);
             if(hosp->get_subtype() == fred::PLACE_SUBTYPE_NONE) {
               //then it is an emergency room visit
-              Activities::ER_visit++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, ER_VISIT, 1);
             }
 
             this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
@@ -1051,13 +1027,13 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
             // record work absent/present decision if it is a work day
             if(is_a_workday) {
-              Activities::Sick_days_absent++;
+              Activities::Tracking_data.sick_days_absent++;
               this->my_sick_days_absent++;
             }
 
             // record school absent/present decision if it is a school day
             if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-              Activities::School_sick_days_absent++;
+              Activities::Tracking_data.school_sick_days_absent++;
               this->my_sick_days_absent++;
             }
           } else {
@@ -1084,13 +1060,13 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
 
           // record work absent/present decision if it is a workday
           if(is_a_workday) {
-            Activities::Sick_days_absent++;
+            Activities::Tracking_data.sick_days_absent++;
             this->my_sick_days_absent++;
           }
 
           // record school absent/present decision if it is a school day
           if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-            Activities::School_sick_days_absent++;
+            Activities::Tracking_data.school_sick_days_absent++;
             this->my_sick_days_absent++;
           }
         }
@@ -1099,7 +1075,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
   }
 }
 
-void Activities::start_hospitalization(Person* self, int day, int length_of_stay) {
+void Activities::start_hospitalization(Person* self, int sim_day, int length_of_stay) {
   assert(length_of_stay > 0);
   if(Global::Enable_Hospitals) {
     assert(!self->is_hospitalized());
@@ -1129,22 +1105,22 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
     }
 
     if(Global::Enable_HAZEL) {
-      Activities::Seeking_healthcare++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SEEK_HC, 1);
 
       hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
-      if(!hosp->should_be_open(day) || (hosp->get_occupied_bed_count() >= hosp->get_bed_count(day))) {
+      if(!hosp->should_be_open(sim_day) || (hosp->get_occupied_bed_count() >= hosp->get_bed_count(sim_day))) {
         hh->set_is_primary_healthcare_available(false);
-        Activities::Primary_healthcare_unavailable++;
+        Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIMARY_HC_UNAV, 1);
 
         //Find an open healthcare provider
-        hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, true, true, true);
+        hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, true, true, true);
         if(hosp == NULL) {
           hh->set_other_healthcare_location_that_accepts_insurance_available(false);
-          Activities::Healthcare_accepting_insurance_unavailable++;
-          hosp = Global::Places.get_random_open_hospital_matching_criteria(day, self, true, false, false);
+          Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
+          hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, true, false, false);
           if(hosp == NULL) {
             hh->set_is_healthcare_available(false);
-            Activities::Healthcare_unavailable++;
+            Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_UNAV, 1);
           }
         }
 
@@ -1161,17 +1137,17 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
           assign_hospital(self, hosp);
           this->is_hospitalized = true;
-          this->sim_day_hospitalization_ends = day + length_of_stay;
+          this->sim_day_hospitalization_ends = sim_day + length_of_stay;
           hosp->increment_occupied_bed_count();
           hh->set_count_receiving_hc(hh->get_count_receiving_hc() + 1);
-          Activities::ER_visit++;
+          Global::Daily_Tracker->increment_index_key_pair(sim_day, ER_VISIT, 1);
 
           //Set the flag for the household
           hh->set_household_has_hospitalized_member(true);
         }
       }
     } else {
-      if(hosp->get_occupied_bed_count() < hosp->get_bed_count(day)) {
+      if(hosp->get_occupied_bed_count() < hosp->get_bed_count(sim_day)) {
         store_favorite_places();
         clear_favorite_places();
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
@@ -1185,7 +1161,7 @@ void Activities::start_hospitalization(Person* self, int day, int length_of_stay
         assign_hospital(self, hosp);
 
         this->is_hospitalized = true;
-        this->sim_day_hospitalization_ends = day + length_of_stay;
+        this->sim_day_hospitalization_ends = sim_day + length_of_stay;
         hosp->increment_occupied_bed_count();
 
         //Set the flag for the household
@@ -1294,7 +1270,7 @@ void Activities::assign_workplace(Person* self) {
 void Activities::assign_office(Person* self) {
   if(get_workplace() != NULL && get_office() == NULL && get_workplace()->is_workplace()
       && Workplace::get_max_office_size() > 0) {
-    Place* place = ((Workplace*) get_workplace())->assign_office(self);
+    Place* place = static_cast<Workplace*>(get_workplace())->assign_office(self);
     if(place != NULL) {
       place->enroll(self);
     } else {
@@ -1302,6 +1278,21 @@ void Activities::assign_office(Person* self) {
           get_workplace()->get_id());
     }
     set_office(place);
+  }
+}
+
+void Activities::assign_hospital(Person* self) {
+  Hospital* tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(0, self, false, Global::Enable_Health_Insurance, true);
+  if(tmp_hosp != NULL) {
+    this->assign_hospital(self, tmp_hosp);
+    Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
+  } else {
+    //Expand search radius
+    tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(0, self, false, Global::Enable_Health_Insurance, false);
+    if(tmp_hosp != NULL) {
+      this->assign_hospital(self, tmp_hosp);
+      Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
+    }
   }
 }
 
@@ -1429,7 +1420,7 @@ void Activities::update_profile(Person* self) {
     FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d ENTERING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
 		 self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
 		 get_school()->get_orig_size(), get_classroom()->get_label());
-    Activities::entered_school++;
+    Activities::Tracking_data.entered_school++;
     return;
   }
 
@@ -1454,7 +1445,7 @@ void Activities::update_profile(Person* self) {
 		        self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
 		        get_school()->get_orig_size(), get_classroom()->get_label());
 	        change_school(self, NULL);
-	        Activities::left_school++;
+	        Activities::Tracking_data.left_school++;
 	        // get a job
 	        this->profile = WORKER_PROFILE;
 	        assign_workplace(self);
@@ -1508,7 +1499,7 @@ void Activities::update_profile(Person* self) {
 	      change_school(self, NULL);
 	      assign_school(self);
 	      assert(get_school() && get_classroom());
-	      Activities::entered_school++;
+	      Activities::Tracking_data.entered_school++;
 	      FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d ADDING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
 		      self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
 		      get_school()->get_orig_size(), get_classroom()->get_label());
@@ -1550,7 +1541,7 @@ void Activities::update_profile(Person* self) {
   }
 
   if(this->profile != RETIRED_PROFILE && Global::RETIREMENT_AGE <= age) {
-    if( Random::draw_random()< 0.5 ) {
+    if(Random::draw_random()< 0.5 ) {
       FRED_STATUS( 1,
       "CHANGING PROFILE TO RETIRED: id %d age %d sex %c\n",
       self->get_id(), age, self->get_sex());
@@ -1801,7 +1792,6 @@ void Activities::terminate(Person* self) {
     Travel::terminate_person(self);
   }
 
-
   //If the agent was hospitalized, restore original favorite places
   if(this->is_hospitalized) {
     restore_favorite_places();
@@ -1857,22 +1847,5 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
   return status;
 }
 
-void Activities::print_stats(int day) {
-  if(Global::Enable_HAZEL) {
-    FRED_VERBOSE(1, "Activities print stats for day %d\n", day);
-    Global::Daily_Tracker->set_index_key_pair(day, "Seek_hc", Activities::Seeking_healthcare);
-    Global::Daily_Tracker->set_index_key_pair(day, "Primary_hc_unav", Activities::Primary_healthcare_unavailable);
-    Global::Daily_Tracker->set_index_key_pair(day, "Hc_accep_ins_unav", Activities::Healthcare_accepting_insurance_unavailable);
-    Global::Daily_Tracker->set_index_key_pair(day, "Hc_unav", Activities::Healthcare_unavailable);
-    Global::Daily_Tracker->set_index_key_pair(day, "ER_visit", Activities::ER_visit);
-    Global::Daily_Tracker->set_index_key_pair(day, "Diabetes_hc_unav", Activities::Diabetes_hc_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "Asthma_hc_unav", Activities::Asthma_hc_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "HTN_hc_unav", Activities::HTN_hc_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "Medicaid_unav", Activities::Medicaid_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "Medicare_unav", Activities::Medicare_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "Private_unav", Activities::Private_unav);
-    Global::Daily_Tracker->set_index_key_pair(day, "Uninsured_unav", Activities::Uninsured_unav);
-  }
-}
 
 

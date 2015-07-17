@@ -217,6 +217,8 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Enable_Hospitals) {
     Global::Places.assign_hospitals_to_households();
     Utils::fred_print_lap_time("assign hospitals to households");
+    Global::Pop.assign_primary_healthcare();
+    Utils::fred_print_lap_time("assign primary healthcare to agents");
   }
 
   FRED_STATUS(0, "deleting place_label_map\n", "");
@@ -297,6 +299,11 @@ void fred_setup(int argc, char* argv[]) {
     Global::Tract_Tracker = new Tracker<long int>("Census Tract Tracker","Tract");
     Global::Pop.report_mean_hh_stats_per_census_tract();
   }
+  
+//  //TODO - remove this
+//  if(Global::Enable_HAZEL) {
+//    Global::Pop.print_HAZEL_data();
+//  }
 
   // Global tracker allows us to have as many variables we
   // want from wherever in the output file
@@ -412,7 +419,7 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d report population", day);
 
   if(Global::Enable_HAZEL) {
-    Activities::print_stats(day);
+    //Activities::print_stats(day);
     Global::Places.print_stats(day);
   }
 

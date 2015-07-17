@@ -25,9 +25,9 @@
 #include "Epidemic.h"
 #include "Age_Map.h"
 
-//class Age_Map;
 class Person;
 class Place;
+class Activities_Tracking_Data;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -51,6 +51,19 @@ class Place;
 #define COLLEGE_STUDENT_PROFILE 'C'
 #define MILITARY_PROFILE 'M'
 #define NURSING_HOME_RESIDENT_PROFILE 'L'
+
+#define SEEK_HC "Seek_hc"
+#define PRIMARY_HC_UNAV "Primary_hc_unav"
+#define HC_ACCEP_INS_UNAV "Hc_accep_ins_unav"
+#define HC_UNAV "Hc_unav"
+#define ER_VISIT "ER_visit"
+#define DIABETES_HC_UNAV "Diabetes_hc_unav"
+#define ASTHMA_HC_UNAV "Asthma_hc_unav"
+#define HTN_HC_UNAV "HTN_hc_unav"
+#define MEDICAID_UNAV "Medicaid_unav"
+#define MEDICARE_UNAV "Medicare_unav"
+#define PRIVATE_UNAV "Private_unav"
+#define UNINSURED_UNAV "Uninsured_unav"
 
 namespace Activity_index {
   enum e {
@@ -117,14 +130,14 @@ public:
    *
    * @param day the simulation day
    */
-  void update_activities_of_infectious_person(Person* self, int day);
+  void update_activities_of_infectious_person(Person* self, int sim_day);
 
   /**
    * Perform the daily update for a non-infectious agent
    *
    * @param day the simulation day
    */
-  void add_visitor_to_infectious_places(Person* self, int day);
+  void add_visitor_to_infectious_places(Person* self, int sim_day);
 
   /**
    * Perform the daily update to the schedule
@@ -132,7 +145,7 @@ public:
    * @param self the agent
    * @param day the simulation day
    */
-  void update_schedule(Person* self, int day);
+  void update_schedule(Person* self, int sim_day);
 
   /**
    * Decide whether to stay home if symptomatic.
@@ -140,14 +153,14 @@ public:
    *
    * @param day the simulation day
    */
-  void decide_whether_to_stay_home(Person* self, int day);
+  void decide_whether_to_stay_home(Person* self, int sim_day);
 
   /**
    * Decide whether to seek healthcare if symptomatic.
    *
    * @param day the simulation day
    */
-  void decide_whether_to_seek_healthcare(Person* self, int day);
+  void decide_whether_to_seek_healthcare(Person* self, int sim_day);
 
   /**
    * Have agent begin stay in a hospital
@@ -156,7 +169,7 @@ public:
    * @param day the simulation day
    * @param length_of_stay how many days to remain hospitalized
    */
-  void start_hospitalization(Person* self, int day, int length_of_stay);
+  void start_hospitalization(Person* self, int sim_day, int length_of_stay);
 
   /**
    * Have agent end stay in a hospital
@@ -174,12 +187,12 @@ public:
 
   /// returns string containing Activities schedule; does
   /// not include trailing newline
-  std::string schedule_to_string(Person* self, int day);
+  std::string schedule_to_string(Person* self, int sim_day);
 
   /**
    * Print the Activity schedule
    */
-  void print_schedule(Person* self, int day);
+  void print_schedule(Person* self, int sim_day);
 
   /// returns string containing Activities status; does
   /// not include trailing newline
@@ -357,6 +370,11 @@ public:
    * Assign the agent to an Office
    */
   void assign_office(Person* self);
+  
+  /**
+   * Find a Hospital and assign it to the agent
+   */
+  void assign_hospital(Person* self);
 
   /**
    * Assign the agent to a Hospital
@@ -369,7 +387,7 @@ public:
    */
   void assign_ad_hoc_place(Person* self, Place* place);
 
-  void unassign_ad_hoc_place(Person * self);
+  void unassign_ad_hoc_place(Person* self);
 
   /**
    * Update the agent's profile
@@ -557,19 +575,17 @@ public:
     this->grade = n;
   }
 
-  int get_visiting_health_status(Person* self, Place* place, int day, int disease_id);
+  int get_visiting_health_status(Person* self, Place* place, int sim_day, int disease_id);
 
-  void update_activities_while_traveling(Person* self, int day);
+  void update_activities_while_traveling(Person* self, int sim_day);
 
-  void set_return_from_travel_sim_day(int day) {
-    this->return_from_travel_sim_day = day;
+  void set_return_from_travel_sim_day(int sim_day) {
+    this->return_from_travel_sim_day = sim_day;
   }
 
   int get_return_from_travel_sim_day() {
     return this->return_from_travel_sim_day;
   }
-
-  static void print_stats(int day);
 
 private:
 
@@ -620,12 +636,14 @@ private:
   static Age_Map* Hospitalization_prob;
   static Age_Map* Outpatient_healthcare_prob;
   static double Hospitalization_visit_housemate_prob;
+  
+  static Activities_Tracking_Data Tracking_data;
 
   // sick days statistics
-  static int Sick_days_present;
-  static int Sick_days_absent;
-  static int School_sick_days_present;
-  static int School_sick_days_absent;
+//  static int Sick_days_present;
+//  static int Sick_days_absent;
+//  static int School_sick_days_present;
+//  static int School_sick_days_absent;
   static double Standard_sicktime_allocated_per_child;
 
   static const int WP_SIZE_DIST = 1;
@@ -635,32 +653,18 @@ private:
   static std::vector<double> HH_income_qtile_sl_prob_vec;
 
   // Statistics for presenteeism study
-  static int Employees_small_with_sick_leave;
-  static int Employees_small_without_sick_leave;
-  static int Employees_med_with_sick_leave;
-  static int Employees_med_without_sick_leave;
-  static int Employees_large_with_sick_leave;
-  static int Employees_large_without_sick_leave;
-  static int Employees_xlarge_with_sick_leave;
-  static int Employees_xlarge_without_sick_leave;
+//  static int Employees_small_with_sick_leave;
+//  static int Employees_small_without_sick_leave;
+//  static int Employees_med_with_sick_leave;
+//  static int Employees_med_without_sick_leave;
+//  static int Employees_large_with_sick_leave;
+//  static int Employees_large_without_sick_leave;
+//  static int Employees_xlarge_with_sick_leave;
+//  static int Employees_xlarge_without_sick_leave;
 
   // Statistics for childhood presenteeism study
   static double Sim_based_prob_stay_home_not_needed;
   static double Census_based_prob_stay_home_not_needed;
-
-  // Statistics for Healthcare deficits
-  static int Seeking_healthcare;
-  static int Primary_healthcare_unavailable;
-  static int Healthcare_accepting_insurance_unavailable;
-  static int Healthcare_unavailable;
-  static int ER_visit;
-  static int Diabetes_hc_unav;
-  static int Asthma_hc_unav;
-  static int HTN_hc_unav;
-  static int Medicaid_unav;
-  static int Medicare_unav;
-  static int Private_unav;
-  static int Uninsured_unav;
 
   // school change statistics
   static int entered_school;
@@ -754,6 +758,46 @@ protected:
   Activities();
   void setup(Person* self, Place* house, Place* school, Place* work);
 
+};
+
+struct Activities_Tracking_Data {
+  //
+  int sick_days_present;
+  int sick_days_absent;
+  int school_sick_days_present;
+  int school_sick_days_absent;
+
+  // Statistics for presenteeism study
+  int employees_small_with_sick_leave;
+  int employees_small_without_sick_leave;
+  int employees_med_with_sick_leave;
+  int employees_med_without_sick_leave;
+  int employees_large_with_sick_leave;
+  int employees_large_without_sick_leave;
+  int employees_xlarge_with_sick_leave;
+  int employees_xlarge_without_sick_leave;
+
+  int entered_school;
+  int left_school;
+
+  Activities_Tracking_Data() {
+    this->sick_days_present = 0;
+    this->sick_days_absent = 0;
+    this->school_sick_days_present = 0;
+    this->school_sick_days_absent = 0;
+
+    this->employees_small_with_sick_leave = 0;
+    this->employees_small_without_sick_leave = 0;
+    this->employees_med_with_sick_leave = 0;
+    this->employees_med_without_sick_leave = 0;
+    this->employees_large_with_sick_leave = 0;
+    this->employees_large_without_sick_leave = 0;
+    this->employees_xlarge_with_sick_leave = 0;
+    this->employees_xlarge_without_sick_leave = 0;
+
+    this->entered_school = 0;
+    this->left_school = 0;
+  }
 };
 
 #endif // _FRED_ACTIVITIES_H

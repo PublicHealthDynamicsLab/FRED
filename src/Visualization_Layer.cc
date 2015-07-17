@@ -247,11 +247,11 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
     Utils::fred_make_directory(vis_var_dir);
 
     if(this->household_mode && Global::Enable_HAZEL) {
-      sprintf(vis_var_dir, "%s/HH_primary_hc_avail", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_primary_hc_unav", vis_dis_dir);
       Utils::fred_make_directory(vis_var_dir);
-      sprintf(vis_var_dir, "%s/HH_accept_insr_hc_avail", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_accept_insr_hc_unav", vis_dis_dir);
       Utils::fred_make_directory(vis_var_dir);
-      sprintf(vis_var_dir, "%s/HH_hc_avail", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_hc_unav", vis_dis_dir);
       Utils::fred_make_directory(vis_var_dir);
     }
 
@@ -352,9 +352,8 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   // household with Healthcare availability deficiency
   if(Global::Enable_HAZEL) {
 
-    //TODO - CHANGE VARIABLE NAMES
-    //primary_healthcare_location_open  closed!
-    sprintf(filename, "%s/dis%d/HH_primary_hc_avail/households-%d.txt", dir, disease_id, day);
+    //!is_primary_healthcare_available
+    sprintf(filename, "%s/dis%d/HH_primary_hc_unav/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     assert(fp != NULL);
     fprintf(fp, "lat long\n");
@@ -366,8 +365,8 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
     }
     fclose(fp);
 
-    //other_healthcare_location_that_accepts_insurance_open NOT OPEN
-    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_avail/households-%d.txt", dir, disease_id, day);
+    //!is_other_healthcare_location_that_accepts_insurance_available
+    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_unav/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -378,8 +377,8 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
     }
     fclose(fp);
 
-    //is_able_to_receive_healthcare UNABLE
-    sprintf(filename, "%s/dis%d/HH_hc_avail/households-%d.txt", dir, disease_id, day);
+    //!is_healthcare_available
+    sprintf(filename, "%s/dis%d/HH_hc_unav/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -389,9 +388,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
       }
     }
     fclose(fp);
-
   }
-
 }
 
 /*

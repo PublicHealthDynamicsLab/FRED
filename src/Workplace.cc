@@ -27,10 +27,10 @@
 //Private static variables that will be set by parameter lookups
 double* Workplace::Workplace_contacts_per_day;
 double*** Workplace::Workplace_contact_prob;
-int Workplace::Office_size = 50;
-int Workplace::Small_workplace_size = 50;
-int Workplace::Medium_workplace_size = 100;
-int Workplace::Large_workplace_size = 500;
+int Workplace::Office_size = 0;
+int Workplace::Small_workplace_size = 0;
+int Workplace::Medium_workplace_size = 0;
+int Workplace::Large_workplace_size = 0;
 
 //Private static variable to assure we only lookup parameters once
 bool Workplace::Workplace_parameters_set = false;
