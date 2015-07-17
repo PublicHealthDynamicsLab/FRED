@@ -19,10 +19,11 @@
 #include "Disease.h"
 
 
-void Disease_List::setup(int num_diseases) {
+void Disease_List::get_parameters(int num_diseases) {
   this->diseases.clear();
   for(int disease_id = 0; disease_id < num_diseases; ++disease_id) {
     Disease * disease = new Disease;
+    disease->get_parameters(disease_id);
     this->diseases.push_back(disease);
   }
 }

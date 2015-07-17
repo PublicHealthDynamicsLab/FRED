@@ -100,7 +100,7 @@ void fred_setup(int argc, char* argv[]) {
   Date::setup_dates(Global::Start_date);
 
   // create diseases
-  Global::Dis.setup(Global::Diseases);
+  Global::Dis.get_parameters(Global::Diseases);
 
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");

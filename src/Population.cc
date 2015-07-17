@@ -109,9 +109,6 @@ void Population::get_parameters() {
       Params::get_param_from_string("output_population_date_match",
           Population::output_population_date_match);
     }
-    for(int d = 0; d < Global::Diseases; ++d) {
-      Global::Dis.get_disease(d)->get_parameters(d);
-    }
     Population::is_initialized = true;
   }
 }

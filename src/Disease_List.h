@@ -28,7 +28,7 @@ class Disease_List {
 public:
   Disease_List() {};
   ~Disease_List() {};
-  void setup(int _diseases);
+  void get_parameters(int _diseases);
   Disease* get_disease(int disease_id) {
     return diseases[disease_id];
   }
