@@ -47,7 +47,7 @@ Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lo
   this->type = WORKPLACE;
   this->subtype = _subtype;
   setup(lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
   this->offices.clear();
   this->next_office = 0;
 }

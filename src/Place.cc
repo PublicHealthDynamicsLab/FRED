@@ -176,7 +176,7 @@ void Place::reset_place_state(int disease_id) {
 }
 
 void Place::prepare() {
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     // Following arithmetic estimates the optimal number of thread-safe states
     // to be allocated for this place, for each disease.  The number of states
     // should always be 1 <= dim <= max_num_threads.  Each state is thread-safe,
@@ -196,7 +196,7 @@ void Place::prepare() {
   if(Global::Enable_Vector_Transmission && !this->is_neighborhood()) {
     setup_vector_model();
   }
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     if(this->infectious_bitset.test(d)) {
       this->place_state[d].clear();
     } else {
@@ -208,7 +208,7 @@ void Place::prepare() {
   this->exposed_bitset.reset();
   this->unique_visitors.clear();
 
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
@@ -229,7 +229,7 @@ void Place::update(int day) {
 
 void Place::reset_visualization_data(int day) {
   this->exposed_bitset.reset();
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
@@ -1098,12 +1098,12 @@ void Place::infect_vectors(int day) {
   }
 
   // find the percent distribution of infectious hosts
-  int* infectious_hosts = new int [Global::Diseases];
-  for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
+  int* infectious_hosts = new int [Global::Dis.get_number_of_diseases()];
+  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
     infectious_hosts[disease_id] = 0;
   }
   int total_infectious_hosts = 0;
-  for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
+  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
     // get references to infectious list for this disease_id
     this->place_state_merge = Place_State_Merge();
     this->place_state[disease_id].apply(this->place_state_merge);
@@ -1132,7 +1132,7 @@ void Place::infect_vectors(int day) {
 
   // assign strain based on distribution of infectious hosts
   int newly_infected = 0;
-  for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
+  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
     int strain_infections = total_infections *((double)infectious_hosts[disease_id] / (double)total_infectious_hosts);
     this->E_vectors[disease_id] += strain_infections;
     this->S_vectors -= strain_infections;
@@ -1312,7 +1312,7 @@ void Place::add_visitors_if_infectious(int day) {
     return;
   }
   */
-  for(int disease_id = 0; disease_id < Global::Diseases; disease_id++) {
+  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); disease_id++) {
     if(this->infectious_bitset.test(disease_id)) {
       this->add_visitors_to_infectious_place(day, disease_id);
     }

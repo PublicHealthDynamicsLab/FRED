@@ -238,7 +238,7 @@ void Regional_Layer::read_max_popsize() {
 
 void Regional_Layer::report_grid_stats(int day) {
 #if SQLITE
-  for(int dis = 0; dis < Global::Diseases; ++dis) {
+  for(int dis = 0; dis < Global::Dis.get_number_of_diseases(); ++dis) {
 #pragma omp parallel for schedule(runtime)
     for(int r = 0; r < get_rows(); ++r) {
       for(int c = 0; c < get_cols(); ++c) {

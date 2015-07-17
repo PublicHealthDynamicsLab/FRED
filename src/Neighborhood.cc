@@ -35,7 +35,7 @@ Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred:
   type = NEIGHBORHOOD;
   subtype = _subtype;
   setup( lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
 }
 
 void Neighborhood::get_parameters(int diseases) {

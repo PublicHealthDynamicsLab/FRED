@@ -312,7 +312,7 @@ void fred_setup(int argc, char* argv[]) {
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
   // initialize diseases
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     Disease* disease = Global::Dis.get_disease(d);
     disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
     if(!Global::Enable_Vector_Layer) {
@@ -323,7 +323,7 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for(int d = 0; d < Global::Diseases; ++d) {
+    for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
@@ -401,15 +401,15 @@ void fred_step(int day) {
   // shuffle the order of diseases to reduce systematic bias
   vector<int> order;
   order.clear();
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     order.push_back(d);
   }
-  if(Global::Diseases > 1) {
+  if(Global::Dis.get_number_of_diseases() > 1) {
     FYShuffle<int>(order);
   }
 
   // transmit each disease in turn
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
     int disease_id = order[d];
     Disease* disease = Global::Dis.get_disease(disease_id);
     disease->update(day);

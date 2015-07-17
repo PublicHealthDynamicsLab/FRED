@@ -24,6 +24,7 @@ using namespace std;
 #include "Params.h"
 #include "Person.h"
 #include "Health.h"
+#include "Disease_List.h"
 
 Antivirals::Antivirals(){
   int nav;

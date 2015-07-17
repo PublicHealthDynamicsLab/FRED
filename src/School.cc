@@ -56,11 +56,28 @@ bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
 
+School::School() {
+  this->type = Place::SCHOOL;
+  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  get_parameters(Global::Dis.get_number_of_diseases());
+  for(int i = 0; i < GRADES; ++i) {
+    this->students_in_grade[i] = 0;
+    this->orig_students_in_grade[i] = 0;
+    this->next_classroom[i] = 0;
+    this->classrooms[i].clear();
+  }
+  this->closure_dates_have_been_set = false;
+  this->staff_size = 0;
+  this->max_grade = -1;
+  this->county_index = -1;
+  this->income_quartile = -1;
+}
+
 School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
   setup(lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;

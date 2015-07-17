@@ -56,7 +56,7 @@ int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
 Household::Household() {
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
@@ -80,7 +80,7 @@ Household::Household() {
 }
 
 Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;

@@ -49,7 +49,7 @@ bool Hospital::Hospital_parameters_set = false;
 
 Hospital::Hospital() {
   if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases);
+    get_parameters(Global::Dis.get_number_of_diseases());
   }
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
@@ -62,7 +62,7 @@ Hospital::Hospital() {
 
 Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
   if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases);
+    get_parameters(Global::Dis.get_number_of_diseases());
   }
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;

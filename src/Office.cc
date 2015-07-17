@@ -34,7 +34,7 @@ Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fr
   this->subtype = _subtype;
   assert(container != NULL);
   setup( lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
 }
 
 void Office::get_parameters(int diseases) {

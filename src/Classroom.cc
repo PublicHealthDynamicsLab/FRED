@@ -37,7 +37,7 @@ Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lo
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
   setup(lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Dis.get_number_of_diseases());
   this->age_level = -1;
 }
 

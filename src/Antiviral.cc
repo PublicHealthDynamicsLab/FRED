@@ -161,7 +161,7 @@ int Antiviral::quality_control(int ndiseases) const {
 
 void Antiviral::effect(Health *health, int cur_day, AV_Health* av_health) {
   // We need to calculate the effect of the AV on all diseases it is applicable to
-  for (int is = 0; is < Global::Diseases; is++) {
+  for (int is = 0; is < Global::Dis.get_number_of_diseases(); is++) {
     if(is == disease) { //Is this antiviral applicable to this disease
       Disease *dis = Global::Dis.get_disease(is);
       Evolution *evol = dis->get_evolution();
