@@ -15,7 +15,7 @@
 //
 
 #include "Disease_List.h"
-#include "Global.h"
+// #include "Global.h"
 #include "Disease.h"
 
 
@@ -31,7 +31,7 @@ void Disease_List::get_parameters(int num_of_diseases) {
 
 void Disease_List::setup() {
   for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
-    this->diseases[disease_id]->setup(&Global::Pop);
+    this->diseases[disease_id]->setup();
   }
 }
 

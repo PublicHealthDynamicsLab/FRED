@@ -54,10 +54,8 @@ public:
 
   /**
    * Set all of the attributes for the Disease
-   *
-   * @param pop the population for this Disease
    */
-  void setup(Population* pop);
+  void setup();
 
 //  /**
 //   * Print out information about this object
@@ -172,13 +170,6 @@ public:
    */
   void print_stats(int day) {
     this->epidemic->print_stats(day);
-  }
-
-  /**
-   * @return the population with which this Disease is associated
-   */
-  Population* get_population() {
-    return this->population;
   }
 
   /**
@@ -371,8 +362,6 @@ private:
   std::map<int, vector<double> > residual_immunity_by_FIPS;
   /// end added
 
-  // Vars that are not Disease-specific (for updating global stats).
-  Population* population;
 };
 
 #endif // _FRED_Disease_H

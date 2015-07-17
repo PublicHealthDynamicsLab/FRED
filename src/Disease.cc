@@ -54,7 +54,6 @@ Disease::Disease() {
   this->infection_immunity_prob = NULL;
   this->at_risk = NULL;
   this->epidemic = NULL;
-  this->population = NULL;
   this->strain_table = NULL;
   this->ihm = NULL;
   this->enable_case_fatality = 0;
@@ -253,12 +252,11 @@ void Disease::get_parameters(int disease) {
   fflush(Global::Statusfp);
 }
 
-void Disease::setup(Population* pop) {
+void Disease::setup() {
   fprintf(Global::Statusfp, "disease %d %s setup entered\n",
 	  this->id, this->disease_name);
   fflush(Global::Statusfp);
 
-  this->population = pop;
   this->epidemic = new Epidemic(this);
   this->epidemic->setup();
 
