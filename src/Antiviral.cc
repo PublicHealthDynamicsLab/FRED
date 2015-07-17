@@ -23,6 +23,7 @@
 #include "Health.h"
 #include "Infection.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Evolution.h"
 #include "Population.h"
@@ -162,7 +163,7 @@ void Antiviral::effect(Health *health, int cur_day, AV_Health* av_health) {
   // We need to calculate the effect of the AV on all diseases it is applicable to
   for (int is = 0; is < Global::Diseases; is++) {
     if(is == disease) { //Is this antiviral applicable to this disease
-      Disease *dis = Global::Pop.get_disease(is);
+      Disease *dis = Global::Dis.get_disease(is);
       Evolution *evol = dis->get_evolution();
       evol->avEffect(this, health, disease, cur_day, av_health);
     }

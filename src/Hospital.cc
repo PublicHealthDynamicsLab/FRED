@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Hospital.h"
 #include "Params.h"
@@ -113,7 +114,7 @@ void Hospital::get_parameters(int diseases) {
 
     char param_str[80];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Dis.get_disease(disease_id);
       sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
       Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());

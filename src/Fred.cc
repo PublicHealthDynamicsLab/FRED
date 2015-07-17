@@ -17,6 +17,7 @@
 #include "Utils.h"
 #include "Global.h"
 #include "Population.h"
+#include "Disease.h"
 #include "Disease_List.h"
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
@@ -312,7 +313,7 @@ void fred_setup(int argc, char* argv[]) {
   
   // initialize diseases
   for(int d = 0; d < Global::Diseases; ++d) {
-    Disease* disease = Global::Pop.get_disease(d);
+    Disease* disease = Global::Dis.get_disease(d);
     disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
     if(!Global::Enable_Vector_Layer) {
       disease->init_prior_immunity();
@@ -410,7 +411,7 @@ void fred_step(int day) {
   // transmit each disease in turn
   for(int d = 0; d < Global::Diseases; ++d) {
     int disease_id = order[d];
-    Disease* disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Dis.get_disease(disease_id);
     disease->update(day);
     Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
   }

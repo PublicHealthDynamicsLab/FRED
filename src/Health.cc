@@ -21,6 +21,7 @@
 #include "AV_Health.h"
 #include "AV_Manager.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Evolution.h"
 #include "Infection.h"
 #include "Health.h"
@@ -304,7 +305,7 @@ void Health::setup(Person* self) {
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible_date[disease_id] = -1;
     become_susceptible(self, disease_id);
-    Disease* disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Dis.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
       double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
       if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
@@ -383,7 +384,7 @@ void Health::become_susceptible(Person* self, int disease_id) {
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   disease->become_susceptible(self);
   FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
       self->get_id(), disease_id);
@@ -403,7 +404,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
     this->evaluate_susceptibility.reset(disease_id);
-    Disease* disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Dis.get_disease(disease_id);
     disease->become_susceptible(self);
     FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 		self->get_id(), disease_id);
@@ -453,7 +454,7 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
 	          continue;
 	        }
 	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	          this->become_unsusceptible(self, Global::Pop.get_disease(sero));
+	          this->become_unsusceptible(self, Global::Dis.get_disease(sero));
 	      }
       } else {
 	      // after the second infection, become immune to other two serotypes.
@@ -465,7 +466,7 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
 	          continue;
 	        }
 	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	        this->become_unsusceptible(self, Global::Pop.get_disease(sero));
+	        this->become_unsusceptible(self, Global::Dis.get_disease(sero));
 	      }
       }
     }
@@ -524,7 +525,7 @@ void Health::recover(Person* self, Disease* disease) {
 }
 
 void Health::become_removed(Person* self, int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   disease->become_removed(self, this->susceptible.test(disease_id),
       this->infectious.test(disease_id), this->symptomatic.test(disease_id));
   this->susceptible.reset(disease_id);
@@ -809,7 +810,7 @@ double Health::get_symptoms(int disease_id, int day) const {
 
 //Modify Operators
 double Health::get_transmission_modifier_due_to_hygiene(int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   if(this->is_wearing_face_mask() && this->is_washing_hands()) {
     return (1.0 - disease->get_face_mask_plus_hand_washing_transmission_efficacy());
   }
@@ -823,7 +824,7 @@ double Health::get_transmission_modifier_due_to_hygiene(int disease_id) {
 }
 
 double Health::get_susceptibility_modifier_due_to_hygiene(int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   /*
   if (this->is_wearing_face_mask() && this->is_washing_hands()) {
     return (1.0 - disease->get_face_mask_plus_hand_washing_susceptibility_efficacy());
@@ -964,7 +965,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id,
   // 'infect' call chain:
   // Person::infect => Health::infect => Infection::transmit [Create transmission
   // and expose infectee]
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   this->infection[disease_id]->transmit(infectee, transmission);
 
 #pragma omp atomic

@@ -26,6 +26,8 @@ using namespace std;
 #include "Utils.h"
 #include "Vector_Layer.h"
 #include "Vector_Patch.h"
+#include "Disease.h"
+#include "Disease_List.h"
 #include "Visualization_Layer.h"
 #include "Regional_Layer.h"
 #include "Regional_Patch.h"
@@ -548,7 +550,7 @@ void Vector_Layer::immunize_total_by_age() {
  	      if(prob_by_age > prob_immune) {
 	        for(int d = 0;d < DISEASE_TYPES; ++d) {
 	          if(per->is_susceptible(d)){
-	            per->become_unsusceptible(Global::Pop.get_disease(d));
+	            per->become_unsusceptible(Global::Dis.get_disease(d));
 	          }
 	        }
 	        county_set[i].people_immunized++;
@@ -572,7 +574,7 @@ void Vector_Layer::immunize_by_age(int d) {
 	      double prob_by_age = county_set[i].immunity_by_age[temp_age];
 	      if(prob_by_age > prob_immune) {
 	        if(per->is_susceptible(d)) {
-	          per->become_unsusceptible(Global::Pop.get_disease(d));
+	          per->become_unsusceptible(Global::Dis.get_disease(d));
 	          county_set[i].people_immunized++;
 	        }
 	      }

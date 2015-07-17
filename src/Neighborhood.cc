@@ -20,6 +20,7 @@
 #include "Random.h"
 #include "Person.h"
 #include "Disease.h"
+#include "Disease_List.h"
 
 //Private static variables that will be set by parameter lookups
 double * Neighborhood::Neighborhood_contacts_per_day = NULL;
@@ -49,7 +50,7 @@ void Neighborhood::get_parameters(int diseases) {
     Neighborhood::Neighborhood_contact_prob = new double** [ diseases ];
     
     for(int disease_id = 0; disease_id < diseases; disease_id++) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+      Disease * disease = Global::Dis.get_disease(disease_id);
       sprintf(param_str, "%s_weekend_contact_rate", disease->get_disease_name());
       Params::get_param((char *) param_str, &Neighborhood::Weekend_contact_rate[disease_id]);
       sprintf(param_str, "%s_neighborhood_contacts", disease->get_disease_name());

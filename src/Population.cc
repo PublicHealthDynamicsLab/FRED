@@ -816,10 +816,6 @@ void Population::end_of_run() {
   }
 }
 
-Disease* Population::get_disease(int disease_id) {
-  return Global::Dis.get_disease(disease_id);
-}
-
 void Population::quality_control() {
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "population quality control check\n");

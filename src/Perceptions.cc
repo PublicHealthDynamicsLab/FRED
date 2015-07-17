@@ -19,6 +19,7 @@
 #include "Random.h"
 #include "Person.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Household.h"
 
 //Private static variables that will be set by parameter lookups
@@ -79,7 +80,7 @@ void Perceptions::update_perceived_severity(int day) {
 
 void Perceptions::update_perceived_susceptibility(int day) {
   for(int d = 0; d < Global::Diseases; d++) {
-    this->epidemic = Global::Pop.get_disease(d)->get_epidemic();
+    this->epidemic = Global::Dis.get_disease(d)->get_epidemic();
     this->perceived_susceptibility[d] = 100.0 * this->epidemic->get_symptomatic_prevalence();
     // printf("update_per_sus: %f\n", perceived_susceptibility[d]);
   }

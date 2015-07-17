@@ -15,6 +15,7 @@
 #include "Timestep_Map.h"
 #include "Seasonality_Timestep_Map.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include <vector>
 #include <iterator>
 #include <stdlib.h>
@@ -76,7 +77,7 @@ void Seasonality::update(int day) {
 
 void Seasonality::update_seasonality_multiplier() {
   for (int d = 0; d < Global::Diseases; d++) {
-    Disease * disease = Global::Pop.get_disease(d);
+    Disease * disease = Global::Dis.get_disease(d);
     if (Global::Enable_Climate) { // should seasonality values be interpreted by Disease as specific humidity?
       for (int r = 0; r < grid->get_rows(); r++) {
         for (int c = 0; c < grid->get_cols(); c++) {

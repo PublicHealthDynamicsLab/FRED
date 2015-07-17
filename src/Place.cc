@@ -17,6 +17,7 @@
 
 #include "Date.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Household.h"
 #include "Infection.h"
@@ -294,7 +295,7 @@ int Place::get_adults() {
 
 void Place::register_as_an_infectious_place(int disease_id) {
   if(!(this->infectious_bitset.test(disease_id))) {
-    Disease * dis = Global::Pop.get_disease(disease_id);
+    Disease * dis = Global::Dis.get_disease(disease_id);
     dis->add_infectious_place(this);
     this->infectious_bitset.set(disease_id);
     // printf("REGISTER place %s for disease %d\n", label, disease_id);
@@ -488,7 +489,7 @@ int Place::get_recovereds(int disease_id) {
 
 double Place::get_contact_rate(int day, int disease_id) {
 
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   // expected number of susceptible contacts for each infectious person
   // OLD: double contacts = get_contacts_per_day(disease_id) * ((double) susceptibles[disease_id].size()) / ((double) (N-1));
   double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
@@ -596,7 +597,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 
 void Place::spread_infection(int day, int disease_id) {
 
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   double beta = disease->get_transmissibility();
   if(beta == 0.0) {
     reset_place_state(disease_id);
@@ -658,7 +659,7 @@ void Place::spread_infection(int day, int disease_id) {
 
 void Place::default_transmission_model(int day, int disease_id) {
 
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
 
   // get reference to susceptibles and infectious lists for this disease_id
   place_state_merge = Place_State_Merge();
@@ -725,7 +726,7 @@ void Place::default_transmission_model(int day, int disease_id) {
 }
 
 void Place::age_based_transmission_model(int day, int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
   this->place_state_merge = Place_State_Merge();
@@ -893,7 +894,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 }
 
 void Place::pairwise_transmission_model(int day, int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
   double contact_prob = get_contact_rate(day, disease_id);
 
   // randomize the order of the infectious list
@@ -925,7 +926,7 @@ void Place::pairwise_transmission_model(int day, int disease_id) {
 }
 
 void Place::density_transmission_model(int day, int disease_id) {
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
   this->place_state_merge = Place_State_Merge();
@@ -1178,7 +1179,7 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
   FYShuffle<Person *>(susceptibles);
   FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", susceptibles.size());
   // get the disease object   
-  Disease* disease = Global::Pop.get_disease(disease_id);
+  Disease* disease = Global::Dis.get_disease(disease_id);
 
   for(int j = 0; j < e_hosts && j < susceptibles.size(); ++j) {
     Person* infectee = susceptibles[j];
@@ -1194,7 +1195,7 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
       // become unsusceptible to other diseases(?)
       for(int d = 0; d < DISEASE_TYPES; d++) {
         if(d != disease_id) {
-          Disease* other_disease = Global::Pop.get_disease(d);
+          Disease* other_disease = Global::Dis.get_disease(d);
           infectee->become_unsusceptible(other_disease);
         }
       }

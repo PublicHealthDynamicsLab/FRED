@@ -20,6 +20,7 @@
 #include "Global.h"
 #include "Params.h"
 #include "Person.h"
+#include "Disease_List.h"
 #include "Utils.h"
 #include "Random.h"
 #include "Transmission.h"
@@ -115,7 +116,7 @@ void Household::get_parameters(int diseases) {
     Household::Household_contacts_per_day = new double[diseases];
     Household::Household_contact_prob = new double**[diseases];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Dis.get_disease(disease_id);
       sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
       Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());

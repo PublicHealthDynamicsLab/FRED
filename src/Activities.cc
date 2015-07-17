@@ -20,6 +20,7 @@
 #include "Place.h"
 #include "Random.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Params.h"
 #include "Vaccine_Manager.h"
 #include "Manager.h"
@@ -857,7 +858,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
         //Get specific symptomatic diseases for multiplier
         for(int disease_id = 0; disease_id < Global::Diseases; ++disease_id) {
           if(self->get_health()->is_infected(disease_id)) {
-            Disease* disease = Global::Pop.get_disease(disease_id);
+            Disease* disease = Global::Dis.get_disease(disease_id);
             if(self->get_health()->get_symptoms(disease_id, day) > disease->get_min_symptoms_for_seek_healthcare()) {
               hospitalization_prob += disease->get_hospitalization_prob(self);
               seek_healthcare_prob += disease->get_outpatient_healthcare_prob(self);
