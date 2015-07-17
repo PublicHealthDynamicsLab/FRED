@@ -17,6 +17,7 @@
 #include "Utils.h"
 #include "Global.h"
 #include "Population.h"
+#include "Disease_List.h"
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
 #include "Regional_Layer.h"
@@ -97,6 +98,10 @@ void fred_setup(int argc, char* argv[]) {
   Params::read_parameters(paramfile);
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
+
+  // create diseases
+  Global::Dis.setup(Global::Diseases);
+
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
 
