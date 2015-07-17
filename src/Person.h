@@ -201,6 +201,14 @@ public:
   }
 
   /**
+   * Assign the agent to a Hospital
+   * @see Activities::assign_hospital()
+   */
+  void assign_hospital() {
+    this->activities.assign_hospital(this);
+  }
+
+  /**
    * Will print out a person in a format similar to that read from population file
    * (with additional run-time values inserted (denoted by *)):<br />
    * (i.e Label *ID* Age Sex Married Occupation Household School *Classroom* Workplace *Office*)

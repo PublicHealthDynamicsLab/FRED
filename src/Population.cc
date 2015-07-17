@@ -964,6 +964,22 @@ void Population::assign_offices() {
   FRED_VERBOSE(0,"assign offices finished\n");
 }
 
+void Population::assign_primary_healthcare() {
+  if(Global::Verbose > 0) {
+    fprintf(Global::Statusfp, "assign primary healthcare entered\n");
+    fflush(Global::Statusfp);
+  }
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person == NULL) {
+      continue;
+    }
+    person->assign_hospital();
+
+  }
+  FRED_VERBOSE(0,"assign primary healthcare finished\n");
+}
+
 void Population::get_network_stats(char* directory) {
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "get_network_stats entered\n");
@@ -1763,6 +1779,26 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
   }
   fclose(fp);
 }
+
+////TODO REMOVE
+//void Population::print_HAZEL_data() {
+//  for(int p = 0; p < this->get_index_size(); ++p) {
+//    Person* person = get_person_by_index(p);
+//    if(person == NULL) {
+//      continue;
+//    }
+//    Household* hh = static_cast<Household*>(person->get_household());
+//    Hospital* hosp = static_cast<Hospital*>(person->get_hospital());
+//    assert(hh != NULL);
+//    if(hosp == NULL) {
+//      hosp = hh->get_household_visitation_hospital();
+//    }
+//    assert(hosp != NULL);
+//
+//    printf("DEBUG_HAZEL: Agent[%s], Assigned Healthcare[%s]\n", person->to_string().c_str(),
+//        hosp->get_label());
+//  }
+//}
 
 Person* Population::select_random_person() {
   int i = Random::draw_random_int(0, get_index_size() - 1);
