@@ -15,17 +15,12 @@
 //
 
 #include "Global.h"
-#include "Demographics.h"
 #include "Params.h"
+#include "Demographics.h"
 #include "Population.h"
 #include "Disease_List.h"
 #include "Place_List.h"
-#include "Neighborhood_Layer.h"
-#include "Regional_Layer.h"
-#include "Visualization_Layer.h"
-#include "Vector_Layer.h"
-#include "Seasonality.h"
-#include "Utils.h"
+
 #if SQLITE
 #include "DB.h"
 #endif
@@ -138,7 +133,7 @@ bool Global::Report_Immunity = false;
 
 // global singleton objects
 Population Global::Pop;
-Disease_List Global::Dis;
+Disease_List Global::Diseases;
 Place_List Global::Places;
 Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;

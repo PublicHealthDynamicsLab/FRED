@@ -550,7 +550,7 @@ void Vector_Layer::immunize_total_by_age() {
  	      if(prob_by_age > prob_immune) {
 	        for(int d = 0;d < DISEASE_TYPES; ++d) {
 	          if(per->is_susceptible(d)){
-	            per->become_unsusceptible(Global::Dis.get_disease(d));
+	            per->become_unsusceptible(Global::Diseases.get_disease(d));
 	          }
 	        }
 	        county_set[i].people_immunized++;
@@ -574,7 +574,7 @@ void Vector_Layer::immunize_by_age(int d) {
 	      double prob_by_age = county_set[i].immunity_by_age[temp_age];
 	      if(prob_by_age > prob_immune) {
 	        if(per->is_susceptible(d)) {
-	          per->become_unsusceptible(Global::Dis.get_disease(d));
+	          per->become_unsusceptible(Global::Diseases.get_disease(d));
 	          county_set[i].people_immunized++;
 	        }
 	      }

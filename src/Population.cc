@@ -160,8 +160,8 @@ void Population::delete_person(Person* person) {
   person->terminate();
   FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
 
-  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
-    Global::Dis.get_disease(d)->get_evolution()->terminate_person(person);
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+    Global::Diseases.get_disease(d)->get_evolution()->terminate_person(person);
   }
 
   if(Global::Enable_Travel) {
@@ -210,13 +210,13 @@ void Population::setup() {
   read_all_populations();
 
   if(Global::Verbose > 0) {
-    for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
+    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       int count = 0;
       for(int i = 0; i < this->get_index_size(); ++i) {
 	      if(get_person_by_index(i) == NULL) {
 	        continue;
 	      }
-	      Disease* dis = Global::Dis.get_disease(d);
+	      Disease* dis = Global::Diseases.get_disease(d);
 	      if(get_person_by_index(i)->is_immune(dis)) {
 	        count++;
 	      }
@@ -765,7 +765,7 @@ void Population::report(int day) {
 
   if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {
     // update infection counters for places
-    for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
+    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       for(int i = 0; i < this->get_index_size(); ++i) {
 	      Person* person = get_person_by_index(i);
 	      if(person == NULL) {
@@ -787,8 +787,8 @@ void Population::report(int day) {
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
 
-  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
-    Global::Dis.get_disease(d)->print_stats(day);
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+    Global::Diseases.get_disease(d)->print_stats(day);
   }
 
   // Write out the population if the output_population parameter is set.
@@ -880,9 +880,9 @@ void Population::quality_control() {
     fprintf(Global::Statusfp, "\n");
 
     // Print out At Risk distribution
-    for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
-      if(Global::Dis.get_disease(d)->get_at_risk()->is_empty() == false) {
-        Disease* dis = Global::Dis.get_disease(d);
+    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+      if(Global::Diseases.get_disease(d)->get_at_risk()->is_empty() == false) {
+        Disease* dis = Global::Diseases.get_disease(d);
         int rcount[20];
         for(int c = 0; c < 20; ++c) {
           rcount[c] = 0;

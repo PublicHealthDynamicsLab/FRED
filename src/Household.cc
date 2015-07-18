@@ -56,7 +56,7 @@ int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
 Household::Household() {
-  get_parameters(Global::Dis.get_number_of_diseases());
+  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
@@ -80,7 +80,7 @@ Household::Household() {
 }
 
 Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
-  get_parameters(Global::Dis.get_number_of_diseases());
+  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
@@ -116,7 +116,7 @@ void Household::get_parameters(int diseases) {
     Household::Household_contacts_per_day = new double[diseases];
     Household::Household_contact_prob = new double**[diseases];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Dis.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
       Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());

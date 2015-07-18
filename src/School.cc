@@ -59,7 +59,7 @@ int School::global_open_date = 0;
 School::School() {
   this->type = Place::SCHOOL;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
-  get_parameters(Global::Dis.get_number_of_diseases());
+  get_parameters(Global::Diseases.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -77,7 +77,7 @@ School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fre
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
   setup(lab, lon, lat, container);
-  get_parameters(Global::Dis.get_number_of_diseases());
+  get_parameters(Global::Diseases.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -113,7 +113,7 @@ void School::get_parameters(int diseases) {
 
     char param_str[80];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Dis.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       sprintf(param_str, "%s_school_contacts", disease->get_disease_name());
       Params::get_param((char *) param_str, &School::school_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_school_prob", disease->get_disease_name());
@@ -241,7 +241,7 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
       }
     } else {
       // Close schools if the global symptomatic attack rate has reached the threshold (after a delay)
-      Disease* disease = Global::Dis.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       if(School::school_closure_threshold <= disease->get_symptomatic_attack_rate()) {
         // the following only happens once
         School::global_closure_is_active = true;
@@ -259,7 +259,7 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 1) {
-      Disease* disease = Global::Dis.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       printf("School %d day %d ar %5.2f cases = %d / %d (%5.2f) close_date %d open_date %d\n",
           this->id, day, disease->get_symptomatic_attack_rate(), get_total_cases(disease_id), N,
           get_symptomatic_attack_rate(disease_id), this->close_date, this->open_date);
@@ -275,7 +275,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
   }
 
   // don't apply any policy before the epdemic reaches a noticeable threshold
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   if(disease->get_symptomatic_attack_rate() < School::school_closure_threshold) {
     return;
   }
@@ -299,7 +299,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 0) {
-      Disease* disease = Global::Dis.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       printf("School %d day %d ar %5.2f cases = %d / %d (%5.2f) close_date %d open_date %d\n",
           this->id, day, disease->get_symptomatic_attack_rate(), get_total_cases(disease_id), N,
           get_symptomatic_attack_rate(disease_id), this->close_date, this->open_date);

@@ -205,7 +205,7 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
   Utils::fred_make_directory(vis_run_dir);
   
   // create sub directories for diseases and output vars
-  for(int d = 0; d < Global::Dis.get_number_of_diseases(); ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     sprintf(vis_dis_dir, "%s/dis%d", vis_run_dir, d);
     Utils::fred_make_directory(vis_dis_dir);
     
@@ -266,7 +266,7 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
 
 void Visualization_Layer::print_visualization_data(int day) {
   if(this->census_tract_mode) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/VIS/run%d", Global::Simulation_directory, Global::Simulation_run_number);
       print_census_tract_data(dir, disease_id, Global::OUTPUT_I, (char*)"I", day);
@@ -283,7 +283,7 @@ void Visualization_Layer::print_visualization_data(int day) {
   }
 
   if(this->household_mode) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/VIS/run%d", Global::Simulation_directory, Global::Simulation_run_number);
       print_household_data(dir, disease_id, day);
@@ -293,7 +293,7 @@ void Visualization_Layer::print_visualization_data(int day) {
   }
 
   if(this->gaia_mode) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/GAIA/run%d", Global::Simulation_directory, Global::Simulation_run_number);
       print_output_data(dir, disease_id, Global::OUTPUT_I, (char*) "I", day);

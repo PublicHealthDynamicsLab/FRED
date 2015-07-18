@@ -274,7 +274,7 @@ class Global {
 
     // global singleton objects
     static Population Pop;
-    static Disease_List Dis;
+    static Disease_List Diseases;
     static Place_List Places;
     static Neighborhood_Layer* Neighborhoods;
     static Regional_Layer* Simulation_Region;

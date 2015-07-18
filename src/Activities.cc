@@ -494,7 +494,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int day) {
     }
   }
 
-  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
     if(self->is_infectious(disease_id)) {
       make_favorite_places_infectious(self, disease_id);
     }
@@ -513,7 +513,7 @@ void Activities::add_visitor_to_infectious_places(Person* self, int day) {
   }
 
   if(this->on_schedule.any()) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       if(self->is_susceptible(disease_id)) {
 	      join_susceptible_lists_at_favorite_places(self, disease_id);
       } else {
@@ -540,7 +540,7 @@ void Activities::update_activities_while_traveling(Person* self, int day) {
   }
 
   if(this->on_schedule.any()) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       if(self->is_susceptible(disease_id)) {
 	      join_susceptible_lists_at_favorite_places(self, disease_id);
       } else {
@@ -856,9 +856,9 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int day) {
       //First check to see if agent will seek health care for any active symptomatic infection
       if(self->is_symptomatic()) {
         //Get specific symptomatic diseases for multiplier
-        for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+        for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
           if(self->get_health()->is_infected(disease_id)) {
-            Disease* disease = Global::Dis.get_disease(disease_id);
+            Disease* disease = Global::Diseases.get_disease(disease_id);
             if(self->get_health()->get_symptoms(disease_id, day) > disease->get_min_symptoms_for_seek_healthcare()) {
               hospitalization_prob += disease->get_hospitalization_prob(self);
               seek_healthcare_prob += disease->get_outpatient_healthcare_prob(self);

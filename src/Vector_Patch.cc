@@ -189,7 +189,7 @@ void Vector_Patch::transmit_to_hosts(int day) {
     FYShuffle<Person *>(S_hosts[disease_id]);
     FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", S_hosts[disease_id].size());
     // get the disease object   
-    Disease * disease = Global::Dis.get_disease(disease_id);
+    Disease * disease = Global::Diseases.get_disease(disease_id);
 
     for (int j = 0; j < E_hosts[disease_id] && j < S_hosts[disease_id].size(); j++) {
       Person * infectee = S_hosts[disease_id][j];
@@ -205,7 +205,7 @@ void Vector_Patch::transmit_to_hosts(int day) {
         // become unsusceptible to other diseases(?)
         for (int d = 0; d < DISEASE_TYPES; d++) {
           if (d != disease_id) {
-            Disease * other_disease = Global::Dis.get_disease(d);
+            Disease * other_disease = Global::Diseases.get_disease(d);
             infectee->become_unsusceptible(other_disease);
           }
         }

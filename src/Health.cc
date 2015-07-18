@@ -299,13 +299,13 @@ void Health::setup(Person* self) {
     // printf("FACEMASK: has_face_mask_behavior = %d\n", this->has_face_mask_behavior?1:0);
   }
 
-  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); disease_id++) {
+  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); disease_id++) {
     this->infection[disease_id] = NULL;
     this->infectee_count[disease_id] = 0;
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible_date[disease_id] = -1;
     become_susceptible(self, disease_id);
-    Disease* disease = Global::Dis.get_disease(disease_id);
+    Disease* disease = Global::Diseases.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
       double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
       if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
@@ -351,7 +351,7 @@ void Health::setup(Person* self) {
 
 Health::~Health() {
   // delete Infection objects pointed to
-  for(size_t i = 0; i < Global::Dis.get_number_of_diseases(); ++i) {
+  for(size_t i = 0; i < Global::Diseases.get_number_of_diseases(); ++i) {
     delete this->infection[i];
   }
 
@@ -384,7 +384,7 @@ void Health::become_susceptible(Person* self, int disease_id) {
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   disease->become_susceptible(self);
   FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
       self->get_id(), disease_id);
@@ -404,7 +404,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
     this->evaluate_susceptibility.reset(disease_id);
-    Disease* disease = Global::Dis.get_disease(disease_id);
+    Disease* disease = Global::Diseases.get_disease(disease_id);
     disease->become_susceptible(self);
     FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 		self->get_id(), disease_id);
@@ -448,17 +448,17 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
 	      // remember this infection's serotype
 	      this->previous_infection_serotype = disease_id;
 	      // after the first infection, become immune to other two serotypes.
-	      for(int sero = 0; sero < Global::Dis.get_number_of_diseases(); ++sero) {
+	      for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
 	        // if (sero == previous_infection_serotype) continue;
 	        if(sero == disease_id) {
 	          continue;
 	        }
 	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	          this->become_unsusceptible(self, Global::Dis.get_disease(sero));
+	          this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
 	      }
       } else {
 	      // after the second infection, become immune to other two serotypes.
-	      for(int sero = 0; sero < Global::Dis.get_number_of_diseases(); ++sero) {
+	      for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
 	        if(sero == previous_infection_serotype) {
 	          continue;
 	        }
@@ -466,7 +466,7 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
 	          continue;
 	        }
 	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	        this->become_unsusceptible(self, Global::Dis.get_disease(sero));
+	        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
 	      }
       }
     }
@@ -525,7 +525,7 @@ void Health::recover(Person* self, Disease* disease) {
 }
 
 void Health::become_removed(Person* self, int disease_id) {
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   disease->become_removed(self, this->susceptible.test(disease_id),
       this->infectious.test(disease_id), this->symptomatic.test(disease_id));
   this->susceptible.reset(disease_id);
@@ -558,7 +558,7 @@ void Health::update(Person* self, int day) {
   // if any disease has an active infection, then loop through and check
   // each disease infection
   if(this->active_infections.any()) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       // update the infection (if it exists)
       // the check if agent has symptoms is performed by Infection->update (or one of the
       // methods called by it).  This sets the relevant symptomatic flag used by 'is_symptomatic()'
@@ -620,7 +620,7 @@ void Health::update(Person* self, int day) {
   // The evaluate_susceptibility bit for that disease will be reset in the
   // call to become_susceptible
   if(this->evaluate_susceptibility.any()) {
-    for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       if(day == this->susceptible_date[disease_id]) {
         become_susceptible(self, disease_id);
       }
@@ -810,7 +810,7 @@ double Health::get_symptoms(int disease_id, int day) const {
 
 //Modify Operators
 double Health::get_transmission_modifier_due_to_hygiene(int disease_id) {
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   if(this->is_wearing_face_mask() && this->is_washing_hands()) {
     return (1.0 - disease->get_face_mask_plus_hand_washing_transmission_efficacy());
   }
@@ -824,7 +824,7 @@ double Health::get_transmission_modifier_due_to_hygiene(int disease_id) {
 }
 
 double Health::get_susceptibility_modifier_due_to_hygiene(int disease_id) {
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   /*
   if (this->is_wearing_face_mask() && this->is_washing_hands()) {
     return (1.0 - disease->get_face_mask_plus_hand_washing_susceptibility_efficacy());
@@ -965,7 +965,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id,
   // 'infect' call chain:
   // Person::infect => Health::infect => Infection::transmit [Create transmission
   // and expose infectee]
-  Disease* disease = Global::Dis.get_disease(disease_id);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
   this->infection[disease_id]->transmit(infectee, transmission);
 
 #pragma omp atomic
@@ -1004,7 +1004,7 @@ void Health::update_place_counts(Person* self, int day, int disease_id, Place* p
 }
 
 void Health::terminate(Person* self) {
-  for(int disease_id = 0; disease_id < Global::Dis.get_number_of_diseases(); ++disease_id) {
+  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
     if(this->active_infections.test(disease_id)) {
       become_removed(self, disease_id);
     }
