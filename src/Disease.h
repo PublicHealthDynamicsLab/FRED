@@ -22,20 +22,18 @@
 #include <string>
 using namespace std;
 
-#include "Age_Map.h"
 #include "Epidemic.h"
 #include "Global.h"
 #include "Transmission.h"
 
-
-class Person;
-class Population;
-class StrainTable;
-class Strain;
-class IntraHost;
-class Trajectory;
+class Age_Map;
 class Infection;
+class IntraHost;
+class Person;
+class Strain;
 class Strain_Data;
+class StrainTable;
+class Trajectory;
 
 class Disease {
 public:
