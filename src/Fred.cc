@@ -100,7 +100,7 @@ void fred_setup(int argc, char* argv[]) {
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
 
-  // create diseases
+  // create diseases and read parameters
   Global::Diseases.get_parameters();
 
   Global::Pop.get_parameters();
@@ -311,15 +311,9 @@ void fred_setup(int argc, char* argv[]) {
   // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
-  // initialize diseases
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    Disease* disease = Global::Diseases.get_disease(d);
-    disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer) {
-      disease->init_prior_immunity();
-    }
-  }
-  Utils::fred_print_lap_time("disease_initialization");
+  // prepare diseases after population is all set up
+  Global::Diseases.prepare_diseases();
+  Utils::fred_print_lap_time("prepare_diseases");
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
