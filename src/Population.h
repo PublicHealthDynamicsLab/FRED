@@ -90,12 +90,6 @@ public:
   void report(int day);
 
   /**
-   * @param disease_id the index of the Disease
-   * @return a pointer to the Disease indexed by s
-   */
-  Disease* get_disease(int disease_id);
-
-  /**
    * @return the pop_size
    */
   int get_pop_size() {
@@ -387,7 +381,6 @@ private:
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
   vector<Person*> death_list;		  // list of agents to die today
   int pop_size;
-  Disease* disease;
 
   int enable_copy_files;
     

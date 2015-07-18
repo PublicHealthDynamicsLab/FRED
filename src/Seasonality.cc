@@ -15,6 +15,7 @@
 #include "Timestep_Map.h"
 #include "Seasonality_Timestep_Map.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include <vector>
 #include <iterator>
 #include <stdlib.h>
@@ -29,7 +30,7 @@ Seasonality::Seasonality(Abstract_Grid * abstract_grid) {
   for (int i = 0; i < grid->get_rows(); i++) {
     seasonality_values[i] = new double [grid->get_cols()];
   }
-  for (int d = 0; d < Global::Diseases; d++) {
+  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
     seasonality_multiplier.push_back(new double * [grid->get_rows()]);
     for (int i = 0; i < grid->get_rows(); i++) {
       seasonality_multiplier.back()[i] = new double [grid->get_cols()];
@@ -75,8 +76,8 @@ void Seasonality::update(int day) {
 }
 
 void Seasonality::update_seasonality_multiplier() {
-  for (int d = 0; d < Global::Diseases; d++) {
-    Disease * disease = Global::Pop.get_disease(d);
+  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
+    Disease * disease = Global::Diseases.get_disease(d);
     if (Global::Enable_Climate) { // should seasonality values be interpreted by Disease as specific humidity?
       for (int r = 0; r < grid->get_rows(); r++) {
         for (int c = 0; c < grid->get_cols(); c++) {
@@ -140,7 +141,7 @@ void Seasonality::print() {
   cout << "Seasonality Values" << endl;
   print_field(&seasonality_values);
   cout << endl;
-  for (int d = 0; d < Global::Diseases; d++) {
+  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
     printf("Seasonality Modululated Transmissibility for Disease[%d]\n",d);
     print_field(&(seasonality_multiplier[d]));
     cout << endl;
@@ -169,7 +170,7 @@ double Seasonality::get_average_seasonality_multiplier(int disease_id) {
 
 void Seasonality::print_summary() {
   return;
-  for (int disease_id = 0; disease_id < Global::Diseases; disease_id++) { 
+  for (int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); disease_id++) { 
     double min = 9999999;
     double max = 0;
     double total = 0;

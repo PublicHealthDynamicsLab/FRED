@@ -21,13 +21,13 @@
 #include <map>
 
 #include "Global.h"
-#include "Random.h"
 #include "Epidemic.h"
-#include "Age_Map.h"
+#include "Place.h" 
+#include "Random.h"
 
-class Person;
-class Place;
+class Age_Map;
 class Activities_Tracking_Data;
+class Person;
 
 #define MAX_MOBILITY_AGE 100
 

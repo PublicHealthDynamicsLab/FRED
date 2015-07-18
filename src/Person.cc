@@ -18,6 +18,7 @@
 
 #include "Activities.h"
 #include "Demographics.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Health.h"
 #include "Behavior.h"
@@ -57,8 +58,8 @@ void Person::setup(int _index, int _id, int age, char sex,
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
   } else {
     // residual immunity does NOT apply to newborns
-    for(int disease = 0; disease < Global::Diseases; ++disease) {
-      Disease* dis = Global::Pop.get_disease(disease);
+    for(int disease = 0; disease < Global::Diseases.get_number_of_diseases(); ++disease) {
+      Disease* dis = Global::Diseases.get_disease(disease);
       
       if(Global::Residual_Immunity_by_FIPS) {
   		Age_Map* temp_map = new Age_Map();

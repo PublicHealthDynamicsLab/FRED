@@ -19,6 +19,7 @@
 #include "Random.h"
 #include "Person.h"
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Household.h"
 
 //Private static variables that will be set by parameter lookups
@@ -37,14 +38,14 @@ Perceptions::Perceptions(Person *p) {
     this->memory_decay = 0.00001;
   }
 
-  this->perceived_susceptibility = new double[Global::Diseases];
-  this->perceived_severity = new double[Global::Diseases];
+  this->perceived_susceptibility = new double[Global::Diseases.get_number_of_diseases()];
+  this->perceived_severity = new double[Global::Diseases.get_number_of_diseases()];
   for(int b = 0; b < Behavior_index::NUM_BEHAVIORS; b++) {
-    this->perceived_benefits[b] = new double[Global::Diseases];
-    this->perceived_barriers[b] = new double[Global::Diseases];
+    this->perceived_benefits[b] = new double[Global::Diseases.get_number_of_diseases()];
+    this->perceived_barriers[b] = new double[Global::Diseases.get_number_of_diseases()];
   }
 
-  for(int d = 0; d < Global::Diseases; d++) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
     this->perceived_susceptibility[d] = 0.0;
     this->perceived_severity[d] = 0.0;
     for(int b = 0; b < Behavior_index::NUM_BEHAVIORS; b++) {
@@ -72,14 +73,14 @@ void Perceptions::update(int day) {
 }
 
 void Perceptions::update_perceived_severity(int day) {
-  for(int d = 0; d < Global::Diseases; d++) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
     this->perceived_severity[d] = 1.0;
   }
 }
 
 void Perceptions::update_perceived_susceptibility(int day) {
-  for(int d = 0; d < Global::Diseases; d++) {
-    this->epidemic = Global::Pop.get_disease(d)->get_epidemic();
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
+    this->epidemic = Global::Diseases.get_disease(d)->get_epidemic();
     this->perceived_susceptibility[d] = 100.0 * this->epidemic->get_symptomatic_prevalence();
     // printf("update_per_sus: %f\n", perceived_susceptibility[d]);
   }

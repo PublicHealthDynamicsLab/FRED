@@ -15,16 +15,12 @@
 //
 
 #include "Global.h"
-#include "Demographics.h"
 #include "Params.h"
+#include "Demographics.h"
 #include "Population.h"
+#include "Disease_List.h"
 #include "Place_List.h"
-#include "Neighborhood_Layer.h"
-#include "Regional_Layer.h"
-#include "Visualization_Layer.h"
-#include "Vector_Layer.h"
-#include "Seasonality.h"
-#include "Utils.h"
+
 #if SQLITE
 #include "DB.h"
 #endif
@@ -47,7 +43,6 @@ int Global::Trace_Headers = 0;
 int Global::Rotate_start_date = 0;
 int Global::Quality_control = 0;
 int Global::RR_delay = 0;
-int Global::Diseases = 0;
 int Global::StrainEvolution = 0;
 int Global::Track_infection_events = 0;
 char Global::Prevfilebase[FRED_STRING_SIZE];
@@ -138,6 +133,7 @@ bool Global::Report_Immunity = false;
 
 // global singleton objects
 Population Global::Pop;
+Disease_List Global::Diseases;
 Place_List Global::Places;
 Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;
@@ -188,7 +184,6 @@ void Global::get_global_parameters() {
 
   Params::get_param_from_string("vaccine_tracefile", Global::VaccineTracefilebase);
   Params::get_param_from_string("trace_headers", &Global::Trace_Headers);
-  Params::get_param_from_string("diseases", &Global::Diseases);
   Params::get_param_from_string("immunity_file", Global::Immunityfilebase);
   Params::get_param_from_string("seasonality_timestep_file", Global::Seasonality_Timestep);
   Params::get_param_from_string("work_absenteeism", &Global::Work_absenteeism);
@@ -295,9 +290,5 @@ void Global::get_global_parameters() {
   }
 
 
-  // Sanity Checks
-  if(Global::Diseases > Global::MAX_NUM_DISEASES) {
-    Utils::fred_abort("Global::Diseases > Global::MAX_NUM_DISEASES!");
-  }
 }
 

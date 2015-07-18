@@ -22,20 +22,18 @@
 #include <string>
 using namespace std;
 
-#include "Age_Map.h"
 #include "Epidemic.h"
 #include "Global.h"
 #include "Transmission.h"
 
-
-class Person;
-class Population;
-class StrainTable;
-class Strain;
-class IntraHost;
-class Trajectory;
+class Age_Map;
 class Infection;
+class IntraHost;
+class Person;
+class Strain;
 class Strain_Data;
+class StrainTable;
+class Trajectory;
 
 class Disease {
 public:
@@ -50,14 +48,12 @@ public:
   ~Disease();
 
   void initialize_static_variables();
-  void get_parameters(int disease_id);
+  void get_parameters(int disease, string name);
 
   /**
    * Set all of the attributes for the Disease
-   *
-   * @param pop the population for this Disease
    */
-  void setup(Population* pop);
+  void setup();
 
 //  /**
 //   * Print out information about this object
@@ -175,13 +171,6 @@ public:
   }
 
   /**
-   * @return the population with which this Disease is associated
-   */
-  Population* get_population() {
-    return this->population;
-  }
-
-  /**
     * @return the epidemic with which this Disease is associated
     */
   Epidemic* get_epidemic() {
@@ -204,7 +193,7 @@ public:
   const Strain_Data &get_strain_data(int strain);
   const Strain &get_strain(int strain_id);
 
-  static void get_disease_parameters();
+  void get_disease_parameters();
 
   void become_susceptible(Person* person) {
     this->epidemic->become_susceptible(person);
@@ -315,8 +304,6 @@ public:
    
 private:
 
-  static std::string* Disease_name;
-
   char disease_name[FRED_STRING_SIZE];
   int id;
   double transmissibility;
@@ -371,8 +358,6 @@ private:
   std::map<int, vector<double> > residual_immunity_by_FIPS;
   /// end added
 
-  // Vars that are not Disease-specific (for updating global stats).
-  Population* population;
 };
 
 #endif // _FRED_Disease_H

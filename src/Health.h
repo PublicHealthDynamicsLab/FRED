@@ -20,6 +20,7 @@
 #include <vector>
 using namespace std;
 
+#include "Age_Map.h"
 #include "Disease.h"
 #include "Global.h"
 #include "Infection.h"

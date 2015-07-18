@@ -137,7 +137,7 @@ Epidemic::Epidemic(Disease* dis) {
   this->total_case_fatality_count = 0;
 
   this->place_person_list_reserve_size = 1;
-  this->daily_infections_list.reserve(this->disease->get_population()->get_pop_size());
+  this->daily_infections_list.reserve(Global::Pop.get_pop_size());
   this->daily_infections_list.clear();
 
   this->case_fatality_incidence = 0;
@@ -487,9 +487,9 @@ void Epidemic::print_stats(int day) {
 
   // set population size, and remember original pop size
   if(day == 0) {
-    this->N_init = this->N = this->disease->get_population()->get_pop_size();
+    this->N_init = this->N = Global::Pop.get_pop_size();
   } else {
-    this->N = this->disease->get_population()->get_pop_size();
+    this->N = Global::Pop.get_pop_size();
   }
 
   // get reproductive rate for the cohort exposed RR_delay days ago
@@ -1467,8 +1467,7 @@ void Epidemic::add_infectious_place(Place* place) {
 }
 
 void Epidemic::get_imported_infections(int day) {
-  Population* pop = this->disease->get_population();
-  this->N = pop->get_pop_size();
+  this->N = Global::Pop.get_pop_size();
 
   for(int i = 0; i < this->imported_cases_map.size(); ++i) {
     Time_Step_Map* tmap = this->imported_cases_map[i];
@@ -1595,7 +1594,6 @@ void Epidemic::advance_seed_infection(Person* person) {
 
 void Epidemic::update(int day) {
   FRED_VERBOSE(1, "epidemic update for disease %d day %d\n", id, day);
-  Population* pop = this->disease->get_population();
 
   // import infections from unknown sources
   get_imported_infections(day);

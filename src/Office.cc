@@ -20,6 +20,7 @@
 #include "Random.h"
 #include "Person.h"
 #include "Disease.h"
+#include "Disease_List.h"
 
 //Private static variables that will be set by parameter lookups
 double * Office::Office_contacts_per_day;
@@ -33,7 +34,7 @@ Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fr
   this->subtype = _subtype;
   assert(container != NULL);
   setup( lab, lon, lat, container);
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Diseases.get_number_of_diseases());
 }
 
 void Office::get_parameters(int diseases) {
@@ -45,7 +46,7 @@ void Office::get_parameters(int diseases) {
   
     char param_str[80];
     for(int disease_id = 0; disease_id < diseases; disease_id++) {
-      Disease * disease = Global::Pop.get_disease(disease_id);
+      Disease * disease = Global::Diseases.get_disease(disease_id);
       sprintf(param_str, "%s_office_contacts", disease->get_disease_name());
       Params::get_param((char *) param_str, &Office::Office_contacts_per_day[disease_id]);
       if(Office::Office_contacts_per_day[disease_id] < 0) {

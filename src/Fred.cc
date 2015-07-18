@@ -17,6 +17,8 @@
 #include "Utils.h"
 #include "Global.h"
 #include "Population.h"
+#include "Disease.h"
+#include "Disease_List.h"
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
 #include "Regional_Layer.h"
@@ -97,6 +99,10 @@ void fred_setup(int argc, char* argv[]) {
   Params::read_parameters(paramfile);
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
+
+  // create diseases and read parameters
+  Global::Diseases.get_parameters();
+
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
 
@@ -184,6 +190,9 @@ void fred_setup(int argc, char* argv[]) {
   Behavior::initialize_static_variables();
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
+
+  // finished setting up Diseases
+  Global::Diseases.setup();
 
   // read in the population and have each person enroll
   // in each favorite place identified in the population file
@@ -309,19 +318,13 @@ void fred_setup(int argc, char* argv[]) {
   // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
-  // initialize diseases
-  for(int d = 0; d < Global::Diseases; ++d) {
-    Disease* disease = Global::Pop.get_disease(d);
-    disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer) {
-      disease->init_prior_immunity();
-    }
-  }
-  Utils::fred_print_lap_time("disease_initialization");
+  // prepare diseases after population is all set up
+  Global::Diseases.prepare_diseases();
+  Utils::fred_print_lap_time("prepare_diseases");
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for(int d = 0; d < Global::Diseases; ++d) {
+    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
@@ -399,17 +402,17 @@ void fred_step(int day) {
   // shuffle the order of diseases to reduce systematic bias
   vector<int> order;
   order.clear();
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     order.push_back(d);
   }
-  if(Global::Diseases > 1) {
+  if(Global::Diseases.get_number_of_diseases() > 1) {
     FYShuffle<int>(order);
   }
 
   // transmit each disease in turn
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     int disease_id = order[d];
-    Disease* disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Diseases.get_disease(disease_id);
     disease->update(day);
     Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
   }

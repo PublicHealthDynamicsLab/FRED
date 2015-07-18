@@ -29,22 +29,7 @@ class Classroom;
 class School : public Place {
  public:
 
-  School() {
-    this->type = Place::SCHOOL;
-    this->subtype = fred::PLACE_SUBTYPE_NONE;
-    get_parameters(Global::Diseases);
-    for(int i = 0; i < GRADES; ++i) {
-      this->students_in_grade[i] = 0;
-      this->orig_students_in_grade[i] = 0;
-      this->next_classroom[i] = 0;
-      this->classrooms[i].clear();
-    }
-    this->closure_dates_have_been_set = false;
-    this->staff_size = 0;
-    this->max_grade = -1;
-    this->county_index = -1;
-    this->income_quartile = -1;
-  }
+  School();
 
   ~School() {
   }
