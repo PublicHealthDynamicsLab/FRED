@@ -41,9 +41,6 @@ using namespace std;
 #include "Timestep_Map.h"
 #include "Transmission.h"
 
-std::string* Disease::Disease_name = NULL;
-
-
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
   // periods has been moved to the IntraHost class (or classes derived from it).
@@ -115,20 +112,14 @@ Disease::~Disease() {
   }
 }
 
-void Disease::get_parameters(int disease) {
+void Disease::get_parameters(int disease, string name) {
   char paramstr[256];
-  this->id = disease;
 
-  if(disease == 0) {
-    Disease::Disease_name = new string[Global::Diseases];
-    Params::get_param_vector((char *)"disease_names", Disease::Disease_name);
-    for(int i = 0; i < Global::Diseases; ++i) {
-      printf("disease %d = %s\n", i, Disease::Disease_name[i].c_str());
-    }
-  }
+  // set disease id
+  this->id = disease;
   
-  // get name of disease
-  strcpy(this->disease_name, Disease::Disease_name[this->id].c_str());
+  // set disease name
+  strcpy(this->disease_name, name.c_str());
 
   fprintf(Global::Statusfp, "disease %d %s read_parameters entered\n",
 	  this->id, this->disease_name);

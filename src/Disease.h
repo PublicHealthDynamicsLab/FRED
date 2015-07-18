@@ -50,7 +50,7 @@ public:
   ~Disease();
 
   void initialize_static_variables();
-  void get_parameters(int disease_id);
+  void get_parameters(int disease, string name);
 
   /**
    * Set all of the attributes for the Disease
@@ -195,7 +195,7 @@ public:
   const Strain_Data &get_strain_data(int strain);
   const Strain &get_strain(int strain_id);
 
-  static void get_disease_parameters();
+  void get_disease_parameters();
 
   void become_susceptible(Person* person) {
     this->epidemic->become_susceptible(person);
@@ -305,8 +305,6 @@ public:
   vector<double> get_residual_immunity_values_by_FIPS(int FIPS_string);
    
 private:
-
-  static std::string* Disease_name;
 
   char disease_name[FRED_STRING_SIZE];
   int id;

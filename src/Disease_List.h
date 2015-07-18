@@ -18,6 +18,7 @@
 #define _FRED_DISEASE_LIST_H
 
 #include <vector>
+#include <string>
 using namespace std;
 
 class Disease;
@@ -40,6 +41,7 @@ public:
  private:
   std::vector <Disease*> diseases;
   int number_of_diseases;
+  string * disease_name;
 };
 
 #endif // _FRED_DISEASE_LIST_H

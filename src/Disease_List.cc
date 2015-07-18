@@ -14,19 +14,28 @@
 // File: Disease_List.cc
 //
 
+#include <stdio.h>
+#include <string>
 #include "Disease_List.h"
-// #include "Global.h"
 #include "Disease.h"
 
 
 void Disease_List::get_parameters(int num_of_diseases) {
   this->diseases.clear();
+  this->number_of_diseases = num_of_diseases;
+  int num_diseases = Global::Dis.get_number_of_diseases();
+
+  this->disease_name = new string[num_of_diseases];
+  Params::get_param_vector((char *)"disease_names", this->disease_name);
+  for(int d = 0; d < num_of_diseases; ++d) {
+    printf("disease %d = %s\n", d, this->disease_name[d].c_str());
+  }
+
   for(int disease_id = 0; disease_id < num_of_diseases; ++disease_id) {
-    Disease * disease = new Disease;
-    disease->get_parameters(disease_id);
+    Disease * disease = new Disease();
+    disease->get_parameters(disease_id, this->disease_name[disease_id]);
     this->diseases.push_back(disease);
   }
-  this->number_of_diseases = diseases.size();
 }
 
 void Disease_List::setup() {

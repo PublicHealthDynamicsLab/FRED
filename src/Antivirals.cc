@@ -67,7 +67,7 @@ Antivirals::Antivirals(){
     
   }
   print();
-  quality_control(Global::Diseases);
+  quality_control(Global::Dis.get_number_of_diseases());
 }
 
 int Antivirals::get_total_current_stock() const {
