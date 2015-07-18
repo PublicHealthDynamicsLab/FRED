@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "Global.h"
-#include "Place.h"
 
 #define SEED_USER 'U'
 #define SEED_RANDOM 'R'
@@ -33,6 +32,7 @@ using namespace std;
 
 class Disease;
 class Person;
+class Place;
 
 struct Time_Step_Map {
   int sim_day_start;

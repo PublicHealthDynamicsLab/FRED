@@ -24,10 +24,9 @@
 #include "Random.h"
 #include "Epidemic.h"
 #include "Age_Map.h"
+#include "Place.h" 
 
-//class Age_Map;
 class Person;
-class Place;
 
 #define MAX_MOBILITY_AGE 100
 
