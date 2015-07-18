@@ -29,13 +29,13 @@ class Disease_List {
 public:
   Disease_List() {};
   ~Disease_List() {};
-  void get_parameters(int num_of_diseases);
+  void get_parameters();
   void setup();
   Disease* get_disease(int disease_id) {
     return diseases[disease_id];
   }
   int get_number_of_diseases() { 
-    return this->number_of_diseases;
+    return number_of_diseases;
   }
 
  private:

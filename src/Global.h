@@ -188,7 +188,6 @@ class Global {
     static int Rotate_start_date;
     static int Quality_control;
     static int RR_delay;
-    static int Diseases;
     static int StrainEvolution;
     static char Prevfilebase[];
     static char Incfilebase[];
@@ -387,9 +386,9 @@ namespace fred {
 
   /* 
    * bitset big enough to store flags for MAX_NUM_DISEASES
-   * Global::MAX_NUM_DISEASES should be equal to Global::Diseases
+   * Global::MAX_NUM_DISEASES should be equal to number of diseases
    * for efficiency. 
-   * IMPORTANT NOTE TO THE PROGRAMMER: 'Diseases' may be less than
+   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual diseases may be less than
    * 'MAX_NUM_DISEASES' so care should be taken when performing operations
    * (such as any(), flip(), reset(), etc.) on a disease_bitset to avoid
    * unintended setting/resetting flags for non-existent diseases.
