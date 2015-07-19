@@ -397,8 +397,10 @@ public:
    * @param disease the disease with which to infect the Person
    * @param transmission a pointer to a Transmission object
    */
+  /*
   void infect(Person* self, Person* infectee, int disease_id,
       Transmission &transmission);
+  */
 
   void infect(Person* self, Person* infectee, int disease_id, Place* place);
 
@@ -406,8 +408,12 @@ public:
    * @param disease pointer to a Disease object
    * @param transmission pointer to a Transmission object
    */
+  /*
   void become_exposed(Person* self, Disease* disease,
       Transmission &transmission);
+  */
+
+  void become_exposed(Person* self, Disease* disease, Place* place);
 
   //Medication operators
   /**

@@ -27,7 +27,7 @@
 #include "Person.h"
 #include "Place.h"
 #include "Seasonality.h"
-#include "Transmission.h"
+// #include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
 #define PI 3.14159265359
@@ -875,8 +875,9 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 	      printf("PICKED INFECTOR pos %d with infectivity %e\n", pos, infectivity_of_agent[pos]); fflush(stdout);
 
 	      // successful transmission; create a new infection in infectee
-          Transmission transmission = Transmission(infector, this, day);
-	      infector->infect(infectee, disease_id, transmission);
+	      // Transmission transmission = Transmission(infector, this, day);
+	      // infector->infect(infectee, disease_id, transmission);
+	      infector->infect(infectee, disease_id, this);
 
 	      FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
 				  "SEED infection day %i from %d to %d\n",
@@ -1188,9 +1189,10 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
     if(infectee->is_susceptible(disease_id)) {
       // create a new infection in infectee
       FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
-      Transmission transmission = Transmission(NULL, NULL, day);
-      transmission.set_initial_loads(disease->get_primary_loads(day));
-      infectee->become_exposed(disease, transmission);
+      // Transmission transmission = Transmission(NULL, NULL, day);
+      // transmission.set_initial_loads(disease->get_primary_loads(day));
+      // infectee->become_exposed(disease, transmission);
+      infectee->become_exposed(disease, this);
 
       // become unsusceptible to other diseases(?)
       for(int d = 0; d < DISEASE_TYPES; d++) {

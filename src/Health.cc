@@ -33,7 +33,7 @@
 #include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
-#include "Transmission.h"
+// #include "Transmission.h"
 #include "Utils.h"
 #include "Vaccine.h"
 #include "Vaccine_Dose.h"
@@ -414,6 +414,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
   }
 }
 
+/*
 void Health::become_exposed(Person* self, Disease* disease, Transmission &transmission) {
   int disease_id = disease->get_id();
   this->infectious.reset(disease_id);
@@ -472,6 +473,7 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
     }
   }
 }
+*/
 
 void Health::become_exposed(Person* self, Disease* disease, Place* place) {
   int disease_id = disease->get_id();
@@ -480,7 +482,7 @@ void Health::become_exposed(Person* self, Disease* disease, Place* place) {
 
   Infection* new_infection = disease->get_new_infection();
       this->infection[disease_id], transmission, self);
-  if(new_infection != NULL) { // Transmission succeeded
+  if(new_infection != NULL) { // transmission succeeded
     this->active_infections.set(disease_id);
     if(this->infection[disease_id] == NULL) {
       self->become_unsusceptible(disease);
@@ -1019,6 +1021,7 @@ int Health::get_av_start_day(int i) const {
   return (*this->av_health)[i]->get_av_start_day();
 }
 
+/*
 void Health::infect(Person* self, Person* infectee, int disease_id,
     Transmission & transmission) {
   // 'infect' call chain:
@@ -1036,6 +1039,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id,
   FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
       self->get_id(), infectee->get_id(), infectee_count[disease_id]);
 }
+*/
 
 void Health::infect(Person* self, Person* infectee, int disease_id, Place* place) {
   Disease* disease = Global::Diseases.get_disease(disease_id);

@@ -122,11 +122,13 @@ void Person::become_immune(Disease* disease) {
   }
 }
 
+/*
 void Person::infect(Person* infectee, int disease, Transmission &transmission) {
   this->health.infect(this, infectee, disease, transmission);
 }
+*/
 
-void Person::infect(Person* infectee, int disease_id, Place* plac)
+void Person::infect(Person* infectee, int disease_id, Place* place) {
   this->health.infect(this, infectee, disease_id, place);
 }
 

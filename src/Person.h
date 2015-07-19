@@ -24,7 +24,7 @@ class Household;
 class Disease;
 class Infection;
 class Population;
-class Transmission;
+// class Transmission;
 
 #include "Demographics.h"
 #include "Health.h"
@@ -51,10 +51,15 @@ public:
    * @param disease the disease to reference
    * @param transmission the transmission event
    */
+  /*
   void become_exposed(Disease* disease, Transmission &transmission) {
     this->health.become_exposed(this, disease, transmission);
   }
+  */
 
+  void become_exposed(Disease* disease, Place* place) {
+    this->health.become_exposed(this, disease, place);
+  }
   /**
    * Make this agent immune to the given disease
    * @param disease the disease to reference

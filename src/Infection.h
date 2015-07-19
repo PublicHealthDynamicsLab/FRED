@@ -28,7 +28,7 @@ class Disease;
 class Antiviral;
 class Health;
 class IntraHost;
-class Transmission;
+// class Transmission;
 class Past_Infection;
 
 #define BIFURCATING 0
@@ -258,7 +258,7 @@ public:
    * @param infectee agent that this agent should try to infect
    * @param transmission
    */
-  void transmit(Person* infectee, Transmission &transmission);
+  //   void transmit(Person* infectee, Transmission &transmission);
   void transmit(Person* infectee, Place* place);
 
   /**
