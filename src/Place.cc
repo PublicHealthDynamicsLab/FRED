@@ -571,8 +571,8 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 
   if(r < infection_prob) {
     // successful transmission; create a new infection in infectee
-    Transmission transmission = Transmission(infector, this, day);
-    infector->infect(infectee, disease_id, transmission);
+    // Transmission transmission = Transmission(infector, this, day);
+    infector->infect(infectee, disease_id, this);
 
     FRED_VERBOSE(1, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
     FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,

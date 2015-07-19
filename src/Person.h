@@ -82,6 +82,8 @@ public:
 
   void infect(Person* infectee, int disease, Transmission &transmission);
 
+  void infect(Person* infectee, int disease_id, Place* place);
+
   /**
    * @param day the simulation day
    * @see Demographics::update(int day)

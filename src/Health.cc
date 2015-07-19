@@ -434,7 +434,66 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
       self->set_exposed_household(self->get_household()->get_index());
     }
     if(Global::Verbose > 0) {
-      if(transmission.get_infected_place() == NULL) {
+      if(new_infection->get_place() == NULL) {
+        FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),
+            disease->get_id());
+      } else {
+        FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(),
+            disease->get_id());
+      }
+    }
+    if (Global::Enable_Vector_Transmission) {
+      // special check for dengue:
+      if(this->previous_infection_serotype == -1) {
+	      // remember this infection's serotype
+	      this->previous_infection_serotype = disease_id;
+	      // after the first infection, become immune to other two serotypes.
+	      for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
+	        // if (sero == previous_infection_serotype) continue;
+	        if(sero == disease_id) {
+	          continue;
+	        }
+	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+	          this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+	      }
+      } else {
+	      // after the second infection, become immune to other two serotypes.
+	      for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
+	        if(sero == previous_infection_serotype) {
+	          continue;
+	        }
+	        if(sero == disease_id) {
+	          continue;
+	        }
+	        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+	        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+	      }
+      }
+    }
+  }
+}
+
+void Health::become_exposed(Person* self, Disease* disease, Place* place) {
+  int disease_id = disease->get_id();
+  this->infectious.reset(disease_id);
+  this->symptomatic.reset(disease_id);
+
+  Infection* new_infection = disease->get_new_infection();
+      this->infection[disease_id], transmission, self);
+  if(new_infection != NULL) { // Transmission succeeded
+    this->active_infections.set(disease_id);
+    if(this->infection[disease_id] == NULL) {
+      self->become_unsusceptible(disease);
+      disease->become_exposed(self);
+    }
+    this->infection[disease_id] = new_infection;
+    this->susceptible_date[disease_id] = -1;
+    if(self->get_household() != NULL) {
+      self->get_household()->set_exposed(disease_id);
+      self->set_exposed_household(self->get_household()->get_index());
+    }
+    if(Global::Verbose > 0) {
+      if(new_infection->get_place() == NULL) {
         FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),
             disease->get_id());
       } else {
@@ -967,6 +1026,20 @@ void Health::infect(Person* self, Person* infectee, int disease_id,
   // and expose infectee]
   Disease* disease = Global::Diseases.get_disease(disease_id);
   this->infection[disease_id]->transmit(infectee, transmission);
+
+#pragma omp atomic
+  ++(this->infectee_count[disease_id]);
+
+  disease->increment_cohort_infectee_count(
+      this->infection[disease_id]->get_exposure_date());
+
+  FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
+      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
+}
+
+void Health::infect(Person* self, Person* infectee, int disease_id, Place* place) {
+  Disease* disease = Global::Diseases.get_disease(disease_id);
+  this->infection[disease_id]->transmit(infectee, place);
 
 #pragma omp atomic
   ++(this->infectee_count[disease_id]);

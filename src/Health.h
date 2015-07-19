@@ -400,6 +400,8 @@ public:
   void infect(Person* self, Person* infectee, int disease_id,
       Transmission &transmission);
 
+  void infect(Person* self, Person* infectee, int disease_id, Place* place);
+
   /**
    * @param disease pointer to a Disease object
    * @param transmission pointer to a Transmission object

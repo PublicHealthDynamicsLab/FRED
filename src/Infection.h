@@ -259,6 +259,7 @@ public:
    * @param transmission
    */
   void transmit(Person* infectee, Transmission &transmission);
+  void transmit(Person* infectee, Place* place);
 
   /**
    * @param transmission a Transmission to add
@@ -310,6 +311,10 @@ public:
 
   bool is_fatal() {
     return this->infection_is_fatal_today;
+  }
+
+  Place * get_place() {
+    return place;
   }
 
 private:

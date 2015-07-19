@@ -126,6 +126,10 @@ void Person::infect(Person* infectee, int disease, Transmission &transmission) {
   this->health.infect(this, infectee, disease, transmission);
 }
 
+void Person::infect(Person* infectee, int disease_id, Place* plac)
+  this->health.infect(this, infectee, disease_id, place);
+}
+
 Person* Person::give_birth(int day) {
   int age = 0;
   char sex = (Random::draw_random(0.0, 1.0) < 0.5 ? 'M' : 'F');
