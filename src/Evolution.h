@@ -28,19 +28,8 @@ class Regional_Layer;
 class Evolution {
 public:
   virtual void setup( Disease * disease );
-
-  /**
-   * Put this object back to its original state
-   */
-  virtual void reset(int reset);
-
-  virtual double residual_immunity(Person *person, int challenge_strain, int day);
-
-  /**
-   * @param infection a pointer to an Infection object
-   * @param loads a pointer to a map of viral loads
-   */
   virtual Infection *transmit(Infection *infection, Transmission & transmission, Person *infectee);
+  virtual double residual_immunity(Person *person, int challenge_strain, int day);
 
   /**
    * @param av a pointer to an Antiviral object
@@ -64,9 +53,6 @@ public:
    */
   virtual Transmission::Loads * get_primary_loads(int day, int strain);
 
-  /**
-   * Print out information about this object
-   */
   virtual void print();
   
   virtual void update( int day ) { }

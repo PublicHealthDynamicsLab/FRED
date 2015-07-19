@@ -45,10 +45,6 @@
 #define FRED_STRING_SIZE 256
 #define FRED_FIPS_LIST_SIZE 1000
 
-#if SQLITE
-class DB;
-#endif
-
 class Population;
 class Disease_List;
 class Place_List;
@@ -188,7 +184,6 @@ class Global {
     static int Rotate_start_date;
     static int Quality_control;
     static int RR_delay;
-    static int StrainEvolution;
     static char Prevfilebase[];
     static char Incfilebase[];
     static char Immunityfilebase[];
@@ -198,10 +193,6 @@ class Global {
     static char FIPS_code[];
     //added for cbsa
     static char MSA_code[];
-
-#if SQLITE
-    static char DBfile[];
-#endif
 
     static char ErrorLogbase[];
     static bool Enable_Behaviors;
@@ -286,10 +277,6 @@ class Global {
     static Tracker<long int>* Tract_Tracker;
     static Tracker<int>* Income_Category_Tracker;
     static int Popsize_by_age[];
-
-#if SQLITE
-    static DB db;
-#endif
 
     // global file pointers
     static FILE* Statusfp;

@@ -23,20 +23,14 @@
 class Person;
 class Place;
 
+typedef std::map< int, double > Loads; 
 
 class Transmission {
   public:
 
-    // used to initialize trajectories, be careful!
-    // will be deleted on destruction of Transmission
-    // TODO this is not a good way to handle this.  Need to
-    // look over Anuroop's code and come up with a better way
-    typedef std::map< int, double > Loads; 
-
     // if primary transmission, infector and place are null.
     // if mutation, place is null.
     Transmission(Person *infector, Place *place, int day) : infector(infector), place(place), exposure_date(day) { 
-      force_success = false;
     }
     ~Transmission() {
       initialLoads->clear();
@@ -85,20 +79,10 @@ class Transmission {
       return exposure_date;
     }
 
-    bool get_forcing() {
-      return force_success;
-    }
-
-    void set_forcing(bool force_success) {
-      this->force_success = force_success;
-    }
-    
   private:
     Person *infector;
     Place *place;
     int exposure_date;
-    bool force_success;
-
     Loads * initialLoads;
   };
 

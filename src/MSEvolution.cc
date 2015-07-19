@@ -157,20 +157,13 @@ double MSEvolution::get_prob_taking( Person * infectee, int new_strain, double q
   return probTaking;
 }
 
-Infection * MSEvolution::transmit( Infection * infection,
-    Transmission & transmission, Person * infectee ) {
-
+Infection * MSEvolution::transmit( Infection * infection, Transmission & transmission, Person * infectee ) {
   int day = transmission.get_exposure_date();
-  
   Transmission::Loads * loads = transmission.get_initial_loads();
 
-  bool force = transmission.get_forcing();
   Transmission::Loads::iterator it;
-  
   for ( it = loads->begin(); it != loads->end(); ) {
-    
-    double trans = force ? 1.0 : get_prob_taking( infectee, it->first, it->second, day );
-    
+    double trans = get_prob_taking( infectee, it->first, it->second, day );
     if ( Random::draw_random() <= trans ) {
       it++;
     }

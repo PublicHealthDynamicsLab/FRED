@@ -21,10 +21,6 @@
 #include "Disease_List.h"
 #include "Place_List.h"
 
-#if SQLITE
-#include "DB.h"
-#endif
-
 // global simulation variables
 char Global::Simulation_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
@@ -43,7 +39,6 @@ int Global::Trace_Headers = 0;
 int Global::Rotate_start_date = 0;
 int Global::Quality_control = 0;
 int Global::RR_delay = 0;
-int Global::StrainEvolution = 0;
 int Global::Track_infection_events = 0;
 char Global::Prevfilebase[FRED_STRING_SIZE];
 char Global::Incfilebase[FRED_STRING_SIZE];
@@ -54,9 +49,6 @@ char Global::US_state[FRED_STRING_SIZE];
 char Global::FIPS_code[FRED_STRING_SIZE];
 //added for cbsa
 char Global::MSA_code[FRED_STRING_SIZE];
-#if SQLITE
-char Global::DBfile[FRED_STRING_SIZE];
-#endif
 
 char Global::ErrorLogbase[FRED_STRING_SIZE];
 bool Global::Enable_Behaviors = false;
@@ -145,10 +137,6 @@ Tracker<int>* Global::Daily_Tracker = NULL;
 Tracker<long int>* Global::Tract_Tracker = NULL;
 Tracker<int>* Global::Income_Category_Tracker = NULL;
 
-#if SQLITE
-DB Global::db;
-#endif
-
 // global file pointers
 FILE* Global::Statusfp = NULL;
 FILE* Global::Outfp = NULL;
@@ -188,11 +176,6 @@ void Global::get_global_parameters() {
   Params::get_param_from_string("seasonality_timestep_file", Global::Seasonality_Timestep);
   Params::get_param_from_string("work_absenteeism", &Global::Work_absenteeism);
   Params::get_param_from_string("school_absenteeism", &Global::School_absenteeism);
-
-#if SQLITE
-  // this is the default, global sqlite3 database file.  Overwritten by default.
-  Params::get_param_from_string("dbfile", Global::DBfile);
-#endif
 
   //Set all of the boolean flags
   int temp_int = 0;

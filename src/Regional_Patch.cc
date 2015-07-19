@@ -129,16 +129,6 @@ void Regional_Patch::unenroll(Person* per) {
 }
 
 
-#if SQLITE
-
-Transaction* Regional_Patch::collect_patch_stats(int day, int disease_id) {
-  Patch_Report* report = new Patch_Report(day, this->id, disease_id);
-  report->collect(this->person);
-  return report;
-}
-
-#endif
-
 Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   // printf("get_workplace_near_place entered\n"); print(); fflush(stdout);
   double x = Geo::get_x(place->get_longitude());

@@ -39,10 +39,6 @@
 #include "Tracker.h"
 class Place;
 
-#if SQLITE
-#include "DB.h"
-#endif
-
 #ifndef __CYGWIN__
 #include "execinfo.h"
 #endif /* __CYGWIN__ */
@@ -105,10 +101,6 @@ void fred_setup(int argc, char* argv[]) {
 
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
-
-#if SQLITE
-  Global::db.open_database(Global::DBfile);
-#endif 
 
   // initialize masks in Global::Pop
   Global::Pop.initialize_masks();
@@ -446,12 +438,6 @@ void fred_step(int day) {
       // flush infections file buffer
       fflush(Global::Infectionfp);
     }
-#pragma omp section
-    {
-#if SQLITE
-      Global::db.process_transactions();
-#endif
-    }
   }
 
   // print daily reports
@@ -467,9 +453,6 @@ void fred_step(int day) {
 
 void fred_finish() {
   //Global::Daily_Tracker->create_full_log(10,cout);
-#if SQLITE
-  Global::db.close_database();
-#endif
   fflush(Global::Infectionfp);
   
   // final reports

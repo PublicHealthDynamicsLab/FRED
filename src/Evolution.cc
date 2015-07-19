@@ -88,7 +88,6 @@ void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day
 }
 
 void Evolution::print() {}
-void Evolution::reset(int run) {}
 
 Transmission::Loads * Evolution::get_primary_loads(int day) {
   Transmission::Loads *loads = new Transmission::Loads;

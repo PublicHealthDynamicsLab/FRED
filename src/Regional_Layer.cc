@@ -236,19 +236,6 @@ void Regional_Layer::read_max_popsize() {
   }
 }
 
-void Regional_Layer::report_grid_stats(int day) {
-#if SQLITE
-  for(int dis = 0; dis < Global::Diseases.get_number_of_diseases(); ++dis) {
-#pragma omp parallel for schedule(runtime)
-    for(int r = 0; r < get_rows(); ++r) {
-      for(int c = 0; c < get_cols(); ++c) {
-        Global::db.enqueue_transaction(this->grid[r][c].collect_patch_stats(day, dis));
-      }
-    }
-  }
-#endif
-}
-
 void Regional_Layer::add_workplace(Place* place) {
   Regional_Patch* patch = this->get_patch(place);
   if(patch != NULL) {
