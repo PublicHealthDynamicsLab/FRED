@@ -29,6 +29,7 @@ class HIV_IntraHost : public IntraHost {
     ~HIV_IntraHost();
 
     void setup(Disease *disease);
+    Trajectory* get_trajectory(int age) { return NULL; };
     Trajectory * get_trajectory( Infection *infection, Transmission::Loads * loads ) {
       return NULL;
     }

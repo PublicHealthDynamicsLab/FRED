@@ -321,6 +321,10 @@ double Disease::get_transmissibility(int strain) {
   return this->strain_table->get_transmissibility(strain);
 }
 
+Trajectory* Disease::get_trajectory(int age) {
+  return this->ihm->get_trajectory(age);
+}
+
 Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* loads) {
   return this->ihm->get_trajectory(infection, loads);
 }

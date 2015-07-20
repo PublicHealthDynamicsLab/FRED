@@ -38,16 +38,9 @@ class Trajectory;
 class RSAIntraHost : public IntraHost {
 
   public:
-    RSAIntraHost();
+  Trajectory * get_trajectory( Infection * infection, Transmission::Loads * loads );
+  RSAIntraHost();
 
-    /**
-     * Get the infection Trajectory
-     *
-     * @param infection
-     * @param loads
-     * @return a pointer to a Trajectory object
-     */
-    Trajectory * get_trajectory( Infection * infection, Transmission::Loads * loads );
     /**
      * Set the attributes for the IntraHost
      *

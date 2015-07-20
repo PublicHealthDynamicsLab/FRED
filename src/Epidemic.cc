@@ -40,7 +40,6 @@ using namespace std;
 #include "School.h"
 #include "Seasonality.h"
 #include "Tracker.h"
-#include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
 #include "Workplace.h"
@@ -1524,20 +1523,26 @@ void Epidemic::get_imported_infections(int day) {
 	if(imported_cases_remaining <= people.size()) {
 	  // we have at least the minimum number of candidates.
 	  for(int n = 0; n < imported_cases_remaining; ++n) {
+	    FRED_VERBOSE(0, "IMPORT candidate %d id people.size %d\n", n, (int)people.size());
+
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
+	    FRED_VERBOSE(0, "IMPORT candidate %d id pos %d\n", n, pos);
 	    Person* infectee = people[pos];
 	    people[pos] = people[people.size() - 1];
 	    people.pop_back();
 
 	    // infect the candidate
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    FRED_VERBOSE(0, "IMPORT candidate %d id %d\n", n, infectee->get_id());
 	    infectee->become_exposed(this->id, NULL, NULL, day);
+	    FRED_VERBOSE(0, "IMPORT become exposed is done\n");
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
+	    FRED_VERBOSE(0, "IMPORT if is done\n");
 	    imported_cases++;
+	    FRED_VERBOSE(0, "IMPORT imported_cases = %d n = %d rem = %d\n", imported_cases, n, imported_cases_remaining);
+	    FRED_VERBOSE(0, "IMPORT size = %d\n", (int)people.size());
 	  }
 	  FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
 	  return; // success!
@@ -1545,8 +1550,6 @@ void Epidemic::get_imported_infections(int day) {
 	  // infect all the candidates
 	  for(int n = 0; n < people.size(); ++n) {
 	    Person* infectee = people[n];
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
 	    infectee->become_exposed(this->id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);

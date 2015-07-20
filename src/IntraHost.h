@@ -50,7 +50,7 @@ class IntraHost {
      * @param loads
      * @return a pointer to a Trajectory object
      */
-    virtual Trajectory * get_trajectory( Infection *infection, Transmission::Loads * loads ) = 0;
+    virtual Trajectory * get_trajectory(int age) { return NULL; };
 
     /**
      * @return the days symptomatic

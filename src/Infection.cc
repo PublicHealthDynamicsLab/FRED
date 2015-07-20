@@ -83,6 +83,9 @@ Infection::Infection(Disease* disease, Person* infector, Person* host, Place* pl
 
   // Determine if this infection produces an immune response
   this->immune_response = disease->gen_immunity_infection(host->get_real_age());
+
+  this->trajectory = disease->get_trajectory(host->get_age());
+  determine_transition_dates();
 }
 
 Infection::~Infection() {
@@ -90,7 +93,6 @@ Infection::~Infection() {
 }
 
 void Infection::determine_transition_dates() {
-  // returns the first date that the agent changes state
   bool was_latent = true;
   bool was_incubating = true;
 

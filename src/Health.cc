@@ -420,6 +420,8 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
 
   Disease *disease = Global::Diseases.get_disease(disease_id);
   Infection* new_infection = new Infection(disease, infector, self, place, day);
+  new_infection->report_infection(day);
+
   this->active_infections.set(disease_id);
   if(this->infection[disease_id] == NULL) {
     self->become_unsusceptible(disease);
@@ -468,6 +470,7 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
       }
     }
   }
+  FRED_VERBOSE(0,"become_exposed completed\n");
 }
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {
@@ -966,7 +969,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Place* place
   Disease* disease = Global::Diseases.get_disease(disease_id);
   disease->increment_cohort_infectee_count(day);
 
-  FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
+  FRED_STATUS(0, "person %d infected person %d infectees = %d\n",
       self->get_id(), infectee->get_id(), infectee_count[disease_id]);
 }
 

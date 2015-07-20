@@ -34,6 +34,8 @@ class Past_Infection;
 #define BIFURCATING 0
 #define SEQUENTIAL 1
 
+typedef map<int,double> viral_load_t;
+
 class Infection {
 
   // thresholds used by determine_transition_dates()
@@ -201,6 +203,10 @@ public:
     return place;
   }
 
+  double get_load_for_strain(int strain) {
+    return loads[strain];
+  }
+
 private:
   // associated disease
   Disease* disease;
@@ -244,8 +250,11 @@ private:
   double infectivity_multp;
   double symptoms;
 
-  // trajectory contains vectors that describe the (tentative) infection course
+  // trajectory contains vectors that describe the (tentative) infectivity and symptoms for each day of the infection's course
   Trajectory* trajectory;
+
+  // viral loads by strain
+  double loads[1];
 
   void determine_transition_dates();
 

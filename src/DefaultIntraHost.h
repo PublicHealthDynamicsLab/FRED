@@ -15,79 +15,32 @@
 #include <vector>
 #include <map>
 
-#include "IntraHost.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Transmission.h"
 #include "Age_Map.h"
+#include "Intrahost.h"
 
 class Infection;
 class Trajectory;
+class Transmission;
 
 class DefaultIntraHost : public IntraHost {
-    // TODO Move reqd stuff from disease to here
   public:
     DefaultIntraHost();
     ~DefaultIntraHost();
-
-    /**
-     * Get the infection Trajectory
-     *
-     * @param infection
-     * @param loads
-     * @return a pointer to a Trajectory object
-     */
-    Trajectory * get_trajectory( Infection * infection, Transmission::Loads * loads );
-
-    /**
-     * Set the attributes for the IntraHost
-     *
-     * @param dis the disease to which this IntraHost model is associated
-     */
+    Trajectory * get_trajectory(int age);
     void setup(Disease *disease);
-
-    /**
-     * @return this intrahost model's days latent
-     */
     int get_days_latent();
-
-    /**
-     * @return this intrahost model's days asymptomatic
-     */
     int get_days_asymp();
-
-    /**
-     * @return this intrahost model's days symptomatic
-     */
     int get_days_symp();
-
-    /**
-     * @return this intrahost model's days susceptible
-     */
     int get_days_susceptible();
-
-    /**
-     * @return if infectee will become symptomatic
-     */
     int will_have_symptoms(int age);
-
-    /**
-     * @return the infectivity if asymptomatic
-     */
     double get_asymp_infectivity() {
       return asymp_infectivity;
     }
 
-    /**
-     * @return the infectivity if symptomatic
-     */
     double get_symp_infectivity() {
       return symp_infectivity;
     }
 
-    /**
-     * @return the prob_symptomatic
-     */
     double get_prob_symptomatic() {
       return prob_symptomatic;
     }
@@ -101,9 +54,6 @@ class DefaultIntraHost : public IntraHost {
       }
     }
 
-    /**
-     * @return the infection_model
-     */
     int get_infection_model() {
       return infection_model;
     }

@@ -28,6 +28,7 @@
 #include "Transmission.h"
 
 typedef std::vector<double> trajectory_t;
+typedef map<int,double> viral_load_t;
 
 class Trajectory {
   public:

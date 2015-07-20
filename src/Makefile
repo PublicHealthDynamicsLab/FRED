@@ -136,8 +136,9 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 AGENT_MODULE = Person.o Population.o Activities.o Behavior.o \
 	Demographics.o Health.o Intention.o Perceptions.o Travel.o 
 
-DISEASE_MODULE = Disease.o Disease_List.o Infection.o Epidemic.o Trajectory.o \
-	Past_Infection.o Strain.o StrainTable.o \
+DISEASE_MODULE = Disease.o Disease_List.o Strain.o StrainTable.o \
+	Infection.o Trajectory.o \
+	Epidemic.o Past_Infection.o \
 	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o \
 	# ODEIntraHost.o ODE.o
 
