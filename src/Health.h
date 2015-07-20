@@ -390,30 +390,11 @@ public:
    */
   bool is_on_av_for_disease(int day, int disease_id) const;
 
-  /**
-   * Infect an agent with a disease
-   *
-   * @param infectee a pointer to the Person that this agent is trying to infect
-   * @param disease the disease with which to infect the Person
-   * @param transmission a pointer to a Transmission object
-   */
-  /*
-  void infect(Person* self, Person* infectee, int disease_id,
-      Transmission &transmission);
-  */
+  void infect(Person* self, Person* infectee, int disease_id, Place* place, int day);
 
-  void infect(Person* self, Person* infectee, int disease_id, Place* place);
+  void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
 
-  /**
-   * @param disease pointer to a Disease object
-   * @param transmission pointer to a Transmission object
-   */
-  /*
-  void become_exposed(Person* self, Disease* disease,
-      Transmission &transmission);
-  */
-
-  void become_exposed(Person* self, Disease* disease, Place* place);
+  void become_exposed_to_vector(Person* self, Disease* disease, Place* place);
 
   //Medication operators
   /**
@@ -614,6 +595,8 @@ public:
 
   void update_place_counts(Person* self, int day, int disease_id,
       Place* place);
+
+  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Place* place, int day);
 
   bool is_newly_infected(int day, int disease_id) {
     return day == get_exposure_date(disease_id);

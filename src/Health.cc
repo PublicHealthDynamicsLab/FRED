@@ -475,7 +475,36 @@ void Health::become_exposed(Person* self, Disease* disease, Transmission &transm
 }
 */
 
-void Health::become_exposed(Person* self, Disease* disease, Place* place) {
+void Health::become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day) {
+  this->infectious.reset(disease_id);
+  this->symptomatic.reset(disease_id);
+
+  Disease *disease = Global::Diseases.get_disease(disease_id);
+  Infection* new_infection = new Infection(disease, infector, self, place, day);
+  this->active_infections.set(disease_id);
+  if(this->infection[disease_id] == NULL) {
+    self->become_unsusceptible(disease);
+    disease->record_exposure(self);
+  }
+  this->infection[disease_id] = new_infection;
+  this->susceptible_date[disease_id] = -1;
+  if(self->get_household() != NULL) {
+    self->get_household()->set_exposed(disease_id);
+    self->set_exposed_household(self->get_household()->get_index());
+  }
+  if(Global::Verbose > 0) {
+    if(new_infection->get_place() == NULL) {
+      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),
+		  disease->get_id());
+    } else {
+      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(),
+		  disease->get_id());
+    }
+  }
+}
+
+void Health::become_exposed_to_vector(Person* self, Disease* disease, Place* place) {
+  /*
   int disease_id = disease->get_id();
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
@@ -532,6 +561,7 @@ void Health::become_exposed(Person* self, Disease* disease, Place* place) {
       }
     }
   }
+  */
 }
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {
@@ -1021,35 +1051,14 @@ int Health::get_av_start_day(int i) const {
   return (*this->av_health)[i]->get_av_start_day();
 }
 
-/*
-void Health::infect(Person* self, Person* infectee, int disease_id,
-    Transmission & transmission) {
-  // 'infect' call chain:
-  // Person::infect => Health::infect => Infection::transmit [Create transmission
-  // and expose infectee]
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  this->infection[disease_id]->transmit(infectee, transmission);
+void Health::infect(Person* self, Person* infectee, int disease_id, Place* place, int day) {
+  infectee->become_exposed(disease_id, self, place, day);
 
 #pragma omp atomic
   ++(this->infectee_count[disease_id]);
 
-  disease->increment_cohort_infectee_count(
-      this->infection[disease_id]->get_exposure_date());
-
-  FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
-      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
-}
-*/
-
-void Health::infect(Person* self, Person* infectee, int disease_id, Place* place) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
-  this->infection[disease_id]->transmit(infectee, place);
-
-#pragma omp atomic
-  ++(this->infectee_count[disease_id]);
-
-  disease->increment_cohort_infectee_count(
-      this->infection[disease_id]->get_exposure_date());
+  disease->increment_cohort_infectee_count(day);
 
   FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
       self->get_id(), infectee->get_id(), infectee_count[disease_id]);

@@ -269,7 +269,7 @@ void Epidemic::become_unsusceptible(Person* person) {
   }
 }
 
-void Epidemic::become_exposed(Person* person) {
+void Epidemic::record_exposure(Person* person) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
@@ -1526,16 +1526,16 @@ void Epidemic::get_imported_infections(int day) {
 	  for(int n = 0; n < imported_cases_remaining; ++n) {
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
-	    Person* person = people[pos];
+	    Person* infectee = people[pos];
 	    people[pos] = people[people.size() - 1];
 	    people.pop_back();
 
 	    // infect the candidate
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    person->become_exposed(this->disease, transmission);
+	    /// Transmission transmission = Transmission(NULL, NULL, day);
+	    // transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    infectee->become_exposed(disease_id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
-	      advance_seed_infection(person);
+	      advance_seed_infection(infectee);
 	    }
 	    imported_cases++;
 	  }
@@ -1544,12 +1544,12 @@ void Epidemic::get_imported_infections(int day) {
 	} else {
 	  // infect all the candidates
 	  for(int n = 0; n < people.size(); ++n) {
-	    Person* person = people[n];
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    person->become_exposed(this->disease, transmission);
+	    Person* infectee = people[n];
+	    // Transmission transmission = Transmission(NULL, NULL, day);
+	    // transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    infectee->become_exposed(disease_id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
-	      advance_seed_infection(person);
+	      advance_seed_infection(infectee);
 	    }
 	    imported_cases++;
 	  }

@@ -204,7 +204,11 @@ public:
   }
 
   void become_exposed(Person* person) {
-    this->epidemic->become_exposed(person);
+    // this->epidemic->become_exposed(person);
+  }
+
+  void record_exposure(Person* person) {
+    this->epidemic->record_exposure(person);
   }
 
   void become_infectious(Person* person) {

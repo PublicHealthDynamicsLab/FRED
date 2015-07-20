@@ -46,19 +46,8 @@ public:
     this->health.become_unsusceptible(this, disease);
   }
 
-  /**
-   * Make this agent infected by the given disease
-   * @param disease the disease to reference
-   * @param transmission the transmission event
-   */
-  /*
-  void become_exposed(Disease* disease, Transmission &transmission) {
-    this->health.become_exposed(this, disease, transmission);
-  }
-  */
-
-  void become_exposed(Disease* disease, Place* place) {
-    this->health.become_exposed(this, disease, place);
+  void become_exposed(int disease_id, Person* infector, Place* place, int day) {
+    this->health.become_exposed(this, disease_id, infector, place, day);
   }
   /**
    * Make this agent immune to the given disease
@@ -85,9 +74,13 @@ public:
 
   int addInfected(int disease, vector<int> strains);
 
-  void infect(Person* infectee, int disease, Transmission &transmission);
+  void infect(Person* infectee, int disease_id, Place* place, int day) {
+    this->health.infect(this, infectee, disease_id, place, day);
+  }
 
-  void infect(Person* infectee, int disease_id, Place* place);
+  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
+    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
+  }
 
   /**
    * @param day the simulation day

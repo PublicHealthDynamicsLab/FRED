@@ -124,25 +124,34 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 %.o : %.cc %.h
 	$(CPP) $(CPPFLAGS) $(CLANG_FLAGS) -c $< $(INCLUDES)
 
-OBJ =   Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o \
-	Geo.o Neighborhood_Layer.o Neighborhood_Patch.o Regional_Layer.o Regional_Patch.o \
-	Visualization_Layer.o Visualization_Patch.o Travel.o \
-	Decision.o Policy.o Manager.o \
+CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o $(SNAPPY_OBJ)
+
+ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
+	Neighborhood_Layer.o Neighborhood_Patch.o \
+	Regional_Layer.o Regional_Patch.o \
+	Visualization_Layer.o Visualization_Patch.o \
+	Seasonality_Timestep_Map.o Seasonality.o \
+	Vector_Layer.o Vector_Patch.o
+
+AGENT_MODULE = Person.o Population.o Activities.o Behavior.o \
+	Demographics.o Health.o Intention.o Perceptions.o Travel.o 
+
+DISEASE_MODULE = Disease.o Disease_List.o Infection.o Epidemic.o Trajectory.o \
+	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o
+
+PLACE_MODULE = Place.o Place_List.o \
+	Classroom.o Hospital.o Household.o Neighborhood.o Office.o School.o Workplace.o
+
+INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 	Antiviral.o Antivirals.o AV_Decisions.o AV_Policies.o AV_Manager.o AV_Health.o \
 	Vaccine_Health.o Vaccine_Dose.o Vaccine.o Vaccines.o \
-	Vaccine_Priority_Decisions.o Vaccine_Priority_Policies.o Vaccine_Manager.o \
-	Person.o Place.o Place_List.o Population.o \
-	Activities.o Behavior.o Demographics.o Health.o Intention.o Perceptions.o \
-	Classroom.o Hospital.o Household.o Neighborhood.o Office.o School.o Workplace.o \
-	Disease.o Disease_List.o Infection.o Epidemic.o \
-	EvolutionFactory.o Evolution.o Strain.o Trajectory.o StrainTable.o \
-	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o \
-	Abstract_Grid.o Abstract_Patch.o \
-	Seasonality_Timestep_Map.o Seasonality.o \
+	Vaccine_Priority_Decisions.o Vaccine_Priority_Policies.o Vaccine_Manager.o
+
+VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o Strain.o StrainTable.o \
 	Past_Infection.o MSEvolution.o Piecewise_Linear.o \
-	Vector_Layer.o Vector_Patch.o $(SNAPPY_OBJ) \
-	County.o
-	# ODEIntraHost.o ODE.o
+	ODEIntraHost.o ODE.o
+
+OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) # $(VIRAL_EVOLUTION_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 
@@ -162,12 +171,6 @@ Compression.o: $(SNAPPY_LIB)
 fsz: $(SNAPPY_LIB) $(SNAPPY_OBJ) Global.h fsz.cc
 	$(CPP) -o fsz $(CPPFLAGS) $(INCLUDE_FLAGS) $(SNAPPY_LDFLAGS) $(SNAPPY_OBJ) $(SNAPPY_LFLAGS) fsz.cc
 	cp fsz ../bin
-
-# The following will use the snappy library provided with the distribution (deprecated):
-# $(SNAPPY_LIB):
-#	@echo Extracting and Compiling Compression Library
-#	(cd $(SNAPPY_DIR); tar --strip-components=1 -xzvf snappy-1.0.5.tar.gz; \
-#	./configure --prefix=$(SNAPPY_DIR); make && make install)
 
 FRED_memcheck: FRED
 
