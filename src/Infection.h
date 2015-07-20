@@ -28,7 +28,7 @@ class Disease;
 class Antiviral;
 class Health;
 class IntraHost;
-// class Transmission;
+class Transmission;
 class Past_Infection;
 
 #define BIFURCATING 0
@@ -154,8 +154,6 @@ public:
     Trajectory::point point = this->trajectory->get_data_point(day);
     return point.symptomaticity;
   }
-
-  // void transmit(Person* infectee, Place* place);
 
   void setTrajectory(Trajectory* trajectory);
 

@@ -394,8 +394,6 @@ public:
 
   void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
 
-  void become_exposed_to_vector(Person* self, Disease* disease, Place* place);
-
   //Medication operators
   /**
    * Agent will take a vaccine

@@ -141,9 +141,11 @@ public:
   /**
    * @return a pointer to this Disease's Evolution attribute
    */
+  /*
   Evolution* get_evolution() {
     return this->evol;
   }
+  */
 
   /**
    * @param infection
@@ -340,7 +342,7 @@ private:
   Age_Map* infection_immunity_prob;
   StrainTable* strain_table;
   IntraHost* ihm;
-  Evolution* evol;
+  //   Evolution* evol;
 
 
   // intervention efficacies

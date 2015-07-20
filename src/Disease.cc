@@ -24,8 +24,8 @@ using namespace std;
 #include "Age_Map.h"
 #include "Disease.h"
 #include "Epidemic.h"
-#include "Evolution.h"
-#include "EvolutionFactory.h"
+// #include "Evolution.h"
+// #include "EvolutionFactory.h"
 #include "Global.h"
 #include "Health.h"
 #include "Household.h"
@@ -64,7 +64,7 @@ Disease::Disease() {
   this->seasonality_min = -1.0;
   this->seasonality_max = -1.0;
   this->symptomaticity_threshold = -1.0;
-  this->evol = NULL;
+  // this->evol = NULL;
   this->infectivity_threshold = -1.0;
   this->max_days_case_fatality_prob = -1;
   this->min_symptoms_for_case_fatality = -1.0;
@@ -91,9 +91,11 @@ Disease::~Disease() {
   delete this->strain_table;
   delete this->ihm;
 
+  /*
   if(this->evol != NULL) {
     delete this->evol;
   }
+  */
 
   if(this->case_fatality_age_factor != NULL) {
     delete this->case_fatality_age_factor;
@@ -268,10 +270,12 @@ void Disease::setup() {
   Params::get_indexed_param(this->disease_name, "symptomaticity_threshold",
       &(this->symptomaticity_threshold));
 
+  /*
   int evolType;
   Params::get_indexed_param(this->disease_name, "evolution", &evolType);
   this->evol = EvolutionFactory::newEvolution(evolType);
   this->evol->setup(this);
+  */
 
   fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
   fflush(Global::Statusfp);
@@ -322,16 +326,24 @@ Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* l
 }
 
 Transmission::Loads* Disease::get_primary_loads(int day) {
-  return this->evol->get_primary_loads(day);
+  // return this->evol->get_primary_loads(day);
+  return NULL;
 }
+
 /// @brief Overloaded to allow specification of a single strain to be used for the initial loads.
 Transmission::Loads* Disease::get_primary_loads(int day, int strain) {
-  return this->evol->get_primary_loads(day, strain);
+  // return this->evol->get_primary_loads(day, strain);
+  return NULL;
 }
 
 bool Disease::gen_immunity_infection(double real_age) {
   double prob = this->infection_immunity_prob->find_value(real_age);
   return (Random::draw_random() <= prob);
+}
+
+double Disease::calculate_climate_multiplier(double seasonality_value) {
+  return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
+      + this->seasonality_min;
 }
 
 int Disease::get_num_strain_data_elements(int strain) {
@@ -355,11 +367,6 @@ int Disease::add_strain(Strain* child_strain, double transmissibility) {
   return this->strain_table->add(child_strain, transmissibility);
 }
 
-double Disease::calculate_climate_multiplier(double seasonality_value) {
-  return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
-      + this->seasonality_min;
-}
-
 int Disease::get_num_strains() {
   return this->strain_table->get_num_strains();
 }
@@ -381,11 +388,11 @@ const Strain & Disease::get_strain(int strain_id) {
 }
 
 void Disease::initialize_evolution_reporting_grid(Regional_Layer* grid) {
-  this->evol->initialize_reporting_grid(grid);
+  // this->evol->initialize_reporting_grid(grid);
 }
 
 void Disease::init_prior_immunity() {
-  this->evol->init_prior_immunity(this);
+  // this->evol->init_prior_immunity(this);
 }
 
 bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {

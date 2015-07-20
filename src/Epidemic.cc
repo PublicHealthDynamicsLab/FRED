@@ -1531,9 +1531,9 @@ void Epidemic::get_imported_infections(int day) {
 	    people.pop_back();
 
 	    // infect the candidate
-	    /// Transmission transmission = Transmission(NULL, NULL, day);
-	    // transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    infectee->become_exposed(disease_id, NULL, NULL, day);
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    infectee->become_exposed(this->id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
@@ -1545,9 +1545,9 @@ void Epidemic::get_imported_infections(int day) {
 	  // infect all the candidates
 	  for(int n = 0; n < people.size(); ++n) {
 	    Person* infectee = people[n];
-	    // Transmission transmission = Transmission(NULL, NULL, day);
-	    // transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    infectee->become_exposed(disease_id, NULL, NULL, day);
+	    Transmission transmission = Transmission(NULL, NULL, day);
+	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
+	    infectee->become_exposed(this->id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
@@ -1672,7 +1672,7 @@ void Epidemic::update(int day) {
   this->inf_workplaces.clear();
   this->inf_offices.clear();
   this->inf_hospitals.clear();
-  this->disease->get_evolution()->update(day);
+  // this->disease->get_evolution()->update(day);
   FRED_VERBOSE(1, "epidemic update finished for disease %d day %d\n", id, day);
 }
 

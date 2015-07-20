@@ -137,7 +137,10 @@ AGENT_MODULE = Person.o Population.o Activities.o Behavior.o \
 	Demographics.o Health.o Intention.o Perceptions.o Travel.o 
 
 DISEASE_MODULE = Disease.o Disease_List.o Infection.o Epidemic.o Trajectory.o \
-	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o
+	Past_Infection.o Strain.o StrainTable.o \
+	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o \
+	# ODEIntraHost.o ODE.o
+
 
 PLACE_MODULE = Place.o Place_List.o \
 	Classroom.o Hospital.o Household.o Neighborhood.o Office.o School.o Workplace.o
@@ -147,9 +150,7 @@ INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 	Vaccine_Health.o Vaccine_Dose.o Vaccine.o Vaccines.o \
 	Vaccine_Priority_Decisions.o Vaccine_Priority_Policies.o Vaccine_Manager.o
 
-VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o Strain.o StrainTable.o \
-	Past_Infection.o MSEvolution.o Piecewise_Linear.o \
-	ODEIntraHost.o ODE.o
+VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
 
 OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) # $(VIRAL_EVOLUTION_MODULE) 
 

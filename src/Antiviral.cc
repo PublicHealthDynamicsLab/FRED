@@ -164,8 +164,8 @@ void Antiviral::effect(Health *health, int cur_day, AV_Health* av_health) {
   for (int is = 0; is < Global::Diseases.get_number_of_diseases(); is++) {
     if(is == disease) { //Is this antiviral applicable to this disease
       Disease *dis = Global::Diseases.get_disease(is);
-      Evolution *evol = dis->get_evolution();
-      evol->avEffect(this, health, disease, cur_day, av_health);
+      // Evolution *evol = dis->get_evolution();
+      // evol->avEffect(this, health, disease, cur_day, av_health);
     }
   }
 }

@@ -306,22 +306,6 @@ void Infection::print() const {
       this->infectivity, this->infectivity_multp, this->symptoms);
 }
 
-  /*
-void Infection::transmit(Person* infectee, Transmission &transmission) {
-  int day = transmission.get_exposure_date() - this->exposure_date;
-  Transmission::Loads* loads = this->trajectory->getInoculum(day);
-  transmission.set_initial_loads(loads);
-  infectee->become_exposed(this->disease, transmission);
-}
-
-void Infection::transmit(Person* infectee, Place * place) {
-  int day = Global::Simulation_Day - this->exposure_date;
-  Transmission::Loads* loads = this->trajectory->getInoculum(day);
-  // transmission.set_initial_loads(loads);
-  infectee->become_exposed(this->disease, place);
-}
-  */
-
 void Infection::setTrajectory(Trajectory* _trajectory) {
   this->trajectory = _trajectory;
   determine_transition_dates();

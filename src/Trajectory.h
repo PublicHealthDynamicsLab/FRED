@@ -25,7 +25,7 @@
 #include <string>
 #include <fstream>
 
-// #include "Transmission.h"
+#include "Transmission.h"
 
 typedef std::vector<double> trajectory_t;
 
@@ -55,7 +55,7 @@ class Trajectory {
     void set_infectivity_trajectory(int strain, trajectory_t vlt);
     void set_infectivities(std::map<int, trajectory_t > inf);
 
-  // Transmission::Loads * get_current_loads( int day );
+    Transmission::Loads * get_current_loads( int day );
 
     int get_duration() {
       return duration;
