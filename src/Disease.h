@@ -210,8 +210,8 @@ public:
     // this->epidemic->become_exposed(person);
   }
 
-  void record_exposure(Person* person) {
-    this->epidemic->record_exposure(person);
+  void record_exposure(Person* person, int day) {
+    this->epidemic->record_exposure(person, day);
   }
 
   void become_infectious(Person* person) {

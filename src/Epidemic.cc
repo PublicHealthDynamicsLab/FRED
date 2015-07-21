@@ -268,7 +268,7 @@ void Epidemic::become_unsusceptible(Person* person) {
   }
 }
 
-void Epidemic::record_exposure(Person* person) {
+void Epidemic::record_exposure(Person* person, int day) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
@@ -1527,22 +1527,16 @@ void Epidemic::get_imported_infections(int day) {
 
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
-	    FRED_VERBOSE(0, "IMPORT candidate %d id pos %d\n", n, pos);
 	    Person* infectee = people[pos];
 	    people[pos] = people[people.size() - 1];
 	    people.pop_back();
 
 	    // infect the candidate
-	    FRED_VERBOSE(0, "IMPORT candidate %d id %d\n", n, infectee->get_id());
 	    infectee->become_exposed(this->id, NULL, NULL, day);
-	    FRED_VERBOSE(0, "IMPORT become exposed is done\n");
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
-	    FRED_VERBOSE(0, "IMPORT if is done\n");
 	    imported_cases++;
-	    FRED_VERBOSE(0, "IMPORT imported_cases = %d n = %d rem = %d\n", imported_cases, n, imported_cases_remaining);
-	    FRED_VERBOSE(0, "IMPORT size = %d\n", (int)people.size());
 	  }
 	  FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
 	  return; // success!

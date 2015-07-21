@@ -423,17 +423,17 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   Disease *disease = Global::Diseases.get_disease(disease_id);
-  Infection* new_infection = new Infection(disease, infector, self, place, day);
-  new_infection->report_infection(day);
+  this->infection[disease_id] = new Infection(disease, infector, self, place, day);
+  this->infection[disease_id]->report_infection(day);
   this->active_infections.set(disease_id);
   self->become_unsusceptible(disease);
-  disease->record_exposure(self);
-  this->infection[disease_id] = new_infection;
   this->susceptible_date[disease_id] = -1;
   if(self->get_household() != NULL) {
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
   }
+  disease->record_exposure(self, day);
+
   if(Global::Verbose > 0) {
     if(place == NULL) {
       FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease->get_id());
@@ -963,12 +963,14 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Place* place
 
 #pragma omp atomic
   ++(this->infectee_count[disease_id]);
-
+  
+  int exp_day = this->get_exposure_date(disease_id);
+  assert(0 <= exp_day);
   Disease* disease = Global::Diseases.get_disease(disease_id);
-  disease->increment_cohort_infectee_count(day);
+  disease->increment_cohort_infectee_count(exp_day);
 
-  FRED_STATUS(0, "person %d infected person %d infectees = %d\n",
-      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
+  FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
+	      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
 }
 
 void Health::update_place_counts(Person* self, int day, int disease_id, Place* place) {
