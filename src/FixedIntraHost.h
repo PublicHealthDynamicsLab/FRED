@@ -13,14 +13,11 @@
 #define _FRED_FIXED_IntraHost_H
 
 #include <vector>
-#include <map>
-
 #include "IntraHost.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Transmission.h"
 
-class Infection;
+using namespace std;
+
+class Disease;
 class Trajectory;
 
 class FixedIntraHost : public IntraHost {
@@ -29,11 +26,9 @@ class FixedIntraHost : public IntraHost {
     /**
      * Get the infection Trajectory
      *
-     * @param infection
-     * @param loads
      * @return a pointer to a Trajectory object
      */
-    Trajectory* get_trajectory( Infection *infection, Transmission::Loads * loads );
+  Trajectory* get_trajectory( );
 
     /**
      * Set the attributes for the IntraHost

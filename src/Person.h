@@ -24,7 +24,6 @@ class Household;
 class Disease;
 class Infection;
 class Population;
-// class Transmission;
 
 #include "Demographics.h"
 #include "Health.h"

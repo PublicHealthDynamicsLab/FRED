@@ -32,7 +32,7 @@ class ODEIntraHost : public IntraHost {
     // TODO set all initial values
 
   public:
-  Trajectory* get_trajectory( Infection *infection, Transmission::Loads * loads );
+  Trajectory* get_trajectory();
     void setup(Disease *disease);
     int get_days_symp() {
       return 1;  // TODO

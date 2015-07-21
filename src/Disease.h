@@ -24,7 +24,6 @@ using namespace std;
 
 #include "Epidemic.h"
 #include "Global.h"
-#include "Transmission.h"
 
 class Age_Map;
 class Evolution;
@@ -36,11 +35,9 @@ class Strain_Data;
 class StrainTable;
 class Trajectory;
 
+
 class Disease {
 public:
-
-
- 
 
   /**
    * Default constructor
@@ -125,35 +122,13 @@ public:
   }
 
   /**
-   * @param the simulation day
-   * @return a pointer to a map of Primary Loads for a given day
-   * @see Evolution::get_primary_loads(int day)
-   */
-  Transmission::Loads* get_primary_loads(int day);
-
-  /**
-   * @param the simulation day
-   * @param the particular strain of the disease
-   * @return a pointer to a map of Primary Loads for a particular strain of the disease on a given day
-   * @see Evolution::get_primary_loads(int day, int strain)
-   */
-  Transmission::Loads* get_primary_loads(int day, int strain);
-
-  /**
    * @return a pointer to this Disease's Evolution attribute
    */
   Evolution* get_evolution() {
     return this->evol;
   }
 
-  /**
-   * @param infection
-   * @param loads
-   * @return a pointer to a Trajectory object
-   * @see return Trajectory::get_trajectory(Infection* infection, map<int, double>* loads)
-   */
   Trajectory* get_trajectory(int age);
-  // Trajectory* get_trajectory(Infection* infection, Transmission::Loads* loads);
 
   /**
    * Add a person to the Epidemic's infectious place list
@@ -203,10 +178,6 @@ public:
 
   void become_unsusceptible(Person* person) {
     this->epidemic->become_unsusceptible(person);
-  }
-
-  void become_exposed(Person* person) {
-    // this->epidemic->become_exposed(person);
   }
 
   void record_exposure(Person* person, int day) {

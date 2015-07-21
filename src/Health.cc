@@ -33,7 +33,6 @@
 #include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
-// #include "Transmission.h"
 #include "Utils.h"
 #include "Vaccine.h"
 #include "Vaccine_Dose.h"

@@ -25,10 +25,8 @@
 #include <string>
 #include <fstream>
 
-#include "Transmission.h"
-
 typedef std::vector<double> trajectory_t;
-typedef map<int,double> viral_load_t;
+typedef std::map<int,double> viral_load_t;
 
 class Trajectory {
   public:
@@ -56,7 +54,11 @@ class Trajectory {
     void set_infectivity_trajectory(int strain, trajectory_t vlt);
     void set_infectivities(std::map<int, trajectory_t > inf);
 
-    Transmission::Loads * get_current_loads( int day );
+  viral_load_t * get_current_loads(int day);
+  
+  viral_load_t * getInoculum(int day) { 
+    return get_current_loads(day); 
+  }
 
     int get_duration() {
       return duration;
@@ -105,7 +107,6 @@ class Trajectory {
 
 
     //void calculate_aggregate_infectivity();
-    std::map<int, double> * getInoculum(int day);
     void modify_symp_period(int startDate, int days_left);
     void modify_asymp_period(int startDate, int days_left, int sympDate);
     void modify_develops_symp(int sympDate, int sympPeriod);

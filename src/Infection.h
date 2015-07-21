@@ -28,7 +28,6 @@ class Disease;
 class Antiviral;
 class Health;
 class IntraHost;
-class Transmission;
 class Past_Infection;
 
 #define BIFURCATING 0

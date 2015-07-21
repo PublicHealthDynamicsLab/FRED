@@ -30,7 +30,6 @@
 #include "IntraHost.h"
 #include "Infection.h"
 #include "Trajectory.h"
-#include "Transmission.h"
 
 class Infection;
 class Trajectory;
@@ -38,7 +37,7 @@ class Trajectory;
 class RSAIntraHost : public IntraHost {
 
   public:
-  Trajectory * get_trajectory( Infection * infection, Transmission::Loads * loads );
+  Trajectory * get_trajectory(double real_age);
   RSAIntraHost();
 
     /**

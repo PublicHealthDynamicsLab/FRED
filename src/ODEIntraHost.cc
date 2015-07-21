@@ -11,7 +11,6 @@
 
 
 #include "ODEIntraHost.h"
-#include "Infection.h"
 #include "Trajectory.h"
 #include "ODE.h"
 #include "Random.h"
@@ -69,7 +68,7 @@ vector<double> ODEIntraHost::get_symptomaticity(double *interferon, int duration
   return symptomaticity;
   }
 
-Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double> *loads) {
+Trajectory *ODEIntraHost :: get_trajectory() {
   /*  if(! initialized){
       initialize();
       initialized = true;
@@ -80,6 +79,13 @@ Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double
 
   // set indices to strains
   int indices[numStrains];
+
+  Loads* loads;
+  loads = new Loads;
+  loads->clear();
+  loads->insert( pair<int, double> (1, 1.0) );
+
+  Trajectory * trajectory = new Trajectory();
 
   map<int, double> :: iterator it = loads->begin();
 

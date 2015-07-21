@@ -39,7 +39,6 @@ using namespace std;
 #include "Strain.h"
 #include "StrainTable.h"
 #include "Timestep_Map.h"
-#include "Transmission.h"
 
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
@@ -319,23 +318,6 @@ double Disease::get_transmissibility(int strain) {
 
 Trajectory* Disease::get_trajectory(int age) {
   return this->ihm->get_trajectory(age);
-}
-
-/*
-Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* loads) {
-  // return this->ihm->get_trajectory(infection, loads);
-}
-*/
-
-Transmission::Loads* Disease::get_primary_loads(int day) {
-  // return this->evol->get_primary_loads(day);
-  return NULL;
-}
-
-/// @brief Overloaded to allow specification of a single strain to be used for the initial loads.
-Transmission::Loads* Disease::get_primary_loads(int day, int strain) {
-  // return this->evol->get_primary_loads(day, strain);
-  return NULL;
 }
 
 bool Disease::gen_immunity_infection(double real_age) {

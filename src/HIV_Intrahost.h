@@ -12,46 +12,33 @@
 #ifndef _FRED_HIV_IntraHost_H
 #define _FRED_HIV_IntraHost_H
 
-#include <vector>
-#include <map>
-
 #include "IntraHost.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Transmission.h"
-
-class Infection;
-class Trajectory;
 
 class HIV_IntraHost : public IntraHost {
-  public:
-    HIV_IntraHost();
-    ~HIV_IntraHost();
+public:
+  HIV_IntraHost();
+  ~HIV_IntraHost();
 
-    void setup(Disease *disease);
-    Trajectory* get_trajectory(int age) { return NULL; };
-    Trajectory * get_trajectory( Infection *infection, Transmission::Loads * loads ) {
-      return NULL;
-    }
-    int get_days_latent() { return 0; }
-    int get_days_asymp() { return 0; }
-    int get_days_symp() { return 0; }
-    int get_days_susceptible() { return 0; }
-    int get_symptoms() { return 0; }
-    double get_asymp_infectivity() {
-      return 0.0;
-    }
-    double get_symp_infectivity() {
-      return 0.0;
-    }
-    double get_prob_symptomatic() {
-      return 0.0;
-    }
-    int get_infection_model() {
-      return 0.0;
-    }
-
-  private:
-  };
+  void setup(Disease *disease);
+  int get_days_latent() { return 0; }
+  int get_days_asymp() { return 0; }
+  int get_days_symp() { return 0; }
+  int get_days_susceptible() { return 0; }
+  int get_symptoms() { return 0; }
+  double get_asymp_infectivity() {
+    return 0.0;
+  }
+  double get_symp_infectivity() {
+    return 0.0;
+  }
+  double get_prob_symptomatic() {
+    return 0.0;
+  }
+  int get_infection_model() {
+    return 0.0;
+  }
+  
+private:
+};
 
 #endif

@@ -12,7 +12,6 @@
 
 #include "Evolution.h"
 #include "Infection.h"
-#include "Transmission.h"
 #include "Trajectory.h"
 #include "Infection.h"
 #include "Global.h"
@@ -91,6 +90,7 @@ void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day
 
 void Evolution::print() {}
 
+/*
 Transmission::Loads * Evolution::get_primary_loads(int day) {
   Transmission::Loads *loads = new Transmission::Loads;
   loads->insert( pair<int, double> (1, 1) );
@@ -102,6 +102,7 @@ Transmission::Loads * Evolution::get_primary_loads(int day, int strain) {
   loads->insert( pair<int, double> (strain, 1) );
   return loads;
 }
+*/
 
 double Evolution::antigenic_diversity(Person *p1, Person *p2) {
   Infection *inf1 = p1->get_health()->get_infection(disease->get_id());

@@ -25,7 +25,6 @@
 #include "Person.h"
 #include "Piecewise_Linear.h"
 #include "Past_Infection.h"
-#include "Transmission.h"
 #include "Strain.h"
 #include "Age_Map.h"
 #include "Params.h"

@@ -10,14 +10,10 @@
 */
 
 
-#include <vector>
-#include <map>
-
 #include "FixedIntraHost.h"
-
 #include "Disease.h"
+#include "IntraHost.h"
 #include "Params.h"
-#include "Infection.h"
 #include "Trajectory.h"
 #include "Random.h"
 
@@ -48,7 +44,7 @@ void FixedIntraHost::setup(Disease *disease) {
   }
 }
 
-Trajectory * FixedIntraHost::get_trajectory( Infection * infection, Transmission::Loads * loads ) {
+Trajectory * FixedIntraHost::get_trajectory() {
   double r = Random::draw_random();
   int index = 0;
   vector<double> :: iterator it;
@@ -56,6 +52,13 @@ Trajectory * FixedIntraHost::get_trajectory( Infection * infection, Transmission
   for(it = probabilities.begin(); it != probabilities.end(); it++, index++) {
     if (r <= *it) break;
   }
+
+  Loads* loads;
+  loads = new Loads;
+  loads->clear();
+  loads->insert( pair<int, double> (1, 1.0) );
+
+  Trajectory * trajectory = new Trajectory();
 
   map<int, vector<double> > infectivities;
   map<int, double> :: iterator lit;

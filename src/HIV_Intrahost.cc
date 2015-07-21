@@ -9,15 +9,9 @@
   more information.
 */
 
-#include <vector>
-#include <map>
-
 #include "HIV_Intrahost.h"
 #include "Disease.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Params.h"
-#include "Random.h"
+#include "Intrahost.h"
 
 HIV_IntraHost::HIV_IntraHost() {
 }

@@ -23,7 +23,6 @@
 #include "Disease_List.h"
 #include "Utils.h"
 #include "Random.h"
-#include "Transmission.h"
 #include "Regional_Layer.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"

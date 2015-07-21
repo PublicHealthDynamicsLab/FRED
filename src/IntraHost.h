@@ -15,7 +15,7 @@
 #include <vector>
 #include <map>
 
-#include "Transmission.h"
+typedef std::map< int, double > Loads; 
 
 class Infection;
 class Trajectory;
@@ -50,7 +50,9 @@ class IntraHost {
      * @param loads
      * @return a pointer to a Trajectory object
      */
+    virtual Trajectory * get_trajectory() { return NULL; };
     virtual Trajectory * get_trajectory(int age) { return NULL; };
+    virtual Trajectory * get_trajectory(double real_age) { return NULL; };
 
     /**
      * @return the days symptomatic

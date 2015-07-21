@@ -22,7 +22,6 @@
 
 #include "Infection.h"
 #include "Evolution.h"
-#include "Transmission.h"
 #include "Global.h"
 #include "Person.h"
 #include "Place.h"

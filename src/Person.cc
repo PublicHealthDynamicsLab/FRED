@@ -26,7 +26,6 @@
 #include "Disease.h"
 #include "Population.h"
 #include "Age_Map.h"
-#include "Transmission.h"
 
 #include <cstdio>
 #include <vector>

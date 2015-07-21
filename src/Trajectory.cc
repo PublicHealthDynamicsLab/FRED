@@ -173,21 +173,8 @@ void Trajectory::print_alternate(stringstream &out) {
   }
 }
 
-map<int, double> *Trajectory::get_current_loads(int day) {
-  map<int, double> *infectivities = new map<int, double>;
-
-  map< int, trajectory_t > :: iterator it;
-
-  for(it = infectivity.begin(); it != infectivity.end(); it++) {
-    pair<int, double> p = pair<int, double> (it->first, (it->second)[day]);
-    infectivities->insert(p);
-  }
-
-  return infectivities;
-}
-
-map<int, double> *Trajectory::getInoculum(int day) {
-  map<int, double> *infectivities = new map<int, double>;
+viral_load_t * Trajectory::get_current_loads(int day) {
+  viral_load_t *infectivities = new viral_load_t;
 
   map< int, trajectory_t > :: iterator it;
 

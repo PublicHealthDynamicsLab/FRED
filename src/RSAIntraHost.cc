@@ -15,8 +15,8 @@
 
 #include "RSAIntraHost.h"
 #include "Disease.h"
-#include "Infection.h"
-#include "Trajectory.h"
+// #include "Infection.h"
+// #include "Trajectory.h"
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
@@ -38,13 +38,9 @@ void RSAIntraHost::setup(Disease *disease) {
   //Params::get_indexed_param("symp",id,&prob_symptomatic);
 
 }
-/* -----------------------------------------------------------------------------------*/
-Trajectory * RSAIntraHost::get_trajectory( Infection *infection, Transmission::Loads * loads ) {
-  // TODO  take loads into account - multiple strains
-  Trajectory * trajectory = new Trajectory();
-  
+
+Trajectory * RSAIntraHost::get_trajectory(double real_age) {
   double Symp_threshold = disease->get_symptomaticity_threshold();
-  double age = infection->get_host()->get_real_age();
   Params::get_param_from_string("symptoms_scaling", &symptoms_scaling );
   Params::get_param_from_string("viral_infectivity_scaling", &viral_infectivity_scaling );
   Params::get_param_from_string("days_sick",  &days_sick );
@@ -54,9 +50,16 @@ Trajectory * RSAIntraHost::get_trajectory( Infection *infection, Transmission::L
   double Vscale = viral_infectivity_scaling;
   int days_latent = 1; // Start vectors at 0.  
   
-  double d1 = get_recovery_phenotype_value(age, lower_age_bound, upper_age_bound);
+  double d1 = get_recovery_phenotype_value(real_age, lower_age_bound, upper_age_bound);
   //double d1 = random_phenotypic_value(0.5);
   double d2 = random_phenotypic_value(0.5);
+
+  Loads* loads;
+  loads = new Loads;
+  loads->clear();
+  loads->insert( pair<int, double> (1, 1.0) );
+
+  Trajectory * trajectory = new Trajectory();
 
   map<int, double> :: iterator it;
   double Sympt, Inft;
@@ -102,6 +105,8 @@ Trajectory * RSAIntraHost::get_trajectory( Infection *infection, Transmission::L
   
     return trajectory;
 }
+
+
 /* -----------------------------------------------------------------------------------*/
 /*           Sub-functions used to get trajectory:                                     */
 /* -----------------------------------------------------------------------------------*/

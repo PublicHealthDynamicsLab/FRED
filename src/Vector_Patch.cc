@@ -198,8 +198,6 @@ void Vector_Patch::transmit_to_hosts(int day) {
       if (infectee->is_susceptible(disease_id)) {
         // create a new infection in infectee
 	FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
-        Transmission transmission = Transmission(NULL, NULL, day);
-        transmission.set_initial_loads(disease->get_primary_loads(day));
         infectee->become_exposed(disease_id, NULL, NULL, day);
 
         // become unsusceptible to other diseases(?)

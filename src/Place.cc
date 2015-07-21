@@ -27,7 +27,6 @@
 #include "Person.h"
 #include "Place.h"
 #include "Seasonality.h"
-#include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
 #define PI 3.14159265359
@@ -1186,8 +1185,6 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
     if(infectee->is_susceptible(disease_id)) {
       // create a new infection in infectee
       FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
-      Transmission transmission = Transmission(NULL, NULL, day);
-      transmission.set_initial_loads(disease->get_primary_loads(day));
       infectee->become_exposed(disease_id, NULL, this, day);
 
       // become unsusceptible to other diseases(?)
