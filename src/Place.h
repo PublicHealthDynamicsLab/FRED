@@ -25,7 +25,6 @@
 using namespace std;
 
 #include "Population.h"
-#include "Random.h"
 #include "Global.h"
 #include "State.h"
 #include "Geo.h"
@@ -138,16 +137,15 @@ public:
   virtual ~Place() {}
 
   /**
-   *  Sets the id, label, logitude, latitude , container and population of this Place
+   *  Sets the id, label, logitude, latitude , container of this Place
    *  Allocates disease-related memory for this place
    *
    *  @param lab this Place's label
    *  @param lon this Place's longitude
    *  @param lat this Place's latitude
    *  @param cont this Place's container
-   *  @param pop this Place's population
    */
-  void setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop);
+  void setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont);
 
   static void initialize_static_variables();
 
@@ -517,15 +515,6 @@ public:
   }
 
   /**
-   * Get the population.
-   *
-   * @return the population
-   */
-  Population* get_population() {
-    return this->population;
-  }
-
-  /**
    * Set the type.
    *
    * @param t the new type
@@ -568,15 +557,6 @@ public:
    */
   void set_open_date(int day) {
     this->open_date = day;
-  }
-
-  /**
-   * Set the population.
-   *
-   * @param p the new population
-   */
-  void set_population(Population* p) {
-    this->population = p;
   }
 
   /**
@@ -629,26 +609,26 @@ public:
   }
 
   void add_new_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->new_infections[disease_id]++;
-    #pragma omp atomic
+#pragma omp atomic
     this->total_infections[disease_id]++;
   }
   
   void add_current_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_infections[disease_id]++;
   }
   
   void add_new_symptomatic_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->new_symptomatic_infections[disease_id]++;
-    #pragma omp atomic
+#pragma omp atomic
     this->total_symptomatic_infections[disease_id]++;
   }
   
   void add_current_symptomatic_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_symptomatic_infections[disease_id]++;
   }
   
@@ -865,11 +845,11 @@ public:
   }
   
   int get_household_fips() {
-  	return this->household_fips;
+    return this->household_fips;
   }
 
   void set_household_fips(int input_fips) {
-  	this->household_fips = input_fips;
+    this->household_fips = input_fips;
   }
   
   void set_county_index(int _county_index) {
@@ -934,7 +914,6 @@ protected:
   int county_index;
   int census_tract_index;
   
-  Population* population;
   Neighborhood_Patch* patch;       // geo patch for this place
   
   // infection stats
@@ -973,12 +952,12 @@ protected:
   }
 
   void add_infectious_visitor(int disease_id) { 
-    #pragma omp atomic
+#pragma omp atomic
     this->current_infectious_visitors[disease_id]++;
   }
   
   void add_symptomatic_visitor(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_symptomatic_visitors[disease_id]++;
   }
   

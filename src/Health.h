@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -20,6 +20,7 @@
 #include <vector>
 using namespace std;
 
+#include "Age_Map.h"
 #include "Disease.h"
 #include "Global.h"
 #include "Infection.h"
@@ -93,22 +94,22 @@ public:
     assert(idx >= 0);
     assert(idx < Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS);
     switch(idx) {
-      case Chronic_condition_index::ASTHMA:
-        return "Asthma";
-      case Chronic_condition_index::COPD:
-        return "COPD";
-      case Chronic_condition_index::CHRONIC_RENAL_DISEASE:
-        return "Chronic Renal Disease";
-      case Chronic_condition_index::DIABETES:
-        return "Diabetes";
-      case Chronic_condition_index::HEART_DISEASE:
-        return "Heart Disease";
-      case Chronic_condition_index::HYPERTENSION:
-        return "Hypertension";
-      case Chronic_condition_index::HYPERCHOLESTROLEMIA:
-        return "Hypercholestrolemia";
-      default:
-        Utils::fred_abort("Invalid Chronic Condition Type", "");
+    case Chronic_condition_index::ASTHMA:
+      return "Asthma";
+    case Chronic_condition_index::COPD:
+      return "COPD";
+    case Chronic_condition_index::CHRONIC_RENAL_DISEASE:
+      return "Chronic Renal Disease";
+    case Chronic_condition_index::DIABETES:
+      return "Diabetes";
+    case Chronic_condition_index::HEART_DISEASE:
+      return "Heart Disease";
+    case Chronic_condition_index::HYPERTENSION:
+      return "Hypertension";
+    case Chronic_condition_index::HYPERCHOLESTROLEMIA:
+      return "Hypercholestrolemia";
+    default:
+      Utils::fred_abort("Invalid Chronic Condition Type", "");
     }
     return NULL;
   }
@@ -117,22 +118,22 @@ public:
     assert(idx >= Insurance_assignment_index::PRIVATE);
     assert(idx <= Insurance_assignment_index::UNSET);
     switch(idx) {
-      case Insurance_assignment_index::PRIVATE:
-        return "Private";
-      case Insurance_assignment_index::MEDICARE:
-        return "Medicare";
-      case Insurance_assignment_index::MEDICAID:
-        return "Medicaid";
-      case Insurance_assignment_index::HIGHMARK:
-        return "Highmark";
-      case Insurance_assignment_index::UPMC:
-        return "UPMC";
-      case Insurance_assignment_index::UNINSURED:
-        return "Uninsured";
-      case Insurance_assignment_index::UNSET:
-        return "UNSET";
-      default:
-        Utils::fred_abort("Invalid Health Insurance Type", "");
+    case Insurance_assignment_index::PRIVATE:
+      return "Private";
+    case Insurance_assignment_index::MEDICARE:
+      return "Medicare";
+    case Insurance_assignment_index::MEDICAID:
+      return "Medicaid";
+    case Insurance_assignment_index::HIGHMARK:
+      return "Highmark";
+    case Insurance_assignment_index::UPMC:
+      return "UPMC";
+    case Insurance_assignment_index::UNINSURED:
+      return "Uninsured";
+    case Insurance_assignment_index::UNSET:
+      return "UNSET";
+    default:
+      Utils::fred_abort("Invalid Health Insurance Type", "");
     }
     return NULL;
   }
@@ -389,22 +390,9 @@ public:
    */
   bool is_on_av_for_disease(int day, int disease_id) const;
 
-  /**
-   * Infect an agent with a disease
-   *
-   * @param infectee a pointer to the Person that this agent is trying to infect
-   * @param disease the disease with which to infect the Person
-   * @param transmission a pointer to a Transmission object
-   */
-  void infect(Person* self, Person* infectee, int disease_id,
-      Transmission &transmission);
+  void infect(Person* self, Person* infectee, int disease_id, Place* place, int day);
 
-  /**
-   * @param disease pointer to a Disease object
-   * @param transmission pointer to a Transmission object
-   */
-  void become_exposed(Person* self, Disease* disease,
-      Transmission &transmission);
+  void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
 
   //Medication operators
   /**
@@ -600,11 +588,13 @@ public:
   //void add_past_infection(int d, Past_Infection* pi){ past_infections[d].push_back(pi); }  
   void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Disease* dis) {
     this->past_infections[dis->get_id()].push_back(
-        Past_Infection(strain_id, recovery_date, age_at_exposure));
+						   Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
 
   void update_place_counts(Person* self, int day, int disease_id,
-      Place* place);
+			   Place* place);
+
+  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Place* place, int day);
 
   bool is_newly_infected(int day, int disease_id) {
     return day == get_exposure_date(disease_id);
@@ -667,7 +657,7 @@ public:
    */
   void set_has_chronic_renal_disease(bool has_cond) {
     set_has_chronic_condition(Chronic_condition_index::CHRONIC_RENAL_DISEASE,
-        has_cond);
+			      has_cond);
   }
 
   /**
@@ -740,20 +730,20 @@ public:
 
   static Insurance_assignment_index::e get_insurance_type_from_int(int insurance_type) {
     switch(insurance_type) {
-      case 0:
-        return Insurance_assignment_index::PRIVATE;
-      case 1:
-        return Insurance_assignment_index::MEDICARE;
-      case 2:
-        return Insurance_assignment_index::MEDICAID;
-      case 3:
-        return Insurance_assignment_index::HIGHMARK;
-      case 4:
-        return Insurance_assignment_index::UPMC;
-      case 5:
-        return Insurance_assignment_index::UNINSURED;
-      default:
-        return Insurance_assignment_index::UNSET;
+    case 0:
+      return Insurance_assignment_index::PRIVATE;
+    case 1:
+      return Insurance_assignment_index::MEDICARE;
+    case 2:
+      return Insurance_assignment_index::MEDICAID;
+    case 3:
+      return Insurance_assignment_index::HIGHMARK;
+    case 4:
+      return Insurance_assignment_index::UPMC;
+    case 5:
+      return Insurance_assignment_index::UNINSURED;
+    default:
+      return Insurance_assignment_index::UNSET;
     }
   }
 
@@ -915,7 +905,7 @@ private:
     assert(cond_idx >= static_cast<int>(Chronic_condition_index::ASTHMA));
     assert(cond_idx < static_cast<int>(Chronic_condition_index::CHRONIC_MEDICAL_CONDITIONS));
     if(this->chronic_conditions_map.find(static_cast<Chronic_condition_index::e>(cond_idx))
-        != this->chronic_conditions_map.end()) {
+       != this->chronic_conditions_map.end()) {
       return this->chronic_conditions_map[static_cast<Chronic_condition_index::e>(cond_idx)];
     } else {
       return false;

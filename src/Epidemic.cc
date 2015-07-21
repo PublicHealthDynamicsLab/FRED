@@ -40,7 +40,6 @@ using namespace std;
 #include "School.h"
 #include "Seasonality.h"
 #include "Tracker.h"
-#include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
 #include "Workplace.h"
@@ -137,7 +136,7 @@ Epidemic::Epidemic(Disease* dis) {
   this->total_case_fatality_count = 0;
 
   this->place_person_list_reserve_size = 1;
-  this->daily_infections_list.reserve(this->disease->get_population()->get_pop_size());
+  this->daily_infections_list.reserve(Global::Pop.get_pop_size());
   this->daily_infections_list.clear();
 
   this->case_fatality_incidence = 0;
@@ -269,7 +268,7 @@ void Epidemic::become_unsusceptible(Person* person) {
   }
 }
 
-void Epidemic::become_exposed(Person* person) {
+void Epidemic::become_exposed(Person* person, int day) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
@@ -487,9 +486,9 @@ void Epidemic::print_stats(int day) {
 
   // set population size, and remember original pop size
   if(day == 0) {
-    this->N_init = this->N = this->disease->get_population()->get_pop_size();
+    this->N_init = this->N = Global::Pop.get_pop_size();
   } else {
-    this->N = this->disease->get_population()->get_pop_size();
+    this->N = Global::Pop.get_pop_size();
   }
 
   // get reproductive rate for the cohort exposed RR_delay days ago
@@ -1467,8 +1466,7 @@ void Epidemic::add_infectious_place(Place* place) {
 }
 
 void Epidemic::get_imported_infections(int day) {
-  Population* pop = this->disease->get_population();
-  this->N = pop->get_pop_size();
+  this->N = Global::Pop.get_pop_size();
 
   for(int i = 0; i < this->imported_cases_map.size(); ++i) {
     Time_Step_Map* tmap = this->imported_cases_map[i];
@@ -1525,18 +1523,18 @@ void Epidemic::get_imported_infections(int day) {
 	if(imported_cases_remaining <= people.size()) {
 	  // we have at least the minimum number of candidates.
 	  for(int n = 0; n < imported_cases_remaining; ++n) {
+	    FRED_VERBOSE(0, "IMPORT candidate %d id people.size %d\n", n, (int)people.size());
+
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
-	    Person* person = people[pos];
+	    Person* infectee = people[pos];
 	    people[pos] = people[people.size() - 1];
 	    people.pop_back();
 
 	    // infect the candidate
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    person->become_exposed(this->disease, transmission);
+	    infectee->become_exposed(this->id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
-	      advance_seed_infection(person);
+	      advance_seed_infection(infectee);
 	    }
 	    imported_cases++;
 	  }
@@ -1545,12 +1543,10 @@ void Epidemic::get_imported_infections(int day) {
 	} else {
 	  // infect all the candidates
 	  for(int n = 0; n < people.size(); ++n) {
-	    Person* person = people[n];
-	    Transmission transmission = Transmission(NULL, NULL, day);
-	    transmission.set_initial_loads(this->disease->get_primary_loads(day));
-	    person->become_exposed(this->disease, transmission);
+	    Person* infectee = people[n];
+	    infectee->become_exposed(this->id, NULL, NULL, day);
 	    if(this->seeding_type != SEED_EXPOSED) {
-	      advance_seed_infection(person);
+	      advance_seed_infection(infectee);
 	    }
 	    imported_cases++;
 	  }
@@ -1595,7 +1591,6 @@ void Epidemic::advance_seed_infection(Person* person) {
 
 void Epidemic::update(int day) {
   FRED_VERBOSE(1, "epidemic update for disease %d day %d\n", id, day);
-  Population* pop = this->disease->get_population();
 
   // import infections from unknown sources
   get_imported_infections(day);
@@ -1674,7 +1669,7 @@ void Epidemic::update(int day) {
   this->inf_workplaces.clear();
   this->inf_offices.clear();
   this->inf_hospitals.clear();
-  this->disease->get_evolution()->update(day);
+  // this->disease->get_evolution()->update(day);
   FRED_VERBOSE(1, "epidemic update finished for disease %d day %d\n", id, day);
 }
 

@@ -33,11 +33,11 @@
 
 // FRED_VERBOSE and FRED_CONDITIONAL_VERBOSE print to the stout using Utils::fred_verbose
 #ifdef FREDVERBOSE
-#define FRED_VERBOSE(verbosity, format, ...){\
-  if ( Global::Verbose > verbosity ) {\
-    Utils::fred_verbose(verbosity, "FRED_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_VERBOSE(verbosity, format, ...){				\
+    if ( Global::Verbose > verbosity ) {				\
+      Utils::fred_verbose(verbosity, "FRED_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+    }									\
+  }
 
 #else
 #define FRED_VERBOSE(verbosity, format, ...){}\
@@ -45,11 +45,11 @@
 #endif
 // FRED_CONDITIONAL_VERBOSE prints to the stout if the verbose level is exceeded and the supplied conditional is true
 #ifdef FREDVERBOSE
-#define FRED_CONDITIONAL_VERBOSE(verbosity, condition, format, ...){\
-  if ( Global::Verbose > verbosity && condition ) {\
-    Utils::fred_verbose(verbosity, "FRED_CONDITIONAL_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_CONDITIONAL_VERBOSE(verbosity, condition, format, ...){	\
+    if ( Global::Verbose > verbosity && condition ) {			\
+      Utils::fred_verbose(verbosity, "FRED_CONDITIONAL_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+    }									\
+  }
 
 #else
 #define FRED_CONDITIONAL_VERBOSE(verbosity, condition, format, ...){}\
@@ -59,14 +59,14 @@
 // FRED_STATUS and FRED_CONDITIONAL_STATUS print to Global::Statusfp using Utils::fred_verbose_statusfp
 // If Global::Verbose == 0, then abbreviated output is produced
 #ifdef FREDSTATUS
-#define FRED_STATUS(verbosity, format, ...){\
-  if ( verbosity == 0 && Global::Verbose <= 1 ) {\
-    Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);\
-  }\
-  else if ( Global::Verbose > verbosity ) {\
-    Utils::fred_verbose_statusfp(verbosity, "FRED_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_STATUS(verbosity, format, ...){				\
+    if ( verbosity == 0 && Global::Verbose <= 1 ) {			\
+      Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);	\
+    }									\
+    else if ( Global::Verbose > verbosity ) {				\
+      Utils::fred_verbose_statusfp(verbosity, "FRED_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+    }									\
+  }
 
 #else
 #define FRED_STATUS(verbosity, format, ...){}\
@@ -74,14 +74,14 @@
 #endif
 // FRED_CONDITIONAL_STATUS prints to Global::Statusfp if the verbose level is exceeded and the supplied conditional is true
 #ifdef FREDSTATUS
-#define FRED_CONDITIONAL_STATUS(verbosity, condition, format, ...){\
-  if ( verbosity == 0 && Global::Verbose <= 1 && condition ) {\
-    Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);\
-  }\
-  else if ( Global::Verbose > verbosity && condition ) {\
-    Utils::fred_verbose_statusfp(verbosity, "FRED_CONDITIONAL_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_CONDITIONAL_STATUS(verbosity, condition, format, ...){	\
+    if ( verbosity == 0 && Global::Verbose <= 1 && condition ) {	\
+      Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);	\
+    }									\
+    else if ( Global::Verbose > verbosity && condition ) {		\
+      Utils::fred_verbose_statusfp(verbosity, "FRED_CONDITIONAL_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+    }									\
+  }
 
 #else
 #define FRED_CONDITIONAL_STATUS(verbosity, condition, format, ...){}\
@@ -90,11 +90,11 @@
 
 // FRED_DEBUG prints to Global::Statusfp using Utils::fred_verbose_statusfp
 #ifdef FREDDEBUG
-#define FRED_DEBUG(verbosity, format, ...){\
-  if ( Global::Debug >= verbosity ) {\
-    Utils::fred_verbose_statusfp(verbosity, "FRED_DEBUG: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_DEBUG(verbosity, format, ...){				\
+    if ( Global::Debug >= verbosity ) {					\
+      Utils::fred_verbose_statusfp(verbosity, "FRED_DEBUG: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);	\
+    }									\
+  }
 
 #else
 #define FRED_DEBUG(verbosity, format, ...){}\
@@ -103,9 +103,9 @@
 
 // FRED_WARNING and FRED_CONDITIONAL_WARNING print to both stdout and the Global::ErrorLogfp using Utils::fred_warning
 #ifdef FREDWARNING
-#define FRED_WARNING(format, ...){\
-  Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-}
+#define FRED_WARNING(format, ...){					\
+    Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+  }
 
 #else
 #define FRED_WARNING(format, ...){}\
@@ -113,11 +113,11 @@
 #endif
 // FRED_CONDITIONAL_WARNING prints only if supplied conditional is true
 #ifdef FREDWARNING
-#define FRED_CONDITIONAL_WARNING(condition, format, ...){\
-  if (condition) {\
-    Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);\
-  }\
-}
+#define FRED_CONDITIONAL_WARNING(condition, format, ...){		\
+    if (condition) {							\
+      Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);	\
+    }									\
+  }
 
 #else
 #define FRED_CONDITIONAL_WARNING(condition, format, ...){}\
@@ -160,7 +160,7 @@ namespace Utils {
   class Tokens {
     std::vector<std::string> tokens;
     
-    public:
+  public:
 
     std::string &back() {
       return this->tokens.back();
@@ -218,18 +218,18 @@ namespace Utils {
 
 
   Tokens &split_by_delim(const std::string &str,
-      const char delim, Tokens & tokens,
-      bool collapse_consecutive_delims = true);
+			 const char delim, Tokens & tokens,
+			 bool collapse_consecutive_delims = true);
 
   Tokens split_by_delim(const std::string &str,
-      const char delim, bool collapse_consecutive_delims = true);
+			const char delim, bool collapse_consecutive_delims = true);
 
   Tokens & split_by_delim(const char* str,
-      const char delim, Tokens &tokens,
-      bool collapse_consecutive_delims = true);
+			  const char delim, Tokens &tokens,
+			  bool collapse_consecutive_delims = true);
 
   Tokens split_by_delim(const char* str,
-      const char delim, bool collapse_consecutive_delims = true);
+			const char delim, bool collapse_consecutive_delims = true);
 
 }
 

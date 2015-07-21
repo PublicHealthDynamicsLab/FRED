@@ -262,6 +262,8 @@ public:
    */
   void modify_symptomaticity(Health *health, int disease, int cur_day);
 
+  void avEffect(Health *health, int disease, int cur_day, AV_Health *av_health);
+
   // Policies members
   // Antivirals need a policy associated with them to determine who gets them.
   /**

@@ -11,7 +11,6 @@
 
 
 #include "ODEIntraHost.h"
-#include "Infection.h"
 #include "Trajectory.h"
 #include "ODE.h"
 #include "Random.h"
@@ -26,7 +25,7 @@ void ODEIntraHost::setup(Disease *disease) {
   get_param((char *) "viral_titer_latent_threshold", & viral_titer_latent_threshold);
   get_param((char *) "interferon_scaling", & interferon_scaling);
   get_param((char *) "interferon_threshold", & interferon_threshold);
-  }
+}
 
 double ODEIntraHost :: get_inoculum_particles (double infectivity) {
   double sigma = 0.005;
@@ -37,7 +36,7 @@ double ODEIntraHost :: get_inoculum_particles (double infectivity) {
   double mu = max (inoculum_particles_min, ( ( infectivity * viral_titer_scaling/ v_max ) * inoculum_particles_max ) );
   double inoculum_particles = Random::draw_normal(mu,sigma);
   return inoculum_particles;
-  }
+}
 
 vector<double> ODEIntraHost::getInfectivities(double *viralTiter, int duration) {
   vector<double> infectivity;
@@ -45,14 +44,14 @@ vector<double> ODEIntraHost::getInfectivities(double *viralTiter, int duration) 
   for(int day = 0; day < duration; day++) {
     if (viralTiter[day] <= viral_titer_latent_threshold) {
       break;
-      }
+    }
     else {
       infectivity.push_back(viralTiter[day] / viral_titer_scaling);
-      }
     }
+  }
 
   return infectivity;
-  }
+}
 
 vector<double> ODEIntraHost::get_symptomaticity(double *interferon, int duration) {
   vector<double> symptomaticity;
@@ -62,18 +61,18 @@ vector<double> ODEIntraHost::get_symptomaticity(double *interferon, int duration
     if (interferon[day] > interferon_threshold || ! flag) {
       symptomaticity.push_back(interferon[day] / interferon_scaling);
       flag = true;
-      }
-    else break;
     }
-
-  return symptomaticity;
+    else break;
   }
 
-Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double> *loads) {
+  return symptomaticity;
+}
+
+Trajectory *ODEIntraHost :: get_trajectory() {
   /*  if(! initialized){
       initialize();
       initialized = true;
-    }
+      }
   */
   int numStrains = loads->size();
   ODE *ebm = new ODE(numStrains);
@@ -81,13 +80,20 @@ Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double
   // set indices to strains
   int indices[numStrains];
 
+  Loads* loads;
+  loads = new Loads;
+  loads->clear();
+  loads->insert( pair<int, double> (1, 1.0) );
+
+  Trajectory * trajectory = new Trajectory();
+
   map<int, double> :: iterator it = loads->begin();
 
   for(int s = 0; s < numStrains; s++, it++) {
     indices[s] = it->first;
     double inoculum_particles = get_inoculum_particles(it->second);
     ebm->set_V(inoculum_particles, s);
-    }
+  }
 
   // TODO set reqd params
 
@@ -103,7 +109,7 @@ Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double
     vector<double> it = getInfectivities(vt, ebm->get_duration());
     it.insert(it.begin(), 0.0); // TODO
     trajectory->set_infectivity_trajectory(indices[s], it);
-    }
+  }
 
   // Symptomaticity Trajectory
   double *ft = ebm->get_interferon_data();
@@ -112,5 +118,5 @@ Trajectory *ODEIntraHost :: get_trajectory(Infection *infection, map<int, double
 
   delete ebm;
   return trajectory;
-  }
+}
 

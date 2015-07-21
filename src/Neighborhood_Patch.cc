@@ -63,7 +63,7 @@ void Neighborhood_Patch::make_neighborhood( Place::Allocator< Neighborhood > & n
   fred::geo lon = Geo::get_longitude(center_x);
 
   neighborhood = new ( neighborhood_allocator.get_free() )
-    Neighborhood( str, fred::PLACE_SUBTYPE_NONE, lon, lat, 0, &Global::Pop );
+    Neighborhood( str, fred::PLACE_SUBTYPE_NONE, lon, lat, 0);
 }
 
 void Neighborhood_Patch::add_household(Household *p) {
@@ -106,17 +106,17 @@ void Neighborhood_Patch::record_favorite_places() {
       person.push_back(per);
       p = per->get_activities()->get_workplace();
       if (p != NULL) {
-	      insert_if_unique(&workplace,p);
+	insert_if_unique(&workplace,p);
       }
       s = static_cast<School *>(per->get_activities()->get_school());
       if (s != NULL) {
-	      insert_if_unique(&school,s);
-	      for (int age = 0; age < Global::ADULT_AGE; age++) {
-	        if (s->get_students_in_grade(age) > 0) {
-	          // school_by_age[age].push_back(s);
-	          insert_if_unique(&school_by_age[age],s);
+	insert_if_unique(&school,s);
+	for (int age = 0; age < Global::ADULT_AGE; age++) {
+	  if (s->get_students_in_grade(age) > 0) {
+	    // school_by_age[age].push_back(s);
+	    insert_if_unique(&school_by_age[age],s);
           }
-	      }
+	}
       }
     }
     // fprintf(fp, "\n");
@@ -262,12 +262,12 @@ void Neighborhood_Patch::quality_control() {
     fprintf(Global::Statusfp, "\n");
     if(Global::Verbose > 0) {
       for (int i = 0; i < school.size(); i++) {
-	      School * s = static_cast<School *>(school[i]);
-	      fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
-	      for(int a = 0; a < 19; a++) {
-	        fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
-	      }
-	      fprintf(Global::Statusfp, "\n");
+	School * s = static_cast<School *>(school[i]);
+	fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
+	for(int a = 0; a < 19; a++) {
+	  fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
+	}
+	fprintf(Global::Statusfp, "\n");
       }
       fflush(Global::Statusfp);
     }

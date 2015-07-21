@@ -122,7 +122,7 @@ private:
                                           // See defines above for values
   
   Timestep_Map * vaccination_capacity_map; // How many people can be vaccinated now,
-                                          // gets its value from the capacity change list
+  // gets its value from the capacity change list
   int current_vaccine_capacity;           // variable to keep track of how many persons this 
                                           // can vaccinate each timestep.
 };

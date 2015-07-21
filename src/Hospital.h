@@ -44,15 +44,15 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont, Population* pop)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Hospital(int,const char*, double, double, Place*, Population*)</code>
+   * <code>Hospital(int,const char*, double, double, Place*)</code>
    */
   void get_parameters(int diseases);
 
@@ -190,9 +190,9 @@ struct HAZEL_Hospital_Init_Data {
   bool add_capacity;
 
   void setup(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
-      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
-      const char* _add_capacity) {
+	     const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+	     const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
+	     const char* _add_capacity) {
 
     string accpt_priv_str = string(_accpt_private);
     string accpt_medicr_str = string(_accpt_medicare);
@@ -216,11 +216,11 @@ struct HAZEL_Hospital_Init_Data {
   }
 
   HAZEL_Hospital_Init_Data(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
-      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
-     setup(_panel_week, _accpt_private, _accpt_medicare,
-           _accpt_medicaid, _accpt_highmark, _accpt_upmc,
-           _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
+			   const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+			   const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
+    setup(_panel_week, _accpt_private, _accpt_medicare,
+	  _accpt_medicaid, _accpt_highmark, _accpt_upmc,
+	  _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
   }
 
 };

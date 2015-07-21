@@ -38,15 +38,15 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
+   * @see Place::setup()
    */
-  Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Workplace(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container, Population* pop)</code>
+   * <code>Workplace(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
    */
   void get_parameters(int diseases);
 
@@ -63,13 +63,13 @@ public:
   }
 
   /**
-    * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
-    *
-    * This method returns the value from the static array <code>Workplace::Workplace_contact_prob</code> that
-    * corresponds to a particular age-related value for each person.<br />
-    * The static array <code>Workplace_contact_prob</code> will be filled with values from the parameter
-    * file for the key <code>workplace_prob[]</code>.
-    */
+   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
+   *
+   * This method returns the value from the static array <code>Workplace::Workplace_contact_prob</code> that
+   * corresponds to a particular age-related value for each person.<br />
+   * The static array <code>Workplace_contact_prob</code> will be filled with values from the parameter
+   * file for the key <code>workplace_prob[]</code>.
+   */
   double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
@@ -143,7 +143,7 @@ public:
     return Workplace::Large_workplace_size;
   }
 
- private:
+private:
   static double* Workplace_contacts_per_day;
   static double*** Workplace_contact_prob;
   static bool Workplace_parameters_set;

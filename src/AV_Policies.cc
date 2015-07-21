@@ -24,7 +24,7 @@
 #include "AV_Manager.h"
 
 AV_Policy_Distribute_To_Symptomatics::AV_Policy_Distribute_To_Symptomatics(AV_Manager* avm):
-Policy(dynamic_cast <Manager *> (avm)){
+  Policy(dynamic_cast <Manager *> (avm)){
   Name = "Distribute AVs to Symptomatics";
   
   // Need to add the policies in the decisio
@@ -46,7 +46,7 @@ int AV_Policy_Distribute_To_Symptomatics::choose(Person* person, int disease, in
 }   
 
 AV_Policy_Distribute_To_Everyone::AV_Policy_Distribute_To_Everyone(AV_Manager* avm):
-Policy(dynamic_cast <Manager *> (avm)){
+  Policy(dynamic_cast <Manager *> (avm)){
   Name = "Distribute AVs to Symptomatics";
   
   // Need to add the policies in the decision

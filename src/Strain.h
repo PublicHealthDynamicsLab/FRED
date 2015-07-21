@@ -34,7 +34,7 @@ class Strain_Data {
   short int num_elements;
   unsigned short int * data;
 
-  public:
+public:
 
   Strain_Data( int N ) : num_elements( N ) {
     data = new unsigned short int[ num_elements ];
@@ -81,36 +81,36 @@ class Strain_Data {
 
 
 class Strain {
-  public:
+public:
 
-    Strain( int num_elements );
-    Strain( const Strain & other );
+  Strain( int num_elements );
+  Strain( const Strain & other );
 
-    ~Strain();
+  ~Strain();
 
-    void reset();
-    void setup( int strain, Disease * disease, double trans, Strain * parent );
-    void print();
-    void print_alternate( stringstream & out );
+  void reset();
+  void setup( int strain, Disease * disease, double trans, Strain * parent );
+  void print();
+  void print_alternate( stringstream & out );
 
-    int get_id() { return id; }
-    double get_transmissibility() { return transmissibility; }
+  int get_id() { return id; }
+  double get_transmissibility() { return transmissibility; }
 
-    int get_num_data_elements() { return strain_data.get_num_elements(); };
-    int get_data_element( int i ) { return strain_data.get_data_element( i ); };
+  int get_num_data_elements() { return strain_data.get_num_elements(); };
+  int get_data_element( int i ) { return strain_data.get_data_element( i ); };
 
-    Strain_Data & get_data() { return strain_data; }
-    const Strain_Data & get_strain_data() { return strain_data; }
+  Strain_Data & get_data() { return strain_data; }
+  const Strain_Data & get_strain_data() { return strain_data; }
 
-    std::string to_string();
+  std::string to_string();
 
-  private:
-    Strain * parent;
-    int id;
-    double transmissibility;
-    Disease * disease;
-    Strain_Data strain_data;
+private:
+  Strain * parent;
+  int id;
+  double transmissibility;
+  Disease * disease;
+  Strain_Data strain_data;
 
-  };
+};
 
 #endif // _FRED_STRAIN_H

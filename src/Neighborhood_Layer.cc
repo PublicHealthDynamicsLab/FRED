@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -221,9 +221,9 @@ void Neighborhood_Layer::quality_control() {
     int total_area = this->rows * this->cols;
     int convex_area = tot_occ_patches;
     fprintf(Global::Statusfp, "Density: popsize = %d total region = %d total_density = %f\n",
-        popsize, total_area, (total_area > 0) ? (double)popsize / (double)total_area : 0.0);
+	    popsize, total_area, (total_area > 0) ? (double)popsize / (double)total_area : 0.0);
     fprintf(Global::Statusfp, "Density: popsize = %d convex region = %d convex_density = %f\n",
-        popsize, convex_area, (convex_area > 0) ? (double)popsize / (double)convex_area : 0.0);
+	    popsize, convex_area, (convex_area > 0) ? (double)popsize / (double)convex_area : 0.0);
     fprintf(Global::Statusfp, "grid quality control finished\n");
     fflush(Global::Statusfp);
   }
@@ -305,7 +305,7 @@ void Neighborhood_Layer::record_favorite_places() {
 }
 
 vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fred::geo lon,
-    double radius_in_km) {
+							       double radius_in_km) {
   double px = Geo::get_x(lon);
   double py = Geo::get_y(lat);
   //  get patches around the point, make sure their rows & cols are in bounds
@@ -619,7 +619,7 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_old_model(Place *
   }
   else {
     if (r < this->Community_prob + this->Home_neighborhood_prob) {
-    // select a random patch with community_prob
+      // select a random patch with community_prob
       dest_patch = select_random_patch(x_src, y_src, this->Community_distance);
     }
     else {
@@ -740,79 +740,79 @@ Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
 }
 
 /*
-Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
+  Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
 
   FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA for age %d row %d col %d\n", age, row, col);
 
   for (int attempt = 1; attempt <= 20; attempt++) {
-    double threshold = attempt * -0.1;
-    int max_level = 20;
+  double threshold = attempt * -0.1;
+  int max_level = 20;
 
-    // look for schools in increasingly expanding adjacent neighborhood
-    vector<Neighborhood_Patch *> patches;
-    Neighborhood_Patch * patch;
-    for (int level = 0; level < max_level; level++) {
-      FRED_VERBOSE(2,"level %d\n",level);
-      patches.clear();
-      if (level == 0) {
-	patch = get_patch(row, col);
-	if (patch != NULL) {
-	  FRED_VERBOSE(2,"adding (%d,%d)\n", row, col); 
-	  patches.push_back(patch);
-	}
-      }
-      else {
-	for(int c = col-level; c <= col+level; c++) {
-	  patch = get_patch(row - level, c);
-	  if (patch != NULL) {
-	    FRED_VERBOSE(2,"adding (%d,%d)\n", row - level, c); 
-	    patches.push_back(patch);
-	  }
-	  patch = get_patch(row + level, c);
-	  if (patch != NULL) {
-	    FRED_VERBOSE(2,"adding (%d,%d)\n", row + level, c); 
-	    patches.push_back(patch);
-	  }
-	}
-	for(int r = row-level+1; r <= row+level-1; r++) {
-	  patch = get_patch(r, col - level);
-	  if (patch != NULL) {
-	    FRED_VERBOSE(2,"adding (%d,%d)\n", r, col - level); 
-	    patches.push_back(patch);
-	  }
-	  patch = get_patch(r, col + level);
-	  if (patch != NULL) {
-	    FRED_VERBOSE(2,"adding (%d,%d)\n", r, col + level); 
-	    patches.push_back(patch);
-	  }
-	}
-      }
+  // look for schools in increasingly expanding adjacent neighborhood
+  vector<Neighborhood_Patch *> patches;
+  Neighborhood_Patch * patch;
+  for (int level = 0; level < max_level; level++) {
+  FRED_VERBOSE(2,"level %d\n",level);
+  patches.clear();
+  if (level == 0) {
+  patch = get_patch(row, col);
+  if (patch != NULL) {
+  FRED_VERBOSE(2,"adding (%d,%d)\n", row, col); 
+  patches.push_back(patch);
+  }
+  }
+  else {
+  for(int c = col-level; c <= col+level; c++) {
+  patch = get_patch(row - level, c);
+  if (patch != NULL) {
+  FRED_VERBOSE(2,"adding (%d,%d)\n", row - level, c); 
+  patches.push_back(patch);
+  }
+  patch = get_patch(row + level, c);
+  if (patch != NULL) {
+  FRED_VERBOSE(2,"adding (%d,%d)\n", row + level, c); 
+  patches.push_back(patch);
+  }
+  }
+  for(int r = row-level+1; r <= row+level-1; r++) {
+  patch = get_patch(r, col - level);
+  if (patch != NULL) {
+  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col - level); 
+  patches.push_back(patch);
+  }
+  patch = get_patch(r, col + level);
+  if (patch != NULL) {
+  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col + level); 
+  patches.push_back(patch);
+  }
+  }
+  }
 
-      if (patches.size() == 0) {
-	FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA: no patches at level %d\n", level);
-	continue;
-      }
+  if (patches.size() == 0) {
+  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA: no patches at level %d\n", level);
+  continue;
+  }
 
-      // shuffle the patches
-      FYShuffle<Neighborhood_Patch *>(patches);
+  // shuffle the patches
+  FYShuffle<Neighborhood_Patch *>(patches);
 
-      FRED_VERBOSE(1,"Level %d include %d patches\n", level, patches.size());
+  FRED_VERBOSE(1,"Level %d include %d patches\n", level, patches.size());
 
-      // look for a suitable school in each patch
-      for(size_t i = 0; i < patches.size(); i++) {
-	Neighborhood_Patch *patch = patches.at(i);
-	if(patch == NULL)
-	  continue;
-	Place * p = patch->select_school_in_neighborhood(age, threshold);
-	if(p != NULL) {
-	  FRED_VERBOSE(0, "SELECT_SCHOOL_IN_AREA found school %s at level %d threshold %0.1f\n",
-		       p->get_label(), level, threshold);
-	  return(p); // success
-	}
-      }
-    }
+  // look for a suitable school in each patch
+  for(size_t i = 0; i < patches.size(); i++) {
+  Neighborhood_Patch *patch = patches.at(i);
+  if(patch == NULL)
+  continue;
+  Place * p = patch->select_school_in_neighborhood(age, threshold);
+  if(p != NULL) {
+  FRED_VERBOSE(0, "SELECT_SCHOOL_IN_AREA found school %s at level %d threshold %0.1f\n",
+  p->get_label(), level, threshold);
+  return(p); // success
+  }
+  }
+  }
   }
   return NULL;
-}
+  }
 
 */

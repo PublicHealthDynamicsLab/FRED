@@ -17,6 +17,8 @@
 #include "Utils.h"
 #include "Global.h"
 #include "Population.h"
+#include "Disease.h"
+#include "Disease_List.h"
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
 #include "Regional_Layer.h"
@@ -36,10 +38,6 @@
 #include "Health.h"
 #include "Tracker.h"
 class Place;
-
-#if SQLITE
-#include "DB.h"
-#endif
 
 #ifndef __CYGWIN__
 #include "execinfo.h"
@@ -97,12 +95,12 @@ void fred_setup(int argc, char* argv[]) {
   Params::read_parameters(paramfile);
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
+
+  // create diseases and read parameters
+  Global::Diseases.get_parameters();
+
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
-
-#if SQLITE
-  Global::db.open_database(Global::DBfile);
-#endif 
 
   // initialize masks in Global::Pop
   Global::Pop.initialize_masks();
@@ -185,6 +183,9 @@ void fred_setup(int argc, char* argv[]) {
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
 
+  // finished setting up Diseases
+  Global::Diseases.setup();
+
   // read in the population and have each person enroll
   // in each favorite place identified in the population file
   Utils::fred_print_wall_time("\nFRED Pop.setup started");
@@ -217,6 +218,8 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Enable_Hospitals) {
     Global::Places.assign_hospitals_to_households();
     Utils::fred_print_lap_time("assign hospitals to households");
+    Global::Pop.assign_primary_healthcare();
+    Utils::fred_print_lap_time("assign primary healthcare to agents");
   }
 
   FRED_STATUS(0, "deleting place_label_map\n", "");
@@ -252,9 +255,9 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Track_age_distribution) {
     /*
-    Global::Pop.print_age_distribution(Global::Simulation_directory,
-				       (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
-				       Global::Simulation_run_number);
+      Global::Pop.print_age_distribution(Global::Simulation_directory,
+      (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
+      Global::Simulation_run_number);
     */
   }
 
@@ -297,24 +300,23 @@ void fred_setup(int argc, char* argv[]) {
     Global::Tract_Tracker = new Tracker<long int>("Census Tract Tracker","Tract");
     Global::Pop.report_mean_hh_stats_per_census_tract();
   }
+  
+  //  //TODO - remove this
+  //  if(Global::Enable_HAZEL) {
+  //    Global::Pop.print_HAZEL_data();
+  //  }
 
   // Global tracker allows us to have as many variables we
   // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
-  // initialize diseases
-  for(int d = 0; d < Global::Diseases; ++d) {
-    Disease* disease = Global::Pop.get_disease(d);
-    disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer) {
-      disease->init_prior_immunity();
-    }
-  }
-  Utils::fred_print_lap_time("disease_initialization");
+  // prepare diseases after population is all set up
+  Global::Diseases.prepare_diseases();
+  Utils::fred_print_lap_time("prepare_diseases");
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for(int d = 0; d < Global::Diseases; ++d) {
+    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
@@ -349,10 +351,10 @@ void fred_step(int day) {
   if(Global::Track_age_distribution) {
     if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
       /*
-      char date_string[80];
-      strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
-      Global::Pop.print_age_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
-      Global::Places.print_household_size_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
+	char date_string[80];
+	strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
+	Global::Pop.print_age_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
+	Global::Places.print_household_size_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
       */
     }
   }
@@ -392,17 +394,17 @@ void fred_step(int day) {
   // shuffle the order of diseases to reduce systematic bias
   vector<int> order;
   order.clear();
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     order.push_back(d);
   }
-  if(Global::Diseases > 1) {
+  if(Global::Diseases.get_number_of_diseases() > 1) {
     FYShuffle<int>(order);
   }
 
   // transmit each disease in turn
-  for(int d = 0; d < Global::Diseases; ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     int disease_id = order[d];
-    Disease* disease = Global::Pop.get_disease(disease_id);
+    Disease* disease = Global::Diseases.get_disease(disease_id);
     disease->update(day);
     Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
   }
@@ -412,7 +414,7 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d report population", day);
 
   if(Global::Enable_HAZEL) {
-    Activities::print_stats(day);
+    //Activities::print_stats(day);
     Global::Places.print_stats(day);
   }
 
@@ -436,12 +438,6 @@ void fred_step(int day) {
       // flush infections file buffer
       fflush(Global::Infectionfp);
     }
-#pragma omp section
-    {
-#if SQLITE
-      Global::db.process_transactions();
-#endif
-    }
   }
 
   // print daily reports
@@ -457,9 +453,6 @@ void fred_step(int day) {
 
 void fred_finish() {
   //Global::Daily_Tracker->create_full_log(10,cout);
-#if SQLITE
-  Global::db.close_database();
-#endif
   fflush(Global::Infectionfp);
   
   // final reports

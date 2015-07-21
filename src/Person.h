@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -24,7 +24,6 @@ class Household;
 class Disease;
 class Infection;
 class Population;
-class Transmission;
 
 #include "Demographics.h"
 #include "Health.h"
@@ -46,15 +45,9 @@ public:
     this->health.become_unsusceptible(this, disease);
   }
 
-  /**
-   * Make this agent infected by the given disease
-   * @param disease the disease to reference
-   * @param transmission the transmission event
-   */
-  void become_exposed(Disease* disease, Transmission &transmission) {
-    this->health.become_exposed(this, disease, transmission);
+  void become_exposed(int disease_id, Person* infector, Place* place, int day) {
+    this->health.become_exposed(this, disease_id, infector, place, day);
   }
-
   /**
    * Make this agent immune to the given disease
    * @param disease the disease to reference
@@ -80,7 +73,13 @@ public:
 
   int addInfected(int disease, vector<int> strains);
 
-  void infect(Person* infectee, int disease, Transmission &transmission);
+  void infect(Person* infectee, int disease_id, Place* place, int day) {
+    this->health.infect(this, infectee, disease_id, place, day);
+  }
+
+  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
+    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
+  }
 
   /**
    * @param day the simulation day
@@ -198,6 +197,14 @@ public:
    */
   void assign_office() {
     this->activities.assign_office(this);
+  }
+
+  /**
+   * Assign the agent to a Hospital
+   * @see Activities::assign_hospital()
+   */
+  void assign_hospital() {
+    this->activities.assign_hospital(this);
   }
 
   /**
@@ -917,8 +924,8 @@ protected:
    * @param today_is_birthday true if this is a newborn
    */
   void setup(int index, int id, int age, char sex, int race, int rel,
-      Place* house, Place* school, Place* work, int day,
-      bool today_is_birthday);
+	     Place* house, Place* school, Place* work, int day,
+	     bool today_is_birthday);
 
 };
 

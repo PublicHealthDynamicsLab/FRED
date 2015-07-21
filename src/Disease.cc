@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -39,10 +39,6 @@ using namespace std;
 #include "Strain.h"
 #include "StrainTable.h"
 #include "Timestep_Map.h"
-#include "Transmission.h"
-
-std::string* Disease::Disease_name = NULL;
-
 
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
@@ -54,7 +50,6 @@ Disease::Disease() {
   this->infection_immunity_prob = NULL;
   this->at_risk = NULL;
   this->epidemic = NULL;
-  this->population = NULL;
   this->strain_table = NULL;
   this->ihm = NULL;
   this->enable_case_fatality = 0;
@@ -116,20 +111,14 @@ Disease::~Disease() {
   }
 }
 
-void Disease::get_parameters(int disease) {
+void Disease::get_parameters(int disease, string name) {
   char paramstr[256];
-  this->id = disease;
 
-  if(disease == 0) {
-    Disease::Disease_name = new string[Global::Diseases];
-    Params::get_param_vector((char *)"disease_names", Disease::Disease_name);
-    for(int i = 0; i < Global::Diseases; ++i) {
-      printf("disease %d = %s\n", i, Disease::Disease_name[i].c_str());
-    }
-  }
+  // set disease id
+  this->id = disease;
   
-  // get name of disease
-  strcpy(this->disease_name, Disease::Disease_name[this->id].c_str());
+  // set disease name
+  strcpy(this->disease_name, name.c_str());
 
   fprintf(Global::Statusfp, "disease %d %s read_parameters entered\n",
 	  this->id, this->disease_name);
@@ -141,15 +130,15 @@ void Disease::get_parameters(int disease) {
 
   Params::get_indexed_param(this->disease_name, "trans", &(this->transmissibility));
   Params::get_indexed_param(this->disease_name, "immunity_loss_rate",
-      &(this->immunity_loss_rate));
+			    &(this->immunity_loss_rate));
 
   if(Global::Enable_Climate) {
     Params::get_indexed_param(this->disease_name, "seasonality_multiplier_min",
-        &(this->seasonality_min));
+			      &(this->seasonality_min));
     Params::get_indexed_param(this->disease_name, "seasonality_multiplier_max",
-        &(this->seasonality_max));
+			      &(this->seasonality_max));
     Params::get_indexed_param(this->disease_name, "seasonality_multiplier_Ka",
-        &(this->seasonality_Ka)); // Ka = -180 by default
+			      &(this->seasonality_Ka)); // Ka = -180 by default
     this->seasonality_Kb = log(this->seasonality_max - this->seasonality_min);
   }
 
@@ -159,7 +148,7 @@ void Disease::get_parameters(int disease) {
 
   //case fatality parameters
   Params::get_indexed_param(this->disease_name, "enable_case_fatality",
-      &(this->enable_case_fatality));
+			    &(this->enable_case_fatality));
   if(this->enable_case_fatality) {
     Params::get_indexed_param(this->disease_name, "min_symptoms_for_case_fatality",
 			      &(this->min_symptoms_for_case_fatality));
@@ -177,7 +166,7 @@ void Disease::get_parameters(int disease) {
   //Hospitalization and Healthcare parameters
   if(Global::Enable_Hospitals) {
     Params::get_indexed_param(this->disease_name, "min_symptoms_for_seek_healthcare",
-                &(this->min_symptoms_for_seek_healthcare));
+			      &(this->min_symptoms_for_seek_healthcare));
     this->hospitalization_prob = new Age_Map("Hospitalization Probability");
     sprintf(paramstr, "%s_hospitalization_prob", this->disease_name);
     this->hospitalization_prob->read_from_input(paramstr);
@@ -234,9 +223,9 @@ void Disease::get_parameters(int disease) {
   }
   
   if(Global::Residual_Immunity_by_FIPS) {
-  	//std::map<string, Age_Map> res_imm;
-  	this->read_residual_immunity_by_FIPS();
-  	fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled \n");
+    //std::map<string, Age_Map> res_imm;
+    this->read_residual_immunity_by_FIPS();
+    fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled \n");
   }
 
   // Probability of developing an immune response by past infections
@@ -253,12 +242,11 @@ void Disease::get_parameters(int disease) {
   fflush(Global::Statusfp);
 }
 
-void Disease::setup(Population* pop) {
+void Disease::setup() {
   fprintf(Global::Statusfp, "disease %d %s setup entered\n",
 	  this->id, this->disease_name);
   fflush(Global::Statusfp);
 
-  this->population = pop;
   this->epidemic = new Epidemic(this);
   this->epidemic->setup();
 
@@ -275,9 +263,9 @@ void Disease::setup(Population* pop) {
 
   // Initialize Infection Trajectory Thresholds
   Params::get_indexed_param(this->disease_name, "infectivity_threshold",
-      &(this->infectivity_threshold));
+			    &(this->infectivity_threshold));
   Params::get_indexed_param(this->disease_name, "symptomaticity_threshold",
-      &(this->symptomaticity_threshold));
+			    &(this->symptomaticity_threshold));
 
   int evolType;
   Params::get_indexed_param(this->disease_name, "evolution", &evolType);
@@ -328,21 +316,18 @@ double Disease::get_transmissibility(int strain) {
   return this->strain_table->get_transmissibility(strain);
 }
 
-Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* loads) {
-  return this->ihm->get_trajectory(infection, loads);
-}
-
-Transmission::Loads* Disease::get_primary_loads(int day) {
-  return this->evol->get_primary_loads(day);
-}
-/// @brief Overloaded to allow specification of a single strain to be used for the initial loads.
-Transmission::Loads* Disease::get_primary_loads(int day, int strain) {
-  return this->evol->get_primary_loads(day, strain);
+Trajectory* Disease::get_trajectory(int age) {
+  return this->ihm->get_trajectory(age);
 }
 
 bool Disease::gen_immunity_infection(double real_age) {
   double prob = this->infection_immunity_prob->find_value(real_age);
   return (Random::draw_random() <= prob);
+}
+
+double Disease::calculate_climate_multiplier(double seasonality_value) {
+  return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
+    + this->seasonality_min;
 }
 
 int Disease::get_num_strain_data_elements(int strain) {
@@ -358,17 +343,12 @@ void Disease::add_root_strain(int num_elements) {
 }
 
 int Disease::add_strain(Strain* child_strain, double transmissibility,
-    int parent_strain_id) {
+			int parent_strain_id) {
   return this->strain_table->add(child_strain, transmissibility, parent_strain_id);
 }
 
 int Disease::add_strain(Strain* child_strain, double transmissibility) {
   return this->strain_table->add(child_strain, transmissibility);
-}
-
-double Disease::calculate_climate_multiplier(double seasonality_value) {
-  return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
-      + this->seasonality_min;
 }
 
 int Disease::get_num_strains() {
@@ -392,7 +372,7 @@ const Strain & Disease::get_strain(int strain_id) {
 }
 
 void Disease::initialize_evolution_reporting_grid(Regional_Layer* grid) {
-  this->evol->initialize_reporting_grid(grid);
+  // this->evol->initialize_reporting_grid(grid);
 }
 
 void Disease::init_prior_immunity() {
@@ -401,9 +381,9 @@ void Disease::init_prior_immunity() {
 
 bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
-      double age_prob = this->case_fatality_age_factor->find_value(real_age);
-      double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
-      return (Random::draw_random() < age_prob * day_prob);
+    double age_prob = this->case_fatality_age_factor->find_value(real_age);
+    double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
+    return (Random::draw_random() < age_prob * day_prob);
   }
   return false;
 }
@@ -455,29 +435,29 @@ double Disease::get_outpatient_healthcare_prob(Person* per) {
 }
 
 void Disease::read_residual_immunity_by_FIPS() {  
-	//Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
-	char fips_string[FRED_STRING_SIZE];
-	int fips_int;
-	//char ages_string[FRED_STRING_SIZE];
-	char values_string[FRED_STRING_SIZE];
-	FILE *fp = NULL;
-	fp = Utils::fred_open_file(Global::Residual_Immunity_File);
-	if (fp == NULL) {
+  //Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
+  char fips_string[FRED_STRING_SIZE];
+  int fips_int;
+  //char ages_string[FRED_STRING_SIZE];
+  char values_string[FRED_STRING_SIZE];
+  FILE *fp = NULL;
+  fp = Utils::fred_open_file(Global::Residual_Immunity_File);
+  if (fp == NULL) {
     fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled but residual_immunity_by_FIPS_file %s not found\n", Global::Residual_Immunity_File);
     exit(1);
-   }
-	while(fgets(fips_string, FRED_STRING_SIZE - 1, fp) != NULL) {  //fips 2 lines fips first residual immunity second
-    	if ( ! (istringstream(fips_string) >> fips_int) ) fips_int = 0;
-    	if (fgets(values_string, FRED_STRING_SIZE - 1, fp) == NULL) {  //values
-    		fprintf(Global::Statusfp, "Residual Immunity by FIPS file %s not properly formed\n", Global::Residual_Immunity_File);
-    		exit(1);
-    	}
-		std::vector<double> temp_vector;
-		Params::get_param_vector_from_string(values_string, temp_vector);
-  		this->residual_immunity_by_FIPS.insert(std::pair<int, vector<double> > (fips_int,temp_vector) );
-  	}
+  }
+  while(fgets(fips_string, FRED_STRING_SIZE - 1, fp) != NULL) {  //fips 2 lines fips first residual immunity second
+    if ( ! (istringstream(fips_string) >> fips_int) ) fips_int = 0;
+    if (fgets(values_string, FRED_STRING_SIZE - 1, fp) == NULL) {  //values
+      fprintf(Global::Statusfp, "Residual Immunity by FIPS file %s not properly formed\n", Global::Residual_Immunity_File);
+      exit(1);
+    }
+    std::vector<double> temp_vector;
+    Params::get_param_vector_from_string(values_string, temp_vector);
+    this->residual_immunity_by_FIPS.insert(std::pair<int, vector<double> > (fips_int,temp_vector) );
+  }
 }
 
 vector<double> Disease::get_residual_immunity_values_by_FIPS(int FIPS_int) {
-	return residual_immunity_by_FIPS[FIPS_int];
+  return residual_immunity_by_FIPS[FIPS_int];
 }

@@ -42,7 +42,7 @@ public:
    *
    * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
    */
-  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container, Population *pop);
+  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container);
 
   /**
    * @see Place::get_parameters(int diseases)
@@ -101,7 +101,7 @@ public:
     return this->age_level;
   }
 
- private:
+private:
   static double * Classroom_contacts_per_day;
   static double *** Classroom_contact_prob;
   static char Classroom_closure_policy[];

@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "Global.h"
-#include "Place.h"
 
 #define SEED_USER 'U'
 #define SEED_RANDOM 'R'
@@ -33,6 +32,7 @@ using namespace std;
 
 class Disease;
 class Person;
+class Place;
 
 struct Time_Step_Map {
   int sim_day_start;
@@ -130,7 +130,7 @@ public:
   void get_imported_infections(int day);
   void become_susceptible(Person* person);
   void become_unsusceptible(Person* person);
-  void become_exposed(Person* person);
+  void become_exposed(Person* person, int day);
   void become_infectious(Person* person);
   void become_uninfectious(Person* person);
   void become_symptomatic(Person* person);
@@ -142,11 +142,8 @@ public:
   void add_susceptibles_to_infectious_places(int day, int disisease_id);
 
   void increment_cohort_infectee_count(int cohort_day) {
-    //if ( cohort_day > 0 ) {
-      assert(cohort_day < Global::Days);
-      #pragma omp atomic
-      ++(this->number_infected_by_cohort[cohort_day]);
-    //}
+#pragma omp atomic
+    ++(this->number_infected_by_cohort[cohort_day]);
   }
 
   int get_susceptible_people() {

@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -91,7 +91,7 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
     fprintf(Global::Statusfp, "Regional_Layer min_x = %f  min_y = %f\n", this->min_x, this->min_y);
     fprintf(Global::Statusfp, "Regional_Layer max_x = %f  max_y = %f\n", this->max_x, this->max_y);
     fprintf(Global::Statusfp, "Regional_Layer global_col_min = %d  global_row_min = %d\n",
-        this->global_col_min, this->global_row_min);
+	    this->global_col_min, this->global_row_min);
     fflush(Global::Statusfp);
   }
 
@@ -142,8 +142,8 @@ Regional_Patch* Regional_Layer::get_patch_from_id(int id) {
   int row = id / this->cols;
   int col = id % this->cols;
   FRED_VERBOSE(4,
-      "patch lookup for id = %d ... calculated row = %d, col = %d, rows = %d, cols = %d\n", id,
-      row, col, rows, cols);
+	       "patch lookup for id = %d ... calculated row = %d, col = %d, rows = %d, cols = %d\n", id,
+	       row, col, rows, cols);
   assert(this->grid[row][col].get_id() == id);
   return &(this->grid[row][col]);
 }
@@ -236,19 +236,6 @@ void Regional_Layer::read_max_popsize() {
   }
 }
 
-void Regional_Layer::report_grid_stats(int day) {
-#if SQLITE
-  for(int dis = 0; dis < Global::Diseases; ++dis) {
-#pragma omp parallel for schedule(runtime)
-    for(int r = 0; r < get_rows(); ++r) {
-      for(int c = 0; c < get_cols(); ++c) {
-        Global::db.enqueue_transaction(this->grid[r][c].collect_patch_stats(day, dis));
-      }
-    }
-  }
-#endif
-}
-
 void Regional_Layer::add_workplace(Place* place) {
   Regional_Patch* patch = this->get_patch(place);
   if(patch != NULL) {
@@ -258,7 +245,7 @@ void Regional_Layer::add_workplace(Place* place) {
 
 
 Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y, int min_staff,
-    int max_staff, double* min_dist) {
+					    int max_staff, double* min_dist) {
   //find nearest workplace that has right number of employees
   Place* nearby_workplace = NULL;
   *min_dist = 1e99;
@@ -268,12 +255,12 @@ Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y
       if(patch != NULL) {
 	// printf("Looking for nearby workplace in row %d col %d\n", i, j); fflush(stdout);
         Place* closest_workplace = patch->get_closest_workplace(x, y, min_staff, max_staff,
-            min_dist);
+								min_dist);
         if(closest_workplace != NULL) {
           nearby_workplace = closest_workplace;
         } else {
-	        // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
-	      }
+	  // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
+	}
       }
     }
   }

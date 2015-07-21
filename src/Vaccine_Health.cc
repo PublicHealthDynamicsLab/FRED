@@ -19,6 +19,8 @@
 #include "Random.h"
 #include "Vaccine_Health.h"
 #include "Vaccine.h"
+#include "Disease.h"
+#include "Disease_List.h"
 #include "Vaccine_Dose.h"
 #include "Vaccine_Manager.h"
 #include "Health.h"
@@ -71,7 +73,7 @@ void Vaccine_Health::update(int day, double age){
   // First check for immunity 
   if (is_effective()) {
     if (day == vaccination_effective_day) {
-      Disease* disease = Global::Pop.get_disease(0);
+      Disease* disease = Global::Diseases.get_disease(0);
       if (person->is_infected(disease->get_id())==false) {
 	person->become_immune(disease);
 	effective = true;
@@ -95,7 +97,7 @@ void Vaccine_Health::update(int day, double age){
 	     << " became immune on day "<< vaccination_effective_day
 	     << " and lost immunity on day " << day << "\n";
       }
-      Disease* disease = Global::Pop.get_disease(0);
+      Disease* disease = Global::Diseases.get_disease(0);
       person->become_susceptible_by_vaccine_waning(disease);
       effective = false;
     }

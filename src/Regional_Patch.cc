@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -58,7 +58,7 @@ void Regional_Patch::setup(Regional_Layer* grd, int i, int j) {
   this->workplaces.clear();
   this->id = Regional_Patch::next_patch_id++;
   for(int k = 0;k<100;k++){
-   this->students_by_age[k].clear();
+    this->students_by_age[k].clear();
   }
   this->workers.clear();
 }
@@ -129,16 +129,6 @@ void Regional_Patch::unenroll(Person* per) {
 }
 
 
-#if SQLITE
-
-Transaction* Regional_Patch::collect_patch_stats(int day, int disease_id) {
-  Patch_Report* report = new Patch_Report(day, this->id, disease_id);
-  report->collect(this->person);
-  return report;
-}
-
-#endif
-
 Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   // printf("get_workplace_near_place entered\n"); print(); fflush(stdout);
   double x = Geo::get_x(place->get_longitude());
@@ -154,20 +144,20 @@ Place* Regional_Patch::get_nearby_workplace(Place* place, int staff) {
   // find nearest workplace that has right number of employees
   double min_dist = 1e99;
   Place* nearby_workplace = this->grid->get_nearby_workplace(this->row, this->col, x, y, min_staff,
-      max_staff, &min_dist);
+							     max_staff, &min_dist);
   if(nearby_workplace == NULL)
     return NULL;
   assert(nearby_workplace != NULL);
   double x2 = Geo::get_x(nearby_workplace->get_longitude());
   double y2 = Geo::get_y(nearby_workplace->get_latitude());
   FRED_VERBOSE(1, "nearby workplace %s %f %f size %d dist %f\n", nearby_workplace->get_label(),
-      x2, y2, nearby_workplace->get_size(), min_dist);
+	       x2, y2, nearby_workplace->get_size(), min_dist);
 
   return nearby_workplace;
 }
 
 Place* Regional_Patch::get_closest_workplace(double x, double y, int min_size, int max_size,
-    double* min_dist) {
+					     double* min_dist) {
   // printf("get_closest_workplace entered for patch %d %d\n", row, col); fflush(stdout);
   Place* closest_workplace = NULL;
   int number_workplaces = this->workplaces.size();
@@ -206,53 +196,53 @@ void Regional_Patch::swap_county_people(){
       Person* p = this->select_random_person();
       Person* p2;
       if(p!=NULL) {
-	      if(p->is_student()) {
-	        int age_ = 0;
-	        age_ = p->get_age();
-	        if(age_>100) {
-	          age_=100;
-	        }
-	        if(age_ < 0) {
-	          age_=0;
-	        }
-	        p2 = select_random_student(age_);
-	        if(p2 !=NULL) {
-	          Place* s1 = p->get_school();
-	          Place* s2 = p2->get_school();
-	          Household* h1 =  (Household*)p->get_household();
-	          int c1 = h1->get_county_index();
-	          int h1_county = Global::Places.get_fips_of_county_with_index(c1);
-	          Household* h2 =  (Household*)p2->get_household();
-	          int c2 = h2->get_county_index();
-	          int h2_county = Global::Places.get_fips_of_county_with_index(c2);
-	          if(h1_county != h2_county) {
-	            p->change_school(s2);
-	            p2->change_school(s1);
-	            FRED_VERBOSE(0,"SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
-	            printf("SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
-	            people_swapped++;
-	          }
-	        }
-	      } else if (p->get_workplace()!=NULL) {
-	        p2 = select_random_worker();
-	        if(p2 != NULL) {
-	          Place* w1 = p->get_workplace();
-	          Place* w2 = p2->get_workplace();
-	          Household* h1 = (Household*)p->get_household();
-	          int c1 = h1->get_county_index();
-	          int h1_county = Global::Places.get_fips_of_county_with_index(c1);
-	          Household* h2 = (Household*)p2->get_household();
-	          int c2 = h2->get_county_index();
-	          int h2_county = Global::Places.get_fips_of_county_with_index(c2);
-	          if(h1_county != h2_county) {
-	            p->change_workplace(w2);
-	            p2->change_workplace(w1);
-	            FRED_VERBOSE(0,"SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
-	            printf("SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
-	            people_swapped++;
-	          }
-	        }
-	      }
+	if(p->is_student()) {
+	  int age_ = 0;
+	  age_ = p->get_age();
+	  if(age_>100) {
+	    age_=100;
+	  }
+	  if(age_ < 0) {
+	    age_=0;
+	  }
+	  p2 = select_random_student(age_);
+	  if(p2 !=NULL) {
+	    Place* s1 = p->get_school();
+	    Place* s2 = p2->get_school();
+	    Household* h1 =  (Household*)p->get_household();
+	    int c1 = h1->get_county_index();
+	    int h1_county = Global::Places.get_fips_of_county_with_index(c1);
+	    Household* h2 =  (Household*)p2->get_household();
+	    int c2 = h2->get_county_index();
+	    int h2_county = Global::Places.get_fips_of_county_with_index(c2);
+	    if(h1_county != h2_county) {
+	      p->change_school(s2);
+	      p2->change_school(s1);
+	      FRED_VERBOSE(0,"SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
+	      printf("SWAPSCHOOLS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_school()->get_label(),p2->get_school()->get_label(),p->get_school()->get_latitude(),p->get_school()->get_longitude(),p2->get_school()->get_latitude(),p2->get_school()->get_longitude());
+	      people_swapped++;
+	    }
+	  }
+	} else if (p->get_workplace()!=NULL) {
+	  p2 = select_random_worker();
+	  if(p2 != NULL) {
+	    Place* w1 = p->get_workplace();
+	    Place* w2 = p2->get_workplace();
+	    Household* h1 = (Household*)p->get_household();
+	    int c1 = h1->get_county_index();
+	    int h1_county = Global::Places.get_fips_of_county_with_index(c1);
+	    Household* h2 = (Household*)p2->get_household();
+	    int c2 = h2->get_county_index();
+	    int h2_county = Global::Places.get_fips_of_county_with_index(c2);
+	    if(h1_county != h2_county) {
+	      p->change_workplace(w2);
+	      p2->change_workplace(w1);
+	      FRED_VERBOSE(0,"SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
+	      printf("SWAPWORKS\t%d\t%d\t%s\t%s\t%lg\t%lg\t%lg\t%lg\n",p->get_id(),p2->get_id(),p->get_workplace()->get_label(),p2->get_workplace()->get_label(),p->get_workplace()->get_latitude(),p->get_workplace()->get_longitude(),p2->get_workplace()->get_latitude(),p2->get_workplace()->get_longitude());
+	      people_swapped++;
+	    }
+	  }
+	}
       }
     }
     FRED_VERBOSE(0,"People Swapped:: %d out of %d\n",people_swapped,people_to_reassign_place);

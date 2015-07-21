@@ -35,7 +35,7 @@ int Past_Infection::get_strain() {
 
 void Past_Infection::report () {
   printf( "DEBUG %d %d %d\n",
-      recovery_date, age_at_exposure, strain_id );
+	  recovery_date, age_at_exposure, strain_id );
 }
 
 string Past_Infection :: format_header() {

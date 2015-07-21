@@ -105,22 +105,22 @@ Trajectory::point Trajectory::get_data_point(int t) {
 }
 
 /*
-void Trajectory::calculate_aggregate_infectivity() {
+  void Trajectory::calculate_aggregate_infectivity() {
   // not currently used anywhere, could be used in the trajectory iterator
   aggregate_infectivity.assign(duration,0.0);
   map< int, trajectory_t >::iterator strain_iterator;
   trajectory_t::iterator strain_infectivity_iterator;
 
   for (strain_iterator = infectivity.begin(); strain_iterator != infectivity.end(); ++strain_iterator) {
-    int t = 0;
+  int t = 0;
 
-    for (strain_infectivity_iterator = strain_iterator->second.begin(); strain_infectivity_iterator != strain_iterator->second.end(); ++strain_infectivity_iterator) {
-      cout << t << "  " << *strain_infectivity_iterator << "  " << duration << endl;
-      aggregate_infectivity[t] += *strain_infectivity_iterator;
-      t++;
-    }
+  for (strain_infectivity_iterator = strain_iterator->second.begin(); strain_infectivity_iterator != strain_iterator->second.end(); ++strain_infectivity_iterator) {
+  cout << t << "  " << *strain_infectivity_iterator << "  " << duration << endl;
+  aggregate_infectivity[t] += *strain_infectivity_iterator;
+  t++;
   }
-}
+  }
+  }
 */
 
 string Trajectory::to_string() {
@@ -138,12 +138,12 @@ string Trajectory::to_string() {
   }
 
   /*
-  os << endl << "Symptomaticity Trajectories:" << endl;
+    os << endl << "Symptomaticity Trajectories:" << endl;
 
-  for (vec = symptomaticity.begin(); vec != symptomaticity.end(); ++vec) {
+    for (vec = symptomaticity.begin(); vec != symptomaticity.end(); ++vec) {
     os << " " << *vec;
-  }
-*/
+    }
+  */
   return os.str();
 }
 
@@ -173,21 +173,8 @@ void Trajectory::print_alternate(stringstream &out) {
   }
 }
 
-map<int, double> *Trajectory::get_current_loads(int day) {
-  map<int, double> *infectivities = new map<int, double>;
-
-  map< int, trajectory_t > :: iterator it;
-
-  for(it = infectivity.begin(); it != infectivity.end(); it++) {
-    pair<int, double> p = pair<int, double> (it->first, (it->second)[day]);
-    infectivities->insert(p);
-  }
-
-  return infectivities;
-}
-
-map<int, double> *Trajectory::getInoculum(int day) {
-  map<int, double> *infectivities = new map<int, double>;
+viral_load_t * Trajectory::get_current_loads(int day) {
+  viral_load_t *infectivities = new viral_load_t;
 
   map< int, trajectory_t > :: iterator it;
 

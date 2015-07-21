@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 // Infection.cc
 // ------------
@@ -22,7 +22,6 @@
 
 #include "Infection.h"
 #include "Evolution.h"
-#include "Transmission.h"
 #include "Global.h"
 #include "Person.h"
 #include "Place.h"
@@ -38,23 +37,25 @@
 
 using std::out_of_range;
 
-Infection::Infection(Disease* disease, Person* infector, Person* host, Place* place, int day) {
-
-  // flag for health updates
-  Global::Pop.set_mask_by_index(fred::Update_Health, host->get_pop_index());
+Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
+  FRED_VERBOSE(0,"Infected constructor entered\n");
 
   // general
-  this->disease = disease;
-  this->infector = infector;
-  this->host = host;
-  this->place = place;
+  this->disease = _disease;
+  this->infector = _infector;
+  this->host = _host;
+  this->place = _place;
   this->trajectory = NULL;
   this->infectee_count = 0;
   this->age_at_exposure = host->get_age();
 
   this->is_susceptible = true;
-  this->trajectory_infectivity_threshold = disease->get_infectivity_threshold();
-  this->trajectory_symptomaticity_threshold = disease->get_symptomaticity_threshold();
+  this->trajectory_infectivity_threshold = this->disease->get_infectivity_threshold();
+  this->trajectory_symptomaticity_threshold = this->disease->get_symptomaticity_threshold();
+
+  // flag for health updates
+  Global::Pop.set_mask_by_index(fred::Update_Health, this->host->get_pop_index());
+  FRED_VERBOSE(0,"Infected constructor set_mask\n");
 
   // parameters
   this->infectivity_multp = 1.0;
@@ -79,10 +80,22 @@ Infection::Infection(Disease* disease, Person* infector, Person* host, Place* pl
   this->infection_is_fatal_today = false;
 
   this->exposure_date = day;
-  this->recovery_period = disease->get_days_recovered();
+
+  FRED_VERBOSE(0,"Infected constructor exposure_date set\n");
+  this->recovery_period = this->disease->get_days_recovered();
+  FRED_VERBOSE(0,"Infected constructor recovery_period set\n");
 
   // Determine if this infection produces an immune response
-  this->immune_response = disease->gen_immunity_infection(host->get_real_age());
+  this->immune_response = this->disease->gen_immunity_infection(this->host->get_real_age());
+  FRED_VERBOSE(0,"Infected constructor immune_response set\n");
+
+  int age = this->host->get_age();
+  FRED_VERBOSE(0,"Infected constructor age = %d\n", age);
+  this->trajectory = this->disease->get_trajectory(age);
+  FRED_VERBOSE(0,"Infected constructor trajectory set\n");
+
+  determine_transition_dates();
+  FRED_VERBOSE(0,"Infected constructor transition dates set\n");
 }
 
 Infection::~Infection() {
@@ -90,7 +103,6 @@ Infection::~Infection() {
 }
 
 void Infection::determine_transition_dates() {
-  // returns the first date that the agent changes state
   bool was_latent = true;
   bool was_incubating = true;
 
@@ -262,13 +274,13 @@ void Infection::modify_asymptomatic_period(double multp, int today) {
     throw out_of_range("cannot modify: past asymptomatic period");
   } else if(today < get_infectious_date()) { // before asymptomatic period
     this->trajectory->modify_asymp_period(this->exposure_date, this->asymptomatic_period * multp,
-        get_symptomatic_date());
+					  get_symptomatic_date());
     determine_transition_dates();
   } else { // during asymptomatic period
     //int days_into = today - get_infectious_date();
     int days_left = get_symptomatic_date() - today;
     this->trajectory->modify_asymp_period(today - this->exposure_date, days_left * multp,
-        get_symptomatic_date());
+					  get_symptomatic_date());
     determine_transition_dates();
   }
 }
@@ -283,7 +295,7 @@ void Infection::modify_infectious_period(double multp, int today) {
 
 void Infection::modify_develops_symptoms(bool symptoms, int today) {
   if((today >= get_symptomatic_date() && get_asymptomatic_date() == -1)
-      || (today >= get_recovery_date())) {
+     || (today >= get_recovery_date())) {
     throw out_of_range("cannot modify: past symptomatic period");
   }
 
@@ -296,21 +308,14 @@ void Infection::modify_develops_symptoms(bool symptoms, int today) {
 
 void Infection::print() const {
   printf("INF: Infection of disease type: %i in person %i "
-      "periods:  latent %i, asymp: %i, symp: %i recovery: %i "
-      "dates: exposed: %i, infectious: %i, symptomatic: %i, recovered: %i susceptible: %i "
-      "will have symp? %i, suscept: %.3f infectivity: %.3f "
-      "infectivity_multp: %.3f symptms: %.3f\n", this->disease->get_id(), this->host->get_id(),
-      this->latent_period, this->asymptomatic_period, this->symptomatic_period,
-      this->recovery_period, this->exposure_date, get_infectious_date(), get_symptomatic_date(),
-      get_recovery_date(), get_susceptible_date(), this->will_be_symptomatic, this->susceptibility,
-      this->infectivity, this->infectivity_multp, this->symptoms);
-}
-
-void Infection::transmit(Person* infectee, Transmission &transmission) {
-  int day = transmission.get_exposure_date() - this->exposure_date;
-  Transmission::Loads* loads = this->trajectory->getInoculum(day);
-  transmission.set_initial_loads(loads);
-  infectee->become_exposed(this->disease, transmission);
+	 "periods:  latent %i, asymp: %i, symp: %i recovery: %i "
+	 "dates: exposed: %i, infectious: %i, symptomatic: %i, recovered: %i susceptible: %i "
+	 "will have symp? %i, suscept: %.3f infectivity: %.3f "
+	 "infectivity_multp: %.3f symptms: %.3f\n", this->disease->get_id(), this->host->get_id(),
+	 this->latent_period, this->asymptomatic_period, this->symptomatic_period,
+	 this->recovery_period, this->exposure_date, get_infectious_date(), get_symptomatic_date(),
+	 get_recovery_date(), get_susceptible_date(), this->will_be_symptomatic, this->susceptibility,
+	 this->infectivity, this->infectivity_multp, this->symptoms);
 }
 
 void Infection::setTrajectory(Trajectory* _trajectory) {
@@ -406,8 +411,8 @@ void Infection::report_infection(int day) const {
       infStrS << " census_tract " << census_tract;
     }
     infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
-        << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
-        << this->symptoms;
+	    << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
+	    << this->symptoms;
   }
   infStrS << "\n";
 

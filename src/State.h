@@ -38,7 +38,7 @@ class State {
   int Dim;
   Typ * state_array;
 
-  public:
+public:
 
   State( int dim ) {
     Dim = dim;
@@ -74,7 +74,7 @@ class State {
   // intended use is as a reduction/aggregation operation
   template< typename Fnc >
   void parallel_apply( Fnc & fnc ) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for ( int i = 0; i < Dim; ++i ) {
       fnc( state_array[ i ] );
     }

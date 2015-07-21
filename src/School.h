@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -27,29 +27,14 @@
 class Classroom;
 
 class School : public Place {
- public:
+public:
 
-  School() {
-    this->type = Place::SCHOOL;
-    this->subtype = fred::PLACE_SUBTYPE_NONE;
-    get_parameters(Global::Diseases);
-    for(int i = 0; i < GRADES; ++i) {
-      this->students_in_grade[i] = 0;
-      this->orig_students_in_grade[i] = 0;
-      this->next_classroom[i] = 0;
-      this->classrooms[i].clear();
-    }
-    this->closure_dates_have_been_set = false;
-    this->staff_size = 0;
-    this->max_grade = -1;
-    this->county_index = -1;
-    this->income_quartile = -1;
-  }
+  School();
 
   ~School() {
   }
 
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop);
+  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
   void prepare();
   void get_parameters(int diseases);
   int get_group(int disease_id, Person* per);

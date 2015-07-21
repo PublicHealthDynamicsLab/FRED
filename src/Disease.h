@@ -22,26 +22,22 @@
 #include <string>
 using namespace std;
 
-#include "Age_Map.h"
 #include "Epidemic.h"
 #include "Global.h"
-#include "Transmission.h"
 
-
-class Person;
-class Population;
-class StrainTable;
-class Strain;
-class IntraHost;
-class Trajectory;
+class Age_Map;
+class Evolution;
 class Infection;
+class IntraHost;
+class Person;
+class Strain;
 class Strain_Data;
+class StrainTable;
+class Trajectory;
+
 
 class Disease {
 public:
-
-
- 
 
   /**
    * Default constructor
@@ -50,19 +46,17 @@ public:
   ~Disease();
 
   void initialize_static_variables();
-  void get_parameters(int disease_id);
+  void get_parameters(int disease, string name);
 
   /**
    * Set all of the attributes for the Disease
-   *
-   * @param pop the population for this Disease
    */
-  void setup(Population* pop);
+  void setup();
 
-//  /**
-//   * Print out information about this object
-//   */
-//  void print();
+  //  /**
+  //   * Print out information about this object
+  //   */
+  //  void print();
 
   /**
    * @return the intrahost model's days symptomatic
@@ -128,34 +122,13 @@ public:
   }
 
   /**
-   * @param the simulation day
-   * @return a pointer to a map of Primary Loads for a given day
-   * @see Evolution::get_primary_loads(int day)
-   */
-  Transmission::Loads* get_primary_loads(int day);
-
-  /**
-   * @param the simulation day
-   * @param the particular strain of the disease
-   * @return a pointer to a map of Primary Loads for a particular strain of the disease on a given day
-   * @see Evolution::get_primary_loads(int day, int strain)
-   */
-  Transmission::Loads* get_primary_loads(int day, int strain);
-
-  /**
    * @return a pointer to this Disease's Evolution attribute
    */
   Evolution* get_evolution() {
     return this->evol;
   }
 
-  /**
-   * @param infection
-   * @param loads
-   * @return a pointer to a Trajectory object
-   * @see return Trajectory::get_trajectory(Infection* infection, map<int, double>* loads)
-   */
-  Trajectory* get_trajectory(Infection* infection, Transmission::Loads* loads);
+  Trajectory* get_trajectory(int age);
 
   /**
    * Add a person to the Epidemic's infectious place list
@@ -175,15 +148,8 @@ public:
   }
 
   /**
-   * @return the population with which this Disease is associated
+   * @return the epidemic with which this Disease is associated
    */
-  Population* get_population() {
-    return this->population;
-  }
-
-  /**
-    * @return the epidemic with which this Disease is associated
-    */
   Epidemic* get_epidemic() {
     return this->epidemic;
   }
@@ -204,7 +170,7 @@ public:
   const Strain_Data &get_strain_data(int strain);
   const Strain &get_strain(int strain_id);
 
-  static void get_disease_parameters();
+  void get_disease_parameters();
 
   void become_susceptible(Person* person) {
     this->epidemic->become_susceptible(person);
@@ -214,8 +180,8 @@ public:
     this->epidemic->become_unsusceptible(person);
   }
 
-  void become_exposed(Person* person) {
-    this->epidemic->become_exposed(person);
+  void become_exposed(Person* person, int day) {
+    this->epidemic->become_exposed(person, day);
   }
 
   void become_infectious(Person* person) {
@@ -315,8 +281,6 @@ public:
    
 private:
 
-  static std::string* Disease_name;
-
   char disease_name[FRED_STRING_SIZE];
   int id;
   double transmissibility;
@@ -367,12 +331,10 @@ private:
   double R0_a;
   double R0_b;
   
-   /// added for residual_immunity_by FIPS
+  /// added for residual_immunity_by FIPS
   std::map<int, vector<double> > residual_immunity_by_FIPS;
   /// end added
 
-  // Vars that are not Disease-specific (for updating global stats).
-  Population* population;
 };
 
 #endif // _FRED_Disease_H

@@ -20,9 +20,9 @@
 #include "Global.h"
 #include "Params.h"
 #include "Person.h"
+#include "Disease_List.h"
 #include "Utils.h"
 #include "Random.h"
-#include "Transmission.h"
 #include "Regional_Layer.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
@@ -55,7 +55,7 @@ int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
 Household::Household() {
-  get_parameters(Global::Diseases);
+  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
@@ -78,8 +78,8 @@ Household::Household() {
   set_household_income(-1);
 }
 
-Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
-  get_parameters(Global::Diseases);
+Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
+  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
@@ -97,7 +97,7 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
-  setup(lab, lon, lat, container, pop);
+  setup(lab, lon, lat, container);
   this->N = 0;
   this->group_quarters_units = 0;
   this->group_quarters_workplace = NULL;
@@ -115,19 +115,19 @@ void Household::get_parameters(int diseases) {
     Household::Household_contacts_per_day = new double[diseases];
     Household::Household_contact_prob = new double**[diseases];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
       Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	      printf("\nHousehold_contact_prob:\n");
-	      for(int i  = 0; i < n; ++i)  {
-	        for(int j  = 0; j < n; ++j) {
-	          printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
-	        }
-	        printf("\n");
-	      }
+	printf("\nHousehold_contact_prob:\n");
+	for(int i  = 0; i < n; ++i)  {
+	  for(int j  = 0; j < n; ++j) {
+	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
       }
     }
   }
@@ -297,7 +297,7 @@ void Household::prepare_person_childcare_sickleave_map() {
           }
           std::pair<std::map<Person*, HH_Adult_Sickleave_Data>::iterator, bool> ret;
           ret = this->adult_childcare_sickleave_map.insert(
-              std::pair<Person*, HH_Adult_Sickleave_Data>(per, sickleave_info));
+							   std::pair<Person*, HH_Adult_Sickleave_Data>(per, sickleave_info));
           assert(ret.second); // Shouldn't insert the same person twice
         }
       }

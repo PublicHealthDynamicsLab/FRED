@@ -48,6 +48,8 @@ IntraHost *IntraHost :: newIntraHost(int type) {
   }
 }
 
-int IntraHost :: get_days_symp() {
+int IntraHost::get_days_symp() {
   return 0;
 }
+
+

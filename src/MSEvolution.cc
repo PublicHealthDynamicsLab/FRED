@@ -9,28 +9,12 @@
   more information.
 */
 
-#include <map>
-#include <cmath>
-#include <fstream>
-
+#include "Age_Map.h"
 #include "MSEvolution.h"
-#include "Random.h"
-#include "Evolution.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Global.h"
-#include "IntraHost.h"
-#include "Antiviral.h"
-#include "Health.h"
+#include "Params.h"
+#include "Past_Infection.h"
 #include "Person.h"
 #include "Piecewise_Linear.h"
-#include "Past_Infection.h"
-#include "Transmission.h"
-#include "Strain.h"
-#include "Age_Map.h"
-#include "Params.h"
-
-using namespace std;
 
 
 MSEvolution::MSEvolution() { 
@@ -91,8 +75,8 @@ double MSEvolution::antigenic_distance( int strain1, int strain2 ) {
 
 double MSEvolution::prob_inf_blocking( int old_strain, int new_strain, int time, double real_age ) {
   FRED_VERBOSE( 3, "Prob Blocking %f old strain %d new strain %d time %d halflife %f age %.2f init prot inf %f\n",
-      prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ),
-       old_strain, new_strain, time, halflife_inf->find_value( real_age ), real_age, init_prot_inf );
+		prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ),
+		old_strain, new_strain, time, halflife_inf->find_value( real_age ), real_age, init_prot_inf );
   return prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ); 
 }
 
@@ -120,7 +104,7 @@ double MSEvolution::prob_past_infections( Person * infectee, int new_strain, int
     Past_Infection * past_infection = infectee->get_past_infection( disease_id, i );
     //printf("DATES: %d %d\n", day, pastInf->get_recovery_date()); 
     probTaking *= ( 1 - prob_inf_blocking( past_infection->get_strain(), new_strain, 
-          day - past_infection->get_recovery_date(), past_infection->get_age_at_exposure() ) );
+					   day - past_infection->get_recovery_date(), past_infection->get_age_at_exposure() ) );
   }
   return probTaking;
 }
@@ -128,21 +112,21 @@ double MSEvolution::prob_past_infections( Person * infectee, int new_strain, int
 double MSEvolution::prob_past_vaccinations( Person * infectee, int new_strain, int day ) {
   double probTaking = 1.0;
   // TODO Handle getting past vaccinations through person instead of infection
-/*  int n = infection->get_num_past_vaccinations();
-  cout << "VACC " << n << endl;
-  Infection *pastInf;
-  vector<int> old_strains; 
-  for(int i=0; i<n; i++){
-    pastInf = infection->get_past_vaccination(i);
-    if(! pastInf->provides_immunity()) continue;
-    else{
+  /*  int n = infection->get_num_past_vaccinations();
+      cout << "VACC " << n << endl;
+      Infection *pastInf;
+      vector<int> old_strains; 
+      for(int i=0; i<n; i++){
+      pastInf = infection->get_past_vaccination(i);
+      if(! pastInf->provides_immunity()) continue;
+      else{
       pastInf->get_strains(old_strains);
       for(unsigned int i=0; i<old_strains.size(); i++){
-        probTaking *= (1 - prob_vac_blocking(old_strains[i], new_strain, 
-              day - pastInf->get_exposure_date(), pastInf->get_age_at_exposure()));
+      probTaking *= (1 - prob_vac_blocking(old_strains[i], new_strain, 
+      day - pastInf->get_exposure_date(), pastInf->get_age_at_exposure()));
       }
-    }
-  }*/
+      }
+      }*/
   return probTaking;
 }
 
@@ -157,33 +141,28 @@ double MSEvolution::get_prob_taking( Person * infectee, int new_strain, double q
   return probTaking;
 }
 
-Infection * MSEvolution::transmit( Infection * infection,
-    Transmission & transmission, Person * infectee ) {
-
+/*
+  Infection * MSEvolution::transmit( Infection * infection, Transmission & transmission, Person * infectee ) {
   int day = transmission.get_exposure_date();
-  
   Transmission::Loads * loads = transmission.get_initial_loads();
 
-  bool force = transmission.get_forcing();
   Transmission::Loads::iterator it;
-  
   for ( it = loads->begin(); it != loads->end(); ) {
-    
-    double trans = force ? 1.0 : get_prob_taking( infectee, it->first, it->second, day );
-    
-    if ( Random::draw_random() <= trans ) {
-      it++;
-    }
-    else {
-      loads->erase( it++ );
-    }
+  double trans = get_prob_taking( infectee, it->first, it->second, day );
+  if ( Random::draw_random() <= trans ) {
+  it++;
+  }
+  else {
+  loads->erase( it++ );
+  }
   }
 
   if ( loads->empty() ) {
-    return NULL;
+  return NULL;
   }
   else {
-    return Evolution::transmit( infection, transmission, infectee );
+  return Evolution::transmit( infection, transmission, infectee );
   }
-}
+  }
+*/
 

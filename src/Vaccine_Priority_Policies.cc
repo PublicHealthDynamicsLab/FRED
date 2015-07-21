@@ -25,7 +25,7 @@
 #include "Vaccine_Manager.h"
 
 Vaccine_Priority_Policy_No_Priority::Vaccine_Priority_Policy_No_Priority(Vaccine_Manager *vcm):
-Policy(dynamic_cast <Manager *> (vcm)){
+  Policy(dynamic_cast <Manager *> (vcm)){
   
   Name = "Vaccine Priority Policy - No Priority";
   
@@ -33,7 +33,7 @@ Policy(dynamic_cast <Manager *> (vcm)){
 }
 
 Vaccine_Priority_Policy_Specific_Age::Vaccine_Priority_Policy_Specific_Age(Vaccine_Manager *vcm):
-Policy(dynamic_cast <Manager *> (vcm)){
+  Policy(dynamic_cast <Manager *> (vcm)){
   
   Name = "Vaccine Priority Policy - Sepcific Age Group";
   decision_list.push_back(new Vaccine_Priority_Decision_Specific_Age(this));

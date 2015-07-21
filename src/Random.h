@@ -24,7 +24,7 @@ using namespace std;
 
 class RNG {
 
- public:
+public:
   void set_seed(unsigned long seed);
   double random() {
     return unif_dist(mt_engine);
@@ -42,7 +42,7 @@ class RNG {
   void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
   void sample_range_without_replacement(int N, int s, int* result);
 
- private:
+private:
   std::mt19937_64 mt_engine;
   std::uniform_real_distribution<double> unif_dist;
   std::normal_distribution<double> normal_dist;
@@ -50,7 +50,7 @@ class RNG {
 
 
 class Thread_RNG {
- public:
+public:
   Thread_RNG();
 
   void set_seed(unsigned long seed);
@@ -88,12 +88,12 @@ class Thread_RNG {
     thread_rng[fred::omp_get_thread_num()].sample_range_without_replacement(N, s, result);
   }
 
- private:
+private:
   RNG * thread_rng;
 };
 
 class Random {
- public:
+public:
   static void set_seed(unsigned long seed) { 
     Random_Number_Generator.set_seed(seed);
   }
@@ -131,7 +131,7 @@ class Random {
     Random_Number_Generator.sample_range_without_replacement(N,s,result);
   }
 
- private:
+private:
   static Thread_RNG Random_Number_Generator;
 };
 

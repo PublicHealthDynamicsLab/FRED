@@ -16,6 +16,8 @@
 
 #include "Vector_Patch.h"
 #include "Vector_Layer.h"
+#include "Disease.h"
+#include "Disease_List.h"
 #include "Params.h"
 #include "Utils.h"
 #include "Person.h"
@@ -71,25 +73,25 @@ double Vector_Patch::distance_to_patch(Vector_Patch *p2) {
   return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
 void Vector_Patch::set_temperature(double patch_temperature){
-	//temperatures vs development times..FOCKS2000: DENGUE TRANSMISSION THRESHOLDS
-	double temps[8] = {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92}; //temperatures
-	double dev_times[8] = {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0}; //development times
-	temperature = patch_temperature;
-	if (temperature > 32) temperature = 32;
-	if (temperature <=18)
-	{
-	  vectors_per_host = 0;
-	}else {
-		for (int i=0;i<8;i++)
-		{
-			if (temperature<=temps[i]) {
-				//obtain the development time using linear interpolation
-				development_time = dev_times[i-1] + (dev_times[i]-dev_times[i-1])/(temps[i] - temps[i-1])*(temperature - temps[i-1]);
-			}
-		}
-	   vectors_per_host = pupae_per_host*female_ratio*sucess_rate*life_span/development_time;	
+  //temperatures vs development times..FOCKS2000: DENGUE TRANSMISSION THRESHOLDS
+  double temps[8] = {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92}; //temperatures
+  double dev_times[8] = {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0}; //development times
+  temperature = patch_temperature;
+  if (temperature > 32) temperature = 32;
+  if (temperature <=18)
+    {
+      vectors_per_host = 0;
+    }else {
+    for (int i=0;i<8;i++)
+      {
+	if (temperature<=temps[i]) {
+	  //obtain the development time using linear interpolation
+	  development_time = dev_times[i-1] + (dev_times[i]-dev_times[i-1])/(temps[i] - temps[i-1])*(temperature - temps[i-1]);
 	}
-	FRED_VERBOSE(1, "SET TEMP: Patch %d %d temp %f vectors_per_host %f\n", row, col, patch_temperature, vectors_per_host);
+      }
+    vectors_per_host = pupae_per_host*female_ratio*sucess_rate*life_span/development_time;	
+  }
+  FRED_VERBOSE(1, "SET TEMP: Patch %d %d temp %f vectors_per_host %f\n", row, col, patch_temperature, vectors_per_host);
 
 }
 
@@ -187,7 +189,7 @@ void Vector_Patch::transmit_to_hosts(int day) {
     FYShuffle<Person *>(S_hosts[disease_id]);
     FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", S_hosts[disease_id].size());
     // get the disease object   
-    Disease * disease = Global::Pop.get_disease(disease_id);
+    Disease * disease = Global::Diseases.get_disease(disease_id);
 
     for (int j = 0; j < E_hosts[disease_id] && j < S_hosts[disease_id].size(); j++) {
       Person * infectee = S_hosts[disease_id][j];
@@ -196,14 +198,12 @@ void Vector_Patch::transmit_to_hosts(int day) {
       if (infectee->is_susceptible(disease_id)) {
         // create a new infection in infectee
 	FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
-        Transmission transmission = Transmission(NULL, NULL, day);
-        transmission.set_initial_loads(disease->get_primary_loads(day));
-        infectee->become_exposed(disease, transmission);
+        infectee->become_exposed(disease_id, NULL, NULL, day);
 
         // become unsusceptible to other diseases(?)
         for (int d = 0; d < DISEASE_TYPES; d++) {
           if (d != disease_id) {
-            Disease * other_disease = Global::Pop.get_disease(d);
+            Disease * other_disease = Global::Diseases.get_disease(d);
             infectee->become_unsusceptible(other_disease);
           }
         }
@@ -231,7 +231,7 @@ void Vector_Patch::update_vector_population(int day) {
     }
     total_born_infectious += born_infectious[d];
     if (born_infectious[d]>0){
-         FRED_VERBOSE(1,"vector_update_population:: Vector born infectious disease[%d] = %d \n",d, born_infectious[d]);
+      FRED_VERBOSE(1,"vector_update_population:: Vector born infectious disease[%d] = %d \n",d, born_infectious[d]);
     }
   }
   S_vectors -= total_born_infectious;

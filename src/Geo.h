@@ -24,7 +24,7 @@ using namespace std;
 
 
 class Geo{
- public:
+public:
 
   static const double DEG_TO_RAD;		// PI/180
   static double km_per_deg_longitude;

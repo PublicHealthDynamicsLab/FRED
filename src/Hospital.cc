@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "Disease.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Hospital.h"
 #include "Params.h"
@@ -48,7 +49,7 @@ bool Hospital::Hospital_parameters_set = false;
 
 Hospital::Hospital() {
   if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases);
+    get_parameters(Global::Diseases.get_number_of_diseases());
   }
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
@@ -59,9 +60,9 @@ Hospital::Hospital() {
   std::vector<bool>* checked_open_day_vec;
 }
 
-Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container, Population* pop) {
+Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
   if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases);
+    get_parameters(Global::Diseases.get_number_of_diseases());
   }
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;
@@ -70,7 +71,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
   this->add_capacity = false;
-  setup(lab, lon, lat, container, pop);
+  setup(lab, lon, lat, container);
 
   if(Global::Enable_Health_Insurance) {
     vector<double>::iterator itr;
@@ -113,7 +114,7 @@ void Hospital::get_parameters(int diseases) {
 
     char param_str[80];
     for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Pop.get_disease(disease_id);
+      Disease* disease = Global::Diseases.get_disease(disease_id);
       sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
       Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
@@ -177,9 +178,9 @@ void Hospital::get_parameters(int diseases) {
             sprintf(s, "%c%s", place_type, tokens[HOSP_ID]);
             string hosp_id_str(s);
             HAZEL_Hospital_Init_Data init_data = HAZEL_Hospital_Init_Data(tokens[PNL_WK], tokens[ACCPT_PRIV],
-                tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
-                tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
-                tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
+									  tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
+									  tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
+									  tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
             this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
@@ -337,26 +338,26 @@ void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool do
   assert(insr >= Insurance_assignment_index::PRIVATE);
   assert(insr < Insurance_assignment_index::UNSET);
   switch(insr) {
-    case Insurance_assignment_index::PRIVATE:
-      this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
-      break;
-    case Insurance_assignment_index::MEDICARE:
-      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
-      break;
-    case Insurance_assignment_index::MEDICAID:
-      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
-      break;
-    case Insurance_assignment_index::HIGHMARK:
-      this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
-      break;
-    case Insurance_assignment_index::UPMC:
-      this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
-      break;
-    case Insurance_assignment_index::UNINSURED:
-      this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
-      break;
-    default:
-      Utils::fred_abort("Invalid Insurance Assignment Type", "");
+  case Insurance_assignment_index::PRIVATE:
+    this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
+    break;
+  case Insurance_assignment_index::MEDICARE:
+    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
+    break;
+  case Insurance_assignment_index::MEDICAID:
+    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
+    break;
+  case Insurance_assignment_index::HIGHMARK:
+    this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
+    break;
+  case Insurance_assignment_index::UPMC:
+    this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
+    break;
+  case Insurance_assignment_index::UNINSURED:
+    this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
+    break;
+  default:
+    Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 
@@ -364,26 +365,26 @@ void Hospital::set_accepts_insurance(int insr_indx, bool does_accept) {
   assert(insr_indx >= 0);
   assert(insr_indx < static_cast<int>(Insurance_assignment_index::UNSET));
   switch(insr_indx) {
-    case static_cast<int>(Insurance_assignment_index::PRIVATE):
-      set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::MEDICARE):
-      set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::MEDICAID):
-      set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::HIGHMARK):
-      set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::UPMC):
-      set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::UNINSURED):
-      set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
-      break;
-    default:
-      Utils::fred_abort("Invalid Insurance Assignment Type", "");
+  case static_cast<int>(Insurance_assignment_index::PRIVATE):
+    set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::MEDICARE):
+    set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::MEDICAID):
+    set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::HIGHMARK):
+    set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::UPMC):
+    set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::UNINSURED):
+    set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
+  break;
+  default:
+    Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 

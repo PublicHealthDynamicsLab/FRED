@@ -27,7 +27,7 @@ void SnappyFileCompression::compress_file_to_stdout() {
   // memory map the file as a char array
   int fd = open( infile_name, O_RDONLY );
   char * map = (char *) mmap( NULL, infile_size,
-      PROT_READ, MAP_PRIVATE, fd, 0 );
+			      PROT_READ, MAP_PRIVATE, fd, 0 );
   // layout will be:
   // [ size compressed_size_0 ][ char * compressed_data_0 ]...
   // target uncompressed size will be default_block_size bytes
@@ -60,12 +60,12 @@ void SnappyFileCompression::compress_file_to_stdout() {
         size_t compressed_size = compressed_output.size(); 
         // write header (the compressed size in byte form) to stdout
         fwrite( ( char * ) &compressed_size, sizeof( char ),
-            sizeof( size_t ), stdout );
+		sizeof( size_t ), stdout );
         // write compressed data to stdout
         fwrite( compressed_output.data(), sizeof( char ), compressed_size, stdout ); 
         // report stats for this block to stderr
         fprintf( stderr, "...compressed %zu bytes down to %zu bytes, plus %zu additional bytes for header\n",
-            input_size, compressed_size, sizeof( size_t ) );
+		 input_size, compressed_size, sizeof( size_t ) );
         // running totals for final reporting
         total_compressed_bytes += compressed_size;
         total_uncompressed_bytes += input_size;
@@ -84,7 +84,7 @@ void SnappyFileCompression::compress_file_to_stdout() {
     }
   }
   fprintf( stderr, "\nCompressed %llu bytes down to %llu bytes ( plus %llu additional bytes for block and magic headers )\n\n",
-      total_uncompressed_bytes, total_compressed_bytes, total_header_bytes + FSZ_MAGIC_LEN() );
+	   total_uncompressed_bytes, total_compressed_bytes, total_header_bytes + FSZ_MAGIC_LEN() );
 }
 
 void SnappyFileCompression::uncompress_file_to_stdout() {
@@ -133,7 +133,7 @@ void SnappyFileCompression::uncompress_file_to_stdout() {
     begin += (*current_block_size);
     // report some stuff to stderr
     fprintf( stderr, "...uncompressed %zu bytes (plus %zu bytes for the header) to %zu bytes\n",
-        *current_block_size, sizeof( size_t ), uncompressed_output.size() );
+	     *current_block_size, sizeof( size_t ), uncompressed_output.size() );
     // running totals for final reporting
     total_compressed_bytes += *current_block_size;
     total_uncompressed_bytes += uncompressed_output.size();
@@ -141,7 +141,7 @@ void SnappyFileCompression::uncompress_file_to_stdout() {
   }
   // final summary of work done
   fprintf( stderr, "\nUncompressed %llu bytes (plus %llu additional bytes for block and magic headers) to %llu bytes of output.\n\n",
-      total_compressed_bytes, total_header_bytes + FSZ_MAGIC_LEN(), total_uncompressed_bytes);
+	   total_compressed_bytes, total_header_bytes + FSZ_MAGIC_LEN(), total_uncompressed_bytes);
 
 }
 

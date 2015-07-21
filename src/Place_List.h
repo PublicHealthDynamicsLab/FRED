@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -16,20 +16,20 @@
 #ifndef _FRED_PLACE_LIST_H
 #define _FRED_PLACE_LIST_H
 
-#include <vector>
-#include <set>
 #include <cstring>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <map>
+#include <set>
 #include <unordered_map>
-using namespace std;
-
+#include <vector>
+#include "County.h"
 #include "Health.h"
 #include "Household.h"
 #include "Place.h"
 #include "Utils.h"
-#include "County.h"
+
+using namespace std;
 
 class School;
 class Neighborhood;
@@ -47,14 +47,13 @@ typedef std::unordered_map<std::string, int> LabelMapT;
 // after Place_List class
 class Place_Init_Data;
 
-
 class Place_List {
-
   typedef std::set<Place_Init_Data> InitSetT;
   typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
   typedef std::map<char, std::string> TypeNameMapT;
   typedef std::map<std::string, int> HouseholdHospitalIDMapT;
+  typedef std::map<int, int> HospitalIDCountMapT;
 
 public:
 
@@ -62,6 +61,7 @@ public:
   Place_List() {
     
     this->load_completed = false;
+    this->is_primary_care_assignment_initialized = false;
     this->places.clear();
     this->schools.clear();
     this->workplaces.clear();
@@ -74,7 +74,7 @@ public:
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
   void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id,
-      InitSetT &pids);
+		   InitSetT &pids);
 
   void reassign_workers();
   void prepare();
@@ -228,6 +228,9 @@ public:
 
   static int get_HAZEL_disaster_start_sim_day();
   static int get_HAZEL_disaster_end_sim_day();
+  static void increment_hospital_ID_current_assigned_size_map(int hospital_id) {
+    Place_List::Hospital_ID_current_assigned_size_map.at(hospital_id)++;
+  }
 
 private:
 
@@ -238,6 +241,7 @@ private:
   void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
   void reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff, double resident_to_staff_ratio);
+  void prepare_primary_care_assignment();
 
   /**
    * @param hh a pointer to a Household object
@@ -249,6 +253,7 @@ private:
    */
   Hospital* get_hospital_assigned_to_household(Household* hh);
   int number_of_demes;
+  bool is_primary_care_assignment_initialized;
 
   // input files
   char MSA_file[FRED_STRING_SIZE];
@@ -299,6 +304,10 @@ private:
   static double Healthcare_clinic_outpatients_per_day_per_employee;
   static int Hospital_min_bed_threshold;
   static double Hospitalization_radius;
+  
+  static HospitalIDCountMapT Hospital_ID_total_assigned_size_map;
+  static HospitalIDCountMapT Hospital_ID_current_assigned_size_map;
+  static int Hospital_overall_panel_size;
 
   static int HAZEL_disaster_start_sim_day;
   static int HAZEL_disaster_end_sim_day;
@@ -342,7 +351,7 @@ private:
 
   string lookup_place_type_name(char place_type) {
     assert(this->place_type_name_lookup_map.find(place_type)
-            != this->place_type_name_lookup_map.end());
+	   != this->place_type_name_lookup_map.end());
     return this->place_type_name_lookup_map[place_type];
   }
 
@@ -365,10 +374,10 @@ private:
       ++(place);
     }
     FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
-        lookup_place_type_name( place_type ).c_str());
+		lookup_place_type_name( place_type ).c_str());
     FRED_CONDITIONAL_WARNING(places_added != places_allocated,
-        "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
-        lookup_place_type_name( place_type ).c_str(), places_allocated);
+			     "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
+			     lookup_place_type_name( place_type ).c_str(), places_allocated);
     // update/set place_type_counts for this place_type
     this->place_type_counts[place_type] = places_added;
   }

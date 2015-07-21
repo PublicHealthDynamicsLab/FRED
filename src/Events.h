@@ -62,13 +62,13 @@ public:
     int size = get_size(day);
     for(int pos = 0; pos < size; ++pos) {
       if(this->events[day][pos] == item) {
-	      // copy last item in list into this slot
+	// copy last item in list into this slot
         this->events[day][pos] = this->events[day].back();
-	      // delete last slot
+	// delete last slot
         this->events[day].pop_back();
-	      // printf("\ndelete_event day %d final size %d\n", day, get_size(day));
-	      // print_events(day);
-	      return;
+	// printf("\ndelete_event day %d final size %d\n", day, get_size(day));
+	// print_events(day);
+	return;
       }
     }
     // item not found
@@ -98,7 +98,7 @@ public:
     clear_events(day);
   }
 
- private:
+private:
   events_t events[MAX_DAYS];
 
 };

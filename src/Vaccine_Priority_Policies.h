@@ -49,7 +49,7 @@ public:
 class Vaccine_Priority_Policy_ACIP:public Policy {
   Vaccine_Manager *vacc_manager;
   
- public: 
+public: 
   Vaccine_Priority_Policy_ACIP();
   Vaccine_Priority_Policy_ACIP(Vaccine_Manager* vcm);
 };

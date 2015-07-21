@@ -18,6 +18,7 @@
 
 #include "Activities.h"
 #include "Demographics.h"
+#include "Disease_List.h"
 #include "Global.h"
 #include "Health.h"
 #include "Behavior.h"
@@ -25,7 +26,6 @@
 #include "Disease.h"
 #include "Population.h"
 #include "Age_Map.h"
-#include "Transmission.h"
 
 #include <cstdio>
 #include <vector>
@@ -41,8 +41,8 @@ Person::~Person() {
 }
 
 void Person::setup(int _index, int _id, int age, char sex,
-       int race, int rel, Place* house, Place* school, Place* work,
-       int day, bool today_is_birthday) {
+		   int race, int rel, Place* house, Place* school, Place* work,
+		   int day, bool today_is_birthday) {
   int myFIPS;
   this->index = _index;
   this->id = _id;
@@ -57,25 +57,25 @@ void Person::setup(int _index, int _id, int age, char sex,
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
   } else {
     // residual immunity does NOT apply to newborns
-    for(int disease = 0; disease < Global::Diseases; ++disease) {
-      Disease* dis = Global::Pop.get_disease(disease);
+    for(int disease = 0; disease < Global::Diseases.get_number_of_diseases(); ++disease) {
+      Disease* dis = Global::Diseases.get_disease(disease);
       
       if(Global::Residual_Immunity_by_FIPS) {
-  		Age_Map* temp_map = new Age_Map();
-  		vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
-  		vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
-  		temp_map->set_ages(temp_ages);
-  		temp_map->set_values(temp_values);
+	Age_Map* temp_map = new Age_Map();
+	vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
+	vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
+	temp_map->set_ages(temp_ages);
+	temp_map->set_values(temp_values);
      	double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
-	    if(Random::draw_random() < residual_immunity_by_fips_prob) 
-	      become_immune(dis);
-  		} else if(!dis->get_residual_immunity()->is_empty()) {
-	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	      if(Random::draw_random() < residual_immunity_prob) {
-	        become_immune(dis);
-	      }
-	    }
-	  }
+	if(Random::draw_random() < residual_immunity_by_fips_prob) 
+	  become_immune(dis);
+      } else if(!dis->get_residual_immunity()->is_empty()) {
+	double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
+	if(Random::draw_random() < residual_immunity_prob) {
+	  become_immune(dis);
+	}
+      }
+    }
   }
 }
 
@@ -121,10 +121,6 @@ void Person::become_immune(Disease* disease) {
   }
 }
 
-void Person::infect(Person* infectee, int disease, Transmission &transmission) {
-  this->health.infect(this, infectee, disease, transmission);
-}
-
 Person* Person::give_birth(int day) {
   int age = 0;
   char sex = (Random::draw_random(0.0, 1.0) < 0.5 ? 'M' : 'F');
@@ -137,16 +133,16 @@ Person* Person::give_birth(int day) {
     }
   }
   /*
-  if (house == NULL) {
+    if (house == NULL) {
     printf("Mom %d has no household\n", this->get_id()); fflush(stdout);
-  }
+    }
   */
   assert(house != NULL);
   Place* school = NULL;
   Place* work = NULL;
   bool today_is_birthday = true;
   Person* baby = Global::Pop.add_person(age, sex, race, rel,
-                   house, school, work, day, today_is_birthday);
+					house, school, work, day, today_is_birthday);
 
   if(Global::Enable_Behaviors) {
     // turn mother into an adult decision maker, if not already

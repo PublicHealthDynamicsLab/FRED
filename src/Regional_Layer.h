@@ -41,7 +41,6 @@ public:
   void set_population_size();
   void quality_control();
   void read_max_popsize();
-  void report_grid_stats(int day);
   void unenroll(fred::geo lat, fred::geo lon, Person* person);
   bool is_in_region(fred::geo lat, fred::geo lon) {
     return (this->get_patch(lat,lon) != NULL);

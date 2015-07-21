@@ -37,15 +37,15 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
+   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container, Population* pop );
+  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container, Population* pop)</code>
+   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
    */
   void get_parameters(int diseases);
 
@@ -55,13 +55,13 @@ public:
   int get_group(int disease, Person * per);
 
   /**
-    * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
-    *
-    * This method returns the value from the static array <code>Office::Office_contact_prob</code> that
-    * corresponds to a particular age-related value for each person.<br />
-    * The static array <code>Office_contact_prob</code> will be filled with values from the parameter
-    * file for the key <code>office_prob[]</code>.
-    */
+   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   *
+   * This method returns the value from the static array <code>Office::Office_contact_prob</code> that
+   * corresponds to a particular age-related value for each person.<br />
+   * The static array <code>Office_contact_prob</code> will be filled with values from the parameter
+   * file for the key <code>office_prob[]</code>.
+   */
   double get_transmission_prob(int disease, Person * i, Person * s);
 
   /**

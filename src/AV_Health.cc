@@ -56,7 +56,7 @@ void AV_Health::update(int day){
     }
     else{
       if(Global::Debug > 3)
-  cout << "\nBefore: Suceptibility "<< health->get_susceptibility(0) << "\n";
+	cout << "\nBefore: Suceptibility "<< health->get_susceptibility(0) << "\n";
     }
   }
   AV->effect(health,day,this);
@@ -67,8 +67,8 @@ void AV_Health::update(int day){
         health->get_infection(0)->print();
       }
       else{
-  if(Global::Debug > 3)
-    cout << "\nAfter: Suceptibility "<< health->get_susceptibility(0) << "\n";
+	if(Global::Debug > 3)
+	  cout << "\nAfter: Suceptibility "<< health->get_susceptibility(0) << "\n";
       }
     }
   }

@@ -84,7 +84,7 @@ void Vaccines::print_current_stocks() const {
   cout << "\nVaccines# " << "Current Stock      " << "Current Reserve    \n";
   for(unsigned int i=0; i<vaccines.size(); i++) {
     cout << setw(10) << i+1 << setw(20) << vaccines[i]->get_current_stock()
-    << setw(20) << vaccines[i]->get_current_reserve() << "\n";
+	 << setw(20) << vaccines[i]->get_current_reserve() << "\n";
   }
 }
 

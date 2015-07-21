@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -31,54 +31,54 @@ Intention::Intention(Person * _self, int _index) {
 
   // pick a behavior_change_model for this individual based on the population market shares
   this->behavior_change_model = Random::draw_from_distribution(this->params->behavior_change_model_cdf_size,
-      this->params->behavior_change_model_cdf);
+							       this->params->behavior_change_model_cdf);
 
   // set the other intention parameters based on the behavior_change_model
   switch(this->behavior_change_model) {
 
-    case Behavior_change_model_enum::REFUSE:
-      this->intention = false;
-      this->probability = 0.0;
-      this->frequency = 0;
-      break;
+  case Behavior_change_model_enum::REFUSE:
+    this->intention = false;
+    this->probability = 0.0;
+    this->frequency = 0;
+    break;
 
-    case Behavior_change_model_enum::ACCEPT:
-      this->intention = true;
-      this->probability = 1.0;
-      this->frequency = 0;
-      break;
+  case Behavior_change_model_enum::ACCEPT:
+    this->intention = true;
+    this->probability = 1.0;
+    this->frequency = 0;
+    break;
 
-    case Behavior_change_model_enum::FLIP:
-      this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
-      this->intention = (Random::draw_random()<= this->probability);
-      this->frequency = this->params->frequency;
-      break;
+  case Behavior_change_model_enum::FLIP:
+    this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
+    this->intention = (Random::draw_random()<= this->probability);
+    this->frequency = this->params->frequency;
+    break;
 
-    case Behavior_change_model_enum::HBM:
-      this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
-      this->intention = (Random::draw_random() <= this->probability);
-      this->frequency = this->params->frequency;
-      setup_hbm();
-      break;
+  case Behavior_change_model_enum::HBM:
+    this->probability = Random::draw_random(this->params->min_prob, this->params->max_prob);
+    this->intention = (Random::draw_random() <= this->probability);
+    this->frequency = this->params->frequency;
+    setup_hbm();
+    break;
 
-    default: // REFUSE
-      this->intention = false;
-      this->probability = 0.0;
-      this->frequency = 0;
-      break;
-    }
+  default: // REFUSE
+    this->intention = false;
+    this->probability = 0.0;
+    this->frequency = 0;
+    break;
+  }
 
   FRED_VERBOSE(1,
-      "created INTENTION %d name %d behavior_change_model %d freq %d expir %d probability %f\n",
-      this->index, this->params->name, this->behavior_change_model, this->frequency,
-      this->expiration, this->probability);
+	       "created INTENTION %d name %d behavior_change_model %d freq %d expir %d probability %f\n",
+	       this->index, this->params->name, this->behavior_change_model, this->frequency,
+	       this->expiration, this->probability);
 }
 
 void Intention::update(int day) {
   FRED_VERBOSE(1,
-      "update INTENTION %s day %d behavior_change_model %d freq %d expir %d probability %f\n",
-      this->params->name, day, this->behavior_change_model, this->frequency,
-      this->expiration, this->probability);
+	       "update INTENTION %s day %d behavior_change_model %d freq %d expir %d probability %f\n",
+	       this->params->name, day, this->behavior_change_model, this->frequency,
+	       this->expiration, this->probability);
 
   if(this->frequency > 0 && this->expiration <= day) {
     if(this->behavior_change_model == Behavior_change_model_enum::HBM && day > 0) {
@@ -90,8 +90,8 @@ void Intention::update(int day) {
   }
 
   FRED_VERBOSE(1, "updated INTENTION %s = %d  expir = %d\n", this->params->name,
-      (this->intention ? 1 : 0),
-      this->expiration);
+	       (this->intention ? 1 : 0),
+	       this->expiration);
 
 }
 
@@ -101,8 +101,8 @@ double Intention::update_hbm(int day) {
   int disease_id = 0;
 
   FRED_VERBOSE(1, "update_hbm entered: thresholds: sus= %f sev= %f  ben= %f bar = %f\n",
-      this->susceptibility_threshold, this->severity_threshold,
-      this->benefits_threshold, this->barriers_threshold);
+	       this->susceptibility_threshold, this->severity_threshold,
+	       this->benefits_threshold, this->barriers_threshold);
 
   // update perceptions.
   this->perceptions->update(day);
@@ -111,7 +111,7 @@ double Intention::update_hbm(int day) {
   double perceived_severity = (this->perceptions->get_perceived_severity(disease_id) > this->severity_threshold);
 
   double perceived_susceptibility = (this->perceptions->get_perceived_susceptibility(disease_id)
-      > this->susceptibility_threshold);
+				     > this->susceptibility_threshold);
 
   double perceived_benefits = 1.0;
   double perceived_barriers = 0.0;
@@ -139,15 +139,15 @@ double Intention::update_hbm(int day) {
 void Intention::setup_hbm() {
   this->perceptions = new Perceptions(self);
   this->susceptibility_threshold = Random::draw_random(this->params->susceptibility_threshold_distr[0],
-      this->params->susceptibility_threshold_distr[1]);
+						       this->params->susceptibility_threshold_distr[1]);
   this->severity_threshold = Random::draw_random(this->params->severity_threshold_distr[0],
-      this->params->severity_threshold_distr[1]);
+						 this->params->severity_threshold_distr[1]);
   this->benefits_threshold = Random::draw_random(this->params->benefits_threshold_distr[0],
-      this->params->benefits_threshold_distr[1]);
+						 this->params->benefits_threshold_distr[1]);
   this->barriers_threshold = Random::draw_random(this->params->barriers_threshold_distr[0],
-      this->params->barriers_threshold_distr[1]);
+						 this->params->barriers_threshold_distr[1]);
   FRED_VERBOSE(1, "setup_hbm: thresholds: sus= %f sev= %f  ben= %f bar = %f\n",
-      this->susceptibility_threshold, this->severity_threshold,
-      this->benefits_threshold, this->barriers_threshold);
+	       this->susceptibility_threshold, this->severity_threshold,
+	       this->benefits_threshold, this->barriers_threshold);
 }
 
