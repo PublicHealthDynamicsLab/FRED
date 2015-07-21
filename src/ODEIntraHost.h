@@ -28,28 +28,28 @@ class Trajectory;
 using namespace std;
 
 class ODEIntraHost : public IntraHost {
-    // TODO set params from params file
-    // TODO set all initial values
+  // TODO set params from params file
+  // TODO set all initial values
 
-  public:
+public:
   Trajectory* get_trajectory();
-    void setup(Disease *disease);
-    int get_days_symp() {
-      return 1;  // TODO
-      }
+  void setup(Disease *disease);
+  int get_days_symp() {
+    return 1;  // TODO
+  }
 
-  private:
-    double get_inoculum_particles (double infector_particles);
-    vector<double> getInfectivities(double *viralTiter, int duration);
-    vector<double> get_symptomaticity(double *interferon, int duration);
+private:
+  double get_inoculum_particles (double infector_particles);
+  vector<double> getInfectivities(double *viralTiter, int duration);
+  vector<double> get_symptomaticity(double *interferon, int duration);
 
-    static const int MAX_LENGTH = 10;
+  static const int MAX_LENGTH = 10;
 
-    double viral_titer_scaling;
-    double viral_titer_latent_threshold;
-    double interferon_scaling;
-    double interferon_threshold;
-  };
+  double viral_titer_scaling;
+  double viral_titer_latent_threshold;
+  double interferon_scaling;
+  double interferon_threshold;
+};
 
 
 #endif

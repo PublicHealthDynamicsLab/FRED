@@ -255,9 +255,9 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Track_age_distribution) {
     /*
-    Global::Pop.print_age_distribution(Global::Simulation_directory,
-				       (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
-				       Global::Simulation_run_number);
+      Global::Pop.print_age_distribution(Global::Simulation_directory,
+      (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
+      Global::Simulation_run_number);
     */
   }
 
@@ -301,10 +301,10 @@ void fred_setup(int argc, char* argv[]) {
     Global::Pop.report_mean_hh_stats_per_census_tract();
   }
   
-//  //TODO - remove this
-//  if(Global::Enable_HAZEL) {
-//    Global::Pop.print_HAZEL_data();
-//  }
+  //  //TODO - remove this
+  //  if(Global::Enable_HAZEL) {
+  //    Global::Pop.print_HAZEL_data();
+  //  }
 
   // Global tracker allows us to have as many variables we
   // want from wherever in the output file
@@ -351,10 +351,10 @@ void fred_step(int day) {
   if(Global::Track_age_distribution) {
     if(Date::get_month() == 1 && Date::get_day_of_month() == 1) {
       /*
-      char date_string[80];
-      strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
-      Global::Pop.print_age_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
-      Global::Places.print_household_size_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
+	char date_string[80];
+	strcpy(date_string, (char *) Global::Sim_Current_Date->get_YYYYMMDD().c_str());
+	Global::Pop.print_age_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
+	Global::Places.print_household_size_distribution(Global::Simulation_directory, date_string, Global::Simulation_run_number);
       */
     }
   }

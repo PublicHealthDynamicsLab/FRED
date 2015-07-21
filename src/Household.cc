@@ -121,13 +121,13 @@ void Household::get_parameters(int diseases) {
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	      printf("\nHousehold_contact_prob:\n");
-	      for(int i  = 0; i < n; ++i)  {
-	        for(int j  = 0; j < n; ++j) {
-	          printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
-	        }
-	        printf("\n");
-	      }
+	printf("\nHousehold_contact_prob:\n");
+	for(int i  = 0; i < n; ++i)  {
+	  for(int j  = 0; j < n; ++j) {
+	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
       }
     }
   }
@@ -297,7 +297,7 @@ void Household::prepare_person_childcare_sickleave_map() {
           }
           std::pair<std::map<Person*, HH_Adult_Sickleave_Data>::iterator, bool> ret;
           ret = this->adult_childcare_sickleave_map.insert(
-              std::pair<Person*, HH_Adult_Sickleave_Data>(per, sickleave_info));
+							   std::pair<Person*, HH_Adult_Sickleave_Data>(per, sickleave_info));
           assert(ret.second); // Shouldn't insert the same person twice
         }
       }

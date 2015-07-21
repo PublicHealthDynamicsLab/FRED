@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -87,19 +87,19 @@ public:
   void set_all_values(double val);
   
   vector<double> get_ages(){
-  	 return this->ages;		
+    return this->ages;		
   }
 
   vector<double> get_values(){
-  	 return this->values;		
+    return this->values;		
   }
   
   void set_ages(vector<double> input_ages){
-  	ages = input_ages;
+    ages = input_ages;
   }
   
   void set_values(vector<double> input_values){
-  	values = input_values;
+    values = input_values;
   }
   
   void read_from_string(string ages_string, string values_string);

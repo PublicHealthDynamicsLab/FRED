@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -56,18 +56,18 @@ public:
       int h_county = Global::Places.get_fips_of_county_with_index(c);
       this->counties.insert(h_county);
       if(p->is_student()){
-	      int age_ = 0;
-	      age_ = p->get_age();
-	      if(age_>100) {
-	        age_=100;
-	      }
-	      if(age_<0) {
-	        age_=0;
-	      }
-	      this->students_by_age[age_].push_back(p);
+	int age_ = 0;
+	age_ = p->get_age();
+	if(age_>100) {
+	  age_=100;
+	}
+	if(age_<0) {
+	  age_=0;
+	}
+	this->students_by_age[age_].push_back(p);
       }
       if(p->get_workplace()!=NULL) {
-	      this->workers.push_back(p);
+	this->workers.push_back(p);
       }
     }
     ++this->demes[p->get_deme_id()];

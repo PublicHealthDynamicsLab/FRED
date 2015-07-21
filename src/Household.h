@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -96,24 +96,24 @@ public:
     assert(idx >= 0);
     assert(idx <= Household_income_level_code::UNCLASSIFIED);
     switch(idx) {
-      case Household_income_level_code::CAT_I:
-        return "cat_I";
-      case Household_income_level_code::CAT_II:
-        return "cat_II";
-      case Household_income_level_code::CAT_III:
-        return "cat_III";
-      case Household_income_level_code::CAT_IV:
-        return "cat_IV";
-      case Household_income_level_code::CAT_V:
-        return "cat_V";
-      case Household_income_level_code::CAT_VI:
-        return "cat_VI";
-      case Household_income_level_code::CAT_VII:
-        return "cat_VII";
-      case Household_income_level_code::UNCLASSIFIED:
-        return "Unclassified";
-      default:
-        Utils::fred_abort("Invalid Household Income Level Code", "");
+    case Household_income_level_code::CAT_I:
+      return "cat_I";
+    case Household_income_level_code::CAT_II:
+      return "cat_II";
+    case Household_income_level_code::CAT_III:
+      return "cat_III";
+    case Household_income_level_code::CAT_IV:
+      return "cat_IV";
+    case Household_income_level_code::CAT_V:
+      return "cat_V";
+    case Household_income_level_code::CAT_VI:
+      return "cat_VI";
+    case Household_income_level_code::CAT_VII:
+      return "cat_VII";
+    case Household_income_level_code::UNCLASSIFIED:
+      return "Unclassified";
+    default:
+      Utils::fred_abort("Invalid Household Income Level Code", "");
     }
     return NULL;
   }
@@ -408,7 +408,7 @@ public:
   }
 
   void set_count_seeking_hc(int _count_seeking_hc) {
-   this->count_seeking_hc = _count_seeking_hc;
+    this->count_seeking_hc = _count_seeking_hc;
   }
 
   int get_count_receiving_hc() {
@@ -416,7 +416,7 @@ public:
   }
 
   void set_count_receiving_hc(int _count_receiving_hc) {
-   this->count_receiving_hc = _count_receiving_hc;
+    this->count_receiving_hc = _count_receiving_hc;
   }
 
   void reset_healthcare_info() {
@@ -500,7 +500,7 @@ private:
 
   void set_household_income_code(int _household_income_code) {
     if(_household_income_code >= 0 ||
-        _household_income_code <= Household_income_level_code::UNCLASSIFIED) {
+       _household_income_code <= Household_income_level_code::UNCLASSIFIED) {
       this->household_income_code = _household_income_code;
     } else {
       Utils::fred_abort("Invalid Household Income Level Code", "");
@@ -537,7 +537,7 @@ private:
  * track of whether or not they have already used a sick day for a given child
  */
 class HH_Adult_Sickleave_Data {
- public:
+public:
   HH_Adult_Sickleave_Data() { }
 
   void add_child_to_maps(Person* child) {
@@ -562,7 +562,7 @@ class HH_Adult_Sickleave_Data {
     return ret_val;
   }
 
- private:
+private:
   std::map<Person*, bool> stayed_home_for_child_map;
 
 };

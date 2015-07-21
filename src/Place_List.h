@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -74,7 +74,7 @@ public:
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
   void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id,
-      InitSetT &pids);
+		   InitSetT &pids);
 
   void reassign_workers();
   void prepare();
@@ -351,7 +351,7 @@ private:
 
   string lookup_place_type_name(char place_type) {
     assert(this->place_type_name_lookup_map.find(place_type)
-            != this->place_type_name_lookup_map.end());
+	   != this->place_type_name_lookup_map.end());
     return this->place_type_name_lookup_map[place_type];
   }
 
@@ -374,10 +374,10 @@ private:
       ++(place);
     }
     FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
-        lookup_place_type_name( place_type ).c_str());
+		lookup_place_type_name( place_type ).c_str());
     FRED_CONDITIONAL_WARNING(places_added != places_allocated,
-        "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
-        lookup_place_type_name( place_type ).c_str(), places_allocated);
+			     "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
+			     lookup_place_type_name( place_type ).c_str(), places_allocated);
     // update/set place_type_counts for this place_type
     this->place_type_counts[place_type] = places_added;
   }

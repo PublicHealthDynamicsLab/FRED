@@ -39,43 +39,43 @@ void Params::read_psa_parameter(char* paramfile, int line_number) {
     while (current_line < line_number) {
       int ch = 1;
       while(ch != EOF && ch != '\n') {
-	      ch = fgetc(fp);
+	ch = fgetc(fp);
       }
       if(ch == EOF) {
-	      Utils::fred_abort("Unexpected EOF in params file %s on line %d\n",
+	Utils::fred_abort("Unexpected EOF in params file %s on line %d\n",
 			  paramfile, current_line);
       }
       current_line++;
     }
     if(fscanf(fp, "%s", name) == 1) {
       if(fscanf(fp, " = %[^\n]", Params::param_value[Params::param_count]) == 1) {
-	      //Remove end of line comments if they are there
-	      string temp_str(Params::param_value[Params::param_count]);
-	      size_t pos;
-	      string whitespaces(" \t\f\v\n\r");
+	//Remove end of line comments if they are there
+	string temp_str(Params::param_value[Params::param_count]);
+	size_t pos;
+	string whitespaces(" \t\f\v\n\r");
 
-	      pos = temp_str.find("#");
-	      if(pos != string::npos) {
-	        temp_str = temp_str.substr(0, pos);
-	      }
-	      //trim trailing whitespace
-	      pos = temp_str.find_last_not_of(whitespaces);
-	      if(pos != string::npos) {
-	        if(pos != (temp_str.length() - 1)) {
-	          temp_str.erase(pos + 1);
-	        }
-	      } else {
-	        temp_str.clear(); //str is all whitespace
-	      }
-	      strcpy(Params::param_value[Params::param_count], temp_str.c_str());
+	pos = temp_str.find("#");
+	if(pos != string::npos) {
+	  temp_str = temp_str.substr(0, pos);
+	}
+	//trim trailing whitespace
+	pos = temp_str.find_last_not_of(whitespaces);
+	if(pos != string::npos) {
+	  if(pos != (temp_str.length() - 1)) {
+	    temp_str.erase(pos + 1);
+	  }
+	} else {
+	  temp_str.clear(); //str is all whitespace
+	}
+	strcpy(Params::param_value[Params::param_count], temp_str.c_str());
           
-	      strcpy(Params::param_name[Params::param_count], name);
-	      printf("READ_PSA_PARAMETER: %s = %s\n", Params::param_name[Params::param_count],
-	      Params::param_value[Params::param_count]);
-	      Params::param_count++;
+	strcpy(Params::param_name[Params::param_count], name);
+	printf("READ_PSA_PARAMETER: %s = %s\n", Params::param_name[Params::param_count],
+	       Params::param_value[Params::param_count]);
+	Params::param_count++;
       } else {
-	      Utils::fred_abort("Bad format in params file %s on line starting with %s\n",
-			    paramfile, name);
+	Utils::fred_abort("Bad format in params file %s on line starting with %s\n",
+			  paramfile, name);
       }
     } else {
       Utils::fred_abort("Bad format in params file %s on line %d\n",
@@ -104,10 +104,10 @@ void Params::read_parameter_file(char* paramfile) {
           ch = fgetc(fp);
         continue;
       } else if (strcmp(name, "include") == 0) {
-	      char includefilename[MAX_PARAM_SIZE];
-	      if(fscanf(fp, "%s", includefilename) == 1) {
-	        read_parameter_file(includefilename);
-	      }
+	char includefilename[MAX_PARAM_SIZE];
+	if(fscanf(fp, "%s", includefilename) == 1) {
+	  read_parameter_file(includefilename);
+	}
       } else {
         if(fscanf(fp, " = %[^\n]", Params::param_value[Params::param_count]) == 1) {
           
@@ -134,12 +134,12 @@ void Params::read_parameter_file(char* paramfile) {
           strcpy(Params::param_name[Params::param_count], name);
           if(Global::Debug > 2) {
             printf("READ_PARAMS: %s = %s\n", Params::param_name[Params::param_count],
-                Params::param_value[Params::param_count]);
+		   Params::param_value[Params::param_count]);
           }
           Params::param_count++;
         } else {
           Utils::fred_abort("Bad format in params file %s on line starting with %s\n",
-			     paramfile, name);
+			    paramfile, name);
         }
       }
     }
@@ -169,9 +169,9 @@ int Params::read_parameters(char* paramfile) {
     if(fp != NULL) {
       char psa_param[MAX_PARAM_SIZE];
       while(fscanf(fp, "%s", psa_param) == 1) {
-	      sprintf(filename, "$FRED_HOME/input_files/PSA/%s/%d/%s",
-		    Global::PSA_Method, Global::PSA_Sample_Size, psa_param);
-	      read_psa_parameter(filename, Global::PSA_Sample);
+	sprintf(filename, "$FRED_HOME/input_files/PSA/%s/%d/%s",
+		Global::PSA_Method, Global::PSA_Sample_Size, psa_param);
+	read_psa_parameter(filename, Global::PSA_Sample);
       }
       fclose(fp);
     } else {
@@ -464,8 +464,8 @@ int Params::get_param_vector_from_string(char *s, vector < double > &p){
       p.push_back(v);
     }
     for( std::vector<double>::const_iterator i = p.begin(); i != p.end(); ++i)
-    printf("age!! %f \n", *i); //std::cout << *i << ' ';
-  		fflush(stdout);
+      printf("age!! %f \n", *i); //std::cout << *i << ' ';
+    fflush(stdout);
   }
   else {
     Utils::fred_abort("Incorrect format for vector %s\n", s); 

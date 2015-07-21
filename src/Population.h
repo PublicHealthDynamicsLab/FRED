@@ -118,7 +118,7 @@ public:
    * @return pointer to the person created and added
    */
   Person* add_person(int age, char sex, int race, int rel, Place* house,
-		       Place* school, Place* work, int day, bool today_is_birthday);
+		     Place* school, Place* work, int day, bool today_is_birthday);
 
   /**
    * @param per a pointer to the Person to remove from the Population
@@ -229,8 +229,8 @@ public:
   void report_mean_hh_stats_per_census_tract();
   void report_mean_hh_stats_per_income_category_per_census_tract();
 
-//  //TODO REMOVE
-//  void print_HAZEL_data();
+  //  //TODO REMOVE
+  //  void print_HAZEL_data();
   
   int size() {
     assert(this->blq.size() == this->pop_size);
@@ -360,9 +360,9 @@ private:
   const PopFileColIndex &get_pop_file_col_index(bool is_group_quarters, bool is_2010_ver1) const {
     if(is_group_quarters) {
       if(is_2010_ver1) {
-	      return this->gq_pop_file_col_index_2010_ver1;
+	return this->gq_pop_file_col_index_2010_ver1;
       } else {
-	      return this->gq_pop_file_col_index;
+	return this->gq_pop_file_col_index;
       }
     } else {
       return this->hh_pop_file_col_index;
@@ -374,8 +374,8 @@ private:
   void parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop);
 
   Person_Init_Data get_person_init_data(char* line,
-					 bool is_group_quarters_population,
-					 bool is_2010_ver1_format);
+					bool is_group_quarters_population,
+					bool is_2010_ver1_format);
 
 
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
@@ -518,7 +518,7 @@ struct Person_Init_Data {
   }
 
   Person_Init_Data(int _age, int _race, int _relationship,
-		    char _sex, bool _today_is_birthday, int _day) {
+		   char _sex, bool _today_is_birthday, int _day) {
 
     default_initialization();
     age = _age;

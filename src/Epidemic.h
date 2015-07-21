@@ -142,8 +142,8 @@ public:
   void add_susceptibles_to_infectious_places(int day, int disisease_id);
 
   void increment_cohort_infectee_count(int cohort_day) {
-      #pragma omp atomic
-      ++(this->number_infected_by_cohort[cohort_day]);
+#pragma omp atomic
+    ++(this->number_infected_by_cohort[cohort_day]);
   }
 
   int get_susceptible_people() {

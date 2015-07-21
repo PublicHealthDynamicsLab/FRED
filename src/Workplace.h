@@ -63,13 +63,13 @@ public:
   }
 
   /**
-    * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
-    *
-    * This method returns the value from the static array <code>Workplace::Workplace_contact_prob</code> that
-    * corresponds to a particular age-related value for each person.<br />
-    * The static array <code>Workplace_contact_prob</code> will be filled with values from the parameter
-    * file for the key <code>workplace_prob[]</code>.
-    */
+   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
+   *
+   * This method returns the value from the static array <code>Workplace::Workplace_contact_prob</code> that
+   * corresponds to a particular age-related value for each person.<br />
+   * The static array <code>Workplace_contact_prob</code> will be filled with values from the parameter
+   * file for the key <code>workplace_prob[]</code>.
+   */
   double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
@@ -143,7 +143,7 @@ public:
     return Workplace::Large_workplace_size;
   }
 
- private:
+private:
   static double* Workplace_contacts_per_day;
   static double*** Workplace_contact_prob;
   static bool Workplace_parameters_set;

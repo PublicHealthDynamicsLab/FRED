@@ -269,7 +269,7 @@ void Global::get_global_parameters() {
   Params::get_param_from_string("enable_residual_immunity_by_FIPS", &temp_int);
   Global::Residual_Immunity_by_FIPS = (temp_int == 0 ? false : true);
   if (Global::Residual_Immunity_by_FIPS) {
-  Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
+    Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
   }
 
 

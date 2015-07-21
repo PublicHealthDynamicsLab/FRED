@@ -50,13 +50,13 @@ using namespace std;
 
 class MSEvolution : public Evolution {
 
- public:
+public:
   MSEvolution();
   virtual ~MSEvolution();
   virtual void setup(Disease *disease);
   virtual double antigenic_distance(int strain1, int strain2);
 
- protected:
+protected:
   virtual double residual_immunity( Person * person, int challenge_strain, int day );
   virtual double prob_inf_blocking( int old_strain, int new_strain, int time, double real_age );
   virtual double prob_vac_blocking( int old_strain, int new_strain, int time, double real_age );
@@ -67,7 +67,7 @@ class MSEvolution : public Evolution {
   virtual double prob_inoc( double quantity );
   ofstream file;
 
- private:
+private:
   Age_Map * halflife_inf;
   Age_Map * halflife_vac;
   double prob_inoc_norm;

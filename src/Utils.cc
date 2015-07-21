@@ -1,13 +1,13 @@
 /*
-   This file is part of the FRED system.
+  This file is part of the FRED system.
 
-   Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-   Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-   Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
-   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-   more information.
-   */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -262,7 +262,7 @@ void Utils::fred_start_initialization_timer() {
 void Utils::fred_print_initialization_timer() {
   time(&stop_initialization_timer);
   fprintf(Global::Statusfp, "FRED initialization took %d seconds\n\n",
-      (int)(stop_initialization_timer - start_initialization_timer));
+	  (int)(stop_initialization_timer - start_initialization_timer));
   fflush(Global::Statusfp);
 }
 
@@ -274,7 +274,7 @@ void Utils::fred_start_day_timer() {
 void Utils::fred_print_day_timer(int day) {
   time(&stop_timer);
   fprintf(Global::Statusfp, "day %d took %d seconds\n\n",
-      day, (int) (stop_timer - day_timer));
+	  day, (int) (stop_timer - day_timer));
   fflush(Global::Statusfp);
   start_timer = stop_timer;
 }
@@ -282,7 +282,7 @@ void Utils::fred_print_day_timer(int day) {
 void Utils::fred_print_finish_timer() {
   time(&stop_timer);
   fprintf(Global::Statusfp, "FRED took %d seconds\n",
-      (int)(stop_timer - fred_timer));
+	  (int)(stop_timer - fred_timer));
   fflush(Global::Statusfp);
 }
 
@@ -293,7 +293,7 @@ void Utils::fred_print_lap_time(const char* format, ...) {
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int)(stop_timer - start_timer));
+	  (int)(stop_timer - start_timer));
   fflush(Global::Statusfp);
   start_timer = stop_timer;
 }
@@ -305,7 +305,7 @@ void Utils::fred_print_update_time(const char* format, ...) {
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int)(stop_update_timer - start_update_timer));
+	  (int)(stop_update_timer - start_update_timer));
   fflush(Global::Statusfp);
   start_update_timer = stop_update_timer;
 }
@@ -318,7 +318,7 @@ void Utils::fred_print_lap_time(time_t* start_lap_time, const char* format, ...)
   vfprintf(Global::Statusfp,format,ap);
   va_end(ap);
   fprintf(Global::Statusfp, " took %d seconds\n",
-      (int)(stop_lap_time - (*start_lap_time)));
+	  (int)(stop_lap_time - (*start_lap_time)));
   fflush(Global::Statusfp);
 }
 
@@ -386,34 +386,34 @@ void Utils::get_fred_file_name(char* filename) {
 
 #include <sys/resource.h>
 /*
-#define   RUSAGE_SELF     0
-#define   RUSAGE_CHILDREN     -1
+  #define   RUSAGE_SELF     0
+  #define   RUSAGE_CHILDREN     -1
 
-   struct rusage {
-   struct timeval ru_utime; // user time used
-   struct timeval ru_stime; // system time used
-   long ru_maxrss;          // integral max resident set size
-   long ru_ixrss;           // integral shared text memory size
-   long ru_idrss;           // integral unshared data size
-   long ru_isrss;           // integral unshared stack size
-   long ru_minflt;          // page reclaims
-   long ru_majflt;          // page faults
-   long ru_nswap;           // swaps
-   long ru_inblock;         // block input operations
-   long ru_oublock;         // block output operations
-   long ru_msgsnd;          // messages sent
-   long ru_msgrcv;          // messages received
-   long ru_nsignals;        // signals received
-   long ru_nvcsw;           // voluntary context switches
-   long ru_nivcsw;          // involuntary context switches
-   };
-   */
+  struct rusage {
+  struct timeval ru_utime; // user time used
+  struct timeval ru_stime; // system time used
+  long ru_maxrss;          // integral max resident set size
+  long ru_ixrss;           // integral shared text memory size
+  long ru_idrss;           // integral unshared data size
+  long ru_isrss;           // integral unshared stack size
+  long ru_minflt;          // page reclaims
+  long ru_majflt;          // page faults
+  long ru_nswap;           // swaps
+  long ru_inblock;         // block input operations
+  long ru_oublock;         // block output operations
+  long ru_msgsnd;          // messages sent
+  long ru_msgrcv;          // messages received
+  long ru_nsignals;        // signals received
+  long ru_nvcsw;           // voluntary context switches
+  long ru_nivcsw;          // involuntary context switches
+  };
+*/
 
 void Utils::fred_print_resource_usage(int day) {
   rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
   printf("day %d maxrss %ld\n",
-      day, r_usage.ru_maxrss);
+	 day, r_usage.ru_maxrss);
   fflush(stdout);
 }
 
@@ -563,8 +563,8 @@ bool Utils::to_bool(string s) {
 
 // splits a string by delimiter, loads into vector passed by reference
 Utils::Tokens &Utils::split_by_delim( const std::string &str,
-    const char delim, Tokens & tokens,
-    bool collapse_consecutive_delims ) {
+				      const char delim, Tokens & tokens,
+				      bool collapse_consecutive_delims ) {
 
   std::stringstream ss(str);
   std::string item;
@@ -576,32 +576,32 @@ Utils::Tokens &Utils::split_by_delim( const std::string &str,
   while(std::getline( ss, item, delim)) {
     if(!item.empty()) {
       while(!item.empty() && (item.at(item.size()-1) == '\n' || item.at(item.size()-1) == '\r')) {
-	      item.resize(item.size()-1);
+	item.resize(item.size()-1);
       }
       if(item.empty()) {
-	      continue;
+	continue;
       }
       if(item.size() > 1 && (item.at(0) == '\"' || item.at(0) == '\'') && item.at(0) == item.at(item.size() - 1)) {
-	      // printf("item = |%s|\n",item.c_str());
-	      item.erase(item.size() - 1, 1);
-	      item.erase(0, 1);
-	      // printf("item = |%s|\n",item.c_str());
+	// printf("item = |%s|\n",item.c_str());
+	item.erase(item.size() - 1, 1);
+	item.erase(0, 1);
+	// printf("item = |%s|\n",item.c_str());
       } else {
-	      if(item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'')) {
-	        quoted_item = item;
-	        // printf("item is quoted = |%s|\n",quoted_item.c_str());
-	        continue;
-	      } else if (!quoted_item.empty()) {
-	        if(item.at(item.size() - 1) != quoted_item.at(0)) {
-	          quoted_item = quoted_item + "," + item;
-	          continue;
-	        } else {
-	          item = quoted_item + "," + item;
-	          item.erase(0,1);
-	          item.erase(item.size()-1,1);
-	          quoted_item.clear();
-	        }
-	      }
+	if(item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'')) {
+	  quoted_item = item;
+	  // printf("item is quoted = |%s|\n",quoted_item.c_str());
+	  continue;
+	} else if (!quoted_item.empty()) {
+	  if(item.at(item.size() - 1) != quoted_item.at(0)) {
+	    quoted_item = quoted_item + "," + item;
+	    continue;
+	  } else {
+	    item = quoted_item + "," + item;
+	    item.erase(0,1);
+	    item.erase(item.size()-1,1);
+	    quoted_item.clear();
+	  }
+	}
       }
     }
     if(!item.empty() || !collapse_consecutive_delims) {
@@ -625,25 +625,25 @@ Utils::Tokens &Utils::split_by_delim( const std::string &str,
 
 // splits a string by delimiter, returns result in a new vector
 Utils::Tokens Utils::split_by_delim(const std::string &str,
-    const char delim, bool collapse_consecutive_delims) {
+				    const char delim, bool collapse_consecutive_delims) {
 
   Tokens tokens;
   return split_by_delim(str, delim, tokens, collapse_consecutive_delims);
 }
 
 Utils::Tokens & Utils::split_by_delim(const char* str,
-    const char delim, Tokens & tokens,
-    bool collapse_consecutive_delims) {
+				      const char delim, Tokens & tokens,
+				      bool collapse_consecutive_delims) {
 
   return split_by_delim(std::string(str), delim, tokens,
-      collapse_consecutive_delims);
+			collapse_consecutive_delims);
 }
 
 Utils::Tokens Utils::split_by_delim(const char* str,
-    const char delim, bool collapse_consecutive_delims) {
+				    const char delim, bool collapse_consecutive_delims) {
 
   return split_by_delim(std::string(str), delim,
-      collapse_consecutive_delims);
+			collapse_consecutive_delims);
 }
 
 

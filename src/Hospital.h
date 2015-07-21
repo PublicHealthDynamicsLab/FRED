@@ -190,9 +190,9 @@ struct HAZEL_Hospital_Init_Data {
   bool add_capacity;
 
   void setup(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
-      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
-      const char* _add_capacity) {
+	     const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+	     const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
+	     const char* _add_capacity) {
 
     string accpt_priv_str = string(_accpt_private);
     string accpt_medicr_str = string(_accpt_medicare);
@@ -216,11 +216,11 @@ struct HAZEL_Hospital_Init_Data {
   }
 
   HAZEL_Hospital_Init_Data(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
-      const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-      const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
-     setup(_panel_week, _accpt_private, _accpt_medicare,
-           _accpt_medicaid, _accpt_highmark, _accpt_upmc,
-           _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
+			   const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
+			   const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
+    setup(_panel_week, _accpt_private, _accpt_medicare,
+	  _accpt_medicaid, _accpt_highmark, _accpt_upmc,
+	  _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
   }
 
 };

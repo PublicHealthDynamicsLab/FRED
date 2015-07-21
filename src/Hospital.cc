@@ -178,9 +178,9 @@ void Hospital::get_parameters(int diseases) {
             sprintf(s, "%c%s", place_type, tokens[HOSP_ID]);
             string hosp_id_str(s);
             HAZEL_Hospital_Init_Data init_data = HAZEL_Hospital_Init_Data(tokens[PNL_WK], tokens[ACCPT_PRIV],
-                tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
-                tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
-                tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
+									  tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
+									  tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
+									  tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
             this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
@@ -338,26 +338,26 @@ void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool do
   assert(insr >= Insurance_assignment_index::PRIVATE);
   assert(insr < Insurance_assignment_index::UNSET);
   switch(insr) {
-    case Insurance_assignment_index::PRIVATE:
-      this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
-      break;
-    case Insurance_assignment_index::MEDICARE:
-      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
-      break;
-    case Insurance_assignment_index::MEDICAID:
-      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
-      break;
-    case Insurance_assignment_index::HIGHMARK:
-      this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
-      break;
-    case Insurance_assignment_index::UPMC:
-      this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
-      break;
-    case Insurance_assignment_index::UNINSURED:
-      this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
-      break;
-    default:
-      Utils::fred_abort("Invalid Insurance Assignment Type", "");
+  case Insurance_assignment_index::PRIVATE:
+    this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
+    break;
+  case Insurance_assignment_index::MEDICARE:
+    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
+    break;
+  case Insurance_assignment_index::MEDICAID:
+    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
+    break;
+  case Insurance_assignment_index::HIGHMARK:
+    this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
+    break;
+  case Insurance_assignment_index::UPMC:
+    this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
+    break;
+  case Insurance_assignment_index::UNINSURED:
+    this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
+    break;
+  default:
+    Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 
@@ -365,26 +365,26 @@ void Hospital::set_accepts_insurance(int insr_indx, bool does_accept) {
   assert(insr_indx >= 0);
   assert(insr_indx < static_cast<int>(Insurance_assignment_index::UNSET));
   switch(insr_indx) {
-    case static_cast<int>(Insurance_assignment_index::PRIVATE):
-      set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::MEDICARE):
-      set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::MEDICAID):
-      set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::HIGHMARK):
-      set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::UPMC):
-      set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
-      break;
-    case static_cast<int>(Insurance_assignment_index::UNINSURED):
-      set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
-      break;
-    default:
-      Utils::fred_abort("Invalid Insurance Assignment Type", "");
+  case static_cast<int>(Insurance_assignment_index::PRIVATE):
+    set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::MEDICARE):
+    set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::MEDICAID):
+    set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::HIGHMARK):
+    set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::UPMC):
+    set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
+  break;
+  case static_cast<int>(Insurance_assignment_index::UNINSURED):
+    set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
+  break;
+  default:
+    Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 

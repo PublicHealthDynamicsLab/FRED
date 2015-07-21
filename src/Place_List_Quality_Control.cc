@@ -54,14 +54,14 @@ void Place_List::report_school_distributions(int day) {
       Place* h = this->places[p];
       fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size()-h->get_staff_size(), h->get_size()-h->get_staff_size());
       /*
-      School * s = static_cast<School*>(h);
-      for(int a = 1; a <=20; ++a) {
-	      if(s->get_orig_students_in_grade(a) > 0) {
-	        fprintf(fp, "SCHOOL %s age %d orig %d current %d\n",
-		      s->get_label(), a, s->get_orig_students_in_grade(a), s->get_students_in_grade(a));
-	      }
-      }
-      fprintf(fp,"\n");
+	School * s = static_cast<School*>(h);
+	for(int a = 1; a <=20; ++a) {
+	if(s->get_orig_students_in_grade(a) > 0) {
+	fprintf(fp, "SCHOOL %s age %d orig %d current %d\n",
+	s->get_label(), a, s->get_orig_students_in_grade(a), s->get_students_in_grade(a));
+	}
+	}
+	fprintf(fp,"\n");
       */
     }
   }
@@ -112,7 +112,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "Household size distribution: N = %d ", total);
     for(int c = 0; c <= 10; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) ",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
 
@@ -127,7 +127,7 @@ void Place_List::report_household_distributions() {
     for(int p = 0; p < number_places; ++p) {
       if(this->places[p]->is_household()) {
         int n = this->places[p]->get_orig_size();
-	      int hs = this->places[p]->get_size();
+	int hs = this->places[p]->get_size();
         if(n <= 10) {
           count[n]++;
           hsize[n] += hs;
@@ -182,7 +182,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nAge distribution of heads of households: %d households\n", total);
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age %2d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -209,7 +209,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nHousehold adult size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -236,7 +236,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nHousehold children size distribution: %d households\n", total);
     for (int c = 0; c < 15; c++) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -266,7 +266,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nHousehold w/ children, adult size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -286,19 +286,19 @@ void Place_List::report_household_distributions() {
           int ch_age = child->get_age();
           if (ch_age < 18) {
             int ch_rel = child->get_relationship();
-	          Person* dm = child->get_health_decision_maker();
-	          if(dm == NULL) {
-	            printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
-		          h->get_id(), h->get_label(), ch_age, ch_rel);
-	          } else {
-	            int dm_age = dm->get_age();
-	            int dm_rel = dm->get_relationship();
-	            if(dm_rel != 1 || ch_rel != 3) {
-		            printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
-		            h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
-	            }
-	          }
-	        }
+	    Person* dm = child->get_health_decision_maker();
+	    if(dm == NULL) {
+	      printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
+		     h->get_id(), h->get_label(), ch_age, ch_rel);
+	    } else {
+	      int dm_age = dm->get_age();
+	      int dm_rel = dm->get_relationship();
+	      if(dm_rel != 1 || ch_rel != 3) {
+		printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
+		       h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
+	      }
+	    }
+	  }
         }
       }
     }
@@ -314,7 +314,7 @@ void Place_List::report_household_distributions() {
     for(int p = 0; p < number_places; ++p) {
       if(this->places[p]->is_household()) {
         Household* h = static_cast<Household*>(this->places[p]);
-	      Person* per = NULL;
+	Person* per = NULL;
         for(int i = 0; i < h->get_size(); ++i) {
           if(h->get_housemate(i)->is_householder()) {
             per = h->get_housemate(i);
@@ -338,7 +338,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nAge distribution of heads of households: %d households\n", total);
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age %2d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -382,7 +382,7 @@ void Place_List::report_household_distributions() {
     fprintf(Global::Statusfp, "\nAge distribution of heads of households with children: %d households\n", total);
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age %2d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "children = %d\n", children);
     fprintf(Global::Statusfp, "\n");
@@ -440,20 +440,20 @@ void Place_List::quality_control() {
     for(int p = 0; p < number_places; ++p) {
       int n = this->places[p]->get_size();
       if(this->places[p]->is_household()) {
-	      hn++;
-	      hsize += n;
+	hn++;
+	hsize += n;
       }
       if(this->places[p]->get_type() == Place::NEIGHBORHOOD) {
-	      nn++;
-	      nsize += n;
+	nn++;
+	nsize += n;
       }
       if (this->places[p]->get_type() == Place::SCHOOL) {
-	      sn++;
-	      ssize += n;
+	sn++;
+	ssize += n;
       }
       if(this->places[p]->get_type() == Place::WORKPLACE) {
-	      wn++;
-	      wsize += n;
+	wn++;
+	wsize += n;
       }
     }
     if(hn) {
@@ -478,10 +478,10 @@ void Place_List::quality_control() {
     FILE* fp = fopen(filename, "w");
     for(int p = 0; p < number_places; p++) {
       if(this->places[p]->is_household()) {
-	      Place* h = this->places[p];
-	      double x = Geo::get_x(h->get_longitude());
-	      double y = Geo::get_y(h->get_latitude());
-	      fprintf(fp, "%f %f\n", x, y);
+	Place* h = this->places[p];
+	double x = Geo::get_x(h->get_longitude());
+	double y = Geo::get_y(h->get_latitude());
+	fprintf(fp, "%f %f\n", x, y);
       }
     }
     fclose(fp);
@@ -508,7 +508,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nHousehold size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -535,7 +535,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nHousehold adult size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -562,7 +562,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nHousehold children size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0*count[c])/total);
+	      c, count[c], (100.0*count[c])/total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -592,7 +592,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nHousehold w/ children, adult size distribution: %d households\n", total);
     for(int c = 0; c < 15; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0*count[c])/total);
+	      c, count[c], (100.0*count[c])/total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -612,19 +612,19 @@ void Place_List::quality_control() {
           int ch_age = child->get_age();
           if(ch_age < 18) {
             int ch_rel = child->get_relationship();
-	          Person* dm = child->get_health_decision_maker();
-	          if(dm == NULL) {
-	            printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
-		          h->get_id(), h->get_label(), ch_age, ch_rel);
-	          } else {
-	            int dm_age = dm->get_age();
-	            int dm_rel = dm->get_relationship();
-	            if(dm_rel != 1 || ch_rel != 3) {
-		            printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
-		            h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
-	            }
-	          }
-	        }
+	    Person* dm = child->get_health_decision_maker();
+	    if(dm == NULL) {
+	      printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
+		     h->get_id(), h->get_label(), ch_age, ch_rel);
+	    } else {
+	      int dm_age = dm->get_age();
+	      int dm_rel = dm->get_relationship();
+	      if(dm_rel != 1 || ch_rel != 3) {
+		printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
+		       h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
+	      }
+	    }
+	  }
         }
       }
     }
@@ -664,7 +664,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nAge distribution of heads of households: %d households\n", total);
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age %2d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -708,7 +708,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nAge distribution of heads of households with children: %d households\n", total);
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age %2d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "children = %d\n", children);
     fprintf(Global::Statusfp, "\n");
@@ -764,7 +764,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nSchool size distribution: %d schools\n", total);
     for(int c = 0; c < 20; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          (c+1)*50, count[c], (100.0 * count[c]) / total);
+	      (c+1)*50, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -786,7 +786,7 @@ void Place_List::quality_control() {
     }
     for(int c = 0; c < 100; ++c) {
       fprintf(Global::Statusfp, "age = %2d  students = %6d\n",
-          c, count[c]);;
+	      c, count[c]);;
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -813,7 +813,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nClassroom size distribution: %d classrooms\n", total);
     for(int c = 0; c < 50; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }
@@ -833,10 +833,10 @@ void Place_List::quality_control() {
     for(int p = 0; p < number_places; ++p) {
       if(this->places[p]->get_type() == Place::WORKPLACE || places[p]->get_type() == Place::SCHOOL) {
         int s = this->places[p]->get_size();
-	      if(this->places[p]->get_type() == Place::SCHOOL) {
-	        School* school = static_cast<School*>(this->places[p]);
-	        s = school->get_staff_size();
-	      }
+	if(this->places[p]->get_type() == Place::SCHOOL) {
+	  School* school = static_cast<School*>(this->places[p]);
+	  s = school->get_staff_size();
+	}
         int n = s;
         if(n <= 100) {
           count[n]++;
@@ -859,7 +859,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nWorkplace size distribution: %d workplaces\n", total);
     for(int c = 0; c <= 100; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-          (c+1)*1, count[c], (100.0*count[c])/total);
+	      (c+1)*1, count[c], (100.0*count[c])/total);
     }
     fprintf(Global::Statusfp, "\n\n");
 
@@ -879,52 +879,52 @@ void Place_List::quality_control() {
   }
 
   /*
-     if(Global::Verbose) {
-       int covered[4];
-       int all[4];
-       // distribution of sick leave in workplaces
-      for(int c = 0; c < 4; ++c) { all[c] = covered[c] = 0; }
-        for(int p = 0; p < number_places; ++p) {
-          if(this->places[p]->get_type() == WORKPLACE) {
-            Workplace* work = static_cast<Workplace*>(this->places[p]);
-            char s = work->get_size_code();
-            bool sl = work->is_sick_leave_available();
-            switch(s) {
-              case 'S':
-                all[0] += s;
-                if(sl) {
-                  covered[0] += s;
-                }
-                break;
-              case 'M':
-                all[1] += s;
-                if(sl) {
-                  covered[1] += s;
-                }
-                break;
-              case 'L':
-                all[2] += s;
-                if(sl) {
-                  covered[2] += s;
-                }
-                break;
-              case 'X':
-                all[3] += s;
-                if(sl) {
-                  covered[3] += s;
-                }
-                break;
-            }
-          }
-        }
-        fprintf(Global::Statusfp, "\nWorkplace sick leave coverage: ");
-        for(int c = 0; c < 4; ++c) {
-          fprintf(Global::Statusfp, "%3d: %d/%d %5.2f | ",
-          c, covered[c], all[c], (all[c]? (1.0*covered[c])/all[c] : 0));
-        }
-        fprintf(Global::Statusfp, "\n");
-      }
-*/
+    if(Global::Verbose) {
+    int covered[4];
+    int all[4];
+    // distribution of sick leave in workplaces
+    for(int c = 0; c < 4; ++c) { all[c] = covered[c] = 0; }
+    for(int p = 0; p < number_places; ++p) {
+    if(this->places[p]->get_type() == WORKPLACE) {
+    Workplace* work = static_cast<Workplace*>(this->places[p]);
+    char s = work->get_size_code();
+    bool sl = work->is_sick_leave_available();
+    switch(s) {
+    case 'S':
+    all[0] += s;
+    if(sl) {
+    covered[0] += s;
+    }
+    break;
+    case 'M':
+    all[1] += s;
+    if(sl) {
+    covered[1] += s;
+    }
+    break;
+    case 'L':
+    all[2] += s;
+    if(sl) {
+    covered[2] += s;
+    }
+    break;
+    case 'X':
+    all[3] += s;
+    if(sl) {
+    covered[3] += s;
+    }
+    break;
+    }
+    }
+    }
+    fprintf(Global::Statusfp, "\nWorkplace sick leave coverage: ");
+    for(int c = 0; c < 4; ++c) {
+    fprintf(Global::Statusfp, "%3d: %d/%d %5.2f | ",
+    c, covered[c], all[c], (all[c]? (1.0*covered[c])/all[c] : 0));
+    }
+    fprintf(Global::Statusfp, "\n");
+    }
+  */
 
   if(Global::Verbose) {
     int count[60];
@@ -948,7 +948,7 @@ void Place_List::quality_control() {
     fprintf(Global::Statusfp, "\nOffice size distribution: %d offices\n", total);
     for(int c = 0; c < 60; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%)\n",
-        c, count[c], (100.0 * count[c]) / total);
+	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
   }

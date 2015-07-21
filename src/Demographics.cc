@@ -73,7 +73,7 @@ Demographics::Demographics() {
 }
 
 void Demographics::setup(Person* self, short int _age, char _sex,
-			   short int _race, short int rel, int day, bool is_newborn) {
+			 short int _race, short int rel, int day, bool is_newborn) {
 
   int self_index = self->get_pop_index();
 
@@ -251,7 +251,7 @@ void Demographics::update_birth_stats(int day, Person* self) {
   Demographics::births_ytd++;
   Demographics::total_births++;
   if(Global::Birthfp != NULL) {
-  // report births
+    // report births
     fprintf(Global::Birthfp, "day %d mother %d age %d\n",
 	    day, self->get_id(), self->get_age());
     fflush(Global::Birthfp);
@@ -285,7 +285,7 @@ void Demographics::die(int day, Person* self) {
   Demographics::total_deaths++;
 
   if(Global::Deathfp != NULL) {
-  // report deaths
+    // report deaths
     fprintf(Global::Deathfp, "day %d person %d age %d\n",
 	    day, self->get_id(), self->get_age());
     fflush(Global::Deathfp);
@@ -318,11 +318,11 @@ void Demographics::birthday(Person* self, int day ) {
   if(Demographics::MAX_AGE <= this->age) {
     age_specific_probability_of_death = 1.0;
     // printf("DAY %d DEATH BY MAX_AGE RULE\n", day);
-  /*
-  } else if (self->is_nursing_home_resident()) {
-    age_specific_probability_of_death = 0.25;
-  }
-  */
+    /*
+      } else if (self->is_nursing_home_resident()) {
+      age_specific_probability_of_death = 0.25;
+      }
+    */
   } else {
     // look up mortality in the mortality rate tables
     int county_index = self->get_household()->get_county_index();
@@ -344,11 +344,11 @@ void Demographics::birthday(Person* self, int day ) {
   int county_index = self->get_household()->get_county_index();
   double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
   if(this->sex == 'F' &&
-      Demographics::MIN_PREGNANCY_AGE <= this->age &&
-      this->age <= Demographics::MAX_PREGNANCY_AGE &&
-      this->conception_sim_day == -1 && this->maternity_sim_day == -1 &&
-      self->lives_in_group_quarters() == false &&
-      Random::draw_random() < pregnancy_rate) {
+     Demographics::MIN_PREGNANCY_AGE <= this->age &&
+     this->age <= Demographics::MAX_PREGNANCY_AGE &&
+     this->conception_sim_day == -1 && this->maternity_sim_day == -1 &&
+     self->lives_in_group_quarters() == false &&
+     Random::draw_random() < pregnancy_rate) {
     
     assert(this->pregnant == false);
     
@@ -519,11 +519,11 @@ void Demographics::report(int day) {
 	    (1.0 * count[c]) / total, total);
   }
   /*
-  fprintf(fp, "AGE 0-4: %d %.2f%%\n", n0, (100.0 * n0) / total);
-  fprintf(fp, "AGE 5-17: %d %.2f%%\n", n5, (100.0 * n5) / total);
-  fprintf(fp, "AGE 18-64: %d %.2f%%\n", n18, (100.0 * n18) / total);
-  fprintf(fp, "AGE 65-100: %d %.2f%%\n", n65, (100.0 * n65) / total);
-  fprintf(fp, "\n");
+    fprintf(fp, "AGE 0-4: %d %.2f%%\n", n0, (100.0 * n0) / total);
+    fprintf(fp, "AGE 5-17: %d %.2f%%\n", n5, (100.0 * n5) / total);
+    fprintf(fp, "AGE 18-64: %d %.2f%%\n", n18, (100.0 * n18) / total);
+    fprintf(fp, "AGE 65-100: %d %.2f%%\n", n65, (100.0 * n65) / total);
+    fprintf(fp, "\n");
   */
   fclose(fp);
 

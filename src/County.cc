@@ -287,7 +287,7 @@ void County::update_housing(int day) {
     }
   }
   printf("DAY %d HOUSING: houses = %d, max_beds = %d max_occupants = %d\n",
-  day, houses, max_beds, max_occupants);
+	 day, houses, max_beds, max_occupants);
   printf("BEFORE "); get_housing_imbalance(day);
 
   move_college_students_out_of_dorms(day);

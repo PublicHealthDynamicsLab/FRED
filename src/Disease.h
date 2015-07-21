@@ -53,10 +53,10 @@ public:
    */
   void setup();
 
-//  /**
-//   * Print out information about this object
-//   */
-//  void print();
+  //  /**
+  //   * Print out information about this object
+  //   */
+  //  void print();
 
   /**
    * @return the intrahost model's days symptomatic
@@ -148,8 +148,8 @@ public:
   }
 
   /**
-    * @return the epidemic with which this Disease is associated
-    */
+   * @return the epidemic with which this Disease is associated
+   */
   Epidemic* get_epidemic() {
     return this->epidemic;
   }
@@ -331,7 +331,7 @@ private:
   double R0_a;
   double R0_b;
   
-   /// added for residual_immunity_by FIPS
+  /// added for residual_immunity_by FIPS
   std::map<int, vector<double> > residual_immunity_by_FIPS;
   /// end added
 

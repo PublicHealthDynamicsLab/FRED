@@ -43,8 +43,8 @@ bool Piecewise_Linear :: quality_control() {
   int disease_id = disease->get_id();
   if ( ag_distances.size() != probabilities.size() ) {
     FRED_WARNING("Error parsing %s[%d]: "
-        "number of distances not equal to number of probabilities", 
-        name.c_str(), disease_id);
+		 "number of distances not equal to number of probabilities", 
+		 name.c_str(), disease_id);
     return_value = false;
   }
  
@@ -52,8 +52,8 @@ bool Piecewise_Linear :: quality_control() {
   for ( int i = 0; i < ag_distances.size() - 1; i++ ) {
     if ( ag_distances[ i ] >= ag_distances[ i + 1 ] ) {
       FRED_WARNING("Error parsing %s[%d]: "
-         "%s_distances[%d][%d] not smaller than %s_distances[%d][%d]", 
-         name.c_str(), disease_id, i, name.c_str(), disease_id, i+1);
+		   "%s_distances[%d][%d] not smaller than %s_distances[%d][%d]", 
+		   name.c_str(), disease_id, i, name.c_str(), disease_id, i+1);
       return_value = false;
     }
   }
@@ -62,8 +62,8 @@ bool Piecewise_Linear :: quality_control() {
   for ( int i = 0; i < probabilities.size(); i++ ) {
     if ( probabilities[ i ] > 1.0 || probabilities[ i ] < 0.0 ) {
       FRED_WARNING("Error parsing %s[%d]: "
-         "%s_probabilities[%d][%d] not a valid probability", 
-         name.c_str(), disease->get_id(), i);
+		   "%s_probabilities[%d][%d] not a valid probability", 
+		   name.c_str(), disease->get_id(), i);
       return_value = false;
     }
   }

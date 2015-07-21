@@ -77,13 +77,13 @@ void Workplace::get_parameters(int diseases) {
       sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	      printf("\nWorkplace_contact_prob:\n");
-	      for(int i  = 0; i < n; ++i)  {
-	        for(int j  = 0; j < n; ++j) {
-	          printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
-	        }
-	        printf("\n");
-	      }
+	printf("\nWorkplace_contact_prob:\n");
+	for(int i  = 0; i < n; ++i)  {
+	  for(int j  = 0; j < n; ++j) {
+	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
       }
     }
   }
@@ -149,16 +149,16 @@ void Workplace::setup_offices(Allocator<Office> &office_allocator) {
     sprintf(new_label, "%s-%03d", this->get_label(), i);
     
     Place* p = new (office_allocator.get_free())Office(new_label,
-							   fred::PLACE_SUBTYPE_NONE,
-							   this->get_longitude(),
-							   this->get_latitude(),
-							   this);
+						       fred::PLACE_SUBTYPE_NONE,
+						       this->get_longitude(),
+						       this->get_latitude(),
+						       this);
 
     this->offices.push_back(p);
     int id = p->get_id();
 
     FRED_STATUS(1, "workplace %d %s added office %d %s %d\n",
-        id, label,i,p->get_label(),p->get_id());
+		id, label,i,p->get_label(),p->get_id());
   }
 }
 
@@ -169,7 +169,7 @@ Place* Workplace::assign_office(Person* per) {
   }
 
   FRED_STATUS( 1, "assign office for person %d at workplace %d %s size %d == ",
-     per->get_id(), id, label, N);
+	       per->get_id(), id, label, N);
 
   // pick next office, round-robin
   int i = this->next_office;
@@ -177,7 +177,7 @@ Place* Workplace::assign_office(Person* per) {
   assert(this->offices.size() > i);
 
   FRED_STATUS(1, "office = %d %s %d\n",
-      i, offices[i]->get_label(), offices[i]->get_id());
+	      i, offices[i]->get_label(), offices[i]->get_id());
 
   // update next pick
   if(this->next_office < (int)this->offices.size() - 1) {

@@ -31,7 +31,7 @@ double * Neighborhood::Weekend_contact_rate = NULL;
 bool Neighborhood::Neighborhood_parameters_set = false;
 
 Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
-                           fred::geo lat, Place *container) {
+			    fred::geo lat, Place *container) {
   type = NEIGHBORHOOD;
   subtype = _subtype;
   setup( lab, lon, lat, container);

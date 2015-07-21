@@ -30,22 +30,22 @@ void Evolution :: setup(Disease *disease) {
 }
 
 /*
-Infection *Evolution::transmit(Infection *infection, Transmission & transmission, Person *infectee) {
+  Infection *Evolution::transmit(Infection *infection, Transmission & transmission, Person *infectee) {
   if(infection == NULL){
-    infection = new Infection(disease, transmission.get_infector(), infectee,
-           transmission.get_infected_place(), transmission.get_exposure_date());
-    Trajectory * trajectory = disease->get_trajectory( infection, transmission.get_initial_loads() );
-    infection->setTrajectory(trajectory);
-    infection->set_susceptibility_period(0);
-    infection->report_infection(transmission.get_exposure_date());
+  infection = new Infection(disease, transmission.get_infector(), infectee,
+  transmission.get_infected_place(), transmission.get_exposure_date());
+  Trajectory * trajectory = disease->get_trajectory( infection, transmission.get_initial_loads() );
+  infection->setTrajectory(trajectory);
+  infection->set_susceptibility_period(0);
+  infection->report_infection(transmission.get_exposure_date());
   }
   else{
-    // Fail repeated infections by default??
-    cout << "REPEATED INFECTION" << endl;
-    return NULL;
+  // Fail repeated infections by default??
+  cout << "REPEATED INFECTION" << endl;
+  return NULL;
   }
   return infection;
-}
+  }
 */
 
 inline double Evolution::residual_immunity(Person *person, int challenge_strain, int day) {
@@ -61,8 +61,8 @@ void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day
     if((health->get_exposure_date(disease) > -1) && (cur_day > health->get_exposure_date(disease))) {
       if(Global::Debug > 3) cout << "reducing an already exposed person\n";
 
-        av->modify_infectivity(health, disease);
-        //av->modify_symptomaticity(health, disease, cur_day);
+      av->modify_infectivity(health, disease);
+      //av->modify_symptomaticity(health, disease, cur_day);
     }
   }
 
@@ -70,8 +70,8 @@ void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day
   if(cur_day == health->get_exposure_date(disease)) {
     if(Global::Debug > 3) cout << "reducing agent on the day they are exposed\n";
 
-      av->modify_infectivity(health, disease);
-      av->modify_symptomaticity(health, disease, cur_day);
+    av->modify_infectivity(health, disease);
+    av->modify_symptomaticity(health, disease, cur_day);
   }
 
   // If this is the last day of the course
@@ -91,17 +91,17 @@ void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day
 void Evolution::print() {}
 
 /*
-Transmission::Loads * Evolution::get_primary_loads(int day) {
+  Transmission::Loads * Evolution::get_primary_loads(int day) {
   Transmission::Loads *loads = new Transmission::Loads;
   loads->insert( pair<int, double> (1, 1) );
   return loads;
-}
+  }
 
-Transmission::Loads * Evolution::get_primary_loads(int day, int strain) {
+  Transmission::Loads * Evolution::get_primary_loads(int day, int strain) {
   Transmission::Loads *loads = new Transmission::Loads;
   loads->insert( pair<int, double> (strain, 1) );
   return loads;
-}
+  }
 */
 
 double Evolution::antigenic_diversity(Person *p1, Person *p2) {

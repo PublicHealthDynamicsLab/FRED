@@ -60,10 +60,10 @@ typedef uint64_t BitType;
 template < typename ObjectType, typename MaskType, typename LinkObjectType = int, typename LinkMaskType = char >
 class bloque {
 
-/*
- * private data members
- *
- */
+  /*
+   * private data members
+   *
+   */
 
 private:
 
@@ -152,9 +152,9 @@ private:
   itemPosition firstItemPosition, lastItemPosition;
   size_t firstItemIndex, lastItemIndex;
 
-// *****************************************************************************
-// ** public constructors, get/set methods *************************************
-// *****************************************************************************
+  // *****************************************************************************
+  // ** public constructors, get/set methods *************************************
+  // *****************************************************************************
 
 public:
 
@@ -180,7 +180,7 @@ public:
   }
 
   void add_mask( MaskType maskName ) {
-    #pragma omp critical(BLOQUE_ADD_MASK)   
+#pragma omp critical(BLOQUE_ADD_MASK)   
     if ( userMasks.find( maskName ) == userMasks.end() ) {
       user_mask_num_items[ maskName ] = 0;
       for ( size_t i = 0; i < blockVector.size(); ++i ) { 
@@ -195,7 +195,7 @@ public:
   int get_free_index() {
     assert( is_child == false );
     int free_index;
-    #pragma omp critical(BLOQUE_RESIZE_LOCK)
+#pragma omp critical(BLOQUE_RESIZE_LOCK)
     {
       if ( freeSlots.empty() ) {
         addBlock();
@@ -274,7 +274,7 @@ public:
       firstItemPosition = getNextItemPosition( pos );
     }
     // decrement number of items
-    #pragma omp atomic
+#pragma omp atomic
     --numItems;
     // update any user masks
     for ( MaskMapItr mit = userMasks.begin(); mit != userMasks.end(); ++mit ) {
@@ -282,7 +282,7 @@ public:
         // unset the bit for this index in this mask
         clearBit( (*mit).second[ pos.block ][ pos.slot / registerWidth ], ( pos.slot % registerWidth ) );
         // decrement the count for this mask; must be protected from concurrent writes
-        #pragma omp atomic
+#pragma omp atomic
         --( user_mask_num_items[ (*mit).first ] );
       }
     }
@@ -296,7 +296,7 @@ public:
     // set the bit for this index in this mask
     setBit( userMasks[ mask ][ pos.block ][ pos.slot / registerWidth ], pos.slot % registerWidth );
     // increment the count for this mask; must be protected from concurrent writes
-    #pragma omp atomic
+#pragma omp atomic
     ++( user_mask_num_items[ mask ] );
   }
 
@@ -308,13 +308,13 @@ public:
     // unset the bit for this index in this mask
     clearBit( userMasks[ mask ][ pos.block ][ pos.slot / registerWidth ], pos.slot % registerWidth );
     // decrement the count for this mask; must be protected from concurrent writes
-    #pragma omp atomic
+#pragma omp atomic
     --( user_mask_num_items[ mask ] );
   }
  
   void clear_mask( MaskType m ) {
     mask & userMask = userMasks[ m ]; 
-    #pragma omp critical(BLOQUE_CLEAR_MASK) 
+#pragma omp critical(BLOQUE_CLEAR_MASK) 
     {
       for ( int i = 0; i < blockVector.size(); ++i ) {
         for ( int j = 0; j < registersPerBlock; ++j ) {
@@ -330,9 +330,9 @@ public:
    * specified mask (assumes that the index is valid)
    */
   bool mask_is_set( MaskType mask, size_t index ) {
-     itemPosition pos = itemPosition( index );
-     assert( (       defaultMask[ pos.block ][ pos.slot / registerWidth ] ) & ( (BitType) 1 << ( pos.slot % registerWidth ) ) );
-     return  ( userMasks[ mask ][ pos.block ][ pos.slot / registerWidth ] ) & ( (BitType) 1 << ( pos.slot % registerWidth ) );
+    itemPosition pos = itemPosition( index );
+    assert( (       defaultMask[ pos.block ][ pos.slot / registerWidth ] ) & ( (BitType) 1 << ( pos.slot % registerWidth ) ) );
+    return  ( userMasks[ mask ][ pos.block ][ pos.slot / registerWidth ] ) & ( (BitType) 1 << ( pos.slot % registerWidth ) );
   }
 
   template < typename Functor >
@@ -352,7 +352,7 @@ public:
    */
   template < typename Functor > 
   void apply( Functor & f, bool enable_parallelism ) {
-    #pragma omp parallel for if(enable_parallelism)
+#pragma omp parallel for if(enable_parallelism)
     for ( int i = 0; i < blockVector.size(); ++i ) {
       for ( int j = 0; j < registersPerBlock; ++j ) {
         if ( ( defaultMask[ i ][ j ] ) > ( (BitType) 0 ) ) {
@@ -372,7 +372,7 @@ public:
   template < typename Functor > 
   void masked_apply( MaskType m, Functor & f, bool enable_parallelism ) {
     mask & userMask = userMasks[ m ]; 
-    #pragma omp parallel for if(enable_parallelism)
+#pragma omp parallel for if(enable_parallelism)
     for ( int i = 0; i < blockVector.size(); ++i ) {
       for ( int j = 0; j < registersPerBlock; ++j ) {
         BitType reg = ( defaultMask[ i ][ j ] ) & ( userMask[ i ][ j ] );  
@@ -396,7 +396,7 @@ public:
   template < typename Functor > 
   void parallel_not_masked_apply( MaskType m, Functor & f ) {
     mask & userMask = userMasks[ m ]; 
-    #pragma omp parallel for
+#pragma omp parallel for
     for ( int i = 0; i < blockVector.size(); ++i ) {
       for ( int j = 0; j < registersPerBlock; ++j ) {
         BitType reg = ( defaultMask[ i ][ j ] ) & ( ~( userMask[ i ][ j ] ) );  
@@ -468,10 +468,10 @@ public:
     size_t slot = itemIndex % bitsPerBlock;
     return is_valid_item( block, slot );
   }
-/* ****************************************************************
- * private methods ************************************************
- * ****************************************************************
- */
+  /* ****************************************************************
+   * private methods ************************************************
+   * ****************************************************************
+   */
 
 private:
 
@@ -515,17 +515,17 @@ private:
   }
   
   void setBit( BitType & registerSet, size_t bit ) {
-    #pragma omp atomic
+#pragma omp atomic
     registerSet |= ( (BitType) 1 << bit );
   }
   
   void clearBit( BitType & registerSet, size_t bit ) {  
-    #pragma omp atomic
+#pragma omp atomic
     registerSet &= ~( (BitType) 1 << bit);
   }
     
   void flipBit( BitType & registerSet, size_t bit ) {
-    #pragma omp atomic
+#pragma omp atomic
     registerSet ^= (BitType) 1 << bit;
   }
 

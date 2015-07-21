@@ -26,10 +26,10 @@
 #include <iostream>
 
 AV_Decision_Allow_Only_One::AV_Decision_Allow_Only_One():
-Decision(){ }
+  Decision(){ }
 
 AV_Decision_Allow_Only_One::AV_Decision_Allow_Only_One(Policy * p):
-Decision(p){
+  Decision(p){
   name = "AV Decision Allow Only One AV per Person";
   type = "Y/N";
   policy = p;
@@ -41,10 +41,10 @@ int AV_Decision_Allow_Only_One::evaluate(Person* person, int disease, int curren
 }
 
 AV_Decision_Give_to_Sympt::AV_Decision_Give_to_Sympt():
-Decision(){ }
+  Decision(){ }
 
 AV_Decision_Give_to_Sympt::AV_Decision_Give_to_Sympt(Policy *p):
-Decision(p){
+  Decision(p){
   name = "AV Decision to give to a percentage of symptomatics";
   type = "Y/N";
   policy = p;
@@ -63,10 +63,10 @@ int AV_Decision_Give_to_Sympt::evaluate(Person* person, int disease, int current
 }
 
 AV_Decision_Begin_AV_On_Day::AV_Decision_Begin_AV_On_Day():
-Decision(){ } 
+  Decision(){ } 
 
 AV_Decision_Begin_AV_On_Day::AV_Decision_Begin_AV_On_Day(Policy *p):
-Decision(p){
+  Decision(p){
   name = "AV Decision to Begin disseminating AVs on a certain day";
   type = "Y/N";
   policy = p;

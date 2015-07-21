@@ -154,18 +154,18 @@ public:
 
     void print() {
       /*
-      for(unsigned i = 0; i < sim_day_ranges.size(); i++) {
-      Date * tmp_start_date = Global::Sim_Start_Date->clone();
-      Date * tmp_end_date = Global::Sim_Start_Date->clone();
-      tmp_start_date->advance(sim_day_ranges[i].first);
-      tmp_end_date->advance(sim_day_ranges[i].second);
+	for(unsigned i = 0; i < sim_day_ranges.size(); i++) {
+	Date * tmp_start_date = Global::Sim_Start_Date->clone();
+	Date * tmp_end_date = Global::Sim_Start_Date->clone();
+	tmp_start_date->advance(sim_day_ranges[i].first);
+	tmp_end_date->advance(sim_day_ranges[i].second);
         printf("start day = %d (%s), end day = %d (%s), seasonality value = %f\n",
-            sim_day_ranges[i].first, tmp_start_date->to_string().c_str(),
-            sim_day_ranges[i].second, tmp_end_date->to_string().c_str(),
-            seasonalityValue);
+	sim_day_ranges[i].first, tmp_start_date->to_string().c_str(),
+	sim_day_ranges[i].second, tmp_end_date->to_string().c_str(),
+	seasonalityValue);
         delete tmp_start_date;
         delete tmp_end_date;
-      }
+	}
       */
     }
 

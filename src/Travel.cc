@@ -112,7 +112,7 @@ void Travel::read_trips_per_day_file() {
     for(int j = 0; j < num_hubs; ++j) {
       int n;
       if(fscanf(fp, "%d ", &n) != 1) {
-	      Utils::fred_abort("ERROR: read failed on file %s", trips_per_day_file);
+	Utils::fred_abort("ERROR: read failed on file %s", trips_per_day_file);
       }
       trips_per_day[i][j] = n;
     }
@@ -121,7 +121,7 @@ void Travel::read_trips_per_day_file() {
   if(Global::Verbose > 1) {
     for(int i = 0; i < num_hubs; ++i) {
       for(int j = 0; j < num_hubs; ++j) {
-	      printf("%d ", trips_per_day[i][j]);
+	printf("%d ", trips_per_day[i][j]);
       }
       printf("\n");
     }
@@ -149,13 +149,13 @@ void Travel::setup_travelers_per_hub() {
     for(int j = 0; j < num_hubs; ++j) {
       double dist = Geo::xy_distance(h_lat, h_lon, hubs[j].lat, hubs[j].lon);
       if(dist < max_distance && dist < min_dist) {
-	      closest = j;
-	      min_dist = dist;
+	closest = j;
+	min_dist = dist;
       }
       //Assign travelers to hub based on 'county' rather than distance
       if(hubs[j].id == h_county){
-	      closest = j;
-	      min_dist = dist;
+	closest = j;
+	min_dist = dist;
       }
     }
     if(closest > -1) {
@@ -163,8 +163,8 @@ void Travel::setup_travelers_per_hub() {
       // add everyone in the household to the user list for this hub
       int housemates = h->get_size();
       for(int k = 0; k < housemates; ++k) {
-	      Person* person = h->get_housemate(k);
-	      hubs[closest].users.push_back(person);
+	Person* person = h->get_housemate(k);
+	hubs[closest].users.push_back(person);
       }
     }
   }
@@ -230,59 +230,59 @@ void Travel::update_travel(int day) {
     }
     for(int j = 0; j < num_hubs; ++j) {
       if(hubs[j].users.size() == 0) {
-	      continue;
+	continue;
       }
       int successful_trips = 0;
       int count = (trips_per_day[i][j] * hubs[i].pct + 0.5) / 100;
       FRED_VERBOSE(1,"TRIPCOUNT day %d i %d j %d count %d\n", day, i, j, count);
       for(int t = 0; t < count; ++t) {
-	      // select a potential traveler determined by travel_age_prob param
-	      Person* traveler = NULL;
-	      Person* host = NULL;
-	      int attempts = 0;
-	      while(traveler == NULL && attempts < 100) {
-	        // select a random member of the source hub's user group
-	        int v = Random::draw_random_int(0, static_cast<int>(hubs[i].users.size()) - 1);
-	        traveler = hubs[i].users[v];
-	        double prob_travel_by_age = travel_age_prob->find_value(traveler->get_real_age());
-	        if(prob_travel_by_age < Random::draw_random()) {
-	          traveler = NULL;
-	        }
-	        attempts++;
-	      }
-	      if(traveler != NULL) {
-	        // select a potential travel host determined by travel_age_prob param
-	        attempts = 0;
-	        while(host == NULL && attempts < 100) {
-	          // select a random member of the destination hub's user group
-	          int v = Random::draw_random_int(0, static_cast<int>(hubs[j].users.size()) - 1);
-	          host = hubs[j].users[v];
+	// select a potential traveler determined by travel_age_prob param
+	Person* traveler = NULL;
+	Person* host = NULL;
+	int attempts = 0;
+	while(traveler == NULL && attempts < 100) {
+	  // select a random member of the source hub's user group
+	  int v = Random::draw_random_int(0, static_cast<int>(hubs[i].users.size()) - 1);
+	  traveler = hubs[i].users[v];
+	  double prob_travel_by_age = travel_age_prob->find_value(traveler->get_real_age());
+	  if(prob_travel_by_age < Random::draw_random()) {
+	    traveler = NULL;
+	  }
+	  attempts++;
+	}
+	if(traveler != NULL) {
+	  // select a potential travel host determined by travel_age_prob param
+	  attempts = 0;
+	  while(host == NULL && attempts < 100) {
+	    // select a random member of the destination hub's user group
+	    int v = Random::draw_random_int(0, static_cast<int>(hubs[j].users.size()) - 1);
+	    host = hubs[j].users[v];
 
-//	          double prob_travel_by_age = travel_age_prob->find_value(host->get_real_age());
-//	          if(prob_travel_by_age < Random::draw_random()) {
-//	            host = NULL;
-//	          }
+	    //	          double prob_travel_by_age = travel_age_prob->find_value(host->get_real_age());
+	    //	          if(prob_travel_by_age < Random::draw_random()) {
+	    //	            host = NULL;
+	    //	          }
 
-	          attempts++;
-	        }
-	      }
-	      // travel occurs only if both traveler and host are not already traveling
-	      if(traveler != NULL && (!traveler->get_travel_status()) &&
-	         host != NULL && (!host->get_travel_status())) {
-	        // put traveler in travel status
-	        traveler->start_traveling(host);
-	        if(traveler->get_travel_status()) {
-	          // put traveler on list for given number of days to travel
-	          int duration = Random::draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
-	          int return_sim_day = day + duration;
-	          Travel::add_return_event(return_sim_day, traveler);
-	          traveler_list_ptr[duration]->insert(traveler);
-	          traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
-	          FRED_STATUS(1, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
-			        day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
-	          successful_trips++;
-	        }
-	      }
+	    attempts++;
+	  }
+	}
+	// travel occurs only if both traveler and host are not already traveling
+	if(traveler != NULL && (!traveler->get_travel_status()) &&
+	   host != NULL && (!host->get_travel_status())) {
+	  // put traveler in travel status
+	  traveler->start_traveling(host);
+	  if(traveler->get_travel_status()) {
+	    // put traveler on list for given number of days to travel
+	    int duration = Random::draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
+	    int return_sim_day = day + duration;
+	    Travel::add_return_event(return_sim_day, traveler);
+	    traveler_list_ptr[duration]->insert(traveler);
+	    traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
+	    FRED_STATUS(1, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
+			day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
+	    successful_trips++;
+	  }
+	}
       }
       FRED_VERBOSE(1,"DAY %d SRC = %d DEST = %d TRIPS = %d\n", day, hubs[i].id, hubs[j].id, successful_trips);
     }

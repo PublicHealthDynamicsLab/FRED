@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 // Infection.cc
 // ------------
@@ -275,13 +275,13 @@ void Infection::modify_asymptomatic_period(double multp, int today) {
     throw out_of_range("cannot modify: past asymptomatic period");
   } else if(today < get_infectious_date()) { // before asymptomatic period
     this->trajectory->modify_asymp_period(this->exposure_date, this->asymptomatic_period * multp,
-        get_symptomatic_date());
+					  get_symptomatic_date());
     determine_transition_dates();
   } else { // during asymptomatic period
     //int days_into = today - get_infectious_date();
     int days_left = get_symptomatic_date() - today;
     this->trajectory->modify_asymp_period(today - this->exposure_date, days_left * multp,
-        get_symptomatic_date());
+					  get_symptomatic_date());
     determine_transition_dates();
   }
 }
@@ -296,7 +296,7 @@ void Infection::modify_infectious_period(double multp, int today) {
 
 void Infection::modify_develops_symptoms(bool symptoms, int today) {
   if((today >= get_symptomatic_date() && get_asymptomatic_date() == -1)
-      || (today >= get_recovery_date())) {
+     || (today >= get_recovery_date())) {
     throw out_of_range("cannot modify: past symptomatic period");
   }
 
@@ -309,14 +309,14 @@ void Infection::modify_develops_symptoms(bool symptoms, int today) {
 
 void Infection::print() const {
   printf("INF: Infection of disease type: %i in person %i "
-      "periods:  latent %i, asymp: %i, symp: %i recovery: %i "
-      "dates: exposed: %i, infectious: %i, symptomatic: %i, recovered: %i susceptible: %i "
-      "will have symp? %i, suscept: %.3f infectivity: %.3f "
-      "infectivity_multp: %.3f symptms: %.3f\n", this->disease->get_id(), this->host->get_id(),
-      this->latent_period, this->asymptomatic_period, this->symptomatic_period,
-      this->recovery_period, this->exposure_date, get_infectious_date(), get_symptomatic_date(),
-      get_recovery_date(), get_susceptible_date(), this->will_be_symptomatic, this->susceptibility,
-      this->infectivity, this->infectivity_multp, this->symptoms);
+	 "periods:  latent %i, asymp: %i, symp: %i recovery: %i "
+	 "dates: exposed: %i, infectious: %i, symptomatic: %i, recovered: %i susceptible: %i "
+	 "will have symp? %i, suscept: %.3f infectivity: %.3f "
+	 "infectivity_multp: %.3f symptms: %.3f\n", this->disease->get_id(), this->host->get_id(),
+	 this->latent_period, this->asymptomatic_period, this->symptomatic_period,
+	 this->recovery_period, this->exposure_date, get_infectious_date(), get_symptomatic_date(),
+	 get_recovery_date(), get_susceptible_date(), this->will_be_symptomatic, this->susceptibility,
+	 this->infectivity, this->infectivity_multp, this->symptoms);
 }
 
 void Infection::setTrajectory(Trajectory* _trajectory) {
@@ -412,8 +412,8 @@ void Infection::report_infection(int day) const {
       infStrS << " census_tract " << census_tract;
     }
     infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
-        << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
-        << this->symptoms;
+	    << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "
+	    << this->symptoms;
   }
   infStrS << "\n";
 

@@ -101,7 +101,7 @@ public:
     return this->age_level;
   }
 
- private:
+private:
   static double * Classroom_contacts_per_day;
   static double *** Classroom_contact_prob;
   static char Classroom_closure_policy[];

@@ -103,7 +103,7 @@ Vector_Layer::Vector_Layer() {
   }
   // To read the temperature grid
   this->read_temperature();
- // Read location where a proportion of mosquitoes susceptibles are infected externaly (birth or migration)
+  // Read location where a proportion of mosquitoes susceptibles are infected externaly (birth or migration)
   this->read_vector_seeds();
 }
 void Vector_Layer::swap_county_people(){
@@ -132,15 +132,15 @@ void Vector_Layer::read_temperature(){
   //Obtain temperature values for each patch...lat,lon,oC
   if(fp != NULL) {
     while(!feof(fp))
-	  {
-	    int char_count = fscanf(fp, "%lg, %lg, %lg", &lati, &longi, &patch_temperature);
-	    lat = lati;
-	    lon = longi;
-	    Vector_Patch* patch = get_patch(lat,lon);
-	    if(patch != NULL) {
-	      patch->set_temperature(patch_temperature);
-	    }
-	  }
+      {
+	int char_count = fscanf(fp, "%lg, %lg, %lg", &lati, &longi, &patch_temperature);
+	lat = lati;
+	lon = longi;
+	Vector_Patch* patch = get_patch(lat,lon);
+	if(patch != NULL) {
+	  patch->set_temperature(patch_temperature);
+	}
+      }
   } else {
     Utils::fred_abort("Cannot  open %s to read the average temperature grid \n", filename);
   }
@@ -170,12 +170,12 @@ void Vector_Layer::seed_patches_by_distance_in_km(fred::geo lat, fred::geo lon,
     
     for(int r = r1; r <= r2; ++r) {
       for(int c = c1; c <= c2; ++c) {
-	      Vector_Patch* p = get_patch(r, c);
-	      double hx = (r - patch->get_row()) /this->patch_size;
-	      double hy = (c - patch->get_col()) / this->patch_size;
-	      if(sqrt((hx) * ( hx) + ( hy) * ( hy)) <= radius_in_km) {
-	        p->set_vector_seeds(dis, day_on,  day_off, seeds_);
-	      }
+	Vector_Patch* p = get_patch(r, c);
+	double hx = (r - patch->get_row()) /this->patch_size;
+	double hy = (c - patch->get_col()) / this->patch_size;
+	if(sqrt((hx) * ( hx) + ( hy) * ( hy)) <= radius_in_km) {
+	  p->set_vector_seeds(dis, day_on,  day_off, seeds_);
+	}
       }
     }
   }
@@ -200,8 +200,8 @@ void Vector_Layer::read_vector_seeds(){
       int total_houses_seeds = 0;
       sscanf(linestring,"%d %d %d %lg %lg %lg\n",&day_on, &day_off, &dis, &lat_,&lon_, &radius_);
       if(radius_ > 0) {
-	      FRED_VERBOSE(0,"Attempting to seed infectious vectors %lg proportion in %lg proportion of houses, day_on %d day_off %d disease %d lat %lg lon %lg radius %lg \n", mosquito_seeds,place_seeding_probability,day_on,day_off,dis,lat_,lon_,radius_);
-	      //make a list of houses in the radius
+	FRED_VERBOSE(0,"Attempting to seed infectious vectors %lg proportion in %lg proportion of houses, day_on %d day_off %d disease %d lat %lg lon %lg radius %lg \n", mosquito_seeds,place_seeding_probability,day_on,day_off,dis,lat_,lon_,radius_);
+	//make a list of houses in the radius
         fred::geo lat = lat_;
         fred::geo lon = lon_;
         if(this->mosquito_seeds < 0) {
@@ -288,20 +288,20 @@ void Vector_Layer::update(int day) {
   // Global::Daily_Tracker->log_key_value("Vec_H", total_infectious_hosts);
 
   /*
-  FILE *fp;
-  char filename[80];
-  sprintf(filename, "vec-%d.txt", day);
-  fp = fopen(filename,"w");
-  for (int i = 0; i < rows; i++) {
+    FILE *fp;
+    char filename[80];
+    sprintf(filename, "vec-%d.txt", day);
+    fp = fopen(filename,"w");
+    for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
-      Vector_Patch * patch = (Vector_Patch *) &grid[i][j];
-      int popsize = patch->get_popsize();
-      int infected = patch->get_infected();
-      int count = patch->get_infectious_hosts();
-      fprintf(fp,"i %d j %d popsize %d infected %d inf_hosts %d\n",i,j,popsize,infected,count);
+    Vector_Patch * patch = (Vector_Patch *) &grid[i][j];
+    int popsize = patch->get_popsize();
+    int infected = patch->get_infected();
+    int count = patch->get_infectious_hosts();
+    fprintf(fp,"i %d j %d popsize %d infected %d inf_hosts %d\n",i,j,popsize,infected,count);
     }
-  }
-  fclose(fp);
+    }
+    fclose(fp);
   */
 }
 
@@ -311,9 +311,9 @@ void Vector_Layer::update_visualization_data(int disease_id, int day) {
       Vector_Patch* patch = static_cast<Vector_Patch*>(&this->grid[i][j]);
       int count = patch->get_infected_vectors();
       if(count > 0) {
-	      double x = patch->get_center_x();
-	      double y = patch->get_center_y();
-	      Global::Visualization->update_data(x,y,count,0);
+	double x = patch->get_center_x();
+	double y = patch->get_center_y();
+	Global::Visualization->update_data(x,y,count,0);
       }
     }
   }
@@ -359,9 +359,9 @@ double Vector_Layer::get_seeds(Place* p, int dis) {
     double seeds_ = patch->get_seeds(dis);
     if(seeds_ > 0) {
       if(Random::draw_random(0,1) < this->place_seeding_probability) {
-	      return seeds_;
+	return seeds_;
       } else {
-	      return 0.0;
+	return 0.0;
       } 
     } else {
       return 0.0;
@@ -461,18 +461,18 @@ void Vector_Layer::get_immunity_from_file() {
     double temp_immune ;
     if(fscanf(fp,"%d ", &temp_county) == 1) {
       for(int i = 0; i < county_set.size(); ++i) {
-	      if(county_set[i].id == temp_county) {
-	        index_county = i;
-	      }
+	if(county_set[i].id == temp_county) {
+	  index_county = i;
+	}
       }
       if(index_county == -1) {
-	      Utils::fred_abort("No county found %d\n",temp_county);
+	Utils::fred_abort("No county found %d\n",temp_county);
       }
       FRED_VERBOSE(2,"County code  %d\n",temp_county);
       for(int i = 0; i < 102; ++i) {
-	      fscanf(fp,"%lg ",&temp_immune);
-	      county_set[index_county].immunity_by_age[i] = temp_immune;
-	      FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
+	fscanf(fp,"%lg ",&temp_immune);
+	county_set[index_county].immunity_by_age[i] = temp_immune;
+	FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
       }
     }
   }
@@ -496,19 +496,19 @@ void Vector_Layer::get_immunity_from_file(int d) {
     double temp_immune ;
     if(fscanf(fp, "%d ", &temp_county) == 1) {
       for(int i = 0; i < county_set.size(); ++i) {
-	      if(county_set[i].id == temp_county){
-	        index_county = i;
-	      }
+	if(county_set[i].id == temp_county){
+	  index_county = i;
+	}
       }
       if(index_county == -1) {
-	      Utils::fred_abort("No county found %d\n",temp_county);
+	Utils::fred_abort("No county found %d\n",temp_county);
       }
       FRED_VERBOSE(2,"County code  %d\n",temp_county);
       for(int i = 0; i < 102; ++i) {
-	      if(fscanf(fp, "%lg ", &temp_immune) > 0) {
-	        county_set[index_county].immunity_by_age[i] = temp_immune;
-	        FRED_VERBOSE(2,"Age: %d Immunity  %lg\n",i,temp_immune);
-	      }
+	if(fscanf(fp, "%lg ", &temp_immune) > 0) {
+	  county_set[index_county].immunity_by_age[i] = temp_immune;
+	  FRED_VERBOSE(2,"Age: %d Immunity  %lg\n",i,temp_immune);
+	}
       }
     }
   }
@@ -516,19 +516,19 @@ void Vector_Layer::get_immunity_from_file(int d) {
 }
 
 void Vector_Layer::get_people_size_by_age() {
- //calculate number of people by age
+  //calculate number of people by age
   for(int i = 0; i < county_set.size(); ++i) {
     if(county_set[i].habitants.size() > 0) {
       for(int k = 0; k < 102; ++k) {
-	      county_set[i].people_by_age[k] = 0;
+	county_set[i].people_by_age[k] = 0;
       }
       for(int j = 0; j < county_set[i].habitants.size(); ++j) {
-	      Person* per = county_set[i].habitants[j];
-	      int temp_age = per->get_age();
-	      if(temp_age > 101) {
-	        temp_age = 101;
-	      }
-	      county_set[i].people_by_age[temp_age]++;
+	Person* per = county_set[i].habitants[j];
+	int temp_age = per->get_age();
+	if(temp_age > 101) {
+	  temp_age = 101;
+	}
+	county_set[i].people_by_age[temp_age]++;
       }
     }
   }
@@ -539,22 +539,22 @@ void Vector_Layer::immunize_total_by_age() {
     county_set[i].people_immunized = 0;
     if(county_set[i].habitants.size()>0){
       for(int j = 0; j < county_set[i].habitants.size(); ++j) {
-	      Person* per = county_set[i].habitants[j];
-	      double prob_immune_ = Random::draw_random(0,1);
-	      double prob_immune = prob_immune_ * 100;
-	      int temp_age = per->get_age();
-	      if(temp_age > 101) {
-	        temp_age = 101;
-	      }
-	      double prob_by_age = county_set[i].immunity_by_age[temp_age];
- 	      if(prob_by_age > prob_immune) {
-	        for(int d = 0;d < DISEASE_TYPES; ++d) {
-	          if(per->is_susceptible(d)){
-	            per->become_unsusceptible(Global::Diseases.get_disease(d));
-	          }
-	        }
-	        county_set[i].people_immunized++;
-	      }
+	Person* per = county_set[i].habitants[j];
+	double prob_immune_ = Random::draw_random(0,1);
+	double prob_immune = prob_immune_ * 100;
+	int temp_age = per->get_age();
+	if(temp_age > 101) {
+	  temp_age = 101;
+	}
+	double prob_by_age = county_set[i].immunity_by_age[temp_age];
+	if(prob_by_age > prob_immune) {
+	  for(int d = 0;d < DISEASE_TYPES; ++d) {
+	    if(per->is_susceptible(d)){
+	      per->become_unsusceptible(Global::Diseases.get_disease(d));
+	    }
+	  }
+	  county_set[i].people_immunized++;
+	}
       }
     }
   }
@@ -564,20 +564,20 @@ void Vector_Layer::immunize_by_age(int d) {
     county_set[i].people_immunized = 0;
     if(county_set[i].habitants.size() > 0) {
       for (int j = 0; j < county_set[i].habitants.size(); ++j) {
-	      Person* per = county_set[i].habitants[j];
-	      double prob_immune_ = Random::draw_random(0,1);
-	      double prob_immune = prob_immune_ * 100;
-	      int temp_age = per->get_age();
-	      if(temp_age > 101) {
-	        temp_age = 101;
-	      }
-	      double prob_by_age = county_set[i].immunity_by_age[temp_age];
-	      if(prob_by_age > prob_immune) {
-	        if(per->is_susceptible(d)) {
-	          per->become_unsusceptible(Global::Diseases.get_disease(d));
-	          county_set[i].people_immunized++;
-	        }
-	      }
+	Person* per = county_set[i].habitants[j];
+	double prob_immune_ = Random::draw_random(0,1);
+	double prob_immune = prob_immune_ * 100;
+	int temp_age = per->get_age();
+	if(temp_age > 101) {
+	  temp_age = 101;
+	}
+	double prob_by_age = county_set[i].immunity_by_age[temp_age];
+	if(prob_by_age > prob_immune) {
+	  if(per->is_susceptible(d)) {
+	    per->become_unsusceptible(Global::Diseases.get_disease(d));
+	    county_set[i].people_immunized++;
+	  }
+	}
       }
     }
   }
@@ -593,9 +593,9 @@ void Vector_Layer::init_prior_immunity_by_county() {
   for(int i = 0; i < county_set.size(); ++i) {
     if(county_set[i].habitants.size() > 0) {
       FRED_VERBOSE(0, "County id:  %d Population %d People Immunized: %d\n", county_set[i].id, county_set[i].habitants.size(), county_set[i].people_immunized);
-//      for (int j = 0; j < 102; ++j) {
-//	      FRED_VERBOSE(0,"AGE::  %d \t immune prob %lg\t people_by_age %d\n", j,county_set[i].immunity_by_age[j], county_set[i].people_by_age[j]);
-//	    }
+      //      for (int j = 0; j < 102; ++j) {
+      //	      FRED_VERBOSE(0,"AGE::  %d \t immune prob %lg\t people_by_age %d\n", j,county_set[i].immunity_by_age[j], county_set[i].people_by_age[j]);
+      //	    }
     }
   }
   //  Utils::fred_abort("Running test finishes here\n");
@@ -611,9 +611,9 @@ void Vector_Layer::init_prior_immunity_by_county(int d) {
   for(int i = 0; i < county_set.size(); ++i) {
     if(county_set[i].habitants.size() > 0) {
       FRED_VERBOSE(0,"County id:  %d Population %d People Immunized: %d Strain %d\n",county_set[i].id, county_set[i].habitants.size(), county_set[i].people_immunized,d);
-//      for (int j = 0; j < 102; ++j){
-//	      FRED_VERBOSE(0,"AGE::  %d \t immune prob %lg\t people_by_age %d\n", j,county_set[i].immunity_by_age[j], county_set[i].people_by_age[j]);
-//	    }
+      //      for (int j = 0; j < 102; ++j){
+      //	      FRED_VERBOSE(0,"AGE::  %d \t immune prob %lg\t people_by_age %d\n", j,county_set[i].immunity_by_age[j], county_set[i].people_by_age[j]);
+      //	    }
     }
   }
 }

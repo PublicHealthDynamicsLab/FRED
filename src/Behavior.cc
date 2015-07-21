@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -76,7 +76,7 @@ void Behavior::setup(Person* self) {
   if(self->is_adult()) {
     // adults do not have a separate health decision maker
     FRED_VERBOSE(1, "behavior_setup for adult %d age %d -- will make own health decisions\n",
-        self->get_id(), self->get_age());
+		 self->get_id(), self->get_age());
     this->health_decision_maker = NULL;
     setup_intentions(self);
     return;
@@ -97,7 +97,7 @@ void Behavior::setup(Person* self) {
   // child is on its own
   if(person == NULL) {
     FRED_VERBOSE(1, "behavior_setup for child %d age %d -- will make own health decisions\n",
-        self->get_id(), self->get_age());
+		 self->get_id(), self->get_age());
     // no separate health decision maker
     this->health_decision_maker = NULL;
     setup_intentions(self);
@@ -107,8 +107,8 @@ void Behavior::setup(Person* self) {
   // an older child is available
   if(person->is_adult() == false) {
     FRED_VERBOSE(0,
-        "behavior_setup for child %d age %d -- minor person %d age %d will make health decisions\n",
-        self->get_id(), self->get_age(), person->get_id(), person->get_age());
+		 "behavior_setup for child %d age %d -- minor person %d age %d will make health decisions\n",
+		 self->get_id(), self->get_age(), person->get_id(), person->get_age());
     this->health_decision_maker = person;
     person->become_health_decision_maker(person);
     return;
@@ -116,8 +116,8 @@ void Behavior::setup(Person* self) {
 
   // an adult is available
   FRED_VERBOSE(0,
-      "behavior_setup for child %d age %d -- adult person %d age %d will make health decisions\n",
-      self->get_id(), self->get_age(), person->get_id(), person->get_age());
+	       "behavior_setup for child %d age %d -- adult person %d age %d will make health decisions\n",
+	       self->get_id(), self->get_age(), person->get_id(), person->get_age());
   this->health_decision_maker = person; // no need to setup atitudes for adults
   return;
 }
@@ -163,7 +163,7 @@ void Behavior::setup_intentions(Person* self) {
   
   if(Behavior::behavior_params[Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD]->enabled) {
     this->intention[Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD] =
-        new Intention(self, Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD);
+      new Intention(self, Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD);
   }
 }
 
@@ -179,7 +179,7 @@ void Behavior::get_parameters() {
   get_parameters_for_behavior((char*)"accept_vaccine_dose", Behavior_index::ACCEPT_VACCINE_DOSE);
   get_parameters_for_behavior((char*)"accept_vaccine_for_child", Behavior_index::ACCEPT_VACCINE_FOR_CHILD);
   get_parameters_for_behavior((char*)"accept_vaccine_dose_for_child",
-      Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD);
+			      Behavior_index::ACCEPT_VACCINE_DOSE_FOR_CHILD);
   Behavior::parameters_are_set = true;
 }
 
@@ -197,7 +197,7 @@ void Behavior::get_parameters_for_behavior(char* behavior_name, int j) {
 
   sprintf(param_str, "%s_behavior_change_model_distribution", behavior_name);
   params->behavior_change_model_cdf_size = Params::get_param_vector(param_str,
-      params->behavior_change_model_cdf);
+								    params->behavior_change_model_cdf);
 
   // convert to cdf
   double stotal = 0;
@@ -349,11 +349,11 @@ void Behavior::update(Person* self, int day) {
   FRED_VERBOSE(1, "behavior::update person %d day %d\n", self->get_id(), day);
 
   /*
-  if(day == -1 && self->get_id() == 0) {
+    if(day == -1 && self->get_id() == 0) {
     for(int i = 0; i < Behavior_index::NUM_BEHAVIORS; ++i) {
-      print_params(i);
+    print_params(i);
     }
-  }
+    }
   */
 
   if(!Global::Enable_Behaviors) {
@@ -582,7 +582,7 @@ void Behavior::terminate(Person* self) {
       child->setup_behavior();
       if(Global::Verbose > 1) {
         printf("new decision maker is %d age %d\n", child->get_health_decision_maker()->get_id(),
-            child->get_health_decision_maker()->get_age());
+	       child->get_health_decision_maker()->get_age());
         fflush (stdout);
       }
     }

@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -131,7 +131,7 @@ bool Age_Map::quality_control() const {
   if(this->ages.size() != this->values.size()) {
     cout << "Help! Age_Map: " << this->name << ": Must have the same number of age groups and values\n";
     cout << "Number of Age Groups = " << this->ages.size() << "  Number of Values = " << this->values.size()
-        << "\n";
+	 << "\n";
     return false;
   }
 

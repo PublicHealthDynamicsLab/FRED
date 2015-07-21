@@ -33,10 +33,10 @@ public:
   ~Intention() {}
 
   /**
-    * Perform the daily update for this object
-    *
-    * @param day the simulation day
-    */
+   * Perform the daily update for this object
+   *
+   * @param day the simulation day
+   */
   void update(int day);
 
   // access functions
@@ -72,7 +72,7 @@ public:
     return this->intention;
   }
 
- private:
+private:
   Person * self;
   Behavior_params * params;
   int index;

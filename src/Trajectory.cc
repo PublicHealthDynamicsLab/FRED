@@ -105,22 +105,22 @@ Trajectory::point Trajectory::get_data_point(int t) {
 }
 
 /*
-void Trajectory::calculate_aggregate_infectivity() {
+  void Trajectory::calculate_aggregate_infectivity() {
   // not currently used anywhere, could be used in the trajectory iterator
   aggregate_infectivity.assign(duration,0.0);
   map< int, trajectory_t >::iterator strain_iterator;
   trajectory_t::iterator strain_infectivity_iterator;
 
   for (strain_iterator = infectivity.begin(); strain_iterator != infectivity.end(); ++strain_iterator) {
-    int t = 0;
+  int t = 0;
 
-    for (strain_infectivity_iterator = strain_iterator->second.begin(); strain_infectivity_iterator != strain_iterator->second.end(); ++strain_infectivity_iterator) {
-      cout << t << "  " << *strain_infectivity_iterator << "  " << duration << endl;
-      aggregate_infectivity[t] += *strain_infectivity_iterator;
-      t++;
-    }
+  for (strain_infectivity_iterator = strain_iterator->second.begin(); strain_infectivity_iterator != strain_iterator->second.end(); ++strain_infectivity_iterator) {
+  cout << t << "  " << *strain_infectivity_iterator << "  " << duration << endl;
+  aggregate_infectivity[t] += *strain_infectivity_iterator;
+  t++;
   }
-}
+  }
+  }
 */
 
 string Trajectory::to_string() {
@@ -138,12 +138,12 @@ string Trajectory::to_string() {
   }
 
   /*
-  os << endl << "Symptomaticity Trajectories:" << endl;
+    os << endl << "Symptomaticity Trajectories:" << endl;
 
-  for (vec = symptomaticity.begin(); vec != symptomaticity.end(); ++vec) {
+    for (vec = symptomaticity.begin(); vec != symptomaticity.end(); ++vec) {
     os << " " << *vec;
-  }
-*/
+    }
+  */
   return os.str();
 }
 

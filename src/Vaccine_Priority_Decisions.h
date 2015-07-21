@@ -30,14 +30,14 @@ public:
 };
 
 class Vaccine_Priority_Decision_Pregnant: public Decision {
- public:
+public:
   Vaccine_Priority_Decision_Pregnant(Policy* p);
   Vaccine_Priority_Decision_Pregnant();
   int evaluate(Person* person, int disease, int day);
 };
 
 class Vaccine_Priority_Decision_At_Risk: public Decision {
- public:
+public:
   Vaccine_Priority_Decision_At_Risk(Policy* p);
   Vaccine_Priority_Decision_At_Risk();
   int evaluate(Person* person, int disease, int day);

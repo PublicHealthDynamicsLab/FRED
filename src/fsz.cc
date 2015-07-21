@@ -35,21 +35,21 @@ int main( int argc, char *argv[] ) {
 
   while ((f = getopt (argc, argv, "c:u:")) != -1) {
     switch (f) {
-      case 'c':
-        compress_flag = 1;
-        filename = optarg;
-        break;
-      case 'u':
-        uncompress_flag = 1;
-        filename = optarg;
-        break;
-      case '?':
-        std::cerr << "\nfsz, FRED's snappy compression utility.  Usage:\n\n";
-        std::cerr << "  fsz -c <file> => file will be compressed using snappy and written to stdout\n";
-        std::cerr << "  fsz -u <file> => file assumed to have been compressed with snappy; will be uncompressed to stdout\n\n";
-        break;
-      default:
-        abort();
+    case 'c':
+      compress_flag = 1;
+      filename = optarg;
+      break;
+    case 'u':
+      uncompress_flag = 1;
+      filename = optarg;
+      break;
+    case '?':
+      std::cerr << "\nfsz, FRED's snappy compression utility.  Usage:\n\n";
+      std::cerr << "  fsz -c <file> => file will be compressed using snappy and written to stdout\n";
+      std::cerr << "  fsz -u <file> => file assumed to have been compressed with snappy; will be uncompressed to stdout\n\n";
+      break;
+    default:
+      abort();
     }
   }
 

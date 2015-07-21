@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 /*
  *  Seasonality_Timestep_Map.cpp
@@ -33,7 +33,7 @@
 using namespace std;
 
 Seasonality_Timestep_Map::Seasonality_Timestep_Map(string _name) :
-    Timestep_Map(_name) {
+  Timestep_Map(_name) {
 }
 
 Seasonality_Timestep_Map::~Seasonality_Timestep_Map() {
@@ -60,7 +60,7 @@ void Seasonality_Timestep_Map::read_map() {
       read_map_structured(ts_input);
     } else {
       Utils::fred_abort(
-          "First line has to specify either #line_format or #structured_format; see primary_case_schedule-0.txt for an example. ");
+			"First line has to specify either #line_format or #structured_format; see primary_case_schedule-0.txt for an example. ");
     }
   } else {
     Utils::fred_abort("Nothing in the file!");
@@ -90,7 +90,7 @@ void Seasonality_Timestep_Map::print() {
   return;
   cout << "\n";
   cout << this->name << " Seasonality_Timestep_Map size = " << (int) this->seasonality_timestep_map.size()
-      << "\n";
+       << "\n";
   vector<Seasonality_Timestep *>::iterator itr;
   for(itr = begin(); itr != end(); ++itr) {
     (*itr)->print();
@@ -100,10 +100,10 @@ void Seasonality_Timestep_Map::print() {
 
 bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD, string endMMDD) {
   /*
-  int years = 0.5 + (Global::Days / 365);
-  int startYear = Date::get_year();
-  string dateFormat = string("YYYY-MM-DD");
-  for(int y = startYear; y <= startYear + years; y++) {
+    int years = 0.5 + (Global::Days / 365);
+    int startYear = Date::get_year();
+    string dateFormat = string("YYYY-MM-DD");
+    for(int y = startYear; y <= startYear + years; y++) {
 
     stringstream ss_s;
     stringstream ss_e;
@@ -116,16 +116,16 @@ bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD,
     string end_dateStr = ss_e.str();
 
     if(!(Date::is_leap_year(y))) {
-      if(parse_month_from_date_string(startDateStr, dateFormat) == 2
-          && parse_day_of_month_from_date_string(startDateStr, dateFormat) == 29) {
-        ss_s2 << y << "-" << "03-01";
-        startDateStr = ss_s2.str();
-      }
-      if(parse_month_from_date_string(end_dateStr, dateFormat) == 2
-          && parse_day_of_month_from_date_string(end_dateStr, dateFormat) == 29) {
-        ss_e2 << y << "-" << "03-01";
-        end_dateStr = ss_e2.str();
-      }
+    if(parse_month_from_date_string(startDateStr, dateFormat) == 2
+    && parse_day_of_month_from_date_string(startDateStr, dateFormat) == 29) {
+    ss_s2 << y << "-" << "03-01";
+    startDateStr = ss_s2.str();
+    }
+    if(parse_month_from_date_string(end_dateStr, dateFormat) == 2
+    && parse_day_of_month_from_date_string(end_dateStr, dateFormat) == 29) {
+    ss_e2 << y << "-" << "03-01";
+    end_dateStr = ss_e2.str();
+    }
     }
 
     int simStartDay = 0;
@@ -135,17 +135,17 @@ bool Seasonality_Timestep_Map::Seasonality_Timestep::parseMMDD(string startMMDD,
     Date startDateObj(startDateStr, dateFormat);
 
     if(startDateObj >= *Global::Sim_Start_Date) {
-      simStartDay = Date::days_between(0, &startDateObj);
+    simStartDay = Date::days_between(0, &startDateObj);
     }
 
     //Date end_dateObj = Date::Date(end_dateStr, dateFormat);
     Date end_dateObj(end_dateStr, dateFormat);
 
     if(end_dateObj >= *Global::Sim_Start_Date) {
-      simEndDay = Date::days_between(0, &end_dateObj);
-      this->sim_day_ranges.push_back(pair<int, int>(simStartDay, simEndDay));
+    simEndDay = Date::days_between(0, &end_dateObj);
+    this->sim_day_ranges.push_back(pair<int, int>(simStartDay, simEndDay));
     }
-  }
+    }
   */
   return true;
 }

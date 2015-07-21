@@ -1,13 +1,13 @@
 /*
- This file is part of the FRED system.
+  This file is part of the FRED system.
 
- Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
- Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
- Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
+  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
- Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
- more information.
- */
+  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
+  more information.
+*/
 
 //
 //
@@ -88,24 +88,24 @@ public:
     assert(idx >= 0);
     assert(idx < Activity_index::FAVORITE_PLACES);
     switch(idx) {
-      case Activity_index::HOUSEHOLD_ACTIVITY:
-        return "Household";
-      case Activity_index::NEIGHBORHOOD_ACTIVITY:
-        return "Neighborhood";
-      case Activity_index::SCHOOL_ACTIVITY:
-        return "School";
-      case Activity_index::CLASSROOM_ACTIVITY:
-        return "Classroom";
-      case Activity_index::WORKPLACE_ACTIVITY:
-        return "Workplace";
-      case Activity_index::OFFICE_ACTIVITY:
-        return "Office";
-      case Activity_index::HOSPITAL_ACTIVITY:
-        return "Hospital";
-      case Activity_index::AD_HOC_ACTIVITY:
-        return "Ad_Hoc";
-      default:
-        Utils::fred_abort("Invalid Activity Type", "");
+    case Activity_index::HOUSEHOLD_ACTIVITY:
+      return "Household";
+    case Activity_index::NEIGHBORHOOD_ACTIVITY:
+      return "Neighborhood";
+    case Activity_index::SCHOOL_ACTIVITY:
+      return "School";
+    case Activity_index::CLASSROOM_ACTIVITY:
+      return "Classroom";
+    case Activity_index::WORKPLACE_ACTIVITY:
+      return "Workplace";
+    case Activity_index::OFFICE_ACTIVITY:
+      return "Office";
+    case Activity_index::HOSPITAL_ACTIVITY:
+      return "Hospital";
+    case Activity_index::AD_HOC_ACTIVITY:
+      return "Ad_Hoc";
+    default:
+      Utils::fred_abort("Invalid Activity Type", "");
     }
     return NULL;
   }
@@ -265,7 +265,7 @@ public:
 
   Place* get_temporary_household() {
     if(this->tmp_favorite_places_map->find(Activity_index::HOUSEHOLD_ACTIVITY)
-        != this->tmp_favorite_places_map->end()) {
+       != this->tmp_favorite_places_map->end()) {
       return (*this->tmp_favorite_places_map)[Activity_index::HOUSEHOLD_ACTIVITY];
     } else {
       return NULL;
@@ -640,10 +640,10 @@ private:
   static Activities_Tracking_Data Tracking_data;
 
   // sick days statistics
-//  static int Sick_days_present;
-//  static int Sick_days_absent;
-//  static int School_sick_days_present;
-//  static int School_sick_days_absent;
+  //  static int Sick_days_present;
+  //  static int Sick_days_absent;
+  //  static int School_sick_days_present;
+  //  static int School_sick_days_absent;
   static double Standard_sicktime_allocated_per_child;
 
   static const int WP_SIZE_DIST = 1;
@@ -653,14 +653,14 @@ private:
   static std::vector<double> HH_income_qtile_sl_prob_vec;
 
   // Statistics for presenteeism study
-//  static int Employees_small_with_sick_leave;
-//  static int Employees_small_without_sick_leave;
-//  static int Employees_med_with_sick_leave;
-//  static int Employees_med_without_sick_leave;
-//  static int Employees_large_with_sick_leave;
-//  static int Employees_large_without_sick_leave;
-//  static int Employees_xlarge_with_sick_leave;
-//  static int Employees_xlarge_without_sick_leave;
+  //  static int Employees_small_with_sick_leave;
+  //  static int Employees_small_without_sick_leave;
+  //  static int Employees_med_with_sick_leave;
+  //  static int Employees_med_without_sick_leave;
+  //  static int Employees_large_with_sick_leave;
+  //  static int Employees_large_without_sick_leave;
+  //  static int Employees_xlarge_with_sick_leave;
+  //  static int Employees_xlarge_without_sick_leave;
 
   // Statistics for childhood presenteeism study
   static double Sim_based_prob_stay_home_not_needed;

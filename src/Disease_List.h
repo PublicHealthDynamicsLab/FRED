@@ -46,7 +46,7 @@ public:
 
   void prepare_diseases();
 
- private:
+private:
   std::vector <Disease*> diseases;
   int number_of_diseases;
   string * disease_name;

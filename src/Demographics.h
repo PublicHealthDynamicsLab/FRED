@@ -49,7 +49,7 @@ public:
    * @param is_newborn needed to know how to set the date of birth
    */
   void setup( Person * self, short int _age, char _sex, short int _race,
-	       short int rel, int day, bool is_newborn = false );
+	      short int rel, int day, bool is_newborn = false );
 
   static void initialize_static_variables();
 

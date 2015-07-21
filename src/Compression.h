@@ -43,18 +43,18 @@
 
 #include "Global.h"
 
-#define FSZ_WARNING(format, ...){\
-printf( "WARNING: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ );\
-}
+#define FSZ_WARNING(format, ...){					\
+    printf( "WARNING: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ ); \
+  }
 
-#define FSZ_ABORT(format, ...){\
-printf( "WARNING: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ );\
-exit( 1 );\
-}
+#define FSZ_ABORT(format, ...){						\
+    printf( "WARNING: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ ); \
+    exit( 1 );								\
+  }
 
-#define FSZ_STATUS(verbosity, format, ...){\
-printf( "STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ );\
-}
+#define FSZ_STATUS(verbosity, format, ...){				\
+    printf( "STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__ ); \
+  }
 
 
 class SnappyFileCompression {
@@ -82,7 +82,7 @@ class SnappyFileCompression {
 
   fred::Mutex mutex;
 
-  public:
+public:
 
   SnappyFileCompression( char * _infile_name ) {
     infile_name = new char[ std::strlen( _infile_name ) ];

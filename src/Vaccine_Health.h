@@ -35,7 +35,7 @@ public:
   //Creation Operations
   Vaccine_Health();
   Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _age, 
-     Person * _person, Vaccine_Manager* _vaccine_manager);
+		 Person * _person, Vaccine_Manager* _vaccine_manager);
   
   // Access Members
   int get_vaccination_day()              const { return vaccination_day; }

@@ -22,53 +22,53 @@ class Infection;
 class Trajectory;
 
 class DefaultIntraHost : public IntraHost {
-  public:
-    DefaultIntraHost();
-    ~DefaultIntraHost();
-    Trajectory * get_trajectory(int age);
-    void setup(Disease *disease);
-    int get_days_latent();
-    int get_days_asymp();
-    int get_days_symp();
-    int get_days_susceptible();
-    int will_have_symptoms(int age);
-    double get_asymp_infectivity() {
-      return asymp_infectivity;
-    }
+public:
+  DefaultIntraHost();
+  ~DefaultIntraHost();
+  Trajectory * get_trajectory(int age);
+  void setup(Disease *disease);
+  int get_days_latent();
+  int get_days_asymp();
+  int get_days_symp();
+  int get_days_susceptible();
+  int will_have_symptoms(int age);
+  double get_asymp_infectivity() {
+    return asymp_infectivity;
+  }
 
-    double get_symp_infectivity() {
-      return symp_infectivity;
-    }
+  double get_symp_infectivity() {
+    return symp_infectivity;
+  }
 
-    double get_prob_symptomatic() {
+  double get_prob_symptomatic() {
+    return prob_symptomatic;
+  }
+
+  double get_prob_symptomatic(int age) {
+    if (age_specific_prob_symptomatic->is_empty()) {
       return prob_symptomatic;
     }
-
-    double get_prob_symptomatic(int age) {
-      if (age_specific_prob_symptomatic->is_empty()) {
-	return prob_symptomatic;
-      }
-      else {
-	return age_specific_prob_symptomatic->find_value(age);
-      }
+    else {
+      return age_specific_prob_symptomatic->find_value(age);
     }
+  }
 
-    int get_infection_model() {
-      return infection_model;
-    }
+  int get_infection_model() {
+    return infection_model;
+  }
 
-  private:
-    double asymp_infectivity;
-    double symp_infectivity;
-    int infection_model;
-    int max_days_latent;
-    int max_days_asymp;
-    int max_days_symp;
-    double *days_latent;
-    double *days_asymp;
-    double *days_symp;
-    double prob_symptomatic;
-    Age_Map *age_specific_prob_symptomatic;
-  };
+private:
+  double asymp_infectivity;
+  double symp_infectivity;
+  int infection_model;
+  int max_days_latent;
+  int max_days_asymp;
+  int max_days_symp;
+  double *days_latent;
+  double *days_asymp;
+  double *days_symp;
+  double prob_symptomatic;
+  Age_Map *age_specific_prob_symptomatic;
+};
 
 #endif

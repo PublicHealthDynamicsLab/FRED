@@ -21,32 +21,32 @@ class Disease;
 class Trajectory;
 
 class FixedIntraHost : public IntraHost {
-  public:
+public:
 
-    /**
-     * Get the infection Trajectory
-     *
-     * @return a pointer to a Trajectory object
-     */
+  /**
+   * Get the infection Trajectory
+   *
+   * @return a pointer to a Trajectory object
+   */
   Trajectory* get_trajectory( );
 
-    /**
-     * Set the attributes for the IntraHost
-     *
-     * @param dis the disease to which this IntraHost model is associated
-     */
-    void setup(Disease *disease);
+  /**
+   * Set the attributes for the IntraHost
+   *
+   * @param dis the disease to which this IntraHost model is associated
+   */
+  void setup(Disease *disease);
 
-    /**
-     * @return this intrahost model's days symptomatic
-     */
-    virtual int get_days_symp();
+  /**
+   * @return this intrahost model's days symptomatic
+   */
+  virtual int get_days_symp();
 
-  private:
-    // library of trajectories and cdf over them
-    std::vector< std::vector<double> > infLibrary;
-    std::vector< std::vector<double> > sympLibrary;
-    std::vector<double> probabilities;
+private:
+  // library of trajectories and cdf over them
+  std::vector< std::vector<double> > infLibrary;
+  std::vector< std::vector<double> > sympLibrary;
+  std::vector<double> probabilities;
 };
 
 #endif

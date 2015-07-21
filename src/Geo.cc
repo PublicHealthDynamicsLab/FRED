@@ -82,21 +82,21 @@ double Geo::spherical_projection_distance (fred::geo lon1, fred::geo lat1, fred:
 
 /*
 
-int main () {
+  int main () {
   fred::geo lon1 = -79;
   fred::geo lat1 = 40;
   int N = 0;
   for (fred::geo lon = -80.0; lon <= -79.0; lon += 0.01) {
-    for (fred::geo lat = 40; lat < 40.1; lat += 0.01 ) {
-      double d1 = haversine_distance(lon1,lat1,lon,lat);
-      double d2 = spherical_cosine_distance(lon1,lat1,lon,lat);
-      double d3 = spherical_projection_distance(lon1,lat1,lon,lat);
-      N++;
-      printf("%6.3f %5.2f %8.3f %8.3f %f\n", lon, lat, d1, d3, d1-d3);
-    }
+  for (fred::geo lat = 40; lat < 40.1; lat += 0.01 ) {
+  double d1 = haversine_distance(lon1,lat1,lon,lat);
+  double d2 = spherical_cosine_distance(lon1,lat1,lon,lat);
+  double d3 = spherical_projection_distance(lon1,lat1,lon,lat);
+  N++;
+  printf("%6.3f %5.2f %8.3f %8.3f %f\n", lon, lat, d1, d3, d1-d3);
+  }
   }
   printf("N = %d\n", N);
-}
+  }
 
 */
 

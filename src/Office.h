@@ -55,13 +55,13 @@ public:
   int get_group(int disease, Person * per);
 
   /**
-    * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
-    *
-    * This method returns the value from the static array <code>Office::Office_contact_prob</code> that
-    * corresponds to a particular age-related value for each person.<br />
-    * The static array <code>Office_contact_prob</code> will be filled with values from the parameter
-    * file for the key <code>office_prob[]</code>.
-    */
+   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   *
+   * This method returns the value from the static array <code>Office::Office_contact_prob</code> that
+   * corresponds to a particular age-related value for each person.<br />
+   * The static array <code>Office_contact_prob</code> will be filled with values from the parameter
+   * file for the key <code>office_prob[]</code>.
+   */
   double get_transmission_prob(int disease, Person * i, Person * s);
 
   /**

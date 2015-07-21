@@ -142,19 +142,19 @@ void Visualization_Layer::quality_control() {
       sprintf(filename, "%s/visualization_grid.dat", Global::Simulation_directory);
       FILE* fp = fopen(filename, "w");
       for(int row = 0; row < this->rows; ++row) {
-	      if(row % 2) {
-	        for(int col = this->cols - 1; col >= 0; --col) {
-	          double x = this->grid[row][col].get_center_x();
-	          double y = this->grid[row][col].get_center_y();
-	          fprintf(fp, "%f %f\n",x,y);
-	        }
-	      } else {
-	        for(int col = 0; col < this->cols; ++col) {
-	          double x = this->grid[row][col].get_center_x();
-	          double y = this->grid[row][col].get_center_y();
-	          fprintf(fp, "%f %f\n",x,y);
-	        }
-	      }
+	if(row % 2) {
+	  for(int col = this->cols - 1; col >= 0; --col) {
+	    double x = this->grid[row][col].get_center_x();
+	    double y = this->grid[row][col].get_center_y();
+	    fprintf(fp, "%f %f\n",x,y);
+	  }
+	} else {
+	  for(int col = 0; col < this->cols; ++col) {
+	    double x = this->grid[row][col].get_center_x();
+	    double y = this->grid[row][col].get_center_y();
+	    fprintf(fp, "%f %f\n",x,y);
+	  }
+	}
       }
       fclose(fp);
     }
@@ -217,7 +217,7 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
       int num_households = this->households.size();
       for(int i = 0; i < num_households; ++i) {
         Place* h = this->households[i];
-	      fprintf(fp, "%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
+	fprintf(fp, "%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
       }
       fclose(fp);
     } else {
@@ -303,7 +303,7 @@ void Visualization_Layer::print_visualization_data(int day) {
       print_output_data(dir, disease_id, Global::OUTPUT_P, (char*)"P", day);
       print_population_data(dir, disease_id, day);
       if(Global::Enable_Vector_Layer) {
-	      print_vector_data(dir, disease_id, day);
+	print_vector_data(dir, disease_id, day);
       }
     }
   }
@@ -393,7 +393,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
 }
 
 /*
-void Visualization_Layer::print_household_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
+  void Visualization_Layer::print_household_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
   sprintf(filename, "%s/dis%d/%s/households-%d.txt", dir, disease_id, output_str, day);
   FILE* fp = fopen(filename, "w");
@@ -404,13 +404,13 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int ou
   // print out the lat long of all infected households
   int houses = (int)(this->infected_households.size());
   for(int i = 0; i < houses; ++i) {
-    fred::geo lat = infected_households[i].first;
-    fred::geo lon = infected_households[i].second;
-    fprintf(fp, "%lf %lf\n", lat, lon);
+  fred::geo lat = infected_households[i].first;
+  fred::geo lon = infected_households[i].second;
+  fprintf(fp, "%lf %lf\n", lat, lon);
   }
   fclose(fp);
   this->infected_households.clear();
-}
+  }
 */
 
 void Visualization_Layer::print_output_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
@@ -428,8 +428,8 @@ void Visualization_Layer::print_output_data(char* dir, int disease_id, int outpu
       Visualization_Patch* patch = (Visualization_Patch*) &(this->grid[i][j]);
       int count = patch->get_count();
       if(count > 0) {
-	      int popsize = patch->get_popsize();
-	      fprintf(fp, "%d %d %d %d\n", i, j, count, popsize);
+	int popsize = patch->get_popsize();
+	fprintf(fp, "%d %d %d %d\n", i, j, count, popsize);
       }
       // zero out this patch
       patch->reset_counts();
@@ -476,7 +476,7 @@ void Visualization_Layer::print_population_data(char* dir, int disease_id, int d
       Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];
       int popsize = patch->get_popsize();
       if(popsize > 0) {
-	      fprintf(fp, "%d %d %d\n", i, j, popsize);
+	fprintf(fp, "%d %d %d\n", i, j, popsize);
       }
       // zero out this patch
       patch->reset_counts();
@@ -497,7 +497,7 @@ void Visualization_Layer::print_vector_data(char* dir, int disease_id, int day) 
       Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];
       int count = patch->get_count();
       if(count > 0){
-	      fprintf(fp, "%d %d %d\n", i, j, count);
+	fprintf(fp, "%d %d %d\n", i, j, count);
       }
       patch->reset_counts();
     }
@@ -508,10 +508,10 @@ void Visualization_Layer::print_vector_data(char* dir, int disease_id, int day) 
 
 void Visualization_Layer::initialize_household_data(fred::geo latitude, fred::geo longitude, int count) {
   /*
-  if(count > 0) {
+    if(count > 0) {
     point p = std::make_pair(latitude, longitude);
     this->all_households.push_back(p);
-  }
+    }
   */
 }
 
@@ -531,10 +531,10 @@ void Visualization_Layer::update_data(fred::geo latitude, fred::geo longitude, i
     }
   }
   /*
-  if (count > 0) {
+    if (count > 0) {
     point p = std::make_pair(latitude, longitude);
     this->infected_households.push_back(p);
-  }
+    }
   */
 }
 

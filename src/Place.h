@@ -609,26 +609,26 @@ public:
   }
 
   void add_new_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->new_infections[disease_id]++;
-    #pragma omp atomic
+#pragma omp atomic
     this->total_infections[disease_id]++;
   }
   
   void add_current_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_infections[disease_id]++;
   }
   
   void add_new_symptomatic_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->new_symptomatic_infections[disease_id]++;
-    #pragma omp atomic
+#pragma omp atomic
     this->total_symptomatic_infections[disease_id]++;
   }
   
   void add_current_symptomatic_infection(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_symptomatic_infections[disease_id]++;
   }
   
@@ -845,11 +845,11 @@ public:
   }
   
   int get_household_fips() {
-  	return this->household_fips;
+    return this->household_fips;
   }
 
   void set_household_fips(int input_fips) {
-  	this->household_fips = input_fips;
+    this->household_fips = input_fips;
   }
   
   void set_county_index(int _county_index) {
@@ -952,12 +952,12 @@ protected:
   }
 
   void add_infectious_visitor(int disease_id) { 
-    #pragma omp atomic
+#pragma omp atomic
     this->current_infectious_visitors[disease_id]++;
   }
   
   void add_symptomatic_visitor(int disease_id) {
-    #pragma omp atomic
+#pragma omp atomic
     this->current_symptomatic_visitors[disease_id]++;
   }
   
