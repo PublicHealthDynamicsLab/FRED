@@ -325,9 +325,11 @@ Trajectory* Disease::get_trajectory(int age) {
   return this->ihm->get_trajectory(age);
 }
 
+/*
 Trajectory* Disease::get_trajectory(Infection* infection, Transmission::Loads* loads) {
-  return this->ihm->get_trajectory(infection, loads);
+  // return this->ihm->get_trajectory(infection, loads);
 }
+*/
 
 Transmission::Loads* Disease::get_primary_loads(int day) {
   // return this->evol->get_primary_loads(day);

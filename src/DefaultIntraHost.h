@@ -27,6 +27,7 @@ class DefaultIntraHost : public IntraHost {
     DefaultIntraHost();
     ~DefaultIntraHost();
     Trajectory * get_trajectory(int age);
+    Trajectory* get_trajectory( Infection *infection, Transmission::Loads * loads );
     void setup(Disease *disease);
     int get_days_latent();
     int get_days_asymp();

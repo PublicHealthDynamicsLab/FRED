@@ -415,18 +415,19 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
 }
 
 void Health::become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day) {
+
+  if(this->infection[disease_id] != NULL) {
+    Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+  }
+
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-
   Disease *disease = Global::Diseases.get_disease(disease_id);
   Infection* new_infection = new Infection(disease, infector, self, place, day);
   new_infection->report_infection(day);
-
   this->active_infections.set(disease_id);
-  if(this->infection[disease_id] == NULL) {
-    self->become_unsusceptible(disease);
-    disease->record_exposure(self);
-  }
+  self->become_unsusceptible(disease);
+  disease->record_exposure(self);
   this->infection[disease_id] = new_infection;
   this->susceptible_date[disease_id] = -1;
   if(self->get_household() != NULL) {
@@ -434,12 +435,10 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
     self->set_exposed_household(self->get_household()->get_index());
   }
   if(Global::Verbose > 0) {
-    if(new_infection->get_place() == NULL) {
-      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(),
-		  disease->get_id());
+    if(place == NULL) {
+      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease->get_id());
     } else {
-      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(),
-		  disease->get_id());
+      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease->get_id());
     }
   }
   if (Global::Enable_Vector_Transmission) {
@@ -470,7 +469,6 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
       }
     }
   }
-  FRED_VERBOSE(0,"become_exposed completed\n");
 }
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {

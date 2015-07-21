@@ -203,10 +203,6 @@ public:
     return place;
   }
 
-  double get_load_for_strain(int strain) {
-    return loads[strain];
-  }
-
 private:
   // associated disease
   Disease* disease;
@@ -252,9 +248,6 @@ private:
 
   // trajectory contains vectors that describe the (tentative) infectivity and symptoms for each day of the infection's course
   Trajectory* trajectory;
-
-  // viral loads by strain
-  double loads[1];
 
   void determine_transition_dates();
 

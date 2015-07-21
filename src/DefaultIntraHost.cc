@@ -21,7 +21,9 @@
 #include "Random.h"
 #include "Person.h"
 #include "Trajectory.h"
-#include "Transmission.h"
+// #include "Transmission.h"
+
+typedef std::map< int, double > Loads; 
 
 DefaultIntraHost::DefaultIntraHost() {
   prob_symptomatic = -1.0;
@@ -72,6 +74,7 @@ void DefaultIntraHost::setup(Disease *disease) {
   Params::get_indexed_param(disease_name,"infection_model",  &infection_model);
 }
 
+  /*
 Trajectory* DefaultIntraHost::get_trajectory( Infection *infection, Transmission::Loads * loads ) {
   // TODO  take loads into account - multiple strains
   Trajectory * trajectory = new Trajectory();
@@ -119,6 +122,7 @@ Trajectory* DefaultIntraHost::get_trajectory( Infection *infection, Transmission
 
   return trajectory;
 }
+  */
 
 Trajectory* DefaultIntraHost::get_trajectory(int age) {
   int sequential = get_infection_model();
@@ -147,12 +151,14 @@ Trajectory* DefaultIntraHost::get_trajectory(int age) {
 
   days_incubating = days_latent + days_asymptomatic;
 
-  map<int, double> :: iterator it;
-
-  Transmission::Loads * loads;
-  loads->insert( pair<int, double> (1, 1) );
+  Loads* loads;
+  loads = new Loads;
+  loads->clear();
+  loads->insert( pair<int, double> (1, 1.0) );
 
   Trajectory * trajectory = new Trajectory();
+
+  map<int, double> :: iterator it;
   for(it = loads->begin(); it != loads->end(); it++) {
     vector<double> infectivity_trajectory(days_latent, 0.0);
     infectivity_trajectory.insert(infectivity_trajectory.end(), days_asymptomatic, asymptomatic_infectivity);

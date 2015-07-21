@@ -38,23 +38,26 @@
 
 using std::out_of_range;
 
-Infection::Infection(Disease* disease, Person* infector, Person* host, Place* place, int day) {
+Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
 
-  // flag for health updates
-  Global::Pop.set_mask_by_index(fred::Update_Health, host->get_pop_index());
+  FRED_VERBOSE(0,"Infected constructor entered\n");
 
   // general
-  this->disease = disease;
-  this->infector = infector;
-  this->host = host;
-  this->place = place;
+  this->disease = _disease;
+  this->infector = _infector;
+  this->host = _host;
+  this->place = _place;
   this->trajectory = NULL;
   this->infectee_count = 0;
   this->age_at_exposure = host->get_age();
 
   this->is_susceptible = true;
-  this->trajectory_infectivity_threshold = disease->get_infectivity_threshold();
-  this->trajectory_symptomaticity_threshold = disease->get_symptomaticity_threshold();
+  this->trajectory_infectivity_threshold = this->disease->get_infectivity_threshold();
+  this->trajectory_symptomaticity_threshold = this->disease->get_symptomaticity_threshold();
+
+  // flag for health updates
+  Global::Pop.set_mask_by_index(fred::Update_Health, this->host->get_pop_index());
+  FRED_VERBOSE(0,"Infected constructor set_mask\n");
 
   // parameters
   this->infectivity_multp = 1.0;
@@ -79,13 +82,22 @@ Infection::Infection(Disease* disease, Person* infector, Person* host, Place* pl
   this->infection_is_fatal_today = false;
 
   this->exposure_date = day;
-  this->recovery_period = disease->get_days_recovered();
+
+  FRED_VERBOSE(0,"Infected constructor exposure_date set\n");
+  this->recovery_period = this->disease->get_days_recovered();
+  FRED_VERBOSE(0,"Infected constructor recovery_period set\n");
 
   // Determine if this infection produces an immune response
-  this->immune_response = disease->gen_immunity_infection(host->get_real_age());
+  this->immune_response = this->disease->gen_immunity_infection(this->host->get_real_age());
+  FRED_VERBOSE(0,"Infected constructor immune_response set\n");
 
-  this->trajectory = disease->get_trajectory(host->get_age());
+  int age = this->host->get_age();
+  FRED_VERBOSE(0,"Infected constructor age = %d\n", age);
+  this->trajectory = this->disease->get_trajectory(age);
+  FRED_VERBOSE(0,"Infected constructor trajectory set\n");
+
   determine_transition_dates();
+  FRED_VERBOSE(0,"Infected constructor transition dates set\n");
 }
 
 Infection::~Infection() {

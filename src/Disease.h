@@ -154,7 +154,7 @@ public:
    * @see return Trajectory::get_trajectory(Infection* infection, map<int, double>* loads)
    */
   Trajectory* get_trajectory(int age);
-  Trajectory* get_trajectory(Infection* infection, Transmission::Loads* loads);
+  // Trajectory* get_trajectory(Infection* infection, Transmission::Loads* loads);
 
   /**
    * Add a person to the Epidemic's infectious place list
