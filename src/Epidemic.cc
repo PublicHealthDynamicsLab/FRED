@@ -268,7 +268,7 @@ void Epidemic::become_unsusceptible(Person* person) {
   }
 }
 
-void Epidemic::record_exposure(Person* person, int day) {
+void Epidemic::become_exposed(Person* person, int day) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {

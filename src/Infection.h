@@ -43,7 +43,7 @@ class Infection {
 
 public:
   // if primary infection, infector and place are null.
-  Infection(Disease* s, Person* infector, Person* infectee, Place* place, int day);
+  Infection(Disease* disease, Person* infector, Person* infectee, Place* place, int day);
   ~Infection();
 
   void chronic_update(int today);

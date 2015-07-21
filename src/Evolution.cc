@@ -29,25 +29,6 @@ void Evolution :: setup(Disease *disease) {
   this->disease = disease;
 }
 
-/*
-  Infection *Evolution::transmit(Infection *infection, Transmission & transmission, Person *infectee) {
-  if(infection == NULL){
-  infection = new Infection(disease, transmission.get_infector(), infectee,
-  transmission.get_infected_place(), transmission.get_exposure_date());
-  Trajectory * trajectory = disease->get_trajectory( infection, transmission.get_initial_loads() );
-  infection->setTrajectory(trajectory);
-  infection->set_susceptibility_period(0);
-  infection->report_infection(transmission.get_exposure_date());
-  }
-  else{
-  // Fail repeated infections by default??
-  cout << "REPEATED INFECTION" << endl;
-  return NULL;
-  }
-  return infection;
-  }
-*/
-
 inline double Evolution::residual_immunity(Person *person, int challenge_strain, int day) {
   return double( !( person->get_health()->is_susceptible( disease->get_id() ) ) );
 }

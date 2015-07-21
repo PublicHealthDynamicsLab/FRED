@@ -180,8 +180,8 @@ public:
     this->epidemic->become_unsusceptible(person);
   }
 
-  void record_exposure(Person* person, int day) {
-    this->epidemic->record_exposure(person, day);
+  void become_exposed(Person* person, int day) {
+    this->epidemic->become_exposed(person, day);
   }
 
   void become_infectious(Person* person) {

@@ -38,7 +38,6 @@
 using std::out_of_range;
 
 Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
-
   FRED_VERBOSE(0,"Infected constructor entered\n");
 
   // general

@@ -431,7 +431,7 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
   }
-  disease->record_exposure(self, day);
+  disease->become_exposed(self, day);
 
   if(Global::Verbose > 0) {
     if(place == NULL) {

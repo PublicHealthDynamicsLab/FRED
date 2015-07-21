@@ -130,7 +130,7 @@ public:
   void get_imported_infections(int day);
   void become_susceptible(Person* person);
   void become_unsusceptible(Person* person);
-  void record_exposure(Person* person, int day);
+  void become_exposed(Person* person, int day);
   void become_infectious(Person* person);
   void become_uninfectious(Person* person);
   void become_symptomatic(Person* person);
