@@ -122,17 +122,6 @@ void fred_setup(int argc, char* argv[]) {
   // open output files with global file pointers
   Utils::fred_open_output_files();
 
-  // Date Setup -- Start_date parameter must have format 'YYYY-MM-DD'
-  // Global::Sim_Start_Date = new Date(string(Global::Start_date));
-  // Global::Sim_Current_Date = new Date(string(Global::Start_date));
-
-  if(Global::Rotate_start_date) {
-    // add one day to the start date for each additional run,
-    // rotating the days of the week to reduce weekend effect.
-    // Global::Sim_Start_Date->advance((Global::Simulation_run_number - 1) % 7);
-    // Global::Sim_Current_Date->advance((Global::Simulation_run_number - 1) % 7);
-  }
-
   // set random number seed based on run number
   if(Global::Simulation_run_number > 1 && Global::Reseed_day == -1) {
     Global::Simulation_seed = Global::Seed * 100 + (Global::Simulation_run_number - 1);
@@ -323,7 +312,6 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   // initialize visualization data if desired
-  // if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
   if(Global::Enable_Visualization_Layer) {
     Global::Visualization->initialize();
   }
@@ -419,7 +407,6 @@ void fred_step(int day) {
   }
 
   // print visualization data if desired
-  // if(Global::Enable_Visualization_Layer && Global::Simulation_run_number == 1) {
   if(Global::Enable_Visualization_Layer) {
     Global::Visualization->print_visualization_data(day);
     Utils::fred_print_lap_time("day %d print_visualization_data", day);
