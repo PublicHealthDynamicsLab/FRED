@@ -12,22 +12,15 @@
 #ifndef _FRED_EVOLUTION_H
 #define _FRED_EVOLUTION_H
 
-#include <map>
-
-class Infection;
-class AV_Health;
-class Antiviral;
-class Infection;
-class Health;
 class Disease;
 class Person;
 class Regional_Layer;
+
 
 class Evolution {
 public:
   virtual void setup( Disease * disease );
   virtual double residual_immunity(Person *person, int challenge_strain, int day);
-  virtual void avEffect(Antiviral *av, Health *health, int disease, int cur_day, AV_Health *av_health);
   virtual void print();
   virtual void update( int day ) { }
   virtual double antigenic_distance(int strain1, int strain2) { 

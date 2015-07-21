@@ -11,14 +11,8 @@
 
 
 #include "Evolution.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Infection.h"
 #include "Global.h"
-#include "ODEIntraHost.h"
-#include "Antiviral.h"
-#include "Health.h"
-#include "AV_Health.h"
+#include "Infection.h"
 #include "Person.h"
 
 #include <map>
@@ -31,42 +25,6 @@ void Evolution :: setup(Disease *disease) {
 
 inline double Evolution::residual_immunity(Person *person, int challenge_strain, int day) {
   return double( !( person->get_health()->is_susceptible( disease->get_id() ) ) );
-}
-
-void Evolution::avEffect(Antiviral *av, Health *health, int disease, int cur_day, AV_Health *av_health) {
-  // If this is the first day of AV Course
-  if(cur_day == av_health->get_av_start_day()) {
-    av->modify_susceptiblilty(health, disease);
-
-    // If you are already exposed, we need to modify your infection
-    if((health->get_exposure_date(disease) > -1) && (cur_day > health->get_exposure_date(disease))) {
-      if(Global::Debug > 3) cout << "reducing an already exposed person\n";
-
-      av->modify_infectivity(health, disease);
-      //av->modify_symptomaticity(health, disease, cur_day);
-    }
-  }
-
-  // If today is the day you got exposed, prophilaxis
-  if(cur_day == health->get_exposure_date(disease)) {
-    if(Global::Debug > 3) cout << "reducing agent on the day they are exposed\n";
-
-    av->modify_infectivity(health, disease);
-    av->modify_symptomaticity(health, disease, cur_day);
-  }
-
-  // If this is the last day of the course
-  if(cur_day == av_health->get_av_end_day()) {
-    if(Global::Debug > 3) cout << "resetting agent to original state\n";
-
-    av->modify_susceptiblilty(health, disease);
-
-    if(cur_day >= health->get_exposure_date(disease)) {
-      av->modify_infectivity(health, disease);
-    }
-  }
-
-  // do evolutions...
 }
 
 void Evolution::print() {}

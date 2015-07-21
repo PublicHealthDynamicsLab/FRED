@@ -12,41 +12,12 @@
 #ifndef _FRED_MSEVOLUTION_H
 #define _FRED_MSEVOLUTION_H
 
-#include <map>
-#include <cmath>
-#include <fstream>
-#include <cfloat>
-
-#include "MSEvolution.h"
-#include "Random.h"
 #include "Evolution.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Global.h"
-#include "IntraHost.h"
-#include "Antiviral.h"
-#include "Health.h"
-#include "Person.h"
-#include "Piecewise_Linear.h"
-#include "Past_Infection.h"
-#include "Strain.h"
-#include "Params.h"
-#include "Utils.h"
-#include "Population.h"
-#include "Geo.h"
-#include "Place.h"
 
-
-class Infection;
-class AV_Health;
-class Antiviral;
-class Infection;
-class Health;
+class Age_Map;
 class Disease;
-class Trajectory;
+class Person;
 class Piecewise_Linear;
-
-using namespace std;
 
 class MSEvolution : public Evolution {
 
@@ -65,7 +36,6 @@ protected:
   virtual double prob_past_vaccinations( Person * infectee, int new_strain, int day );
   virtual double get_prob_taking( Person * infectee, int new_strain, double quantity, int day );
   virtual double prob_inoc( double quantity );
-  ofstream file;
 
 private:
   Age_Map * halflife_inf;

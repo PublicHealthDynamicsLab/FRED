@@ -9,27 +9,12 @@
   more information.
 */
 
-#include <map>
-#include <cmath>
-#include <fstream>
-
+#include "Age_Map.h"
 #include "MSEvolution.h"
-#include "Random.h"
-#include "Evolution.h"
-#include "Infection.h"
-#include "Trajectory.h"
-#include "Global.h"
-#include "IntraHost.h"
-#include "Antiviral.h"
-#include "Health.h"
+#include "Params.h"
+#include "Past_Infection.h"
 #include "Person.h"
 #include "Piecewise_Linear.h"
-#include "Past_Infection.h"
-#include "Strain.h"
-#include "Age_Map.h"
-#include "Params.h"
-
-using namespace std;
 
 
 MSEvolution::MSEvolution() { 

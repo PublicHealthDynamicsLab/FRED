@@ -25,7 +25,6 @@
 #include "Disease.h"
 #include "Disease_List.h"
 #include "Global.h"
-#include "Evolution.h"
 #include "Population.h"
 
 Antiviral::Antiviral(int _disease, int _course_length, double _reduce_infectivity,
@@ -161,11 +160,10 @@ int Antiviral::quality_control(int ndiseases) const {
 
 void Antiviral::effect(Health *health, int cur_day, AV_Health* av_health) {
   // We need to calculate the effect of the AV on all diseases it is applicable to
-  for (int is = 0; is < Global::Diseases.get_number_of_diseases(); is++) {
-    if(is == disease) { //Is this antiviral applicable to this disease
-      Disease *dis = Global::Diseases.get_disease(is);
-      Evolution *evol = dis->get_evolution();
-      evol->avEffect(this, health, disease, cur_day, av_health);
+  for (int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); disease_id++) {
+    if(disease_id == this->disease) { //Is this antiviral applicable to this disease
+      Disease *dis = Global::Diseases.get_disease(disease_id);
+      avEffect(health, disease, cur_day, av_health);
     }
   }
 }
@@ -193,3 +191,36 @@ void Antiviral::modify_symptomaticity(Health *health, int disease, int cur_day) 
   }
 }
 
+void Antiviral::avEffect(Health *health, int disease, int cur_day, AV_Health *av_health) {
+  // If this is the first day of AV Course
+  if(cur_day == av_health->get_av_start_day()) {
+    modify_susceptiblilty(health, disease);
+
+    // If you are already exposed, we need to modify your infection
+    if((health->get_exposure_date(disease) > -1) && (cur_day > health->get_exposure_date(disease))) {
+      if(Global::Debug > 3) cout << "reducing an already exposed person\n";
+
+      modify_infectivity(health, disease);
+      //modify_symptomaticity(health, disease, cur_day);
+    }
+  }
+
+  // If today is the day you got exposed, prophilaxis
+  if(cur_day == health->get_exposure_date(disease)) {
+    if(Global::Debug > 3) cout << "reducing agent on the day they are exposed\n";
+
+    modify_infectivity(health, disease);
+    modify_symptomaticity(health, disease, cur_day);
+  }
+
+  // If this is the last day of the course
+  if(cur_day == av_health->get_av_end_day()) {
+    if(Global::Debug > 3) cout << "resetting agent to original state\n";
+
+    modify_susceptiblilty(health, disease);
+
+    if(cur_day >= health->get_exposure_date(disease)) {
+      modify_infectivity(health, disease);
+    }
+  }
+}
