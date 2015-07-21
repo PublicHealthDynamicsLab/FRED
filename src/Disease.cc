@@ -24,8 +24,8 @@ using namespace std;
 #include "Age_Map.h"
 #include "Disease.h"
 #include "Epidemic.h"
-// #include "Evolution.h"
-// #include "EvolutionFactory.h"
+#include "Evolution.h"
+#include "EvolutionFactory.h"
 #include "Global.h"
 #include "Health.h"
 #include "Household.h"
@@ -64,7 +64,7 @@ Disease::Disease() {
   this->seasonality_min = -1.0;
   this->seasonality_max = -1.0;
   this->symptomaticity_threshold = -1.0;
-  // this->evol = NULL;
+  this->evol = NULL;
   this->infectivity_threshold = -1.0;
   this->max_days_case_fatality_prob = -1;
   this->min_symptoms_for_case_fatality = -1.0;
@@ -91,11 +91,9 @@ Disease::~Disease() {
   delete this->strain_table;
   delete this->ihm;
 
-  /*
   if(this->evol != NULL) {
     delete this->evol;
   }
-  */
 
   if(this->case_fatality_age_factor != NULL) {
     delete this->case_fatality_age_factor;
@@ -270,12 +268,10 @@ void Disease::setup() {
   Params::get_indexed_param(this->disease_name, "symptomaticity_threshold",
       &(this->symptomaticity_threshold));
 
-  /*
   int evolType;
   Params::get_indexed_param(this->disease_name, "evolution", &evolType);
   this->evol = EvolutionFactory::newEvolution(evolType);
   this->evol->setup(this);
-  */
 
   fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
   fflush(Global::Statusfp);
@@ -398,7 +394,7 @@ void Disease::initialize_evolution_reporting_grid(Regional_Layer* grid) {
 }
 
 void Disease::init_prior_immunity() {
-  // this->evol->init_prior_immunity(this);
+  this->evol->init_prior_immunity(this);
 }
 
 bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {

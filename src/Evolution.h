@@ -28,7 +28,7 @@ class Regional_Layer;
 class Evolution {
 public:
   virtual void setup( Disease * disease );
-  virtual Infection *transmit(Infection *infection, Transmission & transmission, Person *infectee);
+  // virtual Infection *transmit(Infection *infection, Transmission & transmission, Person *infectee);
   virtual double residual_immunity(Person *person, int challenge_strain, int day);
 
   /**

@@ -55,7 +55,7 @@ class MSEvolution : public Evolution {
   MSEvolution();
   virtual ~MSEvolution();
   virtual void setup(Disease *disease);
-  virtual Infection *transmit(Infection *infection, Transmission & transmission, Person *infectee);
+  // virtual Infection *transmit(Infection *infection, Transmission & transmission, Person *infectee);
   virtual double antigenic_distance(int strain1, int strain2);
 
  protected:

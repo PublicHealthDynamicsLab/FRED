@@ -30,6 +30,7 @@ void Evolution :: setup(Disease *disease) {
   this->disease = disease;
 }
 
+/*
 Infection *Evolution::transmit(Infection *infection, Transmission & transmission, Person *infectee) {
   if(infection == NULL){
     infection = new Infection(disease, transmission.get_infector(), infectee,
@@ -46,6 +47,7 @@ Infection *Evolution::transmit(Infection *infection, Transmission & transmission
   }
   return infection;
 }
+*/
 
 inline double Evolution::residual_immunity(Person *person, int challenge_strain, int day) {
   return double( !( person->get_health()->is_susceptible( disease->get_id() ) ) );

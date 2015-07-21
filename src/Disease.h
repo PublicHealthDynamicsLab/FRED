@@ -27,6 +27,7 @@ using namespace std;
 #include "Transmission.h"
 
 class Age_Map;
+class Evolution;
 class Infection;
 class IntraHost;
 class Person;
@@ -141,11 +142,9 @@ public:
   /**
    * @return a pointer to this Disease's Evolution attribute
    */
-  /*
   Evolution* get_evolution() {
     return this->evol;
   }
-  */
 
   /**
    * @param infection
@@ -343,7 +342,7 @@ private:
   Age_Map* infection_immunity_prob;
   StrainTable* strain_table;
   IntraHost* ihm;
-  //   Evolution* evol;
+  Evolution* evol;
 
 
   // intervention efficacies

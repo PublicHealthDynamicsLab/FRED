@@ -157,6 +157,7 @@ double MSEvolution::get_prob_taking( Person * infectee, int new_strain, double q
   return probTaking;
 }
 
+/*
 Infection * MSEvolution::transmit( Infection * infection, Transmission & transmission, Person * infectee ) {
   int day = transmission.get_exposure_date();
   Transmission::Loads * loads = transmission.get_initial_loads();
@@ -179,4 +180,5 @@ Infection * MSEvolution::transmit( Infection * infection, Transmission & transmi
     return Evolution::transmit( infection, transmission, infectee );
   }
 }
+*/
 
