@@ -158,6 +158,7 @@ if (not -d "MAPS") {
   die "Can't mkdir MAPS\n" if not -d "MAPS";
 } 
 else {
+   # print "MAPS already exists\n";
 }
 
 # get the population for each fips code
@@ -176,8 +177,23 @@ close IN;
 my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
 my $max_ar = 0.0;
 my @ar = ();
+
 if ($country eq "usa" and $census_tracts eq 1) {
   make_census_tract_map_data();
+  }
+  elsif ( $hazel eq 1) {
+	#print "make hazel map\n";
+	make_hazel_map_data();
+	}
+	#}
+	else {
+	#print "make county map\n";
+  	make_county_map_data($run);
+	}
+	$max_ar = $max if $max;
+	# print "max_ar = $max_ar\n";
+	chdir "MAPS";
+	system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
 if ((scalar @fips eq 1) and $google) {
   # print "using existing county image\n";
   # use background image if it already exists
@@ -236,13 +252,22 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_incidence = $show_incidence\n";
   print LD "show_infectious = $show_infectious\n";
   print LD "show_recovered = $show_recovered\n";
+  print LD "show_hc_unav = $show_hc_unav\n"; 
+  print LD "show_primary_hc_unav = $show_primary_hc_unav\n"; 
+  print LD "show_accept_insr_hc_unav = $show_accept_insr_hc_unav\n";
+  print LD "show_hc_deficit = $show_hc_deficit\n";
   print LD "filled = $filled\n";
   print LD "max = $max_ar\n";
   print LD "household_locations = '$vis/households.txt'\n";
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
+  print LD "primary_hc_unav_household = '$vis/HH_primary_hc_unav/households-$day.txt'\n";;
+  print LD "accept_insr_hc_unav_incidence = '$vis/HH_accept_insr_hc_unav/households-$day.txt'\n";
+  print LD "hc_unav_households = '$vis/HH_hc_unav/households-$day.txt'\n";
+  print LD "hc_deficit_data = '$vis/HC_DEFICIT/census_tracts-$day.txt'\n";
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
+  print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
   print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
   print LD "use_shapefile = $use_shapefile\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
@@ -374,7 +399,16 @@ sub write_values_to_file {
 sub make_census_tract_map_data {
   open FIPS,">MAPS/FIPS";
   my @ar = ();
+  
   for my $day (0..$days) {
+    my $file;
+    if ($hazel) {
+      $file = "HC_DEFICIT/census_tracts-$day.txt";
+      #print "file $file\n";
+    }
+    else {
+      $file = "C/census_tracts-$day.txt";
+    }
     die "$0: ERROR file $file not found\n" if not -e $file;
     open CT,$file or die "$0: ERROR reading file $file\n";
     my $rawfile = "RAW-$disease_id.$day";
@@ -387,11 +421,24 @@ sub make_census_tract_map_data {
     my $i = 0;
     while ($line = <CT>) {
       chomp $line;
+      #print "line $line\n";
       my ($tract,$count,$pop) = split " ", $line;
+      #print "data $tract $count $pop\n";
       if ($day == 0) {
+	  my $format = "\%05d\n";
+	  my $str = "x$tract";
+	  $format = "\%011d\n" if length($str) > 6;
+	  printf FIPS $format, $tract;
+	  $ar[$i] = 0.0;
+       }
       my $pct = 0.0;
+      #print "in $count $pop \n";
       $pct = 100.0 * $count / $pop if $pop;
+      #print "percent $pct\n";
+      $ar[$i] = $pct;
+      #print "ar[$i]  $ar[$i]\n";
       $max_ar = $ar[$i] if $ar[$i] > $max_ar;
+      #print "maps $count $pop $ar[$i]\n";
       print RAW "$count $pop\n" if $filled;
       print PCT "$ar[$i]\n" if $filled;
       $i++;
@@ -402,4 +449,43 @@ sub make_census_tract_map_data {
   }
   close FIPS;
   return;
+}
+
+sub make_hazel_map_data {
+  my $run = 1;
+  my $filename = "$outdir/out$run.txt";
+  die "$0: outfile $filename not found\n" if not -e "$filename";
+  @fips = ();
+  my $first = 1;
+  open FH, $filename or die "ERROR: $0 can't open file $filename\n";
+  while (<FH>) { 
+    chomp;
+    my @a = split " ";
+    my $day = $a[1];
+    my @values_0 = ();   
+    while (@a) {
+      my $key = shift @a;
+      my $val = shift @a;
+	  my $code = "36081";
+	  my $dis = 0;
+	  if ($dis == 0 and $day == 0) {
+	    $code = sprintf("%05d", $code);
+	    push @fips, $code;
+	  }
+	  push @values_0, $val if $dis == 0;
+     }
+     exit if not @fips;
+     if ($first) {
+      #print "fips = @fips\n";
+      my $outfile = "MAPS/FIPS";
+      open OUT,">$outfile";
+      print OUT "$_\n" for @fips;
+      close OUT;
+      $first = 0;
+     }
+    if ($filled) {
+      write_values_to_file(0,$day, @values_0);
+   }
+  }
+  close FH;
 }
