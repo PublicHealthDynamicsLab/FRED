@@ -26,6 +26,10 @@ my $show_all_households = 0;
 my $show_incidence = 0;
 my $show_infectious = 1;
 my $show_recovered = 1;
+my $show_hc_unav = 0;
+my $show_primary_hc_unav = 0;
+my $show_hc_deficit = 0;
+my $show_accept_insr_hc_unav = 0;
 my $linewidth = 2;
 my $xmin = 0;
 my $xmax = 0;
@@ -39,6 +43,7 @@ my $interval = 1;
 my $google = 1;
 my $use_shapefile = 1;
 my $point_size = 0.5;
+my $hazel = 0;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -68,7 +73,12 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "hc_unav=i" => \$show_hc_unav,
+			    "hc_deficit=i" =>\$show_hc_deficit,
+				"primary_hc_unav=i" => \$show_primary_hc_unav,
+				"accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
 			    "shapefile=i" => \$use_shapefile,
+			    "hazel=i" => \$hazel,
 			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
@@ -98,6 +108,11 @@ usage: $0 [ options ], where options include:
   --movie_format <str> : use the specified movie format [mp4]
   --parallelism <n> : plot n maps in parallel [10]
   --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
+  --hc_unav <0/1> : plot all households with health care unavailable[0]
+  --primary_hc_unav <0/1> : plot all households with primary health care unavailable [0]
+  --accept_insr_hc_unav <0/1> : plot all households with health care accepting their insurance unavailable [0]
+  --hc_deficit <0/1> : plot households whose primary healthcare is unavailable by census tract
+  --hazel <0/1> : make hazel specific maps [0]
   --run <n> : plot results of run n [1]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
   --start day: start movie on specified day [0]
@@ -143,7 +158,6 @@ if (not -d "MAPS") {
   die "Can't mkdir MAPS\n" if not -d "MAPS";
 } 
 else {
-  # print "MAPS already exists\n";
 }
 
 # get the population for each fips code
@@ -164,14 +178,6 @@ my $max_ar = 0.0;
 my @ar = ();
 if ($country eq "usa" and $census_tracts eq 1) {
   make_census_tract_map_data();
-}
-else {
-  make_county_map_data($run);
-}
-$max_ar = $max if $max;
-# print "max_ar = $max_ar\n";
-chdir "MAPS";
-system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
 if ((scalar @fips eq 1) and $google) {
   # print "using existing county image\n";
   # use background image if it already exists
@@ -237,7 +243,6 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
-  # print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
   print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
   print LD "use_shapefile = $use_shapefile\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
@@ -370,7 +375,6 @@ sub make_census_tract_map_data {
   open FIPS,">MAPS/FIPS";
   my @ar = ();
   for my $day (0..$days) {
-    my $file = "C/census_tracts-$day.txt";
     die "$0: ERROR file $file not found\n" if not -e $file;
     open CT,$file or die "$0: ERROR reading file $file\n";
     my $rawfile = "RAW-$disease_id.$day";
@@ -385,15 +389,8 @@ sub make_census_tract_map_data {
       chomp $line;
       my ($tract,$count,$pop) = split " ", $line;
       if ($day == 0) {
-	my $format = "\%05d\n";
-	my $str = "x$tract";
-	$format = "\%011d\n" if length($str) > 6;
-	printf FIPS $format, $tract;
-	$ar[$i] = 0.0;
-      }
       my $pct = 0.0;
       $pct = 100.0 * $count / $pop if $pop;
-      $ar[$i] += $pct;
       $max_ar = $ar[$i] if $ar[$i] > $max_ar;
       print RAW "$count $pop\n" if $filled;
       print PCT "$ar[$i]\n" if $filled;

@@ -38,6 +38,18 @@ if (!exists("show_infectious")) {
 if (!exists("show_recovered")) {
   show_recovered = 1
 }
+if (!exists("show_hc_unav")) {
+  show_hc_unav = 0
+}
+if (!exists("show_primary_hc_unav")) {
+  show_primary_hc_unav = 0
+}
+if (!exists("show_accept_insr_hc_unav")) {
+  show_accept_insr_hc_unav = 0
+}
+if (!exists("show_hc_deficit")) {
+  show_hc_deficit = 0
+}
 if (!exists("filled")) {
   filled = 0
 }
@@ -96,7 +108,9 @@ if (!exists("show_border")) {
 if (!exists("point_size")) {
    point_size = 0.5
 }
-
+if (!exists("hazel")) {
+   hazel = 0
+}
 set palette maxcolors 10
 set palette defined ( 0 "blue", 1 "skyblue", 2 "sea-green", 3 "green", 4 "greenyellow", 5 "yellow", 6 "orange", 7 "orange-red", 8 "red", 9 "red")
 
@@ -315,8 +329,10 @@ if (filled) {
   # set cbtics axis nomirror out scale 0.5 offset 0,0.5 font "arial,12"
 }
 else {
-  set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
-  set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
+	if (hazel == 0) {
+	set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
+	set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
+	}
 }
 
 
@@ -367,7 +383,30 @@ if (show_incidence) {
    replot household_incidence u 2:1 t '' wi dots ls 15
   }
 }
-
+if (show_hc_unav) {
+  if (point_size > 0) {
+   replot hc_unav_households u 2:1 t '' wi po ls 1 pt 5 ps 0.1
+  }
+  else {
+   replot hc_unav_households u 2:1 t '' wi dots ls 15
+  }
+}
+if (show_primary_hc_unav) {
+  if (point_size > 0) {
+   replot primary_hc_unav_household u 2:1 t '' wi po ls 3 pt 5 ps 0.1
+  }
+  else {
+   replot primary_hc_unav_household u 2:1 t '' wi dots ls 15
+  }
+}
+if (show_accept_insr_hc_unav) {
+  if (point_size > 0) {
+   replot accept_insr_hc_unav_incidence u 2:1 t '' wi po ls 100 pt 5 ps 0.1
+  }
+  else {
+   replot accept_insr_hc_unav_incidence u 2:1 t '' wi dots ls 15
+  }
+}
 if (use_shapefile) {
   # draw outlines
   replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth

@@ -28,6 +28,10 @@ my $show_all_households = 0;
 my $show_incidence = 0;
 my $show_infectious = 1;
 my $show_recovered = 1;
+my $show_hc_unav = 0;
+my $show_hc_deficit = 0;
+my $show_primary_hc_unav = 0;
+my $show_accept_insr_hc_unav = 0;
 my $movie_format = "mp4";
 my $moviefile = "";
 my $linewidth = 2;
@@ -42,6 +46,7 @@ my $interval = 1;
 my $google = 1;
 my $shapefile = 1;
 my $point_size = 0.5;
+my $hazel = 0;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -77,8 +82,13 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "hc_unav=i" => \$show_hc_unav,
+			    "hc_deficit=i"=>\$show_hc_deficit,
+				"primary_hc_unav=i" => \$show_primary_hc_unav,
+				"accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
 			    "shapefile=i" => \$shapefile,
 			    "movieformat=s" => \$movie_format,
+			    "hazel=i" => \$hazel,
 			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
@@ -110,6 +120,10 @@ usage: $0 [ options ], where options include [default values]
   --play <0/1> : if set, play the movie after it is made [0]
   --point_size <n> : plot dots using point size [0.5]
   --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
+  --hc_unav <0/1> : plot all households with health care unavailable[0]
+  --primary_hc_unav <0/1> : plot all households with primary health care unavailable [0]
+  --accept_insr_hc_unav <0/1> : plot all households with health care accepting their insurance unavailable [0] 
+  --hazel <0/1> make hazel specific maps [0]
   --run <n> : plot results of run n [1]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
   --start day: start movie on specified day [0]
@@ -142,7 +156,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish";
 
 # print "$command\n"; exit;
 
