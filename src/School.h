@@ -39,10 +39,12 @@ public:
   void get_parameters(int diseases);
   int get_group(int disease_id, Person* per);
   double get_transmission_prob(int disease_id, Person* i, Person* s);
+  void close(int day, int day_to_close, int duration);
   bool should_be_open(int day, int disease_id);
   void apply_global_school_closure_policy(int day, int disease_id);
   void apply_individual_school_closure_policy(int day, int disease_id);
   double get_contacts_per_day(int disease_id);
+  static double get_school_contacts_per_day(int disease_id); // for access from Classroom
 
   void enroll(Person* per);
   void unenroll(Person* per);
@@ -185,7 +187,7 @@ private:
   int students_in_grade[GRADES];
   int orig_students_in_grade[GRADES];
   int next_classroom[GRADES];
-  vector<Place*> classrooms[GRADES];
+  vector<Classroom*> classrooms[GRADES];
   bool closure_dates_have_been_set;
   int max_grade;
   int county_index;

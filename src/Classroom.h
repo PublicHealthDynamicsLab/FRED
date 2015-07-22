@@ -19,12 +19,9 @@
 
 #include "Place.h"
 #include "Random.h"
-/**
- * This class represents a classroom location in the FRED application. It inherits from <code>Place</code>.
- * The class contains many static variables that will be filled with values from the parameter file.
- *
- * @see Place
- */
+
+// class School;
+
 #define GRADES 20
 
 class Classroom: public Place {
@@ -101,6 +98,14 @@ public:
     return this->age_level;
   }
 
+  void set_school(Place* _school) {
+    school = _school;
+  }
+
+  Place * get_school() {
+    return school;
+  }
+
 private:
   static double * Classroom_contacts_per_day;
   static double *** Classroom_contact_prob;
@@ -111,6 +116,7 @@ private:
   static int Classroom_closure_delay;
   static bool Classroom_parameters_set;
 
+  Place * school;
   int age_level;
 };
 

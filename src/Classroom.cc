@@ -14,12 +14,13 @@
 // File: Classroom.cc
 //
 #include "Classroom.h"
-#include "Global.h"
-#include "Params.h"
-#include "Random.h"
-#include "Person.h"
 #include "Disease.h"
 #include "Disease_List.h"
+#include "Global.h"
+#include "Params.h"
+#include "Person.h"
+#include "Random.h"
+#include "School.h"
 
 //Private static variables that will be set by parameter lookups
 double * Classroom::Classroom_contacts_per_day;
@@ -56,7 +57,7 @@ void Classroom::get_parameters(int diseases) {
       Params::get_param((char *) param_str, &Classroom::Classroom_contacts_per_day[disease_id]);
       if(Classroom::Classroom_contacts_per_day[disease_id] < 0) {
 	Classroom::Classroom_contacts_per_day[disease_id] = (1.0 - Classroom::Classroom_contacts_per_day[disease_id])
-          * this->container->get_contacts_per_day(disease_id);
+          * School::get_school_contacts_per_day(disease_id);
       }
 
       sprintf(param_str, "%s_classroom_prob", disease->get_disease_name());
@@ -76,8 +77,12 @@ void Classroom::get_parameters(int diseases) {
   Classroom::Classroom_parameters_set = true;
 }
 
+double Classroom::get_contacts_per_day(int disease) {
+  return Classroom::Classroom_contacts_per_day[disease];
+}
+
 int Classroom::get_group(int disease, Person * per) {
-  return this->container->get_group(disease, per);
+  return this->school->get_group(disease, per);
 }
 
 double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
@@ -91,11 +96,7 @@ double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
 }
 
 bool Classroom::should_be_open(int day, int disease) {
-  return this->container->should_be_open(day, disease);
-}
-
-double Classroom::get_contacts_per_day(int disease) {
-  return Classroom::Classroom_contacts_per_day[disease];
+  return this->school->should_be_open(day, disease);
 }
 
 // Only student get enrolled in a classroom. Teachers are only enrolled in the school.

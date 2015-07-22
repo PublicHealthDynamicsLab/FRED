@@ -379,11 +379,16 @@ void Place::print_infectious(int disease_id) {
 }
 
 bool Place::is_open(int day) {
+  bool open;
   if(this->container) {
-    return this->container->is_open(day);
+    open = this->container->is_open(day);
   } else {
-    return (day < this->close_date || this->open_date <= day);
+    open = (day < this->close_date || this->open_date <= day);
   }
+  if (!open) {
+    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->get_label(), day);
+  }
+  return open;
 }
 
 void Place::turn_workers_into_teachers(Place* school) {
