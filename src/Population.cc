@@ -765,7 +765,7 @@ void Population::Update_Population_Behaviors::operator() (Person &p) {
 
 void Population::report(int day) {
 
-  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {
+  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter || (strcmp(School::get_school_closure_policy(), "none")!=0)) {
     // update infection counters for places
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       for(int i = 0; i < this->get_index_size(); ++i) {

@@ -146,7 +146,7 @@ public:
    *
    * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place* container);
+  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
   ~Household() {}
 
@@ -154,7 +154,7 @@ public:
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat, Place* container)</code>
+   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat)</code>
    */
   void get_parameters(int diseases);
 

@@ -338,12 +338,7 @@ void Infection::report_infection(int day) const {
       place_subtype = 'B';
     }
   }
-  int place_size = (this->place == NULL ? -1 : this->place->get_size());
-  if(place_type == 'O' || place_type == 'C') {
-    Place* container = this->place->get_container();
-    place_size = container->get_size();
-  }
-
+  int place_size = (this->place == NULL ? -1 : this->place->get_container_size());
   std::stringstream infStrS;
   infStrS.precision(3);
   infStrS << fixed << "day " << day << " dis " << this->disease->get_id() << " host " << this->host->get_id()

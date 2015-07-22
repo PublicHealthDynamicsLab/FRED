@@ -40,13 +40,13 @@ public:
    *
    * @see Place::setup()
    */
-  Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
+  Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Workplace(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
+   * <code>Workplace(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
    */
   void get_parameters(int diseases);
 
@@ -141,6 +141,11 @@ public:
     
   static int get_large_workplace_size() {
     return Workplace::Large_workplace_size;
+  }
+
+  // for access from Office
+  static double get_workplace_contacts_per_day(int disease_id) {
+    return Workplace_contacts_per_day[disease_id];
   }
 
 private:
