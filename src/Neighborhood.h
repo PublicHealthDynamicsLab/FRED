@@ -40,13 +40,13 @@ public:
    *
    * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont )
    */
-  Neighborhood( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container);
+  Neighborhood( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Neighborhood(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
+   * <code>Neighborhood(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
    */
   void get_parameters(int diseases);
 

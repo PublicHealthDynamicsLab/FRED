@@ -34,10 +34,10 @@ int Classroom::Classroom_closure_delay = 0;
 //Private static variable to assure we only lookup parameters once
 bool Classroom::Classroom_parameters_set = false;
 
-Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container) {
+Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container);
+  setup(lab, lon, lat);
   get_parameters(Global::Diseases.get_number_of_diseases());
   this->age_level = -1;
 }
@@ -95,8 +95,20 @@ double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
   return tr_pr;
 }
 
+bool Classroom::is_open(int day) {
+  bool open = this->school->is_open(day);
+  if (!open) {
+    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
+  }
+  return open;
+}
+
 bool Classroom::should_be_open(int day, int disease) {
   return this->school->should_be_open(day, disease);
+}
+
+int Classroom::get_container_size() {
+  return this->school->get_size();
 }
 
 // Only student get enrolled in a classroom. Teachers are only enrolled in the school.

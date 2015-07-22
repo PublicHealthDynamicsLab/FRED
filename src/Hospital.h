@@ -46,7 +46,7 @@ public:
    *
    * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
+  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
   /**
    * @see Place::get_parameters(int diseases)

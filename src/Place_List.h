@@ -59,7 +59,6 @@ public:
 
   /* Default Constructor */
   Place_List() {
-    
     this->load_completed = false;
     this->is_primary_care_assignment_initialized = false;
     this->places.clear();

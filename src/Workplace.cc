@@ -43,10 +43,10 @@ int Workplace::workers_in_large_workplaces = 0;
 int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
-Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container) {
+Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = WORKPLACE;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container);
+  setup(lab, lon, lat);
   get_parameters(Global::Diseases.get_number_of_diseases());
   this->offices.clear();
   this->next_office = 0;
@@ -148,17 +148,17 @@ void Workplace::setup_offices(Allocator<Office> &office_allocator) {
     char new_label[128];
     sprintf(new_label, "%s-%03d", this->get_label(), i);
     
-    Place* p = new (office_allocator.get_free())Office(new_label,
-						       fred::PLACE_SUBTYPE_NONE,
-						       this->get_longitude(),
-						       this->get_latitude(),
-						       this);
+    Office* office = new (office_allocator.get_free())Office(new_label,
+							     fred::PLACE_SUBTYPE_NONE,
+							     this->get_longitude(),
+							     this->get_latitude());
 
-    this->offices.push_back(p);
-    int id = p->get_id();
+    office->set_workplace(this);
+
+    this->offices.push_back(office);
 
     FRED_STATUS(1, "workplace %d %s added office %d %s %d\n",
-		id, label,i,p->get_label(),p->get_id());
+		id, label,i,office->get_label(),office->get_id());
   }
 }
 

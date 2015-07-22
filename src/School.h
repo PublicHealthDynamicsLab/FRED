@@ -34,18 +34,17 @@ public:
   ~School() {
   }
 
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
+  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
   void prepare();
   void get_parameters(int diseases);
   int get_group(int disease_id, Person* per);
   double get_transmission_prob(int disease_id, Person* i, Person* s);
   void close(int day, int day_to_close, int duration);
+  bool is_open(int day);
   bool should_be_open(int day, int disease_id);
   void apply_global_school_closure_policy(int day, int disease_id);
   void apply_individual_school_closure_policy(int day, int disease_id);
   double get_contacts_per_day(int disease_id);
-  static double get_school_contacts_per_day(int disease_id); // for access from Classroom
-
   void enroll(Person* per);
   void unenroll(Person* per);
   int get_max_grade() {
@@ -157,6 +156,11 @@ public:
 
   static char * get_school_closure_policy() {
     return school_closure_policy;
+  }
+
+  //for access from Classroom:
+  static double get_school_contacts_per_day(int disease_id) {
+    return School::school_contacts_per_day[disease_id];
   }
 
 private:

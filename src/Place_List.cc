@@ -571,7 +571,6 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   // more temporaries
   Place* place = NULL;
-  Place* container = NULL;
 
   // loop through sorted init data and create objects using Place_Allocator
   InitSetT::iterator itr = pids.begin();
@@ -600,7 +599,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       }
     }
     if(place_type == Place::HOUSEHOLD) {
-      place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat, container);
+      place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat);
       place->set_household_fips(this->counties[(*itr).county]->get_fips());  //resid_imm
       Household* h = static_cast<Household*>(place);
       // ensure that household income is non-negative
@@ -621,12 +620,12 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 	Global::Visualization->add_census_tract(census_tract);
       }
     } else if(place_type == Place::SCHOOL) {
-      place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat, container);
+      place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat);
       (static_cast<School*>(place))->set_county_index((*itr).county);
     } else if(place_type == Place::WORKPLACE) {
-      place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat, container);
+      place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat);
     } else if(place_type == Place::HOSPITAL) {
-      place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat, container);
+      place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat);
       Hospital* hosp = static_cast<Hospital*>(place);
       int bed_count = static_cast<int>((static_cast<double>((*itr).num_workers_assigned) / Place_List::Hospital_worker_to_bed_ratio) + 1.0);
       hosp->set_bed_count(bed_count);

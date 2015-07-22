@@ -31,10 +31,10 @@ double * Neighborhood::Weekend_contact_rate = NULL;
 bool Neighborhood::Neighborhood_parameters_set = false;
 
 Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
-			    fred::geo lat, Place *container) {
+			    fred::geo lat) {
   type = NEIGHBORHOOD;
   subtype = _subtype;
-  setup( lab, lon, lat, container);
+  setup( lab, lon, lat);
   get_parameters(Global::Diseases.get_number_of_diseases());
 }
 

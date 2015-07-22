@@ -90,9 +90,8 @@ static bool compare_age (Person* p1, Person* p2) {
 
 double** Place::prob_contact = NULL;
 
-void Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont) {
+void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   this->id = -1;		  // actual id assigned in Place_List::add_place
-  this->container = cont;
   strcpy(this->label, lab);
   this->longitude = lon;
   this->latitude = lat;
@@ -376,19 +375,6 @@ void Place::print_infectious(int disease_id) {
     printf(" %d", (*itr)->get_id());
   }
   printf("\n");
-}
-
-bool Place::is_open(int day) {
-  bool open;
-  if(this->container) {
-    open = this->container->is_open(day);
-  } else {
-    open = (day < this->close_date || this->open_date <= day);
-  }
-  if (!open) {
-    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->get_label(), day);
-  }
-  return open;
 }
 
 void Place::turn_workers_into_teachers(Place* school) {

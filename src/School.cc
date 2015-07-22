@@ -74,10 +74,10 @@ School::School() {
   this->income_quartile = -1;
 }
 
-School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
+School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container);
+  setup(lab, lon, lat);
   get_parameters(Global::Diseases.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
@@ -202,6 +202,14 @@ void School::close(int day, int day_to_close, int duration) {
 }
 
 
+bool School::is_open(int day) {
+  bool open = (day < this->close_date || this->open_date <= day);
+  if (!open) {
+    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
+  }
+  return open;
+}
+
 bool School::should_be_open(int day, int disease_id) {
   // no students
   if(this->N == 0) {
@@ -325,10 +333,6 @@ double School::get_contacts_per_day(int disease_id) {
   return School::school_contacts_per_day[disease_id];
 }
 
-double School::get_school_contacts_per_day(int disease_id) {
-  return School::school_contacts_per_day[disease_id];
-}
-
 void School::enroll(Person* person) {
   if(get_enrollee_index(person) == -1) {
     this->enrollees.push_back(person);
@@ -431,8 +435,10 @@ void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
       char new_label[128];
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
 
-      Classroom* clsrm = new (classroom_allocator.get_free()) Classroom(new_label, fred::PLACE_SUBTYPE_NONE, this->get_longitude(),
-								this->get_latitude(), this);
+      Classroom* clsrm = new (classroom_allocator.get_free()) Classroom(new_label,
+									fred::PLACE_SUBTYPE_NONE,
+									this->get_longitude(),
+									this->get_latitude());
       clsrm->set_school(this);
 
       this->classrooms[a].push_back(clsrm);

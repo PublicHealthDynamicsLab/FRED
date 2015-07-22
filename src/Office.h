@@ -19,6 +19,10 @@
 
 #include "Place.h"
 #include "Random.h"
+
+class Workplace;
+
+
 /**
  * This class represents an office location in the FRED application. It inherits from <code>Place</code>.
  * The class contains static variables that will be filled with values from the parameter file.
@@ -39,20 +43,24 @@ public:
    *
    * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont)
    */
-  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container);
+  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor
-   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container)</code>
+   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
    */
   void get_parameters(int diseases);
 
   /**
    * @see Place::get_group(int disease, Person * per)
    */
-  int get_group(int disease, Person * per);
+  int get_group(int disease, Person * per) {
+    return 0;
+  }
+
+  int get_container_size();
 
   /**
    * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
@@ -85,10 +93,20 @@ public:
     return true;
   }
 
+  void set_workplace(Workplace* _workplace) {
+    workplace = _workplace;
+  }
+
+  Workplace * get_workplace() {
+    return workplace;
+  }
+
 private:
   static double * Office_contacts_per_day;
   static double *** Office_contact_prob;
   static bool Office_parameters_set;
+
+  Workplace *workplace;
 };
 
 #endif // _FRED_OFFICE_H
