@@ -14,12 +14,13 @@
 // File: Classroom.cc
 //
 #include "Classroom.h"
-#include "Global.h"
-#include "Params.h"
-#include "Random.h"
-#include "Person.h"
 #include "Disease.h"
 #include "Disease_List.h"
+#include "Global.h"
+#include "Params.h"
+#include "Person.h"
+#include "Random.h"
+#include "School.h"
 
 //Private static variables that will be set by parameter lookups
 double * Classroom::Classroom_contacts_per_day;
@@ -33,10 +34,10 @@ int Classroom::Classroom_closure_delay = 0;
 //Private static variable to assure we only lookup parameters once
 bool Classroom::Classroom_parameters_set = false;
 
-Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place *container) {
+Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
-  setup(lab, lon, lat, container);
+  setup(lab, lon, lat);
   get_parameters(Global::Diseases.get_number_of_diseases());
   this->age_level = -1;
 }
@@ -56,7 +57,7 @@ void Classroom::get_parameters(int diseases) {
       Params::get_param((char *) param_str, &Classroom::Classroom_contacts_per_day[disease_id]);
       if(Classroom::Classroom_contacts_per_day[disease_id] < 0) {
 	Classroom::Classroom_contacts_per_day[disease_id] = (1.0 - Classroom::Classroom_contacts_per_day[disease_id])
-          * this->container->get_contacts_per_day(disease_id);
+          * School::get_school_contacts_per_day(disease_id);
       }
 
       sprintf(param_str, "%s_classroom_prob", disease->get_disease_name());
@@ -76,8 +77,12 @@ void Classroom::get_parameters(int diseases) {
   Classroom::Classroom_parameters_set = true;
 }
 
+double Classroom::get_contacts_per_day(int disease) {
+  return Classroom::Classroom_contacts_per_day[disease];
+}
+
 int Classroom::get_group(int disease, Person * per) {
-  return this->container->get_group(disease, per);
+  return this->school->get_group(disease, per);
 }
 
 double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
@@ -90,12 +95,20 @@ double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
   return tr_pr;
 }
 
-bool Classroom::should_be_open(int day, int disease) {
-  return this->container->should_be_open(day, disease);
+bool Classroom::is_open(int day) {
+  bool open = this->school->is_open(day);
+  if (!open) {
+    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
+  }
+  return open;
 }
 
-double Classroom::get_contacts_per_day(int disease) {
-  return Classroom::Classroom_contacts_per_day[disease];
+bool Classroom::should_be_open(int day, int disease) {
+  return this->school->should_be_open(day, disease);
+}
+
+int Classroom::get_container_size() {
+  return this->school->get_size();
 }
 
 // Only student get enrolled in a classroom. Teachers are only enrolled in the school.

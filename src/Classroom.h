@@ -19,12 +19,9 @@
 
 #include "Place.h"
 #include "Random.h"
-/**
- * This class represents a classroom location in the FRED application. It inherits from <code>Place</code>.
- * The class contains many static variables that will be filled with values from the parameter file.
- *
- * @see Place
- */
+
+class School;
+
 #define GRADES 20
 
 class Classroom: public Place {
@@ -39,16 +36,13 @@ public:
 
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
-   *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont, Population *pop)
    */
-  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat, Place *container);
+  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
   /**
    * @see Place::get_parameters(int diseases)
    *
    * This method is called by the constructor <code>
-   * Classroom(int loc, const char *lab, fred::geo lon, fred::geo lat, Place *container, Population *pop)
    * </code>
    */
   void get_parameters(int diseases);
@@ -79,6 +73,8 @@ public:
    */
   double get_transmission_prob(int disease, Person * i, Person * s);
 
+  bool is_open(int day);
+
   /**
    * @see Place::should_be_open(int day, int disease)
    */
@@ -101,6 +97,16 @@ public:
     return this->age_level;
   }
 
+  void set_school(School* _school) {
+    school = _school;
+  }
+
+  School * get_school() {
+    return school;
+  }
+
+  int get_container_size();
+
 private:
   static double * Classroom_contacts_per_day;
   static double *** Classroom_contact_prob;
@@ -111,6 +117,7 @@ private:
   static int Classroom_closure_delay;
   static bool Classroom_parameters_set;
 
+  School * school;
   int age_level;
 };
 

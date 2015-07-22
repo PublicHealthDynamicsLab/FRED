@@ -60,7 +60,7 @@ Hospital::Hospital() {
   std::vector<bool>* checked_open_day_vec;
 }
 
-Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container) {
+Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   if(!Hospital::Hospital_parameters_set) {
     get_parameters(Global::Diseases.get_number_of_diseases());
   }
@@ -71,7 +71,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
   this->add_capacity = false;
-  setup(lab, lon, lat, container);
+  setup(lab, lon, lat);
 
   if(Global::Enable_Health_Insurance) {
     vector<double>::iterator itr;

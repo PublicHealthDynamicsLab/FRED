@@ -137,15 +137,14 @@ public:
   virtual ~Place() {}
 
   /**
-   *  Sets the id, label, logitude, latitude , container of this Place
+   *  Sets the id, label, logitude, latitude of this Place
    *  Allocates disease-related memory for this place
    *
    *  @param lab this Place's label
    *  @param lon this Place's longitude
    *  @param lat this Place's latitude
-   *  @param cont this Place's container
    */
-  void setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont);
+  void setup(const char* lab, fred::geo lon, fred::geo lat);
 
   static void initialize_static_variables();
 
@@ -259,7 +258,9 @@ public:
    * @param day the simulation day
    * @return <code>true</code> if the place is open; <code>false</code> if not
    */
-  bool is_open(int day);
+  virtual bool is_open(int day) {
+    return true;
+  }
 
   /**
    * Test whether or not any infectious people are in this place.
@@ -492,6 +493,10 @@ public:
     return this->N;
   }
 
+  virtual int get_container_size() {
+    return get_size();
+  }
+
   int get_orig_size() {
     return this->N_orig;
   }
@@ -557,24 +562,6 @@ public:
    */
   void set_open_date(int day) {
     this->open_date = day;
-  }
-
-  /**
-   * Set the container.
-   *
-   * @param cont the new container
-   */
-  void set_container(Place* cont) {
-    this->container = cont;
-  }
-
-  /**
-   * Get the container.
-   *
-   * @return a pointer to this Place's container
-   */
-  Place* get_container() {
-    return this->container;
   }
 
   /**
@@ -897,7 +884,6 @@ protected:
   fred::place_subtype subtype;
   char worker_profile;
   int id;                 // place id
-  Place* container;       // container place
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
   vector <Person*> enrollees;

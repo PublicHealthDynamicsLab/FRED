@@ -34,16 +34,17 @@ public:
   ~School() {
   }
 
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat, Place* container);
+  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
   void prepare();
   void get_parameters(int diseases);
   int get_group(int disease_id, Person* per);
   double get_transmission_prob(int disease_id, Person* i, Person* s);
+  void close(int day, int day_to_close, int duration);
+  bool is_open(int day);
   bool should_be_open(int day, int disease_id);
   void apply_global_school_closure_policy(int day, int disease_id);
   void apply_individual_school_closure_policy(int day, int disease_id);
   double get_contacts_per_day(int disease_id);
-
   void enroll(Person* per);
   void unenroll(Person* per);
   int get_max_grade() {
@@ -153,14 +154,24 @@ public:
     return School::pop_income_Q4;
   }
 
+  static char * get_school_closure_policy() {
+    return school_closure_policy;
+  }
+
+  //for access from Classroom:
+  static double get_school_contacts_per_day(int disease_id) {
+    return School::school_contacts_per_day[disease_id];
+  }
+
 private:
   static double*** school_contact_prob;
   static char school_closure_policy[];
   static int school_closure_day;
+  static int min_school_closure_day;
   static double school_closure_threshold;
   static double individual_school_closure_threshold;
   static int school_closure_cases;
-  static int school_closure_period;
+  static int school_closure_duration;
   static int school_closure_delay;
   static bool school_parameters_set;
   static int school_summer_schedule;
@@ -185,7 +196,7 @@ private:
   int students_in_grade[GRADES];
   int orig_students_in_grade[GRADES];
   int next_classroom[GRADES];
-  vector<Place*> classrooms[GRADES];
+  vector<Classroom*> classrooms[GRADES];
   bool closure_dates_have_been_set;
   int max_grade;
   int county_index;
