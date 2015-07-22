@@ -373,27 +373,30 @@ school_closure_policy = none
 # school_closure_policy = individual
 
 # number of days to keep a school closed
-school_closure_period = 10
-# if not -1, set school_closure_period = 7 * Weeks
+school_closure_duration = 10
+
+# if Weeks not -1, set school_closure_duration = 7 * Weeks
 Weeks = -1
 
 # delay after reaching any trigger before closing schools
-school_closure_delay = 2
+school_closure_delay = 1
 
-# day to close school under global policy;
-# day to start checking under individual school closure policy
+# day to close school under global policy
 school_closure_day = 10
 
 # global closure triggered when global attack rate >= threshold (if school_closure_day == -1);
-# individual school closure is not triggered unless global attack rate >= threshold
-school_closure_threshold = 10.0
+school_closure_ar_threshold = 1.0
+
+# day to start checking under individual school closure policy
+min_school_closure_day = 1
 
 # individual school closure triggered when the school's attack rate >= threshold
-individual_school_closure_threshold = 10.0 
+individual_school_closure_ar_threshold = 5.0 
 
-# Number of cases within a given school that triggers individual school closure
-# If -1, use the school_closure_theshold fraction
+# number of cases within a given school that triggers individual school closure
+# If -1, use the school_closure_ar_threshold fraction
 school_closure_cases = -1
+
 # an alias for school_closure_cases
 Cases = -1
 

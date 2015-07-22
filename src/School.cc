@@ -30,12 +30,13 @@
 double* School::school_contacts_per_day;
 double*** School::school_contact_prob;
 int School::school_classroom_size = 0;
-char School::school_closure_policy[80];
+char School::school_closure_policy[80] = "undefined";
 int School::school_closure_day = 0;
+int School::min_school_closure_day = 0;
 double School::school_closure_threshold = 0.0;
 double School::individual_school_closure_threshold = 0.0;
 int School::school_closure_cases = -1;
-int School::school_closure_period = 0;
+int School::school_closure_duration = 0;
 int School::school_closure_delay = 0;
 int School::school_summer_schedule = 0;
 char School::school_summer_start[8];
@@ -131,24 +132,30 @@ void School::get_parameters(int diseases) {
   }
 
   Params::get_param_from_string("school_classroom_size", &School::school_classroom_size);
-  Params::get_param_from_string("school_closure_policy", School::school_closure_policy);
-  Params::get_param_from_string("school_closure_day", &School::school_closure_day);
-  Params::get_param_from_string("school_closure_threshold", &School::school_closure_threshold);
-  Params::get_param_from_string("individual_school_closure_threshold",
-				&School::individual_school_closure_threshold);
-  Params::get_param_from_string("school_closure_cases", &School::school_closure_cases);
-  Params::get_param_from_string("school_closure_period", &School::school_closure_period);
-  Params::get_param_from_string("school_closure_delay", &School::school_closure_delay);
+
+  // summer school parameters
   Params::get_param_from_string("school_summer_schedule", &School::school_summer_schedule);
   Params::get_param_from_string("school_summer_start", School::school_summer_start);
   Params::get_param_from_string("school_summer_end", School::school_summer_end);
   sscanf(School::school_summer_start, "%d-%d", &School::summer_start_month, &School::summer_start_day);
   sscanf(School::school_summer_end, "%d-%d", &School::summer_end_month, &School::summer_end_day);
 
+  // school closure parameters
+  Params::get_param_from_string("school_closure_policy", School::school_closure_policy);
+  Params::get_param_from_string("school_closure_duration", &School::school_closure_duration);
+  Params::get_param_from_string("school_closure_delay", &School::school_closure_delay);
+  Params::get_param_from_string("school_closure_day", &School::school_closure_day);
+  Params::get_param_from_string("min_school_closure_day", &School::min_school_closure_day);
+  Params::get_param_from_string("school_closure_ar_threshold", &School::school_closure_threshold);
+  Params::get_param_from_string("individual_school_closure_ar_threshold",
+				&School::individual_school_closure_threshold);
+  Params::get_param_from_string("school_closure_cases", &School::school_closure_cases);
+
+  // aliases for parameters
   int Weeks;
   Params::get_param_from_string("Weeks", &Weeks);
   if(Weeks > -1) {
-    School::school_closure_period = 7 * Weeks;
+    School::school_closure_duration = 7 * Weeks;
   }
 
   int Cases;
@@ -189,8 +196,8 @@ void School::close(int day, int day_to_close, int duration) {
 
   // log this school closure decision
   if(Global::Verbose > 0) {
-    printf("SCHOOL %d CLOSURE decision day %d close_date %d duration %d open_date %d\n",
-	   this->id, day, this->close_date, duration, this->open_date);
+    printf("SCHOOL %s CLOSURE decision day %d close_date %d duration %d open_date %d\n",
+	   this->label, day, this->close_date, duration, this->open_date);
   }
 }
 
@@ -246,31 +253,31 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
     if(School::school_closure_day > -1) {
       if(School::school_closure_day <= day) {
         // the following only happens once
-        School::global_closure_is_active = true;
         School::global_close_date = day + School::school_closure_delay;
         School::global_open_date = day + School::school_closure_delay
-	  + School::school_closure_period;
+	  + School::school_closure_duration;
+	School::global_closure_is_active = true;
       }
     } else {
       // Close schools if the global symptomatic attack rate has reached the threshold (after a delay)
       Disease* disease = Global::Diseases.get_disease(disease_id);
       if(School::school_closure_threshold <= disease->get_symptomatic_attack_rate()) {
         // the following only happens once
-        School::global_closure_is_active = true;
         School::global_close_date = day + School::school_closure_delay;
         School::global_open_date = day + School::school_closure_delay
-	  + School::school_closure_period;
+	  + School::school_closure_duration;
+	School::global_closure_is_active = true;
       }
     }
   }
   if(School::global_closure_is_active) {
     // set close and open dates for this school (only once)
-    close(day,School::global_close_date, School::school_closure_period);
+    close(day,School::global_close_date, School::school_closure_duration);
 
     // log this school closure decision
     if(Global::Verbose > 0) {
       Disease* disease = Global::Diseases.get_disease(disease_id);
-      printf("GLOBAL SCHOOL CLOSURE ar %5.2f cases = %d / %d (%5.2f)\n",
+      printf("GLOBAL SCHOOL CLOSURE pop_ar %5.2f local_cases = %d / %d (%5.2f)\n",
 	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
 	     N, get_symptomatic_attack_rate(disease_id));
     }
@@ -279,12 +286,12 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
 
 void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
-  // don't apply any policy prior to School::school_closure_day
-  if(day <= School::school_closure_day) {
+  // don't apply any policy prior to School::min_school_closure_day
+  if(day <= School::min_school_closure_day) {
     return;
   }
 
-  // don't apply any policy before the epdemic reaches a noticeable threshold
+  // don't apply any policy before the epidemic reaches a noticeable threshold
   Disease* disease = Global::Diseases.get_disease(disease_id);
   if(disease->get_symptomatic_attack_rate() < School::school_closure_threshold) {
     return;
@@ -294,21 +301,20 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
   // if school_closure_cases > -1 then close if this number of cases occurs
   if(School::school_closure_cases != -1) {
-    close_this_school = (School::school_closure_cases <= get_current_cases(disease_id));
+    close_this_school = (School::school_closure_cases <= get_total_cases(disease_id));
   } else {
     // close if attack rate threshold is reached
-    close_this_school = (School::individual_school_closure_threshold
-			 <= get_incidence_rate(disease_id));
+    close_this_school = (School::individual_school_closure_threshold <= get_symptomatic_attack_rate(disease_id));
   }
 
   if(close_this_school) {
     // set close and open dates for this school (only once)
-    close(day,day + School::school_closure_delay, School::school_closure_period);
+    close(day,day + School::school_closure_delay, School::school_closure_duration);
 
     // log this school closure decision
     if(Global::Verbose > 0) {
       Disease* disease = Global::Diseases.get_disease(disease_id);
-      printf("LOCAL SCHOOL CLOSURE ar %5.2f cases = %d / %d (%5.2f)\n",
+      printf("LOCAL SCHOOL CLOSURE pop_ar %.3f local_cases = %d / %d (%.3f)\n",
 	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
 	     N, get_symptomatic_attack_rate(disease_id));
     }

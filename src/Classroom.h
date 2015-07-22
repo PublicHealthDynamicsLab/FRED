@@ -20,7 +20,7 @@
 #include "Place.h"
 #include "Random.h"
 
-// class School;
+class School;
 
 #define GRADES 20
 
@@ -98,11 +98,11 @@ public:
     return this->age_level;
   }
 
-  void set_school(Place* _school) {
+  void set_school(School* _school) {
     school = _school;
   }
 
-  Place * get_school() {
+  School * get_school() {
     return school;
   }
 
@@ -116,7 +116,7 @@ private:
   static int Classroom_closure_delay;
   static bool Classroom_parameters_set;
 
-  Place * school;
+  School * school;
   int age_level;
 };
 

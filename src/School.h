@@ -155,14 +155,19 @@ public:
     return School::pop_income_Q4;
   }
 
+  static char * get_school_closure_policy() {
+    return school_closure_policy;
+  }
+
 private:
   static double*** school_contact_prob;
   static char school_closure_policy[];
   static int school_closure_day;
+  static int min_school_closure_day;
   static double school_closure_threshold;
   static double individual_school_closure_threshold;
   static int school_closure_cases;
-  static int school_closure_period;
+  static int school_closure_duration;
   static int school_closure_delay;
   static bool school_parameters_set;
   static int school_summer_schedule;

@@ -1523,7 +1523,7 @@ void Epidemic::get_imported_infections(int day) {
 	if(imported_cases_remaining <= people.size()) {
 	  // we have at least the minimum number of candidates.
 	  for(int n = 0; n < imported_cases_remaining; ++n) {
-	    FRED_VERBOSE(0, "IMPORT candidate %d id people.size %d\n", n, (int)people.size());
+	    FRED_VERBOSE(1, "IMPORT candidate %d id people.size %d\n", n, (int)people.size());
 
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
