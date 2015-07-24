@@ -44,7 +44,7 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat)
    */
   Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
@@ -81,26 +81,28 @@ public:
    */
   double get_contacts_per_day(int disease);
 
+  bool is_open(int sim_day);
+
   /**
    * @see Place::should_be_open(int day)
    *
    * Determine if the Hospital should be open. This is independent of any disease.
    *
-   * @param day the simulation day
+   * @param sim_day the simulation day
    * @return whether or not the hospital is open on the given day for the given disease
    */
-  bool should_be_open(int day);
+  bool should_be_open(int sim_day);
 
   /**
    * @see Place::should_be_open(int day, int disease)
    *
    * Determine if the Hospital should be open. It is dependent on the disease and simulation day.
    *
-   * @param day the simulation day
+   * @param sim_day the simulation day
    * @param disease an integer representation of the disease
    * @return whether or not the hospital is open on the given day for the given disease
    */
-  bool should_be_open(int day, int disease);
+  bool should_be_open(int sim_day, int disease);
 
   void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
   void set_accepts_insurance(int insr_indx, bool does_accept);
@@ -149,7 +151,19 @@ public:
     this->occupied_bed_count = 0;
   }
 
+  void have_HAZEL_closure_dates_been_set(bool is_set) {
+    this->HAZEL_closure_dates_have_been_set = is_set;
+  }
+
   std::string to_string();
+
+  static int get_HAZEL_mobile_van_open_delay() {
+    return Hospital::HAZEL_mobile_van_open_delay;
+  }
+
+  static int get_HAZEL_mobile_van_closure_day() {
+    return Hospital::HAZEL_mobile_van_closure_day;
+  }
 
 private:
   static double* Hospital_contacts_per_day;
@@ -157,9 +171,8 @@ private:
   static std::vector<double> Hospital_health_insurance_prob;
   static bool Hospital_parameters_set;
   static double HAZEL_disaster_capacity_multiplier;
-  static int HAZEL_mobile_van_max;
-  static int HAZEL_mobile_van_count;
-  static int HAZEL_mobile_van_active_count;
+  static int HAZEL_mobile_van_open_delay;
+  static int HAZEL_mobile_van_closure_day;
   static HospitalInitMapT HAZEL_hospital_init_map;
   static bool HAZEL_hospital_init_map_file_exists;
   static std::vector<double> HAZEL_reopening_CDF;

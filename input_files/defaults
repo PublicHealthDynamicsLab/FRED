@@ -506,12 +506,42 @@ isolation_rate = 1.0
 #
 ##########################################################
 enable_HAZEL = 0
-HAZEL_reopening_CDF = 0
-HAZEL_disaster_start_day = -1
-HAZEL_disaster_end_day = -1
-HAZEL_disaster_capacity_multiplier = 1.0
+
+#Used in Hospital.cc to find file with additional info 
+# on Hospitals that is not in the standard input file
 HAZEL_hospital_init_file_directory = $FRED_HOME/input_files
 HAZEL_hospital_init_file_name = none
+#Used in Hospital.cc to modulate hospitals reopening 
+# (if no hospital info file present)
+HAZEL_reopening_CDF = 0
+#Used in Hospital.cc to increase capacity of Hospitals 
+# that can handle it after a disaster
+HAZEL_disaster_capacity_multiplier = 1.0
+#Used in Hospital.cc to determine how many days after disaster
+# before mobile vans will activate and when they will close
+HAZEL_mobile_van_open_delay = 0
+HAZEL_mobile_van_closure_day = 0
+
+#Used in Place_List.cc to handle evacuations and 
+# Mobile van activation
+HAZEL_disaster_start_sim_day = -1 
+HAZEL_disaster_end_sim_day = -1
+HAZEL_disaster_capacity_multiplier = 1.0
+HAZEL_disaster_evac_start_offset = 0
+HAZEL_disaster_evac_end_offset = 0
+# Households that evacuated begin returning 
+#  on HAZEL_disaster_end_sim_day + HAZEL_disaster_return_start_offset
+# Households that evacuated stop returning (they should all be back) 
+#  on HAZEL_disaster_end_sim_day + HAZEL_disaster_return_end_offset
+HAZEL_disaster_return_start_offset = 0
+HAZEL_disaster_return_end_offset = 0
+HAZEL_disaster_evac_prob_per_day = 0.0
+HAZEL_disaster_return_prob_per_day = 0.0
+HAZEL_mobile_van_max = 0 
+
+#Used in Activites.cc to boost seeking healthcare immediately after disaster
+HAZEL_seek_hc_ramp_up_days = 0
+HAZEL_seek_hc_ramp_up_mult = 1.0
 
 ##########################################################
 #

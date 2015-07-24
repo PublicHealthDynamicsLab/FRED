@@ -385,7 +385,8 @@ void Infection::report_infection(int day) const {
     }
     //Add Census Tract information. If there was no infector, censustract is -1
     if(this->infector == NULL) {
-      infStrS << " census_tract -1";
+      infStrS << " infctr_census_tract -1";
+      infStrS << " host_census_tract -1";
     } else {
 
       Household* hh = static_cast<Household*>(this->infector->get_household());
@@ -396,7 +397,18 @@ void Infection::report_infection(int day) const {
       }
       int census_tract_index = (hh == NULL ? -1 : hh->get_census_tract_index());
       long int census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
-      infStrS << " census_tract " << census_tract;
+      infStrS << " infctr_census_tract " << census_tract;
+
+
+      hh = static_cast<Household*>(this->host->get_household());
+      if(hh == NULL) {
+        if(Global::Enable_Hospitals && this->host->is_hospitalized() && this->host->get_permanent_household() != NULL) {
+          hh = static_cast<Household*>(this->host->get_permanent_household());;
+        }
+      }
+      census_tract_index = (hh == NULL ? -1 : hh->get_census_tract_index());
+      census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
+      infStrS << " host_census_tract " << census_tract;
     }
     infStrS << " | will_be_symp? " << this->will_be_symptomatic << " sucs " << this->susceptibility
 	    << " infect " << this->infectivity << " inf_multp " << this->infectivity_multp << " sympts "

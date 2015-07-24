@@ -68,7 +68,7 @@ Household::Household() {
   this->other_healthcare_location_that_accepts_insurance_available = true;
   this->healthcare_available = true;
   this->count_seeking_hc = 0;
-  this->count_receiving_hc = 0;
+  this->count_receiving_primary_hc = 0;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
@@ -93,7 +93,7 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->other_healthcare_location_that_accepts_insurance_available = true;
   this->healthcare_available = true;
   this->count_seeking_hc = 0;
-  this->count_receiving_hc = 0;
+  this->count_receiving_primary_hc = 0;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
@@ -121,13 +121,13 @@ void Household::get_parameters(int diseases) {
       sprintf(param_str, "%s_household_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
       if(Global::Verbose > 1) {
-	printf("\nHousehold_contact_prob:\n");
-	for(int i  = 0; i < n; ++i)  {
-	  for(int j  = 0; j < n; ++j) {
-	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
+	      printf("\nHousehold_contact_prob:\n");
+	      for(int i  = 0; i < n; ++i)  {
+	        for(int j  = 0; j < n; ++j) {
+	          printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+	        }
+	        printf("\n");
+	      }
       }
     }
   }

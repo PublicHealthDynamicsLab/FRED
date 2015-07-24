@@ -207,8 +207,11 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Enable_Hospitals) {
     Global::Places.assign_hospitals_to_households();
     Utils::fred_print_lap_time("assign hospitals to households");
-    Global::Pop.assign_primary_healthcare();
-    Utils::fred_print_lap_time("assign primary healthcare to agents");
+    if(Global::Enable_HAZEL) {
+      Global::Pop.assign_primary_healthcare_facilities();
+      Utils::fred_print_lap_time("assign primary healthcare to agents");
+      Global::Places.setup_HAZEL_mobile_vans();
+    }
   }
 
   FRED_STATUS(0, "deleting place_label_map\n", "");

@@ -16,12 +16,13 @@
 #ifndef _FRED_ACTIVITIES_H
 #define _FRED_ACTIVITIES_H
 
-#include <vector>
 #include <bitset>
 #include <map>
+#include <vector>
 
-#include "Global.h"
 #include "Epidemic.h"
+#include "Global.h"
+#include "Hospital.h"
 #include "Place.h" 
 #include "Random.h"
 
@@ -370,11 +371,6 @@ public:
    * Assign the agent to an Office
    */
   void assign_office(Person* self);
-  
-  /**
-   * Find a Hospital and assign it to the agent
-   */
-  void assign_hospital(Person* self);
 
   /**
    * Assign the agent to a Hospital
@@ -388,6 +384,16 @@ public:
   void assign_ad_hoc_place(Person* self, Place* place);
 
   void unassign_ad_hoc_place(Person* self);
+
+  /**
+   * Find a Primary Healthcare Facility and assign it to the agent
+   * @param self the agent who needs to find a Primary care facility
+   */
+  void assign_primary_healthcare_facility(Person* self);
+
+  Hospital* get_primary_healthcare_facility() {
+    return this->primary_healthcare_facility;
+  }
 
   /**
    * Update the agent's profile
@@ -594,6 +600,9 @@ private:
   // list of favorite places, stored while traveling
   std::map<int, Place*> * tmp_favorite_places_map;
 
+  //Primary Care Location
+  Hospital* primary_healthcare_facility;
+
   Place* home_neighborhood;
   std::bitset<Activity_index::FAVORITE_PLACES> on_schedule; // true iff favorite place is on schedule
   int schedule_updated;                       // date of last schedule update
@@ -633,6 +642,9 @@ private:
   // extra sick days for fle
   static double Flu_days;
   
+  static int HAZEL_seek_hc_ramp_up_days;
+  static double HAZEL_seek_hc_ramp_up_mult;
+
   static Age_Map* Hospitalization_prob;
   static Age_Map* Outpatient_healthcare_prob;
   static double Hospitalization_visit_housemate_prob;
@@ -640,10 +652,6 @@ private:
   static Activities_Tracking_Data Tracking_data;
 
   // sick days statistics
-  //  static int Sick_days_present;
-  //  static int Sick_days_absent;
-  //  static int School_sick_days_present;
-  //  static int School_sick_days_absent;
   static double Standard_sicktime_allocated_per_child;
 
   static const int WP_SIZE_DIST = 1;
@@ -651,16 +659,6 @@ private:
   static int Sick_leave_dist_method;
   static std::vector<double> WP_size_sl_prob_vec;
   static std::vector<double> HH_income_qtile_sl_prob_vec;
-
-  // Statistics for presenteeism study
-  //  static int Employees_small_with_sick_leave;
-  //  static int Employees_small_without_sick_leave;
-  //  static int Employees_med_with_sick_leave;
-  //  static int Employees_med_without_sick_leave;
-  //  static int Employees_large_with_sick_leave;
-  //  static int Employees_large_without_sick_leave;
-  //  static int Employees_xlarge_with_sick_leave;
-  //  static int Employees_xlarge_without_sick_leave;
 
   // Statistics for childhood presenteeism study
   static double Sim_based_prob_stay_home_not_needed;

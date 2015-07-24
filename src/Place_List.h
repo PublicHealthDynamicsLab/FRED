@@ -72,8 +72,7 @@ public:
   ~Place_List();
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
-  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id,
-		   InitSetT &pids);
+  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id, InitSetT &pids);
 
   void reassign_workers();
   void prepare();
@@ -103,13 +102,42 @@ public:
   void setup_households();
   void setup_classrooms();
   void setup_offices();
+  void setup_HAZEL_mobile_vans();
   void setup_school_income_quartile_pop_sizes();
   void setup_household_income_quartile_sick_days();
   int get_min_household_income_by_percentile(int percentile);
   Place* get_place_from_label(const char* s) const;
   Place* get_random_workplace();
   void assign_hospitals_to_households();
-  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool allows_overnight, bool check_insurance, bool use_search_radius_limit);
+
+  /**
+   * Uses a gravity model to find a random open hospital given the search parameters.
+   * The location must allows overnight stays (have a subtype of NONE)
+   * @param sim_day the simulation day
+   * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
+   * @param check_insurance whether or not to use the agent's insurance in the matching
+   * @param use_search_radius_limit whether or not to cap the search radius
+   */
+  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit);
+
+  /**
+   * Uses a gravity model to find a random open healthcare location given the search parameters.
+   * The search is ambivalent about the location allowing overnight stays.
+   * @param sim_day the simulation day
+   * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
+   * @param check_insurance whether or not to use the agent's insurance in the matching
+   * @param use_search_radius_limit whether or not to cap the search radius
+   */
+  Hospital* get_random_open_healthcare_facility_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit);
+
+  /**
+   * Uses a gravity model to find a random open healthcare location given the search parameters.
+   * The search is ambivalent about the location allowing overnight stays, but it must be open on sim_day 0
+   * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
+   * @param check_insurance whether or not to use the agent's insurance in the matching
+   * @param use_search_radius_limit whether or not to cap the search radius
+   */
+  Hospital* get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit);
   void print_household_size_distribution(char* dir, char* date_string, int run);
   void report_shelter_stats(int day);
   void end_of_run();
@@ -162,26 +190,24 @@ public:
     return (int)this->counties.size();
   }
 
-
   County* get_county_with_index(int index) {
-    assert (index < this->counties.size());
+    assert(index < this->counties.size());
     return this->counties[index];
   }
-  
+
   int get_fips_of_county_with_index(int index) {
     if(index < 0) {
       return 99999;
     }
-    assert (index < this->counties.size());
+    assert(index < this->counties.size());
     return this->counties[index]->get_fips();
   }
-
 
   int get_population_of_county_with_index(int index) {
     if(index < 0) {
       return 0;
     }
-    assert (index < this->counties.size());
+    assert(index < this->counties.size());
     return this->counties[index]->get_popsize();
   }
 
@@ -189,7 +215,7 @@ public:
     if(index < 0) {
       return;
     }
-    assert (index < this->counties.size());
+    assert(index < this->counties.size());
     int fips = this->counties[index]->get_fips();
     this->counties[index]->increment_popsize();
     return;
@@ -199,7 +225,7 @@ public:
     if(index < 0) {
       return;
     }
-    assert (index < this->counties.size());
+    assert(index < this->counties.size());
     this->counties[index]->decrement_popsize();
     return;
   }
@@ -209,7 +235,7 @@ public:
   }
 
   long int get_census_tract_with_index(int index) {
-    assert (index < this->census_tracts.size());
+    assert(index < this->census_tracts.size());
     return this->census_tracts[index];
   }
 
@@ -218,7 +244,7 @@ public:
   bool is_load_completed() {
     return this->load_completed;
   }
-  
+
   void update_population_dynamics(int day);
 
   void delete_place_label_map();
@@ -303,7 +329,7 @@ private:
   static double Healthcare_clinic_outpatients_per_day_per_employee;
   static int Hospital_min_bed_threshold;
   static double Hospitalization_radius;
-  
+
   static HospitalIDCountMapT Hospital_ID_total_assigned_size_map;
   static HospitalIDCountMapT Hospital_ID_current_assigned_size_map;
   static int Hospital_overall_panel_size;
@@ -316,6 +342,7 @@ private:
   static int HAZEL_disaster_return_end_offset;
   static double HAZEL_disaster_evac_prob_per_day;
   static double HAZEL_disaster_return_prob_per_day;
+  static int HAZEL_mobile_van_max;
 
   // School support
   static int School_fixed_staff;
@@ -349,37 +376,36 @@ private:
   void init_place_type_name_lookup_map();
 
   string lookup_place_type_name(char place_type) {
-    assert(this->place_type_name_lookup_map.find(place_type)
-	   != this->place_type_name_lookup_map.end());
+    assert(this->place_type_name_lookup_map.find(place_type) != this->place_type_name_lookup_map.end());
     return this->place_type_name_lookup_map[place_type];
   }
 
   bool add_place(Place* p);
 
   template<typename Place_Type>
-  void add_preallocated_places(char place_type, Place::Allocator<Place_Type> & pal) {
-    // make sure that the expected number of places were allocated
-    assert(pal.get_number_of_contiguous_blocks_allocated() == 1);
-    assert(pal.get_number_of_remaining_allocations() == 0);
+    void add_preallocated_places(char place_type, Place::Allocator<Place_Type> & pal) {
+      // make sure that the expected number of places were allocated
+      assert(pal.get_number_of_contiguous_blocks_allocated() == 1);
+      assert(pal.get_number_of_remaining_allocations() == 0);
 
-    int places_added = 0;
-    Place_Type* place = pal.get_base_pointer();
-    int places_allocated = pal.size();
+      int places_added = 0;
+      Place_Type* place = pal.get_base_pointer();
+      int places_allocated = pal.size();
 
-    for(int i = 0; i < places_allocated; ++i) {
-      if(add_place(place)) {
-        ++(places_added);
+      for(int i = 0; i < places_allocated; ++i) {
+        if(add_place(place)) {
+          ++(places_added);
+        }
+        ++(place);
       }
-      ++(place);
+      FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
+          lookup_place_type_name( place_type ).c_str());
+      FRED_CONDITIONAL_WARNING(places_added != places_allocated,
+          "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
+          lookup_place_type_name( place_type ).c_str(), places_allocated);
+      // update/set place_type_counts for this place_type
+      this->place_type_counts[place_type] = places_added;
     }
-    FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
-		lookup_place_type_name( place_type ).c_str());
-    FRED_CONDITIONAL_WARNING(places_added != places_allocated,
-			     "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
-			     lookup_place_type_name( place_type ).c_str(), places_allocated);
-    // update/set place_type_counts for this place_type
-    this->place_type_counts[place_type] = places_added;
-  }
 
   // map to hold counts for each place type
   TypeCountsMapT place_type_counts;
@@ -412,11 +438,9 @@ struct Place_Init_Data {
   char gq_type[8];
   char gq_workplace[32];
 
-  void setup(char _s[], char _place_type, fred::place_subtype _place_subtype,
-	     const char* _lat, const char* _lon,
-	     unsigned char _deme_id, int _county, int _census_tract_index,
-	     const char* _income, bool _is_group_quarters, int _num_workers_assigned,
-	     int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
+  void setup(char _s[], char _place_type, fred::place_subtype _place_subtype, const char* _lat, const char* _lon,
+      unsigned char _deme_id, int _county, int _census_tract_index, const char* _income, bool _is_group_quarters,
+      int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
     place_type = _place_type;
     place_subtype = _place_subtype;
     strcpy(s, _s);
@@ -440,14 +464,12 @@ struct Place_Init_Data {
     strcpy(gq_workplace, _gq_workplace);
   }
 
-  Place_Init_Data(char _s[], char _place_type, fred::place_subtype _place_subtype, 
-		  const char* _lat, const char* _lon,
-		  unsigned char _deme_id, int _county = -1, int _census_tract = -1,
-		  const char* _income = "0", bool _is_group_quarters = false,
-		  int _num_workers_assigned = 0, int _group_quarters_units = 0,
-		  const char* gq_type = "X", const char* gq_workplace = "") {
-    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _county, _census_tract, _income,
-	  _is_group_quarters, _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
+  Place_Init_Data(char _s[], char _place_type, fred::place_subtype _place_subtype, const char* _lat, const char* _lon,
+      unsigned char _deme_id, int _county = -1, int _census_tract = -1, const char* _income = "0",
+      bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
+      const char* gq_type = "X", const char* gq_workplace = "") {
+    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _county, _census_tract, _income, _is_group_quarters,
+        _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
   }
 
   bool operator<(const Place_Init_Data & other) const {

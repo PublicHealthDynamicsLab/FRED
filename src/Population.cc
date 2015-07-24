@@ -765,7 +765,7 @@ void Population::Update_Population_Behaviors::operator() (Person &p) {
 
 void Population::report(int day) {
 
-  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter || (strcmp(School::get_school_closure_policy(), "none")!=0)) {
+  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {
     // update infection counters for places
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       for(int i = 0; i < this->get_index_size(); ++i) {
@@ -951,7 +951,9 @@ void Population::assign_offices() {
   FRED_VERBOSE(0,"assign offices finished\n");
 }
 
-void Population::assign_primary_healthcare() {
+void Population::assign_primary_healthcare_facilities() {
+  assert(this->is_load_completed());
+  assert(Global::Places.is_load_completed());
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "assign primary healthcare entered\n");
     fflush(Global::Statusfp);
@@ -961,7 +963,7 @@ void Population::assign_primary_healthcare() {
     if(person == NULL) {
       continue;
     }
-    person->assign_hospital();
+    person->assign_primary_healthcare_facility();
 
   }
   FRED_VERBOSE(0,"assign primary healthcare finished\n");
