@@ -25,6 +25,7 @@ using namespace std;
 #include "Date.h"
 #include "Disease.h"
 #include "Epidemic.h"
+#include "Events.h"
 #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
@@ -151,6 +152,52 @@ Epidemic::Epidemic(Disease* dis) {
   this->import_age_lower_bound = 0;
   this->import_age_upper_bound = Demographics::MAX_AGE;
   this->seeding_type = SEED_EXPOSED;
+
+  this->infectious_event_queue = new Events;
+  this->noninfectious_event_queue = new Events;
+  this->susceptible_event_queue = new Events;
+
+  this->active_households.clear();
+}
+
+
+void Epidemic::add_infectious_event(int day, Person *person) {
+  infectious_event_queue->add_event(day, person);
+}
+
+void Epidemic::delete_infectious_event(int day, Person *person) {
+  infectious_event_queue->delete_event(day, person);
+}
+
+void Epidemic::add_noninfectious_event(int day, Person *person) {
+  noninfectious_event_queue->add_event(day, person);
+}
+
+void Epidemic::delete_noninfectious_event(int day, Person *person) {
+  noninfectious_event_queue->delete_event(day, person);
+}
+
+void Epidemic::add_susceptible_event(int day, Person *person) {
+  susceptible_event_queue->add_event(day, person);
+}
+
+void Epidemic::delete_susceptible_event(int day, Person *person) {
+  susceptible_event_queue->delete_event(day, person);
+}
+
+void Epidemic::infectious_event_handler(int day, Person* person) {
+  active_households.insert(person->get_household());
+}
+
+void Epidemic::noninfectious_event_handler(int day, Person* person) {
+  int num_infectious = person->get_household()->get_number_of_infectious_people(this->id);
+  if (num_infectious == 0) {
+    active_households.erase(person->get_household());
+  }
+}
+
+
+void Epidemic::susceptible_event_handler(int day, Person* person) {
 }
 
 void Epidemic::setup() {
@@ -271,6 +318,11 @@ void Epidemic::become_unsusceptible(Person* person) {
 void Epidemic::become_exposed(Person* person, int day) {
 #pragma omp atomic
   this->people_becoming_infected_today++;
+
+  // update infectious event list
+  int infectious_date = person->get_infectious_date(this->id);
+  add_infectious_event(infectious_date, person);
+
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
@@ -325,6 +377,11 @@ void Epidemic::become_exposed(Person* person, int day) {
 void Epidemic::become_infectious(Person* person) {
 #pragma omp atomic
   this->exposed_people--;
+
+  // update noninfectious event list
+  int noninfectious_date = person->get_recovered_date(this->id);
+  add_noninfectious_event(noninfectious_date, person);
+
   // operations on bloque (underlying container for population) are thread-safe
   Global::Pop.set_mask_by_index(fred::Infectious, person->get_pop_index());
 }
@@ -1594,6 +1651,24 @@ void Epidemic::update(int day) {
 
   // import infections from unknown sources
   get_imported_infections(day);
+
+  // transition from exposed to infectious
+  FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_event_queue->get_size(day));
+  EpidemicMemFn func = &Epidemic::infectious_event_handler;
+  this->infectious_event_queue->event_handler(day, this, func);
+
+  // transition from infectious to noninfectious
+  FRED_VERBOSE(0, "NONINF_EVENT_QUEUE day %d size %d\n", day, this->noninfectious_event_queue->get_size(day));
+  func = &Epidemic::noninfectious_event_handler;
+  this->noninfectious_event_queue->event_handler(day, this, func);
+
+  // transition from nonsusceptible to susceptible
+  FRED_VERBOSE(0, "SUS_EVENT_QUEUE day %d size %d\n", day, this->susceptible_event_queue->get_size(day));
+  func = &Epidemic::susceptible_event_handler;
+  this->susceptible_event_queue->event_handler(day, this, func);
+
+  FRED_VERBOSE(0, "EPIDEMIC active_households %d inf_households %d\n",
+	       this->active_households.size(), this->inf_households.size());
 
   int infectious_places;
   infectious_places = (int)this->inf_households.size();

@@ -667,9 +667,10 @@ void Population::update(int day) {
     Update_Health_Interventions update_health_interventions(day);
     this->blq.apply(update_health_interventions);
   }
-  FRED_VERBOSE(1, "population::update health  day = %d\n", day);
 
+  FRED_VERBOSE(1, "population::update health  day = %d\n", day);
   // update everyone's health status
+
   Update_Population_Health update_population_health(day);
   this->blq.parallel_masked_apply(fred::Update_Health, update_population_health);
   // Utils::fred_print_wall_time("day %d update_health", day);

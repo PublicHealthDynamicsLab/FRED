@@ -239,6 +239,8 @@ public:
    */
   void print_infectious(int disease_id);
 
+  int get_number_of_infectious_people(int disease_id);
+
   /**
    * Attempt to spread the infection for a given diease on a given day.
    *

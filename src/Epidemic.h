@@ -20,6 +20,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <set>
 
 #include "Global.h"
 
@@ -31,6 +32,7 @@
 using namespace std;
 
 class Disease;
+class Events;
 class Person;
 class Place;
 
@@ -242,6 +244,27 @@ private:
   
   bool report_generation_time;
   bool report_transmission_by_age;
+
+  // event handlers:
+  void infectious_event_handler( int day, Person * person );
+  void noninfectious_event_handler( int day, Person * person );
+  void susceptible_event_handler( int day, Person * person );
+
+  // event scheduling:
+  void add_infectious_event(int day, Person *person);
+  void delete_infectious_event(int day, Person *person);
+  void add_noninfectious_event(int day, Person *person);
+  void delete_noninfectious_event(int day, Person *person);
+  void add_susceptible_event(int day, Person *person);
+  void delete_susceptible_event(int day, Person *person);
+
+  // event queues
+  Events * infectious_event_queue;
+  Events * noninfectious_event_queue;
+  Events * susceptible_event_queue;
+
+  // active sets
+  std::set<Place*> active_households;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;

@@ -377,6 +377,14 @@ void Place::print_infectious(int disease_id) {
   printf("\n");
 }
 
+int Place::get_number_of_infectious_people(int disease_id) {
+  // get references to infectious list for this disease_id
+  this->place_state_merge = Place_State_Merge();
+  this->place_state[disease_id].apply(this->place_state_merge);
+  std::vector<Person *> & infectious = this->place_state_merge.get_infectious_vector();
+  return infectious.size();
+}
+
 void Place::turn_workers_into_teachers(Place* school) {
   FRED_VERBOSE(1,"Place %s has %d enrollees\n", this->get_label(), this->enrollees.size());
   std::vector <Person *> workers;

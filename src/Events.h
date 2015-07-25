@@ -20,15 +20,23 @@
 #include <assert.h>
 #include <stdio.h>
 #include <vector>
-class Person;
 
 using namespace std;
+
+class Person;
+class Epidemic;
 
 #define MAX_DAYS (100*366)
 
 typedef Person* event_t;
 typedef std::vector<event_t> events_t;
 typedef events_t::iterator events_itr_t;
+
+// the following definitions are based on advice from
+// https://isocpp.org/wiki/faq/pointers-to-members
+typedef void (Epidemic::*EpidemicMemFn)(int day, event_t e);
+#define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+
 
 class Events {
 
@@ -43,7 +51,10 @@ public:
   ~Events(){}
 
   void add_event(int day, event_t item) {
-    assert(0 <= day && day < MAX_DAYS);
+    if (day < 0 || MAX_DAYS <= day) {
+      // won't happen during this simulation
+      return;
+    }
     if(this->events[day].size() == this->events[day].capacity()) {
       if(events[day].capacity() < 4) {
         this->events[day].reserve(4);
@@ -57,7 +68,10 @@ public:
 
 
   void delete_event(int day, event_t item) {
-    assert(0 <= day && day < MAX_DAYS);
+    if (day < 0 || MAX_DAYS <= day) {
+      // won't happen during this simulation
+      return;
+    }
     // find item in the list
     int size = get_size(day);
     for(int pos = 0; pos < size; ++pos) {
@@ -94,6 +108,14 @@ public:
     events_itr_t itr_end = this->events[day].end();
     for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
       func(day, *itr);
+    }
+    clear_events(day);
+  }
+
+  void event_handler(int day, Epidemic * epidemic, EpidemicMemFn handler) {
+    events_itr_t itr_end = this->events[day].end();
+    for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
+      CALL_MEMBER_FN(*epidemic, handler)(day, *itr);
     }
     clear_events(day);
   }
