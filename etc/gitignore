@@ -32,6 +32,7 @@ RESULTS/**
 # exclude FRED executables
 src/FRED
 bin/FRED
+src/params
 
 # exclude fsz executables
 src/fsz
