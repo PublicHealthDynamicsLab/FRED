@@ -36,7 +36,7 @@ static pset_ptr* traveler_list_ptr;        // pointers to above lists
 static double mean_trip_duration;		// mean days per trip
 typedef vector <Person*> pvec;			// vector of person ptrs
 
-Events* Travel::return_queue = new Events;
+Events<Travel>* Travel::return_queue = new Events<Travel>;
 
 // runtime parameters
 static double* Travel_Duration_Cdf;		// cdf for trip duration

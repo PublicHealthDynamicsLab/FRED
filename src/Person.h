@@ -26,7 +26,6 @@ class Infection;
 class Population;
 
 #include "Demographics.h"
-#include "Events.h"
 #include "Health.h"
 #include "Behavior.h"
 #include "Activities.h"

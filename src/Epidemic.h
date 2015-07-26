@@ -22,6 +22,9 @@
 #include <vector>
 #include <set>
 
+using namespace std;
+
+#include "Events.h"
 #include "Global.h"
 
 #define SEED_USER 'U'
@@ -29,10 +32,8 @@
 #define SEED_EXPOSED 'E'
 #define SEED_INFECTIOUS 'I'
 
-using namespace std;
 
 class Disease;
-class Events;
 class Person;
 class Place;
 
@@ -259,12 +260,14 @@ private:
   void delete_susceptible_event(int day, Person *person);
 
   // event queues
-  Events * infectious_event_queue;
-  Events * noninfectious_event_queue;
-  Events * susceptible_event_queue;
+  Events<Epidemic> * infectious_event_queue;
+  Events<Epidemic> * noninfectious_event_queue;
+  Events<Epidemic> * susceptible_event_queue;
 
   // active sets
   std::set<Place*> active_households;
+  std::set<Place*> active_schools;
+  std::set<Place*> active_workplaces;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;
@@ -366,5 +369,7 @@ private:
   size_t place_person_list_reserve_size;
 
 };
+
+typedef void (Epidemic::*EpidemicMemFn)(int day, event_t e);
 
 #endif // _FRED_EPIDEMIC_H
