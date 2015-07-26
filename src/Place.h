@@ -159,6 +159,20 @@ public:
    */
   virtual void update(int day);
 
+  void add_to_infector_set(Person *person) {
+    infector_set.insert(person);
+  }
+
+  void remove_from_infector_set(Person *person) {
+    infector_set.erase(person);
+  }
+
+  int get_infector_set_size() {
+    return infector_set.size();
+  }
+
+  void print_infector_set();
+
   void reset_place_state(int disease_id);
 
   /**
@@ -880,6 +894,8 @@ protected:
   fred::disease_bitset human_infectious_bitset;
   fred::disease_bitset recovered_bitset; 
   fred::disease_bitset exposed_bitset; 
+
+  std::set<Person *> infector_set;
 
   char label[32];         // external id
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;

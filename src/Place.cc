@@ -88,6 +88,10 @@ static bool compare_age (Person* p1, Person* p2) {
   return ((p1->get_age() == p2->get_age()) ? (p1->get_id() < p2->get_id()) : (p1->get_age() < p2->get_age()));
 }
 
+static bool compare_id (Person* p1, Person* p2) {
+  return p1->get_id() < p2->get_id();
+}
+
 double** Place::prob_contact = NULL;
 
 void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
@@ -162,6 +166,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   }
   this->county_index = -1;
   this->census_tract_index = -1;
+  this->infector_set.clear();
 }
 
 void Place::reset_place_state(int disease_id) {
@@ -171,6 +176,22 @@ void Place::reset_place_state(int disease_id) {
     this->place_state[disease_id].reset();
   }
   this->infectious_bitset.reset(disease_id);
+}
+
+void Place::print_infector_set() {
+  std::vector<Person *>infectors;
+  infectors.reserve(infector_set.size());
+  infectors.clear();
+  for (std::set<Person*>::iterator it = infector_set.begin(); it != infector_set.end(); ++it) {
+    infectors.push_back(*it);
+  }
+  std::sort(infectors.begin(), infectors.end(), compare_id);
+  int n = infectors.size();
+  printf("INFECTOR SET for place %d: ",id);
+  for (int i = 0; i < n; i++) {
+    printf("%d ", infectors[i]->get_id());
+  }
+  printf("\n");
 }
 
 void Place::prepare() {
@@ -369,7 +390,7 @@ void Place::print_infectious(int disease_id) {
   this->place_state[disease_id].apply(this->place_state_merge);
   std::vector<Person *> & infectious = this->place_state_merge.get_infectious_vector();
   
-  printf("Disease %d INF: ", disease_id);
+  printf("INFECTIOUS in place %d Disease %d: ", id, disease_id);
   vector<Person *>::iterator itr;
   for(itr = infectious.begin(); itr != infectious.end(); ++itr) {
     printf(" %d", (*itr)->get_id());
