@@ -24,6 +24,7 @@
 #include "Epidemic.h"
 #include "Place.h" 
 #include "Random.h"
+#include "Person_Place_Link.h"
 
 class Age_Map;
 class Activities_Tracking_Data;
@@ -395,7 +396,7 @@ public:
   void update_profile(Person* self);
 
   /**
-   * Unenroll from all the favorite places
+   * check out from all the favorite places
    */
   void terminate(Person* self);
 
@@ -589,6 +590,8 @@ public:
 
 private:
 
+  Person_Place_Link link[Activity_index::FAVORITE_PLACES];
+
   // current favorite places
   std::map<int, Place*> favorite_places_map;
   // list of favorite places, stored while traveling
@@ -676,19 +679,67 @@ private:
 
   void enroll_in_favorite_places(Person* self) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      if(get_favorite_place(i) != NULL) {
-        get_favorite_place(i)->enroll(self);
+      Place* place = get_favorite_place(i);
+      if(place != NULL) {
+	if (Global::Test) {
+	  link[i].enroll(self, place);
+	}
+	else {
+	  place->enroll(self);
+	}
+      }
+    }
+  }
+
+  void update_enrollee_index(Place * place, int new_index) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+      if (place == get_favorite_place(i)) {
+	link[i].update_enrollee_index(new_index);
+	return;
       }
     }
   }
 
   void unenroll_from_favorite_places(Person* self) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      if(get_favorite_place(i) != NULL) {
-        get_favorite_place(i)->unenroll(self);
+      Place* place = get_favorite_place(i);
+      if (place != NULL) {
+	if (Global::Test) {
+	  link[i].unenroll(self, place);
+	}
+	else {
+	  place->unenroll(self);
+	}
       }
     }
     clear_favorite_places();
+  }
+
+  void enroll_as_infectious_person(Person* self, int disease_id) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+      Place* place = get_favorite_place(i);
+      if(place != NULL) {
+	link[i].enroll_infectious_person(self, place, disease_id);
+      }
+    }
+  }
+
+  void unenroll_as_infectious_person(Person* self, int disease_id) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+      Place* place = get_favorite_place(i);
+      if(place != NULL) {
+	link[i].unenroll_infectious_person(self, place, disease_id);
+      }
+    }
+  }
+
+  void update_infectious_enrollee_index(Place * place, int disease_id, int new_index) {
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+      if (place == get_favorite_place(i)) {
+	link[i].update_infectious_enrollee_index(disease_id, new_index);
+	return;
+      }
+    }
   }
 
   void make_favorite_places_infectious(Person* self, int dis) {

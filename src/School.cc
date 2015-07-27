@@ -347,7 +347,7 @@ void School::enroll(Person* person) {
       assert(grade > 0);
       this->students_in_grade[grade]++;
       if(grade > max_grade) {
-        this->max_grade = grade;
+	this->max_grade = grade;
       }
       person->set_grade(grade);
     }
@@ -355,6 +355,30 @@ void School::enroll(Person* person) {
     FRED_VERBOSE(0,"Enroll E_WARNING person %d already in school %d %s\n",
 		 person->get_id(), this->id, this->label);
   }
+}
+
+int School::enroll_with_link(Person* person) {
+  if (N == enrollees.capacity()) {
+    // double capacity if needed (to reduce future reallocations)
+    enrollees.reserve(2*N);
+  }
+  this->enrollees.push_back(person);
+  this->N++;
+  FRED_VERBOSE(1,"Enroll person %d age %d in school %d %s new size %d\n",
+	       person->get_id(), person->get_age(), this->id, this->label, this->get_size());
+  if(person->is_teacher()) {
+    this->staff_size++;
+  } else {
+    int age = person->get_age();
+    int grade = ((age < GRADES) ? age : GRADES - 1);
+    assert(grade > 0);
+    this->students_in_grade[grade]++;
+    if(grade > max_grade) {
+      this->max_grade = grade;
+    }
+    person->set_grade(grade);
+  }
+  return enrollees.size()-1;
 }
 
 void School::unenroll(Person* person) {
@@ -370,6 +394,30 @@ void School::unenroll(Person* person) {
 	       person->get_id(), person->get_age(), grade, person->is_teacher()?1:0, this->id, this->label, N);
 
   enrollees.erase(enrollees.begin()+i);
+  this->N--;
+  if(person->is_teacher() || grade == 0) {
+    this->staff_size--;
+  } else {
+    assert(0 < grade && grade <= max_grade);
+    this->students_in_grade[grade]--;
+  }
+  person->set_grade(0);
+  FRED_VERBOSE(1,"Unenrolled from %s size = %d\n", get_label(),N);
+}
+
+void School::unenroll(int pos) {
+  int size = enrollees.size();
+  assert(0 <= pos && pos < size);
+  Person *person = enrollees[pos];
+  int grade = person->get_grade();
+  FRED_VERBOSE(1,"Unenroll person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
+	       person->get_id(), person->get_age(), grade, person->is_teacher()?1:0, this->id, this->label, N);
+  if (pos < size-1) {
+    Person* moved = enrollees[size-1];
+    enrollees[pos] = moved;
+    moved->update_enrollee_index(this,pos);
+  }
+  enrollees.pop_back();
   this->N--;
   if(person->is_teacher() || grade == 0) {
     this->staff_size--;

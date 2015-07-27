@@ -139,6 +139,14 @@ public:
     this->epidemic->add_infectious_place(p);
   }
 
+  void activate_place(Place* place) {
+    this->epidemic->activate_place(place);
+  }
+
+  void deactivate_place(Place* place) {
+    this->epidemic->deactivate_place(place);
+  }
+
   /**
    * @param day the simulation day
    * @see Epidemic::print_stats(day);

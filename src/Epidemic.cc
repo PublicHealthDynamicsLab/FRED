@@ -158,10 +158,69 @@ Epidemic::Epidemic(Disease* dis) {
   this->susceptible_event_queue = new Events<Epidemic>;
 
   this->active_households.clear();
+  this->active_neighborhoods.clear();
   this->active_schools.clear();
+  this->active_classrooms.clear();
   this->active_workplaces.clear();
+  this->active_offices.clear();
 }
 
+
+void Epidemic::activate_place(Place *place) {
+
+  if (place->is_household()) {
+    active_households.insert(place);
+    return;
+  }
+  if (place->is_neighborhood()) {
+    active_neighborhoods.insert(place);
+    return;
+  }
+  if (place->is_school()) {
+    active_schools.insert(place);
+    return;
+  }
+  if (place->is_classroom()) {
+    active_classrooms.insert(place);
+    return;
+  }
+  if (place->is_workplace()) {
+    active_workplaces.insert(place);
+    return;
+  }
+  if (place->is_office()) {
+    active_offices.insert(place);
+    return;
+  }
+}
+
+void Epidemic::deactivate_place(Place *place) {
+
+  if (place->is_household()) {
+    active_households.erase(place);
+    return;
+  }
+  if (place->is_neighborhood()) {
+    active_neighborhoods.erase(place);
+    return;
+  }
+  if (place->is_school()) {
+    active_schools.erase(place);
+    return;
+  }
+  if (place->is_classroom()) {
+    active_classrooms.erase(place);
+    return;
+  }
+  if (place->is_workplace()) {
+    active_workplaces.erase(place);
+    return;
+  }
+  if (place->is_office()) {
+    active_offices.erase(place);
+    return;
+  }
+}
 
 void Epidemic::add_infectious_event(int day, Person *person) {
   infectious_event_queue->add_event(day, person);
@@ -188,34 +247,13 @@ void Epidemic::delete_susceptible_event(int day, Person *person) {
 }
 
 void Epidemic::infectious_event_handler(int day, Person* person) {
-  active_households.insert(person->get_household());
-  person->get_household()->add_to_infector_set(this->id, person);
-  Place * school = person->get_school();
-  if (school != NULL) {
-    active_schools.insert(school);
-    school->add_to_infector_set(this->id, person);
-  }
-  /*
-  Place * workplace = person->get_workplace();
-  if (workplace != NULL) {
-    active_workplaces.insert(workplace);
-  }
-  */
+  person->update_activities_of_infectious_person(day);
+  person->enroll_as_infectious_person(this->id);
 }
 
 void Epidemic::noninfectious_event_handler(int day, Person* person) {
-  int num_infectious = person->get_household()->get_number_of_infectious_people(this->id);
-  if (num_infectious == 0) {
-    active_households.erase(person->get_household());
-  }
-  Place * school = person->get_school();
-  if (school != NULL) {
-    num_infectious = school->get_number_of_infectious_people(this->id);
-    if (num_infectious == 0) {
-      active_schools.erase(school);
-    }
-  }
-
+  // Note: need to find places enrolled in as infectious
+  person->unenroll_as_infectious_person(this->id);
 }
 
 

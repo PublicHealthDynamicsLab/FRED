@@ -192,21 +192,15 @@ public:
    */
   virtual void print(int disease_id);
 
-  /**
-   * Add a person to the place. This method increments the number of people in
-   * the place.
-   *
-   * @param per a pointer to a Person object that may be added to the place
-   */
+  // old enroll/unenroll:
   virtual void enroll(Person* per);
-
-  /**
-   * Remove a person from the place. This method decrements the number of people in
-   * the place.
-   *
-   * @param per a pointer to a Person object that may be removed to the place
-   */
   virtual void unenroll(Person* per);
+
+  // new enroll/unenroll:
+  virtual int enroll_with_link(Person* per);
+  virtual void unenroll(int pos);
+  int enroll_infectious_person(int disease_id, Person* per);
+  void unenroll_infectious_person(int disease, int pos);
 
   /**
    * Get the number of adults in the household.
@@ -911,6 +905,7 @@ protected:
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
   vector <Person*> enrollees;
+  vector <Person*> infectious_enrollees[Global::MAX_NUM_DISEASES];
   int close_date;         // this place will be closed during:
   int open_date;          //   [close_date, open_date)
   int N;                  // total number of potential visitors

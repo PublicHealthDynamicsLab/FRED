@@ -116,6 +116,27 @@ public:
     this->activities.prepare();
   }
 
+  void update_activities_of_infectious_person(int sim_day) {
+    this->activities.update_activities_of_infectious_person(this, sim_day);
+  }
+
+  void enroll_as_infectious_person(int disease_id) {
+    this->activities.enroll_as_infectious_person(this, disease_id);
+  }
+
+  void unenroll_as_infectious_person(int disease_id) {
+    this->activities.unenroll_as_infectious_person(this, disease_id);
+  }
+
+  void update_enrollee_index(Place* place, int pos) {
+    this->activities.update_enrollee_index(place, pos);
+  }
+
+  void update_infectious_enrollee_index(Place* place, int disease_id, int pos) {
+    this->activities.update_infectious_enrollee_index(place, disease_id, pos);
+  }
+
+
   /**
    * @Activities::update_profile()
    */

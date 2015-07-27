@@ -385,8 +385,6 @@ void Activities::update(int sim_day) {
   FRED_STATUS(1, "Activities update entered\n");
 
   // decide if this is a weekday:
-  // Activities::day_of_week = Global::Sim_Current_Date->get_day_of_week();
-  // Activities::is_weekday = (0 < Activities::day_of_week && Activities::day_of_week < 6);
   Activities::is_weekday = Date::is_weekday();
 
   if(Global::Enable_HAZEL) {
@@ -562,7 +560,7 @@ void Activities::update_schedule(Person* self, int sim_day) {
     if(Global::Enable_Hospitals && this->is_hospitalized && (this->sim_day_hospitalization_ends == sim_day)) {
       end_hospitalization(self);
     }
-    
+
     // always visit the household
     this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = true;
 

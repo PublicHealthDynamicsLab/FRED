@@ -58,6 +58,9 @@ public:
   void enroll(Person * per);
   void unenroll(Person * per);
 
+  int enroll_with_link(Person * per);
+  void unenroll(int pos);
+
   /**
    * @see Place::get_group(int disease, Person * per)
    */

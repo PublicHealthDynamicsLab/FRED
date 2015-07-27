@@ -138,6 +138,8 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
     this->current_infectious_visitors[d] = 0;
     this->current_symptomatic_visitors[d] = 0;
 
+    this->infectious_enrollees[d].clear();
+
     // NOT IMPLEMENTED YET:
     // new_deaths[ d ] = 0;
     // total_deaths[ d ] = 0;
@@ -273,18 +275,15 @@ void Place::print(int disease_id) {
   fflush (stdout);
 }
 
-void Place::enroll(Person* per) {
-  if(get_enrollee_index(per) == -1) {
-    if (N == enrollees.capacity()) {
-      // double capacity if needed (to reduce future reallocations)
-      enrollees.reserve(2*N);
-    }
-    this->enrollees.push_back(per);
+void Place::enroll(Person* person) {
+  if(get_enrollee_index(person) == -1) {
+    this->enrollees.push_back(person);
     this->N++;
-    FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
-  }
-  else {
-    FRED_VERBOSE(1,"Enroll E_WARNING person %d already in place %d %s\n", per->get_id(), this->id, this->label);
+    FRED_VERBOSE(1,"Enrolling person %d age %d in school %d %s new size %d\n",
+		 person->get_id(), person->get_age(), this->id, this->label, this->get_size());
+  } else {
+    FRED_VERBOSE(0,"Enroll E_WARNING person %d already in school %d %s\n",
+		 person->get_id(), this->id, this->label);
   }
 }
 
@@ -298,6 +297,51 @@ void Place::unenroll(Person* per) {
     enrollees.erase(enrollees.begin()+i);
     this->N--;
     FRED_VERBOSE(1,"Unenrolled. Size = %d\n", this->N);
+  }
+}
+
+int Place::enroll_with_link(Person* per) {
+  if (N == enrollees.capacity()) {
+    // double capacity if needed (to reduce future reallocations)
+    enrollees.reserve(2*N);
+  }
+  this->enrollees.push_back(per);
+  this->N++;
+  FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
+  return enrollees.size()-1;
+}
+
+int Place::enroll_infectious_person(int disease_id, Person* per) {
+  this->infectious_enrollees[disease_id].push_back(per);
+  FRED_VERBOSE(1,"Enroll infectious person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
+  Global::Diseases.get_disease(disease_id)->activate_place(this);
+  return infectious_enrollees[disease_id].size()-1;
+}
+
+void Place::unenroll(int pos) {
+  int size = enrollees.size();
+  assert(0 <= pos && pos < size);
+  if (pos < size-1) {
+    Person* moved = enrollees[size-1];
+    enrollees[pos] = moved;
+    moved->update_enrollee_index(this,pos);
+  }
+  enrollees.pop_back();
+  this->N--;
+  FRED_VERBOSE(1,"Unenrolled. Size = %d\n", this->N);
+}
+
+void Place::unenroll_infectious_person(int disease_id, int pos) {
+  int size = infectious_enrollees[disease_id].size();
+  assert(0 <= pos && pos < size);
+  if (pos < size-1) {
+    Person* moved = infectious_enrollees[disease_id][size-1];
+    infectious_enrollees[disease_id][pos] = moved;
+    moved->update_infectious_enrollee_index(this,disease_id,pos);
+  }
+  infectious_enrollees[disease_id].pop_back();
+  if (infectious_enrollees[disease_id].size() == 0) {
+    Global::Diseases.get_disease(disease_id)->deactivate_place(this);
   }
 }
 
@@ -373,12 +417,7 @@ void Place::add_infectious(int disease_id, Person* per) {
 
 std::vector<Person *> Place::get_infectious(int disease_id) {
   if (Global::Test) {
-    this->infectious[disease_id].clear();
-    for (std::set<Person*>::iterator it = this->infector_set[disease_id].begin(); it != this->infector_set[disease_id].end(); ++it) {
-      this->infectious[disease_id].push_back(*it);
-    }
-    std::sort(this->infectious[disease_id].begin(), this->infectious[disease_id].end(), compare_id);
-    return this->infectious[disease_id];
+    return this->infectious_enrollees[disease_id];
   }
   else {
     this->place_state_merge = Place_State_Merge();

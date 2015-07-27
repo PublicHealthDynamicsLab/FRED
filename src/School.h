@@ -46,7 +46,9 @@ public:
   void apply_individual_school_closure_policy(int day, int disease_id);
   double get_contacts_per_day(int disease_id);
   void enroll(Person* per);
+  int enroll_with_link(Person* per);
   void unenroll(Person* per);
+  void unenroll(int pos);
   int get_max_grade() {
     return this->max_grade;
   }

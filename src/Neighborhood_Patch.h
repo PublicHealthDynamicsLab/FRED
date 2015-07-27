@@ -128,6 +128,10 @@ public:
     neighborhood->enroll(per); 
   }
 
+  int enroll_with_link(Person * per) { 
+    return neighborhood->enroll_with_link(per); 
+  }
+
   /**
    * @return the Neighborhood_Patch.cc
    */

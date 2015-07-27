@@ -237,6 +237,9 @@ public:
   void track_value(int day, char* key, double value);
   void track_value(int day, char* key, string value);
 
+  void activate_place(Place *place);
+  void deactivate_place(Place *place);
+
 private:
   Disease* disease;
   int id;
@@ -266,8 +269,11 @@ private:
 
   // active sets
   std::set<Place*> active_households;
+  std::set<Place*> active_neighborhoods;
   std::set<Place*> active_schools;
+  std::set<Place*> active_classrooms;
   std::set<Place*> active_workplaces;
+  std::set<Place*> active_offices;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;
