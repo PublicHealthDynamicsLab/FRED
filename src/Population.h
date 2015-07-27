@@ -296,6 +296,10 @@ public:
     return this->load_completed;
   }
 
+  //Mitigation Managers
+  AV_Manager* av_manager;
+  Vaccine_Manager* vacc_manager;
+
 private:
 
   bool load_completed;
@@ -390,10 +394,6 @@ private:
   static int output_population;
   static bool is_initialized;
   static int next_id;
-
-  //Mitigation Managers
-  AV_Manager* av_manager;
-  Vaccine_Manager* vacc_manager;
 
   /**
    * Write out the population in a format similar to the population input files (with additional runtime information)

@@ -166,7 +166,9 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   }
   this->county_index = -1;
   this->census_tract_index = -1;
-  this->infector_set.clear();
+  for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
+    this->infector_set[d].clear();
+  }
 }
 
 void Place::reset_place_state(int disease_id) {
@@ -178,11 +180,11 @@ void Place::reset_place_state(int disease_id) {
   this->infectious_bitset.reset(disease_id);
 }
 
-void Place::print_infector_set() {
+void Place::print_infector_set(int disease_id) {
   std::vector<Person *>infectors;
-  infectors.reserve(infector_set.size());
+  infectors.reserve(infector_set[disease_id].size());
   infectors.clear();
-  for (std::set<Person*>::iterator it = infector_set.begin(); it != infector_set.end(); ++it) {
+  for (std::set<Person*>::iterator it = infector_set[disease_id].begin(); it != infector_set[disease_id].end(); ++it) {
     infectors.push_back(*it);
   }
   std::sort(infectors.begin(), infectors.end(), compare_id);
@@ -369,27 +371,60 @@ void Place::add_infectious(int disease_id, Person* per) {
   }
 }
 
+std::vector<Person *> Place::get_infectious(int disease_id) {
+  if (Global::Test) {
+    this->infectious[disease_id].clear();
+    for (std::set<Person*>::iterator it = this->infector_set[disease_id].begin(); it != this->infector_set[disease_id].end(); ++it) {
+      this->infectious[disease_id].push_back(*it);
+    }
+    std::sort(this->infectious[disease_id].begin(), this->infectious[disease_id].end(), compare_id);
+    return this->infectious[disease_id];
+  }
+  else {
+    this->place_state_merge = Place_State_Merge();
+    this->place_state[disease_id].apply(this->place_state_merge);
+    return this->place_state_merge.get_infectious_vector();
+  }
+}
+
+
+std::vector<Person *> Place::get_susceptibles(int disease_id) {
+  if (Global::Test) {
+    this->susceptibles[disease_id].clear();
+    for (int i = 0; i < enrollees.size(); i++) {
+      if (enrollees[i]->is_susceptible(disease_id)) {
+	this->susceptibles[disease_id].push_back(enrollees[i]);
+      }
+    }
+    return this->susceptibles[disease_id];
+  }
+  else {
+    this->place_state_merge = Place_State_Merge();
+    this->place_state[disease_id].apply(this->place_state_merge);
+    return this->place_state_merge.get_susceptible_vector();
+  }
+}
+
+
 void Place::print_susceptibles(int disease_id) {
 
   // get reference to susceptibles list for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person*> susceptibles = this->place_state_merge.get_susceptible_vector();
+  // this->place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(this->place_state_merge);
+  // std::vector<Person*> susceptibles = this->place_state_merge.get_susceptible_vector();
+  std::vector<Person*> susceptibles = get_susceptibles(disease_id);
 
   printf("Disease %d SUS: ", disease_id);
   vector<Person*>::iterator itr;
   for(itr = susceptibles.begin(); itr != susceptibles.end(); ++itr) {
+
     printf(" %d", (*itr)->get_id());
   }
   printf("\n");
 }
 
 void Place::print_infectious(int disease_id) {
-  // get references to infectious list for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person *> & infectious = this->place_state_merge.get_infectious_vector();
-  
+  std::vector<Person *> infectious = get_infectious(disease_id);
   printf("INFECTIOUS in place %d Disease %d: ", id, disease_id);
   vector<Person *>::iterator itr;
   for(itr = infectious.begin(); itr != infectious.end(); ++itr) {
@@ -399,10 +434,7 @@ void Place::print_infectious(int disease_id) {
 }
 
 int Place::get_number_of_infectious_people(int disease_id) {
-  // get references to infectious list for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person *> & infectious = this->place_state_merge.get_infectious_vector();
+  std::vector<Person *> infectious = get_infectious(disease_id);
   return infectious.size();
 }
 
@@ -637,10 +669,13 @@ void Place::spread_infection(int day, int disease_id) {
   this->last_day_infectious = day;
 
   // get reference to susceptibles and infectious lists for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  // this->place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(this->place_state_merge);
+  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
+  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  std::vector<Person*> susceptibles = get_susceptibles(disease_id);
+  std::vector<Person*> infectious = get_infectious(disease_id);
+  printf("place %d inf %d sus %d\n", id, (int)infectious.size(), (int)susceptibles.size());
 
   if(Global::Enable_Vector_Transmission) {
     vector_transmission(day, disease_id);
@@ -680,10 +715,12 @@ void Place::default_transmission_model(int day, int disease_id) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
   // get reference to susceptibles and infectious lists for this disease_id
-  place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(place_state_merge);
-  std::vector<Person*> & susceptibles = place_state_merge.get_susceptible_vector();
-  std::vector<Person*> & infectious = place_state_merge.get_infectious_vector();
+  // place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(place_state_merge);
+  // std::vector<Person*> & susceptibles = place_state_merge.get_susceptible_vector();
+  // std::vector<Person*> & infectious = place_state_merge.get_infectious_vector();
+  std::vector<Person*> susceptibles = get_susceptibles(disease_id);
+  std::vector<Person*> infectious = get_infectious(disease_id);
 
   // printf("DAY %d PLACE %s N %d susc %d inf %d\n",
   // day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
@@ -703,7 +740,9 @@ void Place::default_transmission_model(int day, int disease_id) {
   for(int infector_pos = 0; infector_pos < infectious.size(); ++infector_pos) {
     // infectious visitor
     Person* infector = infectious[infector_pos];
-    assert(infector->get_health()->is_infectious(disease_id));
+    if(infector->get_health()->is_infectious(disease_id) == false) {
+      continue;
+    }
 
     // get the actual number of contacts to attempt to infect
     int contact_count = get_contact_count(infector, disease_id, day, contact_rate);
@@ -747,10 +786,12 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  // this->place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(this->place_state_merge);
+  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
+  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  std::vector<Person*>  susceptibles = get_susceptibles(disease_id);
+  std::vector<Person*>  infectious = get_infectious(disease_id);
 
   std::vector<double> infectivity_of_agent((int) infectious.size());
   int n[101];
@@ -946,10 +987,12 @@ void Place::density_transmission_model(int day, int disease_id) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
   // get references to susceptibles and infectious lists for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  // this->place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(this->place_state_merge);
+  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
+  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+  std::vector<Person*>  susceptibles = get_susceptibles(disease_id);
+  std::vector<Person*>  infectious = get_infectious(disease_id);
 
   // printf("DAY %d PLACE %s N %d susc %d inf %d\n",
   // day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
@@ -1122,9 +1165,11 @@ void Place::infect_vectors(int day) {
   int total_infectious_hosts = 0;
   for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
     // get references to infectious list for this disease_id
-    this->place_state_merge = Place_State_Merge();
-    this->place_state[disease_id].apply(this->place_state_merge);
-    std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+    // this->place_state_merge = Place_State_Merge();
+    // this->place_state[disease_id].apply(this->place_state_merge);
+    // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
+    std::vector<Person*> infectious = get_infectious(disease_id);
+
     infectious_hosts[disease_id] = infectious.size();
     total_infectious_hosts += infectious_hosts[disease_id];
   }
@@ -1164,9 +1209,10 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
   int e_hosts = 0;
 
   // get reference to susceptibles list for this disease_id
-  this->place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(this->place_state_merge);
-  std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
+  // this->place_state_merge = Place_State_Merge();
+  // this->place_state[disease_id].apply(this->place_state_merge);
+  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
+  std::vector<Person*> susceptibles = get_susceptibles(disease_id);
 
   int s_hosts = susceptibles.size();
 

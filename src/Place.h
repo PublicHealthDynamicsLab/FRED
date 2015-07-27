@@ -159,19 +159,22 @@ public:
    */
   virtual void update(int day);
 
-  void add_to_infector_set(Person *person) {
-    infector_set.insert(person);
+  std::vector<Person *> get_infectious(int disease_id);
+  std::vector<Person *> get_susceptibles(int disease_id);
+
+  void add_to_infector_set(int disease_id, Person *person) {
+    infector_set[disease_id].insert(person);
   }
 
-  void remove_from_infector_set(Person *person) {
-    infector_set.erase(person);
+  void remove_from_infector_set(int disease_id, Person *person) {
+    infector_set[disease_id].erase(person);
   }
 
-  int get_infector_set_size() {
-    return infector_set.size();
+  int get_infector_set_size(int disease_id) {
+    return infector_set[disease_id].size();
   }
 
-  void print_infector_set();
+  void print_infector_set(int disease_id);
 
   void reset_place_state(int disease_id);
 
@@ -874,6 +877,9 @@ public:
   static char* get_place_label(Place* p);
 
 protected:
+  std::vector<Person*> susceptibles[Global::MAX_NUM_DISEASES];
+  std::vector<Person*> infectious[Global::MAX_NUM_DISEASES];
+
   // list of places that are infectious today
   static place_vec infectious_places;
 
@@ -895,7 +901,7 @@ protected:
   fred::disease_bitset recovered_bitset; 
   fred::disease_bitset exposed_bitset; 
 
-  std::set<Person *> infector_set;
+  std::set<Person *> infector_set[Global::MAX_NUM_DISEASES];
 
   char label[32];         // external id
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;

@@ -189,11 +189,11 @@ void Epidemic::delete_susceptible_event(int day, Person *person) {
 
 void Epidemic::infectious_event_handler(int day, Person* person) {
   active_households.insert(person->get_household());
-  person->get_household()->add_to_infector_set(person);
+  person->get_household()->add_to_infector_set(this->id, person);
   Place * school = person->get_school();
   if (school != NULL) {
     active_schools.insert(school);
-    school->add_to_infector_set(person);
+    school->add_to_infector_set(this->id, person);
   }
   /*
   Place * workplace = person->get_workplace();
@@ -208,6 +208,14 @@ void Epidemic::noninfectious_event_handler(int day, Person* person) {
   if (num_infectious == 0) {
     active_households.erase(person->get_household());
   }
+  Place * school = person->get_school();
+  if (school != NULL) {
+    num_infectious = school->get_number_of_infectious_people(this->id);
+    if (num_infectious == 0) {
+      active_schools.erase(school);
+    }
+  }
+
 }
 
 
@@ -1666,55 +1674,65 @@ void Epidemic::update(int day) {
   // import infections from unknown sources
   get_imported_infections(day);
 
-  // transition from exposed to infectious
-  FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_event_queue->get_size(day));
-  EpidemicMemFn func = &Epidemic::infectious_event_handler;
-  this->infectious_event_queue->event_handler(day, this, func);
+  if (Global::Test) {
 
-  // transition from infectious to noninfectious
-  FRED_VERBOSE(0, "NONINF_EVENT_QUEUE day %d size %d\n", day, this->noninfectious_event_queue->get_size(day));
-  func = &Epidemic::noninfectious_event_handler;
-  this->noninfectious_event_queue->event_handler(day, this, func);
+    // transition from exposed to infectious
+    FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_event_queue->get_size(day));
+    EpidemicMemFn func = &Epidemic::infectious_event_handler;
+    this->infectious_event_queue->event_handler(day, this, func);
 
-  // transition from nonsusceptible to susceptible
-  FRED_VERBOSE(0, "SUS_EVENT_QUEUE day %d size %d\n", day, this->susceptible_event_queue->get_size(day));
-  func = &Epidemic::susceptible_event_handler;
-  this->susceptible_event_queue->event_handler(day, this, func);
+    // transition from infectious to noninfectious
+    FRED_VERBOSE(0, "NONINF_EVENT_QUEUE day %d size %d\n", day, this->noninfectious_event_queue->get_size(day));
+    func = &Epidemic::noninfectious_event_handler;
+    this->noninfectious_event_queue->event_handler(day, this, func);
+    
+    // transition from nonsusceptible to susceptible
+    FRED_VERBOSE(0, "SUS_EVENT_QUEUE day %d size %d\n", day, this->susceptible_event_queue->get_size(day));
+    func = &Epidemic::susceptible_event_handler;
+    this->susceptible_event_queue->event_handler(day, this, func);
 
-  FRED_VERBOSE(0, "EPIDEMIC active_households %d inf_households %d\n",
-	       this->active_households.size(), this->inf_households.size());
+    FRED_VERBOSE(0, "EPIDEMIC active households %d\n",
+		 this->active_households.size());
 
+    inf_households.clear();
+    for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
+      (*it)->print_infector_set(this->id);
+      inf_households.push_back(*it);
+    }
+    printf("\n");
+
+    // want this??
+    for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
+      if ((*it)->get_infector_set_size(this->id) == 0) {
+	active_schools.erase(it);
+      }
+    }
+
+    FRED_VERBOSE(0, "EPIDEMIC active schools %d\n",
+		 this->active_schools.size());
+    
+    for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
+      (*it)->print_infector_set(this->id);
+      inf_schools.push_back(*it);
+    }
+    printf("\n");
+  }
+
+  FRED_VERBOSE(0, "EPIDEMIC inf households %d\n",
+	       this->inf_households.size());
+  
   for(int i = 0; i < this->inf_households.size(); ++i) {
     this->inf_households[i]->print_infectious(id);
   }
   printf("\n");
-
-  for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
-    (*it)->print_infector_set();
-  }
-  printf("\n");
-
-  for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-    if ((*it)->get_infector_set_size() == 0) {
-      active_schools.erase(it);
-    }
-  }
-
-  FRED_VERBOSE(0, "EPIDEMIC active_schools %d inf_schools %d\n",
-	       this->active_schools.size(), this->inf_schools.size());
-
+  
+  FRED_VERBOSE(0, "EPIDEMIC inf schools %d\n",
+	       this->inf_schools.size());
+  
   for(int i = 0; i < this->inf_schools.size(); ++i) {
     this->inf_schools[i]->print_infectious(id);
   }
   printf("\n");
-
-  for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-    (*it)->print_infector_set();
-  }
-
-  printf("\n");
-  // FRED_VERBOSE(0, "EPIDEMIC active_workplaces %d inf_workplaces %d\n",
-  // this->active_workplaces.size(), this->inf_workplaces.size());
 
   int infectious_places;
   infectious_places = (int)this->inf_households.size();
