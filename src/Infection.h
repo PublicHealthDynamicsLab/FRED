@@ -16,39 +16,25 @@
 #define _FRED_INFECTION_H
 
 #include "Global.h"
-#include <map>
 #include "Trajectory.h"
-#include "IntraHost.h"
-#include <limits.h>
 
-class Health;
+class Disease;
 class Person;
 class Place;
-class Disease;
-class Antiviral;
-class Health;
-class IntraHost;
 class Past_Infection;
 
-#define BIFURCATING 0
-#define SEQUENTIAL 1
-
-typedef map<int,double> viral_load_t;
 
 class Infection {
 
-  // thresholds used by determine_transition_dates()
-  double trajectory_infectivity_threshold;
-  double trajectory_symptomaticity_threshold;
-
 public:
+
   // if primary infection, infector and place are null.
   Infection(Disease* disease, Person* infector, Person* infectee, Place* place, int day);
   ~Infection();
 
-  void chronic_update(int today);
-
   void update(int today);
+
+  void chronic_update(int today);
 
   Disease* get_disease() const {
     return this->disease;
@@ -94,21 +80,18 @@ public:
     return this->recovery_date;
   }
 
-  int get_susceptible_date() const {
-    if(this->recovery_period > -1) {
-      return get_recovery_date() + this->recovery_period;
-    } else {
-      return INT_MAX;
-    }
+  int get_susceptible_date() const;
+
+  int get_unsusceptible_date() const {
+    return this->exposure_date /* + this->susceptibility_period */;
   }
 
+  // unused:
+  /*
   int set_susceptibility_period(int period) {
     return this->susceptibility_period = period;
   }
-
-  int get_unsusceptible_date() const {
-    return this->exposure_date + this->susceptibility_period;
-  }
+  */
 
   void advance_seed_infection(int days_to_advance);
 
@@ -118,13 +101,8 @@ public:
 
   void modify_infectious_period(double multp, int cur_day);
 
-  bool is_infectious() {
-    return this->infectivity > this->trajectory_infectivity_threshold;
-  }
-
-  bool is_symptomatic() {
-    return this->symptoms > this->trajectory_symptomaticity_threshold;
-  }
+  bool is_infectious();
+  bool is_symptomatic();
 
   double get_susceptibility() const {
     return this->susceptibility;
@@ -178,10 +156,6 @@ public:
     return this->trajectory->get_all_strains(strains);
   }
 
-  int get_age_at_exposure() {
-    return this->age_at_exposure;
-  }
-
   Person* get_host() {
     return this->host;
   }
@@ -213,22 +187,20 @@ private:
   // where infection was caught
   Place* place;
 
-  // chronological data
-  int exposure_date;
-  short int age_at_exposure;
-  short int latent_period;
-  short int asymptomatic_period;
-  short int symptomatic_period;
-  short int recovery_period;
-  short int susceptibility_period;
-  short int incubation_period;
-
   // the transition dates are set in the constructor by determine_transition_dates()
+  int exposure_date;
   int infectious_date;
   int symptomatic_date;
   int asymptomatic_date;
   int recovery_date;
   int susceptible_date;
+
+  // chronological data
+  short int asymptomatic_period;
+  short int symptomatic_period;
+
+  // usused:
+  // short int susceptibility_period;
 
   // effects on the host
   bool is_susceptible;

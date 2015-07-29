@@ -597,8 +597,7 @@ void Health::update(Person* self, int day) {
             for(; itr != strains.end(); ++itr) {
               int strain = *itr;
               int recovery_date = this->infection[disease_id]->get_recovery_date();
-              int age_at_exposure =
-		this->infection[disease_id]->get_age_at_exposure();
+              int age_at_exposure = self->get_age();
               this->past_infections[disease_id].push_back(
 							  Past_Infection(strain, recovery_date, age_at_exposure));
             }

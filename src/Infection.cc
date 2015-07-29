@@ -14,26 +14,21 @@
 // Stores the infectivity and symptomaticity trajectories that determine the transition dates for this person.
 #include <stdexcept>
 #include "limits.h"
-#include <map>
-#include <vector>
 #include <float.h>
+#include <vector>
 #include <string>
 #include <sstream>
 
-#include "Infection.h"
-#include "Evolution.h"
+using namespace std;
+
+#include "Disease.h"
 #include "Global.h"
+#include "Household.h"
+#include "Infection.h"
 #include "Person.h"
 #include "Place.h"
-#include "Workplace.h"
-#include "Household.h"
-#include "Random.h"
-#include "Disease.h"
 #include "Health.h"
-#include "IntraHost.h"
-#include "Activities.h"
 #include "Place_List.h"
-#include "Utils.h"
 
 using std::out_of_range;
 
@@ -47,11 +42,8 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->place = _place;
   this->trajectory = NULL;
   this->infectee_count = 0;
-  this->age_at_exposure = host->get_age();
 
   this->is_susceptible = true;
-  this->trajectory_infectivity_threshold = this->disease->get_infectivity_threshold();
-  this->trajectory_symptomaticity_threshold = this->disease->get_symptomaticity_threshold();
 
   // flag for health updates
   Global::Pop.set_mask_by_index(fred::Update_Health, this->host->get_pop_index());
@@ -63,24 +55,18 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->symptoms = 0.0;
 
   // chrono
-  this->susceptibility_period = 0;
-  this->latent_period = 0;
-  this->asymptomatic_period = 0;
+  // this->asymptomatic_period = 0;
   this->symptomatic_period = 0;
-  this->incubation_period = 0;
 
-  this->susceptible_date = -1;
-  this->infectious_date = -1;
+  this->exposure_date = day;
   this->symptomatic_date = -1;
   this->asymptomatic_date = -1;
+  this->infectious_date = -1;
   this->recovery_date = -1;
+  this->susceptible_date = -1;
 
   this->will_be_symptomatic = false;
   this->infection_is_fatal_today = false;
-
-  this->exposure_date = day;
-
-  this->recovery_period = this->disease->get_days_recovered();
 
   // Determine if this infection produces an immune response
   this->immune_response = this->disease->gen_immunity_infection(this->host->get_real_age());
@@ -99,10 +85,8 @@ void Infection::determine_transition_dates() {
   bool was_latent = true;
   bool was_incubating = true;
 
-  this->latent_period = 0;
   this->asymptomatic_period = 0;
   this->symptomatic_period = 0;
-  this->incubation_period = 0;
 
   this->infectious_date = -1;
   this->symptomatic_date = -1;
@@ -114,13 +98,13 @@ void Infection::determine_transition_dates() {
   this->recovery_date = this->exposure_date + this->trajectory->get_duration();
   Trajectory::iterator trj_it = Trajectory::iterator(this->trajectory);
   while(trj_it.has_next()) {
-    bool infective = (trj_it.next().infectivity > this->trajectory_infectivity_threshold);
-    bool symptomatic = (trj_it.next().symptomaticity > this->trajectory_symptomaticity_threshold);
+    bool infective = (trj_it.next().infectivity > this->disease->get_infectivity_threshold());
+    bool symptomatic = (trj_it.next().symptomaticity > this->disease->get_symptomaticity_threshold());
     bool asymptomatic = (infective && !(symptomatic));
 
     if(infective && was_latent) {
-      this->latent_period = trj_it.get_current();
-      this->infectious_date = this->exposure_date + this->latent_period; // TODO
+      int latent_period = trj_it.get_current();
+      this->infectious_date = this->exposure_date + latent_period; // TODO
 
       if(asymptomatic & was_latent) {
         this->asymptomatic_date = this->infectious_date;
@@ -130,8 +114,8 @@ void Infection::determine_transition_dates() {
     }
 
     if(symptomatic && was_incubating) {
-      this->incubation_period = trj_it.get_current();
-      this->symptomatic_date = this->exposure_date + this->incubation_period;
+      int incubation_period = trj_it.get_current();
+      this->symptomatic_date = this->exposure_date + incubation_period;
       was_incubating = false;
     }
 
@@ -145,15 +129,6 @@ void Infection::determine_transition_dates() {
   }
   // report_infection(day);
 }
-
-void Infection::chronic_update(int today) {
-  int days_post_exposure = today - this->exposure_date;
-  // printf("CHRONIC day %d post %d\n", today, days_post_exposure);
-  if (days_post_exposure > 3 && this->host->is_infectious(disease->get_id()) == false) {
-    this->host->become_infectious(this->disease);
-  }
-}
-
 
 void Infection::update(int today) {
 
@@ -191,7 +166,7 @@ void Infection::update(int today) {
   }
 
   if(today != get_recovery_date()) {
-    vector<int> strains;
+  std:vector<int> strains;
     this->trajectory->get_all_strains(strains);
   }
 
@@ -211,6 +186,32 @@ void Infection::update(int today) {
       }
     }
   }
+}
+
+void Infection::chronic_update(int today) {
+  int days_post_exposure = today - this->exposure_date;
+  // printf("CHRONIC day %d post %d\n", today, days_post_exposure);
+  if (days_post_exposure > 3 && this->host->is_infectious(disease->get_id()) == false) {
+    this->host->become_infectious(this->disease);
+  }
+}
+
+
+int Infection::get_susceptible_date() const {
+  int recovery_period = this->disease->get_days_recovered();
+  if(recovery_period > -1) {
+    return get_recovery_date() + recovery_period;
+  } else {
+    return INT_MAX;
+  }
+}
+
+bool Infection::is_infectious() {
+  return this->infectivity > this->disease->get_infectivity_threshold();
+}
+
+bool Infection::is_symptomatic() {
+  return this->symptoms > this->disease->get_symptomaticity_threshold();
 }
 
 void Infection::advance_seed_infection(int days_to_advance) {
@@ -301,12 +302,10 @@ void Infection::modify_develops_symptoms(bool symptoms, int today) {
 
 void Infection::print() const {
   printf("INF: Infection of disease type: %i in person %i "
-	 "periods:  latent %i, asymp: %i, symp: %i recovery: %i "
 	 "dates: exposed: %i, infectious: %i, symptomatic: %i, recovered: %i susceptible: %i "
 	 "will have symp? %i, suscept: %.3f infectivity: %.3f "
 	 "infectivity_multp: %.3f symptms: %.3f\n", this->disease->get_id(), this->host->get_id(),
-	 this->latent_period, this->asymptomatic_period, this->symptomatic_period,
-	 this->recovery_period, this->exposure_date, get_infectious_date(), get_symptomatic_date(),
+	 this->exposure_date, get_infectious_date(), get_symptomatic_date(),
 	 get_recovery_date(), get_susceptible_date(), this->will_be_symptomatic, this->susceptibility,
 	 this->infectivity, this->infectivity_multp, this->symptoms);
 }
@@ -364,8 +363,6 @@ void Infection::report_infection(int day) const {
   double host_lon = this->host->get_household()->get_longitude();
   infStrS << " home_lat " << host_lat;
   infStrS << " home_lon " << host_lon;
-  infStrS << " | PERIODS  latent " << this->latent_period << " asymp " << this->asymptomatic_period
-	  << " symp " << this->symptomatic_period << " recovery " << this->recovery_period;
   infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
   infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_date() << " symp "
 	  << get_symptomatic_date() << " rec " << get_recovery_date() << " sus "
