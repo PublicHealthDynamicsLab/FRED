@@ -133,22 +133,21 @@ void Classroom::enroll(Person * per) {
 }
 
 int Classroom::enroll_with_link(Person* person) {
-  int age = person->get_age();
-  if (age >= GRADES) age = GRADES - 1;
   assert(person->is_teacher() == false);
 
-  if (N == enrollees.capacity()) {
-    // double capacity if needed (to reduce future reallocations)
-    enrollees.reserve(2*N);
-  }
-  this->enrollees.push_back(person);
-  this->N++;
-  FRED_VERBOSE(1,"Enroll person %d age %d in classroom %d age_level %d %s\n",
+  // call base class method:
+  int return_value = Place::enroll_with_link(person);
+
+  int age = person->get_age();
+  int grade = ((age < GRADES) ? age : GRADES - 1);
+  assert(grade > 0);
+
+  FRED_VERBOSE(1,"Enrolled person %d age %d in classroom %d grade %d %s\n",
 	       person->get_id(), person->get_age(), this->id, this->age_level, this->label);
   if (this->age_level == -1) { this->age_level = age; }
-  assert(age == this->age_level);
+  assert(grade == this->age_level);
 
-  return enrollees.size()-1;
+  return return_value;
 }
 
 void Classroom::unenroll(Person * per) {
@@ -169,25 +168,15 @@ void Classroom::unenroll(Person * per) {
 }
 
 void Classroom::unenroll(int pos) {
-  Person *per = enrollees[pos];
-  assert(per->is_teacher() == false);
-  FRED_VERBOSE(1,"Unenroll person %d age %d from classroom %d %s size = %d\n",
-	       per->get_id(), per->get_age(), this->id, this->label, N);
-
-  Person *person = enrollees[pos];
-  int grade = person->get_grade();
-  FRED_VERBOSE(1,"Unenroll person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       person->get_id(), person->get_age(), grade, person->is_teacher()?1:0, this->id, this->label, N);
-  
   int size = enrollees.size();
   assert(0 <= pos && pos < size);
-  if (pos < size-1) {
-    Person* moved = enrollees[size-1];
-    enrollees[pos] = moved;
-    moved->update_enrollee_index(this,pos);
-  }
-  enrollees.pop_back();
-  this->N--;
-  FRED_VERBOSE(1,"Unenrolled from %s size = %d\n", get_label(),N);
+  Person *removed = enrollees[pos];
+  assert(removed->is_teacher() == false);
+  int grade = removed->get_grade();
+  FRED_VERBOSE(0,"UNENROLL removed %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, N);
+  
+  // call base class method
+  Place::unenroll(pos);
 }
 

@@ -268,6 +268,7 @@ private:
   Events<Epidemic> * susceptible_event_queue;
 
   // active sets
+  std::set<Person*> active_people;
   std::set<Place*> active_households;
   std::set<Place*> active_neighborhoods;
   std::set<Place*> active_schools;

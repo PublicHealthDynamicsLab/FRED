@@ -1706,7 +1706,7 @@ void Place_List::reassign_workers() {
 
 void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_staff, double staff_ratio) {
   int number_places = this->places.size();
-  Utils::fred_log("reassign workers entered. places = %d\n", number_places);
+  Utils::fred_log("reassign workers to place of type %c entered. places = %d\n", place_type, number_places);
   for(int p = 0; p < number_places; p++) {
     Place* place = this->places[p];
     if(place->get_type() == place_type) {
@@ -1715,9 +1715,9 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
       double x = Geo::get_x(lon);
       double y = Geo::get_y(lat);
       if(place_type == Place::SCHOOL) {
-	FRED_VERBOSE(1, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
       } else {
-	FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
       }
 
       // ignore place if it is outside the region
@@ -1758,7 +1758,7 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
 
 void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff, double resident_to_staff_ratio) {
   int number_places = this->places.size();
-  Utils::fred_log("reassign workers entered. places = %d\n", number_places);
+  Utils::fred_log("reassign workers to group quarters subtype %c entered. places = %d\n", subtype, number_places);
   for(int p = 0; p < number_places; ++p) {
     Place* place = this->places[p];
     if(place->is_workplace() && place->get_subtype() == subtype) {

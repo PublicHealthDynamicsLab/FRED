@@ -33,6 +33,9 @@ class Person_Place_Link {
 
   void enroll(Person *person, Place *place) {
     if (Global::Test) {
+      if (enrollee_index != -1) {
+	printf("enroll failed: place %d %s  enrollee_index %d \n", place->get_id(), place? place->get_label(): "NULL" , enrollee_index);
+      }
       assert(enrollee_index == -1);
       assert(place != NULL);
       enrollee_index = place->enroll_with_link(person);
@@ -45,26 +48,21 @@ class Person_Place_Link {
   }
 
   void unenroll(Person *person, Place *place) {
-    if (Global::Test) {
-      assert(enrollee_index != -1);
-      assert(place != NULL);
-      place->unenroll(enrollee_index);
-      enrollee_index = -1;
-      for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
-	if (infectious_enrollee_index[d] != -1) {
-	  unenroll_infectious_person(person, place, d);
-	}
+    assert(enrollee_index != -1);
+    assert(place != NULL);
+    place->unenroll(enrollee_index);
+    enrollee_index = -1;
+    for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
+      if (infectious_enrollee_index[d] != -1) {
+	unenroll_infectious_person(person, place, d);
       }
     }
-    else {
-      assert(place != NULL);
-      place->unenroll(person);
-    }
   }
-
+  
   void update_enrollee_index(int new_index) {
     assert(enrollee_index != -1);
     assert(new_index != -1);
+    // printf("update_enrollee_index: old = %d new = %d\n", enrollee_index, new_index); fflush(stdout);
     enrollee_index = new_index;
   }
 
@@ -88,6 +86,10 @@ class Person_Place_Link {
     infectious_enrollee_index[disease_id] = new_index;
   }
 
+  int get_enrollee_index() {
+    return enrollee_index;
+  }
+
   bool is_enrolled() {
     return enrollee_index != -1;
   }
@@ -97,7 +99,6 @@ class Person_Place_Link {
   }
 
  private:
-  int disease_id;
   int enrollee_index;
   int infectious_enrollee_index[Global::MAX_NUM_DISEASES];
 };

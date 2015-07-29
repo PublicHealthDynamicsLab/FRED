@@ -38,7 +38,6 @@ class Person;
 struct Place_State {
 
   fred::Spin_Mutex mutex;
-  // working copies of susceptibles and infectious lists
   std::vector<Person*> susceptibles;
   std::vector<Person*> infectious;
 
@@ -146,51 +145,17 @@ public:
    */
   void setup(const char* lab, fred::geo lon, fred::geo lat);
 
-  static void initialize_static_variables();
+  virtual void print(int disease_id);
 
-  /**
-   * Get this place ready
-   */
+  // initialzation
+  static void initialize_static_variables();
   virtual void prepare();
 
-  /**
-   * Perform a daily update of this place.  The vectors
-   * containing infectious and symptomatics will be cleared.
-   */
+  // daily update
   virtual void update(int day);
-
-  std::vector<Person *> get_infectious(int disease_id);
-  std::vector<Person *> get_susceptibles(int disease_id);
-
-  void add_to_infector_set(int disease_id, Person *person) {
-    infector_set[disease_id].insert(person);
-  }
-
-  void remove_from_infector_set(int disease_id, Person *person) {
-    infector_set[disease_id].erase(person);
-  }
-
-  int get_infector_set_size(int disease_id) {
-    return infector_set[disease_id].size();
-  }
-
-  void print_infector_set(int disease_id);
-
   void reset_place_state(int disease_id);
-
-  /**
-   * The daily count arrays will all be reset.
-   */
   void reset_visualization_data(int day);
-
   void reset_vector_data(int day);
-
-  /**
-   * Display the information for a given disease.
-   *
-   * @param disease an integer representation of the disease
-   */
-  virtual void print(int disease_id);
 
   // old enroll/unenroll:
   virtual void enroll(Person* per);
@@ -202,75 +167,30 @@ public:
   int enroll_infectious_person(int disease_id, Person* per);
   void unenroll_infectious_person(int disease, int pos);
 
-  /**
-   * Get the number of adults in the household.
-   * @return the number of adults
-   */
-  int get_adults();
-
-  /**
-   * Get the number of children in the household.
-   * @return the number of children
-   */
-  int get_children();
-
   void register_as_an_infectious_place(int disease_id);
-
   void add_visitors_if_infectious(int day);
   void add_visitors_to_infectious_place(int day, int disease_id);
-
-  /**
-   * Add a susceptible person to the place. This method adds the person to the susceptibles vector.
-   *
-   * @param disease_id an integer representation of the disease
-   * @param per a pointer to a Person object that will be added to the place for a given diease
-   */
   void add_susceptible(int disease_id, Person* per);
   void add_nonsusceptible(int disease_id, Person* per);
 
-  /**
-   * Add a infectious person to the place. This method adds the person to the infectious vector.
-   *
-   * @param disease_id an integer representation of the disease
-   * @param per a pointer to a Person object that will be added to the place for a given diease
-   */
   void add_infectious(int disease_id, Person* per);
-
-  /**
-   * Prints the id of every person in the susceptible vector for a given diease.
-   *
-   * @param disease_id an integer representation of the disease
-   */
   void print_susceptibles(int disease_id);
-
-  /**
-   * Prints the id of every person in the infectious vector for a given diease.
-   *
-   * @param disease_id an integer representation of the disease
-   */
   void print_infectious(int disease_id);
-
   int get_number_of_infectious_people(int disease_id);
 
-  /**
-   * Attempt to spread the infection for a given diease on a given day.
-   *
-   * @param day the simulation day
-   * @param disease_id an integer representation of the disease
-   */
-  void spread_infection(int day, int disease_id);
+  // disease transmission
+  std::vector<Person *> get_infectious(int disease_id);
+  std::vector<Person *> get_susceptibles(int disease_id);
 
+  void spread_infection(int day, int disease_id);
   void default_transmission_model(int day, int disease_id);
   void age_based_transmission_model(int day, int disease_id);
   void pairwise_transmission_model(int day, int disease_id);
   void density_transmission_model(int day, int disease_id);
 
-  /**
-   * Is the place open on a given day?
-   *
-   * @param day the simulation day
-   * @return <code>true</code> if the place is open; <code>false</code> if not
-   */
+  // access methods:
+  int get_adults();
+  int get_children();
   virtual bool is_open(int day) {
     return true;
   }
@@ -281,11 +201,22 @@ public:
    * @return <code>true</code> if any infectious people are here; <code>false</code> if not
    */
   bool is_infectious(int disease_id) {
-    return this->infectious_bitset.test(disease_id);
+    if (Global::Test) {
+      return infectious_enrollees[disease_id].size() > 0;
+    }
+    else {
+      return this->infectious_bitset.test(disease_id);
+    }
   }
   
   bool is_infectious() {
-    return this->infectious_bitset.any();
+    if (Global::Test) {
+      // TEMP:
+      return infectious_enrollees[0].size() > 0;
+    }
+    else {
+      return this->infectious_bitset.any();
+    }
   }
   
   bool is_human_infectious(int disease_id) {
@@ -873,6 +804,8 @@ public:
 protected:
   std::vector<Person*> susceptibles[Global::MAX_NUM_DISEASES];
   std::vector<Person*> infectious[Global::MAX_NUM_DISEASES];
+  std::vector<Person*> enrollees;
+  std::vector<Person*> infectious_enrollees[Global::MAX_NUM_DISEASES];
 
   // list of places that are infectious today
   static place_vec infectious_places;
@@ -895,8 +828,6 @@ protected:
   fred::disease_bitset recovered_bitset; 
   fred::disease_bitset exposed_bitset; 
 
-  std::set<Person *> infector_set[Global::MAX_NUM_DISEASES];
-
   char label[32];         // external id
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;
   fred::place_subtype subtype;
@@ -904,8 +835,6 @@ protected:
   int id;                 // place id
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
-  vector <Person*> enrollees;
-  vector <Person*> infectious_enrollees[Global::MAX_NUM_DISEASES];
   int close_date;         // this place will be closed during:
   int open_date;          //   [close_date, open_date)
   int N;                  // total number of potential visitors

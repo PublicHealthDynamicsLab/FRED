@@ -215,9 +215,32 @@ public:
     }
   }
 
-  void set_favorite_place(int i, Place* p) {
-    if(p != NULL) {
-      this->favorite_places_map[i] = p;
+  Place* get_prev_favorite_place(int i) {
+    if(this->prev_favorite_places_map.find(i) != this->prev_favorite_places_map.end()) {
+      return this->prev_favorite_places_map[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  void set_favorite_place(int i, Place* place) {
+    if (Global::Test) {
+      // update link if necessary
+      Place* old_place = get_favorite_place(i);
+      if (place != old_place) {
+	if (old_place != NULL) {
+	  // remove old link
+	  link[i].unenroll(myself, old_place);
+	}
+	if (place != NULL) {
+	  link[i].enroll(myself, place);
+	}
+      }
+    }
+
+    // update favorite place map
+    if(place != NULL) {
+      this->favorite_places_map[i] = place;
     } else {
       std::map<int, Place*>::iterator itr;
       itr = this->favorite_places_map.find(i);
@@ -590,10 +613,17 @@ public:
 
 private:
 
+  // pointer to owner
+  Person* myself;
+
   Person_Place_Link link[Activity_index::FAVORITE_PLACES];
 
   // current favorite places
   std::map<int, Place*> favorite_places_map;
+
+  // previous favorite places
+  std::map<int, Place*> prev_favorite_places_map;
+
   // list of favorite places, stored while traveling
   std::map<int, Place*> * tmp_favorite_places_map;
 
@@ -677,59 +707,68 @@ private:
     this->favorite_places_map.clear();
   }
 
-  void enroll_in_favorite_places(Person* self) {
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      Place* place = get_favorite_place(i);
-      if(place != NULL) {
-	if (Global::Test) {
-	  link[i].enroll(self, place);
-	}
-	else {
-	  place->enroll(self);
-	}
+  void enroll_in_favorite_place(int i, Person* self) {
+    Place* place = get_favorite_place(i);
+    if(place != NULL) {
+      if (Global::Test) {
+	link[i].enroll(self, place);
+      }
+      else {
+	place->enroll(self);
       }
     }
   }
 
-  void update_enrollee_index(Place * place, int new_index) {
+  void enroll_in_favorite_places(Person* self) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      if (place == get_favorite_place(i)) {
-	link[i].update_enrollee_index(new_index);
-	return;
+      enroll_in_favorite_place(i, self);
+    }
+  }
+
+  void update_enrollee_index(Place * place, int new_index);
+
+  void unenroll_from_favorite_place(int i, Person* self) {
+    Place* place = get_favorite_place(i);
+    if (place != NULL) {
+      if (Global::Test) {
+	link[i].unenroll(self, place);
+      }
+      else {
+	place->unenroll(self);
       }
     }
   }
 
   void unenroll_from_favorite_places(Person* self) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      Place* place = get_favorite_place(i);
-      if (place != NULL) {
-	if (Global::Test) {
-	  link[i].unenroll(self, place);
-	}
-	else {
-	  place->unenroll(self);
-	}
-      }
+      unenroll_from_favorite_place(i, self);
     }
     clear_favorite_places();
   }
 
+  void enroll_as_infectious_person_in_favorite_place(int i, Person* self, int disease_id) {
+    Place* place = get_favorite_place(i);
+    if(place != NULL) {
+      link[i].enroll_infectious_person(self, place, disease_id);
+    }
+  }
+
   void enroll_as_infectious_person(Person* self, int disease_id) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      Place* place = get_favorite_place(i);
-      if(place != NULL) {
-	link[i].enroll_infectious_person(self, place, disease_id);
-      }
+      enroll_as_infectious_person_in_favorite_place(i, self, disease_id);
     }
   }
 
   void unenroll_as_infectious_person(Person* self, int disease_id) {
     for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      Place* place = get_favorite_place(i);
-      if(place != NULL) {
-	link[i].unenroll_infectious_person(self, place, disease_id);
-      }
+      unenroll_as_infectious_person_in_favorite_place(i, self, disease_id);
+    }
+  }
+
+  void unenroll_as_infectious_person_in_favorite_place(int i, Person* self, int disease_id) {
+    Place* place = get_favorite_place(i);
+    if(place != NULL) {
+      link[i].unenroll_infectious_person(self, place, disease_id);
     }
   }
 
@@ -782,6 +821,10 @@ private:
     *this->tmp_favorite_places_map = this->favorite_places_map;
   }
 
+  void store_prev_favorite_places() {
+    this->prev_favorite_places_map = this->favorite_places_map;
+  }
+
   /**
    * Copy the favorite places from the temporary location, then reclaim
    * the allocated memory of the temporary storage
@@ -796,8 +839,12 @@ private:
     return get_favorite_place(p) == NULL ? -1 : get_favorite_place(p)->get_id();
   }
 
-  const char* get_place_label(int p) {
+  const char* get_favorite_place_label(int p) {
     return get_favorite_place(p) == NULL ? "NULL" : get_favorite_place(p)->get_label();
+  }
+  
+  const char* get_label_for_place(Place * p) {
+    return (p == NULL) ? "NULL" : p->get_label();
   }
 
 protected:

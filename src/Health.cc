@@ -522,9 +522,11 @@ void Health::recover(Person* self, Disease* disease) {
 }
 
 void Health::become_removed(Person* self, int disease_id) {
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  disease->become_removed(self, this->susceptible.test(disease_id),
-			  this->infectious.test(disease_id), this->symptomatic.test(disease_id));
+  if (Global::Test == 0) {
+    Disease* disease = Global::Diseases.get_disease(disease_id);
+    disease->become_removed(self, this->susceptible.test(disease_id),
+			    this->infectious.test(disease_id), this->symptomatic.test(disease_id));
+  }
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);

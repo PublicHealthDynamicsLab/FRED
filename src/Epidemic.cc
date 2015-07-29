@@ -157,6 +157,7 @@ Epidemic::Epidemic(Disease* dis) {
   this->noninfectious_event_queue = new Events<Epidemic>;
   this->susceptible_event_queue = new Events<Epidemic>;
 
+  this->active_people.clear();
   this->active_households.clear();
   this->active_neighborhoods.clear();
   this->active_schools.clear();
@@ -247,13 +248,17 @@ void Epidemic::delete_susceptible_event(int day, Person *person) {
 }
 
 void Epidemic::infectious_event_handler(int day, Person* person) {
-  person->update_activities_of_infectious_person(day);
-  person->enroll_as_infectious_person(this->id);
+  FRED_VERBOSE(0,"infectious_event_handler day %d person %d\n",day,person->get_id());
+  person->become_infectious(this->disease);
+  this->active_people.insert(person);
 }
 
 void Epidemic::noninfectious_event_handler(int day, Person* person) {
+  FRED_VERBOSE(0,"noninfectious_event_handler day %d person %d\n",day,person->get_id());
+  person->recover(this->disease);
   // Note: need to find places enrolled in as infectious
   person->unenroll_as_infectious_person(this->id);
+  this->active_people.erase(person);
 }
 
 
@@ -376,7 +381,6 @@ void Epidemic::become_unsusceptible(Person* person) {
 }
 
 void Epidemic::become_exposed(Person* person, int day) {
-#pragma omp atomic
   this->people_becoming_infected_today++;
 
   // update infectious event list
@@ -1729,28 +1733,37 @@ void Epidemic::update(int day) {
     func = &Epidemic::susceptible_event_handler;
     this->susceptible_event_queue->event_handler(day, this, func);
 
+    // update the daily activities of infectious people
+    for (std::set<Person*>::iterator it = this->active_people.begin(); it != this->active_people.end(); ++it) {
+      FRED_VERBOSE(0, "updating activities of infectious person %d\n", (*it)->get_id());
+      (*it)->update_activities_of_infectious_person(day);
+      FRED_VERBOSE(0, "updated activities of infectious person %d\n", (*it)->get_id());
+    }
+
     FRED_VERBOSE(0, "EPIDEMIC active households %d\n",
 		 this->active_households.size());
 
     inf_households.clear();
     for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
-      (*it)->print_infector_set(this->id);
+      (*it)->print_infectious(this->id);
       inf_households.push_back(*it);
     }
     printf("\n");
 
     // want this??
+    /*
     for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
       if ((*it)->get_infector_set_size(this->id) == 0) {
 	active_schools.erase(it);
       }
     }
+    */
 
     FRED_VERBOSE(0, "EPIDEMIC active schools %d\n",
 		 this->active_schools.size());
     
     for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-      (*it)->print_infector_set(this->id);
+      (*it)->print_infectious(this->id);
       inf_schools.push_back(*it);
     }
     printf("\n");

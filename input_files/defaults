@@ -220,7 +220,7 @@ neighborhood_distance_exponent = 3.0
 neighborhood_population_exponent = 1.0
 
 # if set, only infectious people can visit other neighborhoods
-visit_home_neighborhood_unless_infectious = 0
+visit_home_neighborhood_unless_infectious = 1
 
 # If set, then all workers who have a workplace outside the location file
 # are assigned a random workplace in the location file.

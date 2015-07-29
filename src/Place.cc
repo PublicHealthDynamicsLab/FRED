@@ -168,9 +168,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   }
   this->county_index = -1;
   this->census_tract_index = -1;
-  for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
-    this->infector_set[d].clear();
-  }
+
 }
 
 void Place::reset_place_state(int disease_id) {
@@ -180,22 +178,6 @@ void Place::reset_place_state(int disease_id) {
     this->place_state[disease_id].reset();
   }
   this->infectious_bitset.reset(disease_id);
-}
-
-void Place::print_infector_set(int disease_id) {
-  std::vector<Person *>infectors;
-  infectors.reserve(infector_set[disease_id].size());
-  infectors.clear();
-  for (std::set<Person*>::iterator it = infector_set[disease_id].begin(); it != infector_set[disease_id].end(); ++it) {
-    infectors.push_back(*it);
-  }
-  std::sort(infectors.begin(), infectors.end(), compare_id);
-  int n = infectors.size();
-  printf("INFECTOR SET for place %d: ",id);
-  for (int i = 0; i < n; i++) {
-    printf("%d ", infectors[i]->get_id());
-  }
-  printf("\n");
 }
 
 void Place::prepare() {
@@ -276,6 +258,8 @@ void Place::print(int disease_id) {
 }
 
 void Place::enroll(Person* person) {
+  FRED_VERBOSE(0,"enroll person %d in place %d %s -- current size is %d\n",
+	       person->get_id(), this->id, this->label, this->N);
   if(get_enrollee_index(person) == -1) {
     this->enrollees.push_back(person);
     this->N++;
@@ -288,15 +272,15 @@ void Place::enroll(Person* person) {
 }
 
 void Place::unenroll(Person* per) {
-  FRED_VERBOSE(1,"Unenroll person %d age %d from place %d %s Size = %d\n",
-	       per->get_id(), per->get_age(), this->id, this->label, this->N);
+  FRED_VERBOSE(0,"unenroll person %d from place %d %s -- current size is %d\n",
+	       per->get_id(), this->id, this->label, this->N);
   int i = get_enrollee_index(per);
   if(i == -1) {
-    FRED_VERBOSE(1,"U_WARNING NOT FOUND\n");
+    FRED_VERBOSE(0,"U_WARNING NOT FOUND\n");
   } else {
     enrollees.erase(enrollees.begin()+i);
     this->N--;
-    FRED_VERBOSE(1,"Unenrolled. Size = %d\n", this->N);
+    FRED_VERBOSE(0,"Unenrolled. Size = %d\n", this->N);
   }
 }
 
@@ -320,15 +304,25 @@ int Place::enroll_infectious_person(int disease_id, Person* per) {
 
 void Place::unenroll(int pos) {
   int size = enrollees.size();
+  if (!(0 <= pos && pos < size)) {
+    printf("place %d %s pos = %d size = %d\n", this->id, this->label, pos, size);
+  }
   assert(0 <= pos && pos < size);
+  Person* removed = enrollees[pos];
   if (pos < size-1) {
     Person* moved = enrollees[size-1];
+    FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved %d\n",
+		 this->id, this->label, pos, size, removed->get_id(), moved->get_id());
     enrollees[pos] = moved;
     moved->update_enrollee_index(this,pos);
   }
+  else {
+    FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved NONE\n",
+		 this->id, this->label, pos, size, removed->get_id());
+  }
   enrollees.pop_back();
   this->N--;
-  FRED_VERBOSE(1,"Unenrolled. Size = %d\n", this->N);
+  FRED_VERBOSE(1,"UNENROLL place %d %s size = %d\n", this->id, this->label, this->enrollees.size());
 }
 
 void Place::unenroll_infectious_person(int disease_id, int pos) {
@@ -347,7 +341,7 @@ void Place::unenroll_infectious_person(int disease_id, int pos) {
 
 int Place::get_children() {
   int children = 0;
-  for(int i = 0; i < this->N; ++i) {
+  for(int i = 0; i < this->enrollees.size(); ++i) {
     children += (this->enrollees[i]->get_age() < Global::ADULT_AGE);
   }
   return children;
@@ -478,31 +472,27 @@ int Place::get_number_of_infectious_people(int disease_id) {
 }
 
 void Place::turn_workers_into_teachers(Place* school) {
-  FRED_VERBOSE(1,"Place %s has %d enrollees\n", this->get_label(), this->enrollees.size());
   std::vector <Person *> workers;
   workers.reserve((int)this->enrollees.size());
   workers.clear();
   for(int i = 0; i < (int)this->enrollees.size(); ++i) {
     workers.push_back(this->enrollees[i]);
   }
+  FRED_VERBOSE(0,"turn_workers_into_teachers: place %d %s has %d workers\n", this->id, this->get_label(), this->enrollees.size());
   int new_teachers = 0;
   for(int i = 0; i < (int)workers.size(); ++i) {
     Person* person = workers[i];
-    if(person != NULL) {
-      FRED_VERBOSE(1,"Potential teacher %d age %d\n", person->get_id(), person->get_age());
-    } else {
-      printf("Enrollee %i not found\n", i);
-      abort();
-    }
+    assert(person != NULL);
+    FRED_VERBOSE(0,"Potential teacher %d age %d\n", person->get_id(), person->get_age());
     if(person->become_a_teacher(school)) {
       new_teachers++;
-      FRED_VERBOSE(1,"new teacher %d age %d moving from workplace %s to school %s\n",
-		   person->get_id(), person->get_age(), label, school->get_label());
+      FRED_VERBOSE(0,"new teacher %d age %d moved from workplace %d %s to school %d %s\n",
+		   person->get_id(), person->get_age(), this->id, this->label, school->get_id(), school->get_label());
     }
   }
-  FRED_VERBOSE(1, "%d new teachers reassigned from workplace %s to school %s\n", new_teachers,
+  FRED_VERBOSE(0, "%d new teachers reassigned from workplace %s to school %s\n", new_teachers,
 	       label, school->get_label());
-  this->N = 0;
+  // this->N = 0;
 }
 
 void Place::reassign_workers(Place* new_place) {
@@ -628,7 +618,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 				 int disease_id, int day) {
 
   assert(infectee->is_susceptible(disease_id));
-  FRED_STATUS(1, "infectee is susceptible\n", "");
+  FRED_STATUS(1, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
 
   double susceptibility = infectee->get_susceptibility(disease_id);
 
@@ -714,7 +704,7 @@ void Place::spread_infection(int day, int disease_id) {
   // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
   std::vector<Person*> susceptibles = get_susceptibles(disease_id);
   std::vector<Person*> infectious = get_infectious(disease_id);
-  printf("place %d inf %d sus %d\n", id, (int)infectious.size(), (int)susceptibles.size());
+  printf("spread_infection place %d inf %d sus %d\n", id, (int)infectious.size(), (int)susceptibles.size());
 
   if(Global::Enable_Vector_Transmission) {
     vector_transmission(day, disease_id);
@@ -761,8 +751,8 @@ void Place::default_transmission_model(int day, int disease_id) {
   std::vector<Person*> susceptibles = get_susceptibles(disease_id);
   std::vector<Person*> infectious = get_infectious(disease_id);
 
-  // printf("DAY %d PLACE %s N %d susc %d inf %d\n",
-  // day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
+  printf("default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
+	 day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
 
   // the number of possible infectees per infector is max of (N-1) and S[s]
   // where N is the capacity of this place and S[s] is the number of current susceptibles
@@ -776,10 +766,14 @@ void Place::default_transmission_model(int day, int disease_id) {
   // randomize the order of the infectious list
   FYShuffle<Person*>(infectious);
 
+  printf("shuffled infectious size %d\n", (int)infectious.size());
+
   for(int infector_pos = 0; infector_pos < infectious.size(); ++infector_pos) {
     // infectious visitor
     Person* infector = infectious[infector_pos];
+    printf("infector id %d\n", infector->get_id());
     if(infector->get_health()->is_infectious(disease_id) == false) {
+      printf("infector id %d not infectious!\n", infector->get_id());
       continue;
     }
 

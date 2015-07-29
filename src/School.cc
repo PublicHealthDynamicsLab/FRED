@@ -358,12 +358,10 @@ void School::enroll(Person* person) {
 }
 
 int School::enroll_with_link(Person* person) {
-  if (N == enrollees.capacity()) {
-    // double capacity if needed (to reduce future reallocations)
-    enrollees.reserve(2*N);
-  }
-  this->enrollees.push_back(person);
-  this->N++;
+
+  // call base class method:
+  int return_value = Place::enroll_with_link(person);
+
   FRED_VERBOSE(1,"Enroll person %d age %d in school %d %s new size %d\n",
 	       person->get_id(), person->get_age(), this->id, this->label, this->get_size());
   if(person->is_teacher()) {
@@ -378,7 +376,8 @@ int School::enroll_with_link(Person* person) {
     }
     person->set_grade(grade);
   }
-  return enrollees.size()-1;
+
+  return return_value;
 }
 
 void School::unenroll(Person* person) {
@@ -408,25 +407,22 @@ void School::unenroll(Person* person) {
 void School::unenroll(int pos) {
   int size = enrollees.size();
   assert(0 <= pos && pos < size);
-  Person *person = enrollees[pos];
-  int grade = person->get_grade();
-  FRED_VERBOSE(1,"Unenroll person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       person->get_id(), person->get_age(), grade, person->is_teacher()?1:0, this->id, this->label, N);
-  if (pos < size-1) {
-    Person* moved = enrollees[size-1];
-    enrollees[pos] = moved;
-    moved->update_enrollee_index(this,pos);
-  }
-  enrollees.pop_back();
-  this->N--;
-  if(person->is_teacher() || grade == 0) {
+  Person *removed = enrollees[pos];
+  int grade = removed->get_grade();
+  FRED_VERBOSE(1,"UNENROLL person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, N);
+
+  // call the base class method
+  Place::unenroll(pos);
+
+  if(removed->is_teacher() || grade == 0) {
     this->staff_size--;
   } else {
     assert(0 < grade && grade <= max_grade);
     this->students_in_grade[grade]--;
   }
-  person->set_grade(0);
-  FRED_VERBOSE(1,"Unenrolled from %s size = %d\n", get_label(),N);
+  removed->set_grade(0);
+  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->id, this->label, N);
 }
 
 void School::print(int disease_id) {
