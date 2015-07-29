@@ -467,8 +467,13 @@ void Place::print_infectious(int disease_id) {
 }
 
 int Place::get_number_of_infectious_people(int disease_id) {
-  std::vector<Person *> infectious = get_infectious(disease_id);
-  return infectious.size();
+  if (Global::Test) {
+    return infectious_enrollees[disease_id].size();
+  }
+  else {
+    std::vector<Person *> infectious = get_infectious(disease_id);
+    return infectious.size();
+  }
 }
 
 void Place::turn_workers_into_teachers(Place* school) {
@@ -751,7 +756,7 @@ void Place::default_transmission_model(int day, int disease_id) {
   std::vector<Person*> susceptibles = get_susceptibles(disease_id);
   std::vector<Person*> infectious = get_infectious(disease_id);
 
-  printf("default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
+  FRED_VERBOSE(1, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
 	 day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
 
   // the number of possible infectees per infector is max of (N-1) and S[s]
@@ -766,7 +771,7 @@ void Place::default_transmission_model(int day, int disease_id) {
   // randomize the order of the infectious list
   FYShuffle<Person*>(infectious);
 
-  printf("shuffled infectious size %d\n", (int)infectious.size());
+  // printf("shuffled infectious size %d\n", (int)infectious.size());
 
   for(int infector_pos = 0; infector_pos < infectious.size(); ++infector_pos) {
     // infectious visitor

@@ -164,11 +164,13 @@ Epidemic::Epidemic(Disease* dis) {
   this->active_classrooms.clear();
   this->active_workplaces.clear();
   this->active_offices.clear();
+  this->active_hospitals.clear();
 }
 
 
 void Epidemic::activate_place(Place *place) {
 
+  // TODO: replace with switch
   if (place->is_household()) {
     active_households.insert(place);
     return;
@@ -191,6 +193,10 @@ void Epidemic::activate_place(Place *place) {
   }
   if (place->is_office()) {
     active_offices.insert(place);
+    return;
+  }
+  if (place->is_hospital()) {
+    active_hospitals.insert(place);
     return;
   }
 }
@@ -249,12 +255,18 @@ void Epidemic::delete_susceptible_event(int day, Person *person) {
 
 void Epidemic::infectious_event_handler(int day, Person* person) {
   FRED_VERBOSE(0,"infectious_event_handler day %d person %d\n",day,person->get_id());
+  become_infectious(person);
   person->become_infectious(this->disease);
   this->active_people.insert(person);
+  std::vector<Place*> faves = person->get_favorite_places();
+  for (int i = 0; i < faves.size(); i++) {
+    activate_place(faves[i]);
+  }
 }
 
 void Epidemic::noninfectious_event_handler(int day, Person* person) {
   FRED_VERBOSE(0,"noninfectious_event_handler day %d person %d\n",day,person->get_id());
+  become_removed(person);
   person->recover(this->disease);
   // Note: need to find places enrolled in as infectious
   person->unenroll_as_infectious_person(this->id);
@@ -555,6 +567,35 @@ void Epidemic::become_removed(Person* person, bool susceptible, bool infectious,
 #pragma omp atomic
     this->daily_case_fatality_count++;
 #pragma omp atomic
+    this->total_case_fatality_count++;
+  }
+}
+
+
+void Epidemic::become_removed(Person* person) {
+  // operations on bloque (underlying container for population) are thread-safe
+  if(person->is_infectious(this->id)) {
+    if(Global::Pop.check_mask_by_index(fred::Infectious, person->get_pop_index())) {
+      Global::Pop.clear_mask_by_index(fred::Infectious, person->get_pop_index());
+      FRED_VERBOSE(1, "OK: become_removed: person %d removed from \
+          infectious_list\n",
+		   person->get_id());
+    } else {
+      if(Global::Enable_Vector_Transmission == false) {
+	FRED_VERBOSE(0,
+		     "WARNING: become_removed: person %d not removed from \
+          infectious_list\n",
+		     person->get_id());
+      }
+    }
+  }
+  if(person->is_symptomatic(this->id)) {
+    this->people_with_current_symptoms--;
+  }
+  this->removed_people++;
+
+  if(person->is_dead()) {
+    this->daily_case_fatality_count++;
     this->total_case_fatality_count++;
   }
 }
@@ -1718,6 +1759,11 @@ void Epidemic::update(int day) {
 
   if (Global::Test) {
 
+    // update health status of people on the active list
+    for (std::set<Person*>::iterator it = this->active_people.begin(); it != this->active_people.end(); ++it) {
+      (*it)->update_health(day);
+    }
+
     // transition from exposed to infectious
     FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_event_queue->get_size(day));
     EpidemicMemFn func = &Epidemic::infectious_event_handler;
@@ -1740,50 +1786,165 @@ void Epidemic::update(int day) {
       FRED_VERBOSE(0, "updated activities of infectious person %d\n", (*it)->get_id());
     }
 
-    FRED_VERBOSE(0, "EPIDEMIC active households %d\n",
-		 this->active_households.size());
-
-    inf_households.clear();
     for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
-      (*it)->print_infectious(this->id);
-      inf_households.push_back(*it);
+      if ((*it)->is_infectious(this->id) == false) {
+	active_households.erase(it);
+      }
     }
-    printf("\n");
 
-    // want this??
-    /*
+    for (std::set<Place*>::iterator it = active_neighborhoods.begin(); it != active_neighborhoods.end(); ++it) {
+      if ((*it)->is_infectious(this->id) == false) {
+	active_neighborhoods.erase(it);
+      }
+    }
+
     for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-      if ((*it)->get_infector_set_size(this->id) == 0) {
+      if ((*it)->is_infectious(this->id) == false) {
 	active_schools.erase(it);
       }
     }
-    */
 
+    for (std::set<Place*>::iterator it = active_classrooms.begin(); it != active_classrooms.end(); ++it) {
+      if ((*it)->is_infectious(this->id) == false) {
+	active_classrooms.erase(it);
+      }
+    }
+
+    for (std::set<Place*>::iterator it = active_workplaces.begin(); it != active_workplaces.end(); ++it) {
+      if ((*it)->is_infectious(this->id) == false) {
+	active_workplaces.erase(it);
+      }
+    }
+
+    for (std::set<Place*>::iterator it = active_offices.begin(); it != active_offices.end(); ++it) {
+      if ((*it)->is_infectious(this->id) == false) {
+	active_offices.erase(it);
+      }
+    }
+
+    for (std::set<Place*>::iterator it = active_hospitals.begin(); it != active_hospitals.end(); ++it) {
+      if ((*it)->is_infectious(this->id) == false) {
+	active_hospitals.erase(it);
+      }
+    }
+
+    FRED_VERBOSE(0, "EPIDEMIC active households %d\n",
+		 this->active_households.size());
+      
+    FRED_VERBOSE(0, "EPIDEMIC active neighborhoods %d\n",
+		 this->active_neighborhoods.size());
+      
     FRED_VERBOSE(0, "EPIDEMIC active schools %d\n",
 		 this->active_schools.size());
-    
+      
+    FRED_VERBOSE(0, "EPIDEMIC active classrooms %d\n",
+		 this->active_classrooms.size());
+      
+    FRED_VERBOSE(0, "EPIDEMIC active workplaces %d\n",
+		 this->active_workplaces.size());
+      
+    FRED_VERBOSE(0, "EPIDEMIC active ofices %d\n",
+		 this->active_offices.size());
+      
+    FRED_VERBOSE(0, "EPIDEMIC active hospitals %d\n",
+		 this->active_hospitals.size());
+
+    inf_households.clear();
+    for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_households.push_back(*it);
+    }
+    // printf("\n");
+
+    inf_neighborhoods.clear();
+    for (std::set<Place*>::iterator it = active_neighborhoods.begin(); it != active_neighborhoods.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_neighborhoods.push_back(*it);
+    }
+    // printf("\n");
+
+    inf_schools.clear();
     for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-      (*it)->print_infectious(this->id);
+      // (*it)->print_infectious(this->id);
       inf_schools.push_back(*it);
     }
-    printf("\n");
+    // printf("\n");
+
+    inf_classrooms.clear();
+    for (std::set<Place*>::iterator it = active_classrooms.begin(); it != active_classrooms.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_classrooms.push_back(*it);
+    }
+    // printf("\n");
+
+    inf_workplaces.clear();
+    for (std::set<Place*>::iterator it = active_workplaces.begin(); it != active_workplaces.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_workplaces.push_back(*it);
+    }
+    // printf("\n");
+
+    inf_offices.clear();
+    for (std::set<Place*>::iterator it = active_offices.begin(); it != active_offices.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_offices.push_back(*it);
+    }
+    // printf("\n");
+
+    inf_hospitals.clear();
+    for (std::set<Place*>::iterator it = active_hospitals.begin(); it != active_hospitals.end(); ++it) {
+      // (*it)->print_infectious(this->id);
+      inf_hospitals.push_back(*it);
+    }
+    // printf("\n");
   }
 
-  FRED_VERBOSE(0, "EPIDEMIC inf households %d\n",
-	       this->inf_households.size());
+  FRED_VERBOSE(0, "EPIDEMIC inf neighborhoods %d\n",
+	       this->inf_neighborhoods.size());
   
-  for(int i = 0; i < this->inf_households.size(); ++i) {
-    this->inf_households[i]->print_infectious(id);
+  /*
+  for(int i = 0; i < this->inf_neighborhoods.size(); ++i) {
+    this->inf_neighborhoods[i]->print_infectious(id);
   }
   printf("\n");
-  
-  FRED_VERBOSE(0, "EPIDEMIC inf schools %d\n",
-	       this->inf_schools.size());
-  
-  for(int i = 0; i < this->inf_schools.size(); ++i) {
-    this->inf_schools[i]->print_infectious(id);
+  */
+
+  FRED_VERBOSE(0, "EPIDEMIC inf classrooms %d\n",
+	       this->inf_classrooms.size());
+
+  /*
+  for(int i = 0; i < this->inf_classrooms.size(); ++i) {
+this->inf_classrooms[i]->print_infectious(id);
   }
   printf("\n");
+  */
+
+  FRED_VERBOSE(0, "EPIDEMIC inf workplaces %d\n",
+	       this->inf_workplaces.size());
+  /*
+  for(int i = 0; i < this->inf_workplaces.size(); ++i) {
+    this->inf_workplaces[i]->print_infectious(id);
+  }
+  printf("\n");
+  */
+
+  FRED_VERBOSE(0, "EPIDEMIC inf offices %d\n",
+	       this->inf_offices.size());
+  /*
+  for(int i = 0; i < this->inf_offices.size(); ++i) {
+    this->inf_offices[i]->print_infectious(id);
+  }
+  printf("\n");
+  */
+
+  FRED_VERBOSE(0, "EPIDEMIC inf hospitals %d\n",
+	       this->inf_hospitals.size());
+  /*
+  for(int i = 0; i < this->inf_hospitals.size(); ++i) {
+    this->inf_hospitals[i]->print_infectious(id);
+  }
+  printf("\n");
+  */
 
   int infectious_places;
   infectious_places = (int)this->inf_households.size();

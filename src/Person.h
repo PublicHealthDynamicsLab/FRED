@@ -17,6 +17,7 @@
 #define _FRED_PERSON_H
 
 #include "Global.h"
+#include <vector>
 using namespace std;
 
 class Place;
@@ -114,6 +115,10 @@ public:
    */
   void prepare_activities() {
     this->activities.prepare();
+  }
+
+  std::vector<Place*> get_favorite_places() {
+    return this->activities.get_favorite_places();
   }
 
   void update_activities_of_infectious_person(int sim_day) {
@@ -333,6 +338,10 @@ public:
    */
   int is_symptomatic() {
     return this->health.is_symptomatic();
+  }
+
+  int is_symptomatic(int disease_id) {
+    return this->health.is_symptomatic(disease_id);
   }
 
   int get_days_symptomatic() {

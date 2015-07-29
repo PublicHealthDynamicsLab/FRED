@@ -20,6 +20,8 @@
 #include <bitset>
 #include <map>
 
+using namespace std;
+
 #include "Global.h"
 #include "Epidemic.h"
 #include "Place.h" 
@@ -213,6 +215,18 @@ public:
     } else {
       return NULL;
     }
+  }
+
+  std::vector<Place*> get_favorite_places() {
+    std::vector<Place*> faves;
+    faves.clear();
+    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+      Place* place = get_favorite_place(i);
+      if (place != NULL) {
+	faves.push_back(place);
+      }
+    }
+    return faves;
   }
 
   Place* get_prev_favorite_place(int i) {

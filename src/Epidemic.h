@@ -137,6 +137,7 @@ public:
   void become_infectious(Person* person);
   void become_uninfectious(Person* person);
   void become_symptomatic(Person* person);
+  void become_removed(Person* person);
   void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic);
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
@@ -275,6 +276,7 @@ private:
   std::set<Place*> active_classrooms;
   std::set<Place*> active_workplaces;
   std::set<Place*> active_offices;
+  std::set<Place*> active_hospitals;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;
