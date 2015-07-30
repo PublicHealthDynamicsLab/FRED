@@ -490,7 +490,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
 	if(self->is_infectious(disease_id) && link[i].is_enrolled() && !(link[i].is_enrolled_as_infectious(disease_id))) {
 	  Place * new_place = get_favorite_place(i);
 	  FRED_VERBOSE(0,"add infectious enrollment for disease %d to place %s\n", disease_id, new_place->get_label());
-	  link[i].enroll_infectious_person(self, new_place, disease_id);
+	  link[i].enroll_infectious_person(self, disease_id);
 	}
       }
     }

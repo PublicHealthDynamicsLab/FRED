@@ -124,8 +124,8 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 	Seasonality_Timestep_Map.o Seasonality.o \
 	Vector_Layer.o Vector_Patch.o
 
-AGENT_MODULE = Person.o Population.o Activities.o Behavior.o \
-	Demographics.o Health.o Intention.o Perceptions.o Travel.o 
+AGENT_MODULE = Person.o Population.o Activities.o Behavior.o Demographics.o Health.o \
+	Person_Place_Link.o Intention.o Perceptions.o Travel.o 
 
 DISEASE_MODULE = Disease.o Disease_List.o Strain.o StrainTable.o \
 	Infection.o Trajectory.o \

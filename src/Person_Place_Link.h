@@ -16,74 +16,32 @@
 #ifndef _FRED_PERSON_PLACE_LINK_H
 #define _FRED_PERSON_PLACE_LINK_H
 
-#include "Global.h"
-#include "Place.h"
+class Person;
+class Place;
 
 class Person_Place_Link {
  public:
 
-  Person_Place_Link() {
-    enrollee_index = -1;
-    for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
-      infectious_enrollee_index[d] = -1;
-    }
+  Person_Place_Link();
+
+  ~Person_Place_Link() {
+    delete[] infectious_enrollee_index;
   }
 
-  ~Person_Place_Link() {}
+  void enroll(Person *person, Place *place);
 
-  void enroll(Person *person, Place *place) {
-    if (Global::Test) {
-      if (enrollee_index != -1) {
-	printf("enroll failed: place %d %s  enrollee_index %d \n", place->get_id(), place? place->get_label(): "NULL" , enrollee_index);
-      }
-      assert(enrollee_index == -1);
-      assert(place != NULL);
-      enrollee_index = place->enroll_with_link(person);
-      assert(enrollee_index != -1);
-    }
-    else {
-      assert(place != NULL);
-      place->enroll(person);
-    }
-  }
+  void unenroll(Person *person);
 
-  void unenroll(Person *person, Place *place) {
-    assert(enrollee_index != -1);
-    assert(place != NULL);
-    place->unenroll(enrollee_index);
-    enrollee_index = -1;
-    for (int d = 0; d < Global::MAX_NUM_DISEASES; d++) {
-      if (infectious_enrollee_index[d] != -1) {
-	unenroll_infectious_person(person, place, d);
-      }
-    }
-  }
-  
-  void update_enrollee_index(int new_index) {
-    assert(enrollee_index != -1);
-    assert(new_index != -1);
-    // printf("update_enrollee_index: old = %d new = %d\n", enrollee_index, new_index); fflush(stdout);
-    enrollee_index = new_index;
-  }
+  void update_enrollee_index(int new_index);
 
-  void enroll_infectious_person(Person *person, Place *place, int disease_id) {
-    assert(infectious_enrollee_index[disease_id] == -1);
-    assert(place != NULL);
-    infectious_enrollee_index[disease_id] = place->enroll_infectious_person(disease_id, person);
-    assert(infectious_enrollee_index[disease_id] != -1);
-  }
+  void enroll_infectious_person(Person *person, int disease_id);
 
-  void unenroll_infectious_person(Person *person, Place *place, int disease_id) {
-    assert(infectious_enrollee_index[disease_id] != -1);
-    assert(place != NULL);
-    place->unenroll_infectious_person(disease_id, infectious_enrollee_index[disease_id]);
-    infectious_enrollee_index[disease_id] = -1;
-  }
+  void unenroll_infectious_person(Person *person, int disease_id);
 
-  void update_infectious_enrollee_index(int disease_id, int new_index) {
-    assert(infectious_enrollee_index[disease_id] != -1);
-    assert(new_index != -1);
-    infectious_enrollee_index[disease_id] = new_index;
+  void update_infectious_enrollee_index(int disease_id, int new_index);
+
+  Place * get_enrolled_place() {
+    return place;
   }
 
   int get_enrollee_index() {
@@ -99,8 +57,9 @@ class Person_Place_Link {
   }
 
  private:
+  Place * place;
   int enrollee_index;
-  int infectious_enrollee_index[Global::MAX_NUM_DISEASES];
+  int * infectious_enrollee_index;
 };
 
 #endif // _FRED_PERSON_PLACE_LINK_H

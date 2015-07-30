@@ -244,7 +244,7 @@ public:
       if (place != old_place) {
 	if (old_place != NULL) {
 	  // remove old link
-	  link[i].unenroll(myself, old_place);
+	  link[i].unenroll(myself);
 	}
 	if (place != NULL) {
 	  link[i].enroll(myself, place);
@@ -745,7 +745,7 @@ private:
     Place* place = get_favorite_place(i);
     if (place != NULL) {
       if (Global::Test) {
-	link[i].unenroll(self, place);
+	link[i].unenroll(self);
       }
       else {
 	place->unenroll(self);
@@ -763,7 +763,7 @@ private:
   void enroll_as_infectious_person_in_favorite_place(int i, Person* self, int disease_id) {
     Place* place = get_favorite_place(i);
     if(place != NULL) {
-      link[i].enroll_infectious_person(self, place, disease_id);
+      link[i].enroll_infectious_person(self, disease_id);
     }
   }
 
@@ -782,7 +782,7 @@ private:
   void unenroll_as_infectious_person_in_favorite_place(int i, Person* self, int disease_id) {
     Place* place = get_favorite_place(i);
     if(place != NULL) {
-      link[i].unenroll_infectious_person(self, place, disease_id);
+      link[i].unenroll_infectious_person(self, disease_id);
     }
   }
 
