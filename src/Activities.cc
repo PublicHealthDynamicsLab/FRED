@@ -152,7 +152,7 @@ Activities::Activities() {
   this->home_neighborhood = NULL;
   this->profile = UNDEFINED_PROFILE;
   this->schedule_updated = -1;
-  this->tmp_favorite_places_map = NULL;
+  this->stored_favorite_places = NULL;
   this->is_traveling = false;
   this->is_traveling_outside = false;
   this->is_hospitalized = false;
@@ -197,8 +197,10 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
   // assign profiles and enroll in favorite places
   assign_initial_profile(self);
-  // enroll_in_favorite_places(self);
-  FRED_VERBOSE(0,"enroll in favorite places\n");
+  if (Global::Test==0) {
+    enroll_in_favorite_places();
+    FRED_VERBOSE(0,"enroll in favorite places\n");
+  }
 
   // need to set the daily schedule
   this->schedule_updated = -1;
@@ -488,8 +490,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
     for (int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
       for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
 	if(self->is_infectious(disease_id) && link[i].is_enrolled() && !(link[i].is_enrolled_as_infectious(disease_id))) {
-	  Place * new_place = get_favorite_place(i);
-	  FRED_VERBOSE(0,"add infectious enrollment for disease %d to place %s\n", disease_id, new_place->get_label());
+	  FRED_VERBOSE(0,"add infectious enrollment for disease %d to place %s\n", disease_id, get_favorite_place_label(i));
 	  link[i].enroll_infectious_person(self, disease_id);
 	}
       }
@@ -1253,9 +1254,6 @@ void Activities::assign_school(Person* self) {
   FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
 	       school->get_label(), self->get_id(), self->get_age());
   set_school(school);
-  if (Global::Test==0) {
-    school->enroll(self);
-  }
   set_classroom(NULL);
   assign_classroom(self);
   FRED_VERBOSE(1, "assign_school finished for person %d age %d: school %s classroom %s\n",
@@ -1273,11 +1271,7 @@ void Activities::assign_classroom(Person* self) {
 
   School* school = static_cast<School*>(get_school());
   Place* place = school->select_classroom_for_student(self);
-  if(place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-  } else {
+  if (place == NULL) {
     FRED_VERBOSE(0,"CLASSROOM_WARNING: assign classroom returns NULL: person %d age %d school %s\n",
 		 self->get_id(), self->get_age(), school->get_label());
   }
@@ -1301,12 +1295,8 @@ void Activities::assign_office(Person* self) {
   if(get_workplace() != NULL && get_office() == NULL && get_workplace()->is_workplace()
      && Workplace::get_max_office_size() > 0) {
     Place* place = static_cast<Workplace*>(get_workplace())->assign_office(self);
-    if(place != NULL) {
-      if (Global::Test==0) {
-	place->enroll(self);
-      }
-    } else {
-      FRED_VERBOSE(1, "Warning! No office assigned for person %d workplace %d\n", self->get_id(),
+    if(place == NULL) {
+      FRED_VERBOSE(0, "OFFICE WARNING: No office assigned for person %d workplace %d\n", self->get_id(),
 		   get_workplace()->get_id());
     }
     set_office(place);
@@ -1314,7 +1304,6 @@ void Activities::assign_office(Person* self) {
 }
 
 void Activities::assign_hospital(Person* self) {
-  assert(1==0);
   Hospital* tmp_hosp = Global::Places.get_random_open_hospital_matching_criteria(0, self, false, Global::Enable_Health_Insurance, true);
   if(tmp_hosp != NULL) {
     this->assign_hospital(self, tmp_hosp);
@@ -1330,36 +1319,20 @@ void Activities::assign_hospital(Person* self) {
 }
 
 void Activities::assign_hospital(Person* self, Place* place) {
-  if(place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-  } else {
+  if(place == NULL) {
     FRED_VERBOSE(1, "Warning! No Hospital Place assigned for person %d\n", self->get_id());
   }
   set_hospital(place);
 }
 
 void Activities::assign_ad_hoc_place(Person* self, Place* place) {
-  if(place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-  } else {
+  if(place == NULL) {
     FRED_VERBOSE(1, "Warning! No Ad Hoc Place assigned for person %d\n", self->get_id());
   }
   set_ad_hoc(place);
 }
 
 void Activities::unassign_ad_hoc_place(Person* self) {
-  Place* place = get_ad_hoc();
-  if(place != NULL) {
-    if (Global::Test==0) {
-      place->unenroll(self);
-    }
-  } else {
-    FRED_VERBOSE(1, "Warning! No Ad Hoc Place assigned for person %d\n", self->get_id());
-  }
   set_ad_hoc(NULL);
 }
 
@@ -1665,9 +1638,6 @@ bool Activities::become_a_teacher(Person* self, Place* school) {
     FRED_VERBOSE(0, "set school to %s\n", school->get_label());
     set_school(school);
     set_classroom(NULL);
-    if (Global::Test==0) {
-      school->enroll(self);
-    }
     success = true;
   }
   
@@ -1682,82 +1652,27 @@ bool Activities::become_a_teacher(Person* self, Place* school) {
 }
 
 void Activities::change_household(Person* self, Place* place) {
-  Place * old_place = get_household();
-  if(old_place != NULL) {
-    if (Global::Test==0) {
-      old_place->unenroll(self);
-    }
-  }
+  assert(place != NULL);
   set_household(place);
-  if (place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-  }
-
-  // update the neighborhood based on household
-  old_place = get_neighborhood();
-  if (Global::Test==0) {
-    old_place->unenroll(self);
-  }
-
-  set_neighborhood(get_household()->get_patch()->get_neighborhood());
-  place = get_neighborhood();
-  if(place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-  }
+  set_neighborhood(place->get_patch()->get_neighborhood());
 }
 
 void Activities::change_school(Person* self, Place* place) {
-  Place * old_place = get_school();
-  if (old_place != NULL) {
-    FRED_VERBOSE(1,"unenroll from old school %s\n", old_place->get_label());
-    if (Global::Test==0) {
-      old_place->unenroll(self);
-    }
-  }
-  if (get_classroom() != NULL) {
-    FRED_VERBOSE(1,"unenroll from old classroom %s\n",get_classroom()->get_label());
-    assert(1==0);
-    if (Global::Test==0) {
-      get_classroom()->unenroll(self);
-    }
-  }
-  FRED_VERBOSE(1,"set school\n");
+  FRED_VERBOSE(0, "person %d set school %s\n", self->get_id(), place ? place->get_label() : "NULL");
   set_school(place);
   FRED_VERBOSE(1,"set classroom to NULL\n");
   set_classroom(NULL);
   if(place != NULL) {
-    FRED_VERBOSE(1,"enroll in school\n");
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
-    // School * s = static_cast<School *>(place); s->print_size_distribution();
     FRED_VERBOSE(1, "assign classroom\n");
     assign_classroom(self);
   }
 }
 
 void Activities::change_workplace(Person* self, Place* place, int include_office) {
-  if(get_workplace() != NULL) {
-    if (Global::Test==0) {
-      get_workplace()->unenroll(self);
-    }
-  }
-  if(get_office() != NULL) {
-    if (Global::Test==0) {
-      get_office()->unenroll(self);
-    }
-  }
-  FRED_VERBOSE(0, "set workplace %s\n", place ? place->get_label() : "NULL");
+  FRED_VERBOSE(0, "person %d set workplace %s\n", self->get_id(), place ? place->get_label() : "NULL");
   set_workplace(place);
   set_office(NULL);
   if(place != NULL) {
-    if (Global::Test==0) {
-      place->enroll(self);
-    }
     if(include_office) {
       assign_office(self);
     }
@@ -1771,7 +1686,7 @@ std::string Activities::schedule_to_string(Person* self, int day) {
     if(get_favorite_place(p)) {
       ss << activity_lookup(p) << ": ";
       ss << (this->on_schedule[p] ? "+" : "-");
-      ss << get_place_id(p) << " ";
+      ss << get_favorite_place_id(p) << " ";
     }
   }
   return ss.str();
@@ -1795,7 +1710,7 @@ std::string Activities::to_string(Person* self) {
   for(int p = 0; p < Activity_index::FAVORITE_PLACES; ++p) {
     if(get_favorite_place(p)) {
       ss << activity_lookup(p) << ": ";
-      ss << get_place_id(p) << " ";
+      ss << get_favorite_place_id(p) << " ";
     }
   }
   return ss.str();
@@ -1804,7 +1719,7 @@ std::string Activities::to_string(Person* self) {
 unsigned char Activities::get_deme_id() {
   Place* p;
   if(this->is_traveling_outside) {
-    p = get_temporary_household();
+    p = get_stored_household();
   } else {
     p = get_household();
   }
@@ -1825,28 +1740,7 @@ void Activities::move_to_new_house(Person* self, Place* house) {
 		 self->get_id(), self->get_profile(), get_household()->get_label(), house->get_label());
   }
   // re-assign school and work activities
-  // this->unenroll_from_favorite_places(self);
-
-  // unenroll from old house and neighborhood
-  if (Global::Test==0) {
-    get_household()->unenroll(self);
-  }
-  if (Global::Test==0) {
-    get_neighborhood()->unenroll(self);
-  }
-
-  // join the new household
-  set_household(house);
-  if (Global::Test==0) {
-    house->enroll(self);
-  }
-
-  // find and join the neighborhood
-  set_neighborhood(house->get_patch()->get_neighborhood());
-  assert(get_neighborhood() != NULL);
-  if (Global::Test==0) {
-    get_neighborhood()->enroll(self);
-  }
+  change_household(house);
 
   if(is_former_group_quarters_resident || house->is_group_quarters()) {
     // this will re-assign school and work activities
@@ -1858,8 +1752,6 @@ void Activities::move_to_new_house(Person* self, Place* house) {
 
 void Activities::terminate(Person* self) {
   if(this->get_travel_status()) {
-    // Person was enrolled in only his original 
-    // favorite places, not his host's places while traveling
     if(this->is_traveling && !this->is_traveling_outside) {
       restore_favorite_places();
     }
@@ -1938,5 +1830,156 @@ void Activities::update_enrollee_index(Place * place, int new_index) {
   }
   printf("\n");
   assert(1==0);
+}
+
+///////////////////////////////////
+
+void Activities::clear_favorite_places() {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if (link[i].is_enrolled()) {
+      link[i].unenroll(myself);
+    }
+    assert(link[i].get_place() == NULL);
+  }
+}
+  
+void Activities::enroll_in_favorite_place(int i) {
+  Place* place = get_favorite_place(i);
+  if(place != NULL) {
+    link[i].enroll(myself, place);
+  }
+}
+
+void Activities::enroll_in_favorite_places() {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    enroll_in_favorite_place(i);
+  }
+}
+
+void Activities::update_enrollee_index(Place * place, int new_index);
+
+void Activities::unenroll_from_favorite_place(int i) {
+  Place* place = get_favorite_place(i);
+  if (place != NULL) {
+    link[i].unenroll(myself);
+  }
+}
+
+void Activities::unenroll_from_favorite_places() {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    unenroll_from_favorite_place(i);
+  }
+  clear_favorite_places();
+}
+
+void Activities::enroll_as_infectious_person_in_favorite_place(int i, int disease_id) {
+  Place* place = get_favorite_place(i);
+  if(place != NULL) {
+    link[i].enroll_infectious_person(myself, disease_id);
+  }
+}
+
+void Activities::enroll_as_infectious_person(int disease_id) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    enroll_as_infectious_person_in_favorite_place(i, disease_id);
+  }
+}
+
+void Activities::unenroll_as_infectious_person_in_favorite_place(int i, int disease_id) {
+  Place* place = get_favorite_place(i);
+  if(place != NULL) {
+    link[i].unenroll_infectious_person(myself, disease_id);
+  }
+}
+
+void Activities::unenroll_as_infectious_person(int disease_id) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    unenroll_as_infectious_person_in_favorite_place(i, disease_id);
+  }
+}
+
+void Activities::update_infectious_enrollee_index(Place * place, int disease_id, int new_index) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if (place == get_favorite_place(i)) {
+      link[i].update_infectious_enrollee_index(disease_id, new_index);
+      return;
+    }
+  }
+}
+
+void Activities::make_favorite_places_infectious(Person* self, int dis) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if(this->on_schedule[i]) {
+      assert(get_favorite_place(i) != NULL);
+      get_favorite_place(i)->add_infectious(dis, self);
+    }
+  }
+}
+
+void Activities::join_susceptible_lists_at_favorite_places(Person* self, int dis) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if(this->on_schedule[i]) {
+      assert(get_favorite_place(i) != NULL);
+      if(get_favorite_place(i)->is_infectious(dis)) {
+	get_favorite_place(i)->add_susceptible(dis, self);
+      }
+    }
+  }
+}
+
+void Activities::join_nonsusceptible_lists_at_favorite_places(Person* self, int dis) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if(this->on_schedule[i]) {
+      assert(get_favorite_place(i) != NULL);
+      if(get_favorite_place(i)->is_infectious(dis)) {
+	get_favorite_place(i)->add_nonsusceptible(dis, self);
+      }
+    }
+  }
+}
+
+void Activities::store_favorite_places() {
+  this->stored_favorite_places = new Place* [Activity_index::FAVORITE_PLACES];
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    this->stored_favorite_places[i] = get_favorite_place(i);
+  }
+}
+
+void Activities::restore_favorite_places() {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    set_favorite_place(i, stored_favorite_places[i]);
+  }
+  delete[] stored_favorite_places;
+}
+
+int Activities::get_favorite_place_id(int p) {
+  return get_favorite_place(p) == NULL ? -1 : get_favorite_place(p)->get_id();
+}
+
+char * Activities::get_favorite_place_label(int p) {
+  return (get_favorite_place(p) == NULL) ? "NULL" : get_favorite_place(p)->get_label();
+}
+
+
+void Activities::set_favorite_place(int i, Place* place) {
+  // update link if necessary
+  Place* old_place = get_favorite_place(i);
+  if (place != old_place) {
+    if (old_place != NULL) {
+      // remove old link
+      link[i].unenroll(myself);
+    }
+    if (place != NULL) {
+      link[i].enroll(myself, place);
+      
+      // tell the new favorite place if I am infectious
+      int diseases = Global::Diseases.get_number_of_diseases();
+      for (int disease_id = 0; disease_id < diseases; disease_id++) {
+	if (myself->is_infectious(disease_id)) {
+	  link[i].enroll_infectious_person(myself, disease_id);
+	}
+      }
+    }
+  }
 }
 

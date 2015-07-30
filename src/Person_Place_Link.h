@@ -40,7 +40,7 @@ class Person_Place_Link {
 
   void update_infectious_enrollee_index(int disease_id, int new_index);
 
-  Place * get_enrolled_place() {
+  Place * get_place() {
     return place;
   }
 
