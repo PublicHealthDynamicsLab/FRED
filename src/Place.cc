@@ -126,7 +126,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   this->staff_size = 0;
 
   // zero out all disease-specific counts
-  for(int d = 0; d < Global::MAX_NUM_DISEASES; ++d) {
+  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
 
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
@@ -263,10 +263,10 @@ void Place::enroll(Person* person) {
   if(get_enrollee_index(person) == -1) {
     this->enrollees.push_back(person);
     this->N++;
-    FRED_VERBOSE(1,"Enrolling person %d age %d in school %d %s new size %d\n",
+    FRED_VERBOSE(1,"Enrolling person %d age %d in place %d %s new size %d\n",
 		 person->get_id(), person->get_age(), this->id, this->label, this->get_size());
   } else {
-    FRED_VERBOSE(0,"Enroll E_WARNING person %d already in school %d %s\n",
+    FRED_VERBOSE(0,"WARNING Enrolling person %d already in place %d %s\n",
 		 person->get_id(), this->id, this->label);
   }
 }
@@ -291,7 +291,7 @@ int Place::enroll_with_link(Person* per) {
   }
   this->enrollees.push_back(per);
   this->N++;
-  FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
+  FRED_VERBOSE(0,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
   return enrollees.size()-1;
 }
 

@@ -126,11 +126,11 @@ public:
   }
 
   void enroll_as_infectious_person(int disease_id) {
-    this->activities.enroll_as_infectious_person(this, disease_id);
+    this->activities.enroll_as_infectious_person(disease_id);
   }
 
   void unenroll_as_infectious_person(int disease_id) {
-    this->activities.unenroll_as_infectious_person(this, disease_id);
+    this->activities.unenroll_as_infectious_person(disease_id);
   }
 
   void update_enrollee_index(Place* place, int pos) {
@@ -761,15 +761,15 @@ public:
   }
 
   void change_school(Place* place) {
-    this->activities.change_school(this, place);
+    this->activities.change_school(place);
   }
 
   void change_workplace(Place* place) {
-    this->activities.change_workplace(this, place);
+    this->activities.change_workplace(place);
   }
 
   void change_workplace(Place* place, int include_office) {
-    this->activities.change_workplace(this, place, include_office);
+    this->activities.change_workplace(place, include_office);
   }
 
   int get_visiting_health_status(Place* place, int day, int disease_id) {

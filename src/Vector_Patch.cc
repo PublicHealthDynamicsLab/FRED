@@ -21,6 +21,8 @@
 #include "Params.h"
 #include "Utils.h"
 #include "Person.h"
+#include "Random.h"
+
 #include <vector>
 using namespace std;
 

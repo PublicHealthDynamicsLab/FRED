@@ -40,6 +40,10 @@
 
 class Activities_Tracking_Data;
 
+const char * get_label_for_place(Place *place) {
+  return place ? place->get_label() : "NULL";
+}
+
 bool Activities::is_initialized = false;
 bool Activities::is_weekday = false;
 int Activities::day_of_week = 0;
@@ -160,6 +164,7 @@ Activities::Activities() {
   this->is_isolated = false;
   this->grade = 0;
   this->return_from_travel_sim_day = -1;
+  this->link = new Person_Place_Link [Activity_index::FAVORITE_PLACES];
 }
 
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
@@ -178,29 +183,27 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
   FRED_VERBOSE(0,"set workplace %s\n", get_label_for_place(work));
   set_workplace(work);
-  assert(get_household() != NULL);
-
   FRED_VERBOSE(0,"set workplace %s ok\n", get_label_for_place(work));
 
   // increase the population in county of residence
   int index = get_household()->get_county_index();
+  FRED_VERBOSE(0,"increment popsize ok\n");
   Global::Places.increment_population_of_county_with_index(index);
+  FRED_VERBOSE(0,"increment popsize ok\n");
 
   // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
-  FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
+  FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
 	       get_neighborhood()->get_id(), get_neighborhood()->get_label());
   FRED_CONDITIONAL_VERBOSE(0, get_neighborhood() == NULL,
 			   "Help! NO NEIGHBORHOOD for person %d house %d \n", self->get_id(), get_household()->get_id());
-  assert(get_neighborhood() != NULL);
+  FRED_VERBOSE(0,"set neighborhood ok\n");
   this->home_neighborhood = get_neighborhood();
+  FRED_VERBOSE(0,"set home neighborhood ok\n");
 
   // assign profiles and enroll in favorite places
   assign_initial_profile(self);
-  if (Global::Test==0) {
-    enroll_in_favorite_places();
-    FRED_VERBOSE(0,"enroll in favorite places\n");
-  }
+  FRED_VERBOSE(0,"set profile ok\n");
 
   // need to set the daily schedule
   this->schedule_updated = -1;
@@ -230,7 +233,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
       self->get_demographics()->cancel_conception(self);
     }
   }
-  FRED_VERBOSE(0,"setup finished\n");
+  FRED_VERBOSE(0,"Activity::setup finished for person %d\n", self->get_id());
 
 }
 
@@ -1288,7 +1291,7 @@ void Activities::assign_workplace(Person* self) {
   }
   assert(patch != NULL);
   Place* p = patch->select_workplace();
-  change_workplace(self, p);
+  change_workplace(p);
 }
 
 void Activities::assign_office(Person* self) {
@@ -1371,8 +1374,8 @@ void Activities::update_profile(Person* self) {
     if(this->profile != COLLEGE_STUDENT_PROFILE) {
       FRED_VERBOSE(1,"CHANGING PROFILE TO COLLEGE_STUDENT FOR PERSON %d AGE %d\n", self->get_id(), age);
       this->profile = COLLEGE_STUDENT_PROFILE;
-      change_school(self, NULL);
-      change_workplace(self, Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_school(NULL);
+      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1380,8 +1383,8 @@ void Activities::update_profile(Person* self) {
     if(this->profile != MILITARY_PROFILE) {
       FRED_VERBOSE(1,"CHANGING PROFILE TO MILITARY FOR PERSON %d AGE %d barracks %s\n", self->get_id(), age, get_household()->get_label());
       this->profile = MILITARY_PROFILE;
-      change_school(self, NULL);
-      change_workplace(self, Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_school(NULL);
+      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1389,8 +1392,8 @@ void Activities::update_profile(Person* self) {
     if(this->profile != PRISONER_PROFILE) {
       FRED_VERBOSE(1,"CHANGING PROFILE TO PRISONER FOR PERSON %d AGE %d prison %s\n", self->get_id(), age, get_household()->get_label());
       this->profile = PRISONER_PROFILE;
-      change_school(self, NULL);
-      change_workplace(self, Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_school(NULL);
+      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1398,8 +1401,8 @@ void Activities::update_profile(Person* self) {
     if(this->profile != NURSING_HOME_RESIDENT_PROFILE) {
       FRED_VERBOSE(1,"CHANGING PROFILE TO NURSING HOME FOR PERSON %d AGE %d nursing_home %s\n", self->get_id(), age, get_household()->get_label());
       this->profile = NURSING_HOME_RESIDENT_PROFILE;
-      change_school(self, NULL);
-      change_workplace(self, Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_school(NULL);
+      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1408,8 +1411,8 @@ void Activities::update_profile(Person* self) {
   if(this->profile == COLLEGE_STUDENT_PROFILE && get_household()->is_college()==false) {
     if(Random::draw_random() < 0.25) {
       // time to leave college for good
-      change_school(self, NULL);
-      change_workplace(self, NULL);
+      change_school(NULL);
+      change_workplace(NULL);
       // get a job
       this->profile = WORKER_PROFILE;
       assign_workplace(self);
@@ -1425,8 +1428,8 @@ void Activities::update_profile(Person* self) {
   if(this->profile == PRESCHOOL_PROFILE && Global::SCHOOL_AGE <= age && age < Global::ADULT_AGE) {
     FRED_VERBOSE(1,"CHANGING PROFILE TO STUDENT FOR PERSON %d AGE %d\n", self->get_id(), age);
     profile = STUDENT_PROFILE;
-    change_school(self, NULL);
-    change_workplace(self, NULL);
+    change_school(NULL);
+    change_workplace(NULL);
     assign_school(self);
     assert(get_school() && get_classroom());
     FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d ENTERING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
@@ -1445,7 +1448,7 @@ void Activities::update_profile(Person* self) {
 	FRED_VERBOSE(1,"PERSON %d AGE %d TOO OLD FOR SCHOOL %s\n", self->get_id(), age, s->get_label());
 	if(age < Global::ADULT_AGE) {
 	  // find another school
-	  change_school(self, NULL);
+	  change_school(NULL);
 	  assign_school(self);
 	  assert(get_school() && get_classroom());
 	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d CHANGING TO SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
@@ -1456,7 +1459,7 @@ void Activities::update_profile(Person* self) {
 	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d LEAVING SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
 		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
 		       get_school()->get_orig_size(), get_classroom()->get_label());
-	  change_school(self, NULL);
+	  change_school(NULL);
 	  Activities::Tracking_data.left_school++;
 	  // get a job
 	  this->profile = WORKER_PROFILE;
@@ -1480,7 +1483,7 @@ void Activities::update_profile(Person* self) {
 	  FRED_VERBOSE(1, "CHANGE_GRADES: PERSON %d AGE %d IN SCHOOL %s\n",
 		       self->get_id(), age, s->get_label());
 	  // re-enroll in current school -- this will assign an appropriate grade and classroom.
-	  change_school(self, s);
+	  change_school(s);
 	  assert(get_school() && get_classroom());
 	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d MOVE TO NEXT GRADE IN SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
 		       self->get_id(), age, get_school()->get_label(), get_school()->get_size(),
@@ -1489,7 +1492,7 @@ void Activities::update_profile(Person* self) {
 	  FRED_VERBOSE(1,"CHANGE_SCHOOLS: PERSON %d AGE %d NO ROOM in GRADE IN SCHOOL %s\n",
 		       self->get_id(), age, s->get_label());
 	  // find another school
-	  change_school(self, NULL);
+	  change_school(NULL);
 	  assign_school(self);
 	  assert(get_school() && get_classroom());
 	  FRED_VERBOSE(1,"STUDENT_UPDATE PERSON %d AGE %d CHANGE TO NEW SCHOOL %s SIZE %d ORIG %d CLASSROOM %s\n",
@@ -1508,7 +1511,7 @@ void Activities::update_profile(Person* self) {
       // no current school
       if(age < Global::ADULT_AGE) {
 	FRED_VERBOSE(1,"ADD_A_SCHOOL: PERSON %d AGE %d HAS NO SCHOOL\n", self->get_id(), age);
-	change_school(self, NULL);
+	change_school(NULL);
 	assign_school(self);
 	assert(get_school() && get_classroom());
 	Activities::Tracking_data.entered_school++;
@@ -1518,7 +1521,7 @@ void Activities::update_profile(Person* self) {
       } else {
 	// time to leave school
 	FRED_VERBOSE(1,"LEAVING_SCHOOL: PERSON %d AGE %d NO FORMER SCHOOL\n", self->get_id(), age);
-	change_school(self, NULL);
+	change_school(NULL);
 	// get a job
 	this->profile = WORKER_PROFILE;
 	assign_workplace(self);
@@ -1532,8 +1535,8 @@ void Activities::update_profile(Person* self) {
 
   // conversion to civilian life
   if(this->profile == PRISONER_PROFILE) {
-    change_school(self, NULL);
-    change_workplace(self, NULL);
+    change_school(NULL);
+    change_workplace(NULL);
     this->profile = WORKER_PROFILE;
     assign_workplace(self);
     initialize_sick_leave();
@@ -1560,9 +1563,9 @@ void Activities::update_profile(Person* self) {
       FRED_STATUS( 1, "to_string: %s\n", to_string( self ).c_str() );
       // quit working
       if(is_teacher()) {
-        change_school(self, NULL);
+        change_school(NULL);
       }
-      change_workplace(self, NULL);
+      change_workplace(NULL);
       this->profile = RETIRED_PROFILE;
       initialize_sick_leave(); // no sick leave available if retired
       FRED_STATUS(1, "CHANGED BEHAVIOR PROFILE TO RETIRED: id %d age %d sex %c\n%s\n",
@@ -1644,37 +1647,37 @@ bool Activities::become_a_teacher(Person* self, Place* school) {
   // withdraw from this workplace and any associated office
   Place* workplace = self->get_workplace();
   FRED_VERBOSE(0, "leaving workplace %d %s\n", workplace->get_id(), workplace->get_label());
-  change_workplace(self, NULL);
+  change_workplace(NULL);
   FRED_VERBOSE(0, "become_a_teacher finished for person %d age %d\n", self->get_id(),
 	      self->get_age());
   // print(self);
   return success;
 }
 
-void Activities::change_household(Person* self, Place* place) {
+void Activities::change_household(Place* place) {
   assert(place != NULL);
   set_household(place);
   set_neighborhood(place->get_patch()->get_neighborhood());
 }
 
-void Activities::change_school(Person* self, Place* place) {
-  FRED_VERBOSE(0, "person %d set school %s\n", self->get_id(), place ? place->get_label() : "NULL");
+void Activities::change_school(Place* place) {
+  FRED_VERBOSE(0, "person %d set school %s\n", myself->get_id(), place ? place->get_label() : "NULL");
   set_school(place);
   FRED_VERBOSE(1,"set classroom to NULL\n");
   set_classroom(NULL);
   if(place != NULL) {
     FRED_VERBOSE(1, "assign classroom\n");
-    assign_classroom(self);
+    assign_classroom(myself);
   }
 }
 
-void Activities::change_workplace(Person* self, Place* place, int include_office) {
-  FRED_VERBOSE(0, "person %d set workplace %s\n", self->get_id(), place ? place->get_label() : "NULL");
+void Activities::change_workplace(Place* place, int include_office) {
+  FRED_VERBOSE(0, "person %d set workplace %s\n", myself->get_id(), place ? place->get_label() : "NULL");
   set_workplace(place);
   set_office(NULL);
   if(place != NULL) {
     if(include_office) {
-      assign_office(self);
+      assign_office(myself);
     }
   }
 }
@@ -1768,7 +1771,7 @@ void Activities::terminate(Person* self) {
   Global::Places.decrement_population_of_county_with_index(index);
 
   // withdraw from society
-  unenroll_from_favorite_places(self);
+  unenroll_from_favorite_places();
 }
 
 void Activities::end_of_run() {
@@ -1855,8 +1858,6 @@ void Activities::enroll_in_favorite_places() {
     enroll_in_favorite_place(i);
   }
 }
-
-void Activities::update_enrollee_index(Place * place, int new_index);
 
 void Activities::unenroll_from_favorite_place(int i) {
   Place* place = get_favorite_place(i);
@@ -1956,21 +1957,31 @@ int Activities::get_favorite_place_id(int p) {
   return get_favorite_place(p) == NULL ? -1 : get_favorite_place(p)->get_id();
 }
 
-char * Activities::get_favorite_place_label(int p) {
+const char * Activities::get_favorite_place_label(int p) {
   return (get_favorite_place(p) == NULL) ? "NULL" : get_favorite_place(p)->get_label();
 }
 
 
 void Activities::set_favorite_place(int i, Place* place) {
+  if (place) {
+    FRED_VERBOSE(0, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
+  }
+  else {
+    FRED_VERBOSE(0, "SET FAVORITE PLACE %d to NULL\n",i);
+  }
   // update link if necessary
   Place* old_place = get_favorite_place(i);
+  FRED_VERBOSE(0, "old place %s\n", old_place? old_place->get_label():"NULL");
   if (place != old_place) {
     if (old_place != NULL) {
       // remove old link
+      printf("remove old link\n");
       link[i].unenroll(myself);
     }
     if (place != NULL) {
+      printf("enroll new link\n"); fflush(stdout);
       link[i].enroll(myself, place);
+      printf("enrolled new link\n"); fflush(stdout);
       
       // tell the new favorite place if I am infectious
       int diseases = Global::Diseases.get_number_of_diseases();
@@ -1979,7 +1990,9 @@ void Activities::set_favorite_place(int i, Place* place) {
 	  link[i].enroll_infectious_person(myself, disease_id);
 	}
       }
+      FRED_VERBOSE(0, "infectious status enrolled\n");
     }
   }
+  FRED_VERBOSE(0, "set favorite place finished\n");
 }
 

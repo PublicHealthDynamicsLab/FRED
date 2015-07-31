@@ -260,15 +260,15 @@ public:
   }
 
   void move_to_new_house(Person* self, Place* house);
-  void change_household(Person* self, Place* place);
-  void change_school(Person* self, Place* place);
-  void change_workplace(Person* self, Place* place, int include_office = 1);
+  void change_household(Place* place);
+  void change_school(Place* place);
+  void change_workplace(Place* place, int include_office = 1);
 
   Place* get_stored_household() {
     return this->stored_favorite_places[Activity_index::HOUSEHOLD_ACTIVITY];
   }
 
-  Place* get_household() {
+  Place* get_permanent_household() {
     if(Global::Enable_Hospitals && this->is_hospitalized) {
       return get_stored_household();
     } else {
@@ -290,6 +290,13 @@ public:
     } else {
       return get_household();
     }
+  }
+
+  /**
+   * @return a pointer to this agent's Household
+   */
+  Place* get_household() {
+    return get_favorite_place(Activity_index::HOUSEHOLD_ACTIVITY);
   }
 
   /**
@@ -583,7 +590,7 @@ private:
   Person* myself;
 
   // links to favorite places
-  Person_Place_Link link[Activity_index::FAVORITE_PLACES];
+  Person_Place_Link * link;
 
   // list of favorite places, stored while traveling
   Place** stored_favorite_places;
@@ -684,7 +691,7 @@ private:
   void store_favorite_places();
   void restore_favorite_places();
   int get_favorite_place_id(int i);
-  int get_favorite_place_label(int i);
+  const char * get_favorite_place_label(int i);
 
 protected:
 
