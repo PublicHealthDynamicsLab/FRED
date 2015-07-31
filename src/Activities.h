@@ -684,6 +684,7 @@ private:
   void restore_favorite_places();
   int get_favorite_place_id(int i);
   const char * get_favorite_place_label(int i);
+  bool is_present(Place *place);
 
 protected:
 

@@ -117,8 +117,16 @@ public:
     this->activities.prepare();
   }
 
+  bool is_present(Place *place) {
+    return this->activities.is_present(place);
+  }
+
   std::vector<Place*> get_favorite_places() {
     return this->activities.get_favorite_places();
+  }
+
+  void update_schedule(int sim_day) {
+    this->activities.update_schedule(this, sim_day);
   }
 
   void update_activities_of_infectious_person(int sim_day) {

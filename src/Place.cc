@@ -808,6 +808,10 @@ void Place::default_transmission_model(int day, int disease_id) {
       int pos = (*i).first;
       int times_drawn = (*i).second;
       Person* infectee = susceptibles[pos];
+      infectee->update_schedule(day);
+      if (!infectee->is_present(this)) {
+	continue;
+      }
       // get the transmission probs for this infector/infectee pair
       double transmission_prob = get_transmission_prob(disease_id, infector, infectee);
       for(int draw = 0; draw < times_drawn; ++draw) {
@@ -934,6 +938,10 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   for(int sus_pos = 0; sus_pos < susceptibles.size(); ++sus_pos) {
     // susceptible visitor
     Person* infectee = susceptibles[sus_pos];
+    infectee->update_schedule(day);
+    if (!infectee->is_present(this)) {
+      continue;
+    }
     int age = infectee->get_age();
     if(age > 100) {
       age = 100;
@@ -1007,6 +1015,10 @@ void Place::pairwise_transmission_model(int day, int disease_id) {
         continue;
       }
       Person* infectee = this->enrollees[ pos ];
+      infectee->update_schedule(day);
+      if (!infectee->is_present(this)) {
+	continue;
+      }
       // if a non-infectious person is selected, pick from non_infectious vector
       // only proceed if person is susceptible
       if(infectee->is_susceptible(disease_id)) {
@@ -1065,6 +1077,10 @@ void Place::density_transmission_model(int day, int disease_id) {
 
   for(int j = 0; j < exposed && j < sus_hosts && 0 < inf_hosts; ++j) {
     Person * infectee = susceptibles[j];
+    infectee->update_schedule(day);
+    if (!infectee->is_present(this)) {
+      continue;
+    }
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
 
     // only proceed if person is susceptible
@@ -1284,6 +1300,10 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
 
   for(int j = 0; j < e_hosts && j < susceptibles.size(); ++j) {
     Person* infectee = susceptibles[j];
+    infectee->update_schedule(day);
+    if (!infectee->is_present(this)) {
+      continue;
+    }
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
     // NOTE: need to check if infectee already infected
     if(infectee->is_susceptible(disease_id)) {

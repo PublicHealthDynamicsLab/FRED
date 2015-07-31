@@ -1996,3 +1996,12 @@ void Activities::set_favorite_place(int i, Place* place) {
   FRED_VERBOSE(0, "set favorite place finished\n");
 }
 
+bool Activities::is_present(Place *place) {
+  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+    if(get_favorite_place(i) == place && this->on_schedule[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
