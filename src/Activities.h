@@ -268,14 +268,6 @@ public:
     return this->stored_favorite_places[Activity_index::HOUSEHOLD_ACTIVITY];
   }
 
-  Place* get_permanent_household() {
-    if(Global::Enable_Hospitals && this->is_hospitalized) {
-      return get_stored_household();
-    } else {
-      return get_household();
-    }
-  }
-
   /**
    * @return a pointer to this agent's permanent Household
    *
