@@ -95,9 +95,9 @@ void Person::print(FILE* fp, int disease) {
           this->demographics.get_race());
   fprintf(fp, "exp: %2d  inf: %2d  rem: %2d ",
           this->health.get_exposure_date(disease),
-          this->health.get_infectious_date(disease),
-          this->health.get_recovered_date(disease));
-  fprintf(fp, "sympt: %d ", this->health.get_symptomatic_date(disease));
+          this->health.get_infectious_start_date(disease),
+          this->health.get_infectious_end_date(disease));
+  fprintf(fp, "sympt: %d ", this->health.get_symptoms_start_date(disease));
   fprintf(fp, "places %d ", Activity_index::FAVORITE_PLACES);
   fprintf(fp, "infected_at %c %6d ",
           this->health.get_infected_place_type(disease),

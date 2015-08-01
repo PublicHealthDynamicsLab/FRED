@@ -153,9 +153,11 @@ Epidemic::Epidemic(Disease* dis) {
   this->import_age_upper_bound = Demographics::MAX_AGE;
   this->seeding_type = SEED_EXPOSED;
 
-  this->infectious_event_queue = new Events<Epidemic>;
-  this->noninfectious_event_queue = new Events<Epidemic>;
-  this->susceptible_event_queue = new Events<Epidemic>;
+  this->infectious_start_event_queue = new Events<Epidemic>;
+  this->infectious_end_event_queue = new Events<Epidemic>;
+  this->symptoms_start_event_queue = new Events<Epidemic>;
+  this->symptoms_end_event_queue = new Events<Epidemic>;
+  this->immunity_end_event_queue = new Events<Epidemic>;
 
   this->active_people.clear();
   this->active_households.clear();
@@ -229,32 +231,48 @@ void Epidemic::deactivate_place(Place *place) {
   }
 }
 
-void Epidemic::add_infectious_event(int day, Person *person) {
-  infectious_event_queue->add_event(day, person);
+void Epidemic::add_infectious_start_event(int day, Person *person) {
+  infectious_start_event_queue->add_event(day, person);
 }
 
-void Epidemic::delete_infectious_event(int day, Person *person) {
-  infectious_event_queue->delete_event(day, person);
+void Epidemic::delete_infectious_start_event(int day, Person *person) {
+  infectious_start_event_queue->delete_event(day, person);
 }
 
-void Epidemic::add_noninfectious_event(int day, Person *person) {
-  noninfectious_event_queue->add_event(day, person);
+void Epidemic::add_infectious_end_event(int day, Person *person) {
+  infectious_end_event_queue->add_event(day, person);
 }
 
-void Epidemic::delete_noninfectious_event(int day, Person *person) {
-  noninfectious_event_queue->delete_event(day, person);
+void Epidemic::delete_infectious_end_event(int day, Person *person) {
+  infectious_end_event_queue->delete_event(day, person);
 }
 
-void Epidemic::add_susceptible_event(int day, Person *person) {
-  susceptible_event_queue->add_event(day, person);
+void Epidemic::add_symptoms_start_event(int day, Person *person) {
+  symptoms_start_event_queue->add_event(day, person);
 }
 
-void Epidemic::delete_susceptible_event(int day, Person *person) {
-  susceptible_event_queue->delete_event(day, person);
+void Epidemic::delete_symptoms_start_event(int day, Person *person) {
+  symptoms_start_event_queue->delete_event(day, person);
 }
 
-void Epidemic::infectious_event_handler(int day, Person* person) {
-  FRED_VERBOSE(0,"infectious_event_handler day %d person %d\n",day,person->get_id());
+void Epidemic::add_symptoms_end_event(int day, Person *person) {
+  symptoms_end_event_queue->add_event(day, person);
+}
+
+void Epidemic::delete_symptoms_end_event(int day, Person *person) {
+  symptoms_end_event_queue->delete_event(day, person);
+}
+
+void Epidemic::add_immunity_end_event(int day, Person *person) {
+  immunity_end_event_queue->add_event(day, person);
+}
+
+void Epidemic::delete_immunity_end_event(int day, Person *person) {
+  immunity_end_event_queue->delete_event(day, person);
+}
+
+void Epidemic::infectious_start_event_handler(int day, Person* person) {
+  FRED_VERBOSE(0,"infectious_start_event_handler day %d person %d\n",day,person->get_id());
   become_infectious(person);
   person->become_infectious(this->disease);
   this->active_people.insert(person);
@@ -264,18 +282,24 @@ void Epidemic::infectious_event_handler(int day, Person* person) {
   }
 }
 
-void Epidemic::noninfectious_event_handler(int day, Person* person) {
-  FRED_VERBOSE(0,"noninfectious_event_handler day %d person %d\n",day,person->get_id());
+void Epidemic::infectious_end_event_handler(int day, Person* person) {
+  FRED_VERBOSE(0,"infectious_end_event_handler day %d person %d\n",day,person->get_id());
   become_removed(person);
   person->recover(this->disease);
-  // Note: need to find places enrolled in as infectious
   person->unenroll_as_infectious_person(this->id);
   this->active_people.erase(person);
 }
 
 
-void Epidemic::susceptible_event_handler(int day, Person* person) {
+void Epidemic::symptoms_start_event_handler(int day, Person* person) {
 }
+
+void Epidemic::symptoms_end_event_handler(int day, Person* person) {
+}
+
+void Epidemic::immunity_end_event_handler(int day, Person* person) {
+}
+
 
 void Epidemic::setup() {
   using namespace Utils;
@@ -396,8 +420,11 @@ void Epidemic::become_exposed(Person* person, int day) {
   this->people_becoming_infected_today++;
 
   // update infectious event list
-  int infectious_date = person->get_infectious_date(this->id);
-  add_infectious_event(infectious_date, person);
+  int infectious_start_date = person->get_infectious_start_date(this->id);
+  add_infectious_start_event(infectious_start_date, person);
+
+  int symptoms_start_date = person->get_symptoms_start_date(this->id);
+  add_symptoms_start_event(symptoms_start_date, person);
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
@@ -455,8 +482,8 @@ void Epidemic::become_infectious(Person* person) {
   this->exposed_people--;
 
   // update noninfectious event list
-  int noninfectious_date = person->get_recovered_date(this->id);
-  add_noninfectious_event(noninfectious_date, person);
+  int infectious_end_date = person->get_infectious_end_date(this->id);
+  add_infectious_end_event(infectious_end_date, person);
 
   // operations on bloque (underlying container for population) are thread-safe
   Global::Pop.set_mask_by_index(fred::Infectious, person->get_pop_index());
@@ -524,19 +551,22 @@ void Epidemic::become_symptomatic(Person* person) {
   this->people_becoming_symptomatic_today++;
 }
 
+void Epidemic::become_asymptomatic(Person* person) {
+#pragma omp atomic
+  this->people_with_current_symptoms--;
+}
+
 void Epidemic::become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic) {
   // operations on bloque (underlying container for population) are thread-safe
   if(susceptible) {
     if(Global::Pop.check_mask_by_index(fred::Susceptible, person->get_pop_index())) {
       Global::Pop.clear_mask_by_index(fred::Susceptible, person->get_pop_index());
-      FRED_VERBOSE(1, "OK: become_removed: person %d removed from \
-          susceptible_list\n",
+      FRED_VERBOSE(1, "OK: become_removed: person %d removed from susceptible_list\n",
 		   person->get_id());
     } else {
       if(Global::Enable_Vector_Transmission == false) {
 	FRED_VERBOSE(0,
-		     "WARNING: become_removed: person %d not removed \
-          from susceptible_list\n",
+		     "WARNING: become_removed: person %d not removed from susceptible_list\n",
 		     person->get_id());
       }
     }
@@ -544,14 +574,12 @@ void Epidemic::become_removed(Person* person, bool susceptible, bool infectious,
   if(infectious) {
     if(Global::Pop.check_mask_by_index(fred::Infectious, person->get_pop_index())) {
       Global::Pop.clear_mask_by_index(fred::Infectious, person->get_pop_index());
-      FRED_VERBOSE(1, "OK: become_removed: person %d removed from \
-          infectious_list\n",
+      FRED_VERBOSE(1, "OK: become_removed: person %d removed from infectious_list\n",
 		   person->get_id());
     } else {
       if(Global::Enable_Vector_Transmission == false) {
 	FRED_VERBOSE(0,
-		     "WARNING: become_removed: person %d not removed from \
-          infectious_list\n",
+		     "WARNING: become_removed: person %d not removed from infectious_list\n",
 		     person->get_id());
       }
     }
@@ -1738,12 +1766,12 @@ void Epidemic::advance_seed_infection(Person* person) {
   // if advanced_seeding is infectious or random
   int d = this->disease->get_id();
   int advance = 0;
-  int duration = person->get_recovered_date(d) - person->get_exposure_date(d);
+  int duration = person->get_infectious_end_date(d) - person->get_exposure_date(d);
   assert(duration > 0);
   if(this->seeding_type == SEED_RANDOM) {
     advance = Random::draw_random_int(0, duration);
   } else if(Random::draw_random() < this->fraction_seeds_infectious ) {
-    advance = person->get_infectious_date(d) - person->get_exposure_date(d);
+    advance = person->get_infectious_start_date(d) - person->get_exposure_date(d);
   }
   assert(advance <= duration);
   FRED_VERBOSE(0, "%s %s %s %d %s %d %s\n", "advanced_seeding:", seeding_type_name,
@@ -1764,20 +1792,25 @@ void Epidemic::update(int day) {
       (*it)->update_health(day);
     }
 
-    // transition from exposed to infectious
-    FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_event_queue->get_size(day));
-    EpidemicMemFn func = &Epidemic::infectious_event_handler;
-    this->infectious_event_queue->event_handler(day, this, func);
+    // transition to infectious
+    FRED_VERBOSE(0, "INF_EVENT_QUEUE day %d size %d\n", day, this->infectious_start_event_queue->get_size(day));
+    EpidemicMemFn func = &Epidemic::infectious_start_event_handler;
+    this->infectious_start_event_queue->event_handler(day, this, func);
 
-    // transition from infectious to noninfectious
-    FRED_VERBOSE(0, "NONINF_EVENT_QUEUE day %d size %d\n", day, this->noninfectious_event_queue->get_size(day));
-    func = &Epidemic::noninfectious_event_handler;
-    this->noninfectious_event_queue->event_handler(day, this, func);
+    // transition to noninfectious
+    FRED_VERBOSE(0, "NONINF_EVENT_QUEUE day %d size %d\n", day, this->infectious_end_event_queue->get_size(day));
+    func = &Epidemic::infectious_end_event_handler;
+    this->infectious_end_event_queue->event_handler(day, this, func);
     
-    // transition from nonsusceptible to susceptible
-    FRED_VERBOSE(0, "SUS_EVENT_QUEUE day %d size %d\n", day, this->susceptible_event_queue->get_size(day));
-    func = &Epidemic::susceptible_event_handler;
-    this->susceptible_event_queue->event_handler(day, this, func);
+    // transition to symptomatic
+    FRED_VERBOSE(0, "SYMP_EVENT_QUEUE day %d size %d\n", day, this->symptoms_start_event_queue->get_size(day));
+    func = &Epidemic::symptoms_start_event_handler;
+    this->symptoms_start_event_queue->event_handler(day, this, func);
+
+    // transition to susceptible
+    FRED_VERBOSE(0, "SUS_EVENT_QUEUE day %d size %d\n", day, this->immunity_end_event_queue->get_size(day));
+    func = &Epidemic::immunity_end_event_handler;
+    this->immunity_end_event_queue->event_handler(day, this, func);
 
     // update the daily activities of infectious people
     for (std::set<Person*>::iterator it = this->active_people.begin(); it != this->active_people.end(); ++it) {

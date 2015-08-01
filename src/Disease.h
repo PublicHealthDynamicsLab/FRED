@@ -204,6 +204,10 @@ public:
     this->epidemic->become_symptomatic(person);
   }
 
+  void become_asymptomatic(Person* person) {
+    this->epidemic->become_asymptomatic(person);
+  }
+
   void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic) {
     this->epidemic->become_removed(person, susceptible, infectious, symptomatic);
   }

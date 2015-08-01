@@ -302,7 +302,7 @@ void Health::setup(Person* self) {
     this->infection[disease_id] = NULL;
     this->infectee_count[disease_id] = 0;
     this->susceptibility_multp[disease_id] = 1.0;
-    this->susceptible_date[disease_id] = -1;
+    this->immunity_end_date[disease_id] = -1;
     become_susceptible(self, disease_id);
     Disease* disease = Global::Diseases.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
@@ -428,7 +428,7 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->infection[disease_id]->report_infection(day);
   this->active_infections.set(disease_id);
   self->become_unsusceptible(disease);
-  this->susceptible_date[disease_id] = -1;
+  this->immunity_end_date[disease_id] = -1;
   if(self->get_household() != NULL) {
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
@@ -513,6 +513,17 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
 	      self->get_id(), disease_id);
 }
 
+void Health::become_asymptomatic(Person* self, Disease* disease) {
+  int disease_id = disease->get_id();
+  assert(this->active_infections.test(disease_id));
+  if(this->symptomatic.test(disease_id)) {
+    this->symptomatic.reset(disease_id);
+  }
+  disease->become_symptomatic(self);
+  FRED_STATUS(1, "person %d is now ASYMPTOMATIC for disease %d\n",
+	      self->get_id(), disease_id);
+}
+
 void Health::recover(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->active_infections.test(disease_id));
@@ -587,8 +598,8 @@ void Health::update(Person* self, int day) {
         // If the infection_update called recover(), it is now safe to
         // collect the susceptible date and delete the Infection object
         if(this->recovered_today.test(disease_id)) {
-          this->susceptible_date[disease_id] =
-	    this->infection[disease_id]->get_susceptible_date();
+          this->immunity_end_date[disease_id] =
+	    this->infection[disease_id]->get_immunity_end_date();
           this->evaluate_susceptibility.set(disease_id);
           if(infection[disease_id]->provides_immunity()) {
             std::vector<int> strains;
@@ -596,7 +607,7 @@ void Health::update(Person* self, int day) {
             std::vector<int>::iterator itr = strains.begin();
             for(; itr != strains.end(); ++itr) {
               int strain = *itr;
-              int recovery_date = this->infection[disease_id]->get_recovery_date();
+              int recovery_date = this->infection[disease_id]->get_infectious_end_date();
               int age_at_exposure = self->get_age();
               this->past_infections[disease_id].push_back(
 							  Past_Infection(strain, recovery_date, age_at_exposure));
@@ -608,9 +619,9 @@ void Health::update(Person* self, int day) {
 	}	else {
 	  // update days_symptomatic if needed
 	  if(this->is_symptomatic(disease_id)) {
-	    int days_symp_disease = (day - this->get_symptomatic_date(disease_id));
-	    if(days_symp_disease > this->days_symptomatic) {
-	      this->days_symptomatic = days_symp_disease;
+	    int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
+	    if(days_symp_so_far > this->days_symptomatic) {
+	      this->days_symptomatic = days_symp_so_far;
 	    }
 	  }
 	}
@@ -629,7 +640,7 @@ void Health::update(Person* self, int day) {
   // call to become_susceptible
   if(this->evaluate_susceptibility.any()) {
     for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(day == this->susceptible_date[disease_id]) {
+      if(day == this->immunity_end_date[disease_id]) {
         become_susceptible(self, disease_id);
       }
     }
@@ -707,34 +718,46 @@ int Health::get_exposure_date(int disease_id) const {
   }
 }
 
-int Health::get_infectious_date(int disease_id) const {
+int Health::get_infectious_start_date(int disease_id) const {
   if(!(this->active_infections.test(disease_id))) {
     return -1;
   } else {
-    return this->infection[disease_id]->get_infectious_date();
+    return this->infection[disease_id]->get_infectious_start_date();
   }
 }
 
-int Health::get_recovered_date(int disease_id) const {
+int Health::get_infectious_end_date(int disease_id) const {
   if(!(this->active_infections.test(disease_id))) {
     return -1;
   } else {
-    return this->infection[disease_id]->get_recovery_date();
+    return this->infection[disease_id]->get_infectious_end_date();
   }
+}
+
+int Health::get_symptoms_start_date(int disease_id) const {
+  if(!(this->active_infections.test(disease_id))) {
+    return -1;
+  } else {
+    return this->infection[disease_id]->get_symptoms_start_date();
+  }
+}
+
+int Health::get_symptoms_end_date(int disease_id) const {
+  if(!(this->active_infections.test(disease_id))) {
+    return -1;
+  } else {
+    return this->infection[disease_id]->get_symptoms_end_date();
+  }
+}
+
+int Health::get_immunity_end_date(int disease_id) const {
+  return this->immunity_end_date[disease_id];
 }
 
 bool Health::is_recovered(int disease_id) {
   return this->recovered.test(disease_id);
 }
 
-
-int Health::get_symptomatic_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
-    return -1;
-  } else {
-    return this->infection[disease_id]->get_symptomatic_date();
-  }
-}
 
 Person* Health::get_infector(int disease_id) const {
   if(!(this->active_infections.test(disease_id))) {

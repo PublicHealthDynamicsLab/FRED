@@ -102,9 +102,9 @@ double MSEvolution::prob_past_infections( Person * infectee, int new_strain, int
   int n = infectee->get_num_past_infections( disease_id );
   for( int i = 0; i < n; i++ ) {
     Past_Infection * past_infection = infectee->get_past_infection( disease_id, i );
-    //printf("DATES: %d %d\n", day, pastInf->get_recovery_date()); 
+    //printf("DATES: %d %d\n", day, pastInf->get_infectious_end_date()); 
     probTaking *= ( 1 - prob_inf_blocking( past_infection->get_strain(), new_strain, 
-					   day - past_infection->get_recovery_date(), past_infection->get_age_at_exposure() ) );
+					   day - past_infection->get_infectious_end_date(), past_infection->get_age_at_exposure() ) );
   }
   return probTaking;
 }

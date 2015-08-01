@@ -188,6 +188,7 @@ public:
    * @param disease pointer to the Disease object
    */
   void become_symptomatic(Person* self, Disease* disease);
+  void become_asymptomatic(Person* self, Disease* disease);
 
   /**
    * Agent is immune to the disease
@@ -307,19 +308,11 @@ public:
    * @param disease
    * @return the simulation day that this agent became infectious with the disease
    */
-  int get_infectious_date(int disease_id) const;
-
-  /**
-   * @param disease
-   * @return the simulation day that this agent recovered from the disease
-   */
-  int get_recovered_date(int disease_id) const;
-
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became symptomatic to the disease
-   */
-  int get_symptomatic_date(int disease_id) const;
+  int get_infectious_start_date(int disease_id) const;
+  int get_infectious_end_date(int disease_id) const;
+  int get_symptoms_start_date(int disease_id) const;
+  int get_symptoms_end_date(int disease_id) const;
+  int get_immunity_end_date(int disease_id) const;
 
   /**
    * @param disease the disease to check
@@ -601,7 +594,7 @@ public:
   }
 
   bool is_newly_symptomatic(int day, int disease_id) {
-    return day == get_symptomatic_date(disease_id);
+    return day == get_symptoms_start_date(disease_id);
   }
 
   bool is_alive() {
@@ -843,6 +836,9 @@ private:
   // per-disease susceptibility multiplier
   double susceptibility_multp[Global::MAX_NUM_DISEASES];
 
+  // date to become susceptible after an infection
+  int immunity_end_date[Global::MAX_NUM_DISEASES];
+
   // Antivirals.  These are all dynamically allocated to save space
   // when not in use
   typedef vector<bool> checked_for_av_type;
@@ -881,7 +877,6 @@ private:
   int previous_infection_serotype;
 
   int infectee_count[Global::MAX_NUM_DISEASES];
-  int susceptible_date[Global::MAX_NUM_DISEASES];
 
   /*
    * @return <code>true</code> if the map contains any condition and it that condition is true,

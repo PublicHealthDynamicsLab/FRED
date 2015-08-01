@@ -489,10 +489,13 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
   }
 
   if (Global::Test) {
-    FRED_VERBOSE(0,"checking enrollments for person %d day %d\n", self->get_id(), sim_day);
-    for (int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
-      for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-	if(self->is_infectious(disease_id) && link[i].is_enrolled() && !(link[i].is_enrolled_as_infectious(disease_id))) {
+    FRED_VERBOSE(0,"checking enrollments for infectious person %d day %d\n", self->get_id(), sim_day);
+    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+      if(self->is_infectious(disease_id) == false) {
+	continue;
+      }
+      for (int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
+	if(this->on_schedule[i] && link[i].is_enrolled() && !(link[i].is_enrolled_as_infectious(disease_id))) {
 	  FRED_VERBOSE(0,"add infectious enrollment for disease %d to place %s\n", disease_id, get_favorite_place_label(i));
 	  link[i].enroll_infectious_person(self, disease_id);
 	}
@@ -1971,26 +1974,17 @@ void Activities::set_favorite_place(int i, Place* place) {
   }
   // update link if necessary
   Place* old_place = get_favorite_place(i);
-  FRED_VERBOSE(0, "old place %s\n", old_place? old_place->get_label():"NULL");
+  FRED_VERBOSE(1, "old place %s\n", old_place? old_place->get_label():"NULL");
   if (place != old_place) {
     if (old_place != NULL) {
       // remove old link
-      printf("remove old link\n");
+      // printf("remove old link\n");
       link[i].unenroll(myself);
     }
     if (place != NULL) {
-      printf("enroll new link\n"); fflush(stdout);
+      // printf("enroll new link\n"); fflush(stdout);
       link[i].enroll(myself, place);
-      printf("enrolled new link\n"); fflush(stdout);
-      
-      // tell the new favorite place if I am infectious
-      int diseases = Global::Diseases.get_number_of_diseases();
-      for (int disease_id = 0; disease_id < diseases; disease_id++) {
-	if (myself->is_infectious(disease_id)) {
-	  link[i].enroll_infectious_person(myself, disease_id);
-	}
-      }
-      FRED_VERBOSE(0, "infectious status enrolled\n");
+      // printf("enrolled new link\n"); fflush(stdout);
     }
   }
   FRED_VERBOSE(0, "set favorite place finished\n");

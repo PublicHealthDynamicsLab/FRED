@@ -35,7 +35,7 @@ public:
   Past_Infection( int _strain_id, int _recovery_date, int _age_at_exposure );
 
   int get_strain();
-  int get_recovery_date() { return recovery_date; }
+  int get_infectious_end_date() { return recovery_date; }
   int get_age_at_exposure() { return age_at_exposure; }
   void report();
   static string format_header();

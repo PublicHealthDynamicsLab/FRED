@@ -201,6 +201,10 @@ public:
     this->health.become_symptomatic(this, disease);
   }
 
+  void become_asymptomatic(Disease* disease) {
+    this->health.become_asymptomatic(this, disease);
+  }
+
   /**
    * This agent will recover from the disease
    * @param disease a pointer to the Disease
@@ -436,20 +440,24 @@ public:
     return this->health.get_exposure_date(disease);
   }
 
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became infectious with disease
-   */
-  int get_infectious_date(int disease) const {
-    return this->health.get_infectious_date(disease);
+  int get_infectious_start_date(int disease) const {
+    return this->health.get_infectious_start_date(disease);
   }
 
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became recovered from disease
-   */
-  int get_recovered_date(int disease) const {
-    return this->health.get_recovered_date(disease);
+  int get_infectious_end_date(int disease) const {
+    return this->health.get_infectious_end_date(disease);
+  }
+
+  int get_symptoms_start_date(int disease) const {
+    return this->health.get_symptoms_start_date(disease);
+  }
+
+  int get_symptoms_end_date(int disease) const {
+    return this->health.get_symptoms_end_date(disease);
+  }
+
+  int get_immunity_end_date(int disease) const {
+    return this->health.get_immunity_end_date(disease);
   }
 
   /**

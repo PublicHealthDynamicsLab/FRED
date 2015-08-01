@@ -137,6 +137,7 @@ public:
   void become_infectious(Person* person);
   void become_uninfectious(Person* person);
   void become_symptomatic(Person* person);
+  void become_asymptomatic(Person* person);
   void become_removed(Person* person);
   void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic);
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
@@ -250,23 +251,31 @@ private:
   bool report_generation_time;
   bool report_transmission_by_age;
 
+  // event queues
+  Events<Epidemic> * infectious_start_event_queue;
+  Events<Epidemic> * infectious_end_event_queue;
+  Events<Epidemic> * symptoms_start_event_queue;
+  Events<Epidemic> * symptoms_end_event_queue;
+  Events<Epidemic> * immunity_end_event_queue;
+
   // event handlers:
-  void infectious_event_handler( int day, Person * person );
-  void noninfectious_event_handler( int day, Person * person );
-  void susceptible_event_handler( int day, Person * person );
+  void infectious_start_event_handler( int day, Person * person );
+  void infectious_end_event_handler( int day, Person * person );
+  void symptoms_start_event_handler( int day, Person * person );
+  void symptoms_end_event_handler( int day, Person * person );
+  void immunity_end_event_handler( int day, Person * person );
 
   // event scheduling:
-  void add_infectious_event(int day, Person *person);
-  void delete_infectious_event(int day, Person *person);
-  void add_noninfectious_event(int day, Person *person);
-  void delete_noninfectious_event(int day, Person *person);
-  void add_susceptible_event(int day, Person *person);
-  void delete_susceptible_event(int day, Person *person);
-
-  // event queues
-  Events<Epidemic> * infectious_event_queue;
-  Events<Epidemic> * noninfectious_event_queue;
-  Events<Epidemic> * susceptible_event_queue;
+  void add_infectious_start_event(int day, Person *person);
+  void delete_infectious_start_event(int day, Person *person);
+  void add_infectious_end_event(int day, Person *person);
+  void delete_infectious_end_event(int day, Person *person);
+  void add_symptoms_start_event(int day, Person *person);
+  void delete_symptoms_start_event(int day, Person *person);
+  void add_symptoms_end_event(int day, Person *person);
+  void delete_symptoms_end_event(int day, Person *person);
+  void add_immunity_end_event(int day, Person *person);
+  void delete_immunity_end_event(int day, Person *person);
 
   // active sets
   std::set<Person*> active_people;
