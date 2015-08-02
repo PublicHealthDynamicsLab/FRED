@@ -231,6 +231,7 @@ public:
     return get_incidence();
   }
 
+  void spread_infection_in_active_places(int day, int place_type);
   void update(int day);
 
   void get_visitors_to_infectious_places(int day);
@@ -279,6 +280,10 @@ private:
 
   // active sets
   std::set<Person*> active_people;
+  std::vector<Person*> infectious_people_vec;
+  std::set<Place*> active_places;
+  std::vector<Place*> active_place_vec;
+
   std::set<Place*> active_households;
   std::set<Place*> active_neighborhoods;
   std::set<Place*> active_schools;

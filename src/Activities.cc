@@ -489,6 +489,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
   }
 
   if (Global::Test) {
+    /*
     FRED_VERBOSE(0,"checking enrollments for infectious person %d day %d\n", self->get_id(), sim_day);
     for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
       if(self->is_infectious(disease_id) == false) {
@@ -501,6 +502,7 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
 	}
       }
     }
+    */
   }
   else {
     for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {

@@ -59,6 +59,7 @@ void Person_Place_Link::update_enrollee_index(int new_index) {
 }
 
 void Person_Place_Link::enroll_infectious_person(Person *person, int disease_id) {
+  return;
   assert(infectious_enrollee_index[disease_id] == -1);
   assert(place != NULL);
   infectious_enrollee_index[disease_id] = place->enroll_infectious_person(disease_id, person);
@@ -66,6 +67,7 @@ void Person_Place_Link::enroll_infectious_person(Person *person, int disease_id)
 }
 
 void Person_Place_Link::unenroll_infectious_person(Person *person, int disease_id) {
+  return;
   assert(infectious_enrollee_index[disease_id] != -1);
   assert(place != NULL);
   place->unenroll_infectious_person(disease_id, infectious_enrollee_index[disease_id]);
@@ -73,6 +75,7 @@ void Person_Place_Link::unenroll_infectious_person(Person *person, int disease_i
 }
 
 void Person_Place_Link::update_infectious_enrollee_index(int disease_id, int new_index) {
+  return;
   assert(infectious_enrollee_index[disease_id] != -1);
   assert(new_index != -1);
   infectious_enrollee_index[disease_id] = new_index;

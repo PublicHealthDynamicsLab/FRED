@@ -623,7 +623,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 				 int disease_id, int day) {
 
   assert(infectee->is_susceptible(disease_id));
-  FRED_STATUS(1, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
+  FRED_STATUS(0, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
 
   double susceptibility = infectee->get_susceptibility(disease_id);
 
@@ -658,16 +658,16 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
     // successful transmission; create a new infection in infectee
     infector->infect(infectee, disease_id, this, day);
 
-    FRED_VERBOSE(1, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
-    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
+    FRED_VERBOSE(0, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
+    FRED_CONDITIONAL_VERBOSE(0, infector->get_exposure_date(disease_id) == 0,
 			     "SEED infection day %i from %d to %d\n", day, infector->get_id(), infectee->get_id());
-    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) != 0,
+    FRED_CONDITIONAL_VERBOSE(0, infector->get_exposure_date(disease_id) != 0,
 			     "infection day %i of disease %i from %d to %d\n", day, disease_id, infector->get_id(),
 			     infectee->get_id());
-    FRED_CONDITIONAL_VERBOSE(3, infection_prob > 1, "infection_prob exceeded unity!\n");
+    FRED_CONDITIONAL_VERBOSE(0, infection_prob > 1, "infection_prob exceeded unity!\n");
     return true;
   } else {
-    FRED_VERBOSE(1, "transmission failed: r = %f  prob = %f\n", r, infection_prob);
+    FRED_VERBOSE(0, "transmission failed: r = %f  prob = %f\n", r, infection_prob);
     return false;
   }
 }
@@ -756,7 +756,7 @@ void Place::default_transmission_model(int day, int disease_id) {
   std::vector<Person*> susceptibles = get_susceptibles(disease_id);
   std::vector<Person*> infectious = get_infectious(disease_id);
 
-  FRED_VERBOSE(1, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
+  FRED_VERBOSE(0, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
 	 day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
 
   // the number of possible infectees per infector is max of (N-1) and S[s]
@@ -1000,6 +1000,9 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 void Place::pairwise_transmission_model(int day, int disease_id) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
   double contact_prob = get_contact_rate(day, disease_id);
+
+  FRED_VERBOSE(0, "pairwise_transmission DAY %d PLACE %s N %d %d\n",
+	       day, this->get_label(), N, (int) this->enrollees.size());
 
   // randomize the order of the infectious list
   FYShuffle<Person*>(this->enrollees);

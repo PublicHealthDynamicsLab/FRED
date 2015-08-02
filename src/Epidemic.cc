@@ -276,17 +276,19 @@ void Epidemic::infectious_start_event_handler(int day, Person* person) {
   become_infectious(person);
   person->become_infectious(this->disease);
   this->active_people.insert(person);
+  /*
   std::vector<Place*> faves = person->get_favorite_places();
   for (int i = 0; i < faves.size(); i++) {
     activate_place(faves[i]);
   }
+  */
 }
 
 void Epidemic::infectious_end_event_handler(int day, Person* person) {
   FRED_VERBOSE(0,"infectious_end_event_handler day %d person %d\n",day,person->get_id());
   become_removed(person);
   person->recover(this->disease);
-  person->unenroll_as_infectious_person(this->id);
+  // person->unenroll_as_infectious_person(this->id);
   this->active_people.erase(person);
 }
 
@@ -1779,6 +1781,58 @@ void Epidemic::advance_seed_infection(Person* person) {
   person->advance_seed_infection(d, advance);
 }
 
+void Epidemic::spread_infection_in_active_places(int day, int place_type) {
+
+  infectious_people_vec.clear();
+  active_places.clear();
+  for (std::set<Person*>::iterator it = this->active_people.begin(); it != this->active_people.end(); ++it) {
+    Person* person = (*it);
+    Place *place = NULL;
+    switch(place_type) {
+    case 0:
+      place = person->get_household();
+      break;
+    case 1:
+      place = person->get_neighborhood();
+      break;
+    case 2:
+      place = person->get_school();
+      break;
+    case 3:
+      place = person->get_classroom();
+      break;
+    case 4:
+      place = person->get_workplace();
+      break;
+    case 5:
+      place = person->get_office();
+      break;
+    case 6:
+      place = person->get_hospital();
+      break;
+    }
+    if (place != NULL && person->is_present(place) && person->is_infectious(this->id)) {
+      infectious_people_vec.push_back(person);
+      active_places.insert(place);
+    }
+  }
+  
+  // convert active set to vector
+  active_place_vec.clear();
+  for (std::set<Place*>::iterator it = active_places.begin(); it != active_places.end(); ++it) {
+    active_place_vec.push_back(*it);
+  }
+  
+  // spread infections
+  for(int i = 0; i < this->active_place_vec.size(); ++i) {
+    Place* place = this->active_place_vec[i];
+    place->clear_infectious_people(this->id);
+    place->set_infectious_people(this->id, &(this->infectious_people_vec));
+    place->spread_infection(day, id);
+  }
+  return;
+}
+
 void Epidemic::update(int day) {
   FRED_VERBOSE(1, "epidemic update for disease %d day %d\n", id, day);
 
@@ -1818,6 +1872,13 @@ void Epidemic::update(int day) {
       (*it)->update_activities_of_infectious_person(day);
       FRED_VERBOSE(0, "updated activities of infectious person %d\n", (*it)->get_id());
     }
+
+    for (int type = 0; type < 7; type++) {
+      spread_infection_in_active_places(day,type);
+    }
+
+    FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
+    return;
 
     for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
       if ((*it)->is_infectious(this->id) == false) {

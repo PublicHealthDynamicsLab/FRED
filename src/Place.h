@@ -801,6 +801,18 @@ public:
   
   static char* get_place_label(Place* p);
 
+  void clear_infectious_people(int disease_id) {
+    infectious_enrollees[disease_id].clear();
+  }
+
+  void set_infectious_people(int disease_id, std::vector<Person*>* inf_vec) {
+    int size = (*inf_vec).size();
+    infectious_enrollees[disease_id].reserve(size);
+    for (int i = 0; i < size; i++) {
+      infectious_enrollees[disease_id].push_back((*inf_vec)[i]);
+    }
+  }
+
 protected:
   std::vector<Person*> susceptibles[Global::MAX_NUM_DISEASES];
   std::vector<Person*> infectious[Global::MAX_NUM_DISEASES];

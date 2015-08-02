@@ -526,7 +526,7 @@ void Health::become_asymptomatic(Person* self, Disease* disease) {
 
 void Health::recover(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  assert(this->active_infections.test(disease_id));
+  // assert(this->active_infections.test(disease_id));
   FRED_STATUS(1, "person %d is now RECOVERED for disease %d\n", self->get_id(),
 	      disease_id);
   become_removed(self, disease_id);
