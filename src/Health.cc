@@ -383,14 +383,8 @@ void Health::become_susceptible(Person* self, int disease_id) {
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  disease->become_susceptible(self);
   FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 	      self->get_id(), disease_id);
-}
-
-void Health::become_susceptible(Person* self, Disease* disease) {
-  become_susceptible(self, disease->get_id());
 }
 
 void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease) {
@@ -403,10 +397,6 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
     this->evaluate_susceptibility.reset(disease_id);
-    if (Global::Test==0) {
-      Disease* disease = Global::Diseases.get_disease(disease_id);
-      disease->become_susceptible(self);
-    }
     FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 		self->get_id(), disease_id);
   } else {
@@ -433,15 +423,12 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
   }
-  if (1||Global::Test==0) {
-    disease->become_exposed(self, day);
-  }
 
   if(Global::Verbose > 0) {
     if(place == NULL) {
-      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease->get_id());
+      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease_id);
     } else {
-      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease->get_id());
+      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease_id);
     }
   }
   if (Global::Enable_Vector_Transmission) {
@@ -480,9 +467,6 @@ void Health::become_unsusceptible(Person* self, Disease* disease) {
     return;
   }
   this->susceptible.reset(disease_id);
-  if (Global::Test==0) {
-    disease->become_unsusceptible(self);
-  }
   FRED_STATUS(1, "person %d is now UNSUSCEPTIBLE for disease %d\n",
 	      self->get_id(), disease_id);
 }
@@ -491,9 +475,6 @@ void Health::become_infectious(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->active_infections.test(disease_id));
   this->infectious.set(disease_id);
-  if (Global::Test==0) {
-    disease->become_infectious(self);
-  }
   int household_index = self->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
   h->set_human_infectious(disease_id);
@@ -508,7 +489,6 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
     return;
   }
   this->symptomatic.set(disease_id);
-  disease->become_symptomatic(self);
   FRED_STATUS(1, "person %d is now SYMPTOMATIC for disease %d\n",
 	      self->get_id(), disease_id);
 }
@@ -519,7 +499,6 @@ void Health::become_asymptomatic(Person* self, Disease* disease) {
   if(this->symptomatic.test(disease_id)) {
     this->symptomatic.reset(disease_id);
   }
-  disease->become_symptomatic(self);
   FRED_STATUS(1, "person %d is now ASYMPTOMATIC for disease %d\n",
 	      self->get_id(), disease_id);
 }
@@ -536,16 +515,9 @@ void Health::recover(Person* self, Disease* disease) {
   Household* h = Global::Places.get_household_ptr(household_index);
   h->set_recovered(disease_id);
   h->reset_human_infectious();
-  //  self->get_permanent_household()->set_recovered(disease_id);
-  // OLD: self->get_household()->set_recovered(disease_id);
 }
 
 void Health::become_removed(Person* self, int disease_id) {
-  if (Global::Test == 0) {
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    disease->become_removed(self, this->susceptible.test(disease_id),
-			    this->infectious.test(disease_id), this->symptomatic.test(disease_id));
-  }
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
@@ -555,10 +527,6 @@ void Health::become_removed(Person* self, int disease_id) {
 
 void Health::become_immune(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  if (Global::Test==0) {
-    disease->become_immune(self, this->susceptible.test(disease_id),
-			   this->infectious.test(disease_id), this->symptomatic.test(disease_id));
-  }
   this->immunity.set(disease_id);
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);

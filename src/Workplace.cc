@@ -22,6 +22,7 @@
 #include "Disease.h"
 #include "Disease_List.h"
 #include "Place_List.h"
+#include "Population.h"
 #include "Office.h"
 #include "Utils.h"
 

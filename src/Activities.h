@@ -136,13 +136,6 @@ public:
   void update_activities_of_infectious_person(Person* self, int sim_day);
 
   /**
-   * Perform the daily update for a non-infectious agent
-   *
-   * @param day the simulation day
-   */
-  void add_visitor_to_infectious_places(Person* self, int sim_day);
-
-  /**
    * Perform the daily update to the schedule
    *
    * @param self the agent
@@ -566,8 +559,6 @@ public:
 
   int get_visiting_health_status(Person* self, Place* place, int sim_day, int disease_id);
 
-  void update_activities_while_traveling(Person* self, int sim_day);
-
   void set_return_from_travel_sim_day(int sim_day) {
     this->return_from_travel_sim_day = sim_day;
   }
@@ -584,13 +575,14 @@ private:
   // links to favorite places
   Person_Place_Link * link;
 
+  std::bitset<Activity_index::FAVORITE_PLACES> on_schedule; // true iff favorite place is on schedule
+
   // list of favorite places, stored while traveling
   Place** stored_favorite_places;
 
   Place* home_neighborhood;
 
   // daily activity schedule:
-  std::bitset<Activity_index::FAVORITE_PLACES> on_schedule; // true iff favorite place is on schedule
   int schedule_updated;                       // date of last schedule update
   bool is_traveling;                         // true if traveling
   bool is_traveling_outside;                 // true if traveling outside modeled area
@@ -672,19 +664,11 @@ private:
   void update_enrollee_index(Place * place, int new_index);
   void unenroll_from_favorite_place(int i);
   void unenroll_from_favorite_places();
-  void enroll_as_infectious_person_in_favorite_place(int i, int disease_id);
-  void enroll_as_infectious_person(int disease_id);
-  void unenroll_as_infectious_person_in_favorite_place(int i, int disease_id);
-  void unenroll_as_infectious_person(int disease_id);
-  void update_infectious_enrollee_index(Place * place, int disease_id, int new_index);
-  void make_favorite_places_infectious(Person* self, int dis);
-  void join_susceptible_lists_at_favorite_places(Person* self, int dis);
-  void join_nonsusceptible_lists_at_favorite_places(Person* self, int dis);
   void store_favorite_places();
   void restore_favorite_places();
   int get_favorite_place_id(int i);
   const char * get_favorite_place_label(int i);
-  bool is_present(Place *place);
+  bool is_present(Person *self, int sim_day, Place *place);
 
 protected:
 

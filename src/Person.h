@@ -95,7 +95,7 @@ public:
    * @see Health::update(int day)
    */
   void update_health(int day) {
-    this->health.update(this, day);
+    // this->health.update(this, day);
   }
 
   void update_health_interventions(int day) {
@@ -117,12 +117,8 @@ public:
     this->activities.prepare();
   }
 
-  bool is_present(Place *place) {
-    return this->activities.is_present(place);
-  }
-
-  std::vector<Place*> get_favorite_places() {
-    return this->activities.get_favorite_places();
+  bool is_present(int sim_day, Place *place) {
+    return this->activities.is_present(this, sim_day, place);
   }
 
   void update_schedule(int sim_day) {
@@ -133,20 +129,8 @@ public:
     this->activities.update_activities_of_infectious_person(this, sim_day);
   }
 
-  void enroll_as_infectious_person(int disease_id) {
-    this->activities.enroll_as_infectious_person(disease_id);
-  }
-
-  void unenroll_as_infectious_person(int disease_id) {
-    this->activities.unenroll_as_infectious_person(disease_id);
-  }
-
   void update_enrollee_index(Place* place, int pos) {
     this->activities.update_enrollee_index(place, pos);
-  }
-
-  void update_infectious_enrollee_index(Place* place, int disease_id, int pos) {
-    this->activities.update_infectious_enrollee_index(place, disease_id, pos);
   }
 
 
@@ -157,12 +141,8 @@ public:
     this->activities.update_profile(this);
   }
 
-  /**
-   * This agent will become susceptible to the disease
-   * @param disease the disease
-   */
-  void become_susceptible(Disease* disease) {
-    this->health.become_susceptible(this, disease);
+  void become_susceptible(int disease_id) {
+    this->health.become_susceptible(this, disease_id);
   }
 
   void become_susceptible_by_vaccine_waning(Disease* disease) {

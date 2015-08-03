@@ -131,23 +131,6 @@ public:
   Trajectory* get_trajectory(int age);
 
   /**
-   * Add a person to the Epidemic's infectious place list
-   * @param p pointer to a Place
-   * @see Epidemic::add_infectious_place(Place* p)
-   */
-  void add_infectious_place(Place* p) {
-    this->epidemic->add_infectious_place(p);
-  }
-
-  void activate_place(Place* place) {
-    this->epidemic->activate_place(place);
-  }
-
-  void deactivate_place(Place* place) {
-    this->epidemic->deactivate_place(place);
-  }
-
-  /**
    * @param day the simulation day
    * @see Epidemic::print_stats(day);
    */
@@ -179,42 +162,6 @@ public:
   const Strain &get_strain(int strain_id);
 
   void get_disease_parameters();
-
-  void become_susceptible(Person* person) {
-    this->epidemic->become_susceptible(person);
-  }
-
-  void become_unsusceptible(Person* person) {
-    this->epidemic->become_unsusceptible(person);
-  }
-
-  void become_exposed(Person* person, int day) {
-    this->epidemic->become_exposed(person, day);
-  }
-
-  void become_infectious(Person* person) {
-    this->epidemic->become_infectious(person);
-  }
-
-  void become_uninfectious(Person* person) {
-    this->epidemic->become_uninfectious(person);
-  }
-
-  void become_symptomatic(Person* person) {
-    this->epidemic->become_symptomatic(person);
-  }
-
-  void become_asymptomatic(Person* person) {
-    this->epidemic->become_asymptomatic(person);
-  }
-
-  void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic) {
-    this->epidemic->become_removed(person, susceptible, infectious, symptomatic);
-  }
-
-  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
-    this->epidemic->become_immune(person, susceptible, infectious, symptomatic);
-  }
 
   void increment_cohort_infectee_count(int day) {
     this->epidemic->increment_cohort_infectee_count(day);

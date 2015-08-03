@@ -1259,8 +1259,6 @@ void Place_List::update(int day) {
 
   FRED_STATUS(1, "update places entered\n", "");
 
-  Place::clear_infectious_places(get_number_of_places());
-
   if(Global::Enable_Seasonality) {
     Global::Clim->update(day);
   }
@@ -2822,24 +2820,7 @@ Place* Place_List::select_school(int county_index, int grade) {
 
 
 void Place_List::find_visitors_to_infectious_places(int day) {
-
-  if(Global::Visit_Home_Neighborhood_Unless_Infectious) {
-
-    // only poll enrollees of infectious places (faster)
-    int number_places = Place::count_infectious_places();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = Place::get_infectious_place(p);
-      place->add_visitors_if_infectious(day);
-    }
-
-    // but also check whether traveling people visit infectious places
-    if(Global::Enable_Travel) {
-      Global::Pop.update_traveling_people(day);
-    }
-  } else {
-    // poll entire population (slower)
-    Global::Pop.add_visitors_to_infectious_places(day);
-  }
+  // TODO: delete
 }
 
 void Place_List::update_population_dynamics(int day) {

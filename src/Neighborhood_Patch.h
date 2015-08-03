@@ -120,16 +120,8 @@ public:
     return neighborhood; 
   }
 
-  /**
-   * Add a person to this Neighborhood_Patch's Neighborhood
-   * @param per a pointer to the Person to add
-   */
-  void enroll(Person * per) { 
-    neighborhood->enroll(per); 
-  }
-
-  int enroll_with_link(Person * per) { 
-    return neighborhood->enroll_with_link(per); 
+  int enroll(Person * per) { 
+    return neighborhood->enroll(per); 
   }
 
   /**

@@ -111,32 +111,11 @@ int Classroom::get_container_size() {
   return this->school->get_size();
 }
 
-// Only student get enrolled in a classroom. Teachers are only enrolled in the school.
-void Classroom::enroll(Person * per) {
-  int age = per->get_age();
-  if (age >= GRADES) age = GRADES - 1;
-  assert(per->is_teacher() == false);
-  if (get_enrollee_index(per) == -1) {
-    if (N == enrollees.size()) {
-      // double capacity if needed (to reduce future reallocations)
-      enrollees.reserve(2*N);
-    }
-    this->enrollees.push_back(per);
-    this->N++;
-    FRED_VERBOSE(1,"Enroll person %d age %d in classroom %d age_level %d %s\n", per->get_id(), per->get_age(), this->id, this->age_level, this->label);
-    if (this->age_level == -1) { this->age_level = age; }
-    assert(age == this->age_level);
-  }
-  else {
-    FRED_VERBOSE(1,"Enroll EC_WARNING person %d already in classroom %d %s\n", per->get_id(), this->id, this->label);
-  }
-}
-
-int Classroom::enroll_with_link(Person* person) {
+int Classroom::enroll(Person* person) {
   assert(person->is_teacher() == false);
 
   // call base class method:
-  int return_value = Place::enroll_with_link(person);
+  int return_value = Place::enroll(person);
 
   int age = person->get_age();
   int grade = ((age < GRADES) ? age : GRADES - 1);
@@ -148,23 +127,6 @@ int Classroom::enroll_with_link(Person* person) {
   assert(grade == this->age_level);
 
   return return_value;
-}
-
-void Classroom::unenroll(Person * per) {
-  assert(per->is_teacher() == false);
-  FRED_VERBOSE(1,"Unenroll person %d age %d from classroom %d %s size = %d\n",
-	       per->get_id(), per->get_age(), this->id, this->label, N);
-  int i = get_enrollee_index(per);
-  if (i == -1) {
-    FRED_VERBOSE(0,"Unenroll WARNING person %d age %d not found in classroom %d %s size = %d\n",
-		 per->get_id(), per->get_age(), this->id, this->label, N);
-    assert(i != -1);
-  }
-  else {
-    enrollees.erase(enrollees.begin()+i);
-    this->N--;
-    FRED_VERBOSE(1,"Unenrolled. Size = %d\n", N);
-  }
 }
 
 void Classroom::unenroll(int pos) {

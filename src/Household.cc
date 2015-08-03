@@ -26,6 +26,7 @@
 #include "Regional_Layer.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
+#include "Population.h"
 #include <algorithm>
 
 using namespace std;

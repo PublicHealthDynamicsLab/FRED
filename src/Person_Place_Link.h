@@ -24,21 +24,13 @@ class Person_Place_Link {
 
   Person_Place_Link();
 
-  ~Person_Place_Link() {
-    delete[] infectious_enrollee_index;
-  }
+  ~Person_Place_Link() {}
 
   void enroll(Person *person, Place *place);
 
   void unenroll(Person *person);
 
   void update_enrollee_index(int new_index);
-
-  void enroll_infectious_person(Person *person, int disease_id);
-
-  void unenroll_infectious_person(Person *person, int disease_id);
-
-  void update_infectious_enrollee_index(int disease_id, int new_index);
 
   Place * get_place() {
     return place;
@@ -52,14 +44,9 @@ class Person_Place_Link {
     return enrollee_index != -1;
   }
 
-  bool is_enrolled_as_infectious(int disease_id) {
-    return infectious_enrollee_index[disease_id] != -1;
-  }
-
  private:
   Place * place;
   int enrollee_index;
-  int * infectious_enrollee_index;
 };
 
 #endif // _FRED_PERSON_PLACE_LINK_H

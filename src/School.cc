@@ -22,6 +22,7 @@
 #include "Params.h"
 #include "Person.h"
 #include "Place_List.h"
+#include "Population.h"
 #include "Random.h"
 #include "Utils.h"
 #include "Tracker.h"
@@ -333,34 +334,10 @@ double School::get_contacts_per_day(int disease_id) {
   return School::school_contacts_per_day[disease_id];
 }
 
-void School::enroll(Person* person) {
-  if(get_enrollee_index(person) == -1) {
-    this->enrollees.push_back(person);
-    this->N++;
-    FRED_VERBOSE(1,"Enrolling person %d age %d in school %d %s new size %d\n",
-		 person->get_id(), person->get_age(), this->id, this->label, this->get_size());
-    if(person->is_teacher()) {
-      this->staff_size++;
-    } else {
-      int age = person->get_age();
-      int grade = ((age < GRADES) ? age : GRADES - 1);
-      assert(grade > 0);
-      this->students_in_grade[grade]++;
-      if(grade > max_grade) {
-	this->max_grade = grade;
-      }
-      person->set_grade(grade);
-    }
-  } else {
-    FRED_VERBOSE(0,"Enroll E_WARNING person %d already in school %d %s\n",
-		 person->get_id(), this->id, this->label);
-  }
-}
-
-int School::enroll_with_link(Person* person) {
+int School::enroll(Person* person) {
 
   // call base class method:
-  int return_value = Place::enroll_with_link(person);
+  int return_value = Place::enroll(person);
 
   FRED_VERBOSE(1,"Enroll person %d age %d in school %d %s new size %d\n",
 	       person->get_id(), person->get_age(), this->id, this->label, this->get_size());
@@ -378,30 +355,6 @@ int School::enroll_with_link(Person* person) {
   }
 
   return return_value;
-}
-
-void School::unenroll(Person* person) {
-  int i = get_enrollee_index(person);
-  if(i == -1) {
-    FRED_VERBOSE(0,"Unenroll U_WARNING person %d not found in school %d %s\n",
-		 person->get_id(), this->id, this->label);
-    return;
-  }
-
-  int grade = person->get_grade();
-  FRED_VERBOSE(1,"Unenroll person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       person->get_id(), person->get_age(), grade, person->is_teacher()?1:0, this->id, this->label, N);
-
-  enrollees.erase(enrollees.begin()+i);
-  this->N--;
-  if(person->is_teacher() || grade == 0) {
-    this->staff_size--;
-  } else {
-    assert(0 < grade && grade <= max_grade);
-    this->students_in_grade[grade]--;
-  }
-  person->set_grade(0);
-  FRED_VERBOSE(1,"Unenrolled from %s size = %d\n", get_label(),N);
 }
 
 void School::unenroll(int pos) {
@@ -426,13 +379,7 @@ void School::unenroll(int pos) {
 }
 
 void School::print(int disease_id) {
-  Place_State_Merge place_state_merge = Place_State_Merge();
-  this->place_state[disease_id].apply(place_state_merge);
-  std::vector<Person*> &susceptibles = place_state_merge.get_susceptible_vector();
-  std::vector<Person*> &infectious = place_state_merge.get_infectious_vector();
-
   fprintf(Global::Statusfp, "Place %d label %s type %c ", this->id, this->label, this->type);
-  fprintf(Global::Statusfp, "S %zu I %zu N %d\n", susceptibles.size(), infectious.size(), this->N);
   for(int g = 0; g < GRADES; ++g) {
     fprintf(Global::Statusfp, "%d students in grade %d | ", this->students_in_grade[g], g);
   }

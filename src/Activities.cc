@@ -169,39 +169,35 @@ Activities::Activities() {
 
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
-  FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d age %d household %s\n",
+  FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d age %d household %s\n",
 	       self->get_id(), self->get_age(), house->get_label());
 
   myself = self;
   clear_favorite_places();
 
-  FRED_VERBOSE(0,"set household %s\n", get_label_for_place(house));
+  FRED_VERBOSE(1,"set household %s\n", get_label_for_place(house));
   set_household(house);
 
-  FRED_VERBOSE(0,"set school %s\n", get_label_for_place(school));
+  FRED_VERBOSE(1,"set school %s\n", get_label_for_place(school));
   set_school(school);
 
-  FRED_VERBOSE(0,"set workplace %s\n", get_label_for_place(work));
+  FRED_VERBOSE(1,"set workplace %s\n", get_label_for_place(work));
   set_workplace(work);
-  FRED_VERBOSE(0,"set workplace %s ok\n", get_label_for_place(work));
+  FRED_VERBOSE(1,"set workplace %s ok\n", get_label_for_place(work));
 
   // increase the population in county of residence
   int index = get_household()->get_county_index();
-  FRED_VERBOSE(0,"increment popsize ok\n");
   Global::Places.increment_population_of_county_with_index(index);
-  FRED_VERBOSE(0,"increment popsize ok\n");
 
   // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
-  FRED_VERBOSE(0,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
+  FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", self->get_id(),
 	       get_neighborhood()->get_id(), get_neighborhood()->get_label());
   FRED_CONDITIONAL_VERBOSE(0, get_neighborhood() == NULL,
 			   "Help! NO NEIGHBORHOOD for person %d house %d \n", self->get_id(), get_household()->get_id());
-  FRED_VERBOSE(0,"set neighborhood ok\n");
   this->home_neighborhood = get_neighborhood();
-  FRED_VERBOSE(0,"set home neighborhood ok\n");
 
-  // assign profiles and enroll in favorite places
+  // assign profile
   assign_initial_profile(self);
   FRED_VERBOSE(0,"set profile ok\n");
 
@@ -233,7 +229,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
       self->get_demographics()->cancel_conception(self);
     }
   }
-  FRED_VERBOSE(0,"Activity::setup finished for person %d\n", self->get_id());
+  FRED_VERBOSE(1,"Activity::setup finished for person %d\n", self->get_id());
 
 }
 
@@ -448,6 +444,12 @@ void Activities::update(int sim_day) {
 void Activities::update_activities_of_infectious_person(Person* self, int sim_day) {
 
   FRED_VERBOSE(0,"update_activities for person %d day %d\n", self->get_id(), sim_day);
+
+  // skip all scheduled activities if traveling abroad
+  if(this->is_traveling_outside) {
+    return;
+  }
+
   if(Global::Enable_Isolation) {
     if(this->is_isolated) {
       // once isolated, remain isolated
@@ -469,11 +471,6 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
     }
   }
 
-  // skip scheduled activities if traveling abroad
-  if(this->is_traveling_outside) {
-    return;
-  }
-
   if(sim_day > this->schedule_updated) {
     // get list of places to visit today
     update_schedule(self, sim_day);
@@ -487,87 +484,11 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
       }
     }
   }
-
-  if (Global::Test) {
-    /*
-    FRED_VERBOSE(0,"checking enrollments for infectious person %d day %d\n", self->get_id(), sim_day);
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(self->is_infectious(disease_id) == false) {
-	continue;
-      }
-      for (int i = 0; i < Activity_index::FAVORITE_PLACES; i++) {
-	if(this->on_schedule[i] && link[i].is_enrolled() && !(link[i].is_enrolled_as_infectious(disease_id))) {
-	  FRED_VERBOSE(0,"add infectious enrollment for disease %d to place %s\n", disease_id, get_favorite_place_label(i));
-	  link[i].enroll_infectious_person(self, disease_id);
-	}
-      }
-    }
-    */
-  }
-  else {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(self->is_infectious(disease_id)) {
-	make_favorite_places_infectious(self, disease_id);
-      }
-    }
-  }
-
 }
 
-void Activities::add_visitor_to_infectious_places(Person* self, int sim_day) {
-  // skip scheduled activities if traveling abroad
-  if(this->is_traveling_outside) {
-    return;
-  }
-
-  if(sim_day > this->schedule_updated) {
-    // get list of places to visit today
-    update_schedule(self, sim_day);
-  }
-
-  if(this->on_schedule.any()) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(self->is_susceptible(disease_id)) {
-	join_susceptible_lists_at_favorite_places(self, disease_id);
-      } else {
-	if(Global::Enable_Vector_Transmission) {
-	  if(!self->is_infectious(disease_id)) {
-	    join_nonsusceptible_lists_at_favorite_places(self, disease_id);
-	  }
-	}
-      }
-    }
-  }
-}
-
-void Activities::update_activities_while_traveling(Person* self, int sim_day) {
-
-  // skip scheduled activities if traveling abroad
-  if(this->is_traveling_outside) {
-    return;
-  }
-
-  if(sim_day > this->schedule_updated) {
-    // get list of places to visit today
-    update_schedule(self, sim_day);
-  }
-
-  if(this->on_schedule.any()) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(self->is_susceptible(disease_id)) {
-	join_susceptible_lists_at_favorite_places(self, disease_id);
-      } else {
-	if(Global::Enable_Vector_Transmission) {
-	  if(!self->is_infectious(disease_id)) {
-	    join_nonsusceptible_lists_at_favorite_places(self, disease_id);
-	  }
-	}
-      }
-    }
-  }
-}
 
 void Activities::update_schedule(Person* self, int sim_day) {
+
   // update this schedule only once per day
   if(sim_day <= this->schedule_updated) {
     return;
@@ -1608,7 +1529,6 @@ void Activities::start_traveling(Person* self, Person* visited) {
     }
   }
   this->is_traveling = true;
-  Global::Pop.set_mask_by_index( fred::Travel, self->get_pop_index() );
   FRED_STATUS(1, "start traveling: id = %d\n", self->get_id());
 }
 
@@ -1619,7 +1539,6 @@ void Activities::stop_traveling(Person* self) {
   this->is_traveling = false;
   this->is_traveling_outside = false;
   this->return_from_travel_sim_day = -1;
-  Global::Pop.clear_mask_by_index( fred::Travel, self->get_pop_index());
   if(Global::Report_Childhood_Presenteeism) {
     Household* my_hh = static_cast<Household*>(self->get_household());
     if(my_hh != NULL) {
@@ -1837,7 +1756,7 @@ void Activities::update_enrollee_index(Place * place, int new_index) {
     printf("%s ", place ? place->get_label() : "NULL");
   }
   printf("\n");
-  assert(1==0);
+  assert(0);
 }
 
 ///////////////////////////////////
@@ -1876,72 +1795,6 @@ void Activities::unenroll_from_favorite_places() {
     unenroll_from_favorite_place(i);
   }
   clear_favorite_places();
-}
-
-void Activities::enroll_as_infectious_person_in_favorite_place(int i, int disease_id) {
-  Place* place = get_favorite_place(i);
-  if(place != NULL) {
-    link[i].enroll_infectious_person(myself, disease_id);
-  }
-}
-
-void Activities::enroll_as_infectious_person(int disease_id) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    enroll_as_infectious_person_in_favorite_place(i, disease_id);
-  }
-}
-
-void Activities::unenroll_as_infectious_person_in_favorite_place(int i, int disease_id) {
-  Place* place = get_favorite_place(i);
-  if(place != NULL) {
-    link[i].unenroll_infectious_person(myself, disease_id);
-  }
-}
-
-void Activities::unenroll_as_infectious_person(int disease_id) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    unenroll_as_infectious_person_in_favorite_place(i, disease_id);
-  }
-}
-
-void Activities::update_infectious_enrollee_index(Place * place, int disease_id, int new_index) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if (place == get_favorite_place(i)) {
-      link[i].update_infectious_enrollee_index(disease_id, new_index);
-      return;
-    }
-  }
-}
-
-void Activities::make_favorite_places_infectious(Person* self, int dis) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if(this->on_schedule[i]) {
-      assert(get_favorite_place(i) != NULL);
-      get_favorite_place(i)->add_infectious(dis, self);
-    }
-  }
-}
-
-void Activities::join_susceptible_lists_at_favorite_places(Person* self, int dis) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if(this->on_schedule[i]) {
-      assert(get_favorite_place(i) != NULL);
-      if(get_favorite_place(i)->is_infectious(dis)) {
-	get_favorite_place(i)->add_susceptible(dis, self);
-      }
-    }
-  }
-}
-
-void Activities::join_nonsusceptible_lists_at_favorite_places(Person* self, int dis) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if(this->on_schedule[i]) {
-      assert(get_favorite_place(i) != NULL);
-      if(get_favorite_place(i)->is_infectious(dis)) {
-	get_favorite_place(i)->add_nonsusceptible(dis, self);
-      }
-    }
-  }
 }
 
 void Activities::store_favorite_places() {
@@ -1992,7 +1845,19 @@ void Activities::set_favorite_place(int i, Place* place) {
   FRED_VERBOSE(0, "set favorite place finished\n");
 }
 
-bool Activities::is_present(Place *place) {
+bool Activities::is_present(Person *self, int sim_day, Place *place) {
+
+  // not here if traveling abroad
+  if(this->is_traveling_outside) {
+    return false;
+  }
+
+  // update list of places to visit today if not already done
+  if(sim_day > this->schedule_updated) {
+    update_schedule(self, sim_day);
+  }
+
+  // see if this place is on the list
   for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
     if(get_favorite_place(i) == place && this->on_schedule[i]) {
       return true;

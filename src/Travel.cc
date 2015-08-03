@@ -337,7 +337,7 @@ void Travel::terminate_person(Person* person) {
     piter it = traveler_list[i].find(person);
     if(it != traveler_list[i].end()) {
       traveler_list[i].erase(it);
-      Global::Pop.clear_mask_by_index( fred::Travel, person->get_pop_index() );
+      // Global::Pop.clear_mask_by_index( fred::Travel, person->get_pop_index() );
       break;
     }
   }

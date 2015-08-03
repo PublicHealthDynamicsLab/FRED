@@ -98,13 +98,7 @@ public:
   ~Epidemic();
  
   void setup();
-
-  /**
-   * Output daily Epidemic statistics to the files
-   * @param day the simulation day
-   */
   void print_stats(int day);
-
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
   void report_transmission_by_age_group(int day);
@@ -119,37 +113,16 @@ public:
   void report_census_tract_stratified_results(int day);
   void report_group_quarters_incidence(int day);
   void read_time_step_map();
+  void track_value(int day, char* key, int value);
+  void track_value(int day, char* key, double value);
+  void track_value(int day, char* key, string value);
 
-  /**
-   * Add an infectious place of a given type to this Epidemic's list
-   * @param p the Place to be added
-   */
-  void add_infectious_place(Place* p);
-
-  /**
-   *
-   */
-  void get_infectious_places(int day);
   void get_imported_infections(int day);
-  void become_susceptible(Person* person);
-  void become_unsusceptible(Person* person);
   void become_exposed(Person* person, int day);
-  void become_infectious(Person* person);
-  void become_uninfectious(Person* person);
-  void become_symptomatic(Person* person);
-  void become_asymptomatic(Person* person);
-  void become_removed(Person* person);
-  void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic);
-  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
-  void update_visited_places(int day, int disease_id);
-  void find_infectious_places(int day, int disease_id);
-  void add_susceptibles_to_infectious_places(int day, int disisease_id);
-
-  void increment_cohort_infectee_count(int cohort_day) {
-#pragma omp atomic
-    ++(this->number_infected_by_cohort[cohort_day]);
-  }
+  void update(int day);
+  void find_active_places_of_type(int day, int place_type);
+  void spread_infection_in_active_places(int day);
 
   int get_susceptible_people() {
     return this->susceptible_people;
@@ -231,17 +204,10 @@ public:
     return get_incidence();
   }
 
-  void spread_infection_in_active_places(int day, int place_type);
-  void update(int day);
+  void increment_cohort_infectee_count(int cohort_day) {
+    ++(this->number_infected_by_cohort[cohort_day]);
+  }
 
-  void get_visitors_to_infectious_places(int day);
-
-  void track_value(int day, char* key, int value);
-  void track_value(int day, char* key, double value);
-  void track_value(int day, char* key, string value);
-
-  void activate_place(Place *place);
-  void deactivate_place(Place *place);
 
 private:
   Disease* disease;
@@ -265,10 +231,11 @@ private:
   void infectious_end_event_handler( int day, Person * person );
   void symptoms_start_event_handler( int day, Person * person );
   void symptoms_end_event_handler( int day, Person * person );
-  void immunity_startevent_handler( int day, Person * person );
+  void immunity_start_event_handler( int day, Person * person );
   void immunity_end_event_handler( int day, Person * person );
 
   // event scheduling:
+  /*
   void add_infectious_start_event(int day, Person *person);
   void delete_infectious_start_event(int day, Person *person);
 
@@ -286,20 +253,13 @@ private:
 
   void add_immunity_end_event(int day, Person *person);
   void delete_immunity_end_event(int day, Person *person);
+  */
 
   // active sets
-  std::set<Person*> active_people;
-  std::vector<Person*> infectious_people_vec;
+  std::set<Person*> potentially_infectious_people;
+  std::vector<Person*> actually_infectious_people;
   std::set<Place*> active_places;
   std::vector<Place*> active_place_vec;
-
-  std::set<Place*> active_households;
-  std::set<Place*> active_neighborhoods;
-  std::set<Place*> active_schools;
-  std::set<Place*> active_classrooms;
-  std::set<Place*> active_workplaces;
-  std::set<Place*> active_offices;
-  std::set<Place*> active_hospitals;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;
@@ -321,19 +281,8 @@ private:
   /// (ultimately done in Infection::advance_infection)
   void advance_seed_infection(Person* person);
 
-  static int get_age_group(int age);
-
-  // lists of susceptible and infectious Persons now kept as
-  // bit maskes in Population "Bloque"
   vector<Person*> daily_infections_list;
-
-  vector<Place*> inf_households;
-  vector<Place*> inf_neighborhoods;
-  vector<Place*> inf_classrooms;
-  vector<Place*> inf_schools;
-  vector<Place*> inf_workplaces;
-  vector<Place*> inf_offices;
-  vector<Place*> inf_hospitals;
+  static int get_age_group(int age);
 
   // population health state counters
   int susceptible_people;
@@ -386,19 +335,6 @@ private:
   // used for incidence counts by census_tracts
   int census_tracts;
   int* census_tract_incidence;
-
-  //fred::Mutex mutex;
-  fred::Spin_Mutex neighborhood_mutex;
-  fred::Spin_Mutex household_mutex;
-  fred::Spin_Mutex workplace_mutex;
-  fred::Spin_Mutex office_mutex;
-  fred::Spin_Mutex school_mutex;
-  fred::Spin_Mutex classroom_mutex;
-  fred::Spin_Mutex hospital_mutex;
-
-  fred::Spin_Mutex spin_mutex;
-
-  size_t place_person_list_reserve_size;
 
 };
 
