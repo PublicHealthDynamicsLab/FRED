@@ -157,149 +157,123 @@ Epidemic::Epidemic(Disease* dis) {
   this->infectious_end_event_queue = new Events<Epidemic>;
   this->symptoms_start_event_queue = new Events<Epidemic>;
   this->symptoms_end_event_queue = new Events<Epidemic>;
+  this->immunity_start_event_queue = new Events<Epidemic>;
   this->immunity_end_event_queue = new Events<Epidemic>;
 
   this->active_people.clear();
-  this->active_households.clear();
-  this->active_neighborhoods.clear();
-  this->active_schools.clear();
-  this->active_classrooms.clear();
-  this->active_workplaces.clear();
-  this->active_offices.clear();
-  this->active_hospitals.clear();
 }
 
-
-void Epidemic::activate_place(Place *place) {
-
-  // TODO: replace with switch
-  if (place->is_household()) {
-    active_households.insert(place);
-    return;
-  }
-  if (place->is_neighborhood()) {
-    active_neighborhoods.insert(place);
-    return;
-  }
-  if (place->is_school()) {
-    active_schools.insert(place);
-    return;
-  }
-  if (place->is_classroom()) {
-    active_classrooms.insert(place);
-    return;
-  }
-  if (place->is_workplace()) {
-    active_workplaces.insert(place);
-    return;
-  }
-  if (place->is_office()) {
-    active_offices.insert(place);
-    return;
-  }
-  if (place->is_hospital()) {
-    active_hospitals.insert(place);
-    return;
-  }
-}
-
-void Epidemic::deactivate_place(Place *place) {
-
-  if (place->is_household()) {
-    active_households.erase(place);
-    return;
-  }
-  if (place->is_neighborhood()) {
-    active_neighborhoods.erase(place);
-    return;
-  }
-  if (place->is_school()) {
-    active_schools.erase(place);
-    return;
-  }
-  if (place->is_classroom()) {
-    active_classrooms.erase(place);
-    return;
-  }
-  if (place->is_workplace()) {
-    active_workplaces.erase(place);
-    return;
-  }
-  if (place->is_office()) {
-    active_offices.erase(place);
-    return;
-  }
-}
-
-void Epidemic::add_infectious_start_event(int day, Person *person) {
-  infectious_start_event_queue->add_event(day, person);
-}
-
-void Epidemic::delete_infectious_start_event(int day, Person *person) {
-  infectious_start_event_queue->delete_event(day, person);
-}
-
-void Epidemic::add_infectious_end_event(int day, Person *person) {
-  infectious_end_event_queue->add_event(day, person);
-}
-
-void Epidemic::delete_infectious_end_event(int day, Person *person) {
-  infectious_end_event_queue->delete_event(day, person);
-}
-
-void Epidemic::add_symptoms_start_event(int day, Person *person) {
-  symptoms_start_event_queue->add_event(day, person);
-}
-
-void Epidemic::delete_symptoms_start_event(int day, Person *person) {
-  symptoms_start_event_queue->delete_event(day, person);
-}
-
-void Epidemic::add_symptoms_end_event(int day, Person *person) {
-  symptoms_end_event_queue->add_event(day, person);
-}
-
-void Epidemic::delete_symptoms_end_event(int day, Person *person) {
-  symptoms_end_event_queue->delete_event(day, person);
-}
-
-void Epidemic::add_immunity_end_event(int day, Person *person) {
-  immunity_end_event_queue->add_event(day, person);
-}
-
-void Epidemic::delete_immunity_end_event(int day, Person *person) {
-  immunity_end_event_queue->delete_event(day, person);
-}
 
 void Epidemic::infectious_start_event_handler(int day, Person* person) {
   FRED_VERBOSE(0,"infectious_start_event_handler day %d person %d\n",day,person->get_id());
-  become_infectious(person);
-  person->become_infectious(this->disease);
+
+  // update next event list
+  int infectious_end_date = person->get_infectious_end_date(this->id);
+  infectious_end_event_queue->add_event(infectious_end_date, person);
+
+  // add to active people list
   this->active_people.insert(person);
-  /*
-  std::vector<Place*> faves = person->get_favorite_places();
-  for (int i = 0; i < faves.size(); i++) {
-    activate_place(faves[i]);
-  }
-  */
+
+  // update epidemic counters
+  this->exposed_people--;
+
+  // update person's health chart
+  person->become_infectious(this->disease);
 }
 
 void Epidemic::infectious_end_event_handler(int day, Person* person) {
   FRED_VERBOSE(0,"infectious_end_event_handler day %d person %d\n",day,person->get_id());
-  become_removed(person);
-  person->recover(this->disease);
-  // person->unenroll_as_infectious_person(this->id);
+
+  // remove from active list
   this->active_people.erase(person);
+
+  // update epidemic counters
+  if(person->is_symptomatic(this->id)) {
+    this->people_with_current_symptoms--;
+  }
+  if(person->is_dead()) {
+    this->daily_case_fatality_count++;
+    this->total_case_fatality_count++;
+  }
+  this->removed_people++;
+
+  // update person's health chart
+  person->recover(this->disease);
 }
 
 
 void Epidemic::symptoms_start_event_handler(int day, Person* person) {
+
+  // update next event list
+  int symptoms_end_date = person->get_symptoms_end_date(this->id);
+  symptoms_end_event_queue->add_event(symptoms_end_date, person);
+
+  // update epidemic counters
+  this->people_with_current_symptoms++;
+  this->people_becoming_symptomatic_today++;
+
+  if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
+    if(person->get_household() != NULL) {
+      int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
+      if(income_level >= Household_income_level_code::CAT_I &&
+         income_level < Household_income_level_code::UNCLASSIFIED) {
+        this->household_income_infection_counts_map[income_level].tot_ppl_evr_sympt++;
+      }
+    }
+  }
+
+  if(Global::Report_Epidemic_Data_By_Census_Tract) {
+    if(person->get_household() != NULL) {
+      Household* hh = static_cast<Household*>(person->get_household());
+      long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
+      if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
+        this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
+        if(person->is_child()) {
+          this->census_tract_infection_counts_map[census_tract].tot_chldrn_evr_sympt++;
+        }
+      }
+    }
+  }
+
+  if(Global::Report_Childhood_Presenteeism) {
+    if(person->is_student() &&
+       person->get_school() != NULL &&
+       person->get_household() != NULL) {
+      School* schl = static_cast<School*>(person->get_school());
+      Household* hh = static_cast<Household*>(person->get_household());
+      int income_quartile = schl->get_income_quartile();
+
+      if(person->is_child()) { //Already know person is student
+        this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_ever_sympt++;
+      }
+
+      if(hh->has_school_aged_child_and_unemployed_adult()) {
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt++;
+      }
+    }
+  }
+
+  // update person's health chart
+  person->become_symptomatic(this->disease);
 }
 
 void Epidemic::symptoms_end_event_handler(int day, Person* person) {
+
+  // update epidemic counters
+  this->people_with_current_symptoms--;
+
+  // update person's health chart
+  // person->end_symptoms(this->disease);
 }
 
 void Epidemic::immunity_end_event_handler(int day, Person* person) {
+
+  // update epidemic counters
+  this->removed_people++;
+
+  // update person's health chart
+  person->become_susceptible(this->disease);
 }
 
 
@@ -419,14 +393,17 @@ void Epidemic::become_unsusceptible(Person* person) {
 }
 
 void Epidemic::become_exposed(Person* person, int day) {
-  this->people_becoming_infected_today++;
 
-  // update infectious event list
+  // update next event list
   int infectious_start_date = person->get_infectious_start_date(this->id);
   add_infectious_start_event(infectious_start_date, person);
 
   int symptoms_start_date = person->get_symptoms_start_date(this->id);
   add_symptoms_start_event(symptoms_start_date, person);
+
+  // update epidemic counters
+  this->exposed_people++;
+  this->people_becoming_infected_today++;
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
@@ -438,6 +415,7 @@ void Epidemic::become_exposed(Person* person, int day) {
       }
     }
   }
+
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
@@ -469,14 +447,8 @@ void Epidemic::become_exposed(Person* person, int day) {
       }
     }
   }
-#pragma omp atomic
-  this->exposed_people++;
 
-  // TODO the daily infections list may end up containing defunct pointers if
-  // enable_deaths is in effect (whether or not we are running in parallel mode).
-  // Make daily reports and purge list after each report to fix this.
-  fred::Spin_Lock lock(this->spin_mutex);
-  this->daily_infections_list.push_back(person);
+  // obs: this->daily_infections_list.push_back(person);
 }
 
 void Epidemic::become_infectious(Person* person) {
@@ -1879,118 +1851,6 @@ void Epidemic::update(int day) {
 
     FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
     return;
-
-    for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_households.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_neighborhoods.begin(); it != active_neighborhoods.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_neighborhoods.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_schools.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_classrooms.begin(); it != active_classrooms.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_classrooms.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_workplaces.begin(); it != active_workplaces.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_workplaces.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_offices.begin(); it != active_offices.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_offices.erase(it);
-      }
-    }
-
-    for (std::set<Place*>::iterator it = active_hospitals.begin(); it != active_hospitals.end(); ++it) {
-      if ((*it)->is_infectious(this->id) == false) {
-	active_hospitals.erase(it);
-      }
-    }
-
-    FRED_VERBOSE(0, "EPIDEMIC active households %d\n",
-		 this->active_households.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active neighborhoods %d\n",
-		 this->active_neighborhoods.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active schools %d\n",
-		 this->active_schools.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active classrooms %d\n",
-		 this->active_classrooms.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active workplaces %d\n",
-		 this->active_workplaces.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active ofices %d\n",
-		 this->active_offices.size());
-      
-    FRED_VERBOSE(0, "EPIDEMIC active hospitals %d\n",
-		 this->active_hospitals.size());
-
-    inf_households.clear();
-    for (std::set<Place*>::iterator it = active_households.begin(); it != active_households.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_households.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_neighborhoods.clear();
-    for (std::set<Place*>::iterator it = active_neighborhoods.begin(); it != active_neighborhoods.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_neighborhoods.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_schools.clear();
-    for (std::set<Place*>::iterator it = active_schools.begin(); it != active_schools.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_schools.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_classrooms.clear();
-    for (std::set<Place*>::iterator it = active_classrooms.begin(); it != active_classrooms.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_classrooms.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_workplaces.clear();
-    for (std::set<Place*>::iterator it = active_workplaces.begin(); it != active_workplaces.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_workplaces.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_offices.clear();
-    for (std::set<Place*>::iterator it = active_offices.begin(); it != active_offices.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_offices.push_back(*it);
-    }
-    // printf("\n");
-
-    inf_hospitals.clear();
-    for (std::set<Place*>::iterator it = active_hospitals.begin(); it != active_hospitals.end(); ++it) {
-      // (*it)->print_infectious(this->id);
-      inf_hospitals.push_back(*it);
-    }
-    // printf("\n");
   }
 
   FRED_VERBOSE(0, "EPIDEMIC inf neighborhoods %d\n",

@@ -257,6 +257,7 @@ private:
   Events<Epidemic> * infectious_end_event_queue;
   Events<Epidemic> * symptoms_start_event_queue;
   Events<Epidemic> * symptoms_end_event_queue;
+  Events<Epidemic> * immunity_start_event_queue;
   Events<Epidemic> * immunity_end_event_queue;
 
   // event handlers:
@@ -264,17 +265,25 @@ private:
   void infectious_end_event_handler( int day, Person * person );
   void symptoms_start_event_handler( int day, Person * person );
   void symptoms_end_event_handler( int day, Person * person );
+  void immunity_startevent_handler( int day, Person * person );
   void immunity_end_event_handler( int day, Person * person );
 
   // event scheduling:
   void add_infectious_start_event(int day, Person *person);
   void delete_infectious_start_event(int day, Person *person);
+
   void add_infectious_end_event(int day, Person *person);
   void delete_infectious_end_event(int day, Person *person);
+
   void add_symptoms_start_event(int day, Person *person);
   void delete_symptoms_start_event(int day, Person *person);
+
   void add_symptoms_end_event(int day, Person *person);
   void delete_symptoms_end_event(int day, Person *person);
+
+  void add_immunity_start_event(int day, Person *person);
+  void delete_immunity_start_event(int day, Person *person);
+
   void add_immunity_end_event(int day, Person *person);
   void delete_immunity_end_event(int day, Person *person);
 
