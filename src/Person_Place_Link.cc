@@ -35,6 +35,7 @@ void Person_Place_Link::unenroll(Person *person) {
   assert(enrollee_index != -1);
   assert(place != NULL);
   place->unenroll(enrollee_index);
+  printf("UNENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
   enrollee_index = -1;
   place = NULL;
 }

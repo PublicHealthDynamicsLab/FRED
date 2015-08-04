@@ -355,10 +355,6 @@ public:
     return this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED];
   }
 
-  int get_size() {
-    return this->N;
-  }
-
   void set_group_quarters_workplace(Place* p) {
     this->group_quarters_workplace = p;
   }

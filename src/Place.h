@@ -689,7 +689,7 @@ protected:
   fred::geo longitude;    // geo location
   int close_date;         // this place will be closed during:
   int open_date;          //   [close_date, open_date)
-  int N;                  // total number of potential visitors
+  // int N;                  // total number of potential visitors
   int N_orig;		  // orig number of potential visitors
   double intimacy;	  // prob of intimate contact
   static double** prob_contact;

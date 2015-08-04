@@ -73,7 +73,6 @@ Household::Household() {
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
-  this->N = 0;
   this->group_quarters_units = 0;
   this->income_quartile = -1;
   set_household_income(-1);
@@ -99,7 +98,6 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->shelter_end_day = 0;
   this->deme_id = ' ';
   setup(lab, lon, lat);
-  this->N = 0;
   this->group_quarters_units = 0;
   this->group_quarters_workplace = NULL;
   this->income_quartile = -1;
@@ -322,13 +320,14 @@ bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person
 void Household::record_profile() {
   // record the ages
   this->ages.clear();
-  for(int i = 0; i < this->N; ++i) {
+  int size = get_size();
+  for(int i = 0; i < size; ++i) {
     this->ages.push_back(this->enrollees[i]->get_age());
   }
 
   // record the id's of the original members of the household
   this->ids.clear();
-  for(int i = 0; i < this->N; ++i) {
+  for(int i = 0; i < size; ++i) {
     this->ids.push_back(this->enrollees[i]->get_id());
   }
 }
