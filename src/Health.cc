@@ -266,6 +266,7 @@ Health::Health(Person* person) {
 }
 
 void Health::setup(Person* self) {
+  FRED_VERBOSE(0, "Health::setup for person %d\n", self->get_id());
   this->alive = true;
   this->intervention_flags = intervention_flags_type();
   // infection pointers stored in statically allocated array (length of which
@@ -298,7 +299,9 @@ void Health::setup(Person* self) {
     // printf("FACEMASK: has_face_mask_behavior = %d\n", this->has_face_mask_behavior?1:0);
   }
 
-  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); disease_id++) {
+  int diseases = Global::Diseases.get_number_of_diseases();
+  FRED_VERBOSE(0, "Health::setup diseases %d\n", diseases);
+  for(int disease_id = 0; disease_id < diseases; disease_id++) {
     this->infection[disease_id] = NULL;
     this->infectee_count[disease_id] = 0;
     this->susceptibility_multp[disease_id] = 1.0;
@@ -377,13 +380,16 @@ Health::~Health() {
 
 void Health::become_susceptible(Person* self, int disease_id) {
   if(this->susceptible.test(disease_id)) {
+    FRED_STATUS(0, "person %d is already SUSCEPTIBLE for disease %d\n",
+		self->get_id(), disease_id);
     return;
   }
   assert(!(this->active_infections.test(disease_id)));
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
-  FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
+  assert(is_susceptible(disease_id));
+  FRED_STATUS(0, "person %d is now SUSCEPTIBLE for disease %d\n",
 	      self->get_id(), disease_id);
 }
 

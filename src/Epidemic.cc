@@ -1426,6 +1426,7 @@ void Epidemic::get_imported_infections(int day) {
 	
 	// find households that qualify by distance
 	int hsize = Global::Places.get_number_of_households();
+	printf("IMPORT: houses  %d\n", hsize); fflush(stdout);
 	for(int i = 0; i < hsize; ++i) {
 	  Household* house = Global::Places.get_household_ptr(i);
 	  double dist = 0.0;
@@ -1438,6 +1439,7 @@ void Epidemic::get_imported_infections(int day) {
 	  // this household qualifies by distance.
 	  // find all susceptible housemates who qualify by age.
 	  int size = house->get_size();
+	  printf("IMPORT: house %s size %d\n", house->get_label(), size); fflush(stdout);
 	  for(int j = 0; j < size; ++j) {
 	    Person* person = house->get_housemate(j);
 	    if(person->get_health()->is_susceptible(this->id)) {

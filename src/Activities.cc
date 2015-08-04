@@ -1837,9 +1837,7 @@ void Activities::set_favorite_place(int i, Place* place) {
       link[i].unenroll(myself);
     }
     if (place != NULL) {
-      // printf("enroll new link\n"); fflush(stdout);
       link[i].enroll(myself, place);
-      // printf("enrolled new link\n"); fflush(stdout);
     }
   }
   FRED_VERBOSE(0, "set favorite place finished\n");
