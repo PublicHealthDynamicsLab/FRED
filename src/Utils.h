@@ -24,6 +24,10 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <vector>
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
 
 ////// LOGGING MACROS
 ////// gcc recognizes a signature without variadic args: (verbosity, format) as well as
@@ -125,8 +129,6 @@
 #endif
 
 
-using namespace std;
-
 namespace Utils {
   void fred_abort(const char* format, ...);
   void fred_warning(const char* format, ...);
@@ -135,7 +137,7 @@ namespace Utils {
   void fred_end();
   void fred_print_wall_time(const char* format, ...);
   void fred_start_timer();
-  void fred_start_timer(time_t* lap_start_time );
+  void fred_start_timer(high_resolution_clock::time_point* lap_start_time);
   void fred_start_day_timer();
   void fred_print_day_timer(int day);
   void fred_start_initialization_timer();
@@ -143,7 +145,7 @@ namespace Utils {
   void fred_print_finish_timer();
   void fred_print_update_time(const char* format, ...);
   void fred_print_lap_time(const char* format, ...);
-  void fred_print_lap_time(time_t* start_lap_time, const char* format, ...);
+  void fred_print_lap_time(high_resolution_clock::time_point* start_lap_time, const char* format, ...);
   void fred_verbose(int verbosity, const char* format, ...);
   void fred_verbose_statusfp(int verbosity, const char* format, ...);
   void fred_log(const char* format, ...);

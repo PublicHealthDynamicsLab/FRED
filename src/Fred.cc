@@ -176,15 +176,18 @@ void fred_setup(int argc, char* argv[]) {
 
   // finished setting up Diseases
   Global::Diseases.setup();
+  Utils::fred_print_lap_time("Diseases.setup");
 
   // read in the population and have each person enroll
   // in each favorite place identified in the population file
   Utils::fred_print_wall_time("\nFRED Pop.setup started");
   Global::Pop.setup();
-  Global::Places.setup_group_quarters();
-  Global::Places.setup_households();
-  Utils::fred_print_lap_time("Pop.setup");
   Utils::fred_print_wall_time("FRED Pop.setup finished");
+  Utils::fred_print_lap_time("Pop.setup");
+  Global::Places.setup_group_quarters();
+  Utils::fred_print_lap_time("Places.setup_group_quarters");
+  Global::Places.setup_households();
+  Utils::fred_print_lap_time("Places.setup_households");
 
   // define FRED-specific places and have each person enroll as needed
 
@@ -199,6 +202,7 @@ void fred_setup(int argc, char* argv[]) {
 
   // offices
   Global::Places.setup_offices();
+  Utils::fred_print_lap_time("setup_offices");
   Global::Pop.assign_offices();
   Utils::fred_print_lap_time("assign offices");
 

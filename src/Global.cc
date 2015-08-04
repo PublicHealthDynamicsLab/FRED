@@ -25,7 +25,7 @@
 char Global::Simulation_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
 unsigned long Global::Simulation_seed = 1;
-time_t Global::Simulation_start_time = 0;
+high_resolution_clock::time_point Global::Simulation_start_time = high_resolution_clock::now();
 int Global::Simulation_Day = 0;
 
 // global runtime parameters

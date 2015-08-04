@@ -23,6 +23,10 @@
 #include <assert.h>
 #include <bitset>
 #include <map>
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
 
 // for unit testing, use the line in Makefile: gcc -DUNITTEST ...
 #ifdef UNITTEST
@@ -169,7 +173,7 @@ public:
   static char Simulation_directory[FRED_STRING_SIZE];
   static int Simulation_run_number;
   static unsigned long Simulation_seed;
-  static time_t Simulation_start_time;
+  static high_resolution_clock::time_point Simulation_start_time;
   static int Simulation_Day;
 
   // global runtime parameters
