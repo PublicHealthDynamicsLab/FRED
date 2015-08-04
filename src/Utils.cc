@@ -260,39 +260,37 @@ void Utils::fred_start_timer(high_resolution_clock::time_point* lap_start_time) 
 }
 
 void Utils::fred_start_initialization_timer() {
-  start_initialization_timer =high_resolution_clock::now();
+  start_initialization_timer = high_resolution_clock::now();
 }
 
 void Utils::fred_print_initialization_timer() {
-  start_initialization_timer = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_initialization_timer - start_initialization_timer ).count();
+  stop_initialization_timer = high_resolution_clock::now();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_initialization_timer - start_initialization_timer ).count();
   fprintf(Global::Statusfp, "FRED initialization took %f seconds\n\n", duration);
   fflush(Global::Statusfp);
 }
 
 void Utils::fred_start_day_timer() {
   day_timer = high_resolution_clock::now();
-  start_timer = day_timer;
 }
 
 void Utils::fred_print_day_timer(int day) {
   stop_timer = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - day_timer ).count();
-  fprintf(Global::Statusfp, "day %d took %f seconds\n\n", day, duration);
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - day_timer ).count();
+  fprintf(Global::Statusfp, "DAY_TIMER day %d took %f seconds\n\n", day, duration);
   fflush(Global::Statusfp);
-  start_timer = stop_timer;
 }
 
 void Utils::fred_print_finish_timer() {
   stop_timer = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - fred_timer ).count();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - fred_timer ).count();
   fprintf(Global::Statusfp, "FRED took %f seconds\n", duration);
   fflush(Global::Statusfp);
 }
 
 void Utils::fred_print_lap_time(const char* format, ...) {
   stop_timer = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - start_timer ).count();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - start_timer ).count();
   va_list ap;
   va_start(ap,format);
   vfprintf(Global::Statusfp,format,ap);
@@ -304,7 +302,7 @@ void Utils::fred_print_lap_time(const char* format, ...) {
 
 void Utils::fred_print_update_time(const char* format, ...) {
   stop_update_timer = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_update_timer - start_update_timer ).count();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_update_timer - start_update_timer ).count();
   va_list ap;
   va_start(ap,format);
   vfprintf(Global::Statusfp,format,ap);
@@ -316,7 +314,7 @@ void Utils::fred_print_update_time(const char* format, ...) {
 
 void Utils::fred_print_lap_time(high_resolution_clock::time_point* start_lap_time, const char* format, ...) {
   high_resolution_clock::time_point stop_lap_time = high_resolution_clock::now();
-  double duration = 0.0000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_lap_time - (*start_lap_time) ).count();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_lap_time - (*start_lap_time) ).count();
   va_list ap;
   va_start(ap, format);
   vfprintf(Global::Statusfp,format,ap);
