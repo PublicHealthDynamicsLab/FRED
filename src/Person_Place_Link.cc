@@ -26,7 +26,7 @@ void Person_Place_Link::enroll(Person *person, Place *new_place) {
   assert(this->enrollee_index == -1);
   this->place = new_place;
   enrollee_index = this->place->enroll(person);
-  printf("ENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
+  // printf("ENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
   assert(this->enrollee_index != -1);
 }
 
@@ -35,7 +35,7 @@ void Person_Place_Link::unenroll(Person *person) {
   assert(enrollee_index != -1);
   assert(place != NULL);
   place->unenroll(enrollee_index);
-  printf("UNENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
+  // printf("UNENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
   enrollee_index = -1;
   place = NULL;
 }

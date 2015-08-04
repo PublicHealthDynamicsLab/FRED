@@ -87,9 +87,7 @@ public:
     this->infectious_people[disease_id].clear();
   }
 
-  void add_infectious_person(int disease_id, Person * person) {
-    this->infectious_people[disease_id].push_back(person);
-  }
+  void add_infectious_person(int disease_id, Person * person);
 
   int get_number_of_infectious_people(int disease_id) {
     return this->infectious_people[disease_id].size();
@@ -159,10 +157,10 @@ public:
   }
 
   void spread_infection(int day, int disease_id);
-  void default_transmission_model(int day, int disease_id);
-  void age_based_transmission_model(int day, int disease_id);
-  void pairwise_transmission_model(int day, int disease_id);
-  void density_transmission_model(int day, int disease_id);
+  void default_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
+  void age_based_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
+  void pairwise_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
+  void density_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
 
   // access methods:
   int get_adults();
@@ -703,7 +701,7 @@ protected:
   Neighborhood_Patch* patch;       // geo patch for this place
   
   // lists of people
-  std::vector<Person*> infectious_people[Global::MAX_NUM_DISEASES];
+  std::vector<Person*> * infectious_people;
   std::vector<Person*> enrollees;
 
   // epidemic counters

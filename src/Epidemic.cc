@@ -184,7 +184,7 @@ void Epidemic::track_value(int day, char* key, string value) {
 }
 
 void Epidemic::infectious_start_event_handler(int day, Person* person) {
-  FRED_VERBOSE(0,"infectious_start_event_handler day %d person %d\n",
+  FRED_VERBOSE(1,"infectious_start_event_handler day %d person %d\n",
 	       day, person->get_id());
 
   // update next event list
@@ -202,7 +202,7 @@ void Epidemic::infectious_start_event_handler(int day, Person* person) {
 }
 
 void Epidemic::infectious_end_event_handler(int day, Person* person) {
-  FRED_VERBOSE(0,"infectious_end_event_handler day %d person %d\n",
+  FRED_VERBOSE(1,"infectious_end_event_handler day %d person %d\n",
 	       day, person->get_id());
 
   // remove from active list
@@ -1426,7 +1426,7 @@ void Epidemic::get_imported_infections(int day) {
 	
 	// find households that qualify by distance
 	int hsize = Global::Places.get_number_of_households();
-	printf("IMPORT: houses  %d\n", hsize); fflush(stdout);
+	// printf("IMPORT: houses  %d\n", hsize); fflush(stdout);
 	for(int i = 0; i < hsize; ++i) {
 	  Household* house = Global::Places.get_household_ptr(i);
 	  double dist = 0.0;
@@ -1439,7 +1439,7 @@ void Epidemic::get_imported_infections(int day) {
 	  // this household qualifies by distance.
 	  // find all susceptible housemates who qualify by age.
 	  int size = house->get_size();
-	  printf("IMPORT: house %s size %d\n", house->get_label(), size); fflush(stdout);
+	  // printf("IMPORT: house %s size %d\n", house->get_label(), size); fflush(stdout);
 	  for(int j = 0; j < size; ++j) {
 	    Person* person = house->get_housemate(j);
 	    if(person->get_health()->is_susceptible(this->id)) {
@@ -1471,6 +1471,7 @@ void Epidemic::get_imported_infections(int day) {
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
+	    become_exposed(infectee, day);
 	    imported_cases++;
 	  }
 	  FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
@@ -1483,6 +1484,7 @@ void Epidemic::get_imported_infections(int day) {
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
+	    become_exposed(infectee, day);
 	    imported_cases++;
 	  }
 	}
@@ -1567,6 +1569,7 @@ void Epidemic::update(int day) {
     Person* person = (*it);
     if (person->is_infectious(this->id)) {
       actually_infectious_people.push_back(person);
+      FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
     }
   }
 
@@ -1574,7 +1577,7 @@ void Epidemic::update(int day) {
   int size = actually_infectious_people.size();
   for (int i = 0; i < size; i++) {
     Person* person = actually_infectious_people[i];
-    FRED_VERBOSE(0, "updating activities of infectious person %d\n", person->get_id());
+    FRED_VERBOSE(1, "updating activities of infectious person %d\n", person->get_id());
     // this will insert the infectious person onto the infectious list at each place attended
     person->update_activities_of_infectious_person(day);
   }
@@ -1591,10 +1594,13 @@ void Epidemic::update(int day) {
 
 void Epidemic::find_active_places_of_type(int day, int place_type) {
 
+  FRED_VERBOSE(1, "find_active_places_of_type %d\n", place_type);
   active_places.clear();
   int size = actually_infectious_people.size();
+  FRED_VERBOSE(1, "find_active_places_of_type %d actual %d\n", place_type, size);
   for (int i = 0; i < size; i++) {
     Person* person = actually_infectious_people[i];
+    assert(person!=NULL);
     Place *place = NULL;
     switch(place_type) {
     case 0:
@@ -1619,16 +1625,23 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       place = person->get_hospital();
       break;
     }
+    FRED_VERBOSE(1, "find_active_places_of_type %d person %d place %s\n", place_type, person->get_id(), place? place->get_label() : "NULL");
     if (place != NULL && person->is_present(day, place) && person->is_infectious(this->id)) {
+      FRED_VERBOSE(1, "add_infection_person %d place %s\n", person->get_id(), place->get_label());
+      place->add_infectious_person(this->id, person);
       active_places.insert(place);
     }
   }
   
+  FRED_VERBOSE(1, "find_active_places_of_type %d found %d\n", place_type, active_places.size());
+
   // convert active set to vector
   active_place_vec.clear();
   for (std::set<Place*>::iterator it = active_places.begin(); it != active_places.end(); ++it) {
     active_place_vec.push_back(*it);
   }
+  FRED_VERBOSE(0, "find_active_places_of_type %d found %d\n", place_type, active_place_vec.size());
+
 }
   
 void Epidemic::spread_infection_in_active_places(int day) {

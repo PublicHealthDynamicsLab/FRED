@@ -135,8 +135,8 @@ void Classroom::unenroll(int pos) {
   Person *removed = enrollees[pos];
   assert(removed->is_teacher() == false);
   int grade = removed->get_grade();
-  FRED_VERBOSE(0,"UNENROLL removed %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, N);
+  FRED_VERBOSE(0,"UNENROLL removed %d age %d grade %d, is_teacher %d from school %d %s size = %d\n",
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, get_size());
   
   // call base class method
   Place::unenroll(pos);

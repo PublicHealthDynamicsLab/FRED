@@ -503,6 +503,10 @@ public:
     return this->activities.get_neighborhood();
   }
 
+  void reset_neighborhood() {
+    this->activities.reset_neighborhood();
+  }
+
   /**
    * @return a pointer to this Person's Household
    * @see Activities::get_household()

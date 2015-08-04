@@ -199,7 +199,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
   // assign profile
   assign_initial_profile(self);
-  FRED_VERBOSE(0,"set profile ok\n");
+  FRED_VERBOSE(1,"set profile ok\n");
 
   // need to set the daily schedule
   this->schedule_updated = -1;
@@ -443,7 +443,7 @@ void Activities::update(int sim_day) {
 
 void Activities::update_activities_of_infectious_person(Person* self, int sim_day) {
 
-  FRED_VERBOSE(0,"update_activities for person %d day %d\n", self->get_id(), sim_day);
+  FRED_VERBOSE(1,"update_activities for person %d day %d\n", self->get_id(), sim_day);
 
   // skip all scheduled activities if traveling abroad
   if(this->is_traveling_outside) {
@@ -474,6 +474,12 @@ void Activities::update_activities_of_infectious_person(Person* self, int sim_da
   if(sim_day > this->schedule_updated) {
     // get list of places to visit today
     update_schedule(self, sim_day);
+
+    // decide which neighborhood to visit today
+    if(this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY]) {
+      Place* destination_neighborhood = Global::Neighborhoods->select_destination_neighborhood(this->home_neighborhood);
+      set_neighborhood(destination_neighborhood);
+    }
 
     // if symptomatic, decide whether or not to stay home
     if(self->is_symptomatic() && !self->is_hospitalized()) {
@@ -614,12 +620,6 @@ void Activities::update_schedule(Person* self, int sim_day) {
       }
     }
 
-    // decide which neighborhood to visit today
-    if(this->on_schedule[Activity_index::NEIGHBORHOOD_ACTIVITY]) {
-      Place* destination_neighborhood = Global::Neighborhoods->select_destination_neighborhood(this->home_neighborhood);
-      set_neighborhood(destination_neighborhood);
-    }
-
     if(Global::Report_Childhood_Presenteeism) {
       if(self->is_adult() && this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]) {
         Household* my_hh = static_cast<Household*>(self->get_household());
@@ -651,7 +651,7 @@ void Activities::update_schedule(Person* self, int sim_day) {
     }
 
   }
-  FRED_STATUS(0, "update_schedule on day %d\n%s\n", sim_day, schedule_to_string(self, sim_day).c_str());
+  FRED_STATUS(1, "update_schedule on day %d\n%s\n", sim_day, schedule_to_string(self, sim_day).c_str());
 }
 
 void Activities::decide_whether_to_stay_home(Person* self, int sim_day) {
@@ -1585,7 +1585,7 @@ void Activities::change_household(Place* place) {
 }
 
 void Activities::change_school(Place* place) {
-  FRED_VERBOSE(0, "person %d set school %s\n", myself->get_id(), place ? place->get_label() : "NULL");
+  FRED_VERBOSE(1, "person %d set school %s\n", myself->get_id(), place ? place->get_label() : "NULL");
   set_school(place);
   FRED_VERBOSE(1,"set classroom to NULL\n");
   set_classroom(NULL);
@@ -1596,7 +1596,7 @@ void Activities::change_school(Place* place) {
 }
 
 void Activities::change_workplace(Place* place, int include_office) {
-  FRED_VERBOSE(0, "person %d set workplace %s\n", myself->get_id(), place ? place->get_label() : "NULL");
+  FRED_VERBOSE(1, "person %d set workplace %s\n", myself->get_id(), place ? place->get_label() : "NULL");
   set_workplace(place);
   set_office(NULL);
   if(place != NULL) {
@@ -1822,10 +1822,10 @@ const char * Activities::get_favorite_place_label(int p) {
 
 void Activities::set_favorite_place(int i, Place* place) {
   if (place) {
-    FRED_VERBOSE(0, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
+    FRED_VERBOSE(1, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
   }
   else {
-    FRED_VERBOSE(0, "SET FAVORITE PLACE %d to NULL\n",i);
+    FRED_VERBOSE(1, "SET FAVORITE PLACE %d to NULL\n",i);
   }
   // update link if necessary
   Place* old_place = get_favorite_place(i);
@@ -1840,7 +1840,7 @@ void Activities::set_favorite_place(int i, Place* place) {
       link[i].enroll(myself, place);
     }
   }
-  FRED_VERBOSE(0, "set favorite place finished\n");
+  FRED_VERBOSE(1, "set favorite place finished\n");
 }
 
 bool Activities::is_present(Person *self, int sim_day, Place *place) {

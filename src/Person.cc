@@ -44,7 +44,7 @@ Person::~Person() {
 void Person::setup(int _index, int _id, int age, char sex,
 		   int race, int rel, Place* house, Place* school, Place* work,
 		   int day, bool today_is_birthday) {
-  FRED_VERBOSE(0, "Person::setup() id %d age %d house %s school %s work %s\n",
+  FRED_VERBOSE(1, "Person::setup() id %d age %d house %s school %s work %s\n",
 	       _id, age, house->get_label(), school? school->get_label():"NULL", work?work->get_label():"NULL");
   int myFIPS;
   this->index = _index;
@@ -52,7 +52,7 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
-  FRED_VERBOSE(0, "Person::setup() activities_setup finished\n");
+  FRED_VERBOSE(1, "Person::setup() activities_setup finished\n");
 
   // behavior setup called externally, after entire population is available
 

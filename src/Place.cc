@@ -116,8 +116,11 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   }
   this->staff_size = 0;
 
+  int diseases = Global::Diseases.get_number_of_diseases();
+  infectious_people = new std::vector<Person*> [diseases];
+
   // zero out all disease-specific counts
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+  for(int d = 0; d < diseases; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->total_infections[d] = 0;
@@ -125,6 +128,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
     this->total_symptomatic_infections[d] = 0;
     this->current_infectious_visitors[d] = 0;
     this->current_symptomatic_visitors[d] = 0;
+    this->infectious_people[d].clear();
   }
 
   if(Place::prob_contact == NULL) {
@@ -172,6 +176,14 @@ void Place::prepare() {
 }
 
 
+void Place::add_infectious_person(int disease_id, Person * person) {
+  this->infectious_people[disease_id].push_back(person);
+  /*
+  FRED_VERBOSE(0, "AFTER ADD_INF_PERSON %d for disease_id %d to place %d %s => %d infectious people\n",
+	       person->get_id(), disease_id, this->id, this->label, this->infectious_people[disease_id].size());
+  */
+}
+
 void Place::update(int day) {
   // stub for future use.
 }
@@ -192,12 +204,12 @@ void Place::print(int disease_id) {
 }
 
 int Place::enroll(Person* per) {
-  if (N == enrollees.capacity()) {
+  if (get_size() == enrollees.capacity()) {
     // double capacity if needed (to reduce future reallocations)
-    enrollees.reserve(2*N);
+    enrollees.reserve(2*get_size());
   }
   this->enrollees.push_back(per);
-  FRED_VERBOSE(0,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
+  FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
   return enrollees.size()-1;
 }
 
@@ -343,7 +355,6 @@ double Place::get_contact_rate(int day, int disease_id) {
 
   Disease* disease = Global::Diseases.get_disease(disease_id);
   // expected number of susceptible contacts for each infectious person
-  // OLD: double contacts = get_contacts_per_day(disease_id) * ((double) susceptibles[disease_id].size()) / ((double) (N-1));
   double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
   if(Global::Enable_Seasonality) {
 
@@ -390,7 +401,7 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 				 int disease_id, int day) {
 
   assert(infectee->is_susceptible(disease_id));
-  FRED_STATUS(0, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
+  FRED_STATUS(1, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
 
   double susceptibility = infectee->get_susceptibility(disease_id);
 
@@ -425,16 +436,20 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
     // successful transmission; create a new infection in infectee
     infector->infect(infectee, disease_id, this, day);
 
-    FRED_VERBOSE(0, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
-    FRED_CONDITIONAL_VERBOSE(0, infector->get_exposure_date(disease_id) == 0,
+    FRED_VERBOSE(1, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
+    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
 			     "SEED infection day %i from %d to %d\n", day, infector->get_id(), infectee->get_id());
-    FRED_CONDITIONAL_VERBOSE(0, infector->get_exposure_date(disease_id) != 0,
+    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) != 0,
 			     "infection day %i of disease %i from %d to %d\n", day, disease_id, infector->get_id(),
 			     infectee->get_id());
     FRED_CONDITIONAL_VERBOSE(0, infection_prob > 1, "infection_prob exceeded unity!\n");
+
+    // notify the epidemic
+    Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
+
     return true;
   } else {
-    FRED_VERBOSE(0, "transmission failed: r = %f  prob = %f\n", r, infection_prob);
+    FRED_VERBOSE(1, "transmission failed: r = %f  prob = %f\n", r, infection_prob);
     return false;
   }
 }
@@ -447,7 +462,6 @@ bool Place::attempt_transmission(double transmission_prob, Person* infector, Per
 
 
 void Place::spread_infection(int day, int disease_id) {
-
   Disease* disease = Global::Diseases.get_disease(disease_id);
   double beta = disease->get_transmissibility();
   if(beta == 0.0) {
@@ -470,13 +484,9 @@ void Place::spread_infection(int day, int disease_id) {
   this->last_day_infectious = day;
 
   // get reference to susceptibles and infectious lists for this disease_id
-  // this->place_state_merge = Place_State_Merge();
-  // this->place_state[disease_id].apply(this->place_state_merge);
-  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
-  std::vector<Person*> susceptibles = get_potential_infectees(disease_id);
-  std::vector<Person*> infectious = get_potential_infectors(disease_id);
-  printf("spread_infection place %d inf %d sus %d\n", id, (int)infectious.size(), (int)susceptibles.size());
+  std::vector<Person*> susceptibles = this->enrollees;
+  std::vector<Person*> infectious = this->infectious_people[disease_id];
+  // printf("spread_infection place %d inf %d sus %d\n", id, (int)infectious.size(), (int)susceptibles.size());
 
   if(Global::Enable_Vector_Transmission) {
     vector_transmission(day, disease_id);
@@ -491,61 +501,53 @@ void Place::spread_infection(int day, int disease_id) {
   }
 
   if(this->is_household()) {
-    pairwise_transmission_model(day, disease_id);
+    pairwise_transmission_model(day, disease_id, &infectious, &susceptibles);
     reset_place_state(disease_id);
     return;
   }
 
   if(this->is_neighborhood() && Place::Enable_Neighborhood_Density_Transmission==true) {
-    density_transmission_model(day, disease_id);
+    density_transmission_model(day, disease_id, &infectious, &susceptibles);
     reset_place_state(disease_id);
     return;
   }
 
   if(Global::Enable_New_Transmission_Model) {
-    age_based_transmission_model(day, disease_id);
+    age_based_transmission_model(day, disease_id, &infectious, &susceptibles);
   } else {
-    default_transmission_model(day, disease_id);
+    default_transmission_model(day, disease_id, &infectious, &susceptibles);
   }
   reset_place_state(disease_id);
   return;
 }
 
-void Place::default_transmission_model(int day, int disease_id) {
+void Place::default_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles) {
 
   Disease* disease = Global::Diseases.get_disease(disease_id);
+  int N = this->get_size();
 
-  // get reference to susceptibles and infectious lists for this disease_id
-  // place_state_merge = Place_State_Merge();
-  // this->place_state[disease_id].apply(place_state_merge);
-  // std::vector<Person*> & susceptibles = place_state_merge.get_susceptible_vector();
-  // std::vector<Person*> & infectious = place_state_merge.get_infectious_vector();
-  std::vector<Person*> susceptibles = get_potential_infectees(disease_id);
-  std::vector<Person*> infectious = get_potential_infectors(disease_id);
-
-  FRED_VERBOSE(0, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
-	 day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
+  FRED_VERBOSE(1, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
+	       day, this->get_label(), N, (int) susceptibles->size(), (int) infectious->size());
 
   // the number of possible infectees per infector is max of (N-1) and S[s]
   // where N is the capacity of this place and S[s] is the number of current susceptibles
   // visiting this place. S[s] might exceed N if we have some ad hoc visitors,
   // since N is estimated only at startup.
-  int number_targets = (N - 1 > susceptibles.size() ? N - 1 : susceptibles.size());
+  int number_targets = (N - 1 > susceptibles->size() ? N - 1 : susceptibles->size());
 
   // contact_rate is contacts_per_day with weeked and seasonality modulation (if applicable)
   double contact_rate = get_contact_rate(day, disease_id);
 
   // randomize the order of the infectious list
-  FYShuffle<Person*>(infectious);
+  FYShuffle<Person*>(*infectious);
+  // printf("shuffled infectious size %d\n", (int)infectious->size());
 
-  // printf("shuffled infectious size %d\n", (int)infectious.size());
-
-  for(int infector_pos = 0; infector_pos < infectious.size(); ++infector_pos) {
+  for(int infector_pos = 0; infector_pos < infectious->size(); ++infector_pos) {
     // infectious visitor
-    Person* infector = infectious[infector_pos];
-    printf("infector id %d\n", infector->get_id());
-    if(infector->get_health()->is_infectious(disease_id) == false) {
-      printf("infector id %d not infectious!\n", infector->get_id());
+    Person* infector = (*infectious)[infector_pos];
+    // printf("infector id %d\n", infector->get_id());
+    if(infector->is_infectious(disease_id) == false) {
+      // printf("infector id %d not infectious!\n", infector->get_id());
       continue;
     }
 
@@ -557,9 +559,9 @@ void Place::default_transmission_model(int day, int disease_id) {
     for(int c = 0; c < contact_count; ++c) {
       // select a target infectee from among susceptibles with replacement
       int pos = Random::draw_random_int(0, number_targets - 1);
-      if(pos < susceptibles.size()) {
-        if(infector == susceptibles[pos]) {
-          if(susceptibles.size() > 1) {
+      if(pos < susceptibles->size()) {
+        if(infector == (*susceptibles)[pos]) {
+          if(susceptibles->size() > 1) {
             --(c); // redo
             continue;
           } else {
@@ -574,7 +576,8 @@ void Place::default_transmission_model(int day, int disease_id) {
     for(i = sampling_map.begin(); i != sampling_map.end(); ++i) {
       int pos = (*i).first;
       int times_drawn = (*i).second;
-      Person* infectee = susceptibles[pos];
+      Person* infectee = (*susceptibles)[pos];
+      assert (infector != infectee);
       infectee->update_schedule(day);
       if (!infectee->is_present(day, this)) {
 	continue;
@@ -591,18 +594,11 @@ void Place::default_transmission_model(int day, int disease_id) {
   } // end infectious list loop
 }
 
-void Place::age_based_transmission_model(int day, int disease_id) {
+void Place::age_based_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
-  // get references to susceptibles and infectious lists for this disease_id
-  // this->place_state_merge = Place_State_Merge();
-  // this->place_state[disease_id].apply(this->place_state_merge);
-  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
-  std::vector<Person*>  susceptibles = get_potential_infectees(disease_id);
-  std::vector<Person*>  infectious = get_potential_infectors(disease_id);
-
-  std::vector<double> infectivity_of_agent((int) infectious.size());
+  int N = this->get_size();
+  std::vector<double> infectivity_of_agent((int) infectious->size());
   int n[101];
   int start[101];
   int s[101];
@@ -614,7 +610,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   double force = beta * this->intimacy;
 
   // sort the infectious list by age
-  std::sort(infectious.begin(), infectious.end(), compare_age);
+  std::sort(infectious->begin(), infectious->end(), compare_age);
 
   // get number of infectious and susceptible persons and infectivity of each age group
   for (int i = 0; i <=100; ++i) {
@@ -624,8 +620,8 @@ void Place::age_based_transmission_model(int day, int disease_id) {
     start[i] = -1;
     infectivity_of_group[i] = 0.0;
   }
-  for(int inf_pos = 0; inf_pos < infectious.size(); ++inf_pos) {
-    Person* person = infectious[inf_pos];
+  for(int inf_pos = 0; inf_pos < infectious->size(); ++inf_pos) {
+    Person* person = (*infectious)[inf_pos];
     int age = person->get_age();
     if (age > 100) age = 100;
     n[age]++;
@@ -635,8 +631,8 @@ void Place::age_based_transmission_model(int day, int disease_id) {
     infectivity_of_agent[inf_pos] = infectivity;
     size[age]++;
   }
-  for(int sus_pos = 0; sus_pos < susceptibles.size(); ++sus_pos) {
-    int age = susceptibles[sus_pos]->get_age();
+  for(int sus_pos = 0; sus_pos < susceptibles->size(); ++sus_pos) {
+    int age = (*susceptibles)[sus_pos]->get_age();
     if (age > 100) age = 100;
     s[age]++;
     size[age]++;
@@ -699,12 +695,12 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   printf("cdf done\n"); fflush(stdout);
 
   // randomize the order of the susceptibles list
-  FYShuffle<Person*>(susceptibles);
+  FYShuffle<Person*>(*susceptibles);
 
   // infect susceptibles according to the infectee_counts
-  for(int sus_pos = 0; sus_pos < susceptibles.size(); ++sus_pos) {
+  for(int sus_pos = 0; sus_pos < susceptibles->size(); ++sus_pos) {
     // susceptible visitor
-    Person* infectee = susceptibles[sus_pos];
+    Person* infectee = (*susceptibles)[sus_pos];
     infectee->update_schedule(day);
     if (!infectee->is_present(day, this)) {
       continue;
@@ -743,7 +739,7 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 	  r -= infectivity_of_agent[pos];
 	  pos++;
 	}
-	Person* infector = infectious[pos];
+	Person* infector = (*infectious)[pos];
 	printf("PICKED INFECTOR pos %d with infectivity %e\n", pos, infectivity_of_agent[pos]); fflush(stdout);
 
 	// successful transmission; create a new infection in infectee
@@ -756,6 +752,10 @@ void Place::age_based_transmission_model(int day, int disease_id) {
 				 "infection day %i of disease %i from %d to %d\n",
 				 day, disease_id, infector->get_id(),
 				 infectee->get_id());
+	
+	// notify the epidemic
+	Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
+
       }
       // decrement counter (even if transmission fails)
       infectee_count[age]++;
@@ -764,62 +764,76 @@ void Place::age_based_transmission_model(int day, int disease_id) {
   return;
 }
 
-void Place::pairwise_transmission_model(int day, int disease_id) {
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+
+void Place::pairwise_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles) {
   double contact_prob = get_contact_rate(day, disease_id);
-
-  FRED_VERBOSE(0, "pairwise_transmission DAY %d PLACE %s N %d %d\n",
-	       day, this->get_label(), N, (int) this->enrollees.size());
-
-  // randomize the order of the infectious list
-  FYShuffle<Person*>(this->enrollees);
-
-  for(int infector_pos = 0; infector_pos < this->enrollees.size(); ++infector_pos) {
-    Person* infector = this->enrollees[infector_pos];      // infectious individual
-    if(!infector->get_health()->is_infectious(disease_id)) {
+  
+  FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s N %d\n",
+	       day, this->get_label(), this->get_size());
+  
+  for(int infector_pos = 0; infector_pos < infectious->size(); ++infector_pos) {
+    Person* infector = (*infectious)[infector_pos];      // infectious individual
+    FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is %d\n",
+		 day, this->get_label(), infector_pos, infector->get_id());
+    
+    if(infector->is_infectious(disease_id) == false) {
+      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is not infectious!\n",
+		   day, this->get_label(), infector->get_id());
       continue;
     }
-
-    for(int pos = 0; pos < this->enrollees.size(); ++pos) {
-      if(pos == infector_pos) {
-        continue;
-      }
-      Person* infectee = this->enrollees[ pos ];
-      infectee->update_schedule(day);
-      if (!infectee->is_present(day, this)) {
+    
+    int sus_size = susceptibles->size();
+    for(int pos = 0; pos < sus_size; ++pos) {
+      Person* infectee = (*susceptibles)[pos];
+      if (infector == infectee) {
 	continue;
       }
-      // if a non-infectious person is selected, pick from non_infectious vector
+      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee is %d\n",
+		   day, this->get_label(), infectee->get_id());
+      
+      if (infectee->is_infectious(disease_id) == false) {
+	FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not infectious -- updating schedule\n",
+		     day, this->get_label(), infectee->get_id());
+	infectee->update_schedule(day);
+      }
+      else {
+	FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is infectious\n",
+		     day, this->get_label(), infectee->get_id());
+      }
+      if (!infectee->is_present(day, this)) {
+	FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not present today\n",
+		     day, this->get_label(), infectee->get_id());
+	continue;
+      }
       // only proceed if person is susceptible
       if(infectee->is_susceptible(disease_id)) {
-        // get the transmission probs for this infector/infectee pair
-        double transmission_prob = get_transmission_prob(disease_id, infector, infectee);
-        double infectivity = infector->get_infectivity(disease_id, day);
-        // scale transmission prob by infectivity and contact prob
-        transmission_prob *= infectivity * contact_prob;     
-        attempt_transmission(transmission_prob, infector, infectee, disease_id, day);
+	// get the transmission probs for this infector/infectee pair
+	double transmission_prob = get_transmission_prob(disease_id, infector, infectee);
+	double infectivity = infector->get_infectivity(disease_id, day);
+	// scale transmission prob by infectivity and contact prob
+	transmission_prob *= infectivity * contact_prob;     
+	attempt_transmission(transmission_prob, infector, infectee, disease_id, day);
       }
-    } // end contact loop
-  } // end infectious list loop
+      else {
+	FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not susceptible\n",
+		     day, this->get_label(), infectee->get_id());
+      }
+    } // end susceptibles loop
+  }
 }
 
-void Place::density_transmission_model(int day, int disease_id) {
+
+void Place::density_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
-  // get references to susceptibles and infectious lists for this disease_id
-  // this->place_state_merge = Place_State_Merge();
-  // this->place_state[disease_id].apply(this->place_state_merge);
-  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
-  std::vector<Person*>  susceptibles = get_potential_infectees(disease_id);
-  std::vector<Person*>  infectious = get_potential_infectors(disease_id);
+  int N = get_size();
 
   // printf("DAY %d PLACE %s N %d susc %d inf %d\n",
-  // day, this->get_label(), N, (int) susceptibles.size(), (int) infectious.size());
+  // day, this->get_label(), N, (int) susceptibles->size(), (int) infectious->size());
 
   double contact_prob = get_contact_rate(day, disease_id);
-  int sus_hosts = susceptibles.size();
-  int inf_hosts = infectious.size();
+  int sus_hosts = susceptibles->size();
+  int inf_hosts = infectious->size();
   int exposed = 0;
       
   // each host's probability of infection
@@ -843,10 +857,10 @@ void Place::density_transmission_model(int day, int disease_id) {
 
   FRED_VERBOSE(1, "density_transmission: exposed = %d\n", exposed);
   // randomize the order of the susceptibles list
-  FYShuffle<Person *>(susceptibles);
+  FYShuffle<Person *>(*susceptibles);
 
   for(int j = 0; j < exposed && j < sus_hosts && 0 < inf_hosts; ++j) {
-    Person * infectee = susceptibles[j];
+    Person * infectee = (*susceptibles)[j];
     infectee->update_schedule(day);
     if (!infectee->is_present(day, this)) {
       continue;
@@ -857,7 +871,7 @@ void Place::density_transmission_model(int day, int disease_id) {
     if(infectee->is_susceptible(disease_id)) {
       // select a random infector
       int infector_pos = Random::draw_random_int(0,inf_hosts-1);
-      Person * infector = infectious[infector_pos];
+      Person * infector = (*infectious)[infector_pos];
       assert(infector->get_health()->is_infectious(disease_id));
 
       // get the transmission probs for this infector  pair
@@ -869,7 +883,7 @@ void Place::density_transmission_model(int day, int disease_id) {
 	if(Enable_Density_Transmission_Maximum_Infectees &&
 	   Place::Density_Transmission_Maximum_Infectees <= infectee_count[infector_pos]) {
 	  // effectively remove the infector from infector list
-	  infectious[infector_pos] = infectious[inf_hosts-1];
+	  (*infectious)[infector_pos] = (*infectious)[inf_hosts-1];
 	  int tmp = infectee_count[infector_pos];
 	  infectee_count[infector_pos] = infectee_count[inf_hosts-1];
 	  infectee_count[inf_hosts-1] = tmp;
@@ -995,13 +1009,9 @@ void Place::infect_vectors(int day) {
   }
   int total_infectious_hosts = 0;
   for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    // get references to infectious list for this disease_id
-    // this->place_state_merge = Place_State_Merge();
-    // this->place_state[disease_id].apply(this->place_state_merge);
-    // std::vector<Person*> & infectious = this->place_state_merge.get_infectious_vector();
-    std::vector<Person*> infectious = get_potential_infectors(disease_id);
+    std::vector<Person*> * infectious = &(infectious_people[disease_id]);
 
-    infectious_hosts[disease_id] = infectious.size();
+    infectious_hosts[disease_id] = infectious->size();
     total_infectious_hosts += infectious_hosts[disease_id];
   }
 
@@ -1043,15 +1053,15 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
   // this->place_state_merge = Place_State_Merge();
   // this->place_state[disease_id].apply(this->place_state_merge);
   // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  std::vector<Person*> susceptibles = get_potential_infectees(disease_id);
+  std::vector<Person*> * susceptibles = &(this->enrollees);
 
-  int s_hosts = susceptibles.size();
+  int s_hosts = susceptibles->size();
 
   if(Global::Verbose > 1) {
     int R_hosts = get_recovereds(disease_id);
     FRED_VERBOSE(1, "day %d vector_update: %s S_vectors %d E_vectors %d I_vectors %d  N_vectors = %d N_host = %d S_hosts %d R_hosts %d Temp = %f dis %d\n",
 		 day, this->label, S_vectors, E_vectors[disease_id], I_vectors[disease_id], N_vectors, 
-		 N_hosts,susceptibles.size(),R_hosts,temperature,disease_id);
+		 N_hosts,susceptibles->size(),R_hosts,temperature,disease_id);
   }
 
   if(s_hosts == 0 || this->I_vectors[disease_id] == 0 || this->transmission_efficiency == 0.0) {
@@ -1070,13 +1080,13 @@ void Place::vectors_transmit_to_hosts(int day, int disease_id) {
   }
   FRED_VERBOSE(1, "transmit_to_hosts: E_hosts[%d] = %d\n", disease_id, e_hosts);
   // randomize the order of the susceptibles list
-  FYShuffle<Person *>(susceptibles);
-  FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", susceptibles.size());
+  FYShuffle<Person *>(*susceptibles);
+  FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", susceptibles->size());
   // get the disease object   
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
-  for(int j = 0; j < e_hosts && j < susceptibles.size(); ++j) {
-    Person* infectee = susceptibles[j];
+  for(int j = 0; j < e_hosts && j < susceptibles->size(); ++j) {
+    Person* infectee = (*susceptibles)[j];
     infectee->update_schedule(day);
     if (!infectee->is_present(day, this)) {
       continue;

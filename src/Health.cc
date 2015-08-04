@@ -266,7 +266,7 @@ Health::Health(Person* person) {
 }
 
 void Health::setup(Person* self) {
-  FRED_VERBOSE(0, "Health::setup for person %d\n", self->get_id());
+  FRED_VERBOSE(1, "Health::setup for person %d\n", self->get_id());
   this->alive = true;
   this->intervention_flags = intervention_flags_type();
   // infection pointers stored in statically allocated array (length of which
@@ -300,7 +300,7 @@ void Health::setup(Person* self) {
   }
 
   int diseases = Global::Diseases.get_number_of_diseases();
-  FRED_VERBOSE(0, "Health::setup diseases %d\n", diseases);
+  FRED_VERBOSE(1, "Health::setup diseases %d\n", diseases);
   for(int disease_id = 0; disease_id < diseases; disease_id++) {
     this->infection[disease_id] = NULL;
     this->infectee_count[disease_id] = 0;
@@ -389,7 +389,7 @@ void Health::become_susceptible(Person* self, int disease_id) {
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
   assert(is_susceptible(disease_id));
-  FRED_STATUS(0, "person %d is now SUSCEPTIBLE for disease %d\n",
+  FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 	      self->get_id(), disease_id);
 }
 
@@ -521,6 +521,7 @@ void Health::recover(Person* self, Disease* disease) {
   Household* h = Global::Places.get_household_ptr(household_index);
   h->set_recovered(disease_id);
   h->reset_human_infectious();
+  self->reset_neighborhood();
 }
 
 void Health::become_removed(Person* self, int disease_id) {

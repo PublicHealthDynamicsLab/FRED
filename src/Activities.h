@@ -228,6 +228,10 @@ public:
     set_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY, p);
   }
 
+  void reset_neighborhood() {
+    set_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY, this->home_neighborhood);
+  }
+
   void set_school(Place* p) {
     set_favorite_place(Activity_index::SCHOOL_ACTIVITY, p);
   }

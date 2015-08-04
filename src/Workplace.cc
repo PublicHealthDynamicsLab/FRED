@@ -97,16 +97,16 @@ void Workplace::prepare() {
 
   assert(Global::Pop.is_load_completed());
   // update employment stats based on size of workplace
-  if(this->N < Workplace::Small_workplace_size) {
-    Workplace::workers_in_small_workplaces += this->N;
-  } else if(this->N < Workplace::Medium_workplace_size) {
-    Workplace::workers_in_medium_workplaces += this->N;
-  } else if(this->N < Workplace::Large_workplace_size) {
-    Workplace::workers_in_large_workplaces += this->N;
+  if(get_size() < Workplace::Small_workplace_size) {
+    Workplace::workers_in_small_workplaces += get_size();
+  } else if(get_size() < Workplace::Medium_workplace_size) {
+    Workplace::workers_in_medium_workplaces += get_size();
+  } else if(get_size() < Workplace::Large_workplace_size) {
+    Workplace::workers_in_large_workplaces += get_size();
   } else {
-    Workplace::workers_in_xlarge_workplaces += this->N;
+    Workplace::workers_in_xlarge_workplaces += get_size();
   }
-  Workplace::total_workers += this->N;
+  Workplace::total_workers += get_size();
 
   // now call base class function to perform preparations common to all Places 
   Place::prepare();
@@ -129,9 +129,9 @@ int Workplace::get_number_of_rooms() {
   if(Workplace::Office_size == 0) {
     return 0;
   }
-  int rooms = this->N / Workplace::Office_size;
+  int rooms = get_size() / Workplace::Office_size;
   this->next_office = 0;
-  if(this->N % Workplace::Office_size) {
+  if(get_size() % Workplace::Office_size) {
     rooms++;
   }
   if(rooms == 0) {
@@ -143,7 +143,7 @@ int Workplace::get_number_of_rooms() {
 void Workplace::setup_offices(Allocator<Office> &office_allocator) {
   int rooms = get_number_of_rooms();
 
-  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", id, label, N, rooms );
+  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", id, label, get_size(), rooms );
   
   for(int i = 0; i < rooms; ++i) {
     char new_label[128];
@@ -170,7 +170,7 @@ Place* Workplace::assign_office(Person* per) {
   }
 
   FRED_STATUS( 1, "assign office for person %d at workplace %d %s size %d == ",
-	       per->get_id(), id, label, N);
+	       per->get_id(), id, label, get_size());
 
   // pick next office, round-robin
   int i = this->next_office;

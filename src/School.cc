@@ -213,7 +213,7 @@ bool School::is_open(int day) {
 
 bool School::should_be_open(int day, int disease_id) {
   // no students
-  if(this->N == 0) {
+  if(get_size() == 0) {
     return false;
   }
 
@@ -288,7 +288,7 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
       Disease* disease = Global::Diseases.get_disease(disease_id);
       printf("GLOBAL SCHOOL CLOSURE pop_ar %5.2f local_cases = %d / %d (%5.2f)\n",
 	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
-	     N, get_symptomatic_attack_rate(disease_id));
+	     get_size(), get_symptomatic_attack_rate(disease_id));
     }
   }
 }
@@ -325,7 +325,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
       Disease* disease = Global::Diseases.get_disease(disease_id);
       printf("LOCAL SCHOOL CLOSURE pop_ar %.3f local_cases = %d / %d (%.3f)\n",
 	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
-	     N, get_symptomatic_attack_rate(disease_id));
+	     get_size(), get_symptomatic_attack_rate(disease_id));
     }
   }
 }
@@ -363,7 +363,7 @@ void School::unenroll(int pos) {
   Person *removed = enrollees[pos];
   int grade = removed->get_grade();
   FRED_VERBOSE(1,"UNENROLL person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, N);
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, get_size());
 
   // call the base class method
   Place::unenroll(pos);
@@ -375,7 +375,7 @@ void School::unenroll(int pos) {
     this->students_in_grade[grade]--;
   }
   removed->set_grade(0);
-  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->id, this->label, N);
+  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->id, this->label, get_size());
 }
 
 void School::print(int disease_id) {
