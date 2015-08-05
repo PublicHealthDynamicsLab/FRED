@@ -142,6 +142,8 @@ namespace Utils {
   void fred_print_day_timer(int day);
   void fred_start_initialization_timer();
   void fred_print_initialization_timer();
+  void fred_start_epidemic_timer();
+  void fred_print_epidemic_timer(string  msg);
   void fred_print_finish_timer();
   void fred_print_update_time(const char* format, ...);
   void fred_print_lap_time(const char* format, ...);

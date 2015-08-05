@@ -28,6 +28,7 @@ static high_resolution_clock::time_point fred_timer;
 static high_resolution_clock::time_point day_timer;
 static high_resolution_clock::time_point initialization_timer;
 static high_resolution_clock::time_point update_timer;
+static high_resolution_clock::time_point epidemic_timer;
 
 static char ErrorFilename[FRED_STRING_SIZE];
 
@@ -259,6 +260,18 @@ void Utils::fred_start_timer() {
 
 void Utils::fred_start_timer(high_resolution_clock::time_point* lap_start_time) {
   *lap_start_time = high_resolution_clock::now();
+}
+
+void Utils::fred_start_epidemic_timer() {
+  epidemic_timer = high_resolution_clock::now();
+}
+
+void Utils::fred_print_epidemic_timer(string msg) {
+  high_resolution_clock::time_point stop_timer = high_resolution_clock::now();
+  double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - epidemic_timer ).count();
+  fprintf(Global::Statusfp, "%s took %f seconds\n\n", msg.c_str(), duration);
+  fflush(Global::Statusfp);
+  epidemic_timer = stop_timer;
 }
 
 void Utils::fred_start_initialization_timer() {
