@@ -124,14 +124,14 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 	Seasonality_Timestep_Map.o Seasonality.o \
 	Vector_Layer.o Vector_Patch.o
 
-AGENT_MODULE = Person.o Population.o Activities.o Behavior.o Demographics.o Health.o \
-	Person_Place_Link.o Intention.o Perceptions.o Travel.o 
+AGENT_MODULE = Population.o Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
+	Behavior.o Intention.o Perceptions.o Travel.o 
 
-DISEASE_MODULE = Disease.o Disease_List.o Epidemic.o Infection.o Trajectory.o \
-	IntraHost.o DefaultIntraHost.o FixedIntraHost.o RSAIntraHost.o HIV_Intrahost.o \
-	Past_Infection.o Strain.o StrainTable.o
+DISEASE_MODULE = Disease_List.o Disease.o Epidemic.o Infection.o \
+	Natural_History.o Binary_Natural_History.o HIV_Natural_History.o \
+	Past_Infection.o Strain.o StrainTable.o Trajectory.o 
 
-PLACE_MODULE = Place.o Place_List.o \
+PLACE_MODULE = Place_List.o Place.o \
 	Classroom.o Hospital.o Household.o Neighborhood.o Office.o School.o Workplace.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \

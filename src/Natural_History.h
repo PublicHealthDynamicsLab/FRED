@@ -9,8 +9,8 @@
   more information.
 */
 
-#ifndef _FRED_IntraHost_H
-#define _FRED_IntraHost_H
+#ifndef _FRED_NATURAL_HISTORY_H
+#define _FRED_NATURAL_HISTORY_H
 
 #include <vector>
 #include <map>
@@ -21,30 +21,30 @@ class Infection;
 class Trajectory;
 class Disease;
 
-class IntraHost {
+class Natural_History {
 public:
   
-  virtual ~IntraHost() {};
+  virtual ~Natural_History() {};
 
   /**
-   * This static factory method is used to get an instance of a specific IntraHost Model.
-   * Depending on the type parameter, it will create a specific IntraHost Model and return
+   * This static factory method is used to get an instance of a specific Natural_History Model.
+   * Depending on the type parameter, it will create a specific Natural_History Model and return
    * a pointer to it.
    *
-   * @param the specific IntraHost model type
-   * @return a pointer to a specific IntraHost model
+   * @param the specific Natural_History model type
+   * @return a pointer to a specific Natural_History model
    */
-  static IntraHost * newIntraHost(int type);
+  static Natural_History * newNatural_History(int type);
 
   /**
-   * Set the attributes for the IntraHost
+   * Set the attributes for the Natural_History
    *
-   * @param dis the disease to which this IntraHost model is associated
+   * @param dis the disease to which this Natural_History model is associated
    */
   virtual void setup(Disease *dis);
 
   /**
-   * An interface for a specific IntraHost model to implement to return its infection Trajectory
+   * An interface for a specific Natural_History model to implement to return its infection Trajectory
    *
    * @param infection
    * @param loads
@@ -58,6 +58,7 @@ public:
    * @return the days symptomatic
    */
   virtual int get_days_symp();
+
 protected:
   Disease *disease;
 };
