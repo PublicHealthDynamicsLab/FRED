@@ -676,20 +676,19 @@ R0 = -1.0
 
 ##################### FRED Event-loop
 
-###  CALIBRATION PHASE II STEP 33 at Wed Aug  5 10:55:26 2015
-###  runs = 1  cores = 1
-influenza_household_contacts = 0.1969
-influenza_neighborhood_contacts = 2.59695e+01
-influenza_school_contacts = 11.40
-influenza_workplace_contacts = 0.95
-influenza_classroom_contacts = 22.80
-influenza_office_contacts = 1.91
-R0_a = 0.0265745
-R0_b = 0.673894
+R0_a = 0.0111195
+R0_b = 0.777235
 R0 = -1.0
+###  CALIBRATION PHASE II STEP 8 at Wed Aug  5 12:49:31 2015
+###  runs = 10  cores = 10
+influenza_household_contacts = 0.1966
+influenza_neighborhood_contacts = 2.60718e+01
+influenza_school_contacts = 11.19
+influenza_workplace_contacts = 0.96
+influenza_classroom_contacts = 22.38
+influenza_office_contacts = 1.92
 
 ##################### END FRED Event-loop
-
 
 
 # community contacts increase on weekends
