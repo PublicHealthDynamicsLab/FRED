@@ -619,10 +619,6 @@ void Health::update(Person* self, int day) {
         become_susceptible(self, disease_id);
       }
     }
-  } else if(this->active_infections.none()) {
-    // no active infections, no need to evaluate susceptibility so we no longer
-    // need to update this Person's Health
-    Global::Pop.clear_mask_by_index(fred::Update_Health, self->get_pop_index());
   }
 
   if(this->has_face_mask_behavior) {

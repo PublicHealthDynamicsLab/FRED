@@ -46,9 +46,6 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->infectee_count = 0;
   this->is_susceptible = true;
 
-  // flag for health updates
-  // Global::Pop.set_mask_by_index(fred::Update_Health, this->host->get_pop_index());
-
   // parameters
   this->infectivity_multp = 1.0;
   this->infectivity = 0.0;
