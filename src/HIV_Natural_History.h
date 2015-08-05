@@ -37,6 +37,7 @@ public:
   int get_infection_model() {
     return 0.0;
   }
+  void read_hiv_files();
   
 private:
 };

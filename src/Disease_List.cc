@@ -60,3 +60,13 @@ void Disease_List::prepare_diseases() {
 }
 
 
+Disease* Disease_List::get_disease(char * disease_name) {
+  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+    if (strcmp(disease_name, this->diseases[disease_id]->get_disease_name()) == 0) {
+      return this->diseases[disease_id]; 
+    }
+  }
+  return NULL;
+}
+
+
