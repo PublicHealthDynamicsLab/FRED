@@ -41,8 +41,6 @@ using namespace std;
 #include "Timestep_Map.h"
 
 Disease::Disease() {
-  // note that the code that establishes the latent/asymptomatic/symptomatic
-  // periods has been moved to the Natural_History class (or classes derived from it).
   this->id = -1;
   this->transmissibility = -1.0;
   this->immunity_loss_rate = -1.0;
@@ -275,12 +273,6 @@ void Disease::setup() {
   fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
   fflush(Global::Statusfp);
 }
-
-//void Disease::print() {
-//  // Since most of Disease has been moved to Natural_History (or classes derived from it)
-//  // the old print() function no longer worked.
-//  // TODO: write new print() statement or remove
-//}
 
 int Disease::get_days_recovered() {
   int days;
