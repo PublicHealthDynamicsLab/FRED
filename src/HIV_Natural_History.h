@@ -9,15 +9,15 @@
   more information.
 */
 
-#ifndef _FRED_HIV_IntraHost_H
-#define _FRED_HIV_IntraHost_H
+#ifndef _FRED_HIV_Natural_History_H
+#define _FRED_HIV_Natural_History_H
 
-#include "IntraHost.h"
+#include "Natural_History.h"
 
-class HIV_IntraHost : public IntraHost {
+class HIV_Natural_History : public Natural_History {
 public:
-  HIV_IntraHost();
-  ~HIV_IntraHost();
+  HIV_Natural_History();
+  ~HIV_Natural_History();
 
   void setup(Disease *disease);
   int get_days_latent() { return 0; }

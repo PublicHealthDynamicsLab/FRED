@@ -29,7 +29,7 @@ using namespace std;
 #include "Global.h"
 #include "Health.h"
 #include "Household.h"
-#include "IntraHost.h"
+#include "Natural_History.h"
 #include "Params.h"
 #include "Person.h"
 #include "Place_List.h"
@@ -42,7 +42,7 @@ using namespace std;
 
 Disease::Disease() {
   // note that the code that establishes the latent/asymptomatic/symptomatic
-  // periods has been moved to the IntraHost class (or classes derived from it).
+  // periods has been moved to the Natural_History class (or classes derived from it).
   this->id = -1;
   this->transmissibility = -1.0;
   this->immunity_loss_rate = -1.0;
@@ -51,7 +51,7 @@ Disease::Disease() {
   this->at_risk = NULL;
   this->epidemic = NULL;
   this->strain_table = NULL;
-  this->ihm = NULL;
+  this->natural_history = NULL;
   this->enable_case_fatality = 0;
   this->case_fatality_age_factor = NULL;
   this->case_fatality_prob_by_day = NULL;
@@ -88,7 +88,7 @@ Disease::~Disease() {
   delete this->infection_immunity_prob;
   delete this->at_risk;
   delete this->strain_table;
-  delete this->ihm;
+  delete this->natural_history;
 
   if(this->evol != NULL) {
     delete this->evol;
@@ -255,11 +255,11 @@ void Disease::setup() {
   this->strain_table->setup(this);
   this->strain_table->reset();
 
-  // Initialize IntraHost
-  int ihmType;
-  Params::get_indexed_param(this->disease_name, "intra_host_model", &ihmType);
-  this->ihm = IntraHost::newIntraHost(ihmType);
-  this->ihm->setup(this);
+  // Initialize Natural History Model
+  char natural_history_model[80];
+  Params::get_indexed_param(this->disease_name, "natural_history_model", natural_history_model);
+  this->natural_history = Natural_History::get_natural_history(natural_history_model);
+  this->natural_history->setup(this);
 
   // Initialize Infection Trajectory Thresholds
   Params::get_indexed_param(this->disease_name, "infectivity_threshold",
@@ -277,7 +277,7 @@ void Disease::setup() {
 }
 
 //void Disease::print() {
-//  // Since most of Disease has been moved to IntraHost (or classes derived from it)
+//  // Since most of Disease has been moved to Natural_History (or classes derived from it)
 //  // the old print() function no longer worked.
 //  // TODO: write new print() statement or remove
 //}
@@ -297,7 +297,7 @@ int Disease::get_days_recovered() {
 }
 
 int Disease::get_days_symp() {
-  return this->ihm->get_days_symp();
+  return this->natural_history->get_days_symp();
 }
 
 double Disease::get_attack_rate() {
@@ -317,7 +317,7 @@ double Disease::get_transmissibility(int strain) {
 }
 
 Trajectory* Disease::get_trajectory(int age) {
-  return this->ihm->get_trajectory(age);
+  return this->natural_history->get_trajectory(age);
 }
 
 bool Disease::gen_immunity_infection(double real_age) {

@@ -34,7 +34,7 @@ public:
    * @param the specific Natural_History model type
    * @return a pointer to a specific Natural_History model
    */
-  static Natural_History * newNatural_History(int type);
+  static Natural_History * get_natural_history(char* natural_history_model);
 
   /**
    * Set the attributes for the Natural_History

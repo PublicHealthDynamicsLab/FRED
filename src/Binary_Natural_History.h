@@ -9,22 +9,22 @@
   more information.
 */
 
-#ifndef _FRED_DEFAULT_IntraHost_H
-#define _FRED_DEFAULT_IntraHost_H
+#ifndef _FRED_BINARY_NATURAL_HISTORY_H
+#define _FRED_BINARY_NATURAL_HISTORY_H
 
 #include <vector>
 #include <map>
 
 #include "Age_Map.h"
-#include "Intrahost.h"
+#include "Natural_History.h"
 
 class Infection;
 class Trajectory;
 
-class DefaultIntraHost : public IntraHost {
+class Binary_Natural_History : public Natural_History {
 public:
-  DefaultIntraHost();
-  ~DefaultIntraHost();
+  Binary_Natural_History();
+  ~Binary_Natural_History();
   Trajectory * get_trajectory(int age);
   void setup(Disease *disease);
   int get_days_latent();

@@ -13,16 +13,16 @@
 #include <map>
 
 #include "Age_Map.h"
-#include "DefaultIntraHost.h"
+#include "Binary_Natural_History.h"
 #include "Disease.h"
-#include "IntraHost.h"
+#include "Natural_History.h"
 #include "Infection.h"
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
 #include "Trajectory.h"
 
-DefaultIntraHost::DefaultIntraHost() {
+Binary_Natural_History::Binary_Natural_History() {
   prob_symptomatic = -1.0;
   asymp_infectivity = -1.0;
   symp_infectivity = -1.0;
@@ -34,16 +34,16 @@ DefaultIntraHost::DefaultIntraHost() {
   days_symp = NULL;
 }
 
-DefaultIntraHost::~DefaultIntraHost() {
+Binary_Natural_History::~Binary_Natural_History() {
   delete [] days_latent;
   delete [] days_asymp;
   delete [] days_symp;
 }
 
-void DefaultIntraHost::setup(Disease *disease) {
+void Binary_Natural_History::setup(Disease *disease) {
   char disease_name[80];
   char paramstr[80];
-  IntraHost::setup(disease);
+  Natural_History::setup(disease);
 
   strcpy(disease_name, disease->get_disease_name());
   Params::get_indexed_param(disease_name,"symp",&prob_symptomatic);
@@ -71,7 +71,7 @@ void DefaultIntraHost::setup(Disease *disease) {
   Params::get_indexed_param(disease_name,"infection_model",  &infection_model);
 }
 
-Trajectory* DefaultIntraHost::get_trajectory(int age) {
+Trajectory* Binary_Natural_History::get_trajectory(int age) {
   int sequential = get_infection_model();
   int will_be_symptomatic = will_have_symptoms(age);
   int days_latent = get_days_latent();
@@ -120,29 +120,29 @@ Trajectory* DefaultIntraHost::get_trajectory(int age) {
   return trajectory;
 }
 
-int DefaultIntraHost::get_days_latent() {
+int Binary_Natural_History::get_days_latent() {
   int days = 0;
   days = Random::draw_from_distribution(max_days_latent, days_latent);
   return days;
 }
 
-int DefaultIntraHost::get_days_asymp() {
+int Binary_Natural_History::get_days_asymp() {
   int days = 0;
   days = Random::draw_from_distribution(max_days_asymp, days_asymp);
   return days;
 }
 
-int DefaultIntraHost::get_days_symp() {
+int Binary_Natural_History::get_days_symp() {
   int days = 0;
   days = Random::draw_from_distribution(max_days_symp, days_symp);
   return days;
 }
 
-int DefaultIntraHost::get_days_susceptible() {
+int Binary_Natural_History::get_days_susceptible() {
   return 0;
 }
 
-int DefaultIntraHost::will_have_symptoms(int age) {
+int Binary_Natural_History::will_have_symptoms(int age) {
   double prob = get_prob_symptomatic(age);
   return (Random::draw_random() < prob);
 }

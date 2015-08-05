@@ -9,18 +9,18 @@
   more information.
 */
 
-#include "HIV_Intrahost.h"
+#include "HIV_Natural_History.h"
 #include "Disease.h"
-#include "Intrahost.h"
+#include "Natural_History.h"
 
-HIV_IntraHost::HIV_IntraHost() {
+HIV_Natural_History::HIV_Natural_History() {
 }
 
-HIV_IntraHost::~HIV_IntraHost() {
+HIV_Natural_History::~HIV_Natural_History() {
 }
 
-void HIV_IntraHost::setup(Disease *disease) {
-  IntraHost::setup(disease);
+void HIV_Natural_History::setup(Disease *disease) {
+  Natural_History::setup(disease);
   int id = disease->get_id();
 }
 

@@ -28,7 +28,7 @@ using namespace std;
 class Age_Map;
 class Evolution;
 class Infection;
-class IntraHost;
+class Natural_History;
 class Person;
 class Strain;
 class Strain_Data;
@@ -53,15 +53,6 @@ public:
    */
   void setup();
 
-  //  /**
-  //   * Print out information about this object
-  //   */
-  //  void print();
-
-  /**
-   * @return the intrahost model's days symptomatic
-   * @see IntraHost::get_days_symp()
-   */
   int get_days_symp();
 
   /**
@@ -271,7 +262,7 @@ private:
   Age_Map* at_risk;
   Age_Map* infection_immunity_prob;
   StrainTable* strain_table;
-  IntraHost* ihm;
+  Natural_History* natural_history;
   Evolution* evol;
 
 

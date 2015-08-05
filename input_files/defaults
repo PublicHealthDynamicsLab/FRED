@@ -602,7 +602,7 @@ residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIP
 
 <disease_name>_at_risk_upper_ages = 0
 <disease_name>_at_risk_values = 0
-<disease_name>_intra_host_model = 0
+<disease_name>_natural_history_model = binary
 <disease_name>_infection_model = 0
 <disease_name>_infectivity_threshold = 0
 <disease_name>_symptomaticity_threshold = 0
@@ -802,8 +802,8 @@ days_sick = 11; 			# Maximum length of sick time
 
 ### INTRAHOST MODEL
 
-# default IntraHost: 0; fixed IntraHost: 1; ODEIntraHost: 2
-influenza_intra_host_model = 0
+# binary => on-off infectiousness and symptoms
+influenza_natural_history_model = binary
 
 # for default IntraHost
 # infection model: BIFURCATING = 0 , SEQUENTIAL = 1
