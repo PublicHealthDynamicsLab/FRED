@@ -120,17 +120,56 @@ void School::get_parameters(int diseases) {
       Params::get_param((char *) param_str, &School::school_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_school_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &School::school_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-	printf("\nschool_contact_prob:\n");
-	for(int i  = 0; i < n; ++i)  {
-	  for(int j  = 0; j < n; ++j) {
+
+      if(Global::Verbose > 0) {
+	printf("\nSchool_contact_prob before normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
 	    printf("%f ", School::school_contact_prob[disease_id][i][j]);
 	  }
 	  printf("\n");
 	}
+	printf("\ncontact rate: %f\n", School::school_contacts_per_day[disease_id]);
       }
+
+      // normalize contact parameters
+      // find max contact prob
+      double max_prob = 0.0;
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  if (School::school_contact_prob[disease_id][i][j] > max_prob) {
+	    max_prob = School::school_contact_prob[disease_id][i][j];
+	  }
+	}
+      }
+
+      // convert max contact prob to 1.0
+      if (max_prob > 0) {
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    School::school_contact_prob[disease_id][i][j] /= max_prob;
+	  }
+	}
+	// compensate contact rate
+	School::school_contacts_per_day[disease_id] *= max_prob;
+      }
+
+      if(Global::Verbose > 0) {
+	printf("\nSchool_contact_prob after normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    printf("%f ", School::school_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
+	printf("\ncontact rate: %f\n", School::school_contacts_per_day[disease_id]);
+      }
+      // end normalization
+
     }
   }
+
+
 
   Params::get_param_from_string("school_classroom_size", &School::school_classroom_size);
 

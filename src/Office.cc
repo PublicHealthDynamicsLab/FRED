@@ -56,15 +56,52 @@ void Office::get_parameters(int diseases) {
 
       sprintf(param_str, "%s_office_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Office::Office_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-	printf("\noffice_contact_prob:\n");
+
+      if(Global::Verbose > 0) {
+	printf("\nOffice_contact_prob before normalization:\n");
 	for(int i  = 0; i < n; i++)  {
 	  for(int j  = 0; j < n; j++) {
 	    printf("%f ", Office::Office_contact_prob[disease_id][i][j]);
 	  }
 	  printf("\n");
 	}
+	printf("\ncontact rate: %f\n", Office::Office_contacts_per_day[disease_id]);
       }
+
+      // normalize contact parameters
+      // find max contact prob
+      double max_prob = 0.0;
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  if (Office::Office_contact_prob[disease_id][i][j] > max_prob) {
+	    max_prob = Office::Office_contact_prob[disease_id][i][j];
+	  }
+	}
+      }
+
+      // convert max contact prob to 1.0
+      if (max_prob > 0) {
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    Office::Office_contact_prob[disease_id][i][j] /= max_prob;
+	  }
+	}
+	// compensate contact rate
+	Office::Office_contacts_per_day[disease_id] *= max_prob;
+      }
+
+      if(Global::Verbose > 0) {
+	printf("\nOffice_contact_prob after normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    printf("%f ", Office::Office_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
+	printf("\ncontact rate: %f\n", Office::Office_contacts_per_day[disease_id]);
+      }
+      // end normalization
+
     }
   }
 

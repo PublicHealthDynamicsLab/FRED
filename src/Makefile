@@ -90,7 +90,7 @@ LDFLAGS =
 LFLAGS =
 
 # comment out if not using clang
-# CLANG_FLAGS = -mllvm -inline-threshold=1000
+CLANG_FLAGS = -mllvm -inline-threshold=1000
 
 ## FRED message levels
 LOGGING_PRESET_0 = 

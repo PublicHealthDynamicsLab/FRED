@@ -77,15 +77,52 @@ void Workplace::get_parameters(int diseases) {
       Params::get_param((char *) param_str, &Workplace::Workplace_contacts_per_day[disease_id]);
       sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
       int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-	printf("\nWorkplace_contact_prob:\n");
-	for(int i  = 0; i < n; ++i)  {
-	  for(int j  = 0; j < n; ++j) {
+
+      if(Global::Verbose > 0) {
+	printf("\nWorkplace_contact_prob before normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
 	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
 	  }
 	  printf("\n");
 	}
+	printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
       }
+
+      // normalize contact parameters
+      // find max contact prob
+      double max_prob = 0.0;
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  if (Workplace::Workplace_contact_prob[disease_id][i][j] > max_prob) {
+	    max_prob = Workplace::Workplace_contact_prob[disease_id][i][j];
+	  }
+	}
+      }
+
+      // convert max contact prob to 1.0
+      if (max_prob > 0) {
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    Workplace::Workplace_contact_prob[disease_id][i][j] /= max_prob;
+	  }
+	}
+	// compensate contact rate
+	Workplace::Workplace_contacts_per_day[disease_id] *= max_prob;
+      }
+
+      if(Global::Verbose > 0) {
+	printf("\nWorkplace_contact_prob after normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
+	printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
+      }
+      // end normalization
+
     }
   }
 

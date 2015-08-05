@@ -102,8 +102,8 @@ while ($error > 10*$threshold) {
   printf CAL "$disease\_neighborhood_contacts = %0.5e\n", $n;
   printf CAL "$disease\_school_contacts = %0.2f\n", $s;
   printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
-  print CAL "$disease\_classroom_contacts = -1\n";
-  print CAL "$disease\_office_contacts = -1\n";
+  printf CAL "$disease\_classroom_contacts = %0.2f\n", 2*$s;
+  printf CAL "$disease\_office_contacts = %0.2f\n", 2*$w;
   print CAL "track_infection_events = 0\n";
   print CAL "report_place_of_infection = 1\n";
   close CAL;
@@ -116,8 +116,8 @@ while ($error > 10*$threshold) {
   printf "$disease\_neighborhood_contacts = %0.5e\n", $n;
   printf "$disease\_school_contacts = %0.2f\n", $s;
   printf "$disease\_workplace_contacts = %0.2f\n", $w;
-  print "$disease\_classroom_contacts = -1\n";
-  print "$disease\_office_contacts = -1\n";
+  printf "$disease\_classroom_contacts = %0.2f\n", 2*$s;
+  printf "$disease\_office_contacts = %0.2f\n", 2*$w;
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 
@@ -191,8 +191,8 @@ while ($error > $threshold) {
   printf CAL "$disease\_neighborhood_contacts = %0.5e\n", $n;
   printf CAL "$disease\_school_contacts = %0.2f\n", $s;
   printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
-  print CAL "$disease\_classroom_contacts = -1\n";
-  print CAL "$disease\_office_contacts = -1\n";
+  printf CAL "$disease\_classroom_contacts = %0.2f\n", 2*$s;
+  printf CAL "$disease\_office_contacts = %0.2f\n", 2*$w;
   print CAL "track_infection_events = 0\n";
   print CAL "report_place_of_infection = 1\n";
   close CAL;
@@ -205,8 +205,8 @@ while ($error > $threshold) {
   printf "$disease\_neighborhood_contacts = %0.5e\n", $n;
   printf "$disease\_school_contacts = %0.2f\n", $s;
   printf "$disease\_workplace_contacts = %0.2f\n", $w;
-  print "$disease\_classroom_contacts = -1\n";
-  print "$disease\_office_contacts = -1\n";
+  printf "$disease\_classroom_contacts = %0.2f\n", 2*$s;
+  printf "$disease\_office_contacts = %0.2f\n", 2*$w;
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 
