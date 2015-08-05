@@ -65,15 +65,16 @@ Population::Population() {
 
 }
 
+//
+// OBSOLETE:
+//
 void Population::initialize_masks() {
   // can't do this in the constructor because the Global:: variables aren't yet
   // available when the Global::Pop is defined
-  /*
   this->blq.add_mask(fred::Infectious);
   this->blq.add_mask(fred::Susceptible);
   this->blq.add_mask(fred::Update_Health);
   this->blq.add_mask(fred::Travel);
-  */
 }
 
 // index and id are not the same thing!
@@ -146,11 +147,17 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   return person;
 }
 
+//
+// OBSOLETE:
+//
 void Population::set_mask_by_index(fred::Pop_Masks mask, int person_index) {
   // assert that the mask has in fact been added
   // this->blq.set_mask_by_index(mask, person_index);
 }
 
+//
+// OBSOLETE:
+//
 void Population::clear_mask_by_index(fred::Pop_Masks mask, int person_index) {
   // assert that the mask has in fact been added
   // this->blq.clear_mask_by_index(mask, person_index);
@@ -687,6 +694,9 @@ void Population::Prepare_Population_Activities::operator()(Person &p) {
   p.prepare_activities();
 }
 
+//
+// OBSOLETE:
+//
 void Population::Update_Population_Behaviors::operator() (Person &p) {
   p.update_behavior(this->day);
 }

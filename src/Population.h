@@ -77,11 +77,10 @@ public:
    */
   void end_of_run();
 
-  /**
-   * Perform beginning of day operations
-   * @param day the simulation day
-   */
-  void update(int day);
+  //
+  // OBSOLETE:
+  //
+  // void update(int day);
 
   /**
    * Report the disease statistics for a given day
