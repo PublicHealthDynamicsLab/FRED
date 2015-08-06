@@ -288,6 +288,22 @@ int Disease::get_days_recovered() {
   return days;
 }
 
+int Disease::get_incubation_period() {
+  return this->natural_history->get_days_symp();
+}
+
+int Disease::get_latent_period() {
+  return this->natural_history->get_days_symp();
+}
+
+int Disease::get_infectious_period() {
+  return this->natural_history->get_days_symp();
+}
+
+int Disease::get_symptomatic_period() {
+  return this->natural_history->get_days_symp();
+}
+
 int Disease::get_days_symp() {
   return this->natural_history->get_days_symp();
 }

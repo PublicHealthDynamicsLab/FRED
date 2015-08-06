@@ -53,11 +53,12 @@ public:
    */
   void setup();
 
+  // called by Infection:
+  int get_incubation_period();
+  int get_latent_period();
+  int get_infectious_period();
+  int get_symptomatic_period();
   int get_days_symp();
-
-  /**
-   * @return the days recovered
-   */
   int get_days_recovered();
 
   /**

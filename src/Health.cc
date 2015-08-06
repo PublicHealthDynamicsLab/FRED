@@ -383,7 +383,7 @@ void Health::become_susceptible(Person* self, int disease_id) {
 		self->get_id(), disease_id);
     return;
   }
-  assert(!(this->active_infections.test(disease_id)));
+  assert(this->infection[disease_id] == NULL);
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   this->evaluate_susceptibility.reset(disease_id);
@@ -397,7 +397,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
   if(this->susceptible.test(disease_id)) {
     return;
   }
-  if(!this->active_infections.test(disease_id)) {
+  if(this->infection[disease_id] == NULL) {
     // not already infected
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
@@ -421,7 +421,7 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   Disease *disease = Global::Diseases.get_disease(disease_id);
   this->infection[disease_id] = new Infection(disease, infector, self, place, day);
   this->infection[disease_id]->report_infection(day);
-  this->active_infections.set(disease_id);
+  // this->active_infections.set(disease_id);
   self->become_unsusceptible(disease);
   this->immunity_end_date[disease_id] = -1;
   if(self->get_household() != NULL) {
@@ -478,7 +478,7 @@ void Health::become_unsusceptible(Person* self, Disease* disease) {
 
 void Health::become_infectious(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  assert(this->active_infections.test(disease_id));
+  assert(this->infection[disease_id] != NULL);
   this->infectious.set(disease_id);
   int household_index = self->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
@@ -489,7 +489,7 @@ void Health::become_infectious(Person* self, Disease* disease) {
 
 void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  assert(this->active_infections.test(disease_id));
+  assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
     return;
   }
@@ -500,7 +500,7 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
 
 void Health::become_asymptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  assert(this->active_infections.test(disease_id));
+  assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
     this->symptomatic.reset(disease_id);
   }
@@ -510,7 +510,7 @@ void Health::become_asymptomatic(Person* self, Disease* disease) {
 
 void Health::recover(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  // assert(this->active_infections.test(disease_id));
+  // assert(this->infection[disease_id] != NULL);
   FRED_STATUS(1, "person %d is now RECOVERED for disease %d\n", self->get_id(),
 	      disease_id);
   become_removed(self, disease_id);
@@ -542,6 +542,7 @@ void Health::become_immune(Person* self, Disease* disease) {
 }
 
 void Health::update(Person* self, int day) {
+  /*
   // if deceased, health status should have been cleared during population
   // update (by calling Person->die(), then Health->die(), which will reset (bool) alive
   if(!(this->alive)) {
@@ -556,7 +557,7 @@ void Health::update(Person* self, int day) {
       // update the infection (if it exists)
       // the check if agent has symptoms is performed by Infection->update (or one of the
       // methods called by it).  This sets the relevant symptomatic flag used by 'is_symptomatic()'
-      if(this->active_infections.test(disease_id)) {
+      if(this->infection[disease_id] != NULL) {
         this->infection[disease_id]->update(day);
         // This can only happen if the infection[disease_id] exists.
 
@@ -604,7 +605,7 @@ void Health::update(Person* self, int day) {
   }
 
   // see if we have symptoms
-  if(this->is_symptomatic() == false) {
+  if(this->is_symptomatic(day) == false) {
     this->days_symptomatic = 0;
   }
 
@@ -619,6 +620,7 @@ void Health::update(Person* self, int day) {
       }
     }
   }
+  */
 
   if(this->has_face_mask_behavior) {
     this->update_face_mask_decision(self, day);
@@ -630,14 +632,14 @@ void Health::update_face_mask_decision(Person* self, int day) {
   // printf("update_face_mask_decision entered on day %d for person %d\n", day, self->get_id());
 
   // should we start use face mask?
-  if(this->is_symptomatic() && this->days_wearing_face_mask == 0) {
+  if(this->is_symptomatic(day) && this->days_wearing_face_mask == 0) {
     FRED_VERBOSE(1, "FACEMASK: person %d starts wearing face mask on day %d\n", self->get_id(), day);
     this->start_wearing_face_mask();
   }
 
   // should we stop using face mask?
   if(this->is_wearing_face_mask()) {
-    if (this->is_symptomatic() && this->days_wearing_face_mask < Health::Days_to_wear_face_masks) {
+    if (this->is_symptomatic(day) && this->days_wearing_face_mask < Health::Days_to_wear_face_masks) {
       this->days_wearing_face_mask++;
     } else {
       FRED_VERBOSE(1, "FACEMASK: person %d stops wearing face mask on day %d\n", self->get_id(), day);
@@ -675,13 +677,12 @@ void Health::declare_at_risk(Disease* disease) {
 }
 
 void Health::advance_seed_infection(int disease_id, int days_to_advance) {
-  assert(this->active_infections.test(disease_id));
   assert(this->infection[disease_id] != NULL);
   this->infection[disease_id]->advance_seed_infection(days_to_advance);
 }
 
 int Health::get_exposure_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return -1;
   } else {
     return this->infection[disease_id]->get_exposure_date();
@@ -689,7 +690,7 @@ int Health::get_exposure_date(int disease_id) const {
 }
 
 int Health::get_infectious_start_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return -1;
   } else {
     return this->infection[disease_id]->get_infectious_start_date();
@@ -697,7 +698,7 @@ int Health::get_infectious_start_date(int disease_id) const {
 }
 
 int Health::get_infectious_end_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return -1;
   } else {
     return this->infection[disease_id]->get_infectious_end_date();
@@ -705,7 +706,7 @@ int Health::get_infectious_end_date(int disease_id) const {
 }
 
 int Health::get_symptoms_start_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return -1;
   } else {
     return this->infection[disease_id]->get_symptoms_start_date();
@@ -713,7 +714,7 @@ int Health::get_symptoms_start_date(int disease_id) const {
 }
 
 int Health::get_symptoms_end_date(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return -1;
   } else {
     return this->infection[disease_id]->get_symptoms_end_date();
@@ -730,7 +731,7 @@ bool Health::is_recovered(int disease_id) {
 
 
 Person* Health::get_infector(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return NULL;
   } else {
     return this->infection[disease_id]->get_infector();
@@ -738,43 +739,46 @@ Person* Health::get_infector(int disease_id) const {
 }
 
 Place* Health::get_infected_place(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return NULL;
   } else {
-    return this->infection[disease_id]->get_infected_place();
+    return this->infection[disease_id]->get_place();
   }
 }
 
 int Health::get_infected_place_id(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  Place* place = get_infected_place(disease_id);
+  if (place == NULL) {
     return -1;
-  } else if(this->infection[disease_id]->get_infected_place() == NULL) {
-    return -1;
-  } else {
-    return this->infection[disease_id]->get_infected_place()->get_id();
+  }
+  else {
+    return place->get_id();
   }
 }
 
 char Health::get_infected_place_type(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  Place* place = get_infected_place(disease_id);
+  if (place == NULL) {
     return 'X';
-  } else if(this->infection[disease_id]->get_infected_place() == NULL) {
-    return 'X';
-  } else {
-    return this->infection[disease_id]->get_infected_place()->get_type();
+  }
+  else {
+    return place->get_type();
   }
 }
 
 char dummy_label[8];
 char* Health::get_infected_place_label(int disease_id) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     strcpy(dummy_label, "-");
     return dummy_label;
-  } else if(this->infection[disease_id]->get_infected_place() == NULL) {
+  }
+  Place* place = get_infected_place(disease_id);
+  if (place == NULL) {
     strcpy(dummy_label, "X");
     return dummy_label;
-  } else {
-    return this->infection[disease_id]->get_infected_place()->get_label();
+  }
+  else {
+    return place->get_label();
   }
 }
 
@@ -785,7 +789,7 @@ int Health::get_infectees(int disease_id) const {
 double Health::get_susceptibility(int disease_id) const {
   double suscep_multp = this->susceptibility_multp[disease_id];
 
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return suscep_multp;
   } else {
     return this->infection[disease_id]->get_susceptibility() * suscep_multp;
@@ -793,7 +797,7 @@ double Health::get_susceptibility(int disease_id) const {
 }
 
 double Health::get_infectivity(int disease_id, int day) const {
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return 0.0;
   } else {
     return this->infection[disease_id]->get_infectivity(day);
@@ -802,7 +806,7 @@ double Health::get_infectivity(int disease_id, int day) const {
 
 double Health::get_symptoms(int disease_id, int day) const {
 
-  if(!(this->active_infections.test(disease_id))) {
+  if(this->infection[disease_id] == NULL) {
     return 0.0;
   } else {
     return this->infection[disease_id]->get_symptoms(day);
@@ -865,34 +869,34 @@ void Health::modify_susceptibility(int disease_id, double multp) {
 }
 
 void Health::modify_infectivity(int disease_id, double multp) {
-  if(this->active_infections.test(disease_id)) {
+  if(this->infection[disease_id] != NULL) {
     this->infection[disease_id]->modify_infectivity(multp);
   }
 }
 
 void Health::modify_infectious_period(int disease_id, double multp, int cur_day) {
-  if(this->active_infections.test(disease_id)) {
+  if(this->infection[disease_id] != NULL) {
     this->infection[disease_id]->modify_infectious_period(multp, cur_day);
   }
 }
 
 void Health::modify_asymptomatic_period(int disease_id, double multp, int cur_day) {
-  if(this->active_infections.test(disease_id)) {
+  if(this->infection[disease_id] != NULL) {
     this->infection[disease_id]->modify_asymptomatic_period(multp, cur_day);
   }
 }
 
 void Health::modify_symptomatic_period(int disease_id, double multp, int cur_day) {
-  if(this->active_infections.test(disease_id)) {
+  if(this->infection[disease_id] != NULL) {
     this->infection[disease_id]->modify_symptomatic_period(multp, cur_day);
   }
 }
 
 void Health::modify_develops_symptoms(int disease_id, bool symptoms, int cur_day) {
-  if(this->active_infections.test(disease_id)
-     && ((this->infection[disease_id]->is_infectious()
-	  && !this->infection[disease_id]->is_symptomatic())
-	 || !this->infection[disease_id]->is_infectious())) {
+  if(this->infection[disease_id] != NULL
+     && ((this->infection[disease_id]->is_infectious(cur_day)
+	  && !this->infection[disease_id]->is_symptomatic(cur_day))
+	 || !this->infection[disease_id]->is_infectious(cur_day))) {
 
     this->infection[disease_id]->modify_develops_symptoms(symptoms, cur_day);
     this->symptomatic.set(disease_id);
@@ -1003,7 +1007,7 @@ void Health::update_place_counts(Person* self, int day, int disease_id, Place* p
 
 void Health::terminate(Person* self) {
   for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    if(this->active_infections.test(disease_id)) {
+    if(this->infection[disease_id] != NULL) {
       become_removed(self, disease_id);
     }
   }
