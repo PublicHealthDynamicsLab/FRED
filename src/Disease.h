@@ -229,10 +229,15 @@ public:
   
   vector<double> get_residual_immunity_values_by_FIPS(int FIPS_string);
    
+  char * get_natural_history_model() {
+    return this->natural_history_model;
+  }
+
 private:
 
-  char disease_name[FRED_STRING_SIZE];
   int id;
+  char disease_name[20];
+  char natural_history_model[20];
   double transmissibility;
 
   // infectivity and symptomaticity thresholds used in Infection class to

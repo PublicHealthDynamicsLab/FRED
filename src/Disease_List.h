@@ -40,7 +40,7 @@ public:
     return diseases[disease_id];
   }
 
-  Disease* get_disease(char* disease_name)
+  Disease* get_disease(char* disease_name);
 
   int get_number_of_diseases() { 
     return number_of_diseases;

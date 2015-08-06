@@ -121,6 +121,9 @@ public:
   void become_exposed(Person* person, int day);
 
   void update(int day);
+  void update_epidemic_for_binary_disease_model(int day);
+  void update_epidemic_for_variable_disease_model(int day);
+
   void find_active_places_of_type(int day, int place_type);
   void spread_infection_in_active_places(int day);
 

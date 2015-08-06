@@ -1529,12 +1529,57 @@ void Epidemic::advance_seed_infection(Person* person) {
 void Epidemic::update(int day) {
 
   FRED_VERBOSE(0, "epidemic update for disease %d day %d\n", id, day);
-
   Utils::fred_start_epidemic_timer();
 
   // import infections from unknown sources
   get_imported_infections(day);
   Utils::fred_print_epidemic_timer("imported infections");
+
+  if (strcmp(this->disease->get_natural_history_model(), "binary") == 0) {
+    update_epidemic_for_binary_disease_model(day);
+  }
+  else {
+    update_epidemic_for_variable_disease_model(day);
+  }
+
+  // get list of actually infectious people
+  actually_infectious_people.clear();
+  for (std::set<Person*>::iterator it = this->potentially_infectious_people.begin(); it != this->potentially_infectious_people.end(); ++it) {
+    Person* person = (*it);
+    if (person->is_infectious(this->id)) {
+      actually_infectious_people.push_back(person);
+      FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
+    }
+  }
+  Utils::fred_print_epidemic_timer("identifying acctually infections people");
+
+  // update the daily activities of infectious people
+  int size = actually_infectious_people.size();
+  for (int i = 0; i < size; i++) {
+    Person* person = actually_infectious_people[i];
+    FRED_VERBOSE(1, "updating activities of infectious person %d\n", person->get_id());
+    // this will insert the infectious person onto the infectious list at each place attended
+    person->update_activities_of_infectious_person(day);
+  }
+  Utils::fred_print_epidemic_timer("scheduled updated");
+
+  // spread infection in places attended by actually infectious people
+  for (int type = 0; type < 7; type++) {
+    find_active_places_of_type(day, type);
+    spread_infection_in_active_places(day);
+    char msg[80];
+    sprintf(msg, "spread_infection for type %d", type);
+    Utils::fred_print_epidemic_timer(msg);
+  }
+
+  FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
+  return;
+}
+
+void Epidemic::update_epidemic_for_variable_disease_model(int day) {
+}
+
+void Epidemic::update_epidemic_for_binary_disease_model(int day) {
 
   // transition to infectious
   FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, this->infectious_start_event_queue->get_size(day));
@@ -1569,38 +1614,6 @@ void Epidemic::update(int day) {
 
   Utils::fred_print_epidemic_timer("transitions");
 
-  // get list of actually infectious people
-  actually_infectious_people.clear();
-  for (std::set<Person*>::iterator it = this->potentially_infectious_people.begin(); it != this->potentially_infectious_people.end(); ++it) {
-    Person* person = (*it);
-    if (person->is_infectious(this->id)) {
-      actually_infectious_people.push_back(person);
-      FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
-    }
-  }
-  Utils::fred_print_epidemic_timer("identifying acctually infections people");
-
-  // update the daily activities of infectious people
-  int size = actually_infectious_people.size();
-  for (int i = 0; i < size; i++) {
-    Person* person = actually_infectious_people[i];
-    FRED_VERBOSE(1, "updating activities of infectious person %d\n", person->get_id());
-    // this will insert the infectious person onto the infectious list at each place attended
-    person->update_activities_of_infectious_person(day);
-  }
-  Utils::fred_print_epidemic_timer("scheduled updated");
-
-  // spread infection in places attended by actually infectious people
-  for (int type = 0; type < 7; type++) {
-    find_active_places_of_type(day, type);
-    spread_infection_in_active_places(day);
-    char msg[80];
-    sprintf(msg, "spread_infection for type %d", type);
-    Utils::fred_print_epidemic_timer(msg);
-  }
-
-  FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
-  return;
 }
 
 void Epidemic::find_active_places_of_type(int day, int place_type) {

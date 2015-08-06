@@ -68,6 +68,7 @@ Disease::Disease() {
   this->R0 = -1.0;
   this->R0_a = -1.0;
   this->R0_b = -1.0;
+  strcpy(this->natural_history_model,"");
 
   this->enable_face_mask_usage = 0;
   this->face_mask_transmission_efficacy = -1.0;
@@ -254,7 +255,6 @@ void Disease::setup() {
   this->strain_table->reset();
 
   // Initialize Natural History Model
-  char natural_history_model[80];
   Params::get_indexed_param(this->disease_name, "natural_history_model", natural_history_model);
   this->natural_history = Natural_History::get_natural_history(natural_history_model);
   this->natural_history->setup(this);
