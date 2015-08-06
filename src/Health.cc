@@ -249,20 +249,10 @@ Health::Health() {
   this->days_symptomatic = 0;
   this->previous_infection_serotype = 0;
   this->insurance_type = Insurance_assignment_index::UNSET;
-}
-
-Health::Health(Person* person) {
-  this->alive = true;
-  this->av_health = NULL;
-  this->checked_for_av = NULL;
-  this->vaccine_health = NULL;
-  this->has_face_mask_behavior = false;
-  this->wears_face_mask_today = false;
-  this->days_wearing_face_mask = 0;
-  this->washes_hands = false;
-  this->previous_infection_serotype = 0;
-  this->insurance_type = Insurance_assignment_index::UNSET;
-  setup(person);
+  this->infection = NULL;
+  this->immunity_end_date = NULL;
+  this->infectee_count = NULL;
+  this->susceptibility_multp = NULL;
 }
 
 void Health::setup(Person* self) {
@@ -301,11 +291,20 @@ void Health::setup(Person* self) {
 
   int diseases = Global::Diseases.get_number_of_diseases();
   FRED_VERBOSE(1, "Health::setup diseases %d\n", diseases);
+  this->infection = new Infection* [diseases];
+  this->susceptibility_multp = new double [diseases];
+  this->infectee_count = new int [diseases];
+  this->immunity_end_date = new int [diseases];
+  this->past_infections = new past_infections_type [diseases];
+
   for(int disease_id = 0; disease_id < diseases; disease_id++) {
+
     this->infection[disease_id] = NULL;
-    this->infectee_count[disease_id] = 0;
     this->susceptibility_multp[disease_id] = 1.0;
+    this->infectee_count[disease_id] = 0;
     this->immunity_end_date[disease_id] = -1;
+    this->past_infections[disease_id].clear();
+
     become_susceptible(self, disease_id);
     Disease* disease = Global::Diseases.get_disease(disease_id);
     if(!disease->get_at_risk()->is_empty()) {
