@@ -1526,6 +1526,7 @@ void Epidemic::advance_seed_infection(Person* person) {
   person->advance_seed_infection(d, advance);
 }
 
+
 void Epidemic::update(int day) {
 
   FRED_VERBOSE(0, "epidemic update for disease %d day %d\n", id, day);
@@ -1535,12 +1536,38 @@ void Epidemic::update(int day) {
   get_imported_infections(day);
   Utils::fred_print_epidemic_timer("imported infections");
 
-  if (strcmp(this->disease->get_natural_history_model(), "binary") == 0) {
-    update_epidemic_for_binary_disease_model(day);
-  }
-  else {
-    update_epidemic_for_variable_disease_model(day);
-  }
+  // transition to infectious
+  FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, this->infectious_start_event_queue->get_size(day));
+  EpidemicMemFn func = &Epidemic::infectious_start_event_handler;
+  this->infectious_start_event_queue->event_handler(day, this, func);
+
+  // transition to noninfectious
+  FRED_VERBOSE(0, "INF_END__EVENT_QUEUE day %d size %d\n", day, this->infectious_end_event_queue->get_size(day));
+  func = &Epidemic::infectious_end_event_handler;
+  this->infectious_end_event_queue->event_handler(day, this, func);
+    
+  // transition to symptomatic
+  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, this->symptoms_start_event_queue->get_size(day));
+  func = &Epidemic::symptoms_start_event_handler;
+  this->symptoms_start_event_queue->event_handler(day, this, func);
+
+  // transition to asymptomatic
+  FRED_VERBOSE(0, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, this->symptoms_end_event_queue->get_size(day));
+  func = &Epidemic::symptoms_end_event_handler;
+  this->symptoms_end_event_queue->event_handler(day, this, func);
+
+  // transition to immune
+  // FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, this->immunity_start_event_queue->get_size(day));
+  // func = &Epidemic::immunity_start_event_handler;
+  // this->immunity_start_event_queue->event_handler(day, this, func);
+
+  // transition to susceptible
+  FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, this->immunity_end_event_queue->get_size(day));
+  func = &Epidemic::immunity_end_event_handler;
+  this->immunity_end_event_queue->event_handler(day, this, func);
+
+
+  Utils::fred_print_epidemic_timer("transitions");
 
   // get list of actually infectious people
   actually_infectious_people.clear();
@@ -1576,45 +1603,6 @@ void Epidemic::update(int day) {
   return;
 }
 
-void Epidemic::update_epidemic_for_variable_disease_model(int day) {
-}
-
-void Epidemic::update_epidemic_for_binary_disease_model(int day) {
-
-  // transition to infectious
-  FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, this->infectious_start_event_queue->get_size(day));
-  EpidemicMemFn func = &Epidemic::infectious_start_event_handler;
-  this->infectious_start_event_queue->event_handler(day, this, func);
-
-  // transition to noninfectious
-  FRED_VERBOSE(0, "INF_END__EVENT_QUEUE day %d size %d\n", day, this->infectious_end_event_queue->get_size(day));
-  func = &Epidemic::infectious_end_event_handler;
-  this->infectious_end_event_queue->event_handler(day, this, func);
-    
-  // transition to symptomatic
-  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, this->symptoms_start_event_queue->get_size(day));
-  func = &Epidemic::symptoms_start_event_handler;
-  this->symptoms_start_event_queue->event_handler(day, this, func);
-
-  // transition to asymptomatic
-  FRED_VERBOSE(0, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, this->symptoms_end_event_queue->get_size(day));
-  func = &Epidemic::symptoms_end_event_handler;
-  this->symptoms_end_event_queue->event_handler(day, this, func);
-
-  // transition to immune
-  // FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, this->immunity_start_event_queue->get_size(day));
-  // func = &Epidemic::immunity_start_event_handler;
-  // this->immunity_start_event_queue->event_handler(day, this, func);
-
-  // transition to susceptible
-  FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, this->immunity_end_event_queue->get_size(day));
-  func = &Epidemic::immunity_end_event_handler;
-  this->immunity_end_event_queue->event_handler(day, this, func);
-
-
-  Utils::fred_print_epidemic_timer("transitions");
-
-}
 
 void Epidemic::find_active_places_of_type(int day, int place_type) {
 
