@@ -11,7 +11,7 @@
 
 #include "HIV_Intrahost.h"
 #include "Disease.h"
-#include "Intrahost.h"
+#include "IntraHost.h"
 
 HIV_IntraHost::HIV_IntraHost() {
 }
