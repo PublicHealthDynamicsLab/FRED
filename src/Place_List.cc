@@ -640,9 +640,6 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
           hosp->set_daily_patient_capacity(capacity);
         }
         Place_List::Hospital_overall_panel_size += hosp->get_daily_patient_capacity(0);
-        //printf("DEBUG_HAZEL: Hospital [%s] panel_size [%d] Hospital_overall_panel_size = [%d]\n", hosp->get_label(), hosp->get_daily_patient_capacity(0), Place_List::Hospital_overall_panel_size);
-      } else {
-        //printf("DEBUG_HAZEL: PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC [%s] panel_size [%d] Hospital_overall_panel_size = [%d]\n", hosp->get_label(), hosp->get_daily_patient_capacity(0), Place_List::Hospital_overall_panel_size);
       }
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);

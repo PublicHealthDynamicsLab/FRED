@@ -450,7 +450,7 @@ int Place::get_output_count(int disease_id, int output_code) {
     case Global::OUTPUT_HC_DEFICIT:
       if(this->type == Place::HOUSEHOLD) {
         Household* hh = static_cast<Household*>(this);
-        return hh->get_count_seeking_hc() - hh->get_count_receiving_primary_hc();
+        return hh->get_count_hc_accept_ins_unav();
       } else {
         return 0;
       }

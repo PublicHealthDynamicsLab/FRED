@@ -68,7 +68,8 @@ Household::Household() {
   this->other_healthcare_location_that_accepts_insurance_available = true;
   this->healthcare_available = true;
   this->count_seeking_hc = 0;
-  this->count_receiving_primary_hc = 0;
+  this->count_primary_hc_unav = 0;
+  this->count_hc_accept_ins_unav = 0;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
@@ -93,7 +94,8 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->other_healthcare_location_that_accepts_insurance_available = true;
   this->healthcare_available = true;
   this->count_seeking_hc = 0;
-  this->count_receiving_primary_hc = 0;
+  this->count_primary_hc_unav = 0;
+  this->count_hc_accept_ins_unav = 0;
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';

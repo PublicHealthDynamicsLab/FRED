@@ -245,9 +245,6 @@ int Hospital::get_daily_patient_capacity(int sim_day) {
       return this->daily_patient_capacity;
     } else {
       if(this->add_capacity) {
-        printf("DEBUG_HAZEL: Hospital[%s] has capacity %d adjusted to %d\n", this->to_string().c_str(),
-            this->daily_patient_capacity,
-            static_cast<int>(ceil(Hospital::HAZEL_disaster_capacity_multiplier * this->daily_patient_capacity)));
         return static_cast<int>(ceil(Hospital::HAZEL_disaster_capacity_multiplier * this->daily_patient_capacity));
       } else {
         return this->daily_patient_capacity;
@@ -264,9 +261,6 @@ double Hospital::get_contacts_per_day(int disease) {
 
 bool Hospital::is_open(int sim_day) {
   bool open = (sim_day < this->close_date || this->open_date <= sim_day);
-  if(!open) {
-    FRED_VERBOSE(0, "Place %s is closed on day %d\n", this->label, sim_day);
-  }
   return open;
 }
 

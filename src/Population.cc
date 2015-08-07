@@ -1769,26 +1769,6 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
   fclose(fp);
 }
 
-////TODO REMOVE
-//void Population::print_HAZEL_data() {
-//  for(int p = 0; p < this->get_index_size(); ++p) {
-//    Person* person = get_person_by_index(p);
-//    if(person == NULL) {
-//      continue;
-//    }
-//    Household* hh = static_cast<Household*>(person->get_household());
-//    Hospital* hosp = static_cast<Hospital*>(person->get_hospital());
-//    assert(hh != NULL);
-//    if(hosp == NULL) {
-//      hosp = hh->get_household_visitation_hospital();
-//    }
-//    assert(hosp != NULL);
-//
-//    printf("DEBUG_HAZEL: Agent[%s], Assigned Healthcare[%s]\n", person->to_string().c_str(),
-//        hosp->get_label());
-//  }
-//}
-
 Person* Population::select_random_person() {
   int i = Random::draw_random_int(0, get_index_size() - 1);
   while(get_person_by_index(i) == NULL) {

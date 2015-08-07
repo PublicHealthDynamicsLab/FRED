@@ -563,7 +563,6 @@ void Activities::update_schedule(Person* self, int sim_day) {
       Household* hh = static_cast<Household*>(self->get_permanent_household());
       assert(hh != NULL);
       hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
-      hh->set_count_receiving_primary_hc(hh->get_count_receiving_primary_hc() + 1);
     }
   } else {
     //If the hospital stay should end today, go back to normal
@@ -986,7 +985,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
             if(self->has_hypertension()) {
               Global::Daily_Tracker->increment_index_key_pair(sim_day, HTN_HC_UNAV, 1);
             }
-
             if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICAID) {
               Global::Daily_Tracker->increment_index_key_pair(sim_day, MEDICAID_UNAV, 1);
             } else if(self->get_health()->get_insurance_type() == Insurance_assignment_index::MEDICARE) {
@@ -998,11 +996,13 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
             }
 
             Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIMARY_HC_UNAV, 1);
+            hh->set_count_primary_hc_unav(hh->get_count_primary_hc_unav() + 1);
 
             //Now, try to Find an open health care provider that accepts agent's insurance
             hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, true, false);
             if(hosp == NULL) {
               hh->set_other_healthcare_location_that_accepts_insurance_available(false);
+              hh->set_count_hc_accept_ins_unav(hh->get_count_hc_accept_ins_unav() + 1);
               Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
 
               hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, false, false);
@@ -1043,8 +1043,6 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
               }
             }
           } else {
-            //Update statistics to reflect that agent was able to receive care at primary care
-            hh->set_count_receiving_primary_hc(hh->get_count_receiving_primary_hc() + 1);
             assign_hospital(self, hosp);
             if(hosp->get_subtype() == fred::PLACE_SUBTYPE_NONE) {
               //then it is an emergency room visit
@@ -1141,20 +1139,20 @@ void Activities::start_hospitalization(Person* self, int sim_day, int length_of_
       hh->set_count_seeking_hc(hh->get_count_seeking_hc() + 1);
       if(!hosp->should_be_open(sim_day) || (hosp->get_occupied_bed_count() >= hosp->get_bed_count(sim_day))) {
         hh->set_is_primary_healthcare_available(false);
+        hh->set_count_primary_hc_unav(hh->get_count_primary_hc_unav() + 1);
         Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIMARY_HC_UNAV, 1);
 
         //Find an open healthcare provider
         hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, true, false);
         if(hosp == NULL) {
           hh->set_other_healthcare_location_that_accepts_insurance_available(false);
+          hh->set_count_hc_accept_ins_unav(hh->get_count_hc_accept_ins_unav() + 1);
           Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
           hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, self, false, false);
           if(hosp == NULL) {
             hh->set_is_healthcare_available(false);
             Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_UNAV, 1);
           }
-        } else {
-          hh->set_count_receiving_primary_hc(hh->get_count_receiving_primary_hc() + 1);
         }
       }
 
@@ -1330,8 +1328,6 @@ void Activities::assign_primary_healthcare_facility(Person* self) {
       if(tmp_hosp != NULL) {
         this->primary_healthcare_facility = tmp_hosp;
         Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
-      } else {
-        printf("DEBUG_HAZEL: Unable to find primary care for agent [%s]\n", self->to_string().c_str());
       }
     }
   }
