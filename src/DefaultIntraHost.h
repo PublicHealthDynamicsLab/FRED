@@ -16,7 +16,7 @@
 #include <map>
 
 #include "Age_Map.h"
-#include "Intrahost.h"
+#include "IntraHost.h"
 
 class Infection;
 class Trajectory;
