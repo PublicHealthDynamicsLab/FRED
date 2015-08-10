@@ -12,14 +12,8 @@
 #ifndef _FRED_NATURAL_HISTORY_H
 #define _FRED_NATURAL_HISTORY_H
 
-#include <vector>
-#include <map>
-
-typedef std::map< int, double > Loads; 
-
-class Infection;
-class Trajectory;
 class Disease;
+class Person;
 
 class Natural_History {
 public:
@@ -28,10 +22,10 @@ public:
 
   /**
    * This static factory method is used to get an instance of a specific Natural_History Model.
-   * Depending on the type parameter, it will create a specific Natural_History Model and return
+   * Depending on the model parameter, it will create a specific Natural_History Model and return
    * a pointer to it.
    *
-   * @param the specific Natural_History model type
+   * @param a string containing the requested Natural_History model type
    * @return a pointer to a specific Natural_History model
    */
   static Natural_History * get_natural_history(char* natural_history_model);
@@ -43,21 +37,13 @@ public:
    */
   virtual void setup(Disease *dis);
 
-  /**
-   * An interface for a specific Natural_History model to implement to return its infection Trajectory
-   *
-   * @param infection
-   * @param loads
-   * @return a pointer to a Trajectory object
-   */
-  virtual Trajectory * get_trajectory() { return NULL; };
-  virtual Trajectory * get_trajectory(int age) { return NULL; };
-  virtual Trajectory * get_trajectory(double real_age) { return NULL; };
+  // called from Infection
 
-  /**
-   * @return the days symptomatic
-   */
-  virtual int get_days_symp();
+  virtual int get_latent_period(Person* host);
+  virtual int get_duration_of_infectiousness(Person* host);
+  virtual int get_incubation_period(Person* host);
+  virtual int get_duration_of_symptoms(Person* host);
+
 
 protected:
   Disease *disease;

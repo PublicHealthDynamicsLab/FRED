@@ -21,7 +21,40 @@
 
 #define NEVER (-1)
 
+//
+// Terminology:
+//
+// latent period = time between exposure and infectiousness
+//
+// incubation period = time between exposure and appearance of first symptoms
+//
+// Refs:
+// https://en.wikipedia.org/wiki/Incubation_period
+//
+// http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2817319/
+//
+// Estimated epidemiologic parameters and morbidity associated with
+// pandemic H1N1 influenza CMAJ. 2010 Feb 9; 182(2): 131–136.
+// Ashleigh R. Tuite, MSc, MHSc, Amy L. Greer, MSc, PhD, Michael Whelan,
+// MSc, Anne-Luise Winter, BScN, MHSc, Brenda Lee, MHSc, Ping Yan, PhD,
+// Jianhong Wu, PhD, Seyed Moghadas, PhD, David Buckeridge, MD, PhD,
+// Babak Pourbohloul, PhD, and David N. Fisman, MD, MPH
+//
+//
+// Note: the details for a particular disease is handled by the
+// Natural_History class through the methods:
+// 
+// get_latent_period()
+// get_duration_of_infectiousness()
+//
+// get_incubation_period()
+// get_duration_of_symptoms()
+//
+// The Infection class merely reports the resulting transition dates.
+//
+
 Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
+
   // FRED_VERBOSE(0,"Infection constructor entered\n");
 
   this->disease = _disease;
@@ -40,38 +73,61 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
 
 void Infection::set_transition_dates() {
 
-  int incubation_period = disease->get_incubation_period();
-  if (incubation_period > NEVER) {
-    this->infectious_start_date = this->exposure_date + incubation_period;
-    int infectious_period = disease->get_infectious_period();
-    this->infectious_end_date = this->infectious_start_date + infectious_period;
-  }
-  else {
+  // set transition dates for infectiousness
+  int my_latent_period = disease->get_latent_period(this->host);
+  if (my_latent_period < 0) {
     this->infectious_start_date = NEVER;
     this->infectious_end_date = NEVER;
   }
-
-  int latent_period = disease->get_latent_period();
-  if (latent_period > NEVER) {
-    this->symptoms_start_date = this->exposure_date + latent_period;
-    int symptomatic_period = disease->get_symptomatic_period();
-    this->symptoms_end_date = this->symptoms_start_date + symptomatic_period;
+  else  {
+    assert(my_latent_period > 0); // FRED needs at least one day to become infectious
+    this->infectious_start_date = this->exposure_date + my_latent_period;
+    
+    int my_duration_of_infectiousness = disease->get_duration_of_infectiousness(this->host);
+    // my_duration_of_infectiousness <= 0 would mean "never infectious"
+    assert(my_duration_of_infectiousness > 0);
+    this->infectious_end_date = this->infectious_start_date + duration_of_infectiousness;
   }
-  else {
+  
+  // set transition dates for having symptoms
+  int my_incubation_period = disease->get_incubation_period(this->host);
+  if (my_incubation_period < 0) {
     this->symptoms_start_date = NEVER;
     this->symptoms_end_date = NEVER;
   }
-
-  int recovery_period = this->disease->get_days_recovered();
-  if(recovery_period > NEVER) {
-    this->immunity_end_date = this->infectious_end_date + recovery_period;
-  }
   else {
+    assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
+    this->symptoms_start_date = this->exposure_date + my_incubation_period;
+
+    int my_duration_of_symptoms = disease->get_duration_of_symptoms(this->host);
+    // duration_of_symptoms <= 0 would mean "never symptomatic"
+    assert(my_duration_of_symptoms > 0);
+    this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
+  }
+
+  // set transition date for becoming susceptible after this infection
+  int my_duration_of_immunity = this->disease->get_duration_of_immunity(this->host);
+  if (my_duration_of_immunity < 0) {
+    // my_duration_of_immunity < 0 means "immune forever"
     this->immunity_end_date = NEVER;
   }
+  else {
+    assert(my_duration_of_immunity > 0); // FRED needs at least one day to become susceptible again
+    this->immunity_end_date = this->exposure_date + my_duration_of_immunity;
+  }
+
 }
 
-void Infection::update(int today) {
+void Infection::update(int day) {
+  /*
+  if (day < this->infectious_start_date) {
+    int new_infectious_start_date = this->disease->update_infectious_start_date(this->host, this->day, this->exposure_date, this->infectious_start_date);
+    // note: the following could be wrapped into the above method in disease
+    if (new_infectious_start_date != this->infectious_start_date) {
+      this->disease->get_epidemic()->change_infectious_start_event(this->host, this->infectious_start_date, new_infectious_start_date);
+    }
+  }
+  */
 }
 
 bool Infection::is_infectious(int day) const {

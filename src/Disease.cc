@@ -36,8 +36,6 @@ using namespace std;
 #include "Population.h"
 #include "Random.h"
 #include "Seasonality.h"
-#include "Strain.h"
-#include "StrainTable.h"
 #include "Timestep_Map.h"
 
 Disease::Disease() {
@@ -48,7 +46,6 @@ Disease::Disease() {
   this->infection_immunity_prob = NULL;
   this->at_risk = NULL;
   this->epidemic = NULL;
-  this->strain_table = NULL;
   this->natural_history = NULL;
   this->enable_case_fatality = 0;
   this->case_fatality_age_factor = NULL;
@@ -86,7 +83,6 @@ Disease::~Disease() {
   delete this->residual_immunity;
   delete this->infection_immunity_prob;
   delete this->at_risk;
-  delete this->strain_table;
   delete this->natural_history;
 
   if(this->evol != NULL) {
@@ -122,6 +118,33 @@ void Disease::get_parameters(int disease, string name) {
   fprintf(Global::Statusfp, "disease %d %s read_parameters entered\n",
 	  this->id, this->disease_name);
   fflush(Global::Statusfp);
+
+  // moved from natural_history
+  Params::get_indexed_param(disease_name,"symp",&prob_symptomatic);
+  Params::get_indexed_param(disease_name,"symp_infectivity",&symp_infectivity);
+  Params::get_indexed_param(disease_name,"asymp_infectivity",&asymp_infectivity);
+  
+  // age specific probablility of symptoms
+  this->age_specific_prob_symptomatic = new Age_Map("Prob Symptomatic");
+  sprintf(paramstr, "%s_prob_symp", disease_name);
+  this->age_specific_prob_symptomatic->read_from_input(paramstr);
+
+  int n;
+  Params::get_indexed_param(disease_name,"days_latent",&n);
+  days_latent = new double [n];
+  max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", days_latent) -1;
+
+  Params::get_indexed_param(disease_name,"days_asymp",&n);
+  days_asymp = new double [n];
+  max_days_asymp = Params::get_indexed_param_vector(disease_name, "days_asymp", days_asymp) -1;
+
+  Params::get_indexed_param(disease_name,"days_symp",&n);
+  days_symp = new double [n];
+  max_days_symp = Params::get_indexed_param_vector(disease_name, "days_symp", days_symp) -1;
+
+  Params::get_indexed_param(disease_name,"infection_model",  &infection_model);
+
+  // end: moved from natural_history
 
   Params::get_param_from_string("R0", &this->R0);
   Params::get_param_from_string("R0_a", &this->R0_a);
@@ -222,7 +245,6 @@ void Disease::get_parameters(int disease, string name) {
   }
   
   if(Global::Residual_Immunity_by_FIPS) {
-    //std::map<string, Age_Map> res_imm;
     this->read_residual_immunity_by_FIPS();
     fprintf(Global::Statusfp, "Residual Immunity by FIPS enabled \n");
   }
@@ -249,17 +271,12 @@ void Disease::setup() {
   this->epidemic = new Epidemic(this);
   this->epidemic->setup();
 
-  // Initialize StrainTable
-  this->strain_table = new StrainTable;
-  this->strain_table->setup(this);
-  this->strain_table->reset();
-
   // Initialize Natural History Model
   Params::get_indexed_param(this->disease_name, "natural_history_model", natural_history_model);
   this->natural_history = Natural_History::get_natural_history(natural_history_model);
   this->natural_history->setup(this);
 
-  // Initialize Infection Trajectory Thresholds
+  // Initialize Infection Thresholds
   Params::get_indexed_param(this->disease_name, "infectivity_threshold",
 			    &(this->infectivity_threshold));
   Params::get_indexed_param(this->disease_name, "symptomaticity_threshold",
@@ -274,7 +291,25 @@ void Disease::setup() {
   fflush(Global::Statusfp);
 }
 
-int Disease::get_days_recovered() {
+  // called by Infection:
+
+int Disease::get_latent_period(Person* host) {
+  return this->natural_history->get_latent_period(host);
+}
+
+int Disease::get_duration_of_infectiousness(Person* host) {
+  return this->natural_history->get_duration_of_infectiousness(host);
+}
+
+int Disease::get_incubation_period(Person* host) {
+  return this->natural_history->get_incubation_period(host);
+}
+
+int Disease::get_duration_of_symptoms(Person* host) {
+  return this->natural_history->get_duration_of_symptoms(host);
+}
+
+int Disease::get_duration_of_immunity(Person* host) {
   int days;
 
   if(this->immunity_loss_rate > 0.0) {
@@ -286,26 +321,6 @@ int Disease::get_days_recovered() {
   }
 
   return days;
-}
-
-int Disease::get_incubation_period() {
-  return this->natural_history->get_days_symp();
-}
-
-int Disease::get_latent_period() {
-  return this->natural_history->get_days_symp();
-}
-
-int Disease::get_infectious_period() {
-  return this->natural_history->get_days_symp();
-}
-
-int Disease::get_symptomatic_period() {
-  return this->natural_history->get_days_symp();
-}
-
-int Disease::get_days_symp() {
-  return this->natural_history->get_days_symp();
 }
 
 double Disease::get_attack_rate() {
@@ -320,14 +335,6 @@ double Disease::get_symptomatic_attack_rate() {
 void Disease::get_disease_parameters() {
 }
 
-double Disease::get_transmissibility(int strain) {
-  return this->strain_table->get_transmissibility(strain);
-}
-
-Trajectory* Disease::get_trajectory(int age) {
-  return this->natural_history->get_trajectory(age);
-}
-
 bool Disease::gen_immunity_infection(double real_age) {
   double prob = this->infection_immunity_prob->find_value(real_age);
   return (Random::draw_random() <= prob);
@@ -336,47 +343,6 @@ bool Disease::gen_immunity_infection(double real_age) {
 double Disease::calculate_climate_multiplier(double seasonality_value) {
   return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
     + this->seasonality_min;
-}
-
-int Disease::get_num_strain_data_elements(int strain) {
-  return this->strain_table->get_num_strain_data_elements(strain);
-}
-
-int Disease::get_strain_data_element(int strain, int i) {
-  return this->strain_table->get_strain_data_element(strain, i);
-}
-
-void Disease::add_root_strain(int num_elements) {
-  this->strain_table->add_root_strain(num_elements);
-}
-
-int Disease::add_strain(Strain* child_strain, double transmissibility,
-			int parent_strain_id) {
-  return this->strain_table->add(child_strain, transmissibility, parent_strain_id);
-}
-
-int Disease::add_strain(Strain* child_strain, double transmissibility) {
-  return this->strain_table->add(child_strain, transmissibility);
-}
-
-int Disease::get_num_strains() {
-  return this->strain_table->get_num_strains();
-}
-
-void Disease::print_strain(int strain_id, stringstream & out) {
-  this->strain_table->print_strain(strain_id, out);
-}
-
-std::string Disease::get_strain_data_string(int strain_id) {
-  return this->strain_table->get_strain_data_string(strain_id);
-}
-
-const Strain_Data & Disease::get_strain_data(int strain) {
-  return this->strain_table->get_strain_data(strain);
-}
-
-const Strain & Disease::get_strain(int strain_id) {
-  return this->strain_table->get_strain(strain_id);
 }
 
 void Disease::initialize_evolution_reporting_grid(Regional_Layer* grid) {

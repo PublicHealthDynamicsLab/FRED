@@ -18,6 +18,7 @@
 #define _FRED_Disease_H
 
 #include <fstream>
+#include <vector>
 #include <map>
 #include <string>
 using namespace std;
@@ -30,11 +31,6 @@ class Evolution;
 class Infection;
 class Natural_History;
 class Person;
-class Strain;
-class Strain_Data;
-class StrainTable;
-class Trajectory;
-
 
 class Disease {
 public:
@@ -54,12 +50,12 @@ public:
   void setup();
 
   // called by Infection:
-  int get_incubation_period();
-  int get_latent_period();
-  int get_infectious_period();
-  int get_symptomatic_period();
-  int get_days_symp();
-  int get_days_recovered();
+  int get_latent_period(Person* host);
+  int get_duration_of_infectiousness(Person* host);
+  int get_incubation_period(Person* host);
+  int get_duration_of_symptoms(Person* host);
+  int get_duration_of_immunity(Person* host);
+
 
   /**
    * @return this Disease's id
@@ -75,16 +71,6 @@ public:
     return this->transmissibility;
   }
 
-  /**
-   * @param strain the strain of the disease
-   * @return the strain's transmissibility
-   */
-  double get_transmissibility(int strain);
-
-  /**
-   * @param seasonality_value meterological condition (eg specific humidity in kg/kg)
-   * @return the multiplier calculated from the seasonality condition; attenuates transmissibility
-   */
   double calculate_climate_multiplier(double seasonality_value);
 
   /**
@@ -120,8 +106,6 @@ public:
     return this->evol;
   }
 
-  Trajectory* get_trajectory(int age);
-
   /**
    * @param day the simulation day
    * @see Epidemic::print_stats(day);
@@ -147,12 +131,6 @@ public:
    */
   static void set_prob_stay_home(double);
 
-  int get_num_strains();
-  int get_num_strain_data_elements(int strain);
-  int get_strain_data_element(int strain, int i);
-  const Strain_Data &get_strain_data(int strain);
-  const Strain &get_strain(int strain_id);
-
   void get_disease_parameters();
 
   void increment_cohort_infectee_count(int day) {
@@ -161,12 +139,6 @@ public:
  
   bool gen_immunity_infection(double real_age);
 
-  int add_strain(Strain* child_strain, double transmissibility, int parent_strain_id);
-  int add_strain(Strain* child_strain, double transmissibility);
-
-  void add_root_strain(int num_elements);
-  void print_strain(int strain_id, stringstream &out);
-  std::string get_strain_data_string(int strain_id);
   void initialize_evolution_reporting_grid(Regional_Layer* grid);
 
   double get_infectivity_threshold() {
@@ -250,6 +222,19 @@ private:
   double seasonality_max, seasonality_min;
   double seasonality_Ka, seasonality_Kb;
 
+  // moved from natural_history
+  double asymp_infectivity;
+  double symp_infectivity;
+  int infection_model;
+  int max_days_latent;
+  int max_days_asymp;
+  int max_days_symp;
+  double *days_latent;
+  double *days_asymp;
+  double *days_symp;
+  double prob_symptomatic;
+  Age_Map *age_specific_prob_symptomatic;
+
   // case fatality parameters
   int enable_case_fatality;
   double min_symptoms_for_case_fatality;
@@ -267,10 +252,8 @@ private:
   Age_Map* residual_immunity;
   Age_Map* at_risk;
   Age_Map* infection_immunity_prob;
-  StrainTable* strain_table;
   Natural_History* natural_history;
   Evolution* evol;
-
 
   // intervention efficacies
   int enable_face_mask_usage;
