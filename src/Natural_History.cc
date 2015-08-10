@@ -46,30 +46,32 @@ static Natural_History * Natural_History::get_new_natural_history(char* natural_
 }
 
 /*
- * The basic Natural History model is SEIR(S).
- * For other models, define a derived class from Natural_History.
+ * The Natural History base class implements an SEIR(S) model.
+ * For other models, define a derived class.
  */
 
-void Natural_History::setup(Disease *disease) {
-  this->disease = disease;
-  prob_symptomatic = -1.0;
-  asymptomatic_infectivity = -1.0;
-  symptomatic_infectivity = -1.0;
-  max_days_latent = -1;
-  max_days_asymp = -1;
-  max_days_symp = -1;
-  days_latent = NULL;
-  days_asymp = NULL;
-  days_symp = NULL;
-}
+void Natural_History::setup(Disease * _disease) {
+  this->disease = _disease;
+  this->probability_of_symptoms = 0;
+  this->symptomatic_infectivity = 0;
+  this->asymptomatic_infectivity = 0;
+  this->max_days_latent = 0;
+  this->max_days_infectious = 0;
+  this->max_days_incubating = 0;
+  this->max_days_symptomatic = 0;
+  this->days_latent = NULL;
+  this->days_infectious = NULL;
+  this->days_incubating = NULL;
+  this->days_symptomatic = NULL;
+  this->age_specific_prob_symptomatic = NULL;
 
-void Natural_History::get_parameters(Disease * disease) {
+  // read in the disease-specific parameters
   char paramstr[256];
   char disease_name[20];
 
   strcpy(disease_name, disease->get_disease_name());
 
-  Params::get_indexed_param(disease_name,"symp",&prob_symptomatic);
+  Params::get_indexed_param(disease_name,"probability_of_symptoms",&probability_of_symptoms);
   Params::get_indexed_param(disease_name,"symp_infectivity",&symptomatic_infectivity);
   Params::get_indexed_param(disease_name,"asymp_infectivity",&asymptomatic_infectivity);
   
@@ -83,37 +85,28 @@ void Natural_History::get_parameters(Disease * disease) {
   days_latent = new double [n];
   max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", days_latent) -1;
 
-  Params::get_indexed_param(disease_name,"days_asymp",&n);
-  days_asymp = new double [n];
-  max_days_asymp = Params::get_indexed_param_vector(disease_name, "days_asymp", days_asymp) -1;
+  Params::get_indexed_param(disease_name,"days_infectious",&n);
+  days_infectious = new double [n];
+  max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", days_infectious) -1;
 
-  Params::get_indexed_param(disease_name,"days_symp",&n);
-  days_symp = new double [n];
-  max_days_symp = Params::get_indexed_param_vector(disease_name, "days_symp", days_symp) -1;
+  Params::get_indexed_param(disease_name,"days_incubating",&n);
+  days_incubating = new double [n];
+  max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", days_incubating) -1;
+
+  Params::get_indexed_param(disease_name,"days_symptomatc",&n);
+  days_symptomatic = new double [n];
+  max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptimatic", days_symptomatic) -1;
 
 }
 
 int Natural_History::get_latent_period(Person* host) {
-  int days = 0;
-  days = Random::draw_from_distribution(max_days_latent, days_latent);
+  int days = Random::draw_from_distribution(max_days_latent, days_latent);
   return days;
 }
 
 int Natural_History::get_duration_of_infectiousness(Person* host) {
-  return 5;
-}
-
-int Natural_History::get_incubation_period(Person* host) {
-  return 1;
-}
-
-int Natural_History::get_duration_of_symptoms(Person* host) {
-  int will_be_symptomatic = will_have_symptoms(age);
-  if (will_be_symptomatic) {
-    return get_days_symp();
-  } else {
-    return NEVER;
-  }
+  int days = Random::draw_from_distribution(max_days_infectious, days_infectious);
+  return days;
 }
 
 Trajectory* Natural_History::get_trajectory(int age) {
@@ -163,42 +156,12 @@ Trajectory* Natural_History::get_trajectory(int age) {
   return trajectory;
 }
 
-int Natural_History::get_days_latent() {
-  int days = 0;
-  days = Random::draw_from_distribution(max_days_latent, days_latent);
-  return days;
-}
-
-int Natural_History::get_days_asymp() {
-  int days = 0;
-  days = Random::draw_from_distribution(max_days_asymp, days_asymp);
-  return days;
-}
-
-int Natural_History::get_days_symp() {
-  int days = 0;
-  days = Random::draw_from_distribution(max_days_symp, days_symp);
-  return days;
-}
-
-int Natural_History::get_days_susceptible() {
-  return 0;
-}
-
-
-
-int Natural_History::will_have_symptoms(int age) {
-  double prob = get_prob_symptomatic(age);
-  return (Random::draw_random() < prob);
-}
-
-
-double Natural_History::get_prob_symptomatic(int age) {
-  if (age_specific_prob_symptomatic->is_empty()) {
-    return prob_symptomatic;
+double Natural_History::get_probability_of_symptoma(int age) {
+  if (this->age_specific_prob_symptomatic->is_empty()) {
+    return this->probability_of_symptoms;
   }
   else {
-    return age_specific_prob_symptomatic->find_value(age);
+    return this->age_specific_prob_symptomatic->find_value(age);
   }
 }
 

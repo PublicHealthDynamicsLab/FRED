@@ -206,6 +206,10 @@ public:
     return this->natural_history_model;
   }
 
+  Natural_History * get_natural_history() {
+    return this->natural_history;
+  }
+
 private:
 
   int id;

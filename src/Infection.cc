@@ -16,36 +16,10 @@
 #include "Disease.h"
 #include "Global.h"
 #include "Household.h"
+#include "Natural_History.h"
 #include "Person.h"
 #include "Place.h"
 #include "Place_List.h"
-
-#define NEVER (-1)
-
-  /**
-   * This static factory method is used to get an instance of a specific
-   * Infection that tracks patient-specific data that depends on the
-   * natural history model associated with the disease.
-   *
-   * @param a pointer to the disease causing this infection.
-   * @return a pointer to a specific Infection object of a possible derived class
-   */
-  
-Infection * Infection::get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day) {
-  if (strcmp(disease->get_natural_history_model(), "basic") == 0) {
-    return new Infection(disease, infector, host, place, day);
-  }
-    
-  if (strcmp(disease->get_natural_history_model(), "HIV") == 0) {
-    return new HIV_Infection(disease, infector, host, place, day);
-  }
-
-  Utils::fred_abort("Infection::get_new_infection -- unknown natural history model: %s",
-	       disease->get_natural_history_model());
-  return NULL;
-}
-
-
 
 //
 // Terminology:
@@ -68,10 +42,8 @@ Infection * Infection::get_new_infection(Disease *disease, Person* infector, Per
 //
 //
 
+// if primary infection, infector and place are null.
 Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
-
-  // FRED_VERBOSE(0,"Infection constructor entered\n");
-
   this->disease = _disease;
   this->infector = _infector;
   this->host = _host;
@@ -82,7 +54,33 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->symptoms_start_date = -1;
   this->symptoms_end_date = -1;
   this->immunity_end_date = -1;
+  this->will_develop_symptoms = false;
 }
+
+
+/**
+ * This static factory method is used to get an instance of a specific
+ * Infection that tracks patient-specific data that depends on the
+ * natural history model associated with the disease.
+ *
+ * @param a pointer to the disease causing this infection.
+ * @return a pointer to a specific Infection object of a possible derived class
+ */
+
+Infection * Infection::get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day) {
+  if (strcmp(disease->get_natural_history_model(), "basic") == 0) {
+    return new Infection(disease, infector, host, place, day);
+  }
+  
+  if (strcmp(disease->get_natural_history_model(), "HIV") == 0) {
+    return new HIV_Infection(disease, infector, host, place, day);
+  }
+  
+  Utils::fred_abort("Infection::get_new_infection -- unknown natural history model: %s",
+		    disease->get_natural_history_model());
+  return NULL;
+}
+
 
 /*
  * The Infection base class defines a SEIR(S) model.
@@ -92,8 +90,12 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
 
 void Infection::setup() {
 
+  // decide if this host will develop symptoms
+  double prob_symptoms = disease->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
+  this->will_develop_symptoms = (Random::draw_random() < prob_symptoms);
+
   // set transition dates for infectiousness
-  int my_latent_period = disease->get_latent_period(this->host);
+  int my_latent_period = disease->get_natural_history()->get_latent_period(this->host);
   if (my_latent_period < 0) {
     this->infectious_start_date = NEVER;
     this->infectious_end_date = NEVER;
@@ -102,13 +104,23 @@ void Infection::setup() {
     assert(my_latent_period > 0); // FRED needs at least one day to become infectious
     this->infectious_start_date = this->exposure_date + my_latent_period;
     
-    int my_duration_of_infectiousness = disease->get_duration_of_infectiousness(this->host);
+    int my_duration_of_infectiousness = disease->get_natural_history()->get_duration_of_infectiousness(this->host);
     // my_duration_of_infectiousness <= 0 would mean "never infectious"
     assert(my_duration_of_infectiousness > 0);
     this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
   }
   
   // set transition dates for having symptoms
+  if (this->will_develop_symptoms) {
+    this->symptoms_start_date = this->infectious_start_date;
+    this->symptoms_end_date = this->infectious_end_date;
+  }
+  else {
+    this->symptoms_start_date = NEVER;
+    this->symptoms_end_date = NEVER;
+  }
+
+  /*
   int my_incubation_period = disease->get_incubation_period(this->host);
   if (my_incubation_period < 0) {
     this->symptoms_start_date = NEVER;
@@ -123,9 +135,10 @@ void Infection::setup() {
     assert(my_duration_of_symptoms > 0);
     this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
   }
+  */
 
   // set transition date for becoming susceptible after this infection
-  int my_duration_of_immunity = this->disease->get_duration_of_immunity(this->host);
+  int my_duration_of_immunity = this->disease->get_natural_history()->get_duration_of_immunity(this->host);
   if (my_duration_of_immunity < 0) {
     // my_duration_of_immunity < 0 means "immune forever"
     this->immunity_end_date = NEVER;
@@ -133,37 +146,6 @@ void Infection::setup() {
   else {
     assert(my_duration_of_immunity > 0); // FRED needs at least one day to become susceptible again
     this->immunity_end_date = this->exposure_date + my_duration_of_immunity;
-  }
-
-}
-
-void Infection::update(int day) {
-  /*
-  if (day < this->infectious_start_date) {
-    int new_infectious_start_date = this->disease->update_infectious_start_date(this->host, this->day, this->exposure_date, this->infectious_start_date);
-    // note: the following could be wrapped into the above method in disease
-    if (new_infectious_start_date != this->infectious_start_date) {
-      this->disease->get_epidemic()->change_infectious_start_event(this->host, this->infectious_start_date, new_infectious_start_date);
-    }
-  }
-  */
-}
-
-bool Infection::is_infectious(int day) {
-  if (this->infectious_start_date != NEVER) {
-    return (this->infectious_start_date <= day && day < this->infectious_end_date);
-  }
-  else {
-    return false;
-  }
-}
-
-bool Infection::is_symptomatic(int day) {
-  if (this->symptoms_start_date != NEVER) {
-    return (this->symptoms_start_date <= day && day < this->symptoms_end_date);
-  }
-  else {
-    return false;
   }
 }
 
@@ -260,14 +242,6 @@ void Infection::report_infection(int day) {
   }
   infStrS << "\n";
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());
-}
-
-double Infection::get_infectivity(int day) {
-  return (is_infectious(day) ? 1.0 : 0.0);
-}
-
-double Infection::get_symptoms(int day) {
-  return (is_symptomatic(day) ? 1.0 : 0.0);
 }
 
 

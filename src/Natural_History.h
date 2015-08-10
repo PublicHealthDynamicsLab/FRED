@@ -33,28 +33,20 @@ public:
    */
   static Natural_History * get_new_natural_history(char* natural_history_model);
 
-  /**
-   * Set the attributes for the Natural_History
-   *
-   * @param dis the disease to which this Natural_History model is associated
-   */
-  virtual void setup(Disease *dis);
-  virtual void get_parameters(Disease * disease);
+  virtual void setup(Disease *disease);
 
   // called from Infection
   virtual void update_infection(int day, Person* host, Infection *infection) {}
+
   int get_latent_period(Person* host);
+
   int get_duration_of_infectiousness(Person* host);
+
   int get_incubation_period(Person* host);
+
   int get_duration_of_symptoms(Person* host);
 
-  Trajectory * get_trajectory(int age);
-  int get_days_latent();
-  int get_days_asymp();
-  int get_days_symp();
-  int get_days_susceptible();
-  int will_have_symptoms(int age);
-  double get_prob_symptomatic(int age);
+  double get_probability_of_symptoms(int age);
 
   double get_asymptomatic_infectivity() {
     return asymptomatic_infectivity;
@@ -64,21 +56,21 @@ public:
     return symptomatic_infectivity;
   }
 
-  double get_prob_symptomatic() {
-    return prob_symptomatic;
-  }
+  int get_duration_of_immunity(Person* host);
 
 protected:
   Disease *disease;
-  double asymptomatic_infectivity;
+  double probability_of_symptoms;
   double symptomatic_infectivity;
+  double asymptomatic_infectivity;
   int max_days_latent;
-  int max_days_asymp;
-  int max_days_symp;
+  int max_days_infectious;
+  int max_days_incubating;
+  int max_days_symptomatic;
   double *days_latent;
-  double *days_asymp;
-  double *days_symp;
-  double prob_symptomatic;
+  double *days_infectious;
+  double *days_incubating;
+  double *days_symptomatic;
   Age_Map *age_specific_prob_symptomatic;
 };
 

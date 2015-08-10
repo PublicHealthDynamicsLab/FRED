@@ -25,6 +25,9 @@ class Disease;
 class Person;
 class Place;
 
+#define NEVER (-1)
+
+
 class Infection {
 
 public:
@@ -36,14 +39,6 @@ public:
 
   ~Infection() {}
 
-  virtual void setup();
-
-  virtual void update(int day);
-
-  virtual void print();
-
-  virtual void report_infection(int day);
-
   /**
    * This static factory method is used to get an instance of a specific
    * Infection that tracks patient-specific data that depends on the
@@ -54,6 +49,42 @@ public:
    */
   
   static Infection * get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day);
+
+
+  /*
+   * The Infection base class defines a SEIR(S) model.  For other
+   * models, define the following virtual methods in a dervived class.
+   */
+
+  virtual void setup();
+
+  virtual void update(int day) {}
+
+  virtual double get_infectivity(int day) {
+    return (is_infectious(day) ? 1.0 : 0.0);
+  }
+
+  virtual double get_symptoms(int day) {
+    return (is_symptomatic(day) ? 1.0 : 0.0);
+  }
+
+  virtual bool is_fatal(int day) {
+    return false; 
+  }
+
+  virtual void print();
+
+  virtual void report_infection(int day);
+
+  // methods for antivirals
+  virtual bool provides_immunity() { return true; }
+  virtual void modify_infectivity(double multp) {} 
+  virtual void advance_seed_infection(int days_to_advance) {}
+  virtual void modify_infectious_period(double multp, int cur_day) {}
+  virtual void modify_symptomatic_period(double multp, int cur_day) {}
+  virtual double get_susceptibility() { return 1.0; }
+  virtual void modify_asymptomatic_period(double multp, int cur_day) {}
+  virtual void modify_develops_symptoms(bool symptoms, int cur_day) {}
 
   Disease* get_disease() {
     return this->disease;
@@ -95,33 +126,23 @@ public:
     return this->immunity_end_date;
   }
 
-  bool is_infectious(int day);
+  bool is_infectious(int day) {
+    if (this->infectious_start_date != NEVER) {
+      return (this->infectious_start_date <= day && day < this->infectious_end_date);
+    }
+    else {
+      return false;
+    }
+  }
 
-  bool is_symptomatic(int day);
-
-  double get_infectivity(int day);
-
-  double get_symptoms(int day);
-
-  bool is_fatal() { return false; }
-
-  bool provides_immunity() { return true; }
-
-  // methods for antivirals
-
-  void modify_infectivity(double multp) {} 
-
-  void advance_seed_infection(int days_to_advance) {}
-
-  void modify_infectious_period(double multp, int cur_day) {}
-
-  void modify_symptomatic_period(double multp, int cur_day) {}
-
-  double get_susceptibility() { return 1.0; }
-
-  void modify_asymptomatic_period(double multp, int cur_day) {}
-
-  void modify_develops_symptoms(bool symptoms, int cur_day) {}
+  bool is_symptomatic(int day) {
+    if (this->symptoms_start_date != NEVER) {
+      return (this->symptoms_start_date <= day && day < this->symptoms_end_date);
+    }
+    else {
+      return false;
+    }
+  }
 
 protected:
 
@@ -143,14 +164,12 @@ protected:
   int infectious_end_date;
 
   // person is symptomatic starting symptoms_start_date until symptoms_end_date
+  bool will_develop_symptoms;
   int symptoms_start_date;		      // -1 if never symptomatic
   int symptoms_end_date;		      // -1 if never symptomatic
 
   // person is immune from infection starting on exposure_date until immunity_end_date
   int immunity_end_date;	  // -1 if immune forever after recovery
-
-  // method to set the transition dates
-  void set_transition_dates();
 
 };
 
