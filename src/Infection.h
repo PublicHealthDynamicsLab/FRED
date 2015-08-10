@@ -15,6 +15,12 @@
 #ifndef _FRED_INFECTION_H
 #define _FRED_INFECTION_H
 
+#include <map>
+using namespace std;
+
+// TODO: find the proper place for this:
+typedef std::map< int, double > Loads;
+
 class Disease;
 class Person;
 class Place;
@@ -26,63 +32,78 @@ public:
   // if primary infection, infector and place are null.
   Infection(Disease* disease, Person* infector, Person* host, Place* place, int day);
 
+  Infection() {}
+
   ~Infection() {}
 
-  void update(int today);
+  virtual void setup();
 
-  Disease* get_disease() const {
+  virtual void update(int day);
+
+  virtual void print();
+
+  virtual void report_infection(int day);
+
+  /**
+   * This static factory method is used to get an instance of a specific
+   * Infection that tracks patient-specific data that depends on the
+   * natural history model associated with the disease.
+   *
+   * @param a pointer to the disease causing this infection.
+   * @return a pointer to a specific Infection object of a possible derived class
+   */
+  
+  static Infection * get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day);
+
+  Disease* get_disease() {
     return this->disease;
   }
 
-  Person* get_host() const {
+  Person* get_host() {
     return this->host;
   }
 
-  Person* get_infector() const {
+  Person* get_infector() {
     return this->infector;
   }
 
-  Place * get_place() const {
+  Place * get_place() {
     return this->place;
   }
 
-  void print() const;
-
-  void report_infection(int day) const;
-
-  int get_exposure_date() const {
+  int get_exposure_date() {
     return this->exposure_date;
   }
 
-  int get_infectious_start_date() const {
+  int get_infectious_start_date() {
     return this->infectious_start_date;
   }
 
-  int get_infectious_end_date() const {
+  int get_infectious_end_date() {
     return this->infectious_end_date;
   }
 
-  int get_symptoms_start_date() const {
+  int get_symptoms_start_date() {
     return this->symptoms_start_date;
   }
 
-  int get_symptoms_end_date() const {
+  int get_symptoms_end_date() {
     return this->symptoms_end_date;
   }
 
-  int get_immunity_end_date() const {
+  int get_immunity_end_date() {
     return this->immunity_end_date;
   }
 
-  bool is_infectious(int day) const;
+  bool is_infectious(int day);
 
-  bool is_symptomatic(int day) const;
+  bool is_symptomatic(int day);
 
-  double get_infectivity(int day) const;
+  double get_infectivity(int day);
 
-  double get_symptoms(int day) const;
+  double get_symptoms(int day);
 
-  bool is_fatal() const { return false; }
+  bool is_fatal() { return false; }
 
   bool provides_immunity() { return true; }
 
@@ -103,9 +124,6 @@ public:
   void modify_develops_symptoms(bool symptoms, int cur_day) {}
 
 protected:
-
-  // method to set the transition dates
-  void set_transition_dates();
 
   // associated disease
   Disease* disease;
@@ -131,8 +149,8 @@ protected:
   // person is immune from infection starting on exposure_date until immunity_end_date
   int immunity_end_date;	  // -1 if immune forever after recovery
 
-protected:
-  Infection() {}
+  // method to set the transition dates
+  void set_transition_dates();
 
 };
 

@@ -12,6 +12,7 @@
 // File Infection.cc
 
 #include "Infection.h"
+#include "HIV_Infection.h"
 #include "Disease.h"
 #include "Global.h"
 #include "Household.h"
@@ -20,6 +21,31 @@
 #include "Place_List.h"
 
 #define NEVER (-1)
+
+  /**
+   * This static factory method is used to get an instance of a specific
+   * Infection that tracks patient-specific data that depends on the
+   * natural history model associated with the disease.
+   *
+   * @param a pointer to the disease causing this infection.
+   * @return a pointer to a specific Infection object of a possible derived class
+   */
+  
+Infection * Infection::get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day) {
+  if (strcmp(disease->get_natural_history_model(), "basic") == 0) {
+    return new Infection(disease, infector, host, place, day);
+  }
+    
+  if (strcmp(disease->get_natural_history_model(), "HIV") == 0) {
+    return new HIV_Infection(disease, infector, host, place, day);
+  }
+
+  Utils::fred_abort("Infection::get_new_infection -- unknown natural history model: %s",
+	       disease->get_natural_history_model());
+  return NULL;
+}
+
+
 
 //
 // Terminology:
@@ -41,17 +67,6 @@
 // Babak Pourbohloul, PhD, and David N. Fisman, MD, MPH
 //
 //
-// Note: the details for a particular disease is handled by the
-// Natural_History class through the methods:
-// 
-// get_latent_period()
-// get_duration_of_infectiousness()
-//
-// get_incubation_period()
-// get_duration_of_symptoms()
-//
-// The Infection class merely reports the resulting transition dates.
-//
 
 Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) {
 
@@ -67,11 +82,15 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->symptoms_start_date = -1;
   this->symptoms_end_date = -1;
   this->immunity_end_date = -1;
-
-  set_transition_dates();
 }
 
-void Infection::set_transition_dates() {
+/*
+ * The Infection base class defines a SEIR(S) model.
+ * For other models, define a dervived class based on the Infection base class.
+ */
+
+
+void Infection::setup() {
 
   // set transition dates for infectiousness
   int my_latent_period = disease->get_latent_period(this->host);
@@ -86,7 +105,7 @@ void Infection::set_transition_dates() {
     int my_duration_of_infectiousness = disease->get_duration_of_infectiousness(this->host);
     // my_duration_of_infectiousness <= 0 would mean "never infectious"
     assert(my_duration_of_infectiousness > 0);
-    this->infectious_end_date = this->infectious_start_date + duration_of_infectiousness;
+    this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
   }
   
   // set transition dates for having symptoms
@@ -130,7 +149,7 @@ void Infection::update(int day) {
   */
 }
 
-bool Infection::is_infectious(int day) const {
+bool Infection::is_infectious(int day) {
   if (this->infectious_start_date != NEVER) {
     return (this->infectious_start_date <= day && day < this->infectious_end_date);
   }
@@ -139,7 +158,7 @@ bool Infection::is_infectious(int day) const {
   }
 }
 
-bool Infection::is_symptomatic(int day) const {
+bool Infection::is_symptomatic(int day) {
   if (this->symptoms_start_date != NEVER) {
     return (this->symptoms_start_date <= day && day < this->symptoms_end_date);
   }
@@ -149,7 +168,7 @@ bool Infection::is_symptomatic(int day) const {
 }
 
 
-void Infection::print() const {
+void Infection::print() {
   printf("INF: Infection of disease type: %d in person %d "
 	 "dates: exposed: %d, infectious_start: %d, infectious_end: %d "
 	 "symptoms_start: %d, symptoms_end: %d\n",
@@ -158,7 +177,7 @@ void Infection::print() const {
 	 this->symptoms_start_date, this->symptoms_end_date);
 }
 
-void Infection::report_infection(int day) const {
+void Infection::report_infection(int day) {
   if(Global::Infectionfp == NULL) {
     return;
   }
@@ -243,11 +262,11 @@ void Infection::report_infection(int day) const {
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());
 }
 
-double Infection::get_infectivity(int day) const {
+double Infection::get_infectivity(int day) {
   return (is_infectious(day) ? 1.0 : 0.0);
 }
 
-double Infection::get_symptoms(int day) const {
+double Infection::get_symptoms(int day) {
   return (is_symptomatic(day) ? 1.0 : 0.0);
 }
 

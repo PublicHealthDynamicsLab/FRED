@@ -15,28 +15,13 @@
 #include "Natural_History.h"
 
 class HIV_Natural_History : public Natural_History {
+
 public:
   HIV_Natural_History();
   ~HIV_Natural_History();
 
   void setup(Disease *disease);
-  int get_days_latent() { return 0; }
-  int get_days_asymp() { return 0; }
-  int get_days_symp() { return 0; }
-  int get_days_susceptible() { return 0; }
-  int get_symptoms() { return 0; }
-  double get_asymp_infectivity() {
-    return 0.0;
-  }
-  double get_symp_infectivity() {
-    return 0.0;
-  }
-  double get_prob_symptomatic() {
-    return 0.0;
-  }
-  int get_infection_model() {
-    return 0.0;
-  }
+  void update_infection(int day, Person* host, Infection *infection);
   void read_hiv_files();
   
 private:

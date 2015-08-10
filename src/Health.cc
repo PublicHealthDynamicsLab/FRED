@@ -419,7 +419,8 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   Disease *disease = Global::Diseases.get_disease(disease_id);
-  this->infection[disease_id] = new Infection(disease, infector, self, place, day);
+  this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, place, day);
+  this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
   // this->active_infections.set(disease_id);
   self->become_unsusceptible(disease);

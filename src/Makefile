@@ -127,8 +127,8 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
 	Behavior.o Intention.o Perceptions.o Travel.o Population.o 
 
-DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
-	Natural_History.o Binary_Natural_History.o HIV_Natural_History.o \
+DISEASE_MODULE = Disease.o Epidemic.o Infection.o HIV_Infection.o \
+	Natural_History.o HIV_Natural_History.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o 
 
 PLACE_MODULE = Place.o Household.o Neighborhood.o School.o Classroom.o \

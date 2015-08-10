@@ -106,11 +106,11 @@ Disease::~Disease() {
   }
 }
 
-void Disease::get_parameters(int disease, string name) {
+void Disease::get_parameters(int disease_id, string name) {
   char paramstr[256];
 
   // set disease id
-  this->id = disease;
+  this->id = disease_id;
   
   // set disease name
   strcpy(this->disease_name, name.c_str());
@@ -118,33 +118,6 @@ void Disease::get_parameters(int disease, string name) {
   fprintf(Global::Statusfp, "disease %d %s read_parameters entered\n",
 	  this->id, this->disease_name);
   fflush(Global::Statusfp);
-
-  // moved from natural_history
-  Params::get_indexed_param(disease_name,"symp",&prob_symptomatic);
-  Params::get_indexed_param(disease_name,"symp_infectivity",&symp_infectivity);
-  Params::get_indexed_param(disease_name,"asymp_infectivity",&asymp_infectivity);
-  
-  // age specific probablility of symptoms
-  this->age_specific_prob_symptomatic = new Age_Map("Prob Symptomatic");
-  sprintf(paramstr, "%s_prob_symp", disease_name);
-  this->age_specific_prob_symptomatic->read_from_input(paramstr);
-
-  int n;
-  Params::get_indexed_param(disease_name,"days_latent",&n);
-  days_latent = new double [n];
-  max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", days_latent) -1;
-
-  Params::get_indexed_param(disease_name,"days_asymp",&n);
-  days_asymp = new double [n];
-  max_days_asymp = Params::get_indexed_param_vector(disease_name, "days_asymp", days_asymp) -1;
-
-  Params::get_indexed_param(disease_name,"days_symp",&n);
-  days_symp = new double [n];
-  max_days_symp = Params::get_indexed_param_vector(disease_name, "days_symp", days_symp) -1;
-
-  Params::get_indexed_param(disease_name,"infection_model",  &infection_model);
-
-  // end: moved from natural_history
 
   Params::get_param_from_string("R0", &this->R0);
   Params::get_param_from_string("R0_a", &this->R0_a);
@@ -273,7 +246,8 @@ void Disease::setup() {
 
   // Initialize Natural History Model
   Params::get_indexed_param(this->disease_name, "natural_history_model", natural_history_model);
-  this->natural_history = Natural_History::get_natural_history(natural_history_model);
+  this->natural_history = Natural_History::get_new_natural_history(natural_history_model);
+  // read in parameters and files associated with this natural history model: 
   this->natural_history->setup(this);
 
   // Initialize Infection Thresholds

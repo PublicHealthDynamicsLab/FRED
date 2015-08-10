@@ -222,19 +222,6 @@ private:
   double seasonality_max, seasonality_min;
   double seasonality_Ka, seasonality_Kb;
 
-  // moved from natural_history
-  double asymp_infectivity;
-  double symp_infectivity;
-  int infection_model;
-  int max_days_latent;
-  int max_days_asymp;
-  int max_days_symp;
-  double *days_latent;
-  double *days_asymp;
-  double *days_symp;
-  double prob_symptomatic;
-  Age_Map *age_specific_prob_symptomatic;
-
   // case fatality parameters
   int enable_case_fatality;
   double min_symptoms_for_case_fatality;
