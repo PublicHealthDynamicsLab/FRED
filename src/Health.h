@@ -85,14 +85,13 @@ public:
 
   // UPDATE THE PERSON'S HEALTH CONDITIONS
 
-  void update(Person* self, int day);
   void update_infection(int day, int disease_id);
   void update_face_mask_decision(Person* self, int day);
   void update_interventions(Person* self, int day);
   void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
   void become_susceptible(Person* self, int disease_id);
   void become_susceptible(Person* self, Disease* disease);
-  void become_susceptible_by_vaccine_waning(Person* self, Disease* disease);
+  void become_susceptible_by_vaccine_waning(Person* self, int disease_id);
   void become_unsusceptible(Person* self, Disease* disease);
   void become_infectious(Person* self, Disease* disease);
   void become_symptomatic(Person* self, Disease* disease);
@@ -170,7 +169,6 @@ public:
 
   bool is_infected(int disease_id) const {
     return this->infection[disease_id] != NULL;
-    // return this->active_infections.test(disease_id);
   }
 
   bool is_symptomatic() const {
@@ -183,12 +181,8 @@ public:
 
   bool is_recovered(int disease_id);
 
-  bool is_immune(Disease* disease) const {
-    return this->immunity.test(disease->get_id());
-  }
-
-  bool is_at_risk(Disease* disease) const {
-    return this->at_risk.test(disease->get_id());
+  bool is_immune(int disease_id) const {
+    return this->immunity.test(disease_id);
   }
 
   bool is_at_risk(int disease_id) const {
@@ -637,6 +631,9 @@ public:
 
 private:
 
+  // link back to person
+  Person * myself;
+
   // active infections (NULL if not infected)
   Infection** infection;
 
@@ -651,7 +648,6 @@ private:
 
   // bitset removes need to check each infection in above array to
   // find out if any are not NULL
-  fred::disease_bitset active_infections;
   fred::disease_bitset immunity;
   fred::disease_bitset at_risk; // Agent is/isn't at risk for severe complications
 
@@ -661,7 +657,6 @@ private:
   fred::disease_bitset symptomatic;
   fred::disease_bitset recovered_today;
   fred::disease_bitset recovered;
-  fred::disease_bitset evaluate_susceptibility;
 
   // Define a bitset type to hold health flags
   // Enumeration corresponding to positions in health

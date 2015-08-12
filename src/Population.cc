@@ -229,8 +229,7 @@ void Population::setup() {
 	if(get_person_by_index(i) == NULL) {
 	  continue;
 	}
-	Disease* dis = Global::Diseases.get_disease(d);
-	if(get_person_by_index(i)->is_immune(dis)) {
+	if(get_person_by_index(i)->is_immune(d)) {
 	  count++;
 	}
       }
@@ -836,7 +835,7 @@ void Population::quality_control() {
 	  }
           int a = person->get_age();
           int n = a / 10;
-          if(person->get_health()->is_at_risk(dis) == true) {
+          if(person->get_health()->is_at_risk(d) == true) {
             if(n < 20) {
               rcount[n]++;
             } else {

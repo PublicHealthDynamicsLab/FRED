@@ -256,18 +256,17 @@ Health::Health() {
 }
 
 void Health::setup(Person* self) {
+  this->myself = self;
   FRED_VERBOSE(1, "Health::setup for person %d\n", self->get_id());
   this->alive = true;
   this->intervention_flags = intervention_flags_type();
   // infection pointers stored in statically allocated array (length of which
   // is determined by static constant Global::MAX_NUM_DISEASES)
-  this->active_infections = fred::disease_bitset();
   this->susceptible = fred::disease_bitset();
   this->infectious = fred::disease_bitset();
   this->symptomatic = fred::disease_bitset();
   this->recovered_today = fred::disease_bitset();
   this->recovered = fred::disease_bitset();
-  this->evaluate_susceptibility = fred::disease_bitset();
   this->immunity = fred::disease_bitset();
   // Determines if the agent is at risk
   this->at_risk = fred::disease_bitset();
@@ -386,14 +385,12 @@ void Health::become_susceptible(Person* self, int disease_id) {
   assert(this->infection[disease_id] == NULL);
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
-  this->evaluate_susceptibility.reset(disease_id);
   assert(is_susceptible(disease_id));
   FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 	      self->get_id(), disease_id);
 }
 
-void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease) {
-  int disease_id = disease->get_id();
+void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) {
   if(this->susceptible.test(disease_id)) {
     return;
   }
@@ -401,7 +398,6 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
     // not already infected
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
-    this->evaluate_susceptibility.reset(disease_id);
     FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
 		self->get_id(), disease_id);
   } else {
@@ -426,7 +422,6 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   FRED_VERBOSE(0, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
-  // this->active_infections.set(disease_id);
   self->become_unsusceptible(disease);
   this->immunity_end_date[disease_id] = -1;
   if(self->get_household() != NULL) {
@@ -548,92 +543,62 @@ void Health::become_immune(Person* self, Disease* disease) {
 	      disease_id);
 }
 
-void Health::update(Person* self, int day) {
-  /*
-  // if deceased, health status should have been cleared during population
-  // update (by calling Person->die(), then Health->die(), which will reset (bool) alive
-  if(!(this->alive)) {
+
+void Health::update_infection(int day, int disease_id) {
+  if (this->infection[disease_id] != NULL) {
+    this->infection[disease_id]->update(day);
+  }
+
+  // if this infections is fatal today, add this person to the
+  // population's death_list
+
+  if(this->infection[disease_id]->is_fatal(day)) {
+    FRED_VERBOSE(0,"DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
+    // queue removal from population
+    Global::Pop.prepare_to_die(day, myself);
     return;
   }
-  // set disease-specific flags in bitset to detect calls to recover()
-  this->recovered_today.reset();
-  // if any disease has an active infection, then loop through and check
-  // each disease infection
-  if(this->active_infections.any()) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      // update the infection (if it exists)
-      // the check if agent has symptoms is performed by Infection->update (or one of the
-      // methods called by it).  This sets the relevant symptomatic flag used by 'is_symptomatic()'
-      if(this->infection[disease_id] != NULL) {
-        this->infection[disease_id]->update(day);
-        // This can only happen if the infection[disease_id] exists.
+  
+  // if the infection_update called recover(), it is now safe to
+  // collect the immunity_end date and delete the Infection object
+  if(this->recovered_today.test(disease_id)) {
+    this->immunity_end_date[disease_id] = this->infection[disease_id]->get_immunity_end_date();
 
-        // if this disease is fatal today, add this person to the population's death_list
-        // and abort updating health.
-        if(this->infection[disease_id]->is_fatal()) {
-          printf("DISEASE %d is FATAL: day %d person %d\n", disease_id, day, self->get_id());
-	  // queue removal from population
-          Global::Pop.prepare_to_die(day, self);
-          return;
-        }
+    // TODO: encapsulate the following in infection[disease_id]->store_previous_infections(day);
+    /*
+      if(infection[disease_id]->provides_immunity()) {
+      std::vector<int> strains;
+      this->infection[disease_id]->get_strains(strains);
+      std::vector<int>::iterator itr = strains.begin();
+      for(; itr != strains.end(); ++itr) {
+      int strain = *itr;
+      int recovery_date = this->infection[disease_id]->get_infectious_end_date();
+      int age_at_exposure = self->get_age();
+      this->past_infections[disease_id].push_back(Past_Infection(strain, recovery_date, age_at_exposure));
+      }
+      }
+    */
 
-        // If the infection_update called recover(), it is now safe to
-        // collect the susceptible date and delete the Infection object
-        if(this->recovered_today.test(disease_id)) {
-          this->immunity_end_date[disease_id] =
-	    this->infection[disease_id]->get_immunity_end_date();
-          this->evaluate_susceptibility.set(disease_id);
-          if(infection[disease_id]->provides_immunity()) {
-            std::vector<int> strains;
-            this->infection[disease_id]->get_strains(strains);
-            std::vector<int>::iterator itr = strains.begin();
-            for(; itr != strains.end(); ++itr) {
-              int strain = *itr;
-              int recovery_date = this->infection[disease_id]->get_infectious_end_date();
-              int age_at_exposure = self->get_age();
-              this->past_infections[disease_id].push_back(
-							  Past_Infection(strain, recovery_date, age_at_exposure));
-            }
-          }
-          delete this->infection[disease_id];
-          this->active_infections.reset(disease_id);
-          this->infection[disease_id] = NULL;
-	}	else {
-	  // update days_symptomatic if needed
-	  if(this->is_symptomatic(disease_id)) {
-	    int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
-	    if(days_symp_so_far > this->days_symptomatic) {
-	      this->days_symptomatic = days_symp_so_far;
-	    }
-	  }
-	}
+    // delete the infection object
+    delete this->infection[disease_id];
+    this->infection[disease_id] = NULL;
+  }
+  else {
+    // update days_symptomatic if needed
+    if(this->is_symptomatic(disease_id)) {
+      int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
+      if(days_symp_so_far > this->days_symptomatic) {
+	this->days_symptomatic = days_symp_so_far;
       }
     }
   }
-
-  // see if we have symptoms
-  if(this->is_symptomatic(day) == false) {
-    this->days_symptomatic = 0;
-  }
-
-  // First check to see if we need to evaluate susceptibility
-  // for any diseases; if so check for susceptibility due to loss of immunity
-  // The evaluate_susceptibility bit for that disease will be reset in the
-  // call to become_susceptible
-  if(this->evaluate_susceptibility.any()) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-      if(day == this->immunity_end_date[disease_id]) {
-        become_susceptible(self, disease_id);
-      }
-    }
-  }
-  */
 
   if(this->has_face_mask_behavior) {
-    this->update_face_mask_decision(self, day);
+    this->update_face_mask_decision(myself, day);
   }
+  
+} // end Health::update_infection //
 
-} // end Health::update //
 
 void Health::update_face_mask_decision(Person* self, int day) {
   // printf("update_face_mask_decision entered on day %d for person %d\n", day, self->get_id());
@@ -1020,10 +985,4 @@ void Health::terminate(Person* self) {
   }
 }
 
-
-void Health::update_infection(int day, int disease_id) {
-  if (this->infection[disease_id] != NULL) {
-    this->infection[disease_id]->update(day);
-  }
-}
 

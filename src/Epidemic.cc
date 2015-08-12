@@ -528,6 +528,7 @@ void Epidemic::print_stats(int day) {
     Global::Daily_Tracker->set_index_key_pair(day,"N", this->N);
   }
 
+  this->susceptible_people = this->N - this->exposed_people - this->infectious_people - this->removed_people;
   track_value(day, (char*)"S", this->susceptible_people);
   track_value(day, (char*)"E", this->exposed_people);
   track_value(day, (char*)"I", this->infectious_people);

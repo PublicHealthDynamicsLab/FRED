@@ -90,14 +90,6 @@ public:
     this->demographics.update(day);
   }
 
-  /**
-   * @param day the simulation day
-   * @see Health::update(int day)
-   */
-  void update_health(int day) {
-    // this->health.update(this, day);
-  }
-
   void update_infection(int day, int disease_id) {
     this->health.update_infection(day, disease_id);
   }
@@ -149,8 +141,8 @@ public:
     this->health.become_susceptible(this, disease_id);
   }
 
-  void become_susceptible_by_vaccine_waning(Disease* disease) {
-    this->health.become_susceptible_by_vaccine_waning(this, disease);
+  void become_susceptible_by_vaccine_waning(int disease_id) {
+    this->health.become_susceptible_by_vaccine_waning(this, disease_id);
   }
 
   void update_household_counts(int day, int disease_id) {
@@ -344,8 +336,8 @@ public:
     return this->health.get_days_symptomatic();
   }
 
-  bool is_immune(Disease* dis) {
-    return this->health.is_immune(dis);
+  bool is_immune(int disease_id) {
+    return this->health.is_immune(disease_id);
   }
 
   /**

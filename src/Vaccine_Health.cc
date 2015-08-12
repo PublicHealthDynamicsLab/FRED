@@ -97,8 +97,8 @@ void Vaccine_Health::update(int day, double age){
 	     << " became immune on day "<< vaccination_effective_day
 	     << " and lost immunity on day " << day << "\n";
       }
-      Disease* disease = Global::Diseases.get_disease(0);
-      person->become_susceptible_by_vaccine_waning(disease);
+      int disease_id = 0;
+      person->become_susceptible_by_vaccine_waning(disease_id);
       effective = false;
     }
   }

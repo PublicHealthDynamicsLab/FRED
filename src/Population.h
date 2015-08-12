@@ -77,11 +77,6 @@ public:
    */
   void end_of_run();
 
-  //
-  // OBSOLETE:
-  //
-  // void update(int day);
-
   /**
    * Report the disease statistics for a given day
    * @param day the simulation day
