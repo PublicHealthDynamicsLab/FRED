@@ -98,6 +98,10 @@ public:
     // this->health.update(this, day);
   }
 
+  void update_infection(int day, int disease_id) {
+    this->health.update_infection(day, disease_id);
+  }
+
   void update_health_interventions(int day) {
     this->health.update_interventions(this, day);
   }

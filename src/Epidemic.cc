@@ -147,6 +147,7 @@ Epidemic::Epidemic(Disease* dis) {
   this->immunity_start_event_queue = new Events<Epidemic>;
   this->immunity_end_event_queue = new Events<Epidemic>;
 
+  this->infected_people.clear();
   this->potentially_infectious_people.clear();
 
   this->actually_infectious_people.reserve(Global::Pop.get_pop_size());
@@ -417,6 +418,8 @@ Epidemic::~Epidemic() {
 }
 
 void Epidemic::become_exposed(Person* person, int day) {
+
+  infected_people.insert(person);
 
   // update next event list
   int infectious_start_date = person->get_infectious_start_date(this->id);
@@ -1593,8 +1596,20 @@ void Epidemic::update(int day) {
   func = &Epidemic::immunity_end_event_handler;
   this->immunity_end_event_queue->event_handler(day, this, func);
 
-
   Utils::fred_print_epidemic_timer("transitions");
+
+  // update list of infected people
+  for (std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ) {
+    Person* person = (*it);
+    FRED_VERBOSE(1, "update_infection for person %d\n", person->get_id());
+    person->update_infection(day, this->id);
+    if (person->is_infected(this->id) == false) {
+      this->infected_people.erase(it++);
+    }
+    else {
+      ++it;
+    }
+  }
 
   // get list of actually infectious people
   actually_infectious_people.clear();

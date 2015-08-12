@@ -1021,5 +1021,9 @@ void Health::terminate(Person* self) {
 }
 
 
-void Health::update_health_based_on_mitigations(int day) {
+void Health::update_infection(int day, int disease_id) {
+  if (this->infection[disease_id] != NULL) {
+    this->infection[disease_id]->update(day);
+  }
 }
+

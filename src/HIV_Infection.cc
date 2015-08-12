@@ -17,7 +17,7 @@
 #include "Global.h"
 #include "Person.h"
 #include "Place.h"
-
+#include "Utils.h"
 
 HIV_Infection::HIV_Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) :
   Infection(_disease, _infector, _host, _place, day) {
@@ -45,3 +45,9 @@ bool HIV_Infection::is_fatal(int day) {
   return false; 
 }
 
+void HIV_Infection::update(int day) {
+
+  FRED_VERBOSE(1, "update HIV INFECTION on day %d for host %d\n", day, host->get_id());
+
+  // put daily update here
+}

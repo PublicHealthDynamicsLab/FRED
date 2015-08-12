@@ -259,6 +259,7 @@ private:
   */
 
   // active sets
+  std::set<Person*> infected_people;
   std::set<Person*> potentially_infectious_people;
   std::vector<Person*> actually_infectious_people;
   std::set<Place*> active_places;

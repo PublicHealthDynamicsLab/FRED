@@ -32,7 +32,7 @@ class HIV_Infection : public Infection {
 
   ~HIV_Infection() {}
 
-  void update(int day) {}
+  void update(int day);
 
   void setup();
 

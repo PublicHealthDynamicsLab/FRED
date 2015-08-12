@@ -86,6 +86,7 @@ public:
   // UPDATE THE PERSON'S HEALTH CONDITIONS
 
   void update(Person* self, int day);
+  void update_infection(int day, int disease_id);
   void update_face_mask_decision(Person* self, int day);
   void update_interventions(Person* self, int day);
   void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
@@ -168,7 +169,8 @@ public:
   }
 
   bool is_infected(int disease_id) const {
-    return this->active_infections.test(disease_id);
+    return this->infection[disease_id] != NULL;
+    // return this->active_infections.test(disease_id);
   }
 
   bool is_symptomatic() const {
@@ -631,8 +633,6 @@ public:
   }
 
   static bool Enable_hh_income_based_susc_mod;
-
-  void update_health_based_on_mitigations(int day);
 
 
 private:
