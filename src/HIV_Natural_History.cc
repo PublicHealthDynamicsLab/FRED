@@ -45,7 +45,7 @@ void HIV_Natural_History::get_parameters() {
 
 
 double HIV_Natural_History::get_probability_of_symptoms(int age) {
-  return 1.0;
+  return 0.0;
 }
 
 int HIV_Natural_History::get_latent_period(Person* host) {
@@ -63,7 +63,7 @@ int HIV_Natural_History::get_duration_of_immunity(Person* host) {
 }
 
 int HIV_Natural_History::get_incubation_period(Person* host) {
-  return 14;
+  return -1;
 }
 
 int HIV_Natural_History::get_duration_of_symptoms(Person* host) {

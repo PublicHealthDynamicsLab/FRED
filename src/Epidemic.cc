@@ -1605,13 +1605,13 @@ void Epidemic::update(int day) {
       FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
     }
   }
-  Utils::fred_print_epidemic_timer("identifying acctually infections people");
+  this->infectious_people = actually_infectious_people.size();
+  Utils::fred_print_epidemic_timer("identifying actually infections people");
 
   // update the daily activities of infectious people
-  int size = actually_infectious_people.size();
-  for (int i = 0; i < size; i++) {
+  for (int i = 0; i < this->infectious_people; i++) {
     Person* person = actually_infectious_people[i];
-    FRED_VERBOSE(1, "updating activities of infectious person %d\n", person->get_id());
+    FRED_VERBOSE(1, "updating activities of infectious person %d -- %d out of %d\n", person->get_id(), i, this->infectious_people);
     // this will insert the infectious person onto the infectious list at each place attended
     person->update_activities_of_infectious_person(day);
   }
@@ -1635,9 +1635,8 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
 
   FRED_VERBOSE(1, "find_active_places_of_type %d\n", place_type);
   active_places.clear();
-  int size = actually_infectious_people.size();
-  FRED_VERBOSE(1, "find_active_places_of_type %d actual %d\n", place_type, size);
-  for (int i = 0; i < size; i++) {
+  FRED_VERBOSE(1, "find_active_places_of_type %d actual %d\n", place_type, this->infectious_people);
+  for (int i = 0; i < this->infectious_people; i++) {
     Person* person = actually_infectious_people[i];
     assert(person!=NULL);
     Place *place = NULL;
