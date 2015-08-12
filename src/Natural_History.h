@@ -14,14 +14,17 @@
 
 class Age_Map;
 class Disease;
+class Evolution;
 class Person;
+class Regional_Layer;
 class Infection;
-class Trajectory;
+
+#define NEVER (-1)
 
 class Natural_History {
 public:
   
-  virtual ~Natural_History() {};
+  virtual ~Natural_History();
 
   /**
    * This static factory method is used to get an instance of a specific Natural_History Model.
@@ -31,32 +34,78 @@ public:
    * @param a string containing the requested Natural_History model type
    * @return a pointer to a specific Natural_History model
    */
+
   static Natural_History * get_new_natural_history(char* natural_history_model);
+
+  /*
+   * The Natural History base class implements an SEIR(S) model.
+   * For other models, define a derived class and redefine the following
+   * virtual methods as needed.
+   */
 
   virtual void setup(Disease *disease);
 
+  virtual void get_parameters();
+
   // called from Infection
+
   virtual void update_infection(int day, Person* host, Infection *infection) {}
 
-  int get_latent_period(Person* host);
+  virtual bool do_symptoms_coincide_with_infectiousness() { return true; }
 
-  int get_duration_of_infectiousness(Person* host);
+  virtual double get_probability_of_symptoms(int age);
 
-  int get_incubation_period(Person* host);
+  virtual int get_latent_period(Person* host);
 
-  int get_duration_of_symptoms(Person* host);
+  virtual int get_duration_of_infectiousness(Person* host);
 
-  double get_probability_of_symptoms(int age);
+  virtual int get_duration_of_immunity(Person* host);
 
-  double get_asymptomatic_infectivity() {
+  // not used in default model: symptoms (if any) coincide with infectiousness
+  virtual int get_incubation_period(Person* host) {
+    return NEVER;
+  }
+
+  // not used in default model: symptoms (if any) coincide with infectiousness
+  virtual int get_duration_of_symptoms(Person* host) {
+    return NEVER;
+  }
+
+  // called from Transmission
+
+  virtual double get_asymptomatic_infectivity() {
     return asymptomatic_infectivity;
   }
 
-  double get_symptomatic_infectivity() {
+  virtual double get_symptomatic_infectivity() {
     return symptomatic_infectivity;
   }
 
-  int get_duration_of_immunity(Person* host);
+  virtual Evolution* get_evolution() {
+    return this->evol;
+  }
+
+  virtual double get_infectivity_threshold() {
+    return this->infectivity_threshold;
+  }
+  
+  virtual double get_symptomaticity_threshold() {
+    return this->symptomaticity_threshold;
+  }
+
+  virtual void init_prior_immunity();
+
+  virtual bool is_case_fatality_enabled() {
+    return this->enable_case_fatality;
+  }
+
+  virtual bool is_fatal(double real_age, double symptoms, int days_symptomatic);
+
+  virtual bool is_fatal(Person* per, double symptoms, int days_symptomatic);
+
+  virtual bool gen_immunity_infection(double real_age);
+
+  virtual void initialize_evolution_reporting_grid(Regional_Layer* grid);
 
 protected:
   Disease *disease;
@@ -72,6 +121,23 @@ protected:
   double *days_incubating;
   double *days_symptomatic;
   Age_Map *age_specific_prob_symptomatic;
+  double immunity_loss_rate;
+
+  // thresholds used in Infection class to determine if an agent is
+  // infectious/symptomatic at a given time point
+  double infectivity_threshold;
+  double symptomaticity_threshold;
+
+  // case fatality parameters
+  int enable_case_fatality;
+  double min_symptoms_for_case_fatality;
+  Age_Map* case_fatality_age_factor;
+  double* case_fatality_prob_by_day;
+  int max_days_case_fatality_prob;
+
+  Age_Map* infection_immunity_prob;
+  Evolution* evol;
+
 };
 
 #endif

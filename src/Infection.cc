@@ -72,7 +72,7 @@ Infection * Infection::get_new_infection(Disease *disease, Person* infector, Per
     return new Infection(disease, infector, host, place, day);
   }
   
-  if (strcmp(disease->get_natural_history_model(), "HIV") == 0) {
+  if (strcmp(disease->get_natural_history_model(), "hiv") == 0) {
     return new HIV_Infection(disease, infector, host, place, day);
   }
   
@@ -83,12 +83,16 @@ Infection * Infection::get_new_infection(Disease *disease, Person* infector, Per
 
 
 /*
- * The Infection base class defines a SEIR(S) model.
+ * The Infection base class defines a SEIR model.
  * For other models, define a dervived class based on the Infection base class.
  */
 
 
 void Infection::setup() {
+
+  FRED_VERBOSE(1, "infection::setup entered\n");
+
+  bool symptoms_coincide_with_infectious_period = disease->get_natural_history()->do_symptoms_coincide_with_infectiousness();
 
   // decide if this host will develop symptoms
   double prob_symptoms = disease->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
@@ -105,49 +109,61 @@ void Infection::setup() {
     this->infectious_start_date = this->exposure_date + my_latent_period;
     
     int my_duration_of_infectiousness = disease->get_natural_history()->get_duration_of_infectiousness(this->host);
-    // my_duration_of_infectiousness <= 0 would mean "never infectious"
-    assert(my_duration_of_infectiousness > 0);
-    this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
+    // my_duration_of_infectiousness <= 0 means "infectious forever"
+    if (my_duration_of_infectiousness > 0) {
+      this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
+    }
+    else {
+      this->infectious_end_date = NEVER;
+    }
   }
   
   // set transition dates for having symptoms
-  if (this->will_develop_symptoms) {
-    this->symptoms_start_date = this->infectious_start_date;
-    this->symptoms_end_date = this->infectious_end_date;
+  // note: in the default natural_history model, symptoms (if they occur) coincide with infectious period
+  if (symptoms_coincide_with_infectious_period) {
+    if (this->will_develop_symptoms) {
+      this->symptoms_start_date = this->infectious_start_date;
+      this->symptoms_end_date = this->infectious_end_date;
+    }
+    else {
+      this->symptoms_start_date = NEVER;
+      this->symptoms_end_date = NEVER;
+    }
   }
   else {
-    this->symptoms_start_date = NEVER;
-    this->symptoms_end_date = NEVER;
+    // the following handles symptoms that may be independent of infectious period:
+    int my_incubation_period = disease->get_natural_history()->get_incubation_period(this->host);
+    if (my_incubation_period < 0) {
+      this->symptoms_start_date = NEVER;
+      this->symptoms_end_date = NEVER;
+    }
+    else {
+      assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
+      this->symptoms_start_date = this->exposure_date + my_incubation_period;
+      
+      int my_duration_of_symptoms = disease->get_natural_history()->get_duration_of_symptoms(this->host);
+      // duration_of_symptoms <= 0 would mean "symptomatic forever"
+      if (my_duration_of_symptoms > 0) {
+	this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
+      }
+      else {
+	this->symptoms_end_date = NEVER;
+      }
+    }
   }
-
-  /*
-  int my_incubation_period = disease->get_incubation_period(this->host);
-  if (my_incubation_period < 0) {
-    this->symptoms_start_date = NEVER;
-    this->symptoms_end_date = NEVER;
-  }
-  else {
-    assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
-    this->symptoms_start_date = this->exposure_date + my_incubation_period;
-
-    int my_duration_of_symptoms = disease->get_duration_of_symptoms(this->host);
-    // duration_of_symptoms <= 0 would mean "never symptomatic"
-    assert(my_duration_of_symptoms > 0);
-    this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
-  }
-  */
 
   // set transition date for becoming susceptible after this infection
   int my_duration_of_immunity = this->disease->get_natural_history()->get_duration_of_immunity(this->host);
-  if (my_duration_of_immunity < 0) {
-    // my_duration_of_immunity < 0 means "immune forever"
-    this->immunity_end_date = NEVER;
-  }
-  else {
-    assert(my_duration_of_immunity > 0); // FRED needs at least one day to become susceptible again
+  // my_duration_of_immunity <= 0 means "immune forever"
+  if (my_duration_of_immunity > 0) {
     this->immunity_end_date = this->exposure_date + my_duration_of_immunity;
   }
+  else {
+    this->immunity_end_date = NEVER;
+  }
+  // print();
 }
+
 
 
 void Infection::print() {
@@ -157,6 +173,7 @@ void Infection::print() {
 	 this->disease->get_id(), this->host->get_id(),
 	 this->exposure_date, this->infectious_start_date, this->infectious_end_date, 
 	 this->symptoms_start_date, this->symptoms_end_date);
+  fflush(stdout);
 }
 
 void Infection::report_infection(int day) {
@@ -184,35 +201,42 @@ void Infection::report_infection(int day) {
   int place_size = (this->place == NULL ? -1 : this->place->get_container_size());
   std::stringstream infStrS;
   infStrS.precision(3);
-  infStrS << fixed << "day " << day << " dis " << this->disease->get_id() << " host " << this->host->get_id()
-	  << " age " << this->host->get_real_age() << " sick_leave " << this->host->is_sick_leave_available()
-	  << " infector " << (this->infector == NULL ? -1 : this->infector->get_id()) << " inf_age "
-	  << (this->infector == NULL ? -1 : this->infector->get_real_age()) << " inf_sympt "
-	  << (this->infector == NULL ? -1 : this->infector->is_symptomatic()) << " inf_sick_leave "
-	  << (this->infector == NULL ? -1 : this->infector->is_sick_leave_available())
-	  << " at " << place_type << " place " <<  place_id << " subtype " << place_subtype;
-  infStrS << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
-
-  if (place_type != 'X') {
-    fred::geo lat = this->place->get_latitude();
-    fred::geo lon = this->place->get_longitude();
-    infStrS << " lat " << lat;
-    infStrS << " lon " << lon;
-  }
-  else {
-    infStrS << " lat " << -999;
-    infStrS << " lon " << -999;
-  }
-  double host_lat = this->host->get_household()->get_latitude();
-  double host_lon = this->host->get_household()->get_longitude();
-  infStrS << " home_lat " << host_lat;
-  infStrS << " home_lon " << host_lon;
-  infStrS << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()));
-  infStrS << " | DATES exp " << this->exposure_date << " inf " << get_infectious_start_date() << " symp "
-	  << get_symptoms_start_date() << " rec " << get_infectious_end_date() << " sus "
-	  << get_immunity_end_date();
+  infStrS << fixed << "day " << day << " dis " << this->disease->get_disease_name() << " host " << this->host->get_id()
+	  << " age " << this->host->get_real_age()
+	  << " | DATES exp " << this->exposure_date
+	  << " inf " << get_infectious_start_date() << " " << get_infectious_end_date()
+	  << " symp " << get_symptoms_start_date() << " " << get_symptoms_end_date()
+	  << " rec " << get_infectious_end_date() << " sus " << get_immunity_end_date()
+	  << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(disease->get_id()))
+	  << " | ";
 
   if(Global::Track_infection_events > 1) {
+    infStrS << " sick_leave " << this->host->is_sick_leave_available()
+	    << " infector " << (this->infector == NULL ? -1 : this->infector->get_id()) << " inf_age "
+	    << (this->infector == NULL ? -1 : this->infector->get_real_age()) << " inf_sympt "
+	    << (this->infector == NULL ? -1 : this->infector->is_symptomatic()) << " inf_sick_leave "
+	    << (this->infector == NULL ? -1 : this->infector->is_sick_leave_available())
+	    << " at " << place_type << " place " <<  place_id << " subtype " << place_subtype;
+    infStrS << " size " << place_size << " is_teacher " << (int)this->host->is_teacher();
+    
+    if (place_type != 'X') {
+      fred::geo lat = this->place->get_latitude();
+      fred::geo lon = this->place->get_longitude();
+      infStrS << " lat " << lat;
+      infStrS << " lon " << lon;
+    }
+    else {
+      infStrS << " lat " << -999;
+      infStrS << " lon " << -999;
+    }
+    double host_lat = this->host->get_household()->get_latitude();
+    double host_lon = this->host->get_household()->get_longitude();
+    infStrS << " home_lat " << host_lat;
+    infStrS << " home_lon " << host_lon;
+    infStrS << " | ";
+  }
+
+  if(Global::Track_infection_events > 2) {
     if(place_type != 'X'  && infector != NULL) {
       double host_x = this->host->get_x();
       double host_y = this->host->get_y();
@@ -239,6 +263,7 @@ void Infection::report_infection(int day) {
       long int census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
       infStrS << " census_tract " << census_tract;
     }
+    infStrS << " | ";
   }
   infStrS << "\n";
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());

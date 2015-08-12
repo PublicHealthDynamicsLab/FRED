@@ -17,17 +17,14 @@
 #ifndef _FRED_Disease_H
 #define _FRED_Disease_H
 
-#include <fstream>
 #include <vector>
 #include <map>
 #include <string>
+
 using namespace std;
 
-#include "Epidemic.h"
-#include "Global.h"
-
 class Age_Map;
-class Evolution;
+class Epidemic;
 class Infection;
 class Natural_History;
 class Person;
@@ -41,21 +38,12 @@ public:
   Disease();
   ~Disease();
 
-  void initialize_static_variables();
   void get_parameters(int disease, string name);
 
   /**
    * Set all of the attributes for the Disease
    */
   void setup();
-
-  // called by Infection:
-  int get_latent_period(Person* host);
-  int get_duration_of_infectiousness(Person* host);
-  int get_incubation_period(Person* host);
-  int get_duration_of_symptoms(Person* host);
-  int get_duration_of_immunity(Person* host);
-
 
   /**
    * @return this Disease's id
@@ -100,19 +88,10 @@ public:
   }
 
   /**
-   * @return a pointer to this Disease's Evolution attribute
-   */
-  Evolution* get_evolution() {
-    return this->evol;
-  }
-
-  /**
    * @param day the simulation day
    * @see Epidemic::print_stats(day);
    */
-  void print_stats(int day) {
-    this->epidemic->print_stats(day);
-  }
+  void print_stats(int day);
 
   /**
    * @return the epidemic with which this Disease is associated
@@ -133,27 +112,9 @@ public:
 
   void get_disease_parameters();
 
-  void increment_cohort_infectee_count(int day) {
-    this->epidemic->increment_cohort_infectee_count(day);
-  }
+  void increment_cohort_infectee_count(int day);
  
-  bool gen_immunity_infection(double real_age);
-
-  void initialize_evolution_reporting_grid(Regional_Layer* grid);
-
-  double get_infectivity_threshold() {
-    return this->infectivity_threshold;
-  }
-  
-  double get_symptomaticity_threshold() {
-    return this->symptomaticity_threshold;
-  }
-
-  void init_prior_immunity();
-
-  void update(int day) {
-    this->epidemic->update(day);
-  }
+  void update(int day);
 
   double get_face_mask_transmission_efficacy() {
     return this->face_mask_transmission_efficacy;
@@ -179,9 +140,6 @@ public:
     return this->face_mask_plus_hand_washing_susceptibility_efficacy;
   }
 
-  bool is_fatal(double real_age, double symptoms, int days_symptomatic);
-  bool is_fatal(Person* per, double symptoms, int days_symptomatic);
-
   double get_min_symptoms_for_seek_healthcare() {
     return this->min_symptoms_for_seek_healthcare;
   }
@@ -189,10 +147,6 @@ public:
   double get_hospitalization_prob(Person* per);
 
   double get_outpatient_healthcare_prob(Person* per);
-
-  bool is_case_fatality_enabled() {
-    return this->enable_case_fatality;
-  }
 
   char* get_disease_name() {
     return this->disease_name;
@@ -210,43 +164,35 @@ public:
     return this->natural_history;
   }
 
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
+
 private:
 
+  // disease identifiers
   int id;
   char disease_name[20];
+
+  // the course of infection within a host
   char natural_history_model[20];
+  Natural_History* natural_history;
+
+  // contagiousness
   double transmissibility;
+  double R0;
+  double R0_a;
+  double R0_b;
+  
+  // the course of infection at the population level
+  Epidemic* epidemic;
+  Age_Map* at_risk;
+  Age_Map* residual_immunity;
+  std::map<int, vector<double> > residual_immunity_by_FIPS;
 
-  // infectivity and symptomaticity thresholds used in Infection class to
-  // determine if an agent is infectious/symptomatic at a given point in the
-  // trajectory
-  double infectivity_threshold;
-  double symptomaticity_threshold;
-
+  // variation over time of year
   double seasonality_max, seasonality_min;
   double seasonality_Ka, seasonality_Kb;
 
-  // case fatality parameters
-  int enable_case_fatality;
-  double min_symptoms_for_case_fatality;
-  Age_Map* case_fatality_age_factor;
-  double* case_fatality_prob_by_day;
-  int max_days_case_fatality_prob;
-
-  //Hospitalization and outpatient healthcare parameters
-  double min_symptoms_for_seek_healthcare;
-  Age_Map* hospitalization_prob;
-  Age_Map* outpatient_healthcare_prob;
-
-  double immunity_loss_rate;
-  Epidemic* epidemic;
-  Age_Map* residual_immunity;
-  Age_Map* at_risk;
-  Age_Map* infection_immunity_prob;
-  Natural_History* natural_history;
-  Evolution* evol;
-
-  // intervention efficacies
+  // behavioral intervention efficacies
   int enable_face_mask_usage;
   double face_mask_transmission_efficacy;
   double face_mask_susceptibility_efficacy;
@@ -257,13 +203,10 @@ private:
   double face_mask_plus_hand_washing_transmission_efficacy;
   double face_mask_plus_hand_washing_susceptibility_efficacy;
 
-  double R0;
-  double R0_a;
-  double R0_b;
-  
-  /// added for residual_immunity_by FIPS
-  std::map<int, vector<double> > residual_immunity_by_FIPS;
-  /// end added
+  // hospitalization and outpatient healthcare parameters
+  double min_symptoms_for_seek_healthcare;
+  Age_Map* hospitalization_prob;
+  Age_Map* outpatient_healthcare_prob;
 
 };
 

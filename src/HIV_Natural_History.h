@@ -18,13 +18,39 @@ class HIV_Natural_History : public Natural_History {
 
 public:
   HIV_Natural_History();
+
   ~HIV_Natural_History();
 
   void setup(Disease *disease);
+
+  void get_parameters();
+
   void update_infection(int day, Person* host, Infection *infection);
-  void read_hiv_files();
-  
+
+  double get_probability_of_symptoms(int age);
+
+  int get_latent_period(Person* host);
+
+  int get_duration_of_infectiousness(Person* host);
+
+  int get_duration_of_immunity(Person* host);
+
+  int get_incubation_period(Person* host);
+
+  int get_duration_of_symptoms(Person* host);
+
+  bool is_fatal(double real_age, double symptoms, int days_symptomatic);
+
+  bool is_fatal(Person* per, double symptoms, int days_symptomatic);
+
+  void init_prior_immunity() {}
+
+  bool gen_immunity_infection(double real_age) { return true; }
+
+  void initialize_evolution_reporting_grid(Regional_Layer* grid) {}
+
 private:
+
 };
 
 #endif

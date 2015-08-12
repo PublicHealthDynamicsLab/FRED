@@ -34,9 +34,13 @@ class HIV_Infection : public Infection {
 
   void update(int day) {}
 
-  void print() {}
+  void setup();
 
-  void report_infection(int day) {}
+  double get_infectivity(int day);
+
+  double get_symptoms(int day);
+
+  bool is_fatal(int day);
 
  private:
 

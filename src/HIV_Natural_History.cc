@@ -11,7 +11,10 @@
 
 #include "HIV_Natural_History.h"
 #include "Disease.h"
-#include "Natural_History.h"
+#include "Params.h"
+#include "Person.h"
+#include "Random.h"
+#include "Utils.h"
 
 HIV_Natural_History::HIV_Natural_History() {
 }
@@ -19,12 +22,14 @@ HIV_Natural_History::HIV_Natural_History() {
 HIV_Natural_History::~HIV_Natural_History() {
 }
 
-void HIV_Natural_History::setup(Disease *disease) {
+void HIV_Natural_History::setup(Disease * _disease) {
   Natural_History::setup(disease);
-  read_hiv_files();
 }
 
-void HIV_Natural_History::read_hiv_files() {
+void HIV_Natural_History::get_parameters() {
+
+  FRED_VERBOSE(0, "HIV::Natural_History::get_parameters\n");
+
   // Read in any file having to do with HIV natural history, such as
   // mortality rates
 
@@ -37,9 +42,46 @@ void HIV_Natural_History::read_hiv_files() {
 
 }
 
-void HIV_Natural_History::update_infection(int day, Person* host, Infection *infection) {
+
+
+double HIV_Natural_History::get_probability_of_symptoms(int age) {
+  return 1.0;
+}
+
+int HIV_Natural_History::get_latent_period(Person* host) {
+  return 14;
+}
+
+int HIV_Natural_History::get_duration_of_infectiousness(Person* host) {
+  // infectious forever
+  return -1;
+}
+
+int HIV_Natural_History::get_duration_of_immunity(Person* host) {
+  // immune forever
+  return -1;
+}
+
+int HIV_Natural_History::get_incubation_period(Person* host) {
+  return 14;
+}
+
+int HIV_Natural_History::get_duration_of_symptoms(Person* host) {
+  // symptoms last forever
+  return -1;
 }
 
 
+bool HIV_Natural_History::is_fatal(double real_age, double symptoms, int days_symptomatic) {
+  return false;
+}
 
+bool HIV_Natural_History::is_fatal(Person* per, double symptoms, int days_symptomatic) {
+  return false;
+}
+
+
+void HIV_Natural_History::update_infection(int day, Person* host, Infection *infection) {
+  // put daily updates to host here.
+}
 

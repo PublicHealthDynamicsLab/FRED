@@ -27,6 +27,7 @@
 #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
+#include "Health.h"
 #include "Household.h"
 #include "Manager.h"
 #include "Params.h"
@@ -205,6 +206,7 @@ void Population::setup() {
   }
 
   if(Global::Enable_Antivirals) {
+    Utils::fred_abort("Sorry, antivirals are not enabled in this version of FRED.");
     this->av_manager = new AV_Manager(this);
   } else {
     this->av_manager = new AV_Manager();
@@ -1804,6 +1806,17 @@ void Population::initialize_demographic_dynamics() {
     Person* person = get_person_by_index(p);
     if(person != NULL) {
       person->get_demographics()->initialize_demographic_dynamics(person);
+    }
+  }
+}
+
+void Population::update_health_interventions(int day) {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person != NULL) {
+      person->get_health()->update_interventions(person, day);
     }
   }
 }

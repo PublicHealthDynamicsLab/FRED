@@ -306,6 +306,7 @@ void fred_setup(int argc, char* argv[]) {
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
   // prepare diseases after population is all set up
+  FRED_VERBOSE(0, "prepare diseases\n");
   Global::Diseases.prepare_diseases();
   Utils::fred_print_lap_time("prepare_diseases");
 
@@ -366,6 +367,7 @@ void fred_step(int day) {
 
   // update everyone's health intervention status
   if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
+    Global::Pop.update_health_interventions(day);
   }
 
   // remove dead from population

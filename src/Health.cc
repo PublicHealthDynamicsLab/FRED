@@ -412,6 +412,8 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, Disease* disease
 
 void Health::become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day) {
 
+  // FRED_VERBOSE(0, "become_exposed: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+
   if(this->infection[disease_id] != NULL) {
     Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   }
@@ -419,7 +421,9 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   Disease *disease = Global::Diseases.get_disease(disease_id);
+  // FRED_VERBOSE(0, "get_new_infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, place, day);
+  FRED_VERBOSE(0, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
   // this->active_infections.set(disease_id);
@@ -534,11 +538,13 @@ void Health::become_removed(Person* self, int disease_id) {
 
 void Health::become_immune(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
+  disease->become_immune(self, this->susceptible.test(disease_id),
+      this->infectious.test(disease_id), this->symptomatic.test(disease_id));
   this->immunity.set(disease_id);
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  FRED_STATUS(1, "person %d is now IMMUNE for disease %d\n", self->get_id(),
+  FRED_STATUS(0, "person %d is now IMMUNE for disease %d\n", self->get_id(),
 	      disease_id);
 }
 
@@ -1015,3 +1021,5 @@ void Health::terminate(Person* self) {
 }
 
 
+void Health::update_health_based_on_mitigations(int day) {
+}

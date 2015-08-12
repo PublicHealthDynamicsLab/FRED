@@ -15,12 +15,33 @@
 #include "Age_Map.h"
 #include "HIV_Natural_History.h"
 #include "Disease.h"
+#include "Evolution.h"
+#include "EvolutionFactory.h"
 #include "Params.h"
 #include "Person.h"
 #include "Random.h"
-#include "Trajectory.h"
 #include "Utils.h"
 
+
+Natural_History::~Natural_History() {
+
+  if (this->infection_immunity_prob != NULL) {
+    delete this->infection_immunity_prob;
+  }
+  
+  if(this->evol != NULL) {
+    delete this->evol;
+  }
+  
+  if(this->case_fatality_age_factor != NULL) {
+    delete this->case_fatality_age_factor;
+  }
+  
+  if(this->case_fatality_prob_by_day != NULL) {
+    delete this->case_fatality_prob_by_day;
+  }
+  
+};
 
 /**
  * This static factory method is used to get an instance of a specific Natural_History Model.
@@ -31,13 +52,13 @@
  * @return a pointer to a specific Natural_History model
  */
 
-static Natural_History * Natural_History::get_new_natural_history(char* natural_history_model) {
+Natural_History * Natural_History::get_new_natural_history(char* natural_history_model) {
   
   if (strcmp(natural_history_model, "basic") == 0) {
     return new Natural_History;
   }
   
-  if (strcmp(natural_history_model, "HIV") == 0) {
+  if (strcmp(natural_history_model, "hiv") == 0) {
     return new HIV_Natural_History;
   }
   
@@ -51,6 +72,7 @@ static Natural_History * Natural_History::get_new_natural_history(char* natural_
  */
 
 void Natural_History::setup(Disease * _disease) {
+  FRED_VERBOSE(0, "Natural_History::setup\n");
   this->disease = _disease;
   this->probability_of_symptoms = 0;
   this->symptomatic_infectivity = 0;
@@ -64,16 +86,36 @@ void Natural_History::setup(Disease * _disease) {
   this->days_incubating = NULL;
   this->days_symptomatic = NULL;
   this->age_specific_prob_symptomatic = NULL;
+  this->immunity_loss_rate = -1.0;
 
+  this->symptomaticity_threshold = -1.0;
+  this->infectivity_threshold = -1.0;
+
+  this->enable_case_fatality = 0;
+  this->case_fatality_age_factor = NULL;
+  this->case_fatality_prob_by_day = NULL;
+  this->min_symptoms_for_case_fatality = -1.0;
+  this->max_days_case_fatality_prob = -1;
+
+  this->infection_immunity_prob = NULL;
+  this->evol = NULL;
+
+  FRED_VERBOSE(0, "Natural_History::setup finished\n");
+}
+
+void Natural_History::get_parameters() {
+
+  FRED_VERBOSE(0, "Natural_History::get_parameters\n");
   // read in the disease-specific parameters
   char paramstr[256];
   char disease_name[20];
 
   strcpy(disease_name, disease->get_disease_name());
 
-  Params::get_indexed_param(disease_name,"probability_of_symptoms",&probability_of_symptoms);
-  Params::get_indexed_param(disease_name,"symp_infectivity",&symptomatic_infectivity);
-  Params::get_indexed_param(disease_name,"asymp_infectivity",&asymptomatic_infectivity);
+  Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
+  Params::get_indexed_param(disease_name,"symp_infectivity",&(this->symptomatic_infectivity));
+  Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
+  Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
   
   // age specific probablility of symptoms
   this->age_specific_prob_symptomatic = new Age_Map("Prob Symptomatic");
@@ -82,86 +124,147 @@ void Natural_History::setup(Disease * _disease) {
 
   int n;
   Params::get_indexed_param(disease_name,"days_latent",&n);
-  days_latent = new double [n];
-  max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", days_latent) -1;
+  this->days_latent = new double [n];
+  this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
 
   Params::get_indexed_param(disease_name,"days_infectious",&n);
-  days_infectious = new double [n];
-  max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", days_infectious) -1;
+  this->days_infectious = new double [n];
+  this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
 
+  // not used in default model:
+  /*
   Params::get_indexed_param(disease_name,"days_incubating",&n);
-  days_incubating = new double [n];
-  max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", days_incubating) -1;
+  this->days_incubating = new double [n];
+  this->max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", this->days_incubating) -1;
 
-  Params::get_indexed_param(disease_name,"days_symptomatc",&n);
-  days_symptomatic = new double [n];
-  max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptimatic", days_symptomatic) -1;
+  Params::get_indexed_param(disease_name,"days_symptomatic",&n);
+  this->days_symptomatic = new double [n];
+  this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
+  */
 
-}
+  // Initialize Infection Thresholds
+  Params::get_indexed_param(disease_name, "infectivity_threshold", &(this->infectivity_threshold));
+  Params::get_indexed_param(disease_name, "symptomaticity_threshold", &(this->symptomaticity_threshold));
 
-int Natural_History::get_latent_period(Person* host) {
-  int days = Random::draw_from_distribution(max_days_latent, days_latent);
-  return days;
-}
-
-int Natural_History::get_duration_of_infectiousness(Person* host) {
-  int days = Random::draw_from_distribution(max_days_infectious, days_infectious);
-  return days;
-}
-
-Trajectory* Natural_History::get_trajectory(int age) {
-  int sequential = 0; // get_infection_model();
-  int will_be_symptomatic = will_have_symptoms(age);
-  int days_latent = get_days_latent();
-  int days_incubating;
-  int days_asymptomatic = 0;
-  int days_symptomatic = 0;
-  double symptomaticity = 1.0;
-
-  if (sequential) { // SEiIR model
-    days_asymptomatic = get_days_asymp();
-
-    if (will_be_symptomatic) {
-      days_symptomatic = get_days_symp();
-    }
-  } else { // SEIR/SEiR model
-    if (will_be_symptomatic) {
-      days_symptomatic = get_days_symp();
-    } else {
-      days_asymptomatic = get_days_asymp();
-    }
+  //case fatality parameters
+  Params::get_indexed_param(disease_name, "enable_case_fatality",
+			    &(this->enable_case_fatality));
+  if(this->enable_case_fatality) {
+    Params::get_indexed_param(disease_name, "min_symptoms_for_case_fatality",
+			      &(this->min_symptoms_for_case_fatality));
+    this->case_fatality_age_factor = new Age_Map("Case Fatality Age Factor");
+    sprintf(paramstr, "%s_case_fatality_age_factor", disease_name);
+    this->case_fatality_age_factor->read_from_input(paramstr);
+    Params::get_indexed_param(disease_name, "case_fatality_prob_by_day",
+			      &(this->max_days_case_fatality_prob));
+    this->case_fatality_prob_by_day =
+      new double[this->max_days_case_fatality_prob];
+    Params::get_indexed_param_vector(disease_name, "case_fatality_prob_by_day", 
+				     this->case_fatality_prob_by_day);
   }
 
-  days_incubating = days_latent + days_asymptomatic;
+  // Probability of developing an immune response by past infections
+  this->infection_immunity_prob = new Age_Map("Infection Immunity Probability");
+  sprintf(paramstr, "%s_infection_immunity_prob", disease_name);
+  this->infection_immunity_prob->read_from_input(paramstr);
 
-  Loads* loads;
-  loads = new Loads;
-  loads->clear();
-  loads->insert( pair<int, double> (1, 1.0) );
+  int evolType;
+  Params::get_indexed_param(disease_name, "evolution", &evolType);
+  this->evol = EvolutionFactory::newEvolution(evolType);
+  this->evol->setup(this->disease);
 
-  Trajectory * trajectory = new Trajectory();
-
-  map<int, double> :: iterator it;
-  for(it = loads->begin(); it != loads->end(); it++) {
-    vector<double> infectivity_trajectory(days_latent, 0.0);
-    infectivity_trajectory.insert(infectivity_trajectory.end(), days_asymptomatic, asymptomatic_infectivity);
-    infectivity_trajectory.insert(infectivity_trajectory.end(), days_symptomatic, symptomatic_infectivity);
-    trajectory->set_infectivity_trajectory(it->first, infectivity_trajectory);
-  }
-
-  vector<double> symptomaticity_trajectory(days_incubating, 0.0);
-  symptomaticity_trajectory.insert(symptomaticity_trajectory.end(), days_symptomatic, symptomaticity);
-  trajectory->set_symptomaticity_trajectory(symptomaticity_trajectory);
-
-  return trajectory;
+  FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
 }
 
-double Natural_History::get_probability_of_symptoma(int age) {
+
+double Natural_History::get_probability_of_symptoms(int age) {
   if (this->age_specific_prob_symptomatic->is_empty()) {
     return this->probability_of_symptoms;
   }
   else {
     return this->age_specific_prob_symptomatic->find_value(age);
+  }
+}
+
+int Natural_History::get_latent_period(Person* host) {
+  return Random::draw_from_distribution(max_days_latent, days_latent);
+}
+
+int Natural_History::get_duration_of_infectiousness(Person* host) {
+  return Random::draw_from_distribution(max_days_infectious, days_infectious);
+}
+
+int Natural_History::get_duration_of_immunity(Person* host) {
+  int days;
+  if(this->immunity_loss_rate > 0.0) {
+    // draw from exponential distribution
+    days = floor(0.5 + Random::draw_exponential(this->immunity_loss_rate));
+    // printf("DAYS RECOVERED = %d\n", days);
+  } else {
+    days = -1;
+  }
+  return days;
+}
+
+
+bool Natural_History::gen_immunity_infection(double real_age) {
+  double prob = this->infection_immunity_prob->find_value(real_age);
+  return (Random::draw_random() <= prob);
+}
+
+
+void Natural_History::initialize_evolution_reporting_grid(Regional_Layer* grid) {
+  // this->evol->initialize_reporting_grid(grid);
+}
+
+void Natural_History::init_prior_immunity() {
+  this->evol->init_prior_immunity(this->disease);
+}
+
+bool Natural_History::is_fatal(double real_age, double symptoms, int days_symptomatic) {
+  if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
+    double age_prob = this->case_fatality_age_factor->find_value(real_age);
+    double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
+    return (Random::draw_random() < age_prob * day_prob);
+  }
+  return false;
+}
+
+bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomatic) {
+  if(Global::Enable_Chronic_Condition && this->enable_case_fatality) {
+    if(per->has_chronic_condition()) {
+      double age_prob = this->case_fatality_age_factor->find_value(per->get_real_age());
+      double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
+      if(per->is_asthmatic()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::ASTHMA);
+      }
+      if(per->has_COPD()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::COPD);
+      }
+      if(per->has_chronic_renal_disease()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+      }
+      if(per->is_diabetic()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::DIABETES);
+      }
+      if(per->has_heart_disease()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HEART_DISEASE);
+      }
+      if(per->has_hypertension()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HYPERTENSION);
+      }
+      if(per->has_hypercholestrolemia()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HYPERCHOLESTROLEMIA);
+      }
+      if(per->get_demographics()->is_pregnant()) {
+        age_prob *= Health::get_pregnancy_case_fatality_prob_mult(per->get_age());
+      }
+      return (Random::draw_random() < age_prob * day_prob);
+    } else {
+      return is_fatal(per->get_age(), symptoms, days_symptomatic);
+    }
+  } else {
+    return is_fatal(per->get_age(), symptoms, days_symptomatic);
   }
 }
 

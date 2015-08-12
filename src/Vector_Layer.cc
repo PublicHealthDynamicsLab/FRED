@@ -440,7 +440,7 @@ void Vector_Layer::get_county_ids(){
     int house_mates = h->get_size();
     // load every person in the house in a  county
     for(int j = 0; j<house_mates; ++j) {
-      Person* p = h->get_housemate(j);
+      Person* p = h->get_enrollee(j);
       county_set[household_county].habitants.push_back(p);
     }
   }

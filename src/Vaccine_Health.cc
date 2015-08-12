@@ -59,7 +59,7 @@ Vaccine_Health::Vaccine_Health(int _vaccination_day, Vaccine* _vaccine, double _
 }
 
 void Vaccine_Health::print() const {
-  // Need to make work :)
+  // TODO
   cout << "\nVaccine_Status";
 }
 

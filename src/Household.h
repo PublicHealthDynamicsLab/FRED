@@ -184,16 +184,6 @@ public:
   double get_contacts_per_day(int disease);
 
   /**
-   * Get a person from the household.
-   *
-   * @param i the index of the person in the household
-   * @return a pointer the person with index i in the household
-   */
-  Person* get_housemate(int i) {
-    return this->enrollees[i];
-  }
-
-  /**
    * Use to get list of all people in the household.
    * @return vector of pointers to people in household.
    */

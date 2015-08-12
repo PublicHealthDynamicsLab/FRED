@@ -677,6 +677,10 @@ public:
   
   static char* get_place_label(Place* p);
 
+  // virtual methods defined on some place types
+
+
+
 protected:
   char label[32];         // external id
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;

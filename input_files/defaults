@@ -621,7 +621,8 @@ influenza_trans = 1.0
 
 ### symptomatic rate:
 influenza_probability_of_symptoms = 0.67
-# influenza_symp = 0.67
+
+### optional symptoms age map
 influenza_prob_symp_upper_ages = 0
 influenza_prob_symp_values = 0
 
@@ -632,8 +633,10 @@ influenza_asymp_infectivity = 0.5
 ### latent and infectious period CDFs
 influenza_days_latent = 3       0.0 0.8 1.0
 influenza_days_infectious = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-# influenza_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-# influenza_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+
+### not used in base SEIR model -- symptoms (if any) coincide with infectious period
+# influenza_days_incubating = 3       0.0 0.8 1.0
+# influenza_days_symptomatic = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 
 ### IMMUNITY
 influenza_immunity_loss_rate = 0

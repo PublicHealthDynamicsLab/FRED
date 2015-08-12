@@ -629,7 +629,7 @@ void Activities::update_schedule(Person* self, int sim_day) {
            !my_hh->has_school_aged_child_and_unemployed_adult() &&
            !my_hh->has_working_adult_using_sick_leave()) {
           for(int i = 0; i < static_cast<int>(my_hh->get_size()); ++i) {
-            Person* child_check = my_hh->get_housemate(i);
+            Person* child_check = my_hh->get_enrollee(i);
             if(child_check->is_child() &&
                child_check->is_student() &&
                child_check->is_symptomatic() &&

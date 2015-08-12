@@ -163,7 +163,7 @@ void Travel::setup_travelers_per_hub() {
       // add everyone in the household to the user list for this hub
       int housemates = h->get_size();
       for(int k = 0; k < housemates; ++k) {
-	Person* person = h->get_housemate(k);
+	Person* person = h->get_enrollee(k);
 	hubs[closest].users.push_back(person);
       }
     }

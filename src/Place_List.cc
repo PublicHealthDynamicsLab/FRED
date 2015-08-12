@@ -1504,7 +1504,7 @@ void Place_List::setup_group_quarters() {
 	vector<Person*> housemates;
 	housemates.clear();
 	for(int i = 0; i < gq_size; ++i) {
-	  Person* person = house->get_housemate(i);
+	  Person* person = house->get_enrollee(i);
 	  housemates.push_back(person);
 	}
 	int units_filled = 1;
@@ -1568,7 +1568,7 @@ void Place_List::setup_households() {
     Person* head_of_household = NULL;
     int max_age = -99;
     for(int j = 0; j < house->get_size() && head_of_household == NULL; ++j) {
-      Person* person = house->get_housemate(j);
+      Person* person = house->get_enrollee(j);
       assert(person != NULL);
       if(person->is_householder()) {
 	head_of_household = person;
@@ -1589,7 +1589,7 @@ void Place_List::setup_households() {
     assert(head_of_household != NULL);
     // make sure everyone know who's the head
     for(int j = 0; j < house->get_size(); j++) {
-      Person* person = house->get_housemate(j);
+      Person* person = house->get_enrollee(j);
       if(person != head_of_household && person->is_householder()) {
 	person->set_relationship(Global::HOUSEMATE);
       }
@@ -2732,7 +2732,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
 
     Hospital* hosp = NULL;
     if(hh->get_size() > 0) {
-      Person* per = hh->get_housemate(0);
+      Person* per = hh->get_enrollee(0);
       assert(per != NULL);
       if(Global::Enable_Health_Insurance) {
         hosp = this->get_random_open_hospital_matching_criteria(0, per, true, true, true);

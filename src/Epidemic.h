@@ -210,6 +210,8 @@ public:
   }
 
 
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
+
 private:
   Disease* disease;
   int id;

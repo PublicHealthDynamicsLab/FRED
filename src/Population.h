@@ -281,6 +281,8 @@ public:
   AV_Manager* av_manager;
   Vaccine_Manager* vacc_manager;
 
+  void update_health_interventions(int day);
+
 private:
 
   bool load_completed;

@@ -139,6 +139,9 @@ County::County(int _fips) {
 
 void County::update(int day) {
 
+  // TODO: test and enable
+  return;
+
   // update housing periodically
   if(day == 0 || (Date::get_month() == 6 && Date::get_day_of_month() == 30)) {
     FRED_VERBOSE(0, "County::update_housing = %d\n", day);
@@ -336,7 +339,7 @@ void County::move_college_students_out_of_dorms(int day) {
     if(house->is_college()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	// printf("PERSON %d LIVES IN COLLEGE DORM %s\n", person->get_id(), house->get_label());
 	assert(person->is_college_dorm_resident());
 	college++;
@@ -388,7 +391,7 @@ void County::move_college_students_into_dorms(int day) {
         continue;
       }
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	int age = person->get_age();
 	if(18 < age && age < 40 && person->get_number_of_children() == 0) {
 	  ready_to_move.push_back(make_pair(person,i));
@@ -442,7 +445,7 @@ void County::move_military_personnel_out_of_barracks(int day) {
     if(house->is_military_base()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	// printf("PERSON %d LIVES IN MILITARY BARRACKS %s\n", person->get_id(), house->get_label());
 	assert(person->is_military_base_resident());
 	military++;
@@ -491,7 +494,7 @@ void County::move_military_personnel_into_barracks(int day) {
       int hsize = house->get_size();
       if(hsize <= house->get_orig_size()) continue;
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	int age = person->get_age();
 	if(18 < age && age < 40 && person->get_number_of_children() == 0) {
 	  ready_to_move.push_back(make_pair(person,i));
@@ -541,7 +544,7 @@ void County::move_inmates_out_of_prisons(int day) {
     if(house->is_prison()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	// printf("PERSON %d LIVES IN PRISON %s\n", person->get_id(), house->get_label());
 	assert(person->is_prisoner());
 	prisoners++;
@@ -590,7 +593,7 @@ void County::move_inmates_into_prisons(int day) {
       int hsize = house->get_size();
       if(hsize <= house->get_orig_size()) continue;
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	int age = person->get_age();
 	if((18 < age && person->get_number_of_children() == 0) || (age < 50)) {
 	  ready_to_move.push_back(make_pair(person,i));
@@ -665,7 +668,7 @@ void County::move_patients_into_nursing_homes(int day) {
         continue;
       }
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	int age = person->get_age();
 	if(60 <= age) {
 	  ready_to_move.push_back(make_pair(person,i));
@@ -711,7 +714,7 @@ void County::move_young_adults(int day) {
       Household* house = this->households[i];
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_housemate(j);
+	Person* person = house->get_enrollee(j);
 	int age = person->get_age();
 	if(18 <= age && age < 30) {
 	  if(Random::draw_random() < this->youth_home_departure_rate) {
@@ -743,7 +746,7 @@ void County::move_older_adults(int day) {
       int pos = -1;
       int adults = 0;
       for(int j = 0; j < hsize; ++j) {
-	int age = house->get_housemate(j)->get_age();
+	int age = house->get_enrollee(j)->get_age();
 	if(age > max_age) {
 	  max_age = age; pos = j;
 	}
@@ -752,7 +755,7 @@ void County::move_older_adults(int day) {
 	}
       }
       if(adults > 1) {
-	Person* person = house->get_housemate(pos);
+	Person* person = house->get_enrollee(pos);
 	if(Random::draw_random() < this->adult_home_departure_rate) {
 	  ready_to_move.push_back(make_pair(person,i));
 	}
@@ -770,7 +773,7 @@ void County::report_ages(int day, int house_id) {
 	 house->get_id(), this->beds[house_id], this->occupants[house_id]);
   int hsize = house->get_size();
   for(int j = 0; j < hsize; ++j) {
-    int age = house->get_housemate(j)->get_age();
+    int age = house->get_enrollee(j)->get_age();
     printf("%d ", age);
   }
 }
@@ -892,7 +895,7 @@ void County::swap_houses(int day) {
 	     day, house->get_id(), beds[i], occupants[i]);
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	int age = house->get_housemate(j)->get_age();
+	int age = house->get_enrollee(j)->get_age();
 	printf("%d ", age);
       }
       printf("\n");

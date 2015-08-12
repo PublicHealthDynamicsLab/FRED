@@ -494,7 +494,7 @@ Person* Behavior::select_adult(Household* h, int relationship, Person* self) {
 
     // select first adult natural child or spouse thereof of householder parent, if any
     for(int i = 0; i < N; ++i) {
-      Person* person = h->get_housemate(i);
+      Person* person = h->get_enrollee(i);
       if(person->is_adult() == false || person == self) {
         continue;
       }
@@ -506,7 +506,7 @@ Person* Behavior::select_adult(Household* h, int relationship, Person* self) {
 
     // consider adult relative of householder, if any
     for(int i = 0; i < N; ++i) {
-      Person* person = h->get_housemate(i);
+      Person* person = h->get_enrollee(i);
       if(person->is_adult() == false || person == self) {
         continue;
       }
@@ -519,7 +519,7 @@ Person* Behavior::select_adult(Household* h, int relationship, Person* self) {
 
   // select householder if an adult
   for(int i = 0; i < N; ++i) {
-    Person* person = h->get_housemate(i);
+    Person* person = h->get_enrollee(i);
     if(person->is_adult() == false || person == self) {
       continue;
     }
@@ -530,7 +530,7 @@ Person* Behavior::select_adult(Household* h, int relationship, Person* self) {
 
   // select householder's spouse if an adult
   for(int i = 0; i < N; ++i) {
-    Person* person = h->get_housemate(i);
+    Person* person = h->get_enrollee(i);
     if(person->is_adult() == false || person == self) {
       continue;
     }
@@ -544,7 +544,7 @@ Person* Behavior::select_adult(Household* h, int relationship, Person* self) {
 
   Person* oldest = NULL;
   for(int i = 0; i < N; ++i) {
-    Person* person = h->get_housemate(i);
+    Person* person = h->get_enrollee(i);
     if(person->get_age() <= max_age || person == self) {
       continue;
     }
@@ -574,7 +574,7 @@ void Behavior::terminate(Person* self) {
   }
   int size = hh->get_size();
   for(int i = 0; i < size; ++i) {
-    Person* child = hh->get_housemate(i);
+    Person* child = hh->get_enrollee(i);
     if(child != self && child->get_health_decision_maker() == self) {
       if(Global::Verbose > 1) {
         printf("need new decision maker for agent %d age %d\n", child->get_id(), child->get_age());

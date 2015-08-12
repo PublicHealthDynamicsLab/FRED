@@ -632,6 +632,9 @@ public:
 
   static bool Enable_hh_income_based_susc_mod;
 
+  void update_health_based_on_mitigations(int day);
+
+
 private:
 
   // active infections (NULL if not infected)

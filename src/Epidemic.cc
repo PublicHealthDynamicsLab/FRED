@@ -31,6 +31,7 @@ using namespace std;
 #include "Global.h"
 #include "Household.h"
 #include "Infection.h"
+#include "Natural_History.h"
 #include "Neighborhood_Layer.h"
 #include "Params.h"
 #include "Person.h"
@@ -285,7 +286,31 @@ void Epidemic::symptoms_end_event_handler(int day, Person* person) {
   // person->end_symptoms(this->disease);
 }
 
+void Epidemic::immunity_start_event_handler(int day, Person* person) {
+
+  // update epidemic counters
+  this->immune_people++;
+
+  // update person's health chart
+  // person->become_immune(this->id);
+}
+
+
+
+void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
+  if(!susceptible) {
+    this->removed_people++;
+  }
+  if(symptomatic) {
+    this->people_with_current_symptoms--;
+  }
+  this->immune_people++;
+}
+
 void Epidemic::immunity_end_event_handler(int day, Person* person) {
+
+  // update epidemic counters
+  this->immune_people--;
 
   // update epidemic counters
   this->removed_people++;
@@ -505,7 +530,7 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"I", this->infectious_people);
   track_value(day, (char*)"Is", this->people_with_current_symptoms);
   track_value(day, (char*)"R", this->removed_people);
-  if(this->disease->is_case_fatality_enabled()) {
+  if(this->disease->get_natural_history()->is_case_fatality_enabled()) {
     track_value(day, (char*)"D", this->daily_case_fatality_count);
     track_value(day, (char*)"CF", case_fatality_rate);
   }
@@ -1441,7 +1466,7 @@ void Epidemic::get_imported_infections(int day) {
 	  int size = house->get_size();
 	  // printf("IMPORT: house %s size %d\n", house->get_label(), size); fflush(stdout);
 	  for(int j = 0; j < size; ++j) {
-	    Person* person = house->get_housemate(j);
+	    Person* person = house->get_enrollee(j);
 	    if(person->get_health()->is_susceptible(this->id)) {
 	      double age = person->get_real_age();
 	      if(this->import_age_lower_bound <= age && age <= this->import_age_upper_bound) {
@@ -1458,7 +1483,7 @@ void Epidemic::get_imported_infections(int day) {
 	if(imported_cases_remaining <= people.size()) {
 	  // we have at least the minimum number of candidates.
 	  for(int n = 0; n < imported_cases_remaining; ++n) {
-	    FRED_VERBOSE(1, "IMPORT candidate %d id people.size %d\n", n, (int)people.size());
+	    FRED_VERBOSE(0, "IMPORT candidate %d people.size %d\n", n, (int)people.size());
 
 	    // pick a candidate without replacement
 	    int pos = Random::draw_random_int(0,people.size()-1);
@@ -1467,7 +1492,9 @@ void Epidemic::get_imported_infections(int day) {
 	    people.pop_back();
 
 	    // infect the candidate
+	    FRED_VERBOSE(0, "infecting candidate %d id %d\n", n, infectee->get_id());
 	    infectee->become_exposed(this->id, NULL, NULL, day);
+	    FRED_VERBOSE(0, "exposed candidate %d id %d\n", n, infectee->get_id());
 	    if(this->seeding_type != SEED_EXPOSED) {
 	      advance_seed_infection(infectee);
 	    }
@@ -1557,9 +1584,9 @@ void Epidemic::update(int day) {
   this->symptoms_end_event_queue->event_handler(day, this, func);
 
   // transition to immune
-  // FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, this->immunity_start_event_queue->get_size(day));
-  // func = &Epidemic::immunity_start_event_handler;
-  // this->immunity_start_event_queue->event_handler(day, this, func);
+  FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, this->immunity_start_event_queue->get_size(day));
+  func = &Epidemic::immunity_start_event_handler;
+  this->immunity_start_event_queue->event_handler(day, this, func);
 
   // transition to susceptible
   FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, this->immunity_end_event_queue->get_size(day));
