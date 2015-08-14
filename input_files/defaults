@@ -681,17 +681,17 @@ R0 = -1.0
 
 ##################### FRED Event-loop
 
-R0_a = 0.0111195
-R0_b = 0.777235
-R0 = -1.0
-###  CALIBRATION PHASE II STEP 8 at Wed Aug  5 12:49:31 2015
+###  CALIBRATION PHASE II STEP 16 at Fri Aug 14 15:19:48 2015
 ###  runs = 10  cores = 10
-influenza_household_contacts = 0.1966
-influenza_neighborhood_contacts = 2.60718e+01
-influenza_school_contacts = 11.19
-influenza_workplace_contacts = 0.96
-influenza_classroom_contacts = 22.38
-influenza_office_contacts = 1.92
+influenza_household_contacts = 0.1622
+influenza_neighborhood_contacts = 2.17149e+01
+influenza_school_contacts = 9.48
+influenza_workplace_contacts = 0.80
+influenza_classroom_contacts = 18.97
+influenza_office_contacts = 1.59
+R0_a = 0.0312423
+R0_b = 0.670742
+R0 = -1.0
 
 ##################### END FRED Event-loop
 
