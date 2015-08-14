@@ -40,16 +40,6 @@ public:
   static double Seasonal_Reduction;
   static double* Seasonality_multiplier;
 
-  // place type codes
-  static char HOUSEHOLD;
-  static char NEIGHBORHOOD;
-  static char SCHOOL;
-  static char CLASSROOM;
-  static char WORKPLACE;
-  static char OFFICE;
-  static char HOSPITAL;
-  static char COMMUNITY;
-
   ~Transmission() {}
   static void get_parameters();
   static void spread_infection(int day, int disease_id, Place *place);

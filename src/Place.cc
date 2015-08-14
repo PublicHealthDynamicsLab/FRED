@@ -298,9 +298,6 @@ double Place::get_contact_rate(int day, int disease_id) {
   double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
   if(Global::Enable_Seasonality) {
 
-    //contacts = contacts * Global::Clim->get_seasonality_multiplier_by_lat_lon(
-    //    latitude,longitude,disease_id);
-
     double m = Global::Clim->get_seasonality_multiplier_by_lat_lon(this->latitude, this->longitude, disease_id);
     //cout << "SEASONALITY: " << day << " " << m << endl;
     contacts *= m;
@@ -421,6 +418,8 @@ void Place::set_temperature(){
   }
   FRED_VERBOSE(1, "SET TEMP: House %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n", this->label, this->temperature, this->vectors_per_host, this->N_vectors, this->N_orig);
 }
+
+// TODO: move to Transmission class
 
 void Place::vector_transmission(int day, int disease_id) {
 

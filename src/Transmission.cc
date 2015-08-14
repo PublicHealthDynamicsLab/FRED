@@ -33,16 +33,6 @@
 
 #define PI 3.14159265359
 
-// static place type codes
-char Transmission::HOUSEHOLD = 'H';
-char Transmission::NEIGHBORHOOD = 'N';
-char Transmission::SCHOOL = 'S';
-char Transmission::CLASSROOM = 'C';
-char Transmission::WORKPLACE = 'W';
-char Transmission::OFFICE = 'O';
-char Transmission::HOSPITAL = 'M';
-char Transmission::COMMUNITY = 'X';
-
 bool Transmission::Enable_Neighborhood_Density_Transmission = false;
 bool Transmission::Enable_Density_Transmission_Maximum_Infectees = false;
 int Transmission::Density_Transmission_Maximum_Infectees = 10.0;
