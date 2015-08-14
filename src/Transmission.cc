@@ -192,6 +192,9 @@ void Transmission::spread_infection(int day, int disease_id, Place * place) {
     return;
   }
 
+  // have plave record first and last day of infectiousness
+  place->record_infectious_days(day);
+
   if(Global::Enable_Vector_Transmission) {
     vector_transmission(day, disease_id, place);
     return;

@@ -33,15 +33,6 @@ class Place {
 
 public:
   
-  // place-specific transmission mode parameters
-  static bool Enable_Neighborhood_Density_Transmission;
-  static bool Enable_Density_Transmission_Maximum_Infectees;
-  static int Density_Transmission_Maximum_Infectees;
-
-  // static seasonal transmission parameters
-  static double Seasonal_Reduction;
-  static double* Seasonality_multiplier;
-
   // place type codes
   static char HOUSEHOLD;
   static char NEIGHBORHOOD;
@@ -66,9 +57,6 @@ public:
 
   virtual void print(int disease_id);
 
-  // initialzation
-  static void initialize_static_variables();
-  
   void reset_place_state(int disease_id) {
     this->infectious_bitset.reset(disease_id);
   }
@@ -83,6 +71,8 @@ public:
   virtual void update(int day);
   void reset_visualization_data(int day);
   void reset_vector_data(int day);
+
+  void record_infectious_days(int day);
 
   // infectious people
   void clear_infectious_people(int disease_id) {
@@ -158,12 +148,6 @@ public:
     return this->enrollees;
   }
 
-  void spread_infection(int day, int disease_id);
-  void default_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
-  void age_based_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
-  void pairwise_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
-  void density_transmission_model(int day, int disease_id, std::vector<Person*>* infectious, std::vector<Person*>* susceptibles);
-
   // access methods:
   int get_adults();
   int get_children();
@@ -202,8 +186,6 @@ public:
   double get_contact_rate(int day, int disease_id);
 
   int get_contact_count(Person* infector, int disease_id, int day, double contact_rate);
-
-  bool attempt_transmission(double transmission_prob, Person * infector, Person * infectee, int disease_id, int day);
 
   /**
    * Determine if the place should be open. It is dependent on the disease_id and simulation day.

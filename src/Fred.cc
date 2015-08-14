@@ -169,7 +169,6 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   // initialize parameters and other static variables
-  Place::initialize_static_variables();
   Demographics::initialize_static_variables();
   Activities::initialize_static_variables();
   Behavior::initialize_static_variables();
