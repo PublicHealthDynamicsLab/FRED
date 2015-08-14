@@ -32,6 +32,7 @@
 #include "Date.h"
 #include "Evolution.h"
 #include "Travel.h"
+#include "Transmission.h"
 #include "Epidemic.h"
 #include "Seasonality.h"
 #include "Activities.h"
@@ -100,6 +101,7 @@ void fred_setup(int argc, char* argv[]) {
 
   // create diseases and read parameters
   Global::Diseases.get_parameters();
+  Transmission::get_parameters();
 
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");

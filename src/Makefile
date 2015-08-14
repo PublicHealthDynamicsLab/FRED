@@ -128,7 +128,7 @@ AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o
 	Behavior.o Intention.o Perceptions.o Travel.o Population.o 
 
 DISEASE_MODULE = Disease.o Epidemic.o Infection.o HIV_Infection.o \
-	Natural_History.o HIV_Natural_History.o \
+	Natural_History.o HIV_Natural_History.o Transmission.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o 
 
 PLACE_MODULE = Place.o Household.o Neighborhood.o School.o Classroom.o \

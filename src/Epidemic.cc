@@ -42,6 +42,7 @@ using namespace std;
 #include "School.h"
 #include "Seasonality.h"
 #include "Tracker.h"
+#include "Transmission.h"
 #include "Utils.h"
 #include "Vector_Layer.h"
 #include "Workplace.h"
@@ -1701,7 +1702,8 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
 void Epidemic::spread_infection_in_active_places(int day) {
   for(int i = 0; i < this->active_place_vec.size(); ++i) {
     Place* place = this->active_place_vec[i];
-    place->spread_infection(day, this->id);
+    // place->spread_infection(day, this->id);
+    Transmission::spread_infection(day, this->id, place);
     place->clear_infectious_people(this->id);
   }
   return;

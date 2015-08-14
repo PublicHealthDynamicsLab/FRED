@@ -27,6 +27,8 @@ using namespace std;
 class Neighborhood_Patch;
 class Person;
 
+typedef std::vector<Person*> person_vec_t;
+
 class Place {
 
 public:
@@ -586,6 +588,14 @@ public:
     return this->last_day_infectious;
   }
 
+  person_vec_t * get_enrollees() {
+    return &(this->enrollees);
+  }
+
+  person_vec_t * get_infectious_people(int  disease_id) {
+    return &(this->infectious_people[disease_id]);
+  }
+
   Person* get_enrollee(int i) {
     return this->enrollees[i];
   }
@@ -705,8 +715,8 @@ protected:
   Neighborhood_Patch* patch;       // geo patch for this place
   
   // lists of people
-  std::vector<Person*> * infectious_people;
-  std::vector<Person*> enrollees;
+  person_vec_t * infectious_people;
+  person_vec_t  enrollees;
 
   // epidemic counters
   int new_infections[Global::MAX_NUM_DISEASES]; // new infections today
