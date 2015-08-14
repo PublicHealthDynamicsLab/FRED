@@ -233,11 +233,17 @@ void Transmission::default_transmission_model(int day, int disease_id, Place * p
   // contact_rate is contacts_per_day with weeked and seasonality modulation (if applicable)
   double contact_rate = place->get_contact_rate(day, disease_id);
 
-  // randomize the order of the infectious list
-  FYShuffle<Person*>(*infectious);
-  // printf("shuffled infectious size %d\n", (int)infectious->size());
+  // randomize the order of processing the infectious list
+  std::vector<int> shuffle_index;
+  int number_of_infectious = infectious->size();
+  shuffle_index.reserve(number_of_infectious);
+  for (int i = 0; i < number_of_infectious; i++) {
+    shuffle_index[i] = i;
+  }
+  FYShuffle<int>(shuffle_index);
 
-  for(int infector_pos = 0; infector_pos < infectious->size(); ++infector_pos) {
+  for(int n = 0; n < number_of_infectious; ++n) {
+    int infector_pos = shuffle_index[n];
     // infectious visitor
     Person* infector = (*infectious)[infector_pos];
     // printf("infector id %d\n", infector->get_id());
@@ -394,12 +400,18 @@ void Transmission::age_based_transmission_model(int day, int disease_id, Place *
   }  
   printf("cdf done\n"); fflush(stdout);
 
-  // randomize the order of the susceptibles list
-  // NO NO NO NO NO
-  FYShuffle<Person*>(*susceptibles);
+  // randomize the order of processing the susceptible list
+  std::vector<int> shuffle_index;
+  int number_of_susceptibles = susceptibles->size();
+  shuffle_index.reserve(number_of_susceptibles);
+  for (int i = 0; i < number_of_susceptibles; i++) {
+    shuffle_index[i] = i;
+  }
+  FYShuffle<int>(shuffle_index);
 
   // infect susceptibles according to the infectee_counts
-  for(int sus_pos = 0; sus_pos < susceptibles->size(); ++sus_pos) {
+  for(int i = 0; i < number_of_susceptibles; ++i) {
+    int sus_pos = shuffle_index[i];
     // susceptible visitor
     Person* infectee = (*susceptibles)[sus_pos];
     infectee->update_schedule(day);
@@ -565,13 +577,17 @@ void Transmission::density_transmission_model(int day, int disease_id, Place * p
   int reached_max_infectees_count = 0;
   int number_infectious_hosts = inf_hosts;
 
-  FRED_VERBOSE(1, "density_transmission: exposed = %d\n", exposed);
-  // randomize the order of the susceptibles list
-  // NO NO NO NO NO
-  FYShuffle<Person *>(*susceptibles);
+  // randomize the order of processing the susceptible list
+  std::vector<int> shuffle_index;
+  int number_of_susceptibles = susceptibles->size();
+  shuffle_index.reserve(number_of_susceptibles);
+  for (int i = 0; i < number_of_susceptibles; i++) {
+    shuffle_index[i] = i;
+  }
+  FYShuffle<int>(shuffle_index);
 
   for(int j = 0; j < exposed && j < sus_hosts && 0 < inf_hosts; ++j) {
-    Person * infectee = (*susceptibles)[j];
+    Person * infectee = (*susceptibles)[shuffle_index[j]];
     infectee->update_schedule(day);
     if (!infectee->is_present(day, place)) {
       continue;
@@ -724,15 +740,23 @@ void Transmission::vectors_transmit_to_hosts(int day, int disease_id, Place * pl
     e_hosts++;
   }
   FRED_VERBOSE(1, "transmit_to_hosts: E_hosts[%d] = %d\n", disease_id, e_hosts);
-  // randomize the order of the susceptibles list
-  // NO NO NO NO NO
-  FYShuffle<Person *>(*susceptibles);
-  FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", susceptibles->size());
+
+  // infect susceptibles according to the infectee_counts
+
+  // randomize the order of processing the susceptible list
+  std::vector<int> shuffle_index;
+  int number_of_susceptibles = susceptibles->size();
+  shuffle_index.reserve(number_of_susceptibles);
+  for (int i = 0; i < number_of_susceptibles; i++) {
+    shuffle_index[i] = i;
+  }
+  FYShuffle<int>(shuffle_index);
+
   // get the disease object   
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
-  for(int j = 0; j < e_hosts && j < susceptibles->size(); ++j) {
-    Person* infectee = (*susceptibles)[j];
+  for(int j = 0; j < e_hosts && j < number_of_susceptibles; ++j) {
+    Person* infectee = (*susceptibles)[shuffle_index[j]];
     infectee->update_schedule(day);
     if (!infectee->is_present(day, place)) {
       continue;
