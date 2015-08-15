@@ -700,16 +700,16 @@ protected:
   person_vec_t  enrollees;
 
   // epidemic counters
-  int new_infections[Global::MAX_NUM_DISEASES]; // new infections today
-  int current_infections[Global::MAX_NUM_DISEASES]; // current active infections today
-  int total_infections[Global::MAX_NUM_DISEASES]; // total infections over all time
-  int new_symptomatic_infections[Global::MAX_NUM_DISEASES]; // new sympt infections today
-  int current_symptomatic_infections[Global::MAX_NUM_DISEASES]; // current active sympt infections
-  int total_symptomatic_infections[Global::MAX_NUM_DISEASES]; // total sympt infections over all time
+  int * new_infections;				// new infections today
+  int * current_infections;	      // current active infections today
+  int * total_infections;	       // total infections over all time
+  int * new_symptomatic_infections;	   // new sympt infections today
+  int * current_symptomatic_infections; // current active sympt infections
+  int * total_symptomatic_infections; // total sympt infections over all time
 
   // these counts refer to today's visitors:
-  int current_infectious_visitors[Global::MAX_NUM_DISEASES]; // total infectious visitors today
-  int current_symptomatic_visitors[Global::MAX_NUM_DISEASES]; // total sympt infections today
+  int * current_infectious_visitors;  // total infectious visitors today
+  int * current_symptomatic_visitors;	 // total sympt infections today
 
   int first_day_infectious;
   int last_day_infectious;

@@ -71,6 +71,15 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   int diseases = Global::Diseases.get_number_of_diseases();
   infectious_people = new std::vector<Person*> [diseases];
 
+  new_infections = new int [diseases]; 
+  current_infections = new int [diseases]; 
+  total_infections = new int [diseases]; 
+  new_symptomatic_infections = new int [diseases]; 
+  current_symptomatic_infections = new int [diseases]; 
+  total_symptomatic_infections = new int [diseases]; 
+  current_infectious_visitors = new int [diseases]; 
+  current_symptomatic_visitors = new int [diseases]; 
+
   // zero out all disease-specific counts
   for(int d = 0; d < diseases; ++d) {
     this->new_infections[d] = 0;
