@@ -170,8 +170,10 @@ void Natural_History::get_parameters() {
 
   int evolType;
   Params::get_indexed_param(disease_name, "evolution", &evolType);
-  this->evol = EvolutionFactory::newEvolution(evolType);
-  this->evol->setup(this->disease);
+  if (evolType > -1) {
+    this->evol = EvolutionFactory::newEvolution(evolType);
+    this->evol->setup(this->disease);
+  }
 
   FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
 }

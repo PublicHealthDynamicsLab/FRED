@@ -26,7 +26,7 @@ using namespace std;
 #include "Date.h"
 #include "Disease.h"
 #include "Epidemic.h"
-#include "Evolution.h"
+// #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Household.h"
@@ -40,11 +40,10 @@ using namespace std;
 #include "Population.h"
 #include "Random.h"
 #include "School.h"
-#include "Seasonality.h"
+// #include "Seasonality.h"
 #include "Tracker.h"
 #include "Transmission.h"
 #include "Utils.h"
-#include "Vector_Layer.h"
 #include "Workplace.h"
 
 Epidemic::Epidemic(Disease* dis) {

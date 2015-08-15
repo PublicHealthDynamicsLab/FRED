@@ -241,6 +241,7 @@ public:
   static bool Report_Immunity;
   static bool Enable_Vaccination;
   static bool Enable_Antivirals;
+  static bool Enable_Viral_Evolution;
   static bool Enable_HAZEL;
   static bool Enable_hh_income_based_susc_mod;
   static bool Use_Mean_Latitude;

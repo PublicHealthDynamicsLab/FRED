@@ -43,23 +43,54 @@ void Neighborhood::get_parameters(int diseases) {
   
   if (Neighborhood::Neighborhood_parameters_set) return;
   
-  if (Global::Enable_Vector_Transmission == false) {
-
-    Neighborhood::Weekend_contact_rate = new double [ diseases ];
-    Neighborhood::Neighborhood_contacts_per_day = new double [ diseases ];
-    Neighborhood::Neighborhood_contact_prob = new double** [ diseases ];
+  Neighborhood::Weekend_contact_rate = new double [ diseases ];
+  Neighborhood::Neighborhood_contacts_per_day = new double [ diseases ];
+  Neighborhood::Neighborhood_contact_prob = new double** [ diseases ];
     
-    for(int disease_id = 0; disease_id < diseases; disease_id++) {
-      Disease * disease = Global::Diseases.get_disease(disease_id);
-      sprintf(param_str, "%s_weekend_contact_rate", disease->get_disease_name());
-      Params::get_param((char *) param_str, &Neighborhood::Weekend_contact_rate[disease_id]);
-      sprintf(param_str, "%s_neighborhood_contacts", disease->get_disease_name());
-      Params::get_param((char *) param_str, &Neighborhood::Neighborhood_contacts_per_day[disease_id]);
-      sprintf(param_str, "%s_neighborhood_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &Neighborhood::Neighborhood_contact_prob[disease_id]);
+  for(int disease_id = 0; disease_id < diseases; disease_id++) {
+    Disease * disease = Global::Diseases.get_disease(disease_id);
+    sprintf(param_str, "%s_weekend_contact_rate", disease->get_disease_name());
+    Params::get_param((char *) param_str, &Neighborhood::Weekend_contact_rate[disease_id]);
+    sprintf(param_str, "%s_neighborhood_contacts", disease->get_disease_name());
+    Params::get_param((char *) param_str, &Neighborhood::Neighborhood_contacts_per_day[disease_id]);
+    sprintf(param_str, "%s_neighborhood_prob", disease->get_disease_name());
+    int n = Params::get_param_matrix(param_str, &Neighborhood::Neighborhood_contact_prob[disease_id]);
+
+    if(Global::Verbose > 0) {
+      printf("\nNeighborhood_contact_prob before normalization:\n");
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  printf("%f ", Neighborhood::Neighborhood_contact_prob[disease_id][i][j]);
+	}
+	printf("\n");
+      }
+      printf("\ncontact rate: %f\n", Neighborhood::Neighborhood_contacts_per_day[disease_id]);
+    }
+
+    // normalize contact parameters
+    // find max contact prob
+    double max_prob = 0.0;
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	if (Neighborhood::Neighborhood_contact_prob[disease_id][i][j] > max_prob) {
+	  max_prob = Neighborhood::Neighborhood_contact_prob[disease_id][i][j];
+	}
+      }
+    }
+
+    // convert max contact prob to 1.0
+    if (max_prob > 0) {
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  Neighborhood::Neighborhood_contact_prob[disease_id][i][j] /= max_prob;
+	}
+      }
+      // compensate contact rate
+      Neighborhood::Neighborhood_contacts_per_day[disease_id] *= max_prob;
+      // end normalization
 
       if(Global::Verbose > 0) {
-	printf("\nNeighborhood_contact_prob before normalization:\n");
+	printf("\nNeighborhood_contact_prob after normalization:\n");
 	for(int i  = 0; i < n; i++)  {
 	  for(int j  = 0; j < n; j++) {
 	    printf("%f ", Neighborhood::Neighborhood_contact_prob[disease_id][i][j]);
@@ -68,45 +99,9 @@ void Neighborhood::get_parameters(int diseases) {
 	}
 	printf("\ncontact rate: %f\n", Neighborhood::Neighborhood_contacts_per_day[disease_id]);
       }
-
-      // normalize contact parameters
-      // find max contact prob
-      double max_prob = 0.0;
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  if (Neighborhood::Neighborhood_contact_prob[disease_id][i][j] > max_prob) {
-	    max_prob = Neighborhood::Neighborhood_contact_prob[disease_id][i][j];
-	  }
-	}
-      }
-
-      // convert max contact prob to 1.0
-      if (max_prob > 0) {
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    Neighborhood::Neighborhood_contact_prob[disease_id][i][j] /= max_prob;
-	  }
-	}
-	// compensate contact rate
-	Neighborhood::Neighborhood_contacts_per_day[disease_id] *= max_prob;
-	// end normalization
-
-	if(Global::Verbose > 0) {
-	  printf("\nNeighborhood_contact_prob after normalization:\n");
-	  for(int i  = 0; i < n; i++)  {
-	    for(int j  = 0; j < n; j++) {
-	      printf("%f ", Neighborhood::Neighborhood_contact_prob[disease_id][i][j]);
-	    }
-	    printf("\n");
-	  }
-	  printf("\ncontact rate: %f\n", Neighborhood::Neighborhood_contacts_per_day[disease_id]);
-	}
-	// end normalization
-      }
-
+      // end normalization
     }
   }
-
   Neighborhood::Neighborhood_parameters_set = true;
 }
 

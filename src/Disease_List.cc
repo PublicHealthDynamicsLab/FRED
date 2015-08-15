@@ -55,9 +55,7 @@ void Disease_List::prepare_diseases() {
   for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
     Disease *disease = this->diseases[disease_id]; 
     disease->get_natural_history()->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer) {
-      disease->get_natural_history()->init_prior_immunity();
-    }
+    disease->get_natural_history()->init_prior_immunity();
   }
 }
 
