@@ -168,9 +168,9 @@ void Natural_History::get_parameters() {
   sprintf(paramstr, "%s_infection_immunity_prob", disease_name);
   this->infection_immunity_prob->read_from_input(paramstr);
 
-  int evolType;
-  Params::get_indexed_param(disease_name, "evolution", &evolType);
-  if (evolType > -1) {
+  if (Global::Enable_Viral_Evolution) {
+    int evolType;
+    Params::get_indexed_param(disease_name, "evolution", &evolType);
     this->evol = EvolutionFactory::newEvolution(evolType);
     this->evol->setup(this->disease);
   }
@@ -216,7 +216,7 @@ bool Natural_History::gen_immunity_infection(double real_age) {
 
 
 void Natural_History::initialize_evolution_reporting_grid(Regional_Layer* grid) {
-  // this->evol->initialize_reporting_grid(grid);
+  this->evol->initialize_reporting_grid(grid);
 }
 
 void Natural_History::init_prior_immunity() {

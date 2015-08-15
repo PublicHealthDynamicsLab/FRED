@@ -606,7 +606,9 @@ residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIP
 <disease_name>_infection_model = 0
 <disease_name>_infectivity_threshold = 0
 <disease_name>_symptomaticity_threshold = 0
+
 <disease_name>_evolution = 0
+enable_viral_evolution = 0
 
 ##########################################################
 #

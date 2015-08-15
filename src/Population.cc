@@ -170,12 +170,6 @@ void Population::delete_person(Person* person) {
   person->terminate();
   FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
 
-  /*
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    Global::Diseases.get_disease(d)->get_evolution()->terminate_person(person);
-    }
-  */
-
   if(Global::Enable_Travel) {
     Travel::terminate_person(person);
   }
