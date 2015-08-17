@@ -98,7 +98,7 @@ Vector_Layer::Vector_Layer() {
 
   for(int i = 0; i < this->rows; ++i) {
     for(int j = 0; j < this->cols; ++j) {
-      this->grid[i][j].setup(i, j, this->patch_size, this->min_x, this->min_y, this->transmission_efficiency, this->infection_efficiency);
+      this->grid[i][j].setup(i, j, this->patch_size, this->min_x, this->min_y);
     }      
   }
   // To read the temperature grid
@@ -274,42 +274,17 @@ void Vector_Layer::update(int day) {
   this->total_infected_vectors = 0;
   this->total_infected_hosts = 0;
   this->total_infectious_hosts = 0;
+
   FRED_VERBOSE(1,"Vector_Layer::update() entered on day %d\n", day);
-  for(int i = 0; i < this->rows; ++i) {
-    for(int j = 0; j < this->cols; ++j) {
-      Vector_Patch* patch = static_cast<Vector_Patch*>(&this->grid[i][j]);
-      patch->update(day);
-      // total_infected_vectors += patch->get_infected_vectors();
-      // total_infected_hosts += patch->get_infected_hosts();
-      // total_infectious_hosts += patch->get_infectious_hosts();
-    }
-  }
   // Global::Daily_Tracker->log_key_value("Vec_I", total_infected_vectors);
   // Global::Daily_Tracker->log_key_value("Vec_H", total_infectious_hosts);
-
-  /*
-    FILE *fp;
-    char filename[80];
-    sprintf(filename, "vec-%d.txt", day);
-    fp = fopen(filename,"w");
-    for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-    Vector_Patch * patch = (Vector_Patch *) &grid[i][j];
-    int popsize = patch->get_popsize();
-    int infected = patch->get_infected();
-    int count = patch->get_infectious_hosts();
-    fprintf(fp,"i %d j %d popsize %d infected %d inf_hosts %d\n",i,j,popsize,infected,count);
-    }
-    }
-    fclose(fp);
-  */
 }
 
 void Vector_Layer::update_visualization_data(int disease_id, int day) {
   for (int i = 0; i < this->rows; ++i) {
     for (int j = 0; j < this->cols; ++j) {
       Vector_Patch* patch = static_cast<Vector_Patch*>(&this->grid[i][j]);
-      int count = patch->get_infected_vectors();
+      int count = 0; // patch->get_infected_vectors();
       if(count > 0) {
 	double x = patch->get_center_x();
 	double y = patch->get_center_y();
@@ -320,6 +295,7 @@ void Vector_Layer::update_visualization_data(int disease_id, int day) {
 }
 
 void Vector_Layer::add_hosts(Place* p) {
+  /*
   fred::geo lat = p->get_latitude();
   fred::geo lon = p->get_longitude();
   int hosts = p->get_size();
@@ -327,6 +303,7 @@ void Vector_Layer::add_hosts(Place* p) {
   if(patch != NULL) {
     patch->add_hosts(hosts);
   }
+  */
 }
 
 double Vector_Layer::get_temperature(Place* p) {
@@ -394,6 +371,7 @@ double Vector_Layer::get_day_end_seed(Place* p, int dis) {
 }
 
 void Vector_Layer::add_host(Person* person, Place* place) {
+  /*
   if(place->is_neighborhood()) {
     return;
   }
@@ -403,6 +381,7 @@ void Vector_Layer::add_host(Person* person, Place* place) {
   if(patch != NULL) {
     patch->add_host(person);
   }
+  */
 }
 void Vector_Layer::get_county_ids(){
   // get the county ids from external file

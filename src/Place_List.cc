@@ -1272,7 +1272,7 @@ void Place_List::update(int day) {
       }
 
       if(Global::Enable_Vector_Transmission) {
-        place->reset_vector_data(day);
+        place->update_vector_population(day);
       }
 
       if(Global::Enable_HAZEL && (place->get_type() == Place::HOSPITAL)) {

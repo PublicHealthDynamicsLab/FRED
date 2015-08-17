@@ -26,7 +26,6 @@ using namespace std;
 #include "Date.h"
 #include "Disease.h"
 #include "Epidemic.h"
-// #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Household.h"
@@ -40,7 +39,6 @@ using namespace std;
 #include "Population.h"
 #include "Random.h"
 #include "School.h"
-// #include "Seasonality.h"
 #include "Tracker.h"
 #include "Transmission.h"
 #include "Utils.h"
@@ -1687,6 +1685,30 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
     }
   }
   
+  if (Global::Enable_Vector_Transmission) {
+    // add all places that have any infectious vectors
+    std::vector<Place*> * place_vec = NULL;
+    if (place_type == 0) {
+      place_vec = Global::Places.get_households();
+    }
+    if (place_type == 2) {
+      place_vec = Global::Places.get_schools();
+    }
+    if (place_type == 4) {
+      place_vec = Global::Places.get_workplaces();
+    }
+    if (place_vec != NULL) {
+      int size = place_vec->size();
+      for (int i = 0; i < size; i++) {
+	Place * place = (*place_vec)[i];
+	if (place->get_infectious_vectors(this->id) > 0) {
+	  active_places.insert(place);
+	}
+      }
+    }
+  }
+
+
   FRED_VERBOSE(1, "find_active_places_of_type %d found %d\n", place_type, active_places.size());
 
   // convert active set to vector

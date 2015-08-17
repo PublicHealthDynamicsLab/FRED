@@ -97,9 +97,6 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
 
 void Place::prepare() {
   this->N_orig = this->enrollees.size();
-  if(Global::Enable_Vector_Transmission && !this->is_neighborhood()) {
-    setup_vector_model();
-  }
   for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
@@ -112,6 +109,11 @@ void Place::prepare() {
   this->infectious_bitset.reset();
   this->human_infectious_bitset.reset();
   this->exposed_bitset.reset();
+
+  if(Global::Enable_Vector_Transmission && !this->is_neighborhood()) {
+    setup_vector_model();
+  }
+
   FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->id, this->label, this->type);
 }
 
@@ -354,22 +356,13 @@ void Place::record_infectious_days(int day) {
 
 //////////////////////////////////////////////////////////
 //
-// PLACE SPECIFIC VECTOR TRANSMISSION MODEL
+// PLACE SPECIFIC VECTOR DATA
 //
 //////////////////////////////////////////////////////////
 
 
-void Place::reset_vector_data(int day) {
-  if(!this->is_neighborhood()){
-    this->update_vector_population(day);
-    this->vectors_not_infected_yet = true;
-  }
-}
-
 void Place::setup_vector_model() {
-  // local state variables
   this->N_vectors = 0;
-  this->N_hosts = 0;
   this->S_vectors = 0;
   for(int i = 0; i < DISEASE_TYPES; ++i) {
     this->E_vectors[i] = 0;
@@ -428,142 +421,14 @@ void Place::set_temperature(){
   FRED_VERBOSE(1, "SET TEMP: House %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n", this->label, this->temperature, this->vectors_per_host, this->N_vectors, this->N_orig);
 }
 
-// TODO: move to Transmission class
-
-void Place::vector_transmission(int day, int disease_id) {
-
-  // N_vectors is updated in update_vector_population()
-
-  // N_hosts includes all visitors: infectious, susceptible, or neither
-  this->N_hosts = this->enrollees.size();
-
-  // infections of vectors by hosts
-  if(this->vectors_not_infected_yet) {
-    this->infect_vectors(day);
-  }
-
-  // transmission from vectors to hosts
-  this->vectors_transmit_to_hosts(day, disease_id);
-}
-
-
-void Place::infect_vectors(int day) {
-
-  // skip if there are no susceptible vectors
-  if(this->S_vectors == 0) {
-    return;
-  }
-
-  // find the percent distribution of infectious hosts
-  int* infectious_hosts = new int [Global::Diseases.get_number_of_diseases()];
-  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    infectious_hosts[disease_id] = 0;
-  }
-  int total_infectious_hosts = 0;
-  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    std::vector<Person*> * infectious = &(infectious_people[disease_id]);
-
-    infectious_hosts[disease_id] = infectious->size();
-    total_infectious_hosts += infectious_hosts[disease_id];
-  }
-
-  // return if there are no infectious hosts
-  if(total_infectious_hosts == 0) {
-    return;
-  }
-
-  FRED_VERBOSE(1, "infect_vectors entered S_vectors %d N_inf_hosts %d\n", this->S_vectors, total_infectious_hosts);
-
-  // the vector infection model of Chao and Longini
-
-  // decide on total number of vectors infected by any infectious host
-
-  // each vectors's probability of infection
-  double prob_infection = 1.0 - pow((1.0 - this->infection_efficiency), (this->bite_rate * total_infectious_hosts) / this->N_hosts);
-
-  // select a number of vectors to be infected
-  int total_infections = prob_infection * this->S_vectors;
-  FRED_VERBOSE(1, "total infections %d\n", total_infections);
-
-  // assign strain based on distribution of infectious hosts
-  int newly_infected = 0;
-  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    int strain_infections = total_infections *((double)infectious_hosts[disease_id] / (double)total_infectious_hosts);
-    this->E_vectors[disease_id] += strain_infections;
-    this->S_vectors -= strain_infections;
-    newly_infected += strain_infections;
-  }
-  this->vectors_not_infected_yet = false;
-  FRED_VERBOSE(1, "newly_infected_vectors %d S %d \n", newly_infected,this-> S_vectors);
-}
-
-void Place::vectors_transmit_to_hosts(int day, int disease_id) {
-
-  int e_hosts = 0;
-
-  // get reference to susceptibles list for this disease_id
-  // this->place_state_merge = Place_State_Merge();
-  // this->place_state[disease_id].apply(this->place_state_merge);
-  // std::vector<Person*> & susceptibles = this->place_state_merge.get_susceptible_vector();
-  std::vector<Person*> * susceptibles = &(this->enrollees);
-
-  int s_hosts = susceptibles->size();
-
-  if(Global::Verbose > 1) {
-    int R_hosts = get_recovereds(disease_id);
-    FRED_VERBOSE(1, "day %d vector_update: %s S_vectors %d E_vectors %d I_vectors %d  N_vectors = %d N_host = %d S_hosts %d R_hosts %d Temp = %f dis %d\n",
-		 day, this->label, S_vectors, E_vectors[disease_id], I_vectors[disease_id], N_vectors, 
-		 N_hosts,susceptibles->size(),R_hosts,temperature,disease_id);
-  }
-
-  if(s_hosts == 0 || this->I_vectors[disease_id] == 0 || this->transmission_efficiency == 0.0) {
-    return;
-  }
-
-  // each host's probability of infection
-  double prob_infection = 1.0 - pow((1.0 - this->transmission_efficiency), (this->bite_rate * this->I_vectors[disease_id] / this->N_hosts));
-  
-  // select a number of hosts to be infected
-  double expected_infections = s_hosts * prob_infection;
-  e_hosts = floor(expected_infections);
-  double remainder = expected_infections - e_hosts;
-  if(Random::draw_random() < remainder) {
-    e_hosts++;
-  }
-  FRED_VERBOSE(1, "transmit_to_hosts: E_hosts[%d] = %d\n", disease_id, e_hosts);
-  // randomize the order of the susceptibles list
-  FYShuffle<Person *>(*susceptibles);
-  FRED_VERBOSE(1,"Shuffle finished S_hosts size = %d\n", susceptibles->size());
-  // get the disease object   
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-
-  for(int j = 0; j < e_hosts && j < susceptibles->size(); ++j) {
-    Person* infectee = (*susceptibles)[j];
-    infectee->update_schedule(day);
-    if (!infectee->is_present(day, this)) {
-      continue;
-    }
-    FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
-    // NOTE: need to check if infectee already infected
-    if(infectee->is_susceptible(disease_id)) {
-      // create a new infection in infectee
-      FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
-      infectee->become_exposed(disease_id, NULL, this, day);
-
-      // become unsusceptible to other diseases(?)
-      for(int d = 0; d < DISEASE_TYPES; d++) {
-        if(d != disease_id) {
-          Disease* other_disease = Global::Diseases.get_disease(d);
-          infectee->become_unsusceptible(other_disease);
-        }
-      }
-    } else {
-      FRED_VERBOSE(1,"host %d not susceptible\n", infectee->get_id());
-    }
-  }
-}
 
 void Place::update_vector_population(int day) {
+  this->vectors_have_been_infected_today = false;
+  
+  if(this->is_neighborhood()){
+    return;
+  }
+
   if(this->N_vectors <= 0) {
     return;
   }

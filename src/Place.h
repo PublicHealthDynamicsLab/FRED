@@ -69,8 +69,8 @@ public:
 
   // daily update
   virtual void update(int day);
+
   void reset_visualization_data(int day);
-  void reset_vector_data(int day);
 
   void record_infectious_days(int day);
 
@@ -606,43 +606,6 @@ public:
     this->staff_size = _staff_size;
   }
 
-  // vector transmission model
-  void setup_vector_model();
-  void set_temperature();
-  void vector_transmission(int day, int disease_id);
-  void infect_vectors(int day);
-  void vectors_transmit_to_hosts(int day, int disease_id);
-  void update_vector_population(int day);
-  int get_vector_population_size() {
-    return this->N_vectors;
-  }
-    
-  bool has_infectious_vectors(int disease_id) {
-    return this->I_vectors[disease_id] > 0;
-  }
-    
-  // int get_number_of_infected_hosts(int disease_id) { return E_hosts[disease_id]; }
-  double get_temperature() {
-    return this->temperature;
-  }
-    
-  double get_seeds(int dis, int day);
-  int get_infected_vectors() {
-    int n = 0;
-    for(int i = 0; i < DISEASE_TYPES; ++i) {
-      n += this->E_vectors[i] + this->I_vectors[i];
-    }
-    return n;
-  }
-
-  int get_infectious_vectors() {
-    int n = 0;
-    for (int i = 0; i < DISEASE_TYPES; ++i) {
-      n += this->I_vectors[i];
-    }
-    return n;
-  }
-
   int get_household_fips() {
     return this->household_fips;
   }
@@ -669,9 +632,52 @@ public:
   
   static char* get_place_label(Place* p);
 
-  // virtual methods defined on some place types
+  // vector transmission methods
 
+  void setup_vector_model();
 
+  void set_temperature();
+
+  void update_vector_population(int day);
+
+  int get_vector_population_size() {
+    return this->N_vectors;
+  }
+    
+  void mark_vectors_as_infected_today() {
+    vectors_have_been_infected_today = true;
+  }
+
+  bool have_vectors_been_infected_today() {
+    return vectors_have_been_infected_today;
+  }
+
+  int get_susceptible_vectors() {
+    return S_vectors;
+  }
+
+  void expose_vectors(int disease_id, int exposed_vectors) {
+    E_vectors[disease_id] += exposed_vectors;
+    S_vectors -= exposed_vectors;
+  }
+
+  int get_infectious_vectors(int disease_id) {
+    return this->I_vectors[disease_id];
+  }
+    
+  double get_transmission_efficiency() {
+    return transmission_efficiency;
+  }
+
+  double get_infection_efficiency() {
+    return infection_efficiency;
+  }
+
+  double get_bite_rate() {
+    return bite_rate;
+  }
+
+  double get_seeds(int dis, int day);
 
 protected:
   char label[32];         // external id
@@ -740,7 +746,11 @@ protected:
     this->current_symptomatic_visitors[disease_id]++;
   }
   
-  // data for vector transmission model
+  // TODO: put vector transmission data into an optional struct
+  // so that memory is not used unless vector transmission is enabled.
+
+  // DATA FOR VECTOR TRANSMISSION MODEL
+
   double death_rate;
   double birth_rate;
   double bite_rate;
@@ -771,9 +781,9 @@ protected:
   int day_start_seed[DISEASE_TYPES];
   int day_end_seed[DISEASE_TYPES];
 
-  // counts for hosts
-  int N_hosts;
-  bool vectors_not_infected_yet;
+  bool vectors_have_been_infected_today;
+
+  // END OF VECTOR TRANSMISSION DATA
 
   // Place Allocator reserves chunks of memory and hands out pointers for use
   // with placement new

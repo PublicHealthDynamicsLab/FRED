@@ -231,6 +231,18 @@ public:
     Place_List::Hospital_ID_current_assigned_size_map.at(hospital_id)++;
   }
 
+  std::vector<Place*> * get_households() {
+    return &(this->households);
+  }
+
+  std::vector<Place*> * get_schools() {
+    return &(this->schools);
+  }
+
+  std::vector<Place*> * get_workplaces() {
+    return &(this->workplaces);
+  }
+
 private:
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);

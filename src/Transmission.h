@@ -53,7 +53,7 @@ public:
   // vector transmission model
   static void vector_transmission(int day, int disease_id, Place * place);
   static void infect_vectors(int day, Place * place);
-  static void vectors_transmit_to_hosts(int day, int disease_id, Place * place);
+  static void infect_hosts(int day, int disease_id, Place * place);
   static void update_vector_population(int day, Place * place);
 
 protected:
