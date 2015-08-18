@@ -42,6 +42,7 @@ void Vector_Patch::setup(int i, int j, double patch_size, double grid_min_x, dou
     day_end_seed[i] = 0;
   }	
   temperature = 0;
+  house_index = 0;
 }
 
 double Vector_Patch::distance_to_patch(Vector_Patch *p2) {
@@ -80,6 +81,13 @@ void Vector_Patch::set_vector_seeds(int dis,int day_on, int day_off,double seeds
 void Vector_Patch::print() {
   FRED_VERBOSE(0, "Vector_patch: %d %d\n",
 	       row, col);
+}
+
+void Vector_Patch::set_mosquito_index(double index_){
+  if(index_ == 0){
+    index_ = 14.18; // average Colombia
+  }
+  house_index = (double) index_ / 100.00;
 }
 
 

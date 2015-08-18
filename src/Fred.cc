@@ -189,6 +189,10 @@ void fred_setup(int argc, char* argv[]) {
   Utils::fred_print_lap_time("Places.setup_group_quarters");
   Global::Places.setup_households();
   Utils::fred_print_lap_time("Places.setup_households");
+  if(Global::Enable_Vector_Layer) {
+    Global::Vectors->setup();
+    Utils::fred_print_lap_time("Vectors->setup");
+  }
 
   // define FRED-specific places and have each person enroll as needed
 

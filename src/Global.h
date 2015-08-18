@@ -231,6 +231,7 @@ public:
   static bool Enable_Group_Quarters;
   static bool Enable_Visualization_Layer;
   static bool Enable_Vector_Layer;
+  static bool Report_Vector_Population;
   static bool Enable_Vector_Transmission;
   static bool Enable_Population_Dynamics;
   static bool Enable_Travel;

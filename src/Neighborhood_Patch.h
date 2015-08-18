@@ -19,14 +19,20 @@
 
 #include <vector>
 #include <string.h>
+
+using namespace std;
+
+typedef std::vector<Place *> place_vector;
+
 #include "Abstract_Patch.h"
 #include "Place.h"
 #include "Global.h"
+
 class Person;
 class Neighborhood_Layer;
 class Neighborhood;
 class Household;
-typedef std::vector<Place *> place_vector;
+
 
 class Neighborhood_Patch : public Abstract_Patch {
 public:
@@ -107,13 +113,6 @@ public:
   }
 
   /**
-   * @return list of households in this patch.
-   */
-  vector<Place *> get_household_list() { 
-    return household; 
-  }
-
-  /**
    * @return a pointer to this Neighborhood_Patch's Neighborhood
    */
   Place * get_neighborhood() { 
@@ -142,11 +141,20 @@ public:
     return mean_household_income; 
   }
 
+  /**
+   * @return list of households in this patch.
+   */
+  place_vector * get_household_list() { 
+    return &(this->household); 
+  }
+
 protected:
   Neighborhood_Layer * grid;
   int houses;
   Place * neighborhood;
+
   std::vector<Person *> person;
+
   place_vector household;
   place_vector school;
   place_vector school_by_age[20];

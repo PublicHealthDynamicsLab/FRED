@@ -20,9 +20,11 @@
 #include "Global.h"
 #include "Abstract_Grid.h"
 #include <fstream>
-class Vector_Patch;
-class Place;
+
+class Epidemic;
 class Person;
+class Place;
+class Vector_Patch;
 
 
 class Vector_Layer : public Abstract_Grid {
@@ -30,12 +32,12 @@ class Vector_Layer : public Abstract_Grid {
 public:
   Vector_Layer();
   ~Vector_Layer() {}
+  void setup();
   Vector_Patch ** get_neighbors(int row, int col);
   Vector_Patch * get_patch(int row, int col);
   Vector_Patch * get_patch(fred::geo lat, fred::geo lon);
   Vector_Patch * select_random_patch();
   void quality_control();
-  void initialize();
   void update(int day);
   void update_visualization_data(int disease_id, int day);
   void add_hosts(Place * p);
@@ -55,6 +57,7 @@ public:
   double get_seeds(Place * p, int dis);
   double get_day_start_seed(Place * p, int dis);
   double get_day_end_seed(Place * p, int dis);
+  void report(int day, Epidemic * epidemic);
 
 protected:
   void get_county_ids();
@@ -72,6 +75,14 @@ protected:
   double transmission_efficiency;
   double place_seeding_probability;
   double mosquito_seeds;
+
+  // vector control parameters
+  static bool Enable_Vector_Control;
+  static bool School_Vector_Control;
+  static bool Workplace_Vector_Control;
+  static bool Household_Vector_Control;
+  static bool Limit_Vector_Control;
+  static bool Neighborhood_Vector_Control;
 };
 
 #endif // _FRED_VECTOR_LAYER_H

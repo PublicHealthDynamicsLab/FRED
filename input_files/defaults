@@ -865,6 +865,14 @@ influenza_fixed_symptomaticity_profile[15] = 5   0 1 1 1 1
 
 enable_vector_layer = 0
 enable_vector_transmission = 0
+enable_vector_control = 0
+school_vector_control = 0
+workplace_vector_control = 0
+household_vector_control = 0
+neighborhood_vector_control = 0
+limit_vector_control = 0
+report_vector_population = 0
+
 # size of vector patches in km
 vector_patch_size = 1.0
 vector_infection_efficiency = 0.2

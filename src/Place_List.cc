@@ -44,7 +44,6 @@
 #include "Tracker.h"
 #include "Travel.h"
 #include "Utils.h"
-#include "Vector_Layer.h"
 #include "Visualization_Layer.h"
 #include "Workplace.h"
 
@@ -1614,14 +1613,6 @@ void Place_List::setup_households() {
     select_households_for_shelter();
   } else if(Global::Enable_HAZEL) {
     select_households_for_evacuation();
-  }
-
-  // initialize the vector layer in proportion to the household population
-  if(Global::Enable_Vector_Layer) {
-    for(int i = 0; i < num_households; ++i) {
-      Household* house = this->get_household_ptr(i);
-      Global::Vectors->add_hosts(house);
-    }
   }
 
   // add household list to visualization layer if needed

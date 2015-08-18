@@ -82,6 +82,7 @@ bool Global::Enable_Health_Insurance = false;
 bool Global::Enable_Group_Quarters = false;
 bool Global::Enable_Visualization_Layer = false;
 bool Global::Enable_Vector_Layer = false;
+bool Global::Report_Vector_Population = false;
 bool Global::Enable_Vector_Transmission = false;
 bool Global::Enable_Population_Dynamics = false;
 bool Global::Enable_Travel = false;
@@ -217,6 +218,8 @@ void Global::get_global_parameters() {
   Global::Enable_Vector_Layer = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_vector_transmission", &temp_int);
   Global::Enable_Vector_Transmission = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_vector_population", &temp_int);
+  Global::Report_Vector_Population = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_population_dynamics", &temp_int);
   Global::Enable_Population_Dynamics = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_travel",&temp_int);

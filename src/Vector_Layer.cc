@@ -28,6 +28,7 @@ using namespace std;
 #include "Vector_Patch.h"
 #include "Disease.h"
 #include "Disease_List.h"
+#include "Epidemic.h"
 #include "Visualization_Layer.h"
 #include "Regional_Layer.h"
 #include "Regional_Patch.h"
@@ -47,6 +48,13 @@ typedef struct county_record {
   int people_immunized;
 } county_record_t;
 
+bool Vector_Layer::Enable_Vector_Control = false;
+bool Vector_Layer::School_Vector_Control = false;
+bool Vector_Layer::Workplace_Vector_Control = false;
+bool Vector_Layer::Household_Vector_Control = false;
+bool Vector_Layer::Neighborhood_Vector_Control = false;
+bool Vector_Layer::Limit_Vector_Control = false;
+
 vector<county_record_t> county_set;
 
 Vector_Layer::Vector_Layer() {
@@ -62,6 +70,25 @@ Vector_Layer::Vector_Layer() {
   this->total_infected_vectors = 0;
   this->total_infectious_hosts = 0;
   this->total_infected_hosts = 0;
+
+  // get vector_control parameters
+  int temp_int;
+  Params::get_param_from_string("enable_vector_control", &temp_int);
+  Vector_Layer::Enable_Vector_Control = (temp_int == 0 ? false : true);
+
+  if (Vector_Layer::Enable_Vector_Control) {
+    Params::get_param_from_string("school_vector_control", &temp_int);
+    Vector_Layer::School_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("workplace_vector_control", &temp_int);
+    Vector_Layer::Workplace_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("household_vector_control", &temp_int);
+    Vector_Layer::Household_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("neighborhood_vector_control", &temp_int);
+    Vector_Layer::Neighborhood_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("limit_vector_control", &temp_int);
+    Vector_Layer::Limit_Vector_Control = (temp_int == 0 ? false : true);
+  }
+
   // determine patch size for this layer
   Params::get_param_from_string("vector_patch_size", &this->patch_size);
   // Get probabilities of transmission 
@@ -266,8 +293,12 @@ void Vector_Layer::quality_control() {
   }
 }
 
-void Vector_Layer::initialize() {
-  return;
+void Vector_Layer::setup() {
+  int num_households = Global::Places.get_number_of_households();
+  for(int i = 0; i < num_households; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    add_hosts(house);
+  }
 }
 
 void Vector_Layer::update(int day) {
@@ -595,4 +626,44 @@ void Vector_Layer::init_prior_immunity_by_county(int d) {
       //	    }
     }
   }
+}
+
+
+void Vector_Layer::report(int day, Epidemic * epidemic) {
+  /*
+  int vector_pop_temp = get_vector_population();
+  int inf_vectors = get_infected_vectors();
+  int sus_vectors = get_susceptible_vectors();
+  int vector_pop_school = get_school_vectors();
+  int vector_pop_workplace = get_workplace_vectors();
+  int vector_pop_household = get_household_vectors();
+  int vector_pop_neighborhood = get_neighborhood_vectors();
+  int school_inf_vectors = get_school_infected_vectors();
+  int household_inf_vectors = get_household_infected_vectors();
+  int workplace_inf_vectors = get_workplace_infected_vectors();
+  int neighborhood_inf_vectors = get_neighborhood_infected_vectors();
+  epidemic->track_value(day,(char *)"Nv", vector_pop_temp);
+  epidemic->track_value(day,(char *)"Nvs", vector_pop_school);
+  epidemic->track_value(day,(char *)"Nvw", vector_pop_workplace);
+  epidemic->track_value(day,(char *)"Nvh", vector_pop_household);
+  epidemic->track_value(day,(char *)"Nvn", vector_pop_neighborhood);
+  epidemic->track_value(day,(char *)"Iv", inf_vectors);
+  epidemic->track_value(day,(char *)"Ivs", school_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivw", workplace_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivh", household_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivn", neighborhood_inf_vectors);
+  epidemic->track_value(day,(char *)"Sv", sus_vectors);
+  if(Vector_Layer::Enable_Vector_Control){
+    int total_places_vc = get_places_in_vector_control();
+    int total_schools_vc = get_schools_in_vector_control();
+    int total_households_vc = get_households_in_vector_control();
+    int total_workplaces_vc = get_workplaces_in_vector_control();
+    int total_neighborhoods_vc = get_schools_in_vector_control();
+    epidemic->track_value(day,(char *)"Pvc", total_places_vc);
+    epidemic->track_value(day,(char *)"Svc", total_schools_vc);
+    epidemic->track_value(day,(char *)"Hvc", total_households_vc);
+    epidemic->track_value(day,(char *)"Wvc", total_workplaces_vc);
+    epidemic->track_value(day,(char *)"Nvc", total_neighborhoods_vc);
+  }
+  */
 }
