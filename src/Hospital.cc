@@ -38,9 +38,8 @@ std::vector<double> Hospital::Hospital_health_insurance_prob;
 
 bool Hospital::HAZEL_hospital_init_map_file_exists = false;
 double Hospital::HAZEL_disaster_capacity_multiplier = 1.0;
-int Hospital::HAZEL_mobile_van_max = 0;
-int Hospital::HAZEL_mobile_van_count = 0;
-int Hospital::HAZEL_mobile_van_active_count = 0;
+int Hospital::HAZEL_mobile_van_open_delay = 0;
+int Hospital::HAZEL_mobile_van_closure_day = 0;
 std::vector<double> Hospital::HAZEL_reopening_CDF;
 HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 
@@ -93,7 +92,6 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
       this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
       if(init_data.is_mobile) {
         this->set_subtype(fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
-        Hospital::HAZEL_mobile_van_count++;
       }
       this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
       this->add_capacity = init_data.add_capacity;
@@ -133,7 +131,8 @@ void Hospital::get_parameters(int diseases) {
 
     Params::get_param_vector((char*)"HAZEL_reopening_CDF", Hospital::HAZEL_reopening_CDF);
     Params::get_param_from_string("HAZEL_disaster_capacity_multiplier", &Hospital::HAZEL_disaster_capacity_multiplier);
-    Params::get_param_from_string("HAZEL_mobile_van_max", &Hospital::HAZEL_mobile_van_max);
+    Params::get_param_from_string("HAZEL_mobile_van_open_delay", &Hospital::HAZEL_mobile_van_open_delay);
+    Params::get_param_from_string("HAZEL_mobile_van_closure_day", &Hospital::HAZEL_mobile_van_closure_day);
 
     Params::get_param_from_string("HAZEL_hospital_init_file_directory", hosp_init_file_dir);
     Params::get_param_from_string("HAZEL_hospital_init_file_name", HAZEL_hosp_init_file_name);
@@ -173,9 +172,9 @@ void Hospital::get_parameters(int diseases) {
             sprintf(s, "%c%s", place_type, tokens[HOSP_ID]);
             string hosp_id_str(s);
             HAZEL_Hospital_Init_Data init_data = HAZEL_Hospital_Init_Data(tokens[PNL_WK], tokens[ACCPT_PRIV],
-									  tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
-									  tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
-									  tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
+              tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
+              tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
+              tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
             this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
@@ -255,70 +254,64 @@ double Hospital::get_contacts_per_day(int disease) {
   return Hospital::Hospital_contacts_per_day[disease];
 }
 
-bool Hospital::should_be_open(int day) {
+bool Hospital::is_open(int sim_day) {
+  bool open = (sim_day < this->close_date || this->open_date <= sim_day);
+  return open;
+}
+
+bool Hospital::should_be_open(int sim_day) {
 
   if(Global::Enable_HAZEL) {
-    // If we haven't made closure decision, do it now
-    if(!this->HAZEL_closure_dates_have_been_set) {
-      if(this->get_subtype() == fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
-        if(day <= Place_List::get_HAZEL_disaster_end_sim_day()) {
-          //Not open until after disaster
-          return false;
-        } else {
-          if(Hospital::HAZEL_mobile_van_max == 0) {
-            return false;
-          }
-          // First roll against the max number allowed to be open / number of mobile clinics in simulation
-          double prob = 0.0;
-          if(Hospital::HAZEL_mobile_van_max > Hospital::HAZEL_mobile_van_count) {
-            prob = 1.0;
-          } else if(Hospital::HAZEL_mobile_van_active_count < Hospital::HAZEL_mobile_van_max && Hospital::HAZEL_mobile_van_count != 0) {
-            prob = static_cast<double>(Hospital::HAZEL_mobile_van_max) / static_cast<double>(Hospital::HAZEL_mobile_van_count);
-          }
-          if(Random::draw_random() < prob) {
-            Hospital::HAZEL_mobile_van_active_count++;
-            //The Mobile Healthcare Clinics open 1 to 5 days after the disaster ends
-            double cdf_arr[5] = { 0.15, 0.35, 0.55, 0.75, 1.0 };
-            int cdf_day = Random::draw_from_cdf(cdf_arr, 5);
-            this->set_close_date(Place_List::get_HAZEL_disaster_end_sim_day());
-            this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + cdf_day);
-            this->HAZEL_closure_dates_have_been_set = true;
-            return true;
-          } else {
-            return false;
-          }
-        }
+    if(this->is_mobile_healthcare_clinic()) {
+      if(sim_day <= (Place_List::get_HAZEL_disaster_end_sim_day() + Hospital::HAZEL_mobile_van_open_delay)) {
+        //Not open until after disaster ends + some delay
+        return false;
       } else {
+        assert(this->HAZEL_closure_dates_have_been_set);
+      }
+    } else {
+      // If we haven't made closure decision, do it now
+      if(!this->HAZEL_closure_dates_have_been_set) {
         apply_individual_HAZEL_closure_policy();
       }
     }
   }
-
-  return is_open(day);
+  return is_open(sim_day);
 }
 
-bool Hospital::should_be_open(int day, int disease) {
+bool Hospital::should_be_open(int sim_day, int disease) {
 
   if(Global::Enable_HAZEL) {
-    return this->should_be_open(day);
+    return this->should_be_open(sim_day);
   }
 
-  return is_open(day);
+  return is_open(sim_day);
 }
 
 void Hospital::apply_individual_HAZEL_closure_policy() {
   assert(Global::Enable_HAZEL);
-  if(Hospital::HAZEL_hospital_init_map_file_exists) {
-    if(Hospital::HAZEL_hospital_init_map.find(string(this->get_label())) != Hospital::HAZEL_hospital_init_map.end()) {
-      HAZEL_Hospital_Init_Data init_data = Hospital::HAZEL_hospital_init_map.find(string(this->get_label()))->second;
-      if(init_data.reopen_after_days > 0) {
-        if(Place_List::get_HAZEL_disaster_start_sim_day() != -1 && Place_List::get_HAZEL_disaster_end_sim_day() != -1) {
-          this->set_close_date(Place_List::get_HAZEL_disaster_start_sim_day());
-          this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + init_data.reopen_after_days);
-          this->HAZEL_closure_dates_have_been_set = true;
+  if(!this->HAZEL_closure_dates_have_been_set) {
+    if(Hospital::HAZEL_hospital_init_map_file_exists) {
+      if(Hospital::HAZEL_hospital_init_map.find(string(this->get_label())) != Hospital::HAZEL_hospital_init_map.end()) {
+        HAZEL_Hospital_Init_Data init_data = Hospital::HAZEL_hospital_init_map.find(string(this->get_label()))->second;
+        if(init_data.reopen_after_days > 0) {
+          if(Place_List::get_HAZEL_disaster_start_sim_day() != -1 && Place_List::get_HAZEL_disaster_end_sim_day() != -1) {
+            this->set_close_date(Place_List::get_HAZEL_disaster_start_sim_day());
+            this->set_open_date(Place_List::get_HAZEL_disaster_end_sim_day() + init_data.reopen_after_days);
+            this->HAZEL_closure_dates_have_been_set = true;
+            return;
+          }
+        } else if(init_data.reopen_after_days == 0 && !this->is_mobile_healthcare_clinic()) {
+          if(Place_List::get_HAZEL_disaster_start_sim_day() != -1 && Place_List::get_HAZEL_disaster_end_sim_day() != -1) {
+            this->set_open_date(0);
+            this->HAZEL_closure_dates_have_been_set = true;
+            return;
+          }
         }
       }
     }
+  } else {
+    return;
   }
 
   if(!this->HAZEL_closure_dates_have_been_set) {
@@ -333,26 +326,26 @@ void Hospital::set_accepts_insurance(Insurance_assignment_index::e insr, bool do
   assert(insr >= Insurance_assignment_index::PRIVATE);
   assert(insr < Insurance_assignment_index::UNSET);
   switch(insr) {
-  case Insurance_assignment_index::PRIVATE:
-    this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
-    break;
-  case Insurance_assignment_index::MEDICARE:
-    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
-    break;
-  case Insurance_assignment_index::MEDICAID:
-    this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
-    break;
-  case Insurance_assignment_index::HIGHMARK:
-    this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
-    break;
-  case Insurance_assignment_index::UPMC:
-    this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
-    break;
-  case Insurance_assignment_index::UNINSURED:
-    this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
-    break;
-  default:
-    Utils::fred_abort("Invalid Insurance Assignment Type", "");
+    case Insurance_assignment_index::PRIVATE:
+      this->accepted_insurance_bitset[Insurance_assignment_index::PRIVATE] = does_accept;
+      break;
+    case Insurance_assignment_index::MEDICARE:
+      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICARE] = does_accept;
+      break;
+    case Insurance_assignment_index::MEDICAID:
+      this->accepted_insurance_bitset[Insurance_assignment_index::MEDICAID] = does_accept;
+      break;
+    case Insurance_assignment_index::HIGHMARK:
+      this->accepted_insurance_bitset[Insurance_assignment_index::HIGHMARK] = does_accept;
+      break;
+    case Insurance_assignment_index::UPMC:
+      this->accepted_insurance_bitset[Insurance_assignment_index::UPMC] = does_accept;
+      break;
+    case Insurance_assignment_index::UNINSURED:
+      this->accepted_insurance_bitset[Insurance_assignment_index::UNINSURED] = does_accept;
+      break;
+    default:
+      Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 
@@ -360,26 +353,26 @@ void Hospital::set_accepts_insurance(int insr_indx, bool does_accept) {
   assert(insr_indx >= 0);
   assert(insr_indx < static_cast<int>(Insurance_assignment_index::UNSET));
   switch(insr_indx) {
-  case static_cast<int>(Insurance_assignment_index::PRIVATE):
-    set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
-  break;
-  case static_cast<int>(Insurance_assignment_index::MEDICARE):
-    set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
-  break;
-  case static_cast<int>(Insurance_assignment_index::MEDICAID):
-    set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
-  break;
-  case static_cast<int>(Insurance_assignment_index::HIGHMARK):
-    set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
-  break;
-  case static_cast<int>(Insurance_assignment_index::UPMC):
-    set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
-  break;
-  case static_cast<int>(Insurance_assignment_index::UNINSURED):
-    set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
-  break;
-  default:
-    Utils::fred_abort("Invalid Insurance Assignment Type", "");
+    case static_cast<int>(Insurance_assignment_index::PRIVATE):
+      set_accepts_insurance(Insurance_assignment_index::PRIVATE, does_accept);
+      break;
+    case static_cast<int>(Insurance_assignment_index::MEDICARE):
+      set_accepts_insurance(Insurance_assignment_index::MEDICARE, does_accept);
+      break;
+    case static_cast<int>(Insurance_assignment_index::MEDICAID):
+      set_accepts_insurance(Insurance_assignment_index::MEDICAID, does_accept);
+      break;
+    case static_cast<int>(Insurance_assignment_index::HIGHMARK):
+      set_accepts_insurance(Insurance_assignment_index::HIGHMARK, does_accept);
+      break;
+    case static_cast<int>(Insurance_assignment_index::UPMC):
+      set_accepts_insurance(Insurance_assignment_index::UPMC, does_accept);
+      break;
+    case static_cast<int>(Insurance_assignment_index::UNINSURED):
+      set_accepts_insurance(Insurance_assignment_index::UNINSURED, does_accept);
+      break;
+    default:
+      Utils::fred_abort("Invalid Insurance Assignment Type", "");
   }
 }
 

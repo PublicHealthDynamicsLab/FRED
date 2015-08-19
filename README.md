@@ -6,28 +6,16 @@ An open source modeling system developed by the University of Pittsburgh [Public
 This is the Master branch of FRED. It is should only be updated after a Development branch is ready to be declared Stable
 
 ####Notes on compiling
+By default FRED will try to use the clang compiler (newer versions of XCode for Mac will have this). If your compiler is not clang, you should find this section of FRED/src/Makefile and comment it out.
 
-FRED was compiled using gcc which is not C++11 by default, so the file src/Place_List.h includes two references to tr1. The following lines
-
-```c++
-#include <tr1/unordered_map>
-//...
-typedef std::tr1::unordered_map<string, int> LabelMapT;
-
-//Should be changed to
-#include <unordered_map>
-//...
-typedef std::unordered_map<string, int> LabelMapT;
+```
+# comment out if not using clang
+CLANG_FLAGS = -mllvm -inline-threshold=1000
 ```
 
-Also, by default FRED will try to use the openMP libraries. The clang compiler (newer versions of XCode for Mac will have this) does not use openMP so the build will fail. If your compiler does not use openMP, simply comment out the CPPFLAGS line
+so that it looks like this:
 
-```make
-CPPFLAGS = -g $(M64) -O3 -fopenmp $(LOGGING_PRESET_3) -DNCPU=$(NCPU) -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 ```
-
-and uncomment this one
-
-```make
-CPPFLAGS = -g $(M64) -O3 $(LOGGING_PRESET_3) -DNCPU=1 -DSQLITE=$(SQLITE) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+# comment out if not using clang
+# CLANG_FLAGS = -mllvm -inline-threshold=1000
 ```

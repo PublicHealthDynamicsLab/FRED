@@ -214,11 +214,11 @@ public:
   }
 
   /**
-   * Assign the agent to a Hospital
-   * @see Activities::assign_hospital()
+   * Assign the agent a primary healthjare facility
+   * @see Activities::assign_primary_healthcare_facility()
    */
-  void assign_hospital() {
-    this->activities.assign_hospital(this);
+  void assign_primary_healthcare_facility() {
+    this->activities.assign_primary_healthcare_facility(this);
   }
 
   /**

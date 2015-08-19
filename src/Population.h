@@ -160,9 +160,9 @@ public:
   void assign_offices();
 
   /**
-   * Assign agents a primary healthcare facility (a Hospital that does not accept overnight visits)
+   * Assign all agents a primary healthcare facility
    */
-  void assign_primary_healthcare();
+  void assign_primary_healthcare_facilities();
 
   /**
    * Write degree information to a file degree.txt

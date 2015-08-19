@@ -698,7 +698,7 @@ void Population::Update_Population_Behaviors::operator() (Person &p) {
 
 void Population::report(int day) {
 
-  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter || (strcmp(School::get_school_closure_policy(), "none")!=0)) {
+  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {
     // update infection counters for places
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       for(int i = 0; i < this->get_index_size(); ++i) {
@@ -884,7 +884,9 @@ void Population::assign_offices() {
   FRED_VERBOSE(0,"assign offices finished\n");
 }
 
-void Population::assign_primary_healthcare() {
+void Population::assign_primary_healthcare_facilities() {
+  assert(this->is_load_completed());
+  assert(Global::Places.is_load_completed());
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "assign primary healthcare entered\n");
     fflush(Global::Statusfp);
@@ -894,7 +896,7 @@ void Population::assign_primary_healthcare() {
     if(person == NULL) {
       continue;
     }
-    person->assign_hospital();
+    person->assign_primary_healthcare_facility();
 
   }
   FRED_VERBOSE(0,"assign primary healthcare finished\n");
@@ -1699,26 +1701,6 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
   }
   fclose(fp);
 }
-
-////TODO REMOVE
-//void Population::print_HAZEL_data() {
-//  for(int p = 0; p < this->get_index_size(); ++p) {
-//    Person* person = get_person_by_index(p);
-//    if(person == NULL) {
-//      continue;
-//    }
-//    Household* hh = static_cast<Household*>(person->get_household());
-//    Hospital* hosp = static_cast<Hospital*>(person->get_hospital());
-//    assert(hh != NULL);
-//    if(hosp == NULL) {
-//      hosp = hh->get_household_visitation_hospital();
-//    }
-//    assert(hosp != NULL);
-//
-//    printf("DEBUG_HAZEL: Agent[%s], Assigned Healthcare[%s]\n", person->to_string().c_str(),
-//        hosp->get_label());
-//  }
-//}
 
 Person* Population::select_random_person() {
   int i = Random::draw_random_int(0, get_index_size() - 1);

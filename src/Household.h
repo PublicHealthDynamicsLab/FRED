@@ -96,24 +96,24 @@ public:
     assert(idx >= 0);
     assert(idx <= Household_income_level_code::UNCLASSIFIED);
     switch(idx) {
-    case Household_income_level_code::CAT_I:
-      return "cat_I";
-    case Household_income_level_code::CAT_II:
-      return "cat_II";
-    case Household_income_level_code::CAT_III:
-      return "cat_III";
-    case Household_income_level_code::CAT_IV:
-      return "cat_IV";
-    case Household_income_level_code::CAT_V:
-      return "cat_V";
-    case Household_income_level_code::CAT_VI:
-      return "cat_VI";
-    case Household_income_level_code::CAT_VII:
-      return "cat_VII";
-    case Household_income_level_code::UNCLASSIFIED:
-      return "Unclassified";
-    default:
-      Utils::fred_abort("Invalid Household Income Level Code", "");
+      case Household_income_level_code::CAT_I:
+        return "cat_I";
+      case Household_income_level_code::CAT_II:
+        return "cat_II";
+      case Household_income_level_code::CAT_III:
+        return "cat_III";
+      case Household_income_level_code::CAT_IV:
+        return "cat_IV";
+      case Household_income_level_code::CAT_V:
+        return "cat_V";
+      case Household_income_level_code::CAT_VI:
+        return "cat_VI";
+      case Household_income_level_code::CAT_VII:
+        return "cat_VII";
+      case Household_income_level_code::UNCLASSIFIED:
+        return "Unclassified";
+      default:
+        Utils::fred_abort("Invalid Household Income Level Code", "");
     }
     return NULL;
   }
@@ -144,7 +144,7 @@ public:
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
    *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat, Place* cont)
+   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat)
    */
   Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
@@ -397,12 +397,20 @@ public:
     this->count_seeking_hc = _count_seeking_hc;
   }
 
-  int get_count_receiving_hc() {
-    return this->count_receiving_hc;
+  int get_count_primary_hc_unav() {
+    return this->count_primary_hc_unav;
   }
 
-  void set_count_receiving_hc(int _count_receiving_hc) {
-    this->count_receiving_hc = _count_receiving_hc;
+  void set_count_primary_hc_unav(int _count_primary_hc_unav) {
+    this->count_primary_hc_unav = _count_primary_hc_unav;
+  }
+
+  int get_count_hc_accept_ins_unav() {
+    return this->count_hc_accept_ins_unav;
+  }
+
+  void set_count_hc_accept_ins_unav(int _count_hc_accept_ins_unav) {
+    this->count_hc_accept_ins_unav = _count_hc_accept_ins_unav;
   }
 
   void reset_healthcare_info() {
@@ -410,7 +418,8 @@ public:
     this->set_other_healthcare_location_that_accepts_insurance_available(true);
     this->set_is_healthcare_available(true);
     this->set_count_seeking_hc(0);
-    this->set_count_receiving_hc(0);
+    this->set_count_primary_hc_unav(0);
+    this->set_count_hc_accept_ins_unav(0);
   }
 
   static int get_min_hh_income() {
@@ -454,7 +463,8 @@ private:
   bool healthcare_available;
   bool seeking_healthcare;
   int count_seeking_hc;
-  int count_receiving_hc;
+  int count_primary_hc_unav;
+  int count_hc_accept_ins_unav;
 
   bool hh_schl_aged_chld_unemplyd_adlt_chng;
   bool hh_schl_aged_chld;
@@ -544,7 +554,6 @@ public:
         ret_val = true;
       }
     }
-
     return ret_val;
   }
 
