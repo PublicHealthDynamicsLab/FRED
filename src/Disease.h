@@ -28,6 +28,7 @@ class Epidemic;
 class Infection;
 class Natural_History;
 class Person;
+class Transmission;
 
 class Disease {
 public:
@@ -164,6 +165,14 @@ public:
     return this->natural_history;
   }
 
+  char * get_transmission_mode() {
+    return this->transmission_mode;
+  }
+
+  Transmission * get_transmission() {
+    return this->transmission;
+  }
+
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
 private:
@@ -175,6 +184,10 @@ private:
   // the course of infection within a host
   char natural_history_model[20];
   Natural_History* natural_history;
+
+  // how the disease spreads
+  char transmission_mode[20];
+  Transmission* transmission;
 
   // contagiousness
   double transmissibility;

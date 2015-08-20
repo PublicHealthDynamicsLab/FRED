@@ -11,52 +11,39 @@
 
 //
 //
-// File: Place.h
+// File: Transmission.h
 //
 
 #ifndef _FRED_TRANSMISSION_H
 #define _FRED_TRANSMISSION_H
 
-#include <vector>
-using namespace std;
-
-#include "Global.h"
-#define DISEASE_TYPES 4
-
+class Disease;
 class Place;
-class Person;
 
 class Transmission {
 
 public:
   
-  // place-specific transmission mode parameters
-  static bool Enable_Neighborhood_Density_Transmission;
-  static bool Enable_Density_Transmission_Maximum_Infectees;
-  static int Density_Transmission_Maximum_Infectees;
-  static double** prob_contact;
+  ~Transmission() {} 
+
+  /**
+   * This static factory method is used to get an instance of a
+   * Transmission object of the specified subclass.
+   *
+   * @param a string containing the requested Transmission mode type
+   * @return a pointer to a specific Transmission object
+   */
+
+  static Transmission * get_new_transmission(char* transmission_mode);
+  static void get_parameters();
+  virtual void setup(Disease *disease) = 0;
+  virtual void spread_infection(int day, int disease_id, Place *place) = 0;
+
+protected:
 
   // static seasonal transmission parameters
   static double Seasonal_Reduction;
   static double* Seasonality_multiplier;
-
-  ~Transmission() {}
-  static void get_parameters();
-  static void spread_infection(int day, int disease_id, Place *place);
-  static void default_transmission_model(int day, int disease_id, Place *place);
-  static void age_based_transmission_model(int day, int disease_id, Place *place);
-  static void pairwise_transmission_model(int day, int disease_id, Place *place);
-  static void density_transmission_model(int day, int disease_id, Place *place);
-
-  static bool attempt_transmission(double transmission_prob, Person * infector, Person * infectee, int disease_id, int day, Place* place);
-
-  // vector transmission model
-  static void vector_transmission(int day, int disease_id, Place * place);
-  static void infect_vectors(int day, Place * place);
-  static void infect_hosts(int day, int disease_id, Place * place);
-  static void update_vector_population(int day, Place * place);
-
-protected:
 };
 
 

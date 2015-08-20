@@ -837,7 +837,11 @@ days_sick = 11; 			# Maximum length of sick time
 # influenza_school_contacts = 13.974653
 # influenza_workplace_contacts = 1.508962
 
-### INTRAHOST MODEL
+### DISEASE TRANSMISSION MODE
+influenza_transmission_mode = respiratory
+
+
+### NATURAL HISTORY MODEL
 
 # basic => on-off infectiousness and symptoms
 influenza_natural_history_model = basic

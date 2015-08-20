@@ -37,6 +37,7 @@ using namespace std;
 #include "Random.h"
 #include "Seasonality.h"
 #include "Timestep_Map.h"
+#include "Transmission.h"
 
 Disease::Disease() {
   this->id = -1;
@@ -198,6 +199,14 @@ void Disease::setup() {
   // read in parameters and files associated with this natural history model: 
   this->natural_history->setup(this);
   this->natural_history->get_parameters();
+
+  // Initialize Disease Transmission Model
+  Params::get_indexed_param(this->disease_name, "transmission_mode", this->transmission_mode);
+  
+  this->transmission = Transmission::get_new_transmission(this->transmission_mode);
+
+  // read in parameters and files associated with this transmission mode: 
+  this->transmission->setup(this);
 
   fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
   fflush(Global::Statusfp);
