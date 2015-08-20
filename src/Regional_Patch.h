@@ -27,8 +27,8 @@
 #include "Place_List.h"
 #include "Place.h"
 
-typedef vector<Person*> person_vec;	     //Vector of person pointers
-typedef vector<Place*> place_vec;	      //Vector of place pointers
+typedef vector<Person*> person_vec;	     //vector of person pointers
+typedef vector<Place*> place_vec;	      //vector of place pointers
 
 class Regional_Layer;
 

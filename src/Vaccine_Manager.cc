@@ -341,8 +341,8 @@ void Vaccine_Manager::vaccinate(int day) {
       bool accept_vaccine = false;
       // STB need to refactor to work with multiple diseases
       if((this->vaccinate_symptomatics == false)
-	 && (current_person->get_health()->get_symptomatic_date(0) != -1)
-	 && (day >= current_person->get_health()->get_symptomatic_date(0))) {
+	 && (current_person->get_health()->get_symptoms_start_date(0) != -1)
+	 && (day >= current_person->get_health()->get_symptoms_start_date(0))) {
         accept_vaccine = false;
         reject_state_count++;
       } else {
@@ -427,8 +427,8 @@ void Vaccine_Manager::vaccinate(int day) {
     if(vacc_app > -1) {
       bool accept_vaccine = true;
       if((this->vaccinate_symptomatics == true)
-	 && (current_person->get_health()->get_symptomatic_date(0) != -1)
-	 && (day >= current_person->get_health()->get_symptomatic_date(0))) {
+	 && (current_person->get_health()->get_symptoms_start_date(0) != -1)
+	 && (day >= current_person->get_health()->get_symptoms_start_date(0))) {
         accept_vaccine = false;
         reject_state_count++;
         // printf("vaccine rejected by person %d age %0.1f -- ALREADY SYMPTOMATIC\n", current_person->get_id(), current_person->get_real_age());

@@ -13,6 +13,7 @@
 //
 // File: Fred.cc
 //
+#include "AV_Manager.h"
 #include "Fred.h"
 #include "Utils.h"
 #include "Global.h"
@@ -22,6 +23,7 @@
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
 #include "Regional_Layer.h"
+#include "Vaccine_Manager.h"
 #include "Visualization_Layer.h"
 #include "Vector_Layer.h"
 #include "Params.h"
@@ -30,6 +32,7 @@
 #include "Date.h"
 #include "Evolution.h"
 #include "Travel.h"
+#include "Transmission.h"
 #include "Epidemic.h"
 #include "Seasonality.h"
 #include "Activities.h"
@@ -98,6 +101,7 @@ void fred_setup(int argc, char* argv[]) {
 
   // create diseases and read parameters
   Global::Diseases.get_parameters();
+  Transmission::get_parameters();
 
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
@@ -165,7 +169,6 @@ void fred_setup(int argc, char* argv[]) {
   }
 
   // initialize parameters and other static variables
-  Place::initialize_static_variables();
   Demographics::initialize_static_variables();
   Activities::initialize_static_variables();
   Behavior::initialize_static_variables();
@@ -174,15 +177,22 @@ void fred_setup(int argc, char* argv[]) {
 
   // finished setting up Diseases
   Global::Diseases.setup();
+  Utils::fred_print_lap_time("Diseases.setup");
 
   // read in the population and have each person enroll
   // in each favorite place identified in the population file
   Utils::fred_print_wall_time("\nFRED Pop.setup started");
   Global::Pop.setup();
-  Global::Places.setup_group_quarters();
-  Global::Places.setup_households();
-  Utils::fred_print_lap_time("Pop.setup");
   Utils::fred_print_wall_time("FRED Pop.setup finished");
+  Utils::fred_print_lap_time("Pop.setup");
+  Global::Places.setup_group_quarters();
+  Utils::fred_print_lap_time("Places.setup_group_quarters");
+  Global::Places.setup_households();
+  Utils::fred_print_lap_time("Places.setup_households");
+  if(Global::Enable_Vector_Layer) {
+    Global::Vectors->setup();
+    Utils::fred_print_lap_time("Vectors->setup");
+  }
 
   // define FRED-specific places and have each person enroll as needed
 
@@ -197,6 +207,7 @@ void fred_setup(int argc, char* argv[]) {
 
   // offices
   Global::Places.setup_offices();
+  Utils::fred_print_lap_time("setup_offices");
   Global::Pop.assign_offices();
   Utils::fred_print_lap_time("assign offices");
 
@@ -303,6 +314,7 @@ void fred_setup(int argc, char* argv[]) {
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
   // prepare diseases after population is all set up
+  FRED_VERBOSE(0, "prepare diseases\n");
   Global::Diseases.prepare_diseases();
   Utils::fred_print_lap_time("prepare_diseases");
 
@@ -361,26 +373,34 @@ void fred_step(int day) {
     Utils::fred_print_lap_time("day %d update population dynamics", day);
   }
 
-  // update health status of all agents.
-  // update activity profiles if dynamic.
-  // update travel decisions.
-  // update decisions about health behaviors.
-  // distribute vaccines and antivirals.
-  Global::Pop.update(day);
-  Utils::fred_print_lap_time("day %d update population", day);
+  // update everyone's health intervention status
+  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
+    Global::Pop.update_health_interventions(day);
+  }
+
+  // remove dead from population
+  Global::Pop.remove_dead_from_population(day);
+
+  // update activity profiles on July 1
+  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1){
+  }
+
+  // update travel decisions
+  Travel::update_travel(day);
+
+  if(Global::Enable_Behaviors) {
+    // update decisions about behaviors
+  }
+
+  // distribute vaccines
+  Global::Pop.vacc_manager->update(day);
+
+  // distribute AVs
+  Global::Pop.av_manager->update(day);
 
   // update generic activities (individual activities updated only if
   // needed -- see below)
   Activities::update(day);
-
-  // each infectious person updates its activity schedule, and
-  // registers each place visited as a infectious place
-  Global::Pop.update_infectious_people(day);
-  Utils::fred_print_lap_time("day %d update_infectious_people", day);
-
-  // find all visitors to infectious places
-  Global::Places.find_visitors_to_infectious_places(day);
-  Utils::fred_print_lap_time("day %d find_visitors_to_infectious_places", day);
 
   // shuffle the order of diseases to reduce systematic bias
   vector<int> order;

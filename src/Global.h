@@ -23,6 +23,10 @@
 #include <assert.h>
 #include <bitset>
 #include <map>
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
 
 // for unit testing, use the line in Makefile: gcc -DUNITTEST ...
 #ifdef UNITTEST
@@ -169,7 +173,7 @@ public:
   static char Simulation_directory[FRED_STRING_SIZE];
   static int Simulation_run_number;
   static unsigned long Simulation_seed;
-  static time_t Simulation_start_time;
+  static high_resolution_clock::time_point Simulation_start_time;
   static int Simulation_Day;
 
   // global runtime parameters
@@ -227,6 +231,7 @@ public:
   static bool Enable_Group_Quarters;
   static bool Enable_Visualization_Layer;
   static bool Enable_Vector_Layer;
+  static bool Report_Vector_Population;
   static bool Enable_Vector_Transmission;
   static bool Enable_Population_Dynamics;
   static bool Enable_Travel;
@@ -237,6 +242,7 @@ public:
   static bool Report_Immunity;
   static bool Enable_Vaccination;
   static bool Enable_Antivirals;
+  static bool Enable_Viral_Evolution;
   static bool Enable_HAZEL;
   static bool Enable_hh_income_based_susc_mod;
   static bool Use_Mean_Latitude;

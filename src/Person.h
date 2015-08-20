@@ -17,6 +17,7 @@
 #define _FRED_PERSON_H
 
 #include "Global.h"
+#include <vector>
 using namespace std;
 
 class Place;
@@ -89,12 +90,8 @@ public:
     this->demographics.update(day);
   }
 
-  /**
-   * @param day the simulation day
-   * @see Health::update(int day)
-   */
-  void update_health(int day) {
-    this->health.update(this, day);
+  void update_infection(int day, int disease_id) {
+    this->health.update_infection(day, disease_id);
   }
 
   void update_health_interventions(int day) {
@@ -116,6 +113,23 @@ public:
     this->activities.prepare();
   }
 
+  bool is_present(int sim_day, Place *place) {
+    return this->activities.is_present(this, sim_day, place);
+  }
+
+  void update_schedule(int sim_day) {
+    this->activities.update_schedule(this, sim_day);
+  }
+
+  void update_activities_of_infectious_person(int sim_day) {
+    this->activities.update_activities_of_infectious_person(this, sim_day);
+  }
+
+  void update_enrollee_index(Place* place, int pos) {
+    this->activities.update_enrollee_index(place, pos);
+  }
+
+
   /**
    * @Activities::update_profile()
    */
@@ -123,16 +137,12 @@ public:
     this->activities.update_profile(this);
   }
 
-  /**
-   * This agent will become susceptible to the disease
-   * @param disease the disease
-   */
-  void become_susceptible(Disease* disease) {
-    this->health.become_susceptible(this, disease);
+  void become_susceptible(int disease_id) {
+    this->health.become_susceptible(this, disease_id);
   }
 
-  void become_susceptible_by_vaccine_waning(Disease* disease) {
-    this->health.become_susceptible_by_vaccine_waning(this, disease);
+  void become_susceptible_by_vaccine_waning(int disease_id) {
+    this->health.become_susceptible_by_vaccine_waning(this, disease_id);
   }
 
   void update_household_counts(int day, int disease_id) {
@@ -165,6 +175,10 @@ public:
    */
   void become_symptomatic(Disease* disease) {
     this->health.become_symptomatic(this, disease);
+  }
+
+  void become_asymptomatic(Disease* disease) {
+    this->health.become_asymptomatic(this, disease);
   }
 
   /**
@@ -314,12 +328,16 @@ public:
     return this->health.is_symptomatic();
   }
 
+  int is_symptomatic(int disease_id) {
+    return this->health.is_symptomatic(disease_id);
+  }
+
   int get_days_symptomatic() {
     return this->health.get_days_symptomatic();
   }
 
-  bool is_immune(Disease* dis) {
-    return this->health.is_immune(dis);
+  bool is_immune(int disease_id) {
+    return this->health.is_immune(disease_id);
   }
 
   /**
@@ -398,20 +416,24 @@ public:
     return this->health.get_exposure_date(disease);
   }
 
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became infectious with disease
-   */
-  int get_infectious_date(int disease) const {
-    return this->health.get_infectious_date(disease);
+  int get_infectious_start_date(int disease) const {
+    return this->health.get_infectious_start_date(disease);
   }
 
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became recovered from disease
-   */
-  int get_recovered_date(int disease) const {
-    return this->health.get_recovered_date(disease);
+  int get_infectious_end_date(int disease) const {
+    return this->health.get_infectious_end_date(disease);
+  }
+
+  int get_symptoms_start_date(int disease) const {
+    return this->health.get_symptoms_start_date(disease);
+  }
+
+  int get_symptoms_end_date(int disease) const {
+    return this->health.get_symptoms_end_date(disease);
+  }
+
+  int get_immunity_end_date(int disease) const {
+    return this->health.get_immunity_end_date(disease);
   }
 
   /**
@@ -475,6 +497,10 @@ public:
    */
   Place* get_neighborhood() {
     return this->activities.get_neighborhood();
+  }
+
+  void reset_neighborhood() {
+    this->activities.reset_neighborhood();
   }
 
   /**
@@ -731,15 +757,15 @@ public:
   }
 
   void change_school(Place* place) {
-    this->activities.change_school(this, place);
+    this->activities.change_school(place);
   }
 
   void change_workplace(Place* place) {
-    this->activities.change_workplace(this, place);
+    this->activities.change_workplace(place);
   }
 
   void change_workplace(Place* place, int include_office) {
-    this->activities.change_workplace(this, place, include_office);
+    this->activities.change_workplace(place, include_office);
   }
 
   int get_visiting_health_status(Place* place, int day, int disease_id) {

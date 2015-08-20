@@ -27,6 +27,7 @@
 #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
+#include "Health.h"
 #include "Household.h"
 #include "Manager.h"
 #include "Params.h"
@@ -65,6 +66,9 @@ Population::Population() {
 
 }
 
+//
+// OBSOLETE:
+//
 void Population::initialize_masks() {
   // can't do this in the constructor because the Global:: variables aren't yet
   // available when the Global::Pop is defined
@@ -144,14 +148,20 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   return person;
 }
 
+//
+// OBSOLETE:
+//
 void Population::set_mask_by_index(fred::Pop_Masks mask, int person_index) {
   // assert that the mask has in fact been added
-  this->blq.set_mask_by_index(mask, person_index);
+  // this->blq.set_mask_by_index(mask, person_index);
 }
 
+//
+// OBSOLETE:
+//
 void Population::clear_mask_by_index(fred::Pop_Masks mask, int person_index) {
   // assert that the mask has in fact been added
-  this->blq.clear_mask_by_index(mask, person_index);
+  // this->blq.clear_mask_by_index(mask, person_index);
 }
 
 void Population::delete_person(Person* person) {
@@ -159,12 +169,6 @@ void Population::delete_person(Person* person) {
 
   person->terminate();
   FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
-
-  /*
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    Global::Diseases.get_disease(d)->get_evolution()->terminate_person(person);
-    }
-  */
 
   if(Global::Enable_Travel) {
     Travel::terminate_person(person);
@@ -196,6 +200,7 @@ void Population::setup() {
   }
 
   if(Global::Enable_Antivirals) {
+    Utils::fred_abort("Sorry, antivirals are not enabled in this version of FRED.");
     this->av_manager = new AV_Manager(this);
   } else {
     this->av_manager = new AV_Manager();
@@ -218,8 +223,7 @@ void Population::setup() {
 	if(get_person_by_index(i) == NULL) {
 	  continue;
 	}
-	Disease* dis = Global::Diseases.get_disease(d);
-	if(get_person_by_index(i)->is_immune(dis)) {
+	if(get_person_by_index(i)->is_immune(d)) {
 	  count++;
 	}
       }
@@ -658,72 +662,6 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
 
 }
 
-void Population::update(int day) {
-
-  printf("update entered day %d\n", day); fflush(stdout);
-
-  // update everyone's health intervention status
-  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
-    Update_Health_Interventions update_health_interventions(day);
-    this->blq.apply(update_health_interventions);
-  }
-  FRED_VERBOSE(1, "population::update health  day = %d\n", day);
-
-  // update everyone's health status
-  Update_Population_Health update_population_health(day);
-  this->blq.parallel_masked_apply(fred::Update_Health, update_population_health);
-  // Utils::fred_print_wall_time("day %d update_health", day);
-
-  // handle all queued deaths
-  remove_dead_from_population(day);
-
-  FRED_VERBOSE(1, "population::update prepare activities day = %d\n", day);
-  // prepare Activities at start up
-  if(day == 0) {
-    Prepare_Population_Activities prepare_population_activities(day);
-    this->blq.apply(prepare_population_activities);
-    Activities::before_run();
-  }
-
-  // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1){
-    FRED_VERBOSE(0, "Before update_activity_profile day = %d\n", day);
-    Global::Places.print_status_of_schools(day);
-    FRED_VERBOSE(0, "population::update_activity_profile day = %d\n", day);
-    Update_Population_Activities update_population_activities(day);
-    this->blq.apply(update_population_activities);
-    FRED_VERBOSE(0, "After update_activity_profile day = %d\n", day);
-    Global::Places.print_status_of_schools(day);
-  }
-
-  FRED_VERBOSE(1, "population::update_travel day = %d\n", day);
-
-  // update travel decisions
-  Travel::update_travel(day);
-  // Utils::fred_print_wall_time("day %d update_travel", day);
-
-  FRED_VERBOSE(1, "population::update_behavior day = %d\n", day);
-
-  if(Global::Enable_Behaviors) {
-    // update decisions about behaviors
-    Update_Population_Behaviors update_population_behaviors(day);
-    this->blq.apply(update_population_behaviors);
-    // Utils::fred_print_wall_time("day %d update_behavior", day);
-  }
-
-  // distribute vaccines
-  FRED_VERBOSE(1, "population::update vacc_manager day = %d\n", day);
-  this->vacc_manager->update(day);
-  // Utils::fred_print_wall_time("day %d vacc_manager", day);
-
-  // distribute AVs
-  FRED_VERBOSE(1, "population::update av_manager day = %d\n", day);
-  this->av_manager->update(day);
-  // Utils::fred_print_wall_time("day %d av_manager", day);
-
-  FRED_STATUS(1, "population begin_day finished, pop_size = %d\n", this->pop_size);
-}
-
 void Population::remove_dead_from_population(int day) {
   size_t deaths = this->death_list.size();
   for(size_t i = 0; i < deaths; ++i) {
@@ -747,18 +685,13 @@ void Population::Update_Health_Interventions::operator() (Person &p) {
   p.update_health_interventions(this->day);
 }
 
-void Population::Update_Population_Health::operator() (Person &p) {
-  p.update_health(this->day);
-}
-
 void Population::Prepare_Population_Activities::operator()(Person &p) {
   p.prepare_activities();
 }
 
-void Population::Update_Population_Activities::operator() (Person &p) {
-  p.update_activity_profile();
-}
-
+//
+// OBSOLETE:
+//
 void Population::Update_Population_Behaviors::operator() (Person &p) {
   p.update_behavior(this->day);
 }
@@ -896,7 +829,7 @@ void Population::quality_control() {
 	  }
           int a = person->get_age();
           int n = a / 10;
-          if(person->get_health()->is_at_risk(dis) == true) {
+          if(person->get_health()->is_at_risk(d) == true) {
             if(n < 20) {
               rcount[n]++;
             } else {
@@ -1841,46 +1774,6 @@ void Population::get_age_distribution(int* count_males_by_age, int* count_female
   }
 }
 
-void Population::update_infectious_people(int day) {
-  FRED_STATUS(1, "update_infectious_people entered\n", "");
-
-  update_infectious_activities update_functor(day);
-  parallel_masked_apply(fred::Infectious, update_functor);
-
-  FRED_STATUS(1, "update_infectious_people finished\n", "");
-}
-
-void Population::update_infectious_activities::operator()(Person &person) {
-  person.get_activities()->update_activities_of_infectious_person(&person, this->day);
-}
-
-void Population::add_susceptibles_to_infectious_places(int day) {
-  /*  FRED_STATUS(1, "add_susceptibles_to_infectious_places entered\n");
-
-      update_susceptible_activities update_functor(day);
-      parallel_masked_apply(fred::Susceptible, update_functor);
-
-      FRED_STATUS(1, "add_susceptibles_to_infectious_places finished\n");
-  */
-}
-
-/*
-  void Population::update_susceptible_activities::operator()(Person &person) {
-  person.get_activities()->update_susceptible_activities(&person, this->day);
-  }
-*/
-
-void Population::add_visitors_to_infectious_places(int day) {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      person->get_activities()->add_visitor_to_infectious_places(person,day);
-    }
-  }
-}
-
 void Population::initialize_demographic_dynamics() {
   // NOTE: use this idiom to loop through pop.
   // Note that pop_size is the number of valid indexes, NOT the size of blq.
@@ -1892,16 +1785,15 @@ void Population::initialize_demographic_dynamics() {
   }
 }
 
-void Population::update_traveling_people(int day) {
-  FRED_STATUS(1, "update_traveling_people entered\n", "");
-
-  update_activities_while_traveling update_functor(day);
-  parallel_masked_apply(fred::Travel, update_functor);
-
-  FRED_STATUS(1, "update_traveling_people finished\n", "");
+void Population::update_health_interventions(int day) {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person != NULL) {
+      person->get_health()->update_interventions(person, day);
+    }
+  }
 }
 
-void Population::update_activities_while_traveling::operator() (Person &person) {
-  person.get_activities()->update_activities_while_traveling(&person, this->day);
-}
 

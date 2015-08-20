@@ -44,6 +44,7 @@ void Evolution::print() {}
 */
 
 double Evolution::antigenic_diversity(Person *p1, Person *p2) {
+  /*
   Infection *inf1 = p1->get_health()->get_infection(disease->get_id());
   Infection *inf2 = p2->get_health()->get_infection(disease->get_id());
 
@@ -55,4 +56,6 @@ double Evolution::antigenic_diversity(Person *p1, Person *p2) {
   // TODO how to handle multiple strains???
 
   return antigenic_distance(str1.at(0), str2.at(0));
+  */
+  return 0.0;
 }

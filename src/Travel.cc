@@ -36,7 +36,7 @@ static pset_ptr* traveler_list_ptr;        // pointers to above lists
 static double mean_trip_duration;		// mean days per trip
 typedef vector <Person*> pvec;			// vector of person ptrs
 
-Events* Travel::return_queue = new Events;
+Events<Travel>* Travel::return_queue = new Events<Travel>;
 
 // runtime parameters
 static double* Travel_Duration_Cdf;		// cdf for trip duration
@@ -163,7 +163,7 @@ void Travel::setup_travelers_per_hub() {
       // add everyone in the household to the user list for this hub
       int housemates = h->get_size();
       for(int k = 0; k < housemates; ++k) {
-	Person* person = h->get_housemate(k);
+	Person* person = h->get_enrollee(k);
 	hubs[closest].users.push_back(person);
       }
     }
@@ -337,7 +337,6 @@ void Travel::terminate_person(Person* person) {
     piter it = traveler_list[i].find(person);
     if(it != traveler_list[i].end()) {
       traveler_list[i].erase(it);
-      Global::Pop.clear_mask_by_index( fred::Travel, person->get_pop_index() );
       break;
     }
   }

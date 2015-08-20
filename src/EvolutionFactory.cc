@@ -13,7 +13,6 @@
 #include "EvolutionFactory.h"
 #include "Evolution.h"
 #include "MSEvolution.h"
-#include "Global.h"
 #include "Utils.h"
 
 Evolution *EvolutionFactory :: newEvolution(int type) {

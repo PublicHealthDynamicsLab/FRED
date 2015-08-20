@@ -220,7 +220,7 @@ neighborhood_distance_exponent = 3.0
 neighborhood_population_exponent = 1.0
 
 # if set, only infectious people can visit other neighborhoods
-visit_home_neighborhood_unless_infectious = 0
+visit_home_neighborhood_unless_infectious = 1
 
 # If set, then all workers who have a workplace outside the location file
 # are assigned a random workplace in the location file.
@@ -632,11 +632,13 @@ residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIP
 
 <disease_name>_at_risk_upper_ages = 0
 <disease_name>_at_risk_values = 0
-<disease_name>_intra_host_model = 0
+<disease_name>_natural_history_model = basic
 <disease_name>_infection_model = 0
 <disease_name>_infectivity_threshold = 0
 <disease_name>_symptomaticity_threshold = 0
+
 <disease_name>_evolution = 0
+enable_viral_evolution = 0
 
 ##########################################################
 #
@@ -650,7 +652,9 @@ residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIP
 influenza_trans = 1.0
 
 ### symptomatic rate:
-influenza_symp = 0.67
+influenza_probability_of_symptoms = 0.67
+
+### optional symptoms age map
 influenza_prob_symp_upper_ages = 0
 influenza_prob_symp_values = 0
 
@@ -660,8 +664,11 @@ influenza_asymp_infectivity = 0.5
 
 ### latent and infectious period CDFs
 influenza_days_latent = 3       0.0 0.8 1.0
-influenza_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-influenza_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+influenza_days_infectious = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+
+### not used in base SEIR model -- symptoms (if any) coincide with infectious period
+# influenza_days_incubating = 3       0.0 0.8 1.0
+# influenza_days_symptomatic = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 
 ### IMMUNITY
 influenza_immunity_loss_rate = 0
@@ -677,13 +684,15 @@ Immunization = -1
 # using the bifurcating SEIR model (SEiIR = 0)
 #
 ### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
+
+##################### FRED 2.10
+
 ###  CALIBRATION PHASE II STEP 5 at Tue Sep 23 16:07:36 2014
 ###  runs = 10  cores = 10
 influenza_household_contacts = 0.202
 influenza_neighborhood_contacts = 3.98e+01
 influenza_school_contacts = 17.6
 influenza_workplace_contacts = 1.6
-
 
 ## value of -1 for classroom means that
 ## 2/3 of the school contacts occur within the classroom
@@ -699,6 +708,25 @@ influenza_hospital_contacts = 0
 R0_a = 0.0950671
 R0_b = 0.492996
 R0 = -1.0
+
+##################### END FRED 2.10
+
+##################### FRED Event-loop
+
+###  CALIBRATION PHASE II STEP 16 at Fri Aug 14 15:19:48 2015
+###  runs = 10  cores = 10
+influenza_household_contacts = 0.1622
+influenza_neighborhood_contacts = 2.17149e+01
+influenza_school_contacts = 9.48
+influenza_workplace_contacts = 0.80
+influenza_classroom_contacts = 18.97
+influenza_office_contacts = 1.59
+R0_a = 0.0312423
+R0_b = 0.670742
+R0 = -1.0
+
+##################### END FRED Event-loop
+
 
 # community contacts increase on weekends
 influenza_weekend_contact_rate = 1.5
@@ -811,8 +839,8 @@ days_sick = 11; 			# Maximum length of sick time
 
 ### INTRAHOST MODEL
 
-# default IntraHost: 0; fixed IntraHost: 1; ODEIntraHost: 2
-influenza_intra_host_model = 0
+# basic => on-off infectiousness and symptoms
+influenza_natural_history_model = basic
 
 # for default IntraHost
 # infection model: BIFURCATING = 0 , SEQUENTIAL = 1
@@ -867,6 +895,14 @@ influenza_fixed_symptomaticity_profile[15] = 5   0 1 1 1 1
 
 enable_vector_layer = 0
 enable_vector_transmission = 0
+enable_vector_control = 0
+school_vector_control = 0
+workplace_vector_control = 0
+household_vector_control = 0
+neighborhood_vector_control = 0
+limit_vector_control = 0
+report_vector_population = 0
+
 # size of vector patches in km
 vector_patch_size = 1.0
 vector_infection_efficiency = 0.2

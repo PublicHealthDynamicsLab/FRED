@@ -45,8 +45,8 @@ public:
   void apply_global_school_closure_policy(int day, int disease_id);
   void apply_individual_school_closure_policy(int day, int disease_id);
   double get_contacts_per_day(int disease_id);
-  void enroll(Person* per);
-  void unenroll(Person* per);
+  int enroll(Person* per);
+  void unenroll(int pos);
   int get_max_grade() {
     return this->max_grade;
   }
@@ -120,17 +120,18 @@ public:
 
   void prepare_income_quartile_pop_size() {
     if(Global::Report_Childhood_Presenteeism) {
+      int size = get_size();
       // update population stats based on income quartile of this school
       if(this->income_quartile == Global::Q1) {
-        School::pop_income_Q1 += this->N;
+        School::pop_income_Q1 += size;
       } else if(this->income_quartile == Global::Q2) {
-        School::pop_income_Q2 += this->N;
+        School::pop_income_Q2 += size;
       } else if(this->income_quartile == Global::Q3) {
-        School::pop_income_Q3 += this->N;
+        School::pop_income_Q3 += size;
       } else if(this->income_quartile == Global::Q4) {
-        School::pop_income_Q4 += this->N;
+        School::pop_income_Q4 += size;
       }
-      School::total_school_pop += this->N;
+      School::total_school_pop += size;
     }
   }
 

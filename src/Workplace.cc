@@ -22,6 +22,7 @@
 #include "Disease.h"
 #include "Disease_List.h"
 #include "Place_List.h"
+#include "Population.h"
 #include "Office.h"
 #include "Utils.h"
 
@@ -65,29 +66,62 @@ void Workplace::get_parameters(int diseases) {
   Params::get_param_from_string("medium_workplace_size", &Workplace::Medium_workplace_size);
   Params::get_param_from_string("large_workplace_size", &Workplace::Large_workplace_size);
 
-  if(Global::Enable_Vector_Transmission == false) {
-    Workplace::Workplace_contacts_per_day = new double[diseases];
-    Workplace::Workplace_contact_prob = new double**[diseases];
+  Workplace::Workplace_contacts_per_day = new double[diseases];
+  Workplace::Workplace_contact_prob = new double**[diseases];
   
-    char param_str[80];
-    for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease * disease = Global::Diseases.get_disease(disease_id);
-      sprintf(param_str, "%s_workplace_contacts", disease->get_disease_name());
-      Params::get_param((char *) param_str, &Workplace::Workplace_contacts_per_day[disease_id]);
-      sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-	printf("\nWorkplace_contact_prob:\n");
-	for(int i  = 0; i < n; ++i)  {
-	  for(int j  = 0; j < n; ++j) {
-	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
+  char param_str[80];
+  for(int disease_id = 0; disease_id < diseases; ++disease_id) {
+    Disease * disease = Global::Diseases.get_disease(disease_id);
+    sprintf(param_str, "%s_workplace_contacts", disease->get_disease_name());
+    Params::get_param((char *) param_str, &Workplace::Workplace_contacts_per_day[disease_id]);
+    sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
+    int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
+
+    if(Global::Verbose > 0) {
+      printf("\nWorkplace_contact_prob before normalization:\n");
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	}
+	printf("\n");
+      }
+      printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
+    }
+
+    // normalize contact parameters
+    // find max contact prob
+    double max_prob = 0.0;
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	if (Workplace::Workplace_contact_prob[disease_id][i][j] > max_prob) {
+	  max_prob = Workplace::Workplace_contact_prob[disease_id][i][j];
 	}
       }
     }
-  }
 
+    // convert max contact prob to 1.0
+    if (max_prob > 0) {
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  Workplace::Workplace_contact_prob[disease_id][i][j] /= max_prob;
+	}
+      }
+      // compensate contact rate
+      Workplace::Workplace_contacts_per_day[disease_id] *= max_prob;
+    }
+
+    if(Global::Verbose > 0) {
+      printf("\nWorkplace_contact_prob after normalization:\n");
+      for(int i  = 0; i < n; i++)  {
+	for(int j  = 0; j < n; j++) {
+	  printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	}
+	printf("\n");
+      }
+      printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
+    }
+    // end normalization
+  }
   Workplace::Workplace_parameters_set = true;
 }
 
@@ -96,16 +130,16 @@ void Workplace::prepare() {
 
   assert(Global::Pop.is_load_completed());
   // update employment stats based on size of workplace
-  if(this->N < Workplace::Small_workplace_size) {
-    Workplace::workers_in_small_workplaces += this->N;
-  } else if(this->N < Workplace::Medium_workplace_size) {
-    Workplace::workers_in_medium_workplaces += this->N;
-  } else if(this->N < Workplace::Large_workplace_size) {
-    Workplace::workers_in_large_workplaces += this->N;
+  if(get_size() < Workplace::Small_workplace_size) {
+    Workplace::workers_in_small_workplaces += get_size();
+  } else if(get_size() < Workplace::Medium_workplace_size) {
+    Workplace::workers_in_medium_workplaces += get_size();
+  } else if(get_size() < Workplace::Large_workplace_size) {
+    Workplace::workers_in_large_workplaces += get_size();
   } else {
-    Workplace::workers_in_xlarge_workplaces += this->N;
+    Workplace::workers_in_xlarge_workplaces += get_size();
   }
-  Workplace::total_workers += this->N;
+  Workplace::total_workers += get_size();
 
   // now call base class function to perform preparations common to all Places 
   Place::prepare();
@@ -128,9 +162,9 @@ int Workplace::get_number_of_rooms() {
   if(Workplace::Office_size == 0) {
     return 0;
   }
-  int rooms = this->N / Workplace::Office_size;
+  int rooms = get_size() / Workplace::Office_size;
   this->next_office = 0;
-  if(this->N % Workplace::Office_size) {
+  if(get_size() % Workplace::Office_size) {
     rooms++;
   }
   if(rooms == 0) {
@@ -142,7 +176,7 @@ int Workplace::get_number_of_rooms() {
 void Workplace::setup_offices(Allocator<Office> &office_allocator) {
   int rooms = get_number_of_rooms();
 
-  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", id, label, N, rooms );
+  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", id, label, get_size(), rooms );
   
   for(int i = 0; i < rooms; ++i) {
     char new_label[128];
@@ -169,7 +203,7 @@ Place* Workplace::assign_office(Person* per) {
   }
 
   FRED_STATUS( 1, "assign office for person %d at workplace %d %s size %d == ",
-	       per->get_id(), id, label, N);
+	       per->get_id(), id, label, get_size());
 
   // pick next office, round-robin
   int i = this->next_office;

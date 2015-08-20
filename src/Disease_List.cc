@@ -17,6 +17,8 @@
 #include <string>
 #include "Disease_List.h"
 #include "Disease.h"
+#include "Natural_History.h"
+#include "Global.h"
 #include "Params.h"
 
 void Disease_List::get_parameters() {
@@ -50,13 +52,23 @@ void Disease_List::setup() {
 }
 
 void Disease_List::prepare_diseases() {
-  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
-    Disease *disease = this->diseases[disease_id]; 
-    disease->initialize_evolution_reporting_grid(Global::Simulation_Region);
-    if(!Global::Enable_Vector_Layer) {
-      disease->init_prior_immunity();
+  if (Global::Enable_Viral_Evolution) {
+    for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+      Disease *disease = this->diseases[disease_id]; 
+      disease->get_natural_history()->initialize_evolution_reporting_grid(Global::Simulation_Region);
+      disease->get_natural_history()->init_prior_immunity();
     }
   }
+}
+
+
+Disease* Disease_List::get_disease(char * disease_name) {
+  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+    if (strcmp(disease_name, this->diseases[disease_id]->get_disease_name()) == 0) {
+      return this->diseases[disease_id]; 
+    }
+  }
+  return NULL;
 }
 
 

@@ -18,6 +18,7 @@
 #define _FRED_TRAVEL_H
 
 #include "Events.h"
+
 class Person;
 
 class Travel {
@@ -43,7 +44,7 @@ public:
   }
 
 private:
-  static Events* return_queue;
+  static Events<Travel> * return_queue;
 };
 
 #endif // _FRED_TRAVEL_H

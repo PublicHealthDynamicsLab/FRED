@@ -102,7 +102,7 @@ void Neighborhood_Patch::record_favorite_places() {
     int hsize = house->get_size();
     // fprintf(fp, "%d ", hsize);
     for (int j = 0; j < hsize; j++) {
-      per = house->get_housemate(j);
+      per = house->get_enrollee(j);
       person.push_back(per);
       p = per->get_activities()->get_workplace();
       if (p != NULL) {

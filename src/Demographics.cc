@@ -42,9 +42,9 @@ int Demographics::total_deaths = 0;
 std::vector<Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
 std::map<Person*, int> Demographics::birthday_map;
 
-Events* Demographics::conception_queue = new Events;
-Events* Demographics::maternity_queue = new Events;
-Events* Demographics::mortality_queue = new Events;
+Events<Demographics>* Demographics::conception_queue = new Events<Demographics>;
+Events<Demographics>* Demographics::maternity_queue = new Events<Demographics>;
+Events<Demographics>* Demographics::mortality_queue = new Events<Demographics>;
 
 
 void Demographics::initialize_static_variables() {
@@ -528,3 +528,28 @@ void Demographics::report(int day) {
   fclose(fp);
 
 }
+
+void Demographics::add_conception_event(int day, Person *person) {
+  conception_queue->add_event(day, person);
+}
+
+void Demographics::delete_conception_event(int day, Person *person) {
+  conception_queue->delete_event(day, person);
+}
+
+void Demographics::add_maternity_event(int day, Person *person) {
+  maternity_queue->add_event(day, person);
+}
+
+void Demographics::delete_maternity_event(int day, Person *person) {
+  maternity_queue->delete_event(day, person);
+}
+
+void Demographics::add_mortality_event(int day, Person *person) {
+  mortality_queue->add_event(day, person);
+}
+
+void Demographics::delete_mortality_event(int day, Person *person) {
+  mortality_queue->delete_event(day, person);
+}
+

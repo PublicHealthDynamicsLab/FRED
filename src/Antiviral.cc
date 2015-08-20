@@ -177,16 +177,16 @@ void Antiviral::modify_infectivity(Health *health, int disease) {
 }
 
 void Antiviral::modify_symptomaticity(Health *health, int disease, int cur_day) {
-  if (!health->is_symptomatic() && cur_day < health->get_symptomatic_date(disease)) {
+  if (!health->is_symptomatic() && cur_day < health->get_symptoms_start_date(disease)) {
     // Can only have these effects if the agent is not symptomatic yet
     health->modify_develops_symptoms(disease, roll_will_have_symp(), cur_day);
   }
 
-  if (!health->is_symptomatic() && cur_day < health->get_symptomatic_date(disease)) {
+  if (!health->is_symptomatic() && cur_day < health->get_symptoms_start_date(disease)) {
     health->modify_asymptomatic_period(disease, 1.0-reduce_asymp_period,cur_day);
   }
 
-  if (health->is_symptomatic() && cur_day < health->get_recovered_date(disease)) {
+  if (health->is_symptomatic() && cur_day < health->get_infectious_end_date(disease)) {
     health->modify_symptomatic_period(disease, 1.0-reduce_symp_period,cur_day);
   }
 }

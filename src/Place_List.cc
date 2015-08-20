@@ -44,7 +44,6 @@
 #include "Tracker.h"
 #include "Travel.h"
 #include "Utils.h"
-#include "Vector_Layer.h"
 #include "Visualization_Layer.h"
 #include "Workplace.h"
 
@@ -1249,8 +1248,6 @@ void Place_List::update(int day) {
 
   FRED_STATUS(1, "update places entered\n", "");
 
-  Place::clear_infectious_places(get_number_of_places());
-
   if(Global::Enable_Seasonality) {
     Global::Clim->update(day);
   }
@@ -1264,7 +1261,7 @@ void Place_List::update(int day) {
       }
 
       if(Global::Enable_Vector_Transmission) {
-        place->reset_vector_data(day);
+        place->update_vector_population(day);
       }
 
       if(Global::Enable_HAZEL && (place->get_type() == Place::HOSPITAL)) {
@@ -1488,15 +1485,15 @@ void Place_List::setup_group_quarters() {
       FRED_VERBOSE(0, "GQ_setup: house %d label %s subtype %c initial size %d units %d\n", p, house->get_label(),
           house->get_subtype(), gq_size, gq_units);
       if(gq_units > 1) {
-        vector<Person*> housemates;
-        housemates.clear();
-        for(int i = 0; i < gq_size; ++i) {
-          Person* person = house->get_housemate(i);
-          housemates.push_back(person);
-        }
-        int units_filled = 1;
-        int min_per_unit = gq_size / gq_units;
-        int larger_units = gq_size - min_per_unit * gq_units;
+	vector<Person*> housemates;
+	housemates.clear();
+	for(int i = 0; i < gq_size; ++i) {
+	  Person* person = house->get_enrollee(i);
+	  housemates.push_back(person);
+	}
+	int units_filled = 1;
+	int min_per_unit = gq_size / gq_units;
+	int larger_units = gq_size - min_per_unit * gq_units;
         int smaller_units = gq_units - larger_units;
         FRED_VERBOSE(1, "GQ min_per_unit %d smaller = %d  larger = %d total = %d  orig = %d\n", min_per_unit,
             smaller_units, larger_units, smaller_units*min_per_unit + larger_units*(min_per_unit+1), gq_size);
@@ -1552,7 +1549,7 @@ void Place_List::setup_households() {
     Person* head_of_household = NULL;
     int max_age = -99;
     for(int j = 0; j < house->get_size() && head_of_household == NULL; ++j) {
-      Person* person = house->get_housemate(j);
+      Person* person = house->get_enrollee(j);
       assert(person != NULL);
       if(person->is_householder()) {
         head_of_household = person;
@@ -1573,7 +1570,7 @@ void Place_List::setup_households() {
     assert(head_of_household != NULL);
     // make sure everyone know who's the head
     for(int j = 0; j < house->get_size(); j++) {
-      Person* person = house->get_housemate(j);
+      Person* person = house->get_enrollee(j);
       if(person != head_of_household && person->is_householder()) {
         person->set_relationship(Global::HOUSEMATE);
       }
@@ -1597,14 +1594,6 @@ void Place_List::setup_households() {
     select_households_for_shelter();
   } else if(Global::Enable_HAZEL) {
     select_households_for_evacuation();
-  }
-
-  // initialize the vector layer in proportion to the household population
-  if(Global::Enable_Vector_Layer) {
-    for(int i = 0; i < num_households; ++i) {
-      Household* house = this->get_household_ptr(i);
-      Global::Vectors->add_hosts(house);
-    }
   }
 
   // add household list to visualization layer if needed
@@ -1681,7 +1670,7 @@ void Place_List::reassign_workers() {
 
 void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_staff, double staff_ratio) {
   int number_places = this->places.size();
-  Utils::fred_log("reassign workers entered. places = %d\n", number_places);
+  Utils::fred_log("reassign workers to place of type %c entered. places = %d\n", place_type, number_places);
   for(int p = 0; p < number_places; p++) {
     Place* place = this->places[p];
     if(place->get_type() == place_type) {
@@ -1690,9 +1679,9 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
       double x = Geo::get_x(lon);
       double y = Geo::get_y(lat);
       if(place_type == Place::SCHOOL) {
-        FRED_VERBOSE(1, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
       } else {
-        FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
       }
 
       // ignore place if it is outside the region
@@ -1734,7 +1723,7 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
 void Place_List::reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff,
     double resident_to_staff_ratio) {
   int number_places = this->places.size();
-  Utils::fred_log("reassign workers entered. places = %d\n", number_places);
+  Utils::fred_log("reassign workers to group quarters subtype %c entered. places = %d\n", subtype, number_places);
   for(int p = 0; p < number_places; ++p) {
     Place* place = this->places[p];
     if(place->is_workplace() && place->get_subtype() == subtype) {
@@ -2673,7 +2662,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
 
     Hospital* hosp = NULL;
     if(hh->get_size() > 0) {
-      Person* per = hh->get_housemate(0);
+      Person* per = hh->get_enrollee(0);
       assert(per != NULL);
       if(Global::Enable_Health_Insurance) {
         hosp = this->get_random_open_hospital_matching_criteria(0, per, true, true);
@@ -2759,24 +2748,7 @@ Place* Place_List::select_school(int county_index, int grade) {
 }
 
 void Place_List::find_visitors_to_infectious_places(int day) {
-
-  if(Global::Visit_Home_Neighborhood_Unless_Infectious) {
-
-    // only poll enrollees of infectious places (faster)
-    int number_places = Place::count_infectious_places();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = Place::get_infectious_place(p);
-      place->add_visitors_if_infectious(day);
-    }
-
-    // but also check whether traveling people visit infectious places
-    if(Global::Enable_Travel) {
-      Global::Pop.update_traveling_people(day);
-    }
-  } else {
-    // poll entire population (slower)
-    Global::Pop.add_visitors_to_infectious_places(day);
-  }
+  // TODO: delete
 }
 
 void Place_List::update_population_dynamics(int day) {

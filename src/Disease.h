@@ -17,24 +17,17 @@
 #ifndef _FRED_Disease_H
 #define _FRED_Disease_H
 
-#include <fstream>
+#include <vector>
 #include <map>
 #include <string>
+
 using namespace std;
 
-#include "Epidemic.h"
-#include "Global.h"
-
 class Age_Map;
-class Evolution;
+class Epidemic;
 class Infection;
-class IntraHost;
+class Natural_History;
 class Person;
-class Strain;
-class Strain_Data;
-class StrainTable;
-class Trajectory;
-
 
 class Disease {
 public:
@@ -45,29 +38,12 @@ public:
   Disease();
   ~Disease();
 
-  void initialize_static_variables();
   void get_parameters(int disease, string name);
 
   /**
    * Set all of the attributes for the Disease
    */
   void setup();
-
-  //  /**
-  //   * Print out information about this object
-  //   */
-  //  void print();
-
-  /**
-   * @return the intrahost model's days symptomatic
-   * @see IntraHost::get_days_symp()
-   */
-  int get_days_symp();
-
-  /**
-   * @return the days recovered
-   */
-  int get_days_recovered();
 
   /**
    * @return this Disease's id
@@ -83,16 +59,6 @@ public:
     return this->transmissibility;
   }
 
-  /**
-   * @param strain the strain of the disease
-   * @return the strain's transmissibility
-   */
-  double get_transmissibility(int strain);
-
-  /**
-   * @param seasonality_value meterological condition (eg specific humidity in kg/kg)
-   * @return the multiplier calculated from the seasonality condition; attenuates transmissibility
-   */
   double calculate_climate_multiplier(double seasonality_value);
 
   /**
@@ -122,30 +88,10 @@ public:
   }
 
   /**
-   * @return a pointer to this Disease's Evolution attribute
-   */
-  Evolution* get_evolution() {
-    return this->evol;
-  }
-
-  Trajectory* get_trajectory(int age);
-
-  /**
-   * Add a person to the Epidemic's infectious place list
-   * @param p pointer to a Place
-   * @see Epidemic::add_infectious_place(Place* p)
-   */
-  void add_infectious_place(Place* p) {
-    this->epidemic->add_infectious_place(p);
-  }
-
-  /**
    * @param day the simulation day
    * @see Epidemic::print_stats(day);
    */
-  void print_stats(int day) {
-    this->epidemic->print_stats(day);
-  }
+  void print_stats(int day);
 
   /**
    * @return the epidemic with which this Disease is associated
@@ -164,73 +110,11 @@ public:
    */
   static void set_prob_stay_home(double);
 
-  int get_num_strains();
-  int get_num_strain_data_elements(int strain);
-  int get_strain_data_element(int strain, int i);
-  const Strain_Data &get_strain_data(int strain);
-  const Strain &get_strain(int strain_id);
-
   void get_disease_parameters();
 
-  void become_susceptible(Person* person) {
-    this->epidemic->become_susceptible(person);
-  }
-
-  void become_unsusceptible(Person* person) {
-    this->epidemic->become_unsusceptible(person);
-  }
-
-  void become_exposed(Person* person, int day) {
-    this->epidemic->become_exposed(person, day);
-  }
-
-  void become_infectious(Person* person) {
-    this->epidemic->become_infectious(person);
-  }
-
-  void become_uninfectious(Person* person) {
-    this->epidemic->become_uninfectious(person);
-  }
-
-  void become_symptomatic(Person* person) {
-    this->epidemic->become_symptomatic(person);
-  }
-
-  void become_removed(Person* person, bool susceptible, bool infectious, bool symptomatic) {
-    this->epidemic->become_removed(person, susceptible, infectious, symptomatic);
-  }
-
-  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
-    this->epidemic->become_immune(person, susceptible, infectious, symptomatic);
-  }
-
-  void increment_cohort_infectee_count(int day) {
-    this->epidemic->increment_cohort_infectee_count(day);
-  }
+  void increment_cohort_infectee_count(int day);
  
-  bool gen_immunity_infection(double real_age);
-
-  int add_strain(Strain* child_strain, double transmissibility, int parent_strain_id);
-  int add_strain(Strain* child_strain, double transmissibility);
-
-  void add_root_strain(int num_elements);
-  void print_strain(int strain_id, stringstream &out);
-  std::string get_strain_data_string(int strain_id);
-  void initialize_evolution_reporting_grid(Regional_Layer* grid);
-
-  double get_infectivity_threshold() {
-    return this->infectivity_threshold;
-  }
-  
-  double get_symptomaticity_threshold() {
-    return this->symptomaticity_threshold;
-  }
-
-  void init_prior_immunity();
-
-  void update(int day) {
-    this->epidemic->update(day);
-  }
+  void update(int day);
 
   double get_face_mask_transmission_efficacy() {
     return this->face_mask_transmission_efficacy;
@@ -256,9 +140,6 @@ public:
     return this->face_mask_plus_hand_washing_susceptibility_efficacy;
   }
 
-  bool is_fatal(double real_age, double symptoms, int days_symptomatic);
-  bool is_fatal(Person* per, double symptoms, int days_symptomatic);
-
   double get_min_symptoms_for_seek_healthcare() {
     return this->min_symptoms_for_seek_healthcare;
   }
@@ -266,10 +147,6 @@ public:
   double get_hospitalization_prob(Person* per);
 
   double get_outpatient_healthcare_prob(Person* per);
-
-  bool is_case_fatality_enabled() {
-    return this->enable_case_fatality;
-  }
 
   char* get_disease_name() {
     return this->disease_name;
@@ -279,44 +156,43 @@ public:
   
   vector<double> get_residual_immunity_values_by_FIPS(int FIPS_string);
    
+  char * get_natural_history_model() {
+    return this->natural_history_model;
+  }
+
+  Natural_History * get_natural_history() {
+    return this->natural_history;
+  }
+
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
+
 private:
 
-  char disease_name[FRED_STRING_SIZE];
+  // disease identifiers
   int id;
+  char disease_name[20];
+
+  // the course of infection within a host
+  char natural_history_model[20];
+  Natural_History* natural_history;
+
+  // contagiousness
   double transmissibility;
+  double R0;
+  double R0_a;
+  double R0_b;
+  
+  // the course of infection at the population level
+  Epidemic* epidemic;
+  Age_Map* at_risk;
+  Age_Map* residual_immunity;
+  std::map<int, vector<double> > residual_immunity_by_FIPS;
 
-  // infectivity and symptomaticity thresholds used in Infection class to
-  // determine if an agent is infectious/symptomatic at a given point in the
-  // trajectory
-  double infectivity_threshold;
-  double symptomaticity_threshold;
-
+  // variation over time of year
   double seasonality_max, seasonality_min;
   double seasonality_Ka, seasonality_Kb;
 
-  // case fatality parameters
-  int enable_case_fatality;
-  double min_symptoms_for_case_fatality;
-  Age_Map* case_fatality_age_factor;
-  double* case_fatality_prob_by_day;
-  int max_days_case_fatality_prob;
-
-  //Hospitalization and outpatient healthcare parameters
-  double min_symptoms_for_seek_healthcare;
-  Age_Map* hospitalization_prob;
-  Age_Map* outpatient_healthcare_prob;
-
-  double immunity_loss_rate;
-  Epidemic* epidemic;
-  Age_Map* residual_immunity;
-  Age_Map* at_risk;
-  Age_Map* infection_immunity_prob;
-  StrainTable* strain_table;
-  IntraHost* ihm;
-  Evolution* evol;
-
-
-  // intervention efficacies
+  // behavioral intervention efficacies
   int enable_face_mask_usage;
   double face_mask_transmission_efficacy;
   double face_mask_susceptibility_efficacy;
@@ -327,13 +203,10 @@ private:
   double face_mask_plus_hand_washing_transmission_efficacy;
   double face_mask_plus_hand_washing_susceptibility_efficacy;
 
-  double R0;
-  double R0_a;
-  double R0_b;
-  
-  /// added for residual_immunity_by FIPS
-  std::map<int, vector<double> > residual_immunity_by_FIPS;
-  /// end added
+  // hospitalization and outpatient healthcare parameters
+  double min_symptoms_for_seek_healthcare;
+  Age_Map* hospitalization_prob;
+  Age_Map* outpatient_healthcare_prob;
 
 };
 

@@ -257,7 +257,31 @@ public:
     Place_List::Hospital_ID_current_assigned_size_map.at(hospital_id)++;
   }
 
+  std::vector<Place*> * get_households() {
+    return &(this->households);
+  }
+
+  std::vector<Place*> * get_schools() {
+    return &(this->schools);
+  }
+
+  std::vector<Place*> * get_workplaces() {
+    return &(this->workplaces);
+  }
+
+  std::vector<Place*> * get_hospitals() {
+    return &(this->hospitals);
+  }
+
 private:
+
+  // lists of places by type
+  std::vector<Place*> places;
+  std::vector<Place*> households;
+  std::vector<Place*> schools;
+  std::vector<Place*> schools_by_grade[GRADES];
+  std::vector<Place*> workplaces;
+  std::vector<Place*> hospitals;
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);
@@ -284,9 +308,6 @@ private:
   char MSA_file[FRED_STRING_SIZE];
   char Counties_file[FRED_STRING_SIZE];
   char States_file[FRED_STRING_SIZE];
-
-  // pointers to households
-  std::vector<Place*> households;
 
   // list of counties
   std::vector<County*> counties;
@@ -411,12 +432,6 @@ private:
   TypeCountsMapT place_type_counts;
 
   int next_place_id;
-
-  std::vector<Place*> places;
-  std::vector<Place*> schools;
-  std::vector<Place*> schools_by_grade[GRADES];
-  std::vector<Place*> workplaces;
-  std::vector<Place*> hospitals;
 
   LabelMapT* place_label_map;
 };

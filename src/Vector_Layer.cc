@@ -28,6 +28,7 @@ using namespace std;
 #include "Vector_Patch.h"
 #include "Disease.h"
 #include "Disease_List.h"
+#include "Epidemic.h"
 #include "Visualization_Layer.h"
 #include "Regional_Layer.h"
 #include "Regional_Patch.h"
@@ -47,6 +48,13 @@ typedef struct county_record {
   int people_immunized;
 } county_record_t;
 
+bool Vector_Layer::Enable_Vector_Control = false;
+bool Vector_Layer::School_Vector_Control = false;
+bool Vector_Layer::Workplace_Vector_Control = false;
+bool Vector_Layer::Household_Vector_Control = false;
+bool Vector_Layer::Neighborhood_Vector_Control = false;
+bool Vector_Layer::Limit_Vector_Control = false;
+
 vector<county_record_t> county_set;
 
 Vector_Layer::Vector_Layer() {
@@ -62,6 +70,25 @@ Vector_Layer::Vector_Layer() {
   this->total_infected_vectors = 0;
   this->total_infectious_hosts = 0;
   this->total_infected_hosts = 0;
+
+  // get vector_control parameters
+  int temp_int;
+  Params::get_param_from_string("enable_vector_control", &temp_int);
+  Vector_Layer::Enable_Vector_Control = (temp_int == 0 ? false : true);
+
+  if (Vector_Layer::Enable_Vector_Control) {
+    Params::get_param_from_string("school_vector_control", &temp_int);
+    Vector_Layer::School_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("workplace_vector_control", &temp_int);
+    Vector_Layer::Workplace_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("household_vector_control", &temp_int);
+    Vector_Layer::Household_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("neighborhood_vector_control", &temp_int);
+    Vector_Layer::Neighborhood_Vector_Control = (temp_int == 0 ? false : true);
+    Params::get_param_from_string("limit_vector_control", &temp_int);
+    Vector_Layer::Limit_Vector_Control = (temp_int == 0 ? false : true);
+  }
+
   // determine patch size for this layer
   Params::get_param_from_string("vector_patch_size", &this->patch_size);
   // Get probabilities of transmission 
@@ -98,7 +125,7 @@ Vector_Layer::Vector_Layer() {
 
   for(int i = 0; i < this->rows; ++i) {
     for(int j = 0; j < this->cols; ++j) {
-      this->grid[i][j].setup(i, j, this->patch_size, this->min_x, this->min_y, this->transmission_efficiency, this->infection_efficiency);
+      this->grid[i][j].setup(i, j, this->patch_size, this->min_x, this->min_y);
     }      
   }
   // To read the temperature grid
@@ -266,50 +293,29 @@ void Vector_Layer::quality_control() {
   }
 }
 
-void Vector_Layer::initialize() {
-  return;
+void Vector_Layer::setup() {
+  int num_households = Global::Places.get_number_of_households();
+  for(int i = 0; i < num_households; ++i) {
+    Household* house = Global::Places.get_household_ptr(i);
+    add_hosts(house);
+  }
 }
 
 void Vector_Layer::update(int day) {
   this->total_infected_vectors = 0;
   this->total_infected_hosts = 0;
   this->total_infectious_hosts = 0;
+
   FRED_VERBOSE(1,"Vector_Layer::update() entered on day %d\n", day);
-  for(int i = 0; i < this->rows; ++i) {
-    for(int j = 0; j < this->cols; ++j) {
-      Vector_Patch* patch = static_cast<Vector_Patch*>(&this->grid[i][j]);
-      patch->update(day);
-      // total_infected_vectors += patch->get_infected_vectors();
-      // total_infected_hosts += patch->get_infected_hosts();
-      // total_infectious_hosts += patch->get_infectious_hosts();
-    }
-  }
   // Global::Daily_Tracker->log_key_value("Vec_I", total_infected_vectors);
   // Global::Daily_Tracker->log_key_value("Vec_H", total_infectious_hosts);
-
-  /*
-    FILE *fp;
-    char filename[80];
-    sprintf(filename, "vec-%d.txt", day);
-    fp = fopen(filename,"w");
-    for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-    Vector_Patch * patch = (Vector_Patch *) &grid[i][j];
-    int popsize = patch->get_popsize();
-    int infected = patch->get_infected();
-    int count = patch->get_infectious_hosts();
-    fprintf(fp,"i %d j %d popsize %d infected %d inf_hosts %d\n",i,j,popsize,infected,count);
-    }
-    }
-    fclose(fp);
-  */
 }
 
 void Vector_Layer::update_visualization_data(int disease_id, int day) {
   for (int i = 0; i < this->rows; ++i) {
     for (int j = 0; j < this->cols; ++j) {
       Vector_Patch* patch = static_cast<Vector_Patch*>(&this->grid[i][j]);
-      int count = patch->get_infected_vectors();
+      int count = 0; // patch->get_infected_vectors();
       if(count > 0) {
 	double x = patch->get_center_x();
 	double y = patch->get_center_y();
@@ -320,6 +326,7 @@ void Vector_Layer::update_visualization_data(int disease_id, int day) {
 }
 
 void Vector_Layer::add_hosts(Place* p) {
+  /*
   fred::geo lat = p->get_latitude();
   fred::geo lon = p->get_longitude();
   int hosts = p->get_size();
@@ -327,6 +334,7 @@ void Vector_Layer::add_hosts(Place* p) {
   if(patch != NULL) {
     patch->add_hosts(hosts);
   }
+  */
 }
 
 double Vector_Layer::get_temperature(Place* p) {
@@ -394,6 +402,7 @@ double Vector_Layer::get_day_end_seed(Place* p, int dis) {
 }
 
 void Vector_Layer::add_host(Person* person, Place* place) {
+  /*
   if(place->is_neighborhood()) {
     return;
   }
@@ -403,6 +412,7 @@ void Vector_Layer::add_host(Person* person, Place* place) {
   if(patch != NULL) {
     patch->add_host(person);
   }
+  */
 }
 void Vector_Layer::get_county_ids(){
   // get the county ids from external file
@@ -440,7 +450,7 @@ void Vector_Layer::get_county_ids(){
     int house_mates = h->get_size();
     // load every person in the house in a  county
     for(int j = 0; j<house_mates; ++j) {
-      Person* p = h->get_housemate(j);
+      Person* p = h->get_enrollee(j);
       county_set[household_county].habitants.push_back(p);
     }
   }
@@ -616,4 +626,44 @@ void Vector_Layer::init_prior_immunity_by_county(int d) {
       //	    }
     }
   }
+}
+
+
+void Vector_Layer::report(int day, Epidemic * epidemic) {
+  /*
+  int vector_pop_temp = get_vector_population();
+  int inf_vectors = get_infected_vectors();
+  int sus_vectors = get_susceptible_vectors();
+  int vector_pop_school = get_school_vectors();
+  int vector_pop_workplace = get_workplace_vectors();
+  int vector_pop_household = get_household_vectors();
+  int vector_pop_neighborhood = get_neighborhood_vectors();
+  int school_inf_vectors = get_school_infected_vectors();
+  int household_inf_vectors = get_household_infected_vectors();
+  int workplace_inf_vectors = get_workplace_infected_vectors();
+  int neighborhood_inf_vectors = get_neighborhood_infected_vectors();
+  epidemic->track_value(day,(char *)"Nv", vector_pop_temp);
+  epidemic->track_value(day,(char *)"Nvs", vector_pop_school);
+  epidemic->track_value(day,(char *)"Nvw", vector_pop_workplace);
+  epidemic->track_value(day,(char *)"Nvh", vector_pop_household);
+  epidemic->track_value(day,(char *)"Nvn", vector_pop_neighborhood);
+  epidemic->track_value(day,(char *)"Iv", inf_vectors);
+  epidemic->track_value(day,(char *)"Ivs", school_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivw", workplace_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivh", household_inf_vectors);
+  epidemic->track_value(day,(char *)"Ivn", neighborhood_inf_vectors);
+  epidemic->track_value(day,(char *)"Sv", sus_vectors);
+  if(Vector_Layer::Enable_Vector_Control){
+    int total_places_vc = get_places_in_vector_control();
+    int total_schools_vc = get_schools_in_vector_control();
+    int total_households_vc = get_households_in_vector_control();
+    int total_workplaces_vc = get_workplaces_in_vector_control();
+    int total_neighborhoods_vc = get_schools_in_vector_control();
+    epidemic->track_value(day,(char *)"Pvc", total_places_vc);
+    epidemic->track_value(day,(char *)"Svc", total_schools_vc);
+    epidemic->track_value(day,(char *)"Hvc", total_households_vc);
+    epidemic->track_value(day,(char *)"Wvc", total_workplaces_vc);
+    epidemic->track_value(day,(char *)"Nvc", total_neighborhoods_vc);
+  }
+  */
 }

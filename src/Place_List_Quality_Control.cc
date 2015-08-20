@@ -160,8 +160,8 @@ void Place_List::report_household_distributions() {
       if(this->places[p]->is_household()) {
         Household* h = static_cast<Household*>(this->places[p]);
         for(int i = 0; i < h->get_size(); ++i) {
-          if(h->get_housemate(i)->is_householder()) {
-            per = h->get_housemate(i);
+          if(h->get_enrollee(i)->is_householder()) {
+            per = h->get_enrollee(i);
           }
         }
         if(per == NULL) {
@@ -282,7 +282,7 @@ void Place_List::report_household_distributions() {
         }
         int size = h->get_size();
         for(int i = 0; i < size; ++i) {
-          Person* child = h->get_housemate(i);
+          Person* child = h->get_enrollee(i);
           int ch_age = child->get_age();
           if (ch_age < 18) {
             int ch_rel = child->get_relationship();
@@ -316,8 +316,8 @@ void Place_List::report_household_distributions() {
         Household* h = static_cast<Household*>(this->places[p]);
 	Person* per = NULL;
         for(int i = 0; i < h->get_size(); ++i) {
-          if(h->get_housemate(i)->is_householder()) {
-            per = h->get_housemate(i);
+          if(h->get_enrollee(i)->is_householder()) {
+            per = h->get_enrollee(i);
           }
         }
         if(per == NULL) {
@@ -360,8 +360,8 @@ void Place_List::report_household_distributions() {
         }
         children += h->get_children();
         for(int i = 0; i < h->get_size(); ++i) {
-          if(h->get_housemate(i)->is_householder()) {
-            per = h->get_housemate(i);
+          if(h->get_enrollee(i)->is_householder()) {
+            per = h->get_enrollee(i);
           }
         }
         if(per == NULL) {
@@ -608,7 +608,7 @@ void Place_List::quality_control() {
         }
         int size = h->get_size();
         for(int i = 0; i < size; ++i) {
-          Person* child = h->get_housemate(i);
+          Person* child = h->get_enrollee(i);
           int ch_age = child->get_age();
           if(ch_age < 18) {
             int ch_rel = child->get_relationship();
@@ -642,8 +642,8 @@ void Place_List::quality_control() {
       if(this->places[p]->is_household()) {
         Household* h = static_cast<Household*>(this->places[p]);
         for(int i = 0; i < h->get_size(); ++i) {
-          if(h->get_housemate(i)->is_householder()) {
-            per = h->get_housemate(i);
+          if(h->get_enrollee(i)->is_householder()) {
+            per = h->get_enrollee(i);
           }
         }
         if(per == NULL) {
@@ -686,8 +686,8 @@ void Place_List::quality_control() {
         }
         children += h->get_children();
         for(int i = 0; i < h->get_size(); ++i) {
-          if(h->get_housemate(i)->is_householder()) {
-            per = h->get_housemate(i);
+          if(h->get_enrollee(i)->is_householder()) {
+            per = h->get_enrollee(i);
           }
         }
         if(per == NULL) {

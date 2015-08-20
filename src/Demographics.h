@@ -17,12 +17,13 @@
 #ifndef _FRED_DEMOGRAPHICS_H
 #define _FRED_DEMOGRAPHICS_H
 
-#include "Global.h"
-#include "Events.h"
 #include <vector>
 #include <map>
 
 using namespace std;
+
+#include "Events.h"
+#include "Global.h"
 
 class Person;
 class Date;
@@ -156,37 +157,19 @@ public:
   static void delete_from_birthday_list(Person * person);
   static void update_people_on_birthday_list(int day);
 
-  static void add_conception_event(int day, Person *person) {
-    conception_queue->add_event(day, person);
-  }
-
-  static void delete_conception_event(int day, Person *person) {
-    conception_queue->delete_event(day, person);
-  }
-
-  static void add_maternity_event(int day, Person *person) {
-    maternity_queue->add_event(day, person);
-  }
-
-  static void delete_maternity_event(int day, Person *person) {
-    maternity_queue->delete_event(day, person);
-  }
-
-  static void add_mortality_event(int day, Person *person) {
-    mortality_queue->add_event(day, person);
-  }
-
-  static void delete_mortality_event(int day, Person *person) {
-    mortality_queue->delete_event(day, person);
-  }
-
+  static void add_conception_event(int day, Person *person);
+  static void delete_conception_event(int day, Person *person);
+  static void add_maternity_event(int day, Person *person);
+  static void delete_maternity_event(int day, Person *person);
+  static void add_mortality_event(int day, Person *person);
+  static void delete_mortality_event(int day, Person *person);
   static void report(int day); 
 
 private:
 
-  static Events * conception_queue;
-  static Events * maternity_queue;
-  static Events * mortality_queue;
+  static Events<Demographics> * conception_queue;
+  static Events<Demographics> * maternity_queue;
+  static Events<Demographics> * mortality_queue;
 
   short int init_age;			     // Initial age of the agent
   short int age;			     // Current age of the agent

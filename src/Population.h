@@ -78,12 +78,6 @@ public:
   void end_of_run();
 
   /**
-   * Perform beginning of day operations
-   * @param day the simulation day
-   */
-  void update(int day);
-
-  /**
    * Report the disease statistics for a given day
    * @param day the simulation day
    */
@@ -271,30 +265,18 @@ public:
   const std::vector<Utils::Tokens> &get_demes() {
     return this->demes;
   }
-  /* TODO rewrite
-     template< typename MaskType >
-     struct masked_iterator : bloque< Person, fred::Pop_Masks >::masked_iterator< MaskType > { };
-
-     template< typename MaskType >
-     masked_iterator< MaskType > begin() { return blq.begin(); }
-
-     template< typename MaskType >
-     masked_iterator< MaskType > end() { return blq.end(); }
-  */
-
-  void update_infectious_people(int day);
-
-  void add_susceptibles_to_infectious_places(int day);
-
-  void add_visitors_to_infectious_places(int day);
 
   void initialize_demographic_dynamics();
-
-  void update_traveling_people(int day);
 
   bool is_load_completed() {
     return this->load_completed;
   }
+
+  //Mitigation Managers
+  AV_Manager* av_manager;
+  Vaccine_Manager* vacc_manager;
+
+  void update_health_interventions(int day);
 
 private:
 
@@ -391,28 +373,11 @@ private:
   static bool is_initialized;
   static int next_id;
 
-  //Mitigation Managers
-  AV_Manager* av_manager;
-  Vaccine_Manager* vacc_manager;
-
   /**
    * Write out the population in a format similar to the population input files (with additional runtime information)
    * @param day the simulation day
    */
   void write_population_output_file(int day);
-
-  // functors for demographics updates 
-  struct Update_Population_Births {
-    int day;
-    Update_Population_Births(int _day) : day(_day) { }
-    void operator() (Person &p);
-  };
-
-  struct Update_Population_Deaths {
-    int day;
-    Update_Population_Deaths(int _day) : day(_day) { }
-    void operator() (Person &p);
-  };
 
   // functor for health interventions (vaccination & antivirals) updates
   struct Update_Health_Interventions {
@@ -421,13 +386,6 @@ private:
     void operator() (Person &p );
   };
     
-  // functor for health update
-  struct Update_Population_Health {
-    int day;
-    Update_Population_Health(int d) : day(d) { }
-    void operator() (Person &p);
-  };
-
   // functor for prepare activities
   struct Prepare_Population_Activities {
     int day;
@@ -435,37 +393,6 @@ private:
     void operator() (Person &p);
   };
 
-  // functor for activity profile update
-  struct Update_Population_Activities {
-    int day;
-    Update_Population_Activities(int d) : day(d) { }
-    void operator() (Person &p);
-  };
-
-  struct update_activities {
-    int day, disease_id;
-    update_activities(int _day, int _disease_id) : day(_day), disease_id(_disease_id) { };
-    void operator() (Person &p);
-  };
-
-  struct update_susceptible_activities {
-    int day;
-    update_susceptible_activities(int _day) : day(_day) { };
-    void operator() (Person &p);
-  };
-
-  struct update_infectious_activities {
-    int day;
-    update_infectious_activities(int _day) : day(_day) { };
-    void operator() (Person &p);
-  };
-  
-  struct update_activities_while_traveling {
-    int day;
-    update_activities_while_traveling(int _day) : day(_day) { };
-    void operator() (Person &p);
-  };
-  
   // functor for behavior setup
   struct Setup_Population_Behavior {
     void operator() (Person &p);

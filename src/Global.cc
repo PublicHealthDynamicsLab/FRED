@@ -25,7 +25,7 @@
 char Global::Simulation_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
 unsigned long Global::Simulation_seed = 1;
-time_t Global::Simulation_start_time = 0;
+high_resolution_clock::time_point Global::Simulation_start_time = high_resolution_clock::now();
 int Global::Simulation_Day = 0;
 
 // global runtime parameters
@@ -82,6 +82,7 @@ bool Global::Enable_Health_Insurance = false;
 bool Global::Enable_Group_Quarters = false;
 bool Global::Enable_Visualization_Layer = false;
 bool Global::Enable_Vector_Layer = false;
+bool Global::Report_Vector_Population = false;
 bool Global::Enable_Vector_Transmission = false;
 bool Global::Enable_Population_Dynamics = false;
 bool Global::Enable_Travel = false;
@@ -89,8 +90,9 @@ bool Global::Enable_Local_Workplace_Assignment = false;
 bool Global::Enable_Seasonality = false;
 bool Global::Enable_Climate = false;
 bool Global::Enable_Chronic_Condition = false;
-bool Global::Enable_Vaccination = true;
-bool Global::Enable_Antivirals = true;
+bool Global::Enable_Vaccination = false;
+bool Global::Enable_Antivirals = false;
+bool Global::Enable_Viral_Evolution = false;
 bool Global::Enable_HAZEL = false;
 bool Global::Enable_hh_income_based_susc_mod = false;
 bool Global::Use_Mean_Latitude = false;
@@ -216,6 +218,8 @@ void Global::get_global_parameters() {
   Global::Enable_Vector_Layer = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_vector_transmission", &temp_int);
   Global::Enable_Vector_Transmission = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_vector_population", &temp_int);
+  Global::Report_Vector_Population = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_population_dynamics", &temp_int);
   Global::Enable_Population_Dynamics = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_travel",&temp_int);
@@ -232,6 +236,8 @@ void Global::get_global_parameters() {
   Global::Enable_Vaccination = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_antivirals", &temp_int);
   Global::Enable_Antivirals = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_viral_evolution", &temp_int);
+  Global::Enable_Viral_Evolution = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_HAZEL", &temp_int);
   Global::Enable_HAZEL = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_hh_income_based_susc_mod", &temp_int);

@@ -104,27 +104,23 @@ void Hospital::get_parameters(int diseases) {
     return;
   }
   
+  Hospital::Hospital_contacts_per_day = new double[diseases];
+  Hospital::Hospital_contact_prob = new double**[diseases];
+
   char param_str[80];
-
-  if(!Global::Enable_Vector_Transmission) {
-    Hospital::Hospital_contacts_per_day = new double[diseases];
-    Hospital::Hospital_contact_prob = new double**[diseases];
-
-    char param_str[80];
-    for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-      Disease* disease = Global::Diseases.get_disease(disease_id);
-      sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
-      Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
-      sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &Hospital::Hospital_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-        printf("\nHospital_contact_prob:\n");
-        for(int i  = 0; i < n; ++i)  {
-          for(int j  = 0; j < n; ++j) {
-            printf("%f ", Hospital::Hospital_contact_prob[disease_id][i][j]);
-          }
-          printf("\n");
-        }
+  for(int disease_id = 0; disease_id < diseases; ++disease_id) {
+    Disease* disease = Global::Diseases.get_disease(disease_id);
+    sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
+    Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
+    sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
+    int n = Params::get_param_matrix(param_str, &Hospital::Hospital_contact_prob[disease_id]);
+    if(Global::Verbose > 1) {
+      printf("\nHospital_contact_prob:\n");
+      for(int i  = 0; i < n; ++i)  {
+	for(int j  = 0; j < n; ++j) {
+	  printf("%f ", Hospital::Hospital_contact_prob[disease_id][i][j]);
+	}
+	printf("\n");
       }
     }
   }
@@ -132,7 +128,6 @@ void Hospital::get_parameters(int diseases) {
   if(Global::Enable_HAZEL) {
     char HAZEL_hosp_init_file_name[FRED_STRING_SIZE];
     char hosp_init_file_dir[FRED_STRING_SIZE];
-
 
     Params::get_param_vector((char*)"HAZEL_reopening_CDF", Hospital::HAZEL_reopening_CDF);
     Params::get_param_from_string("HAZEL_disaster_capacity_multiplier", &Hospital::HAZEL_disaster_capacity_multiplier);

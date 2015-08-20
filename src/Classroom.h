@@ -47,16 +47,8 @@ public:
    */
   void get_parameters(int diseases);
 
-  /**
-   * Add a person to the classroom. This method increments the number of people in
-   * the classroom and also sets the age level for the classroom, if the person added
-   * is the first child to be enrolled.<br />
-   * Overrides Place::enroll(Person * per)
-   *
-   * @param per a pointer to a Person object that may be added to the classroom
-   */
-  void enroll(Person * per);
-  void unenroll(Person * per);
+  int enroll(Person * per);
+  void unenroll(int pos);
 
   /**
    * @see Place::get_group(int disease, Person * per)
