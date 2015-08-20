@@ -89,8 +89,8 @@ CXX = $(CPP)
 LDFLAGS =
 LFLAGS =
 
-# comment out if not using clang
-CLANG_FLAGS = -mllvm -inline-threshold=1000
+# comment out if not using clang (can also be set using an environmental variable)
+# FRED_CLANG_FLAGS = -mllvm -inline-threshold=1000
 
 ## FRED message levels
 LOGGING_PRESET_0 = 
@@ -113,7 +113,7 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 ###############################################
 
 %.o : %.cc %.h
-	$(CPP) $(CPPFLAGS) $(CLANG_FLAGS) -c $< $(INCLUDES)
+	$(CPP) $(CPPFLAGS) $(FRED_CLANG_FLAGS) -c $< $(INCLUDES)
 
 CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o Random.o $(SNAPPY_OBJ)
 
