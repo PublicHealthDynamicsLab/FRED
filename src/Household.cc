@@ -13,7 +13,7 @@
 //
 // File: Household.cc
 //
-#include <limits>
+#include <climits>
 #include <set>
 
 #include "Household.h"

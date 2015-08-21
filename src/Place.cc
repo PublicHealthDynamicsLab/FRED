@@ -14,6 +14,7 @@
 // File: Place.cc
 //
 #include <algorithm>
+#include <climits>
 
 #include "Place.h"
 

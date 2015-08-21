@@ -18,9 +18,9 @@
 #include <vector>
 #include <map>
 #include <string>
-#include<fstream>
-#include<string>
-#include<sstream>
+#include <fstream>
+#include <string>
+#include <sstream>
 using namespace std;
 
 #include "Utils.h"
@@ -471,18 +471,18 @@ void Vector_Layer::get_immunity_from_file() {
     double temp_immune ;
     if(fscanf(fp,"%d ", &temp_county) == 1) {
       for(int i = 0; i < county_set.size(); ++i) {
-	if(county_set[i].id == temp_county) {
-	  index_county = i;
-	}
+	    if(county_set[i].id == temp_county) {
+	      index_county = i;
+	    }
       }
       if(index_county == -1) {
-	Utils::fred_abort("No county found %d\n",temp_county);
+	    Utils::fred_abort("No county found %d\n",temp_county);
       }
       FRED_VERBOSE(2,"County code  %d\n",temp_county);
       for(int i = 0; i < 102; ++i) {
-	fscanf(fp,"%lg ",&temp_immune);
-	county_set[index_county].immunity_by_age[i] = temp_immune;
-	FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
+        int val = fscanf(fp,"%lg ",&temp_immune);
+	    county_set[index_county].immunity_by_age[i] = temp_immune;
+	    FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
       }
     }
   }
