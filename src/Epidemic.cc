@@ -42,6 +42,7 @@ using namespace std;
 #include "Tracker.h"
 #include "Transmission.h"
 #include "Utils.h"
+#include "Vector_Layer.h"
 #include "Workplace.h"
 
 Epidemic::Epidemic(Disease* dis) {
@@ -543,6 +544,10 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"AR", this->attack_rate);
   track_value(day, (char*)"ARs", this->symptomatic_attack_rate);
   track_value(day, (char*)"RR", this->RR);
+
+  if (Global::Enable_Vector_Layer && Global::Report_Vector_Population) {
+    Global::Vectors->report(day, this);
+  }
 
   if(this->report_transmission_by_age) {
     report_transmission_by_age_group(day);
