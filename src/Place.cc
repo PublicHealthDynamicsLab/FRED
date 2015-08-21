@@ -93,6 +93,7 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   }
   this->county_index = -1;
   this->census_tract_index = -1;
+  this->vector_disease_data = NULL;
 }
 
 void Place::prepare() {
@@ -354,6 +355,10 @@ void Place::record_infectious_days(int day) {
 }
 
 
+char* Place::get_place_label(Place* p) {
+  return ((p == NULL) ? (char*) "-1" : p->get_label());
+}
+
 //////////////////////////////////////////////////////////
 //
 // PLACE SPECIFIC VECTOR DATA
@@ -362,168 +367,43 @@ void Place::record_infectious_days(int day) {
 
 
 void Place::setup_vector_model() {
-  this->N_vectors = 0;
-  this->S_vectors = 0;
-  for(int i = 0; i < DISEASE_TYPES; ++i) {
-    this->E_vectors[i] = 0;
-    this->I_vectors[i] = 0;
-    this->place_seeds[i] = Global::Vectors->get_seeds(this,i);
-    this->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
-    this->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
+
+  this->vector_disease_data = new vector_disease_data_t;
+
+  // initial vector counts
+  this->vector_disease_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
+  this->vector_disease_data->N_vectors = this->N_orig * this->vector_disease_data->vectors_per_host;
+  this->vector_disease_data->S_vectors = this->vector_disease_data->N_vectors;
+  for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
+    this->vector_disease_data->E_vectors[i] = 0;
+    this->vector_disease_data->I_vectors[i] = 0;
   }	
-  this->death_rate = 1.0/18.0;
-  this->birth_rate = 1.0/18.0;
-  this->bite_rate = 0.76;
-  this->incubation_rate = 1.0/11.0;
-  this->infection_efficiency = Global::Vectors->get_infection_efficiency();
-  this->transmission_efficiency = Global::Vectors->get_transmission_efficiency();
-  this->suitability = 1.0;
-  this->temperature = 0;
-  this->vectors_per_host = 0; // depends on the number of pupa and temperature
-  this->pupae_per_host = 1.02; //Armenia average
-  this->life_span = 18.0; // From Chao and longini
-  this->sucess_rate = 0.83; // Focks
-  this->female_ratio = 0.5;
-  this->development_time = 1.0;
-  set_temperature();
-  this->N_vectors = this->N_orig * this->vectors_per_host;
-  this->S_vectors = this->N_vectors;
-  FRED_VERBOSE(1, "VECTOR_MODEL_SETUP: House %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n", this->label, this->temperature, this->vectors_per_host, this->N_vectors, this->N_orig);
+
+  // initial vector seed counts
+  for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
+    this->vector_disease_data->place_seeds[i] = Global::Vectors->get_seeds(this,i);
+    this->vector_disease_data->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
+    this->vector_disease_data->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
+  }	
+
+  FRED_VERBOSE(1, "setup_vector_model: place %s vectors_per_host %f N_vectors %d N_orig %d\n",
+	       this->label, this->vector_disease_data->vectors_per_host,
+	       this->vector_disease_data->N_vectors, this->N_orig);
 }
 
 double Place::get_seeds(int dis, int day) {
-  if((day < this->day_start_seed[dis]) ||( day > this->day_end_seed[dis])){
+  if((day < this->vector_disease_data->day_start_seed[dis]) ||( day > this->vector_disease_data->day_end_seed[dis])){
     return 0.0;
   } else {
-    return this->place_seeds[dis];
+    return this->vector_disease_data->place_seeds[dis];
   }
 }
-
-void Place::set_temperature(){
-  //temperatures vs development times..FOCKS2000: DENGUE TRANSMISSION THRESHOLDS
-  double temps[8] = {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92}; //temperatures
-  double dev_times[8] = {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0}; //development times
-  this->temperature = Global::Vectors->get_temperature(this);
-  if(this->temperature > 32) {
-    this->temperature = 32;
-  }
-  if(this->temperature <= 18) {
-    this->vectors_per_host = 0;
-  } else {
-    for(int i = 0; i < 8; ++i) {
-      if(this->temperature <= temps[i]) {
-        //obtain the development time using linear interpolation
-        this->development_time = dev_times[i - 1] + (dev_times[i] - dev_times[i - 1]) / (temps[i] - temps[i-1]) * (this->temperature - temps[i - 1]);
-      }
-    }
-    this->vectors_per_host = this->pupae_per_host * this->female_ratio * this->sucess_rate * this->life_span / this->development_time;
-  }
-  FRED_VERBOSE(1, "SET TEMP: House %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n", this->label, this->temperature, this->vectors_per_host, this->N_vectors, this->N_orig);
-}
-
 
 void Place::update_vector_population(int day) {
-  this->vectors_have_been_infected_today = false;
-  
-  if(this->is_neighborhood()){
-    return;
-  }
+  *(this->vector_disease_data) = Global::Vectors->update_vector_population(day, this);
+}
 
-  if(this->N_vectors <= 0) {
-    return;
-  }
-  FRED_VERBOSE(1,"update vector pop: day %d place %s initially: S %d, N: %d\n",day,this->label,S_vectors,N_vectors);
-
-  int born_infectious[DISEASE_TYPES];
-  int total_born_infectious=0;
-
-  // new vectors are born susceptible
-  this->S_vectors += floor(this->birth_rate * this->N_vectors - this->death_rate * S_vectors);
-  FRED_VERBOSE(1,"vector_update_population:: S_vector: %d, N_vectors: %d\n", this->S_vectors, this->N_vectors);
-  // but some are infected
-  for(int d=0;d<DISEASE_TYPES;d++){
-    double seeds = this->get_seeds(d, day);
-    born_infectious[d] = ceil(this->S_vectors * seeds);
-    total_born_infectious += born_infectious[d];
-    if(born_infectious[d] > 0) {
-      FRED_VERBOSE(1,"vector_update_population:: Vector born infectious disease[%d] = %d \n",d, born_infectious[d]);
-      FRED_VERBOSE(1,"Total Vector born infectious: %d \n", total_born_infectious);// 
-    }
-  }
-  // printf("PLACE %s SEEDS %d S_vectors %d DAY %d\n",this->label,total_born_infectious,S_vectors,day);
-  this->S_vectors -= total_born_infectious;
-  FRED_VERBOSE(1,"vector_update_population - seeds:: S_vector: %d, N_vectors: %d\n", this->S_vectors, this->N_vectors);
-  // print this 
-  if(total_born_infectious > 0){
-    FRED_VERBOSE(1,"Total Vector born infectious: %d \n", total_born_infectious);// 
-  }
-  if(this->S_vectors < 0) {
-    this->S_vectors = 0;
-  }
+int Place::get_infectious_vectors(int disease_id) {
+  return this->vector_disease_data->I_vectors[disease_id];
+}
     
-  // accumulate total number of vectors
-  this->N_vectors = this->S_vectors;
-  // we assume vectors can have at most one infection, if not susceptible
-  for(int i = 0; i < DISEASE_TYPES; ++i) {
-    // some die
-    FRED_VERBOSE(1,"vector_update_population:: E_vectors[%d] = %d \n",i, this->E_vectors[i]);
-    if(this->E_vectors[i] < 10){
-      for(int k = 0; k < this->E_vectors[i]; ++k) {
-	double r = Random::draw_random(0,1);
-	if(r < this->death_rate){
-	  this->E_vectors[i]--;
-	}
-      }
-    } else {
-      this->E_vectors[i] -= floor(this->death_rate * this->E_vectors[i]);
-    } 
-    // some become infectious
-    int become_infectious = 0;
-    if(this->E_vectors[i] < 10) {
-      for(int k = 0; k < this->E_vectors[i]; ++k) {
-	double r = Random::draw_random(0,1);
-	if(r < this->incubation_rate) {
-	  become_infectious++;
-	}
-      }
-    } else {
-      become_infectious = floor(this->incubation_rate * this->E_vectors[i]);
-    }
-      
-    // int become_infectious = floor(incubation_rate * E_vectors[i]);
-    FRED_VERBOSE(1,"vector_update_population:: become infectious [%d] = %d, incubation rate: %f,E_vectors[%d] %d \n", i,
-		 become_infectious, this->incubation_rate, i, this->E_vectors[i]);
-    this->E_vectors[i] -= become_infectious;
-    if(this->E_vectors[i] < 0) this->E_vectors[i] = 0;
-    // some die
-    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, this->I_vectors[i]);
-    this->I_vectors[i] -= floor(this->death_rate * this->I_vectors[i]);
-    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, this->I_vectors[i]);
-    // some become infectious
-    this->I_vectors[i] += become_infectious;
-    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, this->I_vectors[i]);
-    // some were born infectious
-    this->I_vectors[i] += born_infectious[i];
-    FRED_VERBOSE(1,"vector_update_population::+= born infectious I_Vectors[%d] = %d,born infectious[%d] = %d \n", i,
-		 this->I_vectors[i], i, born_infectious[i]);
-    if(this->I_vectors[i] < 0) {
-      this->I_vectors[i] = 0;
-    }
-
-    // add to the total
-    this->N_vectors += (this->E_vectors[i] + this->I_vectors[i]);
-    FRED_VERBOSE(1, "update_vector_population entered S_vectors %d E_Vectors[%d] %d  I_Vectors[%d] %d N_Vectors %d\n",
-		 this->S_vectors, i, this->E_vectors[i], i, this->I_vectors[i], this->N_vectors);
-
-    // register if any infectious vectors
-    if(this->I_vectors[i]) {
-      // this->register_as_an_infectious_place(i);
-    }
-  }
-}
-
-char* Place::get_place_label(Place* p) {
-  return ((p == NULL) ? (char*) "-1" : p->get_label());
-}
-
-

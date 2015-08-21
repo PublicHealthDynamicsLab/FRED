@@ -16,16 +16,17 @@
 
 #ifndef _FRED_VECTOR_LAYER_H
 #define _FRED_VECTOR_LAYER_H
-#define  DISEASE_TYPES 4
+
 #include "Global.h"
 #include "Abstract_Grid.h"
 #include <fstream>
+
+#include "Vector_Data.h"
 
 class Epidemic;
 class Person;
 class Place;
 class Vector_Patch;
-
 
 class Vector_Layer : public Abstract_Grid {
 
@@ -41,7 +42,7 @@ public:
   void update(int day);
   void update_visualization_data(int disease_id, int day);
   void add_hosts(Place * p);
-  double get_temperature(Place * p);
+  double get_vectors_per_host(Place * p);
   double get_seeds(Place * place, int dis, int day);
   void add_host(Person * person, Place * place);
   void read_temperature();
@@ -58,6 +59,8 @@ public:
   double get_day_start_seed(Place * p, int dis);
   double get_day_end_seed(Place * p, int dis);
   void report(int day, Epidemic * epidemic);
+  vector_disease_data_t update_vector_population(int day, Place * place);
+  double get_bite_rate() { return this->bite_rate; }
 
 protected:
   void get_county_ids();
@@ -71,10 +74,21 @@ protected:
   int total_infected_vectors;
   int total_infected_hosts;
   int total_infectious_hosts;
+
+  // fixed parameters for this disease vector
   double infection_efficiency;
   double transmission_efficiency;
   double place_seeding_probability;
   double mosquito_seeds;
+  double death_rate;
+  double birth_rate;
+  double bite_rate;
+  double incubation_rate;
+  double suitability;
+  double pupae_per_host;
+  double life_span;
+  double sucess_rate;
+  double female_ratio;
 
   // vector control parameters
   static bool Enable_Vector_Control;

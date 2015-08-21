@@ -24,6 +24,7 @@
 #include "Person.h"
 #include "Place.h"
 #include "Random.h"
+#include "Vector_Layer.h"
 #include "Utils.h"
 
 //////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
   // decide on total number of vectors infected by any infectious host
 
   // each vector's probability of infection
-  double prob_infection = 1.0 - pow((1.0 - place->get_infection_efficiency()), (place->get_bite_rate() * total_infectious_hosts) / total_hosts);
+  double prob_infection = 1.0 - pow((1.0 - Global::Vectors->get_infection_efficiency()), (Global::Vectors->get_bite_rate() * total_infectious_hosts) / total_hosts);
 
   // select a number of vectors to be infected
   int total_infections = prob_infection * susceptible_vectors;
@@ -123,13 +124,13 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
     return;
   }
 
-  double transmission_efficiency = place->get_transmission_efficiency();
+  double transmission_efficiency = Global::Vectors->get_transmission_efficiency();
   if(transmission_efficiency == 0.0) {
     return;
   }
 
   int exposed_hosts = 0;
-  double bite_rate = place->get_bite_rate();
+  double bite_rate = Global::Vectors->get_bite_rate();
 
   // each host's probability of infection
   double prob_infection = 1.0 - pow((1.0 - transmission_efficiency), (bite_rate * infectious_vectors / total_hosts));
