@@ -47,7 +47,6 @@ char Global::City[FRED_STRING_SIZE];
 char Global::County[FRED_STRING_SIZE];
 char Global::US_state[FRED_STRING_SIZE];
 char Global::FIPS_code[FRED_STRING_SIZE];
-//added for cbsa
 char Global::MSA_code[FRED_STRING_SIZE];
 
 char Global::ErrorLogbase[FRED_STRING_SIZE];
@@ -76,7 +75,6 @@ char Global::Seasonality_Timestep[FRED_STRING_SIZE];
 double Global::Work_absenteeism = 0.0;
 double Global::School_absenteeism = 0.0;
 bool Global::Enable_New_Transmission_Model = false;
-bool Global::Visit_Home_Neighborhood_Unless_Infectious = false;
 bool Global::Enable_Hospitals = false;
 bool Global::Enable_Health_Insurance = false;
 bool Global::Enable_Group_Quarters = false;
@@ -202,8 +200,6 @@ void Global::get_global_parameters() {
   Global::Enable_New_Transmission_Model = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_mean_household_stats_per_income_category", &temp_int);
   Global::Report_Mean_Household_Stats_Per_Income_Category = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("visit_home_neighborhood_unless_infectious", &temp_int);
-  Global::Visit_Home_Neighborhood_Unless_Infectious = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_epidemic_data_by_census_tract", &temp_int);
   Global::Report_Epidemic_Data_By_Census_Tract = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_hospitals", &temp_int);

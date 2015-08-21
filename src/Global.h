@@ -225,7 +225,6 @@ public:
 
   //Boolean flags
   static bool Enable_New_Transmission_Model;
-  static bool Visit_Home_Neighborhood_Unless_Infectious;
   static bool Enable_Hospitals;
   static bool Enable_Health_Insurance;
   static bool Enable_Group_Quarters;

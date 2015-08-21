@@ -1738,8 +1738,6 @@ void Activities::end_of_run() {
 
 int Activities::get_visiting_health_status(Person* self, Place* place, int day, int disease_id) {
 
-  assert(Global::Visit_Home_Neighborhood_Unless_Infectious);
-
   // assume we are not visiting this place today
   int status = 0;
 
@@ -1754,7 +1752,6 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
 
     // noninfectious people stay in neighborhood
     set_neighborhood(this->home_neighborhood);
-    // assert(Global::Visit_Home_Neighborhood_Unless_Infectious);
   }
 
   // see if the given place is on my schedule today
