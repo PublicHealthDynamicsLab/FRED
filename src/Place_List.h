@@ -83,10 +83,6 @@ public:
   void report_school_distributions(int day);
   void report_household_distributions();
   void get_parameters();
-  Place* get_place_at_position(int i) {
-    return this->places[i];
-  }
-
   int get_new_place_id() {
     int id = this->next_place_id;
     ++(this->next_place_id);
@@ -203,8 +199,6 @@ public:
     return this->census_tracts[index];
   }
 
-  void find_visitors_to_infectious_places(int day);
-
   bool is_load_completed() {
     return this->load_completed;
   }
@@ -227,8 +221,14 @@ public:
     return (int) this->places.size();
   }
 
-  int get_number_of_places(char place_type);
-
+  Place* get_place(int i) {
+    if(0 <= i && i < get_number_of_places()) {
+      return this->places[i];
+    } else {
+      return NULL;
+    }
+  }
+  
   int get_number_of_households() {
     return (int) this->households.size();
   }

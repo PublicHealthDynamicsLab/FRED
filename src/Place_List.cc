@@ -1177,18 +1177,18 @@ void Place_List::prepare() {
   }
   Global::Neighborhoods->prepare();
 
-  for(int p = 0; p < number_places; ++p) {
-    if(places[p]->get_type() == Place::SCHOOL) {
-      Place* place = places[p];
-
-      // add school to lists of school by grade
-      for(int grade = 0; grade < GRADES; ++grade) {
-        if((static_cast<School*>(place))->get_orig_students_in_grade(grade) > 0) {
-          this->schools_by_grade[grade].push_back(place);
-        }
+  int number_of_schools = this->schools.size();
+  for(int p = 0; p < number_of_schools; ++p) {
+    School *school = get_school_ptr(p);
+    
+    // add school to lists of school by grade
+    for(int grade = 0; grade < GRADES; ++grade) {
+      if(school->get_orig_students_in_grade(grade) > 0) {
+	this->schools_by_grade[grade].push_back(get_school(p));
       }
     }
   }
+
 
   if(Global::Verbose > 1) {
     // check the schools by grade lists
@@ -1203,30 +1203,31 @@ void Place_List::prepare() {
     }
     printf("\n");
   }
-  print_status_of_schools(0);
+  if (Global::Verbose > 0) {
+    print_status_of_schools(0);
+  }
 }
 
 void Place_List::print_status_of_schools(int day) {
-  int number_places = places.size();
   int students_per_grade[GRADES];
   for(int i = 0; i < GRADES; ++i) {
     students_per_grade[i] = 0;
   }
-  for(int p = 0; p < number_places; ++p) {
-    if(places[p]->get_type() == Place::SCHOOL) {
-      Place* place = places[p];
-      for(int grade = 0; grade < GRADES; ++grade) {
-        int total = (static_cast<School*>(place))->get_orig_number_of_students();
-        int orig = (static_cast<School*>(place))->get_orig_students_in_grade(grade);
-        int now = (static_cast<School*>(place))->get_students_in_grade(grade);
-        students_per_grade[grade] += now;
-        if(0 && total > 1500 && orig > 0) {
-          printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n", place->get_label(), grade,
-              (static_cast<School*>(place))->get_orig_students_in_grade(grade),
-              (static_cast<School*>(place))->get_students_in_grade(grade),
-              (static_cast<School*>(place))->get_students_in_grade(grade)
-                  - (static_cast<School*>(place))->get_orig_students_in_grade(grade));
-        }
+
+  int number_of_schools = this->schools.size();
+  for(int p = 0; p < number_of_schools; ++p) {
+    School *school = get_school_ptr(p);
+    for(int grade = 0; grade < GRADES; ++grade) {
+      int total = school->get_orig_number_of_students();
+      int orig = school->get_orig_students_in_grade(grade);
+      int now = school->get_students_in_grade(grade);
+      students_per_grade[grade] += now;
+      if(0 && total > 1500 && orig > 0) {
+	printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n", school->get_label(), grade,
+	       school->get_orig_students_in_grade(grade),
+	       school->get_students_in_grade(grade),
+	       school->get_students_in_grade(grade)
+	       - school->get_orig_students_in_grade(grade));
       }
     }
   }
@@ -1284,12 +1285,10 @@ void Place_List::setup_school_income_quartile_pop_sizes() {
   assert(this->is_load_completed());
   assert(Global::Pop.is_load_completed());
   if(Global::Report_Childhood_Presenteeism) {
-    int number_places = this->places.size();
+    int number_places = this->schools.size();
     for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      if(places[p]->get_type() == Place::SCHOOL) {
-        static_cast<School*>(places[p])->prepare_income_quartile_pop_size();
-      }
+      School* school = get_school_ptr(p);
+      school->prepare_income_quartile_pop_size();
     }
   }
 }
@@ -1442,15 +1441,15 @@ bool Place_List::add_place(Place* p) {
     (*this->place_label_map)[str] = this->places.size() - 1;
     // printf("places now = %d\n", (int)(places.size())); fflush(stdout);
 
-    // TODO workplaces vector won't be needed once all places stored and labeled in bloque
-    if(Global::Enable_Local_Workplace_Assignment && p->is_workplace()) {
+    if(p->is_workplace()) {
       this->workplaces.push_back(p);
     }
-    // Only needed for Household to Hospital Mapping
-    if(Global::Enable_Hospitals && p->is_hospital()) {
+
+    if(p->is_hospital()) {
       this->hospitals.push_back(p);
     }
-    if(Global::Enable_Population_Dynamics && p->is_school()) {
+
+    if(p->is_school()) {
       this->schools.push_back(p);
     }
     return true;
@@ -1459,11 +1458,6 @@ bool Place_List::add_place(Place* p) {
     p->print(0);
     return false;
   }
-}
-
-int Place_List::get_number_of_places(char place_type) {
-  assert(this->place_type_counts.find(place_type) != this->place_type_counts.end());
-  return this->place_type_counts[place_type];
 }
 
 void Place_List::setup_group_quarters() {
@@ -1613,29 +1607,22 @@ void Place_List::setup_classrooms() {
   FRED_STATUS(0, "setup classrooms entered\n", "");
 
   int number_classrooms = 0;
-  int number_places = this->places.size();
-  int number_schools = 0;
+  int number_schools = this->schools.size();
 
-  //#pragma omp parallel for reduction(+:number_classrooms)
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::SCHOOL) {
-      School* school = static_cast<School*>(this->places[p]);
-      number_classrooms += school->get_number_of_rooms();
-      ++(number_schools);
-    }
+  for(int p = 0; p < number_schools; ++p) {
+    School* school = get_school_ptr(p);
+    number_classrooms += school->get_number_of_rooms();
   }
 
   Place::Allocator<Classroom> classroom_allocator;
   classroom_allocator.reserve(number_classrooms);
 
-  FRED_STATUS(0, "Allocating space for %d classrooms in %d schools (out of %d total places)\n", number_classrooms,
-      number_schools, number_places);
+  FRED_STATUS(0, "Allocating space for %d classrooms in %d schools (out of %d total places)\n",
+	      number_classrooms, number_schools, get_number_of_places());
 
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::SCHOOL) {
-      School* school = static_cast<School*>(this->places[p]);
-      school->setup_classrooms(classroom_allocator);
-    }
+  for(int p = 0; p < number_schools; ++p) {
+    School* school = get_school_ptr(p);
+    school->setup_classrooms(classroom_allocator);
   }
 
   add_preallocated_places<Classroom>(Place::CLASSROOM, classroom_allocator);
@@ -2746,10 +2733,6 @@ Place* Place_List::select_school(int county_index, int grade) {
   // ERROR: no grade appropriate school found
   Utils::fred_abort("select_school_by_grade: NULL -- no grade-appropriate school found\n");
   return NULL;
-}
-
-void Place_List::find_visitors_to_infectious_places(int day) {
-  // TODO: delete
 }
 
 void Place_List::update_population_dynamics(int day) {
