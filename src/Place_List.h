@@ -297,22 +297,6 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
-  place_vec_t * get_households() {
-    return &(this->households);
-  }
-
-  place_vec_t * get_schools() {
-    return &(this->schools);
-  }
-
-  place_vec_t * get_workplaces() {
-    return &(this->workplaces);
-  }
-
-  place_vec_t * get_hospitals() {
-    return &(this->hospitals);
-  }
-
 private:
 
   // lists of places by type
