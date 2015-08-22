@@ -19,7 +19,7 @@
 
 #include "Place.h"
 #include <vector>
-#include "Random.h"
+
 class Office;
 
 class Workplace : public Place {

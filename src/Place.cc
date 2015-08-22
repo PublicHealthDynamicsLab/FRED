@@ -27,6 +27,7 @@
 #include "Neighborhood_Patch.h"
 #include "Params.h"
 #include "Person.h"
+#include "Random.h"
 #include "Seasonality.h"
 #include "Utils.h"
 #include "Vector_Layer.h"

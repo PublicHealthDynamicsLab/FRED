@@ -30,6 +30,7 @@
 #include "Household.h"
 #include "Neighborhood.h"
 #include "Neighborhood_Layer.h"
+#include "Neighborhood_Patch.h"
 #include "Office.h"
 #include "Params.h"
 #include "Person.h"

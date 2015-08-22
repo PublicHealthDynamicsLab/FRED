@@ -20,7 +20,6 @@
 
 #include "Global.h"
 #include "Place.h"
-#include "Random.h"
 
 #define GRADES 20
 

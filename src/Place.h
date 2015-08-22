@@ -20,7 +20,6 @@
 #include <vector>
 using namespace std;
 
-#include "Global.h"
 #include "Geo.h"
 #include "Vector_Data.h"
 

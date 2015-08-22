@@ -18,7 +18,7 @@
 #define _FRED_NEIGHBORHOOD_H
 
 #include "Place.h"
-#include "Random.h"
+
 /**
  * This class represents a neighborhood location in the FRED application. It inherits from <code>Place</code>.
  * The class contains static variables that will be filled with values from the parameter file.

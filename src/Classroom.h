@@ -18,7 +18,6 @@
 #define _FRED_CLASSROOM_H
 
 #include "Place.h"
-#include "Random.h"
 
 class School;
 

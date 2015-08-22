@@ -20,12 +20,11 @@
 #include <bitset>
 #include <set>
 
-#include "Activities.h"
+#include "Global.h"
 #include "Hospital.h"
-#include "Neighborhood_Patch.h"
-#include "Person.h"
 #include "Place.h"
-#include "Random.h"
+
+class Person;
 
 class HH_Adult_Sickleave_Data;
 

@@ -18,7 +18,6 @@
 #define _FRED_OFFICE_H
 
 #include "Place.h"
-#include "Random.h"
 
 class Workplace;
 

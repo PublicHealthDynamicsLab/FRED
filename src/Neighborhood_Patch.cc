@@ -20,6 +20,7 @@
 #include "Geo.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
+#include "Person.h"
 #include "Place.h"
 #include "Neighborhood.h"
 #include "Place_List.h"
