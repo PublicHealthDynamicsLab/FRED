@@ -141,13 +141,18 @@ public:
     return mean_household_income; 
   }
 
-  /**
-   * @return list of households in this patch.
-   */
-  place_vector * get_household_list() { 
-    return &(this->household); 
+  int get_number_of_households() {
+    return (int) this->household.size();
   }
 
+  Place* get_household(int i) {
+    if(0 <= i && i < get_number_of_households()) {
+      return this->household[i];
+    } else {
+      return NULL;
+    }
+  }
+  
 protected:
   Neighborhood_Layer * grid;
   int houses;

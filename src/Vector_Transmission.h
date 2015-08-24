@@ -36,6 +36,7 @@ private:
   bool attempt_transmission(double transmission_prob, Person * infector, Person * infectee, int disease_id, int day, Place* place);
   void infect_vectors(int day, Place * place);
   void infect_hosts(int day, int disease_id, Place * place);
+  std::vector<Person*> visitors;
 };
 
 

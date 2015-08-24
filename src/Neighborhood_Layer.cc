@@ -324,14 +324,15 @@ vector<Place *> Neighborhood_Layer::get_households_by_distance(fred::geo lat, fr
   for(int r = r1; r <= r2; r++) {
     for(int c = c1; c <= c2; c++) {
       Neighborhood_Patch * p = get_patch(r, c);
-      place_vector * hvec_ptr = p->get_household_list();
-      for(place_vector::iterator hi = hvec_ptr->begin(); hi != hvec_ptr->end(); hi++) {
-        double hlat = (*hi)->get_latitude();
-        double hlon = (*hi)->get_longitude();
+      int number_of_households = p->get_number_of_households();
+      for (int i = 0; i < number_of_households; i++) {
+	Place * house = p->get_household(i);
+        double hlat =  house->get_latitude();
+        double hlon = house->get_longitude();
         double hx = Geo::get_x(hlon);
         double hy = Geo::get_y(hlat);
         if(sqrt((px - hx) * (px - hx) + (py - hy) * (py - hy)) <= radius_in_km) {
-          households.push_back((*hi));
+          households.push_back(house);
         }
       }
     }

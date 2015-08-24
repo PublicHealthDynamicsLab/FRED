@@ -49,6 +49,18 @@ void Vector_Transmission::spread_infection(int day, int disease_id, Place * plac
   // have place record first and last day of infectiousness
   place->record_infectious_days(day);
 
+  visitors.clear();
+
+  person_vec_t * tmp = place->get_enrollees();
+  int tmp_size = tmp->size();
+  for (int i = 0; i < tmp_size; i++) {
+    Person *person = (*tmp)[i];
+    person->update_schedule(day);
+    if (person->is_present(day, place)) {
+      visitors.push_back(person);
+    }
+  }
+  
   // infections of vectors by hosts
   if(place->have_vectors_been_infected_today() == false) {
     infect_vectors(day, place);
@@ -63,14 +75,16 @@ void Vector_Transmission::spread_infection(int day, int disease_id, Place * plac
 
 void Vector_Transmission::infect_vectors(int day, Place * place) {
   
+  int total_hosts = visitors.size();
+  if(total_hosts == 0) {
+    return;
+  }
+
   // skip if there are no susceptible vectors
   int susceptible_vectors = place->get_susceptible_vectors();
   if(susceptible_vectors == 0) {
     return;
   }
-  
-  // total_hosts includes all visitors: infectious, susceptible, or neither
-  int total_hosts = place->get_size();
   
   // find the percent distribution of infectious hosts
   int diseases = Global::Diseases.get_number_of_diseases();
@@ -113,8 +127,7 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
 
 void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
 
-  person_vec_t * susceptibles = place->get_enrollees();
-  int total_hosts = susceptibles->size();
+  int total_hosts = visitors.size();
   if(total_hosts == 0) {
     return;
   }
@@ -158,11 +171,7 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
   for(int j = 0; j < max_exposed_hosts; ++j) {
-    Person* infectee = (*susceptibles)[shuffle_index[j]];
-    infectee->update_schedule(day);
-    if (!infectee->is_present(day, place)) {
-      continue;
-    }
+    Person* infectee = visitors[shuffle_index[j]];
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
     // NOTE: need to check if infectee already infected
     if(infectee->is_susceptible(disease_id)) {
