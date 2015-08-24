@@ -500,6 +500,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   // clear the vectors
   this->households.clear();
+  this->schools.clear();
+  this->workplaces.clear();
   this->hospitals.clear();
   this->counties.clear();
   this->census_tracts.clear();
@@ -524,7 +526,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   // vector to hold init data
   InitSetT pids;
 
-  // only one population directory allowed at this point
+  // only one population directory allowed
   const char* pop_dir = Global::Synthetic_population_directory;
 
   // need to have at least one deme
@@ -725,11 +727,9 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
 void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id, InitSetT &pids) {
 
-  char location_file[FRED_STRING_SIZE];
-
-  // read synthetic population files
   FRED_STATUS(0, "read places entered\n", "");
 
+  char location_file[FRED_STRING_SIZE];
   char temp_file[80];
   if(getenv("SCRATCH_RAMDISK") != NULL) {
     sprintf(temp_file, "%s/temp_file-%d-%d", getenv("SCRATCH_RAMDISK"), (int)getpid(), Global::Simulation_run_number);
@@ -753,6 +753,9 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
     strcpy(location_file, temp_file);
   }
   read_household_file(deme_id, location_file, pids);
+  Utils::fred_print_lap_time("Places.read_household_file");
+
+  // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
   for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
@@ -765,6 +768,8 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // read school locations
   sprintf(location_file, "%s/%s/%s_schools.txt", pop_dir, pop_id, pop_id);
   read_school_file(deme_id, location_file, pids);
+
+  // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
   for(int i = 0; i < this->counties.size(); i++) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
@@ -782,6 +787,9 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
     sprintf(location_file, "%s/%s/%s_synth_gq.txt", pop_dir, pop_id, pop_id);
     read_group_quarters_file(deme_id, location_file, pids);
   }
+  Utils::fred_print_lap_time("Places.read_group_quarters_file");
+
+  // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING GQ\n");
   for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
@@ -827,6 +835,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       strncpy(fipstr, tokens[stcotrbg], 5);
       fipstr[5] = '\0';
       sscanf(fipstr, "%d", &fips);
+
       // Grab the first eleven (state and county + six) digits of stcotrbg to get the census tract
       // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
       strncpy(census_tract_str, tokens[stcotrbg], 11);
