@@ -1273,24 +1273,33 @@ void Place_List::update(int day) {
     Global::Clim->update(day);
   }
 
-  if(Global::Enable_Visualization_Layer || Global::Enable_Vector_Transmission || Global::Enable_HAZEL) {
+  if(Global::Enable_Vector_Transmission) {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
       Place* place = this->places[p];
-      if(Global::Enable_Visualization_Layer) {
-        place->reset_visualization_data(day);
-      }
+      place->update_vector_population(day);
+    }
+  }
 
-      if(Global::Enable_Vector_Transmission) {
-        place->update_vector_population(day);
-      }
+  if(Global::Enable_Visualization_Layer) {
+    int number_places = this->places.size();
+    for(int p = 0; p < number_places; ++p) {
+      Place* place = this->places[p];
+      place->reset_visualization_data(day);
+    }
+  }
 
-      if(Global::Enable_HAZEL && (place->get_type() == Place::HOSPITAL)) {
+  if(Global::Enable_HAZEL) {
+    int number_places = this->places.size();
+    for(int p = 0; p < number_places; ++p) {
+      Place* place = this->places[p];
+
+      if(place->is_hospital()) {
         Hospital* temp_hosp = static_cast<Hospital*>(place);
         temp_hosp->reset_current_daily_patient_count();
       }
 
-      if(Global::Enable_HAZEL && (place->get_type() == Place::HOUSEHOLD)) {
+      if(place->is_household()) {
         Household* temp_hh = static_cast<Household*>(place);
         temp_hh->reset_healthcare_info();
       }
