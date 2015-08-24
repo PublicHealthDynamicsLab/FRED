@@ -129,7 +129,7 @@ AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o
 
 DISEASE_MODULE = Disease.o Epidemic.o Infection.o HIV_Infection.o \
 	Natural_History.o HIV_Natural_History.o Transmission.o \
-	Respiratory_Transmission.o Vector_Transmission.o \
+	Respiratory_Transmission.o Vector_Transmission.o Sexual_Transmission.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o 
 
 PLACE_MODULE = Place.o Household.o Neighborhood.o School.o Classroom.o \
