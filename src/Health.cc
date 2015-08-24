@@ -418,7 +418,7 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->symptomatic.reset(disease_id);
   Disease *disease = Global::Diseases.get_disease(disease_id);
   this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, place, day);
-  FRED_VERBOSE(0, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+  //FRED_VERBOSE(0, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
   self->become_unsusceptible(disease);
