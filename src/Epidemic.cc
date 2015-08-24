@@ -1690,6 +1690,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
     }
   }
   
+  // vector transmission mode (for dengue and chikungunya)
   if (strcmp("vector",this->disease->get_transmission_mode())==0) {
     // add all places that have any infectious vectors
     int size = 0;

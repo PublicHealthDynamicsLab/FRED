@@ -500,6 +500,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   // clear the vectors
   this->households.clear();
+  this->neighborhoods.clear();
   this->schools.clear();
   this->workplaces.clear();
   this->hospitals.clear();
@@ -1449,6 +1450,10 @@ bool Place_List::add_place(Place* p) {
     this->places.push_back(p);
     (*this->place_label_map)[str] = this->places.size() - 1;
     // printf("places now = %d\n", (int)(places.size())); fflush(stdout);
+
+    if(p->is_neighborhood()) {
+      this->neighborhoods.push_back(p);
+    }
 
     if(p->is_workplace()) {
       this->workplaces.push_back(p);

@@ -655,6 +655,15 @@ public:
     return this->vector_disease_data->S_vectors;
   }
 
+  int get_infected_vectors(int disease_id) {
+    return this->vector_disease_data->E_vectors[disease_id] +
+      this->vector_disease_data->I_vectors[disease_id];
+  }
+
+  int get_infectious_vectors(int disease_id) {
+    return this->vector_disease_data->I_vectors[disease_id];
+  }
+    
   void expose_vectors(int disease_id, int exposed_vectors) {
     this->vector_disease_data->E_vectors[disease_id] += exposed_vectors;
     this->vector_disease_data->S_vectors -= exposed_vectors;
@@ -662,14 +671,16 @@ public:
 
   double get_seeds(int dis, int day);
 
-  int get_infectious_vectors(int disease_id);
-    
   vector_disease_data_t get_vector_disease_data () {
     assert(vector_disease_data != NULL);
     return (*vector_disease_data);
   }
   
   void update_vector_population(int day);
+
+  bool get_vector_control_status() {
+    return vector_control_status;
+  }
 
 protected:
   char label[32];         // external id
@@ -741,6 +752,7 @@ protected:
   // optional data for vector transmission model
   vector_disease_data_t * vector_disease_data;
   bool vectors_have_been_infected_today;
+  bool vector_control_status;
 
   // Place Allocator reserves chunks of memory and hands out pointers for use
   // with placement new

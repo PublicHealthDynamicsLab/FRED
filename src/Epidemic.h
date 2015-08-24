@@ -212,6 +212,10 @@ public:
 
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
+  int get_id() {
+    return id;
+  }
+
 private:
   Disease* disease;
   int id;

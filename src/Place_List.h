@@ -23,21 +23,19 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include "County.h"
-#include "Health.h"
-#include "Household.h"
-#include "Place.h"
-#include "Utils.h"
-
 using namespace std;
 
-#include "School.h"
-class Neighborhood;
+#include "County.h"
+#include "Health.h"
+#include "Place.h"
+#include "Utils.h"
 #include "Household.h"
-class Office;
+#include "Neighborhood.h"
+#include "School.h"
 #include "Hospital.h"
-class Classroom;
 #include "Workplace.h"
+class Classroom;
+class Office;
 
 #define GRADES 20
 
@@ -241,6 +239,18 @@ public:
     }
   }
   
+  int get_number_of_neighborhoods() {
+    return (int) this->neighborhoods.size();
+  }
+
+  Place* get_neighborhood(int i) {
+    if(0 <= i && i < get_number_of_neighborhoods()) {
+      return this->neighborhoods[i];
+    } else {
+      return NULL;
+    }
+  }
+  
   int get_number_of_schools() {
     return (int) this->schools.size();
   }
@@ -282,6 +292,11 @@ public:
     return static_cast<Household*>(get_household(i));
   }
 
+  // access function for when we need a Neighborhood pointer
+  Neighborhood* get_neighborhood_ptr(int i) {
+    return static_cast<Neighborhood*>(get_neighborhood(i));
+  }
+
   // access function for when we need a School pointer
   School* get_school_ptr(int i) {
     return static_cast<School*>(get_school(i));
@@ -302,6 +317,7 @@ private:
   // lists of places by type
   place_vec_t places;
   place_vec_t households;
+  place_vec_t neighborhoods;
   place_vec_t schools;
   place_vec_t schools_by_grade[GRADES];
   place_vec_t workplaces;

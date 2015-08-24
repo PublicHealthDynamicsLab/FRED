@@ -95,6 +95,8 @@ void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {
   this->county_index = -1;
   this->census_tract_index = -1;
   this->vector_disease_data = NULL;
+  this->vectors_have_been_infected_today = false;
+  this->vector_control_status = false;
 }
 
 void Place::prepare() {
@@ -112,7 +114,7 @@ void Place::prepare() {
   this->human_infectious_bitset.reset();
   this->exposed_bitset.reset();
 
-  if(Global::Enable_Vector_Transmission && !this->is_neighborhood()) {
+  if(Global::Enable_Vector_Transmission) {
     setup_vector_model();
   }
 
@@ -372,7 +374,14 @@ void Place::setup_vector_model() {
   this->vector_disease_data = new vector_disease_data_t;
 
   // initial vector counts
-  this->vector_disease_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
+  if (this->is_neighborhood()) {
+    // no vectors in neighborhoods (outdoors)
+    this->vector_disease_data->vectors_per_host = 0;
+  }
+  else {
+    this->vector_disease_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
+  }
+
   this->vector_disease_data->N_vectors = this->N_orig * this->vector_disease_data->vectors_per_host;
   this->vector_disease_data->S_vectors = this->vector_disease_data->N_vectors;
   for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
@@ -382,11 +391,18 @@ void Place::setup_vector_model() {
 
   // initial vector seed counts
   for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
-    this->vector_disease_data->place_seeds[i] = Global::Vectors->get_seeds(this,i);
-    this->vector_disease_data->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
-    this->vector_disease_data->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
-  }	
-
+    if (this->is_neighborhood()) {
+      // no vectors in neighborhoods (outdoors)
+      this->vector_disease_data->place_seeds[i] = 0;
+      this->vector_disease_data->day_start_seed[i] = 0;
+      this->vector_disease_data->day_end_seed[i] = 1;
+    }
+    else {
+      this->vector_disease_data->place_seeds[i] = Global::Vectors->get_seeds(this,i);
+      this->vector_disease_data->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
+      this->vector_disease_data->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
+    }	
+  }    
   FRED_VERBOSE(1, "setup_vector_model: place %s vectors_per_host %f N_vectors %d N_orig %d\n",
 	       this->label, this->vector_disease_data->vectors_per_host,
 	       this->vector_disease_data->N_vectors, this->N_orig);
@@ -401,10 +417,9 @@ double Place::get_seeds(int dis, int day) {
 }
 
 void Place::update_vector_population(int day) {
-  *(this->vector_disease_data) = Global::Vectors->update_vector_population(day, this);
+  if (this->is_neighborhood()==false) {
+    *(this->vector_disease_data) = Global::Vectors->update_vector_population(day, this);
+  }
 }
 
-int Place::get_infectious_vectors(int disease_id) {
-  return this->vector_disease_data->I_vectors[disease_id];
-}
     

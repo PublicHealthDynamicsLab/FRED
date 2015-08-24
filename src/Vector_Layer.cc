@@ -80,7 +80,6 @@ Vector_Layer::Vector_Layer() {
   this->life_span = 18.0; // From Chao and longini
   this->sucess_rate = 0.83; // Focks
   this->female_ratio = 0.5;
-  // this->development_time = 1.0;
 
   // get vector_control parameters
   int temp_int;
@@ -629,45 +628,6 @@ void Vector_Layer::init_prior_immunity_by_county(int d) {
 }
 
 
-void Vector_Layer::report(int day, Epidemic * epidemic) {
-  /*
-  int vector_pop_temp = get_vector_population();
-  int inf_vectors = get_infected_vectors();
-  int sus_vectors = get_susceptible_vectors();
-  int vector_pop_school = get_school_vectors();
-  int vector_pop_workplace = get_workplace_vectors();
-  int vector_pop_household = get_household_vectors();
-  int vector_pop_neighborhood = get_neighborhood_vectors();
-  int school_inf_vectors = get_school_infected_vectors();
-  int household_inf_vectors = get_household_infected_vectors();
-  int workplace_inf_vectors = get_workplace_infected_vectors();
-  int neighborhood_inf_vectors = get_neighborhood_infected_vectors();
-  epidemic->track_value(day,(char *)"Nv", vector_pop_temp);
-  epidemic->track_value(day,(char *)"Nvs", vector_pop_school);
-  epidemic->track_value(day,(char *)"Nvw", vector_pop_workplace);
-  epidemic->track_value(day,(char *)"Nvh", vector_pop_household);
-  epidemic->track_value(day,(char *)"Nvn", vector_pop_neighborhood);
-  epidemic->track_value(day,(char *)"Iv", inf_vectors);
-  epidemic->track_value(day,(char *)"Ivs", school_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivw", workplace_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivh", household_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivn", neighborhood_inf_vectors);
-  epidemic->track_value(day,(char *)"Sv", sus_vectors);
-  if(Vector_Layer::Enable_Vector_Control){
-    int total_places_vc = get_places_in_vector_control();
-    int total_schools_vc = get_schools_in_vector_control();
-    int total_households_vc = get_households_in_vector_control();
-    int total_workplaces_vc = get_workplaces_in_vector_control();
-    int total_neighborhoods_vc = get_schools_in_vector_control();
-    epidemic->track_value(day,(char *)"Pvc", total_places_vc);
-    epidemic->track_value(day,(char *)"Svc", total_schools_vc);
-    epidemic->track_value(day,(char *)"Hvc", total_households_vc);
-    epidemic->track_value(day,(char *)"Wvc", total_workplaces_vc);
-    epidemic->track_value(day,(char *)"Nvc", total_neighborhoods_vc);
-  }
-  */
-}
-
 double Vector_Layer::get_vectors_per_host(Place* place) {
 
   double development_time = 1.0;
@@ -802,5 +762,103 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
 
   }
   return v;
+}
+
+
+void Vector_Layer::get_vector_population(int disease_id){
+  vector_pop = 0;
+  total_infected_vectors = 0;
+  total_susceptible_vectors = 0;
+  school_vectors = 0;
+  workplace_vectors = 0;
+  household_vectors = 0;
+  neighborhood_vectors = 0;
+  school_infected_vectors = 0;
+  workplace_infected_vectors = 0;
+  household_infected_vectors = 0;
+  neighborhood_infected_vectors = 0;
+  schools_in_vector_control = 0;
+  households_in_vector_control = 0;
+  workplaces_in_vector_control = 0;
+  neighborhoods_in_vector_control = 0;
+  total_places_in_vector_control = 0;
+
+  int places = Global::Places.get_number_of_households();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_household(i);
+    household_vectors += place->get_vector_population_size();
+    household_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      households_in_vector_control++;
+    }
+  }
+
+  // skip neighborhoods?
+  /*
+  places = Global::Places.get_number_of_neighborhoods();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_neighborhood(i);
+    neighborhood_vectors += place->get_vector_population_size();
+    neighborhood_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      neighborhoods_in_vector_control++;
+    }
+  }
+  */
+
+  places = Global::Places.get_number_of_schools();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_school(i);
+    school_vectors += place->get_vector_population_size();
+    school_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      schools_in_vector_control++;
+    }
+  }
+
+  places = Global::Places.get_number_of_workplaces();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_workplace(i);
+    workplace_vectors += place->get_vector_population_size();
+    workplace_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      workplaces_in_vector_control++;
+    }
+  }
+
+  places = Global::Places.get_number_of_places();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_place(i);
+    total_susceptible_vectors += place->get_susceptible_vectors();
+  }
+
+  vector_pop = school_vectors + workplace_vectors + household_vectors + neighborhood_vectors;
+  total_infected_vectors = school_infected_vectors + workplace_infected_vectors + household_infected_vectors + neighborhood_infected_vectors;
+
+  total_places_in_vector_control = schools_in_vector_control + households_in_vector_control + workplaces_in_vector_control + neighborhoods_in_vector_control;
+
+  assert(vector_pop == total_infected_vectors + total_susceptible_vectors);
+}
+
+void Vector_Layer::report(int day, Epidemic * epidemic) {
+  get_vector_population(epidemic->get_id());
+  epidemic->track_value(day,(char *)"Nv", vector_pop);
+  epidemic->track_value(day,(char *)"Nvs", school_vectors);
+  epidemic->track_value(day,(char *)"Nvw", workplace_vectors);
+  epidemic->track_value(day,(char *)"Nvh", household_vectors);
+  epidemic->track_value(day,(char *)"Nvn", neighborhood_vectors);
+  epidemic->track_value(day,(char *)"Iv", total_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivs", school_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivw", workplace_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivh", household_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivn", neighborhood_infected_vectors);
+  epidemic->track_value(day,(char *)"Sv", total_susceptible_vectors);
+  if(Vector_Layer::Enable_Vector_Control){
+    epidemic->track_value(day,(char *)"Pvc", total_places_in_vector_control);
+    epidemic->track_value(day,(char *)"Svc", schools_in_vector_control);
+    epidemic->track_value(day,(char *)"Hvc", households_in_vector_control);
+    epidemic->track_value(day,(char *)"Wvc", workplaces_in_vector_control);
+    epidemic->track_value(day,(char *)"Nvc", neighborhoods_in_vector_control);
+  }
 }
 

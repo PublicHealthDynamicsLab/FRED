@@ -167,18 +167,23 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
     // NOTE: need to check if infectee already infected
     if(infectee->is_susceptible(disease_id)) {
       // create a new infection in infectee
-      FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
+      FRED_VERBOSE(0,"transmitting to host %d\n", infectee->get_id());
       infectee->become_exposed(disease_id, NULL, place, day);
 
-      // for dengue: become unsusceptible to other diseases
-      for(int d = 0; d < DISEASE_TYPES; d++) {
-        if(d != disease_id) {
-          Disease* other_disease = Global::Diseases.get_disease(d);
-          infectee->become_unsusceptible(other_disease);
-        }
+      int diseases = Global::Diseases.get_number_of_diseases();
+      if (diseases > 1) {
+	// for dengue: become unsusceptible to other diseases
+	for(int d = 0; d < diseases; d++) {
+	  if(d != disease_id) {
+	    Disease* other_disease = Global::Diseases.get_disease(d);
+	    infectee->become_unsusceptible(other_disease);
+	    FRED_VERBOSE(0,"host %d not susceptible to disease %d\n", infectee->get_id(),d);
+	  }
+	}
       }
-    } else {
-      FRED_VERBOSE(1,"host %d not susceptible\n", infectee->get_id());
+    }
+    else {
+      FRED_VERBOSE(0,"host %d not susceptible\n", infectee->get_id());
     }
   }
 }
