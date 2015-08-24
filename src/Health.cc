@@ -417,7 +417,6 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   Disease *disease = Global::Diseases.get_disease(disease_id);
-
   this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, place, day);
   //FRED_VERBOSE(0, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
@@ -436,8 +435,9 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
       FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease_id);
     }
   }
-  if (Global::Enable_Vector_Transmission) {
-    // special check for dengue:
+
+  if (Global::Enable_Vector_Transmission && Global::Diseases.get_number_of_diseases() > 1) {
+    // special check for multi-serotype dengue:
     if(this->previous_infection_serotype == -1) {
       // remember this infection's serotype
       this->previous_infection_serotype = disease_id;

@@ -18,7 +18,7 @@
 #define _FRED_NEIGHBORHOOD_H
 
 #include "Place.h"
-#include "Random.h"
+
 /**
  * This class represents a neighborhood location in the FRED application. It inherits from <code>Place</code>.
  * The class contains static variables that will be filled with values from the parameter file.
@@ -42,13 +42,7 @@ public:
    */
   Neighborhood( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor
-   * <code>Neighborhood(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   /**
    * @see Place::get_group(int disease, Person * per)
@@ -95,7 +89,6 @@ private:
   static double * Weekend_contact_rate;
   static double * Neighborhood_contacts_per_day;
   static double *** Neighborhood_contact_prob;
-  static bool Neighborhood_parameters_set;
 };
 
 #endif // _FRED_NEIGHBORHOOD_H

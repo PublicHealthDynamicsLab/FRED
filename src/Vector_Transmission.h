@@ -17,13 +17,12 @@
 #ifndef _FRED_VECTOR_TRANSMISSION_H
 #define _FRED_VECTOR_TRANSMISSION_H
 
+#include "Global.h"
 #include "Transmission.h"
+
 class Disease;
 class Person;
 class Place;
-
-#define DISEASE_TYPES 4
-
 
 class Vector_Transmission: public Transmission {
 

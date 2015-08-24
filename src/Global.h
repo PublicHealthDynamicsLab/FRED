@@ -547,4 +547,18 @@ namespace fred {
 #endif
 }
 
+
+#define VECTOR_DISEASE_TYPES 4
+
+typedef struct {
+  int vectors_per_host;
+  int N_vectors;
+  int S_vectors;
+  int E_vectors[VECTOR_DISEASE_TYPES];
+  int I_vectors[VECTOR_DISEASE_TYPES];
+  int place_seeds[VECTOR_DISEASE_TYPES];
+  int day_start_seed[VECTOR_DISEASE_TYPES];
+  int day_end_seed[VECTOR_DISEASE_TYPES];
+} vector_disease_data_t;
+
 #endif // _FRED_GLOBAL_H

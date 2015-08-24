@@ -132,20 +132,18 @@ void Activities::initialize_static_variables() {
     int count_has_school_age_and_unemployed_adult = 0;
 
     //Households with school-age children and at least one unemployed adult
-    int number_places = Global::Places.get_number_of_places();
+    int number_places = Global::Places.get_number_of_households();
     for(int p = 0; p < number_places; ++p) {
       Person* per = NULL;
-      if(Global::Places.get_place_at_position(p)->is_household()) {
-        Household* h = static_cast<Household*>(Global::Places.get_place_at_position(p));
-        if(h->get_children() == 0) {
-          continue;
-        }
-        if(h->has_school_aged_child()) {
-          count_has_school_age++;
-        }
-        if(h->has_school_aged_child_and_unemployed_adult()) {
-          count_has_school_age_and_unemployed_adult++;
-        }
+      Household* h = Global::Places.get_household_ptr(p);
+      if(h->get_children() == 0) {
+	continue;
+      }
+      if(h->has_school_aged_child()) {
+	count_has_school_age++;
+      }
+      if(h->has_school_aged_child_and_unemployed_adult()) {
+	count_has_school_age_and_unemployed_adult++;
       }
     }
     Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);

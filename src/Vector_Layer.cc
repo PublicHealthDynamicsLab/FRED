@@ -71,6 +71,16 @@ Vector_Layer::Vector_Layer() {
   this->total_infectious_hosts = 0;
   this->total_infected_hosts = 0;
 
+  this->death_rate = 1.0/18.0;
+  this->birth_rate = 1.0/18.0;
+  this->bite_rate = 0.76;
+  this->incubation_rate = 1.0/11.0;
+  this->suitability = 1.0;
+  this->pupae_per_host = 1.02; //Armenia average
+  this->life_span = 18.0; // From Chao and longini
+  this->sucess_rate = 0.83; // Focks
+  this->female_ratio = 0.5;
+
   // get vector_control parameters
   int temp_int;
   Params::get_param_from_string("enable_vector_control", &temp_int);
@@ -335,17 +345,6 @@ void Vector_Layer::add_hosts(Place* p) {
     patch->add_hosts(hosts);
   }
   */
-}
-
-double Vector_Layer::get_temperature(Place* p) {
-  fred::geo lat = p->get_latitude();
-  fred::geo lon = p->get_longitude();
-  Vector_Patch* patch = get_patch(lat,lon);
-  if(patch != NULL) {
-    return patch->get_temperature();
-  } else {
-    return -999.9;
-  }
 }
 
 double Vector_Layer::get_seeds(Place* p, int dis, int day) {
@@ -629,41 +628,237 @@ void Vector_Layer::init_prior_immunity_by_county(int d) {
 }
 
 
-void Vector_Layer::report(int day, Epidemic * epidemic) {
+double Vector_Layer::get_vectors_per_host(Place* place) {
+
+  double development_time = 1.0;
+  double vectors_per_host = 0.0;
+
+  //temperatures vs development times..FOCKS2000: DENGUE TRANSMISSION THRESHOLDS
+  double temps[8] = {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92}; //temperatures
+  double dev_times[8] = {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0}; //development times
+
+  double temperature = -999.9;
+  fred::geo lat = place->get_latitude();
+  fred::geo lon = place->get_longitude();
+  Vector_Patch* patch = get_patch(lat,lon);
+  if(patch != NULL) {
+    temperature = patch->get_temperature();
+  }
+  if(temperature > 32) {
+    temperature = 32;
+  }
+  if(temperature <= 18) {
+    vectors_per_host = 0;
+  } else {
+    for(int i = 0; i < 8; ++i) {
+      if(temperature <= temps[i]) {
+        //obtain the development time using linear interpolation
+        development_time = dev_times[i - 1] + (dev_times[i] - dev_times[i - 1]) / (temps[i] - temps[i-1]) * (temperature - temps[i - 1]);
+      }
+    }
+    vectors_per_host = pupae_per_host * female_ratio * sucess_rate * life_span / development_time;
+  }
+  FRED_VERBOSE(1, "SET TEMP: place %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n",
+	       place->get_label(), temperature, vectors_per_host);
+  return vectors_per_host;
+}
+
+vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * place) {
+
+  place->mark_vectors_as_not_infected_today();
+
+  vector_disease_data_t v = place->get_vector_disease_data();
+
+  if(place->is_neighborhood()){
+    return v;
+  }
+  
+  if(v.N_vectors <= 0) {
+    return v;
+  }
+  FRED_VERBOSE(1,"update vector pop: day %d place %s initially: S %d, N: %d\n",
+	       day,place->get_label(),v.S_vectors,v.N_vectors);
+  
+  int born_infectious[DISEASE_TYPES];
+  int total_born_infectious = 0;
+
+  // new vectors are born susceptible
+  v.S_vectors += floor(this->birth_rate * v.N_vectors - this->death_rate * v.S_vectors);
+  FRED_VERBOSE(1,"vector_update_population:: S_vector: %d, N_vectors: %d\n", v.S_vectors, v.N_vectors);
+  // but some are infected
+  for(int d=0;d<DISEASE_TYPES;d++){
+    double seeds = place->get_seeds(d, day);
+    born_infectious[d] = ceil(v.S_vectors * seeds);
+    total_born_infectious += born_infectious[d];
+    if(born_infectious[d] > 0) {
+      FRED_VERBOSE(1,"vector_update_population:: Vector born infectious disease[%d] = %d \n",d, born_infectious[d]);
+      FRED_VERBOSE(1,"Total Vector born infectious: %d \n", total_born_infectious);
+    }
+  }
+  // printf("PLACE %s SEEDS %d S_vectors %d DAY %d\n",place->get_label(),total_born_infectious,v.S_vectors,day);
+  v.S_vectors -= total_born_infectious;
+  FRED_VERBOSE(1,"vector_update_population - seeds:: S_vector: %d, N_vectors: %d\n", v.S_vectors, v.N_vectors);
+  // print this 
+  if(total_born_infectious > 0){
+    FRED_VERBOSE(1,"Total Vector born infectious: %d \n", total_born_infectious);// 
+  }
+  if(v.S_vectors < 0) {
+    v.S_vectors = 0;
+  }
+    
+  // accumulate total number of vectors
+  v.N_vectors = v.S_vectors;
+  // we assume vectors can have at most one infection, if not susceptible
+  for(int i = 0; i < DISEASE_TYPES; ++i) {
+    // some die
+    FRED_VERBOSE(1,"vector_update_population:: E_vectors[%d] = %d \n",i, v.E_vectors[i]);
+    if(v.E_vectors[i] < 10){
+      for(int k = 0; k < v.E_vectors[i]; ++k) {
+	double r = Random::draw_random(0,1);
+	if(r < this->death_rate){
+	  v.E_vectors[i]--;
+	}
+      }
+    } else {
+      v.E_vectors[i] -= floor(this->death_rate * v.E_vectors[i]);
+    } 
+    // some become infectious
+    int become_infectious = 0;
+    if(v.E_vectors[i] < 10) {
+      for(int k = 0; k < v.E_vectors[i]; ++k) {
+	double r = Random::draw_random(0,1);
+	if(r < this->incubation_rate) {
+	  become_infectious++;
+	}
+      }
+    } else {
+      become_infectious = floor(this->incubation_rate * v.E_vectors[i]);
+    }
+      
+    // int become_infectious = floor(incubation_rate * E_vectors[i]);
+    FRED_VERBOSE(1,"vector_update_population:: become infectious [%d] = %d, incubation rate: %f,E_vectors[%d] %d \n", i,
+		 become_infectious, this->incubation_rate, i, v.E_vectors[i]);
+    v.E_vectors[i] -= become_infectious;
+    if(v.E_vectors[i] < 0) v.E_vectors[i] = 0;
+    // some die
+    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, v.I_vectors[i]);
+    v.I_vectors[i] -= floor(this->death_rate * v.I_vectors[i]);
+    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, v.I_vectors[i]);
+    // some become infectious
+    v.I_vectors[i] += become_infectious;
+    FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, v.I_vectors[i]);
+    // some were born infectious
+    v.I_vectors[i] += born_infectious[i];
+    FRED_VERBOSE(1,"vector_update_population::+= born infectious I_Vectors[%d] = %d,born infectious[%d] = %d \n", i,
+		 v.I_vectors[i], i, born_infectious[i]);
+    if(v.I_vectors[i] < 0) {
+      v.I_vectors[i] = 0;
+    }
+
+    // add to the total
+    v.N_vectors += (v.E_vectors[i] + v.I_vectors[i]);
+    FRED_VERBOSE(1, "update_vector_population entered S_vectors %d E_Vectors[%d] %d  I_Vectors[%d] %d N_Vectors %d\n",
+		 v.S_vectors, i, v.E_vectors[i], i, v.I_vectors[i], v.N_vectors);
+
+  }
+  return v;
+}
+
+
+void Vector_Layer::get_vector_population(int disease_id){
+  vector_pop = 0;
+  total_infected_vectors = 0;
+  total_susceptible_vectors = 0;
+  school_vectors = 0;
+  workplace_vectors = 0;
+  household_vectors = 0;
+  neighborhood_vectors = 0;
+  school_infected_vectors = 0;
+  workplace_infected_vectors = 0;
+  household_infected_vectors = 0;
+  neighborhood_infected_vectors = 0;
+  schools_in_vector_control = 0;
+  households_in_vector_control = 0;
+  workplaces_in_vector_control = 0;
+  neighborhoods_in_vector_control = 0;
+  total_places_in_vector_control = 0;
+
+  int places = Global::Places.get_number_of_households();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_household(i);
+    household_vectors += place->get_vector_population_size();
+    household_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      households_in_vector_control++;
+    }
+  }
+
+  // skip neighborhoods?
   /*
-  int vector_pop_temp = get_vector_population();
-  int inf_vectors = get_infected_vectors();
-  int sus_vectors = get_susceptible_vectors();
-  int vector_pop_school = get_school_vectors();
-  int vector_pop_workplace = get_workplace_vectors();
-  int vector_pop_household = get_household_vectors();
-  int vector_pop_neighborhood = get_neighborhood_vectors();
-  int school_inf_vectors = get_school_infected_vectors();
-  int household_inf_vectors = get_household_infected_vectors();
-  int workplace_inf_vectors = get_workplace_infected_vectors();
-  int neighborhood_inf_vectors = get_neighborhood_infected_vectors();
-  epidemic->track_value(day,(char *)"Nv", vector_pop_temp);
-  epidemic->track_value(day,(char *)"Nvs", vector_pop_school);
-  epidemic->track_value(day,(char *)"Nvw", vector_pop_workplace);
-  epidemic->track_value(day,(char *)"Nvh", vector_pop_household);
-  epidemic->track_value(day,(char *)"Nvn", vector_pop_neighborhood);
-  epidemic->track_value(day,(char *)"Iv", inf_vectors);
-  epidemic->track_value(day,(char *)"Ivs", school_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivw", workplace_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivh", household_inf_vectors);
-  epidemic->track_value(day,(char *)"Ivn", neighborhood_inf_vectors);
-  epidemic->track_value(day,(char *)"Sv", sus_vectors);
-  if(Vector_Layer::Enable_Vector_Control){
-    int total_places_vc = get_places_in_vector_control();
-    int total_schools_vc = get_schools_in_vector_control();
-    int total_households_vc = get_households_in_vector_control();
-    int total_workplaces_vc = get_workplaces_in_vector_control();
-    int total_neighborhoods_vc = get_schools_in_vector_control();
-    epidemic->track_value(day,(char *)"Pvc", total_places_vc);
-    epidemic->track_value(day,(char *)"Svc", total_schools_vc);
-    epidemic->track_value(day,(char *)"Hvc", total_households_vc);
-    epidemic->track_value(day,(char *)"Wvc", total_workplaces_vc);
-    epidemic->track_value(day,(char *)"Nvc", total_neighborhoods_vc);
+  places = Global::Places.get_number_of_neighborhoods();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_neighborhood(i);
+    neighborhood_vectors += place->get_vector_population_size();
+    neighborhood_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      neighborhoods_in_vector_control++;
+    }
   }
   */
+
+  places = Global::Places.get_number_of_schools();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_school(i);
+    school_vectors += place->get_vector_population_size();
+    school_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      schools_in_vector_control++;
+    }
+  }
+
+  places = Global::Places.get_number_of_workplaces();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_workplace(i);
+    workplace_vectors += place->get_vector_population_size();
+    workplace_infected_vectors += place->get_infected_vectors(disease_id);
+    if(place->get_vector_control_status()){
+      workplaces_in_vector_control++;
+    }
+  }
+
+  places = Global::Places.get_number_of_places();
+  for (int i = 0; i < places; i++) {
+    Place *place = Global::Places.get_place(i);
+    total_susceptible_vectors += place->get_susceptible_vectors();
+  }
+
+  vector_pop = school_vectors + workplace_vectors + household_vectors + neighborhood_vectors;
+  total_infected_vectors = school_infected_vectors + workplace_infected_vectors + household_infected_vectors + neighborhood_infected_vectors;
+
+  total_places_in_vector_control = schools_in_vector_control + households_in_vector_control + workplaces_in_vector_control + neighborhoods_in_vector_control;
+
+  assert(vector_pop == total_infected_vectors + total_susceptible_vectors);
 }
+
+void Vector_Layer::report(int day, Epidemic * epidemic) {
+  get_vector_population(epidemic->get_id());
+  epidemic->track_value(day,(char *)"Nv", vector_pop);
+  epidemic->track_value(day,(char *)"Nvs", school_vectors);
+  epidemic->track_value(day,(char *)"Nvw", workplace_vectors);
+  epidemic->track_value(day,(char *)"Nvh", household_vectors);
+  epidemic->track_value(day,(char *)"Nvn", neighborhood_vectors);
+  epidemic->track_value(day,(char *)"Iv", total_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivs", school_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivw", workplace_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivh", household_infected_vectors);
+  epidemic->track_value(day,(char *)"Ivn", neighborhood_infected_vectors);
+  epidemic->track_value(day,(char *)"Sv", total_susceptible_vectors);
+  if(Vector_Layer::Enable_Vector_Control){
+    epidemic->track_value(day,(char *)"Pvc", total_places_in_vector_control);
+    epidemic->track_value(day,(char *)"Svc", schools_in_vector_control);
+    epidemic->track_value(day,(char *)"Hvc", households_in_vector_control);
+    epidemic->track_value(day,(char *)"Wvc", workplaces_in_vector_control);
+    epidemic->track_value(day,(char *)"Nvc", neighborhoods_in_vector_control);
+  }
+}
+

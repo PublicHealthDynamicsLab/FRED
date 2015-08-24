@@ -20,6 +20,7 @@
 #include "Person.h"
 #include "Place.h"
 #include "Place_List.h"
+#include "Random.h"
 
 //
 // Terminology:

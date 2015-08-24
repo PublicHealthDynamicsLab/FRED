@@ -16,7 +16,7 @@
 
 #ifndef _FRED_VECTOR_LAYER_H
 #define _FRED_VECTOR_LAYER_H
-#define  DISEASE_TYPES 4
+
 #include "Global.h"
 #include "Abstract_Grid.h"
 #include <fstream>
@@ -25,7 +25,6 @@ class Epidemic;
 class Person;
 class Place;
 class Vector_Patch;
-
 
 class Vector_Layer : public Abstract_Grid {
 
@@ -41,7 +40,7 @@ public:
   void update(int day);
   void update_visualization_data(int disease_id, int day);
   void add_hosts(Place * p);
-  double get_temperature(Place * p);
+  double get_vectors_per_host(Place * p);
   double get_seeds(Place * place, int dis, int day);
   void add_host(Person * person, Place * place);
   void read_temperature();
@@ -58,6 +57,9 @@ public:
   double get_day_start_seed(Place * p, int dis);
   double get_day_end_seed(Place * p, int dis);
   void report(int day, Epidemic * epidemic);
+  vector_disease_data_t update_vector_population(int day, Place * place);
+  double get_bite_rate() { return this->bite_rate; }
+  void get_vector_population(int disease_id);
 
 protected:
   void get_county_ids();
@@ -67,14 +69,53 @@ protected:
   void immunize_total_by_age();
   void immunize_by_age(int d);
   void seed_patches_by_distance_in_km(fred::geo lat, fred::geo lon, double radius_in_km, int dis,int day_on, int day_off,double seeds_);
+
   Vector_Patch ** grid;			 // Rectangular array of patches
-  int total_infected_vectors;
-  int total_infected_hosts;
-  int total_infectious_hosts;
+
+  // fixed parameters for this disease vector
   double infection_efficiency;
   double transmission_efficiency;
   double place_seeding_probability;
   double mosquito_seeds;
+  double death_rate;
+  double birth_rate;
+  double bite_rate;
+  double incubation_rate;
+  double suitability;
+  double pupae_per_host;
+  double life_span;
+  double sucess_rate;
+  double female_ratio;
+
+  std::vector<int>census_tracts_with_vector_control;
+
+  int vector_pop;
+  int total_infected_vectors;
+  int school_infected_vectors;
+  int workplace_infected_vectors;
+  int household_infected_vectors;
+  int neighborhood_infected_vectors;
+  int total_susceptible_vectors;
+  int total_infected_hosts;
+  int total_infectious_hosts;
+  int school_vectors;
+  int workplace_vectors;
+  int household_vectors;
+  int neighborhood_vectors;
+  int total_places_in_vector_control;
+  int schools_in_vector_control;
+  int households_in_vector_control;
+  int workplaces_in_vector_control;
+  int neighborhoods_in_vector_control;
+  int vector_control_day_on;
+  int vector_control_day_off;
+  int vector_control_max_places;
+  int vector_control_places_enrolled;
+  int vector_control_random;
+  double vector_control_threshold;
+  double vector_control_coverage;
+  double vector_control_efficacy;
+  double vector_control_neighborhoods_rate;
 
   // vector control parameters
   static bool Enable_Vector_Control;

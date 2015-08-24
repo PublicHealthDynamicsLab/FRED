@@ -1636,6 +1636,11 @@ void Epidemic::update(int day) {
   }
   Utils::fred_print_epidemic_timer("scheduled updated");
 
+  if (strcmp("sexual",this->disease->get_transmission_mode())==0) {
+    FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
+    return;
+  }
+  
   // spread infection in places attended by actually infectious people
   for (int type = 0; type < 7; type++) {
     find_active_places_of_type(day, type);
@@ -1690,26 +1695,41 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
     }
   }
   
-  if (Global::Enable_Vector_Transmission) {
+  // vector transmission mode (for dengue and chikungunya)
+  if (strcmp("vector",this->disease->get_transmission_mode())==0) {
     // add all places that have any infectious vectors
-    std::vector<Place*> * place_vec = NULL;
-    if (place_type == 0) {
-      place_vec = Global::Places.get_households();
-    }
-    if (place_type == 2) {
-      place_vec = Global::Places.get_schools();
-    }
-    if (place_type == 4) {
-      place_vec = Global::Places.get_workplaces();
-    }
-    if (place_vec != NULL) {
-      int size = place_vec->size();
+    int size = 0;
+    switch (place_type) {
+    case 0:
+      // add households
+      size = Global::Places.get_number_of_households();
       for (int i = 0; i < size; i++) {
-	Place * place = (*place_vec)[i];
+	Place * place = Global::Places.get_household(i);
 	if (place->get_infectious_vectors(this->id) > 0) {
 	  active_places.insert(place);
 	}
       }
+      break;
+    case 2:
+      // add schools
+      size = Global::Places.get_number_of_schools();
+      for (int i = 0; i < size; i++) {
+	Place * place = Global::Places.get_school(i);
+	if (place->get_infectious_vectors(this->id) > 0) {
+	  active_places.insert(place);
+	}
+      }
+      break;
+    case 4:
+      // add workplaces
+      size = Global::Places.get_number_of_workplaces();
+      for (int i = 0; i < size; i++) {
+	Place * place = Global::Places.get_workplace(i);
+	if (place->get_infectious_vectors(this->id) > 0) {
+	  active_places.insert(place);
+	}
+      }
+      break;
     }
   }
 

@@ -34,9 +34,6 @@ int Workplace::Small_workplace_size = 0;
 int Workplace::Medium_workplace_size = 0;
 int Workplace::Large_workplace_size = 0;
 
-//Private static variable to assure we only lookup parameters once
-bool Workplace::Workplace_parameters_set = false;
-
 //Private static variables for population level statistics
 int Workplace::workers_in_small_workplaces = 0;
 int Workplace::workers_in_medium_workplaces = 0;
@@ -48,15 +45,13 @@ Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lo
   this->type = WORKPLACE;
   this->subtype = _subtype;
   setup(lab, lon, lat);
-  get_parameters(Global::Diseases.get_number_of_diseases());
   this->offices.clear();
   this->next_office = 0;
 }
 
-void Workplace::get_parameters(int diseases) {
-  if(Workplace::Workplace_parameters_set) {
-    return;
-  }
+void Workplace::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
   
   // people per office
   Params::get_param_from_string("office_size", &Workplace::Office_size);
@@ -72,57 +67,58 @@ void Workplace::get_parameters(int diseases) {
   char param_str[80];
   for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     Disease * disease = Global::Diseases.get_disease(disease_id);
-    sprintf(param_str, "%s_workplace_contacts", disease->get_disease_name());
-    Params::get_param((char *) param_str, &Workplace::Workplace_contacts_per_day[disease_id]);
-    sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
-    int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
+    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
+      sprintf(param_str, "%s_workplace_contacts", disease->get_disease_name());
+      Params::get_param((char *) param_str, &Workplace::Workplace_contacts_per_day[disease_id]);
+      sprintf(param_str, "%s_workplace_prob", disease->get_disease_name());
+      int n = Params::get_param_matrix(param_str, &Workplace::Workplace_contact_prob[disease_id]);
 
-    if(Global::Verbose > 0) {
-      printf("\nWorkplace_contact_prob before normalization:\n");
+      if(Global::Verbose > 0) {
+	printf("\nWorkplace_contact_prob before normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
+	}
+	printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
+      }
+
+      // normalize contact parameters
+      // find max contact prob
+      double max_prob = 0.0;
       for(int i  = 0; i < n; i++)  {
 	for(int j  = 0; j < n; j++) {
-	  printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	  if (Workplace::Workplace_contact_prob[disease_id][i][j] > max_prob) {
+	    max_prob = Workplace::Workplace_contact_prob[disease_id][i][j];
+	  }
 	}
-	printf("\n");
       }
-      printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
-    }
 
-    // normalize contact parameters
-    // find max contact prob
-    double max_prob = 0.0;
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	if (Workplace::Workplace_contact_prob[disease_id][i][j] > max_prob) {
-	  max_prob = Workplace::Workplace_contact_prob[disease_id][i][j];
+      // convert max contact prob to 1.0
+      if (max_prob > 0) {
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    Workplace::Workplace_contact_prob[disease_id][i][j] /= max_prob;
+	  }
 	}
+	// compensate contact rate
+	Workplace::Workplace_contacts_per_day[disease_id] *= max_prob;
       }
-    }
 
-    // convert max contact prob to 1.0
-    if (max_prob > 0) {
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  Workplace::Workplace_contact_prob[disease_id][i][j] /= max_prob;
+      if(Global::Verbose > 0) {
+	printf("\nWorkplace_contact_prob after normalization:\n");
+	for(int i  = 0; i < n; i++)  {
+	  for(int j  = 0; j < n; j++) {
+	    printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
 	}
+	printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
       }
-      // compensate contact rate
-      Workplace::Workplace_contacts_per_day[disease_id] *= max_prob;
+      // end normalization
     }
-
-    if(Global::Verbose > 0) {
-      printf("\nWorkplace_contact_prob after normalization:\n");
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  printf("%f ", Workplace::Workplace_contact_prob[disease_id][i][j]);
-	}
-	printf("\n");
-      }
-      printf("\ncontact rate: %f\n", Workplace::Workplace_contacts_per_day[disease_id]);
-    }
-    // end normalization
   }
-  Workplace::Workplace_parameters_set = true;
 }
 
 // this method is called after all workers are assigned to workplaces

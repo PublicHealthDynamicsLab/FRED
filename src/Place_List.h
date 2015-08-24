@@ -23,24 +23,23 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include "County.h"
-#include "Health.h"
-#include "Household.h"
-#include "Place.h"
-#include "Utils.h"
-
 using namespace std;
 
-class School;
-class Neighborhood;
-class Household;
-class Office;
-class Hospital;
+#include "County.h"
+#include "Health.h"
+#include "Place.h"
+#include "Utils.h"
+#include "Household.h"
+#include "Neighborhood.h"
+#include "School.h"
+#include "Hospital.h"
+#include "Workplace.h"
 class Classroom;
-class Workplace;
+class Office;
 
 #define GRADES 20
 
+typedef std::vector<Place*> place_vec_t;
 typedef std::unordered_map<std::string, int> LabelMapT;
 
 // Helper class used during read_all_places/read_places; definition
@@ -82,16 +81,6 @@ public:
   void report_school_distributions(int day);
   void report_household_distributions();
   void get_parameters();
-  Place* get_place_at_position(int i) {
-    return this->places[i];
-  }
-
-  int get_number_of_places() {
-    return this->places.size();
-  }
-
-  int get_number_of_places(char place_type);
-
   int get_new_place_id() {
     int id = this->next_place_id;
     ++(this->next_place_id);
@@ -146,48 +135,17 @@ public:
     return this->number_of_demes;
   }
 
-  Place* get_household(int i) {
-    if(i < static_cast<int>(this->households.size())) {
-      return this->households[i];
-    } else {
-      return NULL;
-    }
-  }
-
-  int get_number_of_households() {
-    return static_cast<int>(this->households.size());
-  }
-
   int get_housing_data(int* target_size, int* current_size);
-  // void get_visualization_data(int disease_id, char place_type, int output_code);
   void get_initial_visualization_data_from_households();
   void get_visualization_data_from_households(int disease_id, int output_code);
   void get_census_tract_data_from_households(int disease_id, int output_code);
   void swap_houses(int house_index1, int house_index2);
   void combine_households(int house_index1, int house_index2);
 
-  // access function for when we need a Household pointer
-  Household* get_household_ptr(int i) {
-    if(0 <= i && i < (int)this->households.size()) {
-      return static_cast<Household*>(this->households[i]);
-    } else {
-      return NULL;
-    }
-  }
-
-  // access function for when we need a Hospital pointer
-  Hospital* get_hospital_ptr(int i) {
-    if(0 <= i && i < (int)this->hospitals.size()) {
-      return static_cast<Hospital*>(this->hospitals[i]);
-    } else {
-      return NULL;
-    }
-  }
-
   Place* select_school(int county_index, int grade);
 
   int get_number_of_counties() {
-    return (int)this->counties.size();
+    return (int) this->counties.size();
   }
 
   County* get_county_with_index(int index) {
@@ -239,8 +197,6 @@ public:
     return this->census_tracts[index];
   }
 
-  void find_visitors_to_infectious_places(int day);
-
   bool is_load_completed() {
     return this->load_completed;
   }
@@ -257,31 +213,115 @@ public:
     Place_List::Hospital_ID_current_assigned_size_map.at(hospital_id)++;
   }
 
-  std::vector<Place*> * get_households() {
-    return &(this->households);
+  // access function for places by type
+
+  int get_number_of_places() {
+    return (int) this->places.size();
   }
 
-  std::vector<Place*> * get_schools() {
-    return &(this->schools);
+  Place* get_place(int i) {
+    if(0 <= i && i < get_number_of_places()) {
+      return this->places[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  int get_number_of_households() {
+    return (int) this->households.size();
   }
 
-  std::vector<Place*> * get_workplaces() {
-    return &(this->workplaces);
+  Place* get_household(int i) {
+    if(0 <= i && i < get_number_of_households()) {
+      return this->households[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  int get_number_of_neighborhoods() {
+    return (int) this->neighborhoods.size();
   }
 
-  std::vector<Place*> * get_hospitals() {
-    return &(this->hospitals);
+  Place* get_neighborhood(int i) {
+    if(0 <= i && i < get_number_of_neighborhoods()) {
+      return this->neighborhoods[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  int get_number_of_schools() {
+    return (int) this->schools.size();
+  }
+  
+  Place* get_school(int i) {
+    if(0 <= i && i < get_number_of_schools()) {
+      return this->schools[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  int get_number_of_workplaces() {
+    return (int) this->workplaces.size();
+  }
+
+  Place* get_workplace(int i) {
+    if(0 <= i && i < get_number_of_workplaces()) {
+      return this->workplaces[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  int get_number_of_hospitals() {
+    return (int) this->hospitals.size();
+  }
+
+  Place* get_hospital(int i) {
+    if(0 <= i && i < get_number_of_hospitals()) {
+      return this->hospitals[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  // access function for when we need a Household pointer
+  Household* get_household_ptr(int i) {
+    return static_cast<Household*>(get_household(i));
+  }
+
+  // access function for when we need a Neighborhood pointer
+  Neighborhood* get_neighborhood_ptr(int i) {
+    return static_cast<Neighborhood*>(get_neighborhood(i));
+  }
+
+  // access function for when we need a School pointer
+  School* get_school_ptr(int i) {
+    return static_cast<School*>(get_school(i));
+  }
+
+  // access function for when we need a Workplace pointer
+  Workplace* get_workplace_ptr(int i) {
+    return static_cast<Workplace*>(get_workplace(i));
+  }
+
+  // access function for when we need a Hospital pointer
+  Hospital* get_hospital_ptr(int i) {
+    return static_cast<Hospital*>(get_hospital(i));
   }
 
 private:
 
   // lists of places by type
-  std::vector<Place*> places;
-  std::vector<Place*> households;
-  std::vector<Place*> schools;
-  std::vector<Place*> schools_by_grade[GRADES];
-  std::vector<Place*> workplaces;
-  std::vector<Place*> hospitals;
+  place_vec_t places;
+  place_vec_t households;
+  place_vec_t neighborhoods;
+  place_vec_t schools;
+  place_vec_t schools_by_grade[GRADES];
+  place_vec_t workplaces;
+  place_vec_t hospitals;
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);

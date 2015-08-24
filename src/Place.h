@@ -22,7 +22,6 @@ using namespace std;
 
 #include "Global.h"
 #include "Geo.h"
-#define DISEASE_TYPES 4
 
 class Neighborhood_Patch;
 class Person;
@@ -154,13 +153,6 @@ public:
   virtual bool is_open(int day) {
     return true;
   }
-
-  /**
-   * Sets the static variables for the class from the parameter file for a given number of disease_ids.
-   *
-   * @param disease_id an integer representation of the disease
-   */
-  virtual void get_parameters(int disease_id) = 0;
 
   /**
    * Get the age group for a person given a particular disease_id.
@@ -636,48 +628,52 @@ public:
 
   void setup_vector_model();
 
-  void set_temperature();
-
-  void update_vector_population(int day);
-
-  int get_vector_population_size() {
-    return this->N_vectors;
+  void mark_vectors_as_not_infected_today() {
+    this->vectors_have_been_infected_today = false;
   }
-    
+
   void mark_vectors_as_infected_today() {
-    vectors_have_been_infected_today = true;
+    this->vectors_have_been_infected_today = true;
   }
 
   bool have_vectors_been_infected_today() {
-    return vectors_have_been_infected_today;
+    return this->vectors_have_been_infected_today;
   }
 
+  int get_vector_population_size() {
+    return this->vector_disease_data->N_vectors;
+  }
+    
   int get_susceptible_vectors() {
-    return S_vectors;
+    return this->vector_disease_data->S_vectors;
   }
 
-  void expose_vectors(int disease_id, int exposed_vectors) {
-    E_vectors[disease_id] += exposed_vectors;
-    S_vectors -= exposed_vectors;
+  int get_infected_vectors(int disease_id) {
+    return this->vector_disease_data->E_vectors[disease_id] +
+      this->vector_disease_data->I_vectors[disease_id];
   }
 
   int get_infectious_vectors(int disease_id) {
-    return this->I_vectors[disease_id];
+    return this->vector_disease_data->I_vectors[disease_id];
   }
     
-  double get_transmission_efficiency() {
-    return transmission_efficiency;
-  }
-
-  double get_infection_efficiency() {
-    return infection_efficiency;
-  }
-
-  double get_bite_rate() {
-    return bite_rate;
+  void expose_vectors(int disease_id, int exposed_vectors) {
+    this->vector_disease_data->E_vectors[disease_id] += exposed_vectors;
+    this->vector_disease_data->S_vectors -= exposed_vectors;
   }
 
   double get_seeds(int dis, int day);
+
+  vector_disease_data_t get_vector_disease_data () {
+    assert(vector_disease_data != NULL);
+    return (*vector_disease_data);
+  }
+  
+  void update_vector_population(int day);
+
+  bool get_vector_control_status() {
+    return vector_control_status;
+  }
 
 protected:
   char label[32];         // external id
@@ -746,44 +742,10 @@ protected:
     this->current_symptomatic_visitors[disease_id]++;
   }
   
-  // TODO: put vector transmission data into an optional struct
-  // so that memory is not used unless vector transmission is enabled.
-
-  // DATA FOR VECTOR TRANSMISSION MODEL
-
-  double death_rate;
-  double birth_rate;
-  double bite_rate;
-  double incubation_rate;
-  double suitability;
-  double transmission_efficiency;
-  double infection_efficiency;
-
-  // vectors per host
-  double temperature;
-  double vectors_per_host;
-  double pupae_per_host;
-  double life_span;
-  double sucess_rate;
-  double female_ratio;
-  double development_time;
-
-  // counts for vectors
-  int N_vectors;
-  int S_vectors;
-  int E_vectors[DISEASE_TYPES];
-  int I_vectors[DISEASE_TYPES];
-
-  // proportion of imported or born infectious
-  double place_seeds[DISEASE_TYPES];
-
-  // day on and day off of seeding mosquitoes in the patch
-  int day_start_seed[DISEASE_TYPES];
-  int day_end_seed[DISEASE_TYPES];
-
+  // optional data for vector transmission model
+  vector_disease_data_t * vector_disease_data;
   bool vectors_have_been_infected_today;
-
-  // END OF VECTOR TRANSMISSION DATA
+  bool vector_control_status;
 
   // Place Allocator reserves chunks of memory and hands out pointers for use
   // with placement new
