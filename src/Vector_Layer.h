@@ -21,8 +21,6 @@
 #include "Abstract_Grid.h"
 #include <fstream>
 
-#include "Vector_Data.h"
-
 class Epidemic;
 class Person;
 class Place;
