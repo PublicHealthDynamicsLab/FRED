@@ -48,13 +48,7 @@ public:
    */
   Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor
-   * <code>Hospital(int,const char*, double, double, Place*)</code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   /**
    * @see Place::get_group(int disease, Person* per)
@@ -169,7 +163,6 @@ private:
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
   static std::vector<double> Hospital_health_insurance_prob;
-  static bool Hospital_parameters_set;
   static double HAZEL_disaster_capacity_multiplier;
   static int HAZEL_mobile_van_open_delay;
   static int HAZEL_mobile_van_closure_day;

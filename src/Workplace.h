@@ -42,13 +42,7 @@ public:
    */
   Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor
-   * <code>Workplace(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   /**
    * Initialize the workplace and its offices
@@ -151,7 +145,6 @@ public:
 private:
   static double* Workplace_contacts_per_day;
   static double*** Workplace_contact_prob;
-  static bool Workplace_parameters_set;
   static int Office_size;
   static int Small_workplace_size;
   static int Medium_workplace_size;

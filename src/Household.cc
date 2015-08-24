@@ -41,9 +41,6 @@ std::map<int, int> Household::count_children_by_household_income_level_map;
 std::map<long int, int> Household::count_inhabitants_by_census_tract_map;
 std::map<long int, int> Household::count_children_by_census_tract_map;
 
-//Private static variable to assure we only lookup parameters once
-bool Household::Household_parameters_set = false;
-
 int Household::Cat_I_Max_Income = 0;
 int Household::Cat_II_Max_Income = 0;
 int Household::Cat_III_Max_Income = 0;
@@ -56,7 +53,6 @@ int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
 Household::Household() {
-  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
@@ -80,7 +76,6 @@ Household::Household() {
 }
 
 Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
-  get_parameters(Global::Diseases.get_number_of_diseases());
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
@@ -106,12 +101,9 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   set_household_income(-1);
 }
 
-void Household::get_parameters(int diseases) {
-  if(Household::Household_parameters_set) {
-    return;
-  }
-  Household::Household_parameters_set = true;
+void Household::get_parameters() {
 
+  int diseases = Global::Diseases.get_number_of_diseases();
   char param_str[80];
   Household::Household_contacts_per_day = new double[diseases];
   Household::Household_contact_prob = new double**[diseases];
@@ -141,7 +133,6 @@ void Household::get_parameters(int diseases) {
   Params::get_param((char*)"cat_IV_max_income", &Household::Cat_IV_Max_Income);
   Params::get_param((char*)"cat_V_max_income", &Household::Cat_V_Max_Income);
   Params::get_param((char*)"cat_VI_max_income", &Household::Cat_VI_Max_Income);
-
 }
 
 int Household::get_group(int disease, Person* per) {
@@ -257,7 +248,6 @@ bool Household::has_school_aged_child_and_unemployed_adult() {
 void Household::prepare_person_childcare_sickleave_map() {
   //Household has been loaded
   assert(Global::Pop.is_load_completed());
-  assert(Household::Household_parameters_set);
 
   if(Global::Report_Childhood_Presenteeism) {
     if(has_school_aged_child() && !has_school_aged_child_and_unemployed_adult()) {

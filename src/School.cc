@@ -51,9 +51,6 @@ int School::pop_income_Q1 = 0;
 int School::pop_income_Q2 = 0;
 int School::pop_income_Q3 = 0;
 int School::pop_income_Q4 = 0;
-
-//Private static variable to assure we only lookup parameters once
-bool School::school_parameters_set = false;
 bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
@@ -61,7 +58,6 @@ int School::global_open_date = 0;
 School::School() {
   this->type = Place::SCHOOL;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
-  get_parameters(Global::Diseases.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -79,7 +75,6 @@ School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fre
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
   setup(lab, lon, lat);
-  get_parameters(Global::Diseases.get_number_of_diseases());
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -104,10 +99,9 @@ void School::prepare() {
   }
 }
 
-void School::get_parameters(int diseases) {
-  if(School::school_parameters_set) {
-    return;
-  }
+void School::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
 
   School::school_contacts_per_day = new double[diseases];
   School::school_contact_prob = new double**[diseases];
@@ -200,8 +194,6 @@ void School::get_parameters(int diseases) {
   if(Cases > -1) {
     School::school_closure_cases = Cases;
   }
-
-  School::school_parameters_set = true;
 }
 
 int School::get_group(int disease_id, Person* per) {

@@ -35,7 +35,7 @@ public:
 
   School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
   void prepare();
-  void get_parameters(int diseases);
+  static void get_parameters();
   int get_group(int disease_id, Person* per);
   double get_transmission_prob(int disease_id, Person* i, Person* s);
   void close(int day, int day_to_close, int duration);
@@ -173,7 +173,6 @@ private:
   static int school_closure_cases;
   static int school_closure_duration;
   static int school_closure_delay;
-  static bool school_parameters_set;
   static int school_summer_schedule;
   static char school_summer_start[];
   static char school_summer_end[];

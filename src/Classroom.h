@@ -38,13 +38,7 @@ public:
    */
   Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor <code>
-   * </code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   int enroll(Person * per);
   void unenroll(int pos);
@@ -106,8 +100,6 @@ private:
   static double Classroom_closure_threshold;
   static int Classroom_closure_period;
   static int Classroom_closure_delay;
-  static bool Classroom_parameters_set;
-
   School * school;
   int age_level;
 };

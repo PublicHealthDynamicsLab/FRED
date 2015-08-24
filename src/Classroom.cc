@@ -31,20 +31,16 @@ double Classroom::Classroom_closure_threshold = 0.0;
 int Classroom::Classroom_closure_period = 0;
 int Classroom::Classroom_closure_delay = 0;
 
-//Private static variable to assure we only lookup parameters once
-bool Classroom::Classroom_parameters_set = false;
-
 Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
   setup(lab, lon, lat);
-  get_parameters(Global::Diseases.get_number_of_diseases());
   this->age_level = -1;
 }
 
-void Classroom::get_parameters(int diseases) {
-  if(Classroom::Classroom_parameters_set)
-    return;
+void Classroom::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
 
   Classroom::Classroom_contacts_per_day = new double[diseases];
   Classroom::Classroom_contact_prob = new double**[diseases];
@@ -109,8 +105,6 @@ void Classroom::get_parameters(int diseases) {
       // end normalization
     }
   }
-
-  Classroom::Classroom_parameters_set = true;
 }
 
 double Classroom::get_contacts_per_day(int disease) {

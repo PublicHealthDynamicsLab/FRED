@@ -44,13 +44,7 @@ public:
    */
   Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor
-   * <code>Office(int loc, const char *lab, fred::geo lon, fred::geo lat)</code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   /**
    * @see Place::get_group(int disease, Person * per)
@@ -103,8 +97,6 @@ public:
 private:
   static double * Office_contacts_per_day;
   static double *** Office_contact_prob;
-  static bool Office_parameters_set;
-
   Workplace *workplace;
 };
 

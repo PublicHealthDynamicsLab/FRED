@@ -43,13 +43,7 @@ int Hospital::HAZEL_mobile_van_closure_day = 0;
 std::vector<double> Hospital::HAZEL_reopening_CDF;
 HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 
-//Private static variable to assure we only lookup parameters once
-bool Hospital::Hospital_parameters_set = false;
-
 Hospital::Hospital() {
-  if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases.get_number_of_diseases());
-  }
   this->type = Place::HOSPITAL;
   this->bed_count = 0;
   this->occupied_bed_count = 0;
@@ -60,9 +54,6 @@ Hospital::Hospital() {
 }
 
 Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
-  if(!Hospital::Hospital_parameters_set) {
-    get_parameters(Global::Diseases.get_number_of_diseases());
-  }
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;
   this->bed_count = 0;
@@ -99,11 +90,9 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
   }
 }
 
-void Hospital::get_parameters(int diseases) {
-  if(Hospital::Hospital_parameters_set) {
-    return;
-  }
-  
+void Hospital::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
   Hospital::Hospital_contacts_per_day = new double[diseases];
   Hospital::Hospital_contact_prob = new double**[diseases];
 
@@ -178,7 +167,7 @@ void Hospital::get_parameters(int diseases) {
               tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
               tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
-            this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
+	    Hospital::HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
           tokens.clear();
         }
@@ -191,8 +180,6 @@ void Hospital::get_parameters(int diseases) {
     Params::get_param_vector((char*)"hospital_health_insurance_prob", Hospital::Hospital_health_insurance_prob);
     assert(static_cast<int>(Hospital::Hospital_health_insurance_prob.size()) == static_cast<int>(Insurance_assignment_index::UNSET));
   }
-
-  Hospital::Hospital_parameters_set = true;
 }
 
 int Hospital::get_group(int disease, Person* per) {

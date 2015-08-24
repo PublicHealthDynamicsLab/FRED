@@ -127,6 +127,15 @@ void Place_List::init_place_type_name_lookup_map() {
 
 void Place_List::get_parameters() {
 
+  // get static parameters for all place subclasses
+  Household::get_parameters();
+  Neighborhood::get_parameters();
+  School::get_parameters();
+  Classroom::get_parameters();
+  Workplace::get_parameters();
+  Office::get_parameters();
+  Hospital::get_parameters();
+
   Params::get_param_from_string("enable_copy_files", &Place_List::Enable_copy_files);
 
   // geography

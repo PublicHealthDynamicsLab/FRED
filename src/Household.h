@@ -149,13 +149,7 @@ public:
 
   ~Household() {}
 
-  /**
-   * @see Place::get_parameters(int diseases)
-   *
-   * This method is called by the constructor
-   * <code>Household(int loc, const char* lab, fred:geo lon, fred::geo lat)</code>
-   */
-  void get_parameters(int diseases);
+  static void get_parameters();
 
   /**
    * @see Place::get_group(int disease, Person* per)
@@ -441,7 +435,6 @@ private:
 
   static double* Household_contacts_per_day;
   static double*** Household_contact_prob;
-  static bool Household_parameters_set;
 
   //Income Limits for classification
   static int Cat_I_Max_Income;

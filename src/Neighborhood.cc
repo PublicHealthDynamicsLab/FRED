@@ -27,22 +27,17 @@ double * Neighborhood::Neighborhood_contacts_per_day = NULL;
 double *** Neighborhood::Neighborhood_contact_prob = NULL;
 double * Neighborhood::Weekend_contact_rate = NULL;
 
-//Private static variable to assure we only lookup parameters once
-bool Neighborhood::Neighborhood_parameters_set = false;
-
 Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
 			    fred::geo lat) {
   type = NEIGHBORHOOD;
   subtype = _subtype;
   setup( lab, lon, lat);
-  get_parameters(Global::Diseases.get_number_of_diseases());
 }
 
-void Neighborhood::get_parameters(int diseases) {
+void Neighborhood::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
   char param_str[80];
-  
-  if (Neighborhood::Neighborhood_parameters_set) return;
-  
   Neighborhood::Weekend_contact_rate = new double [ diseases ];
   Neighborhood::Neighborhood_contacts_per_day = new double [ diseases ];
   Neighborhood::Neighborhood_contact_prob = new double** [ diseases ];
@@ -104,7 +99,6 @@ void Neighborhood::get_parameters(int diseases) {
       }
     }
   }
-  Neighborhood::Neighborhood_parameters_set = true;
 }
 
 int Neighborhood::get_group(int disease, Person * per) {

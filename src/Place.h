@@ -155,13 +155,6 @@ public:
   }
 
   /**
-   * Sets the static variables for the class from the parameter file for a given number of disease_ids.
-   *
-   * @param disease_id an integer representation of the disease
-   */
-  virtual void get_parameters(int disease_id) = 0;
-
-  /**
    * Get the age group for a person given a particular disease_id.
    *
    * @param disease_id an integer representation of the disease

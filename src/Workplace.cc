@@ -34,9 +34,6 @@ int Workplace::Small_workplace_size = 0;
 int Workplace::Medium_workplace_size = 0;
 int Workplace::Large_workplace_size = 0;
 
-//Private static variable to assure we only lookup parameters once
-bool Workplace::Workplace_parameters_set = false;
-
 //Private static variables for population level statistics
 int Workplace::workers_in_small_workplaces = 0;
 int Workplace::workers_in_medium_workplaces = 0;
@@ -48,15 +45,13 @@ Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lo
   this->type = WORKPLACE;
   this->subtype = _subtype;
   setup(lab, lon, lat);
-  get_parameters(Global::Diseases.get_number_of_diseases());
   this->offices.clear();
   this->next_office = 0;
 }
 
-void Workplace::get_parameters(int diseases) {
-  if(Workplace::Workplace_parameters_set) {
-    return;
-  }
+void Workplace::get_parameters() {
+
+  int diseases = Global::Diseases.get_number_of_diseases();
   
   // people per office
   Params::get_param_from_string("office_size", &Workplace::Office_size);
@@ -124,7 +119,6 @@ void Workplace::get_parameters(int diseases) {
       // end normalization
     }
   }
-  Workplace::Workplace_parameters_set = true;
 }
 
 // this method is called after all workers are assigned to workplaces
