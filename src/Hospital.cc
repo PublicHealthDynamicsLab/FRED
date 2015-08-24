@@ -110,17 +110,19 @@ void Hospital::get_parameters(int diseases) {
   char param_str[80];
   for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     Disease* disease = Global::Diseases.get_disease(disease_id);
-    sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
-    Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
-    sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
-    int n = Params::get_param_matrix(param_str, &Hospital::Hospital_contact_prob[disease_id]);
-    if(Global::Verbose > 1) {
-      printf("\nHospital_contact_prob:\n");
-      for(int i  = 0; i < n; ++i)  {
-	for(int j  = 0; j < n; ++j) {
-	  printf("%f ", Hospital::Hospital_contact_prob[disease_id][i][j]);
+    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
+      sprintf(param_str, "%s_hospital_contacts", disease->get_disease_name());
+      Params::get_param((char*)param_str, &Hospital::Hospital_contacts_per_day[disease_id]);
+      sprintf(param_str, "%s_hospital_prob", disease->get_disease_name());
+      int n = Params::get_param_matrix(param_str, &Hospital::Hospital_contact_prob[disease_id]);
+      if(Global::Verbose > 1) {
+	printf("\nHospital_contact_prob:\n");
+	for(int i  = 0; i < n; ++i)  {
+	  for(int j  = 0; j < n; ++j) {
+	    printf("%f ", Hospital::Hospital_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
 	}
-	printf("\n");
       }
     }
   }

@@ -1636,6 +1636,11 @@ void Epidemic::update(int day) {
   }
   Utils::fred_print_epidemic_timer("scheduled updated");
 
+  if (strcmp("sexual",this->disease->get_transmission_mode())==0) {
+    FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
+    return;
+  }
+  
   // spread infection in places attended by actually infectious people
   for (int type = 0; type < 7; type++) {
     find_active_places_of_type(day, type);

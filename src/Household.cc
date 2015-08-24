@@ -110,23 +110,26 @@ void Household::get_parameters(int diseases) {
   if(Household::Household_parameters_set) {
     return;
   }
+  Household::Household_parameters_set = true;
 
   char param_str[80];
   Household::Household_contacts_per_day = new double[diseases];
   Household::Household_contact_prob = new double**[diseases];
   for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     Disease* disease = Global::Diseases.get_disease(disease_id);
-    sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
-    Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
-    sprintf(param_str, "%s_household_prob", disease->get_disease_name());
-    int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
-    if(Global::Verbose > 1) {
-      printf("\nHousehold_contact_prob:\n");
-      for(int i  = 0; i < n; ++i)  {
-	for(int j  = 0; j < n; ++j) {
-	  printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
+      sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
+      Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
+      sprintf(param_str, "%s_household_prob", disease->get_disease_name());
+      int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
+      if(Global::Verbose > 1) {
+	printf("\nHousehold_contact_prob:\n");
+	for(int i  = 0; i < n; ++i)  {
+	  for(int j  = 0; j < n; ++j) {
+	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
+	  }
+	  printf("\n");
 	}
-	printf("\n");
       }
     }
   }
@@ -139,7 +142,6 @@ void Household::get_parameters(int diseases) {
   Params::get_param((char*)"cat_V_max_income", &Household::Cat_V_Max_Income);
   Params::get_param((char*)"cat_VI_max_income", &Household::Cat_VI_Max_Income);
 
-  Household::Household_parameters_set = true;
 }
 
 int Household::get_group(int disease, Person* per) {

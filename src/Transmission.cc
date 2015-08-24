@@ -37,6 +37,13 @@ Transmission * Transmission::get_new_transmission(char* transmission_mode) {
     return new Vector_Transmission();
   }
 
+  /*
+  if (strcmp(transmission_mode, "sexual") == 0) {
+    return NULL;
+    //return new Sexual_Transmission();
+  }
+  */
+
   Utils::fred_abort("Unknown transmission_mode (%s).\n", transmission_mode);
   return NULL;
 }
