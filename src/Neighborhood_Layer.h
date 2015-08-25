@@ -25,7 +25,7 @@ using namespace std;
 
 typedef std::vector<int> offset_t;
 typedef std::vector<double> gravity_cdf_t;
-typedef std::vector<Place *> place_vector;
+typedef std::vector<Place *> place_vector_t;
 
 class Neighborhood_Patch;
 class Neighborhood;
@@ -117,6 +117,8 @@ public:
   Place * select_destination_neighborhood_by_gravity_model(Place * src_neighborhood);
 
   Place * select_destination_neighborhood_by_old_model(Place * src_neighborhood);
+
+  void register_place(Place *place);
 
 protected:
   Neighborhood_Patch ** grid;		 // Rectangular array of patches
