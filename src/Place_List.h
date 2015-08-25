@@ -25,6 +25,7 @@
 #include <vector>
 using namespace std;
 
+#include "Global.h"
 #include "County.h"
 #include "Health.h"
 #include "Place.h"
@@ -39,7 +40,6 @@ class Office;
 
 #define GRADES 20
 
-typedef std::vector<Place*> place_vec_t;
 typedef std::unordered_map<std::string, int> LabelMapT;
 
 // Helper class used during read_all_places/read_places; definition
@@ -315,13 +315,13 @@ public:
 private:
 
   // lists of places by type
-  place_vec_t places;
-  place_vec_t households;
-  place_vec_t neighborhoods;
-  place_vec_t schools;
-  place_vec_t schools_by_grade[GRADES];
-  place_vec_t workplaces;
-  place_vec_t hospitals;
+  place_vector_t places;
+  place_vector_t households;
+  place_vector_t neighborhoods;
+  place_vector_t schools;
+  place_vector_t schools_by_grade[GRADES];
+  place_vector_t workplaces;
+  place_vector_t hospitals;
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);

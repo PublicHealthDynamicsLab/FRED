@@ -25,14 +25,15 @@ using namespace std;
 typedef std::vector<Place *> place_vector;
 
 #include "Abstract_Patch.h"
-#include "Place.h"
 #include "Global.h"
+#include "Place.h"
 
 class Person;
 class Neighborhood_Layer;
 class Neighborhood;
 class Household;
 
+#define GRADES 20
 
 class Neighborhood_Patch : public Abstract_Patch {
 public:
@@ -109,7 +110,7 @@ public:
    * @return a count of houses in this Neighborhood_Patch
    */
   int get_houses() { 
-    return houses;
+    return households.size();
   }
 
   /**
@@ -124,13 +125,6 @@ public:
   }
 
   /**
-   * @return the Neighborhood_Patch.cc
-   */
-  int get_households() { 
-    return households; 
-  }
-
-  /**
    * @return the popsize
    */
   int get_popsize() { 
@@ -142,31 +136,71 @@ public:
   }
 
   int get_number_of_households() {
-    return (int) this->household.size();
+    return (int) this->households.size();
   }
 
   Place* get_household(int i) {
     if(0 <= i && i < get_number_of_households()) {
-      return this->household[i];
+      return this->households[i];
     } else {
       return NULL;
     }
   }
   
+  int get_number_of_schools() {
+    return (int) this->schools.size();
+  }
+  
+  Place* get_school(int i) {
+    if(0 <= i && i < get_number_of_schools()) {
+      return this->schools[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  int get_number_of_workplaces() {
+    return (int) this->workplaces.size();
+  }
+
+  Place* get_workplace(int i) {
+    if(0 <= i && i < get_number_of_workplaces()) {
+      return this->workplaces[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  int get_number_of_hospitals() {
+    return (int) this->hospitals.size();
+  }
+
+  Place* get_hospital(int i) {
+    if(0 <= i && i < get_number_of_hospitals()) {
+      return this->hospitals[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  void register_place(Place* place);
+
 protected:
   Neighborhood_Layer * grid;
-  int houses;
   Place * neighborhood;
-
   std::vector<Person *> person;
-
-  place_vector household;
-  place_vector school;
-  place_vector school_by_age[20];
-  place_vector workplace;
-  int households;
   int popsize;
   double mean_household_income;
+
+  // lists of places by type
+  place_vector_t households;
+  place_vector_t schools;
+  place_vector_t workplaces;
+  place_vector_t hospitals;
+  place_vector_t schools_attended_by_neighborhood_residents;
+  place_vector_t schools_attended_by_neighborhood_residents_by_age[GRADES];
+  place_vector_t workplaces_attended_by_neighborhood_residents;
+
 };
 
 #endif // _FRED_NEIGHBORHOOD_PATCH_H

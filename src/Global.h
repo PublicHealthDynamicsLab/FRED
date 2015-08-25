@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <bitset>
+#include <vector>
 #include <map>
 #include <chrono>
 
@@ -51,6 +52,7 @@ using namespace std::chrono;
 
 class Population;
 class Disease_List;
+class Place;
 class Place_List;
 class Neighborhood_Layer;
 class Regional_Layer;
@@ -547,6 +549,7 @@ namespace fred {
 #endif
 }
 
+typedef std::vector<Place*> place_vector_t;
 
 #define VECTOR_DISEASE_TYPES 4
 
