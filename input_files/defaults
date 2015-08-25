@@ -554,91 +554,6 @@ disease_names = 1 influenza
 
 ##########################################################
 #
-# TEMPLATE FOR DISEASE PARAMETERS
-#
-##########################################################
-
-# uncomment this line to specify the desease name
-# disease_names = 1 <disease_name>
-
-### REQUIRED NATURAL HISTORY PARAMETERS
-
-### transmission coefficient:
-<disease_name>_trans = 1.0
-
-### symptomatic rate:
-<disease_name>_symp = 0.67
-<disease_name>_prob_symp_upper_ages = 0
-<disease_name>_prob_symp_values = 0
-
-### multipliers for infectivity
-<disease_name>_symp_infectivity = 1.0
-<disease_name>_asymp_infectivity = 0.5
-
-### latent and infectious period CDFs
-<disease_name>_days_latent = 3       0.0 0.8 1.0
-<disease_name>_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-<disease_name>_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-
-### IMMUNITY
-<disease_name>_immunity_loss_rate = 0
-<disease_name>_residual_immunity_upper_ages = 0
-<disease_name>_residual_immunity_values = 0
-<disease_name>_infection_immunity_prob_upper_ages = 1 120
-<disease_name>_infection_immunity_prob_values = 1 1.0
-enable_residual_immunity_by_FIPS = 0
-# enable_residual_immunity_by_FIPS = 1
-residual_immunity_by_FIPS_file = $FRED_HOME/input_files/residual_immunity_by_FIPS.txt
-
-### PLACE-SPECIFIC CONTACTS
-<disease_name>_weekend_contact_rate = 1.5
-<disease_name>_household_contacts = 0.202
-<disease_name>_neighborhood_contacts = 3.98e+01
-<disease_name>_school_contacts = 17.6
-<disease_name>_workplace_contacts = 1.6
-<disease_name>_classroom_contacts = -1
-<disease_name>_office_contacts = -1
-<disease_name>_hospital_contacts = 0
-
-### PLACE-SPECIFIC TRANSMISSION MATRICES
-<disease_name>_household_prob = 4 0.6 0.3 0.3 0.4
-<disease_name>_workplace_prob = 1 0.0575
-<disease_name>_office_prob = 1 0.0575
-<disease_name>_hospital_prob = 9 0.0575 0.115 0.0575 0.115 0.0575 0.115 0.0575 0.115 0.0575 
-<disease_name>_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-<disease_name>_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
-<disease_name>_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
-
-### OPTIONAL FEATURES
-### The following settings disable optional features unless needed:
-<disease_name>_enable_case_fatality = 0
-<disease_name>_min_symptoms_for_case_fatality = 1.0
-<disease_name>_case_fatality_age_factor_upper_ages = 1 120
-<disease_name>_case_fatality_age_factor_values = 1 1.0
-<disease_name>_case_fatality_prob_by_day = 1 0.0
-
-# Hospitalization must be enabled
-# These are the probabilities for general hospital or outpatient healthcare
-# for a given disease. The probability will be multiplied by the symptomaticity
-# to get lower likelihood for lesser symptoms
-<disease_name>_min_symptoms_for_seek_healthcare = 1.0
-<disease_name>_hospitalization_prob_upper_ages = 0
-<disease_name>_hospitalization_prob_values = 0
-<disease_name>_outpatient_healthcare_prob_upper_ages = 0
-<disease_name>_outpatient_healthcare_prob_values = 0
-
-<disease_name>_at_risk_upper_ages = 0
-<disease_name>_at_risk_values = 0
-<disease_name>_natural_history_model = basic
-<disease_name>_infection_model = 0
-<disease_name>_infectivity_threshold = 0
-<disease_name>_symptomaticity_threshold = 0
-
-<disease_name>_evolution = 0
-enable_viral_evolution = 0
-
-##########################################################
-#
 # INFLUENZA PARAMETERS
 #
 ##########################################################
@@ -836,7 +751,6 @@ days_sick = 11; 			# Maximum length of sick time
 
 ### DISEASE TRANSMISSION MODE
 influenza_transmission_mode = respiratory
-
 
 ### NATURAL HISTORY MODEL
 
