@@ -837,6 +837,7 @@ influenza_num_strains = 1
 influenza_strain_data[0] = a:1
 influenza_transmissibility[0] = 1
 enable_protection = 0
+enable_residual_immunity_by_FIPS = 0
 track_residual_immunity = 0
 track_multi_strain_stats = 0
 num_codons = 12

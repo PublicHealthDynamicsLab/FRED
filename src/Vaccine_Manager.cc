@@ -364,6 +364,7 @@ void Vaccine_Manager::vaccinate(int day) {
         ip = this->priority_queue.erase(ip);  // remove a vaccinated person
       } else {
         reject_count++;
+	// TODO: HBM FIX THIS!
         // printf("vaccine rejected by person %d age %.1f\n", current_person->get_id(), current_person->get_real_age());
         // skip non-compliant person under HBM
         // if(strcmp(Global::Behavior_model_type,"HBM") == 0) ++ip;
@@ -426,7 +427,7 @@ void Vaccine_Manager::vaccinate(int day) {
     int vacc_app = this->vaccine_package->pick_from_applicable_vaccines(current_person->get_real_age());
     if(vacc_app > -1) {
       bool accept_vaccine = true;
-      if((this->vaccinate_symptomatics == true)
+      if((this->vaccinate_symptomatics == false)
 	 && (current_person->get_health()->get_symptoms_start_date(0) != -1)
 	 && (day >= current_person->get_health()->get_symptoms_start_date(0))) {
         accept_vaccine = false;
