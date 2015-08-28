@@ -25,6 +25,7 @@
 #include "Household.h"
 #include "Infection.h"
 #include "Neighborhood.h"
+#include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
 #include "Params.h"
 #include "Person.h"
@@ -118,6 +119,8 @@ void Place::prepare() {
   if(Global::Enable_Vector_Transmission) {
     setup_vector_model();
   }
+
+  Global::Neighborhoods->register_place(this);
 
   FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->id, this->label, this->type);
 }

@@ -713,7 +713,7 @@ bool more_room(Place *p1, Place *p2){
 Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
   FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA for age %d row %d col %d\n", age, row, col);
   // make a list of all schools within 50 kms that have grades for this age
-  place_vector * schools = new place_vector;
+  place_vector_t * schools = new place_vector_t;
   schools->clear();
   Neighborhood_Patch * patch;
   int max_dist = 60;
@@ -817,3 +817,14 @@ Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
   }
 
 */
+
+void Neighborhood_Layer::register_place(Place *place) {
+  Neighborhood_Patch * patch = get_patch(place->get_latitude(), place->get_longitude());
+  if (patch != NULL) {
+    patch->register_place(place);
+  }
+  else {
+    FRED_VERBOSE(0, "register place:can't find patch for place %s county = %d\n",
+		 place->get_label(), place->get_county_index());
+  }
+}
