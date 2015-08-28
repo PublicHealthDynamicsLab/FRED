@@ -95,14 +95,14 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
     total_infectious_hosts += infectious_hosts[disease_id];
   }
   
+  FRED_VERBOSE(0, "infect_vectors on day %d in place %s susceptible_vectors %d total_inf_hosts %d\n",
+	       day, place->get_label(), susceptible_vectors, total_infectious_hosts);
+
   // return if there are no infectious hosts
   if(total_infectious_hosts == 0) {
     return;
   }
   
-  FRED_VERBOSE(1, "infect_vectors entered susceptible_vectors %d total_inf_hosts %d\n",
-	       susceptible_vectors, total_infectious_hosts);
-
   // the vector infection model of Chao and Longini
 
   // decide on total number of vectors infected by any infectious host
@@ -122,7 +122,7 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
     newly_infected += exposed_vectors;
   }
   place->mark_vectors_as_infected_today();
-  FRED_VERBOSE(1, "newly_infected_vectors %d\n", newly_infected);
+  FRED_VERBOSE(0, "newly_infected_vectors %d\n\n", newly_infected);
 }
 
 void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
@@ -155,7 +155,8 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
   if(Random::draw_random() < remainder) {
     max_exposed_hosts++;
   }
-  FRED_VERBOSE(1, "infect_hosts: max_exposed_hosts[%d] = %d\n", disease_id, max_exposed_hosts);
+  FRED_VERBOSE(0, "infect_hosts on day %d in place %s : inf_vectors %d tot_hosts %d max_exposed_hosts %d\n",
+	       day, place->get_label(), infectious_vectors, total_hosts, max_exposed_hosts);
 
   // attempt to infect the max_exposed_hosts
 
@@ -170,14 +171,16 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
   // get the disease object   
   Disease* disease = Global::Diseases.get_disease(disease_id);
 
+  int newly_infected_hosts = 0;
   for(int j = 0; j < max_exposed_hosts; ++j) {
     Person* infectee = visitors[shuffle_index[j]];
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
     // NOTE: need to check if infectee already infected
     if(infectee->is_susceptible(disease_id)) {
       // create a new infection in infectee
-      FRED_VERBOSE(0,"transmitting to host %d\n", infectee->get_id());
+      FRED_VERBOSE(0,"day %d transmitting to host %d\n", day, infectee->get_id());
       infectee->become_exposed(disease_id, NULL, place, day);
+      newly_infected_hosts++;
 
       int diseases = Global::Diseases.get_number_of_diseases();
       if (diseases > 1) {
@@ -195,6 +198,8 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
       FRED_VERBOSE(0,"host %d not susceptible\n", infectee->get_id());
     }
   }
+  FRED_VERBOSE(0, "infect_hosts on day %d in place %s : inf_vectors %d tot_hosts %d max_exposed_hosts %d newly_infected_hosts %d\n\n",
+	       day, place->get_label(), infectious_vectors, total_hosts, max_exposed_hosts, newly_infected_hosts);
 }
 
 

@@ -1697,6 +1697,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
   
   // vector transmission mode (for dengue and chikungunya)
   if (strcmp("vector",this->disease->get_transmission_mode())==0) {
+
     // add all places that have any infectious vectors
     int size = 0;
     switch (place_type) {
@@ -1741,7 +1742,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
   for (std::set<Place*>::iterator it = active_places.begin(); it != active_places.end(); ++it) {
     active_place_vec.push_back(*it);
   }
-  FRED_VERBOSE(0, "find_active_places_of_type %d found %d\n", place_type, active_place_vec.size());
+  FRED_VERBOSE(0, "find_active_places_of_type %d day %d found %d\n", place_type, day, active_place_vec.size());
 
 }
   
