@@ -137,7 +137,7 @@ public:
    * @param check_insurance whether or not to use the agent's insurance in the matching
    * @param use_search_radius_limit whether or not to cap the search radius
    */
-  Hospital* get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit);
+  Hospital* get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit, bool check_specialty_code);
   void print_household_size_distribution(char* dir, char* date_string, int run);
   void report_shelter_stats(int day);
   void end_of_run();

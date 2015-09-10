@@ -1312,22 +1312,31 @@ void Activities::assign_office(Person* self) {
 }
 
 void Activities::assign_primary_healthcare_facility(Person* self) {
-  Hospital* tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, (Global::Enable_Health_Insurance && true), true);
+  Hospital* tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, (Global::Enable_Health_Insurance && true), true, true);
   if(tmp_hosp != NULL) {
     this->primary_healthcare_facility = tmp_hosp;
     Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
   } else {
     //Expand search radius
-    tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, Global::Enable_Health_Insurance, false);
+    tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, Global::Enable_Health_Insurance, false, true);
     if(tmp_hosp != NULL) {
       this->primary_healthcare_facility = tmp_hosp;
       Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
     } else {
       //Don't use health insurance even if it is enabled
-      tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, false, false);
+      tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, false, false, true);
       if(tmp_hosp != NULL) {
         this->primary_healthcare_facility = tmp_hosp;
         Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
+      } else {
+        //Don't use specialty code
+        tmp_hosp = Global::Places.get_random_primary_care_facility_matching_criteria(self, false, false, false);
+        if(tmp_hosp != NULL) {
+          this->primary_healthcare_facility = tmp_hosp;
+          Place_List::increment_hospital_ID_current_assigned_size_map(tmp_hosp->get_id());
+        } else {
+          FRED_VERBOSE(1, "Warning! No primary care assigned for person %d\n", self->get_id());
+        }
       }
     }
   }

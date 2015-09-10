@@ -39,7 +39,11 @@ public:
   Hospital();
   ~Hospital() { }
 
-  //static bool HAZEL_hospital_init_map_file_exists;
+  static const int CLINIC_SPECIALTY_CODE_ALL = 1;
+  static const int CLINIC_SPECIALTY_CODE_PEDIATRIC = 2;
+  static const int CLINIC_SPECIALTY_CODE_INTERNAL = 3;
+  static const int CLINIC_SPECIALTY_CODE_FAMILY = 4;
+  static const int CLINIC_SPECIALTY_CODE_OB_GYN = 5;
 
   /**
    * Convenience constructor that sets most of the values by calling Place::setup
@@ -165,7 +169,12 @@ public:
     return Hospital::HAZEL_mobile_van_closure_day;
   }
 
+  int get_specialty_code() {
+    return this->specialty_code;
+  }
+
 private:
+
   static double* Hospital_contacts_per_day;
   static double*** Hospital_contact_prob;
   static std::vector<double> Hospital_health_insurance_prob;
@@ -182,6 +191,7 @@ private:
   int daily_patient_capacity;
   int current_daily_patient_count;
   bool add_capacity;
+  int specialty_code;
   bool HAZEL_closure_dates_have_been_set;
 
   // true iff a the hospital accepts the indexed Insurance Coverage
@@ -201,11 +211,12 @@ struct HAZEL_Hospital_Init_Data {
   int reopen_after_days;
   bool is_mobile;
   bool add_capacity;
+  int specialty_code;
 
   void setup(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
 	     const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
 	     const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
-	     const char* _add_capacity) {
+	     const char* _add_capacity, const char* _specialty_code) {
 
     string accpt_priv_str = string(_accpt_private);
     string accpt_medicr_str = string(_accpt_medicare);
@@ -226,14 +237,16 @@ struct HAZEL_Hospital_Init_Data {
     this->is_mobile = Utils::to_bool(is_mobile_str);
     this->add_capacity = Utils::to_bool(add_capacity_str);
     sscanf(_reopen_after_days, "%d", &reopen_after_days);
+    sscanf(_specialty_code, "%d", &specialty_code);
   }
 
   HAZEL_Hospital_Init_Data(const char* _panel_week, const char* _accpt_private, const char* _accpt_medicare,
 			   const char* _accpt_medicaid, const char* _accpt_highmark, const char* _accpt_upmc,
-			   const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile, const char* _add_capacity) {
+			   const char* _accpt_uninsured, const char* _reopen_after_days, const char* _is_mobile,
+			   const char* _add_capacity, const char* _specialty_code) {
     setup(_panel_week, _accpt_private, _accpt_medicare,
 	  _accpt_medicaid, _accpt_highmark, _accpt_upmc,
-	  _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity);
+	  _accpt_uninsured, _reopen_after_days, _is_mobile, _add_capacity, _specialty_code);
   }
 
 };

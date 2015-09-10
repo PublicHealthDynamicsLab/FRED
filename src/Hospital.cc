@@ -56,6 +56,7 @@ Hospital::Hospital() {
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
   this->HAZEL_closure_dates_have_been_set = false;
+  this->specialty_code = Hospital::CLINIC_SPECIALTY_CODE_ALL;
   std::vector<bool>* checked_open_day_vec;
 }
 
@@ -95,6 +96,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
       }
       this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
       this->add_capacity = init_data.add_capacity;
+      this->specialty_code = init_data.specialty_code;
     }
   }
 }
@@ -162,7 +164,8 @@ void Hospital::get_parameters(int diseases) {
           ACCPT_UNINSRD = 7,
           REOPEN_AFTR_DAYS = 8,
           IS_MOBILE = 9,
-          ADD_CAPACITY = 10
+          ADD_CAPACITY = 10,
+          SPECIALTY_CODE = 11
         };
 
         char line_str[255];
@@ -179,7 +182,7 @@ void Hospital::get_parameters(int diseases) {
             HAZEL_Hospital_Init_Data init_data = HAZEL_Hospital_Init_Data(tokens[PNL_WK], tokens[ACCPT_PRIV],
               tokens[ACCPT_MEDICR], tokens[ACCPT_MEDICD], tokens[ACCPT_HGHMRK],
               tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
-              tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
+              tokens[IS_MOBILE], tokens[ADD_CAPACITY], tokens[SPECIALTY_CODE]);
 
             this->HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }

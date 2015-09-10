@@ -632,14 +632,16 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
         hosp->set_daily_patient_capacity(capacity);
       }
       if(hosp->get_subtype() != fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
-        if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "bed" to be considered for overnight
-          hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
-        } else { // This place is a hospital that allows overnight stays, so add in bed count for capacity
-          int capacity = hosp->get_daily_patient_capacity(0);
-          capacity += hosp->get_bed_count(0);
-          hosp->set_daily_patient_capacity(capacity);
+        if(hosp->get_specialty_code() != Hospital::CLINIC_SPECIALTY_CODE_OB_GYN) {
+          if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "bed" to be considered for overnight
+            hosp->set_subtype(fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC);
+          } else { // This place is a hospital that allows overnight stays, so add in bed count for capacity
+            int capacity = hosp->get_daily_patient_capacity(0);
+            capacity += hosp->get_bed_count(0);
+            hosp->set_daily_patient_capacity(capacity);
+          }
+          Place_List::Hospital_overall_panel_size += hosp->get_daily_patient_capacity(0);
         }
-        Place_List::Hospital_overall_panel_size += hosp->get_daily_patient_capacity(0);
       }
     } else {
       Utils::fred_abort("Help! bad place_type %c\n", place_type);
@@ -1871,7 +1873,7 @@ void Place_List::prepare_primary_care_assignment() {
     for(int i = 0; i < this->hospitals.size(); ++i) {
       Hospital* hosp = this->get_hospital_ptr(i);
       double proprtn_of_total_panel = 0;
-      if(hosp->get_subtype() != fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
+      if(hosp->get_subtype() != fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC && hosp->get_specialty_code() != Hospital::CLINIC_SPECIALTY_CODE_OB_GYN) {
         proprtn_of_total_panel = static_cast<double>(hosp->get_daily_patient_capacity(0))
             / static_cast<double>(Place_List::Hospital_overall_panel_size);
       }
@@ -2099,7 +2101,7 @@ Hospital* Place_List::get_random_open_healthcare_facility_matching_criteria(int 
 }
 
 
-Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit) {
+Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit, bool check_specialty_code) {
   if(!Global::Enable_Hospitals) {
     return NULL;
   }
@@ -2141,6 +2143,160 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
             Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
             if(hospital->accepts_insurance(per_insur)) {
               //Hospital accepts the insurance so can check further
+              if(check_specialty_code) {
+                switch(hospital->get_specialty_code()) {
+                  case Hospital::CLINIC_SPECIALTY_CODE_ALL:
+                  case Hospital::CLINIC_SPECIALTY_CODE_FAMILY:
+                    //Take anyone, so we are good to check further
+                    //We don't care about specialty code so can check further
+                    if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                      //Hospital accepts the insurance and it hasn't been filled so we are good
+                      cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                      increment = 1;
+                    } else {
+                      //Not possible
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                    break;
+                  case Hospital::CLINIC_SPECIALTY_CODE_INTERNAL:
+                    if(per->is_adult()) {
+                      //Accepts adults, so check further
+                      if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                         < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                        //Hospital accepts the insurance and it hasn't been filled so we are good
+                        cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                        increment = 1;
+                      } else {
+                        //Not possible
+                        cur_prob = 0.0;
+                        increment = 0;
+                      }
+                    } else {
+                      //Only accepts adults, so no good
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                    break;
+                  case Hospital::CLINIC_SPECIALTY_CODE_PEDIATRIC:
+                    if(per->is_child()) {
+                      //Accepts children, so check further
+                      if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                         < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                        //Hospital accepts the insurance and it hasn't been filled so we are good
+                        cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                        increment = 1;
+                      } else {
+                        //Not possible
+                        cur_prob = 0.0;
+                        increment = 0;
+                      }
+                    } else {
+                      //Only accepts children, so no good
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                    break;
+                  case Hospital::CLINIC_SPECIALTY_CODE_OB_GYN:
+                    //Can't be primary care
+                    cur_prob = 0.0;
+                    increment = 0;
+                    break;
+                  default:
+                    //Unknown type -- can't be primary care
+                    cur_prob = 0.0;
+                    increment = 0;
+                    break;
+                }
+              } else {
+                //We don't care about specialty code so can check further
+                if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                    < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                  //Hospital accepts the insurance and it hasn't been filled so we are good
+                  cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                  increment = 1;
+                } else {
+                  //Not possible
+                  cur_prob = 0.0;
+                  increment = 0;
+                }
+              }
+            } else {
+              //Not possible (Doesn't accept insurance)
+              cur_prob = 0.0;
+              increment = 0;
+            }
+          } else {
+            //We don't care about insurance so can check further
+            if(check_specialty_code) {
+              switch(hospital->get_specialty_code()) {
+                case Hospital::CLINIC_SPECIALTY_CODE_ALL:
+                case Hospital::CLINIC_SPECIALTY_CODE_FAMILY:
+                  //Take anyone, so we are good to check further
+                  //We don't care about specialty code so can check further
+                  if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                     < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                    //Hospital accepts the insurance and it hasn't been filled so we are good
+                    cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                    increment = 1;
+                  } else {
+                    //Not possible
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_INTERNAL:
+                  if(per->is_adult()) {
+                    //Accepts adults, so check further
+                    if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                      //Hospital accepts the insurance and it hasn't been filled so we are good
+                      cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                      increment = 1;
+                    } else {
+                      //Not possible
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                  } else {
+                    //Only accepts adults, so no good
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_PEDIATRIC:
+                  if(per->is_child()) {
+                    //Accepts children, so check further
+                    if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                      //Hospital accepts the insurance and it hasn't been filled so we are good
+                      cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                      increment = 1;
+                    } else {
+                      //Not possible
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                  } else {
+                    //Only accepts children, so no good
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_OB_GYN:
+                  //Can't be primary care
+                  cur_prob = 0.0;
+                  increment = 0;
+                  break;
+                default:
+                  //Unknown type -- can't be primary care
+                  cur_prob = 0.0;
+                  increment = 0;
+                  break;
+              }
+            } else {
+              //We don't care about specialty code so can check further
               if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
                   < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
                 //Hospital accepts the insurance and it hasn't been filled so we are good
@@ -2151,22 +2307,6 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
                 cur_prob = 0.0;
                 increment = 0;
               }
-            } else {
-              //Not possible (Doesn't accept insurance)
-              cur_prob = 0.0;
-              increment = 0;
-            }
-          } else {
-            //We don't care about insurance so can check further
-            if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-                < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
-              //Hospital accepts the insurance and it hasn't been filled so we are good
-              cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
-              increment = 1;
-            } else {
-              //Not possible
-              cur_prob = 0.0;
-              increment = 0;
             }
           }
         } else {
@@ -2179,6 +2319,160 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
           Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
           if(hospital->accepts_insurance(per_insur)) {
             //Hospital accepts the insurance so can check further
+            if(check_specialty_code) {
+              switch(hospital->get_specialty_code()) {
+                case Hospital::CLINIC_SPECIALTY_CODE_ALL:
+                case Hospital::CLINIC_SPECIALTY_CODE_FAMILY:
+                  //Take anyone, so we are good to check further
+                  //We don't care about specialty code so can check further
+                  if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                     < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                    //Hospital accepts the insurance and it hasn't been filled so we are good
+                    cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                    increment = 1;
+                  } else {
+                    //Not possible
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_INTERNAL:
+                  if(per->is_adult()) {
+                    //Accepts adults, so check further
+                    if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                      //Hospital accepts the insurance and it hasn't been filled so we are good
+                      cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                      increment = 1;
+                    } else {
+                      //Not possible
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                  } else {
+                    //Only accepts adults, so no good
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_PEDIATRIC:
+                  if(per->is_child()) {
+                    //Accepts children, so check further
+                    if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                      //Hospital accepts the insurance and it hasn't been filled so we are good
+                      cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                      increment = 1;
+                    } else {
+                      //Not possible
+                      cur_prob = 0.0;
+                      increment = 0;
+                    }
+                  } else {
+                    //Only accepts children, so no good
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                  break;
+                case Hospital::CLINIC_SPECIALTY_CODE_OB_GYN:
+                  //Can't be primary care
+                  cur_prob = 0.0;
+                  increment = 0;
+                  break;
+                default:
+                  //Unknown type -- can't be primary care
+                  cur_prob = 0.0;
+                  increment = 0;
+                  break;
+              }
+            } else {
+              //We don't care about specialty code so can check further
+              if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                  < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                //Hospital accepts the insurance and it hasn't been filled so we are good
+                cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                increment = 1;
+              } else {
+                //Not possible
+                cur_prob = 0.0;
+                increment = 0;
+              }
+            }
+          } else {
+            //Not possible (Doesn't accept insurance)
+            cur_prob = 0.0;
+            increment = 0;
+          }
+        } else {
+          //We don't care about insurance so can check further
+          if(check_specialty_code) {
+            switch(hospital->get_specialty_code()) {
+              case Hospital::CLINIC_SPECIALTY_CODE_ALL:
+              case Hospital::CLINIC_SPECIALTY_CODE_FAMILY:
+                //Take anyone, so we are good to check further
+                //We don't care about specialty code so can check further
+                if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                   < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                  //Hospital accepts the insurance and it hasn't been filled so we are good
+                  cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                  increment = 1;
+                } else {
+                  //Not possible
+                  cur_prob = 0.0;
+                  increment = 0;
+                }
+                break;
+              case Hospital::CLINIC_SPECIALTY_CODE_INTERNAL:
+                if(per->is_adult()) {
+                  //Accepts adults, so check further
+                  if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                     < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                    //Hospital accepts the insurance and it hasn't been filled so we are good
+                    cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                    increment = 1;
+                  } else {
+                    //Not possible
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                } else {
+                  //Only accepts adults, so no good
+                  cur_prob = 0.0;
+                  increment = 0;
+                }
+                break;
+              case Hospital::CLINIC_SPECIALTY_CODE_PEDIATRIC:
+                if(per->is_child()) {
+                  //Accepts children, so check further
+                  if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
+                     < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+                    //Hospital accepts the insurance and it hasn't been filled so we are good
+                    cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
+                    increment = 1;
+                  } else {
+                    //Not possible
+                    cur_prob = 0.0;
+                    increment = 0;
+                  }
+                } else {
+                  //Only accepts children, so no good
+                  cur_prob = 0.0;
+                  increment = 0;
+                }
+                break;
+              case Hospital::CLINIC_SPECIALTY_CODE_OB_GYN:
+                //Can't be primary care
+                cur_prob = 0.0;
+                increment = 0;
+                break;
+              default:
+                //Unknown type -- can't be primary care
+                cur_prob = 0.0;
+                increment = 0;
+                break;
+            }
+          } else {
+            //We don't care about specialty code so can check further
             if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
                 < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
               //Hospital accepts the insurance and it hasn't been filled so we are good
@@ -2189,22 +2483,6 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
               cur_prob = 0.0;
               increment = 0;
             }
-          } else {
-            //Not possible (Doesn't accept insurance)
-            cur_prob = 0.0;
-            increment = 0;
-          }
-        } else {
-          //We don't care about insurance so can check further
-          if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-              < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
-            //Hospital accepts the insurance and it hasn't been filled so we are good
-            cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
-            increment = 1;
-          } else {
-            //Not possible
-            cur_prob = 0.0;
-            increment = 0;
           }
         }
       }
