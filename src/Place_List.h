@@ -127,8 +127,9 @@ public:
    * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
    * @param check_insurance whether or not to use the agent's insurance in the matching
    * @param use_search_radius_limit whether or not to cap the search radius
+   * @param check_specialty_code whether or not to take into account the specialty code of the location
    */
-  Hospital* get_random_open_healthcare_facility_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit);
+  Hospital* get_random_open_healthcare_facility_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit, bool check_specialty_code);
 
   /**
    * Uses a gravity model to find a random open healthcare location given the search parameters.

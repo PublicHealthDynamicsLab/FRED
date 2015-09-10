@@ -999,13 +999,13 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
             hh->set_count_primary_hc_unav(hh->get_count_primary_hc_unav() + 1);
 
             //Now, try to Find an open health care provider that accepts agent's insurance
-            hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, true, false);
+            hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, true, false, true);
             if(hosp == NULL) {
               hh->set_other_healthcare_location_that_accepts_insurance_available(false);
               hh->set_count_hc_accept_ins_unav(hh->get_count_hc_accept_ins_unav() + 1);
               Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
 
-              hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, false, false);
+              hosp = Global::Places.get_random_open_healthcare_facility_matching_criteria(sim_day, self, false, false, false);
               if(hosp == NULL) {
                 hh->set_is_healthcare_available(false);
                 Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_UNAV, 1);
