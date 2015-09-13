@@ -1,6 +1,3 @@
 days = 100
 fips = 42065
-rotate_start_date = 1
-influenza_residual_immunity_ages = 2 0 120
-influenza_residual_immunity_values = 1 0.0
-Immunization = -1
+

@@ -1,0 +1,26 @@
+#!/bin/sh
+echo METHODS started `date`
+echo
+echo params.base:
+cat params.base
+echo
+echo config:
+cat config
+echo
+echo fred_make_params -f config
+fred_make_params -f config
+echo
+echo fred_make_tasks -n 10
+fred_make_tasks -n 10
+echo
+echo running tasks
+tasks
+echo
+echo creating plot file
+fred_plot -v C -b -n -w -X 10 -t "Comparing Epidemics" -k R0=1.0 -k R0=1.5 -k R0=2.0 -k R0=2.5 -d 0
+echo
+echo printing plot file
+lp plot-C.pdf
+echo
+echo METHODS finished `date`
+
