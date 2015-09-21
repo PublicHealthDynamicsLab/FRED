@@ -139,12 +139,12 @@ public:
 
   // for access from Office
   static double get_workplace_contacts_per_day(int disease_id) {
-    return Workplace_contacts_per_day[disease_id];
+    return contacts_per_day;
   }
 
 private:
-  static double* Workplace_contacts_per_day;
-  static double*** Workplace_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
   static int Office_size;
   static int Small_workplace_size;
   static int Medium_workplace_size;

@@ -160,11 +160,12 @@ public:
 
   //for access from Classroom:
   static double get_school_contacts_per_day(int disease_id) {
-    return School::school_contacts_per_day[disease_id];
+    return School::contacts_per_day;
   }
 
 private:
-  static double*** school_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
   static char school_closure_policy[];
   static int school_closure_day;
   static int min_school_closure_day;
@@ -181,7 +182,6 @@ private:
   static int summer_end_month;
   static int summer_end_day;
   static int school_classroom_size;
-  static double* school_contacts_per_day;
   static bool global_closure_is_active;
   static int global_close_date;
   static int global_open_date;

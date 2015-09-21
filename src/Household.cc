@@ -32,8 +32,8 @@
 using namespace std;
 
 //Private static variables that will be set by parameter lookups
-double* Household::Household_contacts_per_day;
-double*** Household::Household_contact_prob;
+double Household::contacts_per_day;
+double** Household::prob_transmission_per_contact;
 
 std::set<long int> Household::census_tract_set;
 std::map<int, int> Household::count_inhabitants_by_household_income_level_map;
@@ -103,36 +103,25 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
 
 void Household::get_parameters() {
 
-  int diseases = Global::Diseases.get_number_of_diseases();
-  char param_str[80];
-  Household::Household_contacts_per_day = new double[diseases];
-  Household::Household_contact_prob = new double**[diseases];
-  for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
-      sprintf(param_str, "%s_household_contacts", disease->get_disease_name());
-      Params::get_param((char*) param_str, &Household::Household_contacts_per_day[disease_id]);
-      sprintf(param_str, "%s_household_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &Household::Household_contact_prob[disease_id]);
-      if(Global::Verbose > 1) {
-	printf("\nHousehold_contact_prob:\n");
-	for(int i  = 0; i < n; ++i)  {
-	  for(int j  = 0; j < n; ++j) {
-	    printf("%f ", Household::Household_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
+  Params::get_param_from_string("household_contacts", &Household::contacts_per_day);
+  int n = Params::get_param_matrix((char *)"household_trans_per_contact", &Household::prob_transmission_per_contact);
+  if(Global::Verbose > 1) {
+    printf("\nHousehold contact_prob:\n");
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	printf("%f ", Household::prob_transmission_per_contact[i][j]);
       }
+      printf("\n");
     }
   }
 
   //Get the Household Income Cutoffs
-  Params::get_param((char*)"cat_I_max_income", &Household::Cat_I_Max_Income);
-  Params::get_param((char*)"cat_II_max_income", &Household::Cat_II_Max_Income);
-  Params::get_param((char*)"cat_III_max_income", &Household::Cat_III_Max_Income);
-  Params::get_param((char*)"cat_IV_max_income", &Household::Cat_IV_Max_Income);
-  Params::get_param((char*)"cat_V_max_income", &Household::Cat_V_Max_Income);
-  Params::get_param((char*)"cat_VI_max_income", &Household::Cat_VI_Max_Income);
+  Params::get_param_from_string("cat_I_max_income", &Household::Cat_I_Max_Income);
+  Params::get_param_from_string("cat_II_max_income", &Household::Cat_II_Max_Income);
+  Params::get_param_from_string("cat_III_max_income", &Household::Cat_III_Max_Income);
+  Params::get_param_from_string("cat_IV_max_income", &Household::Cat_IV_Max_Income);
+  Params::get_param_from_string("cat_V_max_income", &Household::Cat_V_Max_Income);
+  Params::get_param_from_string("cat_VI_max_income", &Household::Cat_VI_Max_Income);
 }
 
 int Household::get_group(int disease, Person* per) {
@@ -149,12 +138,12 @@ double Household::get_transmission_prob(int disease, Person* i, Person* s) {
   // s = susceptible agent
   int row = get_group(disease, i);
   int col = get_group(disease, s);
-  double tr_pr = Household::Household_contact_prob[disease][row][col];
+  double tr_pr = Household::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
 double Household::get_contacts_per_day(int disease) {
-  return Household::Household_contacts_per_day[disease];
+  return Household::contacts_per_day;
 }
 
 void Household::set_household_has_hospitalized_member(bool does_have) {

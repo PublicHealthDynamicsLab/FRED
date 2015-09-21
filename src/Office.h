@@ -95,8 +95,8 @@ public:
   }
 
 private:
-  static double * Office_contacts_per_day;
-  static double *** Office_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
   Workplace *workplace;
 };
 

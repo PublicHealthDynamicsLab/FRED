@@ -83,12 +83,12 @@ public:
    *
    * @return the rate by which to increase neighborhood contacts on weekends
    */
-  static double get_weekend_contact_rate(int disease) { return Weekend_contact_rate[disease]; }
+  static double get_weekend_contact_rate(int disease) { return weekend_contact_rate; }
 
 private:
-  static double * Weekend_contact_rate;
-  static double * Neighborhood_contacts_per_day;
-  static double *** Neighborhood_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
+  static double weekend_contact_rate;
 };
 
 #endif // _FRED_NEIGHBORHOOD_H

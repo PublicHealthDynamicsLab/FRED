@@ -160,8 +160,8 @@ public:
   }
 
 private:
-  static double* Hospital_contacts_per_day;
-  static double*** Hospital_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
   static std::vector<double> Hospital_health_insurance_prob;
   static double HAZEL_disaster_capacity_multiplier;
   static int HAZEL_mobile_van_open_delay;

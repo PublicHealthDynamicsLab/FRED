@@ -28,8 +28,8 @@
 #include "Tracker.h"
 
 //Private static variables that will be set by parameter lookups
-double* School::school_contacts_per_day;
-double*** School::school_contact_prob;
+double School::contacts_per_day;
+double** School::prob_transmission_per_contact;
 int School::school_classroom_size = 0;
 char School::school_closure_policy[80] = "undefined";
 int School::school_closure_day = 0;
@@ -99,68 +99,54 @@ void School::prepare() {
   }
 }
 
+
 void School::get_parameters() {
 
-  int diseases = Global::Diseases.get_number_of_diseases();
-
-  School::school_contacts_per_day = new double[diseases];
-  School::school_contact_prob = new double**[diseases];
-
-  char param_str[80];
-  for(int disease_id = 0; disease_id < diseases; ++disease_id) {
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
-      sprintf(param_str, "%s_school_contacts", disease->get_disease_name());
-      Params::get_param((char *) param_str, &School::school_contacts_per_day[disease_id]);
-      sprintf(param_str, "%s_school_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &School::school_contact_prob[disease_id]);
-
-      if(Global::Verbose > 0) {
-	printf("\nSchool_contact_prob before normalization:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", School::school_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
-	printf("\ncontact rate: %f\n", School::school_contacts_per_day[disease_id]);
+  Params::get_param_from_string("school_contacts", &School::contacts_per_day);
+  int n = Params::get_param_matrix((char *)"school_trans_per_contact", &School::prob_transmission_per_contact);
+  if(Global::Verbose > 1) {
+    printf("\nSchool_contact_prob:\n");
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	printf("%f ", School::prob_transmission_per_contact[i][j]);
       }
-
-      // normalize contact parameters
-      // find max contact prob
-      double max_prob = 0.0;
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  if (School::school_contact_prob[disease_id][i][j] > max_prob) {
-	    max_prob = School::school_contact_prob[disease_id][i][j];
-	  }
-	}
-      }
-
-      // convert max contact prob to 1.0
-      if (max_prob > 0) {
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    School::school_contact_prob[disease_id][i][j] /= max_prob;
-	  }
-	}
-	// compensate contact rate
-	School::school_contacts_per_day[disease_id] *= max_prob;
-      }
-
-      if(Global::Verbose > 0) {
-	printf("\nSchool_contact_prob after normalization:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", School::school_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
-	printf("\ncontact rate: %f\n", School::school_contacts_per_day[disease_id]);
-      }
-      // end normalization
+      printf("\n");
     }
   }
+
+  // normalize contact parameters
+  // find max contact prob
+  double max_prob = 0.0;
+  for(int i  = 0; i < n; i++)  {
+    for(int j  = 0; j < n; j++) {
+      if (School::prob_transmission_per_contact[i][j] > max_prob) {
+	max_prob = School::prob_transmission_per_contact[i][j];
+      }
+    }
+  }
+
+  // convert max contact prob to 1.0
+  if (max_prob > 0) {
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	School::prob_transmission_per_contact[i][j] /= max_prob;
+      }
+    }
+    // compensate contact rate
+    School::contacts_per_day *= max_prob;
+  }
+
+  if(Global::Verbose > 0) {
+    printf("\nSchool_contact_prob after normalization:\n");
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	printf("%f ", School::prob_transmission_per_contact[i][j]);
+      }
+      printf("\n");
+    }
+    printf("\ncontact rate: %f\n", School::contacts_per_day);
+  }
+  // end normalization
 
   Params::get_param_from_string("school_classroom_size", &School::school_classroom_size);
 
@@ -214,7 +200,7 @@ double School::get_transmission_prob(int disease_id, Person* i, Person* s) {
   // s = susceptible agent
   int row = get_group(disease_id, i);
   int col = get_group(disease_id, s);
-  double tr_pr = School::school_contact_prob[disease_id][row][col];
+  double tr_pr = School::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
@@ -359,7 +345,7 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 }
 
 double School::get_contacts_per_day(int disease_id) {
-  return School::school_contacts_per_day[disease_id];
+  return School::contacts_per_day;
 }
 
 int School::enroll(Person* person) {

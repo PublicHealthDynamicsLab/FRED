@@ -24,8 +24,8 @@
 #include "Workplace.h"
 
 //Private static variables that will be set by parameter lookups
-double * Office::Office_contacts_per_day;
-double *** Office::Office_contact_prob;
+double Office::contacts_per_day;
+double** Office::prob_transmission_per_contact;
 
 Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
   this->type = Place::OFFICE;
@@ -35,71 +35,53 @@ Office::Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fr
 
 void Office::get_parameters() {
 
-  int diseases = Global::Diseases.get_number_of_diseases();
-  Office::Office_contacts_per_day = new double [ diseases ];
-  Office::Office_contact_prob = new double** [ diseases ];
-  
-  char param_str[80];
-  for(int disease_id = 0; disease_id < diseases; disease_id++) {
-    Disease * disease = Global::Diseases.get_disease(disease_id);
-    if (strcmp("respiratory",disease->get_transmission_mode())==0) {
-      sprintf(param_str, "%s_office_contacts", disease->get_disease_name());
-      Params::get_param((char *) param_str, &Office::Office_contacts_per_day[disease_id]);
-      if(Office::Office_contacts_per_day[disease_id] < 0) {
-	Office::Office_contacts_per_day[disease_id] = (1.0 - Office::Office_contacts_per_day[disease_id])
-	  * Workplace::get_workplace_contacts_per_day(disease_id);
+  Params::get_param_from_string("office_contacts", &Office::contacts_per_day);
+  int n = Params::get_param_matrix((char *)"office_trans_per_contact", &Office::prob_transmission_per_contact);
+  if(Global::Verbose > 1) {
+    printf("\nOffice_contact_prob:\n");
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	printf("%f ", Office::prob_transmission_per_contact[i][j]);
       }
-
-      sprintf(param_str, "%s_office_prob", disease->get_disease_name());
-      int n = Params::get_param_matrix(param_str, &Office::Office_contact_prob[disease_id]);
-
-      if(Global::Verbose > 0) {
-	printf("\nOffice_contact_prob before normalization:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", Office::Office_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
-	printf("\ncontact rate: %f\n", Office::Office_contacts_per_day[disease_id]);
-      }
-
-      // normalize contact parameters
-      // find max contact prob
-      double max_prob = 0.0;
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  if (Office::Office_contact_prob[disease_id][i][j] > max_prob) {
-	    max_prob = Office::Office_contact_prob[disease_id][i][j];
-	  }
-	}
-      }
-
-      // convert max contact prob to 1.0
-      if (max_prob > 0) {
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    Office::Office_contact_prob[disease_id][i][j] /= max_prob;
-	  }
-	}
-	// compensate contact rate
-	Office::Office_contacts_per_day[disease_id] *= max_prob;
-      }
-
-      if(Global::Verbose > 0) {
-	printf("\nOffice_contact_prob after normalization:\n");
-	for(int i  = 0; i < n; i++)  {
-	  for(int j  = 0; j < n; j++) {
-	    printf("%f ", Office::Office_contact_prob[disease_id][i][j]);
-	  }
-	  printf("\n");
-	}
-	printf("\ncontact rate: %f\n", Office::Office_contacts_per_day[disease_id]);
-      }
-      // end normalization
+      printf("\n");
     }
   }
+
+  // normalize contact parameters
+  // find max contact prob
+  double max_prob = 0.0;
+  for(int i  = 0; i < n; i++)  {
+    for(int j  = 0; j < n; j++) {
+      if (Office::prob_transmission_per_contact[i][j] > max_prob) {
+	max_prob = Office::prob_transmission_per_contact[i][j];
+      }
+    }
+  }
+
+  // convert max contact prob to 1.0
+  if (max_prob > 0) {
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	Office::prob_transmission_per_contact[i][j] /= max_prob;
+      }
+    }
+    // compensate contact rate
+    Office::contacts_per_day *= max_prob;
+  }
+
+  if(Global::Verbose > 0) {
+    printf("\nOffice_contact_prob after normalization:\n");
+    for(int i  = 0; i < n; i++)  {
+      for(int j  = 0; j < n; j++) {
+	printf("%f ", Office::prob_transmission_per_contact[i][j]);
+      }
+      printf("\n");
+    }
+    printf("\ncontact rate: %f\n", Office::contacts_per_day);
+  }
+  // end normalization
 }
+
 
 int Office::get_container_size() {
   return this->workplace->get_size();
@@ -110,10 +92,10 @@ double Office::get_transmission_prob(int disease, Person * i, Person * s) {
   // s = susceptible agent
   int row = get_group(disease, i);
   int col = get_group(disease, s);
-  double tr_pr = Office::Office_contact_prob[disease][row][col];
+  double tr_pr = Office::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
 double Office::get_contacts_per_day(int disease) {
-  return Office::Office_contacts_per_day[disease];
+  return Office::contacts_per_day;
 }

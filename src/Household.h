@@ -433,8 +433,8 @@ public:
 
 private:
 
-  static double* Household_contacts_per_day;
-  static double*** Household_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
 
   //Income Limits for classification
   static int Cat_I_Max_Income;

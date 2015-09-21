@@ -93,8 +93,8 @@ public:
   int get_container_size();
 
 private:
-  static double * Classroom_contacts_per_day;
-  static double *** Classroom_contact_prob;
+  static double contacts_per_day;
+  static double** prob_transmission_per_contact;
   static char Classroom_closure_policy[];
   static int Classroom_closure_day;
   static double Classroom_closure_threshold;
