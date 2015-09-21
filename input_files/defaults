@@ -489,7 +489,7 @@ isolation_rate = 1.0
 #  (along with any specific params needed:
 #
 #  # NO DISEASE TRANSMISSION
-#  influenza_trans = 0.0
+#  influenza_transmissibility = 0.0
 #  # HOSPITALS
 #  enable_hospitals = 1
 #  # HEALTH INSURANCE
@@ -561,7 +561,7 @@ disease_names = 1 influenza
 ### REQUIRED NATURAL HISTORY PARAMETERS
 
 ### transmission coefficient:
-influenza_trans = 1.0
+influenza_transmissibility = 1.0
 
 ### symptomatic rate:
 influenza_probability_of_symptoms = 0.67
@@ -594,7 +594,6 @@ Immunization = -1
 
 influenza_infectivity_threshold = 0.0
 influenza_symptomaticity_threshold = 0.0
-influenza_transmissibility = 1
 
 ### CASE FATALITY
 influenza_enable_case_fatality = 0
@@ -838,7 +837,6 @@ all_diseases_antigenically_identical = 0
 influenza_evolution = 0
 influenza_num_strains = 1
 influenza_strain_data[0] = a:1
-influenza_transmissibility[0] = 1
 enable_protection = 0
 enable_residual_immunity_by_FIPS = 0
 track_residual_immunity = 0

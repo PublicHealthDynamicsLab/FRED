@@ -13,12 +13,10 @@ my $oldparams = "";
 my $usage = "usage: $0 -p oldparams [ -h | -r runs | -m cores | -M cpus ]\n";
 my $help = "";
 my $cpus = 0;
-my $disease = "influenza";
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "p=s" => \$oldparams,
 			    "r=i" => \$runs,
-			    "d=s" => \$disease,
 			    "M=i" => \$cpus,
 			    "m=i" => \$cores
 );
@@ -31,7 +29,7 @@ for (my $tr = 0.6; $tr <= 4.0; $tr += 0.2) {
   my $label = "get_coeff-$dir-tr=$tr";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "fred_set '$disease\_trans' $tr $params";
+  system "fred_set 'transmissibility' $tr $params";
   system "fred_set days 11 $params";
   system "fred_set track_infection_events 0 $params";
   system "date";
@@ -58,7 +56,7 @@ print PLT <<EOF;
 # set terminal png medium
 set output 'R0.png'
 set term png font 'Arial Bold, 18'
-set title 'R0 vs trans\\n$runs runs with 100 seeds'
+set title 'R0 vs transmissibility\\n$runs runs with 100 seeds'
 set ylabel 'R0' offset character 2,0
 set xlabel 'Trans' offset character 0,1.5
 set ytics nomirror 1 out offset character 0.5,0

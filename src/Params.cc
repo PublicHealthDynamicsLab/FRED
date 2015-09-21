@@ -26,7 +26,8 @@ using namespace std;
 
 char Params::param_name[MAX_PARAMS][MAX_PARAM_SIZE];
 char Params::param_value[MAX_PARAMS][MAX_PARAM_SIZE];
-int Params::param_count;
+int Params::param_count = 0;
+int Params::abort_on_failure = 1;
 
 void Params::read_psa_parameter(char* paramfile, int line_number) {
   FILE* fp;
@@ -207,7 +208,9 @@ int Params::get_param(char* s, int* p) {
       printf("PARAMS: %s not found\n", s);
       fflush(stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s); 
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s); 
+    }
   }
   return 0;
 }
@@ -232,7 +235,9 @@ int Params::get_param(char* s, unsigned long* p) {
       printf("PARAMS: %s not found\n", s);
       fflush( stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s); 
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s); 
+    }
   }
   return 0;
 }
@@ -257,7 +262,9 @@ int Params::get_param(char* s, double* p) {
       printf("PARAMS: %s not found\n", s);
       fflush( stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s); 
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s); 
+    }
   }
   return 0;
 }
@@ -282,7 +289,9 @@ int Params::get_param(char* s, float* p) {
       printf("PARAMS: %s not found\n", s);
       fflush( stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s);
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s);
+    }
   }
   return 0;
 }
@@ -310,7 +319,9 @@ int Params::get_param(char* s, string &p){
       printf("PARAMS: %s not found\n", s);
       fflush(stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s); 
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s); 
+    }
   }
   return 0;
 }
@@ -335,7 +346,9 @@ int Params::get_param(char* s, char* p) {
       printf("PARAMS: %s not found\n", s);
       fflush( stdout);
     }
-    Utils::fred_abort("PARAMS: %s not found\n", s); 
+    if (Params::abort_on_failure) {
+      Utils::fred_abort("PARAMS: %s not found\n", s); 
+    }
   }
   return 0;
 }

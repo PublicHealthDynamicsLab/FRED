@@ -223,7 +223,7 @@ days = 100
 Variable Parameters:
 sick_day_prob = 0.5, 5%
 influenza_symp = 0.67, 5%
-influenza_weekend_contact_rate = 1.5, 5%
+weekend_contact_rate = 1.5, 5%
 school_classroom_size = 40, 5%
 office_size = 50, 5%i
 

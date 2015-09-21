@@ -21,7 +21,6 @@ my $CARtarget = 33;		# clinical attack rate
 my $oldparams = "";
 my $runs = 1;
 my $cores = 1;
-my $disease = "influenza";
 
 # stopping criteria
 my $threshold = 0.01;
@@ -39,7 +38,6 @@ my $opt_result = GetOptions(
 			    "N=s" => \$Ntarget,
 			    "S=s" => \$Starget,
 			    "W=s" => \$Wtarget,
-                "d=s" => \$disease,
 			    "A=s" => \$CARtarget
 );
 
@@ -98,12 +96,12 @@ while ($error > 10*$threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "$disease\_household_contacts = %0.4f\n", $h;
-  printf CAL "$disease\_neighborhood_contacts = %0.5e\n", $n;
-  printf CAL "$disease\_school_contacts = %0.2f\n", $s;
-  printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
-  printf CAL "$disease\_classroom_contacts = %0.2f\n", 2*$s;
-  printf CAL "$disease\_office_contacts = %0.2f\n", 2*$w;
+  printf CAL "household_contacts = %0.4f\n", $h;
+  printf CAL "neighborhood_contacts = %0.5e\n", $n;
+  printf CAL "school_contacts = %0.2f\n", $s;
+  printf CAL "workplace_contacts = %0.2f\n", $w;
+  printf CAL "classroom_contacts = %0.2f\n", 2*$s;
+  printf CAL "office_contacts = %0.2f\n", 2*$w;
   print CAL "track_infection_events = 0\n";
   print CAL "report_place_of_infection = 1\n";
   close CAL;
@@ -112,12 +110,12 @@ while ($error > 10*$threshold) {
 
   print "###  CALIBRATION PHASE I STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "$disease\_household_contacts = %0.4f\n", $h;
-  printf "$disease\_neighborhood_contacts = %0.5e\n", $n;
-  printf "$disease\_school_contacts = %0.2f\n", $s;
-  printf "$disease\_workplace_contacts = %0.2f\n", $w;
-  printf "$disease\_classroom_contacts = %0.2f\n", 2*$s;
-  printf "$disease\_office_contacts = %0.2f\n", 2*$w;
+  printf "household_contacts = %0.4f\n", $h;
+  printf "neighborhood_contacts = %0.5e\n", $n;
+  printf "school_contacts = %0.2f\n", $s;
+  printf "workplace_contacts = %0.2f\n", $w;
+  printf "classroom_contacts = %0.2f\n", 2*$s;
+  printf "office_contacts = %0.2f\n", 2*$w;
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 
@@ -187,12 +185,12 @@ while ($error > $threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "$disease\_household_contacts = %0.4f\n", $h;
-  printf CAL "$disease\_neighborhood_contacts = %0.5e\n", $n;
-  printf CAL "$disease\_school_contacts = %0.2f\n", $s;
-  printf CAL "$disease\_workplace_contacts = %0.2f\n", $w;
-  printf CAL "$disease\_classroom_contacts = %0.2f\n", 2*$s;
-  printf CAL "$disease\_office_contacts = %0.2f\n", 2*$w;
+  printf CAL "household_contacts = %0.4f\n", $h;
+  printf CAL "neighborhood_contacts = %0.5e\n", $n;
+  printf CAL "school_contacts = %0.2f\n", $s;
+  printf CAL "workplace_contacts = %0.2f\n", $w;
+  printf CAL "classroom_contacts = %0.2f\n", 2*$s;
+  printf CAL "office_contacts = %0.2f\n", 2*$w;
   print CAL "track_infection_events = 0\n";
   print CAL "report_place_of_infection = 1\n";
   close CAL;
@@ -201,12 +199,12 @@ while ($error > $threshold) {
 
   print "###  CALIBRATION PHASE II STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "$disease\_household_contacts = %0.4f\n", $h;
-  printf "$disease\_neighborhood_contacts = %0.5e\n", $n;
-  printf "$disease\_school_contacts = %0.2f\n", $s;
-  printf "$disease\_workplace_contacts = %0.2f\n", $w;
-  printf "$disease\_classroom_contacts = %0.2f\n", 2*$s;
-  printf "$disease\_office_contacts = %0.2f\n", 2*$w;
+  printf "household_contacts = %0.4f\n", $h;
+  printf "neighborhood_contacts = %0.5e\n", $n;
+  printf "school_contacts = %0.2f\n", $s;
+  printf "workplace_contacts = %0.2f\n", $w;
+  printf "classroom_contacts = %0.2f\n", 2*$s;
+  printf "office_contacts = %0.2f\n", 2*$w;
   print "track_infection_events = 0\n";
   print "report_place_of_infection = 1\n";
 

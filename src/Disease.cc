@@ -98,12 +98,23 @@ void Disease::get_parameters(int disease_id, string name) {
   Params::get_indexed_param(this->disease_name, "transmission_mode", this->transmission_mode);
   
   // contagiousness
-  Params::get_indexed_param(this->disease_name, "trans", &(this->transmissibility));
-  Params::get_param_from_string("R0", &this->R0);
-  Params::get_param_from_string("R0_a", &this->R0_a);
-  Params::get_param_from_string("R0_b", &this->R0_b);
-  if(this->R0 > 0) {
-    this->transmissibility = this->R0_a * this->R0 * this->R0 + this->R0_b * this->R0;
+  // Note: the following tries first to find "trans" but falls back to "transmissibility":
+  Params::disable_abort_on_failure();
+  int found = Params::get_indexed_param(this->disease_name, "trans", &(this->transmissibility));
+  Params::set_abort_on_failure();
+  if (found == 0) {
+    Params::get_indexed_param(this->disease_name, "transmissibility", &(this->transmissibility));
+  }
+
+
+  // convenience parameters (for single disease simulations only)
+  if (this->id == 0) {
+    Params::get_param_from_string("R0", &this->R0);
+    Params::get_param_from_string("R0_a", &this->R0_a);
+    Params::get_param_from_string("R0_b", &this->R0_b);
+    if(this->R0 > 0) {
+      this->transmissibility = this->R0_a * this->R0 * this->R0 + this->R0_b * this->R0;
+    }
   }
 
   // variation over time of year

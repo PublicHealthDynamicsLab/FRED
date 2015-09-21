@@ -215,11 +215,19 @@ public:
     return err;
   }
 
+  static void set_abort_on_failure() {
+    abort_on_failure = 1;
+  }
+
+  static void disable_abort_on_failure() {
+    abort_on_failure = 0;
+  }
+
 private:
   static char param_name[][MAX_PARAM_SIZE];
   static char param_value[][MAX_PARAM_SIZE];
   static int param_count;
-
+  static int abort_on_failure;
 };
 
 #endif // _FRED_PARAMS_H
