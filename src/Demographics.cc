@@ -16,6 +16,7 @@
 #include <limits>
 
 #include "Demographics.h"
+#include "Events.h"
 #include "Population.h"
 #include "Age_Map.h"
 #include "Person.h"
@@ -42,9 +43,9 @@ int Demographics::total_deaths = 0;
 std::vector<Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1 - 366
 std::map<Person*, int> Demographics::birthday_map;
 
-Events<Demographics>* Demographics::conception_queue = new Events<Demographics>;
-Events<Demographics>* Demographics::maternity_queue = new Events<Demographics>;
-Events<Demographics>* Demographics::mortality_queue = new Events<Demographics>;
+Events* Demographics::conception_queue = new Events;
+Events* Demographics::maternity_queue = new Events;
+Events* Demographics::mortality_queue = new Events;
 
 
 void Demographics::initialize_static_variables() {
@@ -206,10 +207,6 @@ void Demographics::cancel_conception(Person* self) {
   this->conception_sim_day = -1;
 }
 
-void Demographics::conception_handler(int day, Person* self) {
-  self->get_demographics()->become_pregnant(day, self);
-}
-
 void Demographics::become_pregnant(int day, Person* self) {
   // No pregnancies in group quarters
   if(self->lives_in_group_quarters()) {
@@ -236,11 +233,6 @@ void Demographics::cancel_pregnancy(Person* self ) {
   this->pregnant = false;
 }
 
-void Demographics::maternity_handler(int day, Person* self) {
-  // NOTE: This calls Person::give_birth() to create the baby
-  self->give_birth(day);
-}
-
 void Demographics::update_birth_stats(int day, Person* self) {
   // NOTE: This is called by Person::give_birth() to update stats.
   // The baby is actually created in Person::give_birth()
@@ -258,10 +250,6 @@ void Demographics::update_birth_stats(int day, Person* self) {
   }
 }
 
-
-void Demographics::mortality_handler(int day, Person* self ) {
-  self->get_demographics()->die(day, self);
-}
 
 void Demographics::die(int day, Person* self) {
 
@@ -400,15 +388,27 @@ void Demographics::update(int day) {
 
   // initiate pregnancies
   // FRED_VERBOSE(0, "conception queue\n");
-  Demographics::conception_queue->event_handler(day, Demographics::conception_handler);
+  int size = conception_queue->get_size(day);
+  for (int i = 0; i < size; i++) {
+    Person * person = conception_queue->get_event(day, i);
+    person->get_demographics()->become_pregnant(day, person);
+  }
 
   // add newborns to the population
   // FRED_VERBOSE(0, "maternity queue\n");
-  Demographics::maternity_queue->event_handler(day, Demographics::maternity_handler);
+  size = maternity_queue->get_size(day);
+  for (int i = 0; i < size; i++) {
+    Person * person = maternity_queue->get_event(day, i);
+    person->give_birth(day);
+  }
 
   // remove dead from population
   // FRED_VERBOSE(0, "mortality queue\n");
-  Demographics::mortality_queue->event_handler(day, Demographics::mortality_handler);
+  size = mortality_queue->get_size(day);
+  for (int i = 0; i < size; i++) {
+    Person * person = mortality_queue->get_event(day, i);
+    person->get_demographics()->die(day, person);
+  }
 
   return;
 

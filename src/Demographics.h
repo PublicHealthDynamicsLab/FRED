@@ -22,11 +22,11 @@
 
 using namespace std;
 
-#include "Events.h"
 #include "Global.h"
 
-class Person;
+class Events;
 class Date;
+class Person;
 
 class Demographics {
 public:
@@ -143,9 +143,6 @@ public:
   static int get_total_deaths() { return total_deaths; }
 
   // event handlers:
-  static void conception_handler( int day, Person * self );
-  static void maternity_handler( int day, Person * self );
-  static void mortality_handler( int day, Person * self );
   void cancel_conception( Person * self );
   void become_pregnant( int day, Person * self );
   void cancel_pregnancy( Person * self );
@@ -167,9 +164,9 @@ public:
 
 private:
 
-  static Events<Demographics> * conception_queue;
-  static Events<Demographics> * maternity_queue;
-  static Events<Demographics> * mortality_queue;
+  static Events * conception_queue;
+  static Events * maternity_queue;
+  static Events * mortality_queue;
 
   short int init_age;			     // Initial age of the agent
   short int age;			     // Current age of the agent

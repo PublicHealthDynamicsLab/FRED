@@ -15,10 +15,9 @@
 //
 
 #include "Events.h"
-#include "Person.h"
+// #include "Person.h"
 
-template <class T>
-Events<T>::Events() {
+Events::Events() {
 
   for (int day = 0; day < MAX_DAYS; ++day) {
     clear_events(day);
@@ -26,8 +25,23 @@ Events<T>::Events() {
 
 }
 
-template <class T>
-void Events<T>::delete_event(int day, event_t item) {
+void Events::add_event(int day, event_t item) {
+    if (day < 0 || MAX_DAYS <= day) {
+      // won't happen during this simulation
+      return;
+    }
+    if(this->events[day].size() == this->events[day].capacity()) {
+      if(events[day].capacity() < 4) {
+	this->events[day].reserve(4);
+      }
+      this->events[day].reserve(2 * this->events[day].capacity());
+    }
+    this->events[day].push_back(item);
+    // printf("\nadd_event day %d new size %d\n", day, get_size(day));
+    // print_events(day);
+  }
+
+void Events::delete_event(int day, event_t item) {
 
   if (day < 0 || MAX_DAYS <= day) {
     // won't happen during this simulation
@@ -52,8 +66,7 @@ void Events<T>::delete_event(int day, event_t item) {
 
 }
 
-template <class T>
-void Events<T>::clear_events(int day) {
+void Events::clear_events(int day) {
 
   assert(0 <= day && day < MAX_DAYS);
   this->events[day] = events_t();
@@ -61,63 +74,38 @@ void Events<T>::clear_events(int day) {
 
 }
 
-template <class T>
-int Events<T>::get_size(int day) {
+int Events::get_size(int day) {
 
   assert(0 <= day && day < MAX_DAYS);
   return static_cast<int>(this->events[day].size());
 
 }
 
-template <class T>
-void Events<T>::event_handler(int day, void (*func)(int,event_t)) {
+event_t Events::get_event(int day, int i) {
 
-  events_itr_t itr_end = this->events[day].end();
-  for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
-    func(day, *itr);
-  }
-  clear_events(day);
-
-}
-
-template <class T>
-void Events<T>::event_handler(int day, T * obj, TMemFn handler) {
-
-  events_itr_t itr_end = this->events[day].end();
-  for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
-    CALL_MEMBER_FN(*obj, handler)(day, *itr);
-  }
-  clear_events(day);
+  assert(0 <= day && day < MAX_DAYS);
+  assert(0 <= i && i < static_cast<int>(this->events[day].size()));
+  return this->events[day][i];
 
 }
 
 
-template <class T>
-void Events<T>::print_events(FILE* fp, int day) {
+void Events::print_events(FILE* fp, int day) {
 
   assert(0 <= day && day < MAX_DAYS);
   events_itr_t itr_end = this->events[day].end();
   fprintf(fp, "events[%d] = %d : ", day, get_size(day));
   for (events_itr_t itr = events[day].begin(); itr != itr_end; ++itr) {
-    fprintf(fp, "id %d age %d ", (*itr)->get_id(), (*itr)->get_age());
+    // fprintf(fp, "id %d age %d ", (*itr)->get_id(), (*itr)->get_age());
   }
   fprintf(fp,"\n");
   fflush(fp);
 
 }
 
-template <class T>
-void Events<T>::print_events(int day) {
+void Events::print_events(int day) {
 
   print_events(stdout, day);
 
 }
-
-class Demographics;
-class Epidemic;
-class Travel;
-
-template class Events<Demographics>;
-template class Events<Epidemic>;
-template class Events<Travel>;
 

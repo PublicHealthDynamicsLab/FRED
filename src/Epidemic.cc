@@ -26,6 +26,7 @@ using namespace std;
 #include "Date.h"
 #include "Disease.h"
 #include "Epidemic.h"
+#include "Events.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Household.h"
@@ -139,12 +140,12 @@ Epidemic::Epidemic(Disease* dis) {
   this->import_age_upper_bound = Demographics::MAX_AGE;
   this->seeding_type = SEED_EXPOSED;
 
-  this->infectious_start_event_queue = new Events<Epidemic>;
-  this->infectious_end_event_queue = new Events<Epidemic>;
-  this->symptoms_start_event_queue = new Events<Epidemic>;
-  this->symptoms_end_event_queue = new Events<Epidemic>;
-  this->immunity_start_event_queue = new Events<Epidemic>;
-  this->immunity_end_event_queue = new Events<Epidemic>;
+  this->infectious_start_event_queue = new Events;
+  this->infectious_end_event_queue = new Events;
+  this->symptoms_start_event_queue = new Events;
+  this->symptoms_end_event_queue = new Events;
+  this->immunity_start_event_queue = new Events;
+  this->immunity_end_event_queue = new Events;
 
   this->infected_people.clear();
   this->potentially_infectious_people.clear();
@@ -184,111 +185,6 @@ void Epidemic::track_value(int day, char* key, string value) {
   Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
 }
 
-void Epidemic::infectious_start_event_handler(int day, Person* person) {
-  FRED_VERBOSE(1,"infectious_start_event_handler day %d person %d\n",
-	       day, person->get_id());
-
-  // update next event list
-  int infectious_end_date = person->get_infectious_end_date(this->id);
-  infectious_end_event_queue->add_event(infectious_end_date, person);
-
-  // add to active people list
-  this->potentially_infectious_people.insert(person);
-
-  // update epidemic counters
-  this->exposed_people--;
-
-  // update person's health chart
-  person->become_infectious(this->disease);
-}
-
-void Epidemic::infectious_end_event_handler(int day, Person* person) {
-  FRED_VERBOSE(1,"infectious_end_event_handler day %d person %d\n",
-	       day, person->get_id());
-
-  // remove from active list
-  this->potentially_infectious_people.erase(person);
-
-  this->removed_people++;
-
-  // update person's health chart
-  person->recover(this->disease);
-}
-
-
-void Epidemic::symptoms_start_event_handler(int day, Person* person) {
-
-  // update next event list
-  int symptoms_end_date = person->get_symptoms_end_date(this->id);
-  symptoms_end_event_queue->add_event(symptoms_end_date, person);
-
-  // update epidemic counters
-  this->people_with_current_symptoms++;
-  this->people_becoming_symptomatic_today++;
-
-  if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
-    if(person->get_household() != NULL) {
-      int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
-      if(income_level >= Household_income_level_code::CAT_I &&
-         income_level < Household_income_level_code::UNCLASSIFIED) {
-        this->household_income_infection_counts_map[income_level].tot_ppl_evr_sympt++;
-      }
-    }
-  }
-
-  if(Global::Report_Epidemic_Data_By_Census_Tract) {
-    if(person->get_household() != NULL) {
-      Household* hh = static_cast<Household*>(person->get_household());
-      long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
-      if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
-        this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
-        if(person->is_child()) {
-          this->census_tract_infection_counts_map[census_tract].tot_chldrn_evr_sympt++;
-        }
-      }
-    }
-  }
-
-  if(Global::Report_Childhood_Presenteeism) {
-    if(person->is_student() &&
-       person->get_school() != NULL &&
-       person->get_household() != NULL) {
-      School* schl = static_cast<School*>(person->get_school());
-      Household* hh = static_cast<Household*>(person->get_household());
-      int income_quartile = schl->get_income_quartile();
-
-      if(person->is_child()) { //Already know person is student
-        this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
-        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_ever_sympt++;
-      }
-
-      if(hh->has_school_aged_child_and_unemployed_adult()) {
-        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt++;
-      }
-    }
-  }
-
-  // update person's health chart
-  // person->start_symptoms(this->disease);
-}
-
-void Epidemic::symptoms_end_event_handler(int day, Person* person) {
-
-  // update epidemic counters
-  this->people_with_current_symptoms--;
-
-  // update person's health chart
-  // person->end_symptoms(this->disease);
-}
-
-void Epidemic::immunity_start_event_handler(int day, Person* person) {
-
-  // update epidemic counters
-  this->immune_people++;
-
-  // update person's health chart
-  // person->become_immune(this->id);
-}
 
 
 
@@ -300,18 +196,6 @@ void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, 
     this->people_with_current_symptoms--;
   }
   this->immune_people++;
-}
-
-void Epidemic::immunity_end_event_handler(int day, Person* person) {
-
-  // update epidemic counters
-  this->immune_people--;
-
-  // update epidemic counters
-  this->removed_people++;
-
-  // update person's health chart
-  person->become_susceptible(this->id);
 }
 
 
@@ -1556,6 +1440,162 @@ void Epidemic::advance_seed_infection(Person* person) {
 }
 
 
+void Epidemic::process_infectious_start_events(int day) {
+  int size = infectious_start_event_queue->get_size(day);
+  FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = infectious_start_event_queue->get_event(day, i);
+
+    FRED_VERBOSE(1,"infectious_start_event day %d person %d\n",
+		 day, person->get_id());
+
+    // update next event list
+    int infectious_end_date = person->get_infectious_end_date(this->id);
+    infectious_end_event_queue->add_event(infectious_end_date, person);
+
+    // add to active people list
+    this->potentially_infectious_people.insert(person);
+
+    // update epidemic counters
+    this->exposed_people--;
+
+    // update person's health chart
+    person->become_infectious(this->disease);
+  }
+}
+
+void Epidemic::process_infectious_end_events(int day) {
+  int size = infectious_end_event_queue->get_size(day);
+  FRED_VERBOSE(0, "INF_END_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = infectious_end_event_queue->get_event(day, i);
+
+    FRED_VERBOSE(1,"infectious_end_event day %d person %d\n",
+		 day, person->get_id());
+
+    // remove from active list
+    this->potentially_infectious_people.erase(person);
+
+    this->removed_people++;
+
+    // update person's health chart
+    person->recover(this->disease);
+  }
+}
+
+void Epidemic::process_symptoms_start_events(int day) {
+  int size = symptoms_start_event_queue->get_size(day);
+  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = symptoms_start_event_queue->get_event(day, i);
+
+    // update next event list
+    int symptoms_end_date = person->get_symptoms_end_date(this->id);
+    symptoms_end_event_queue->add_event(symptoms_end_date, person);
+
+    // update epidemic counters
+    this->people_with_current_symptoms++;
+    this->people_becoming_symptomatic_today++;
+
+    if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
+      if(person->get_household() != NULL) {
+	int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
+	if(income_level >= Household_income_level_code::CAT_I &&
+	   income_level < Household_income_level_code::UNCLASSIFIED) {
+	  this->household_income_infection_counts_map[income_level].tot_ppl_evr_sympt++;
+	}
+      }
+    }
+
+    if(Global::Report_Epidemic_Data_By_Census_Tract) {
+      if(person->get_household() != NULL) {
+	Household* hh = static_cast<Household*>(person->get_household());
+	long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
+	if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
+	  this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
+	  if(person->is_child()) {
+	    this->census_tract_infection_counts_map[census_tract].tot_chldrn_evr_sympt++;
+	  }
+	}
+      }
+    }
+
+    if(Global::Report_Childhood_Presenteeism) {
+      if(person->is_student() &&
+	 person->get_school() != NULL &&
+	 person->get_household() != NULL) {
+	School* schl = static_cast<School*>(person->get_school());
+	Household* hh = static_cast<Household*>(person->get_household());
+	int income_quartile = schl->get_income_quartile();
+
+	if(person->is_child()) { //Already know person is student
+	  this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
+	  this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_ever_sympt++;
+	}
+
+	if(hh->has_school_aged_child_and_unemployed_adult()) {
+	  this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt++;
+	}
+      }
+    }
+
+    // update person's health chart
+    // person->start_symptoms(this->disease);
+  }
+}
+
+void Epidemic::process_symptoms_end_events(int day) {
+  int size = symptoms_end_event_queue->get_size(day);
+  FRED_VERBOSE(0, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = symptoms_end_event_queue->get_event(day, i);
+
+    // update epidemic counters
+    this->people_with_current_symptoms--;
+
+    // update person's health chart
+    // person->end_symptoms(this->disease);
+  }
+}
+
+void Epidemic::process_immunity_start_events(int day) {
+  int size = immunity_start_event_queue->get_size(day);
+  FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = immunity_start_event_queue->get_event(day, i);
+
+    // update epidemic counters
+    this->immune_people++;
+
+    // update person's health chart
+    // person->become_immune(this->id);
+  }
+}
+
+void Epidemic::process_immunity_end_events(int day) {
+  int size = immunity_end_event_queue->get_size(day);
+  FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, size);
+
+  for (int i = 0; i < size; i++) {
+    Person * person = immunity_end_event_queue->get_event(day, i);
+
+    // update epidemic counters
+    this->immune_people--;
+    
+    // update epidemic counters
+    this->removed_people++;
+    
+    // update person's health chart
+    person->become_susceptible(this->id);
+  }
+}
+
+
 void Epidemic::update(int day) {
 
   FRED_VERBOSE(0, "epidemic update for disease %d day %d\n", id, day);
@@ -1566,36 +1606,24 @@ void Epidemic::update(int day) {
   Utils::fred_print_epidemic_timer("imported infections");
 
   // transition to infectious
-  FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, this->infectious_start_event_queue->get_size(day));
-  EpidemicMemFn func = &Epidemic::infectious_start_event_handler;
-  this->infectious_start_event_queue->event_handler(day, this, func);
+  process_infectious_start_events(day);
 
   // transition to noninfectious
-  FRED_VERBOSE(0, "INF_END__EVENT_QUEUE day %d size %d\n", day, this->infectious_end_event_queue->get_size(day));
-  func = &Epidemic::infectious_end_event_handler;
-  this->infectious_end_event_queue->event_handler(day, this, func);
+  process_infectious_end_events(day);
     
   // transition to symptomatic
-  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, this->symptoms_start_event_queue->get_size(day));
-  func = &Epidemic::symptoms_start_event_handler;
-  this->symptoms_start_event_queue->event_handler(day, this, func);
+  process_symptoms_start_events(day);
 
   // transition to asymptomatic
-  FRED_VERBOSE(0, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, this->symptoms_end_event_queue->get_size(day));
-  func = &Epidemic::symptoms_end_event_handler;
-  this->symptoms_end_event_queue->event_handler(day, this, func);
+  process_symptoms_end_events(day);
 
   // transition to immune
-  FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, this->immunity_start_event_queue->get_size(day));
-  func = &Epidemic::immunity_start_event_handler;
-  this->immunity_start_event_queue->event_handler(day, this, func);
+  process_immunity_start_events(day);
 
   // transition to susceptible
-  FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, this->immunity_end_event_queue->get_size(day));
-  func = &Epidemic::immunity_end_event_handler;
-  this->immunity_end_event_queue->event_handler(day, this, func);
+  process_immunity_end_events(day);
 
-  Utils::fred_print_epidemic_timer("transitions");
+  Utils::fred_print_epidemic_timer("transition events");
 
   // update list of infected people
   for (std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ) {

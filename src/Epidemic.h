@@ -24,7 +24,6 @@
 
 using namespace std;
 
-#include "Events.h"
 #include "Global.h"
 
 #define SEED_USER 'U'
@@ -34,6 +33,7 @@ using namespace std;
 
 
 class Disease;
+class Events;
 class Person;
 class Place;
 
@@ -216,6 +216,13 @@ public:
     return id;
   }
 
+  // events processing
+  void process_infectious_start_events(int day);
+  void process_infectious_end_events(int day);
+  void process_symptoms_start_events(int day);
+  void process_symptoms_end_events(int day);
+  void process_immunity_start_events(int day);
+  void process_immunity_end_events(int day);
   void cancel_symptoms_start(int day, Person *person);
   void cancel_symptoms_end(int day, Person *person);
   void cancel_infectious_start(int day, Person *person);
@@ -233,20 +240,12 @@ private:
   bool report_transmission_by_age;
 
   // event queues
-  Events<Epidemic> * infectious_start_event_queue;
-  Events<Epidemic> * infectious_end_event_queue;
-  Events<Epidemic> * symptoms_start_event_queue;
-  Events<Epidemic> * symptoms_end_event_queue;
-  Events<Epidemic> * immunity_start_event_queue;
-  Events<Epidemic> * immunity_end_event_queue;
-
-  // event handlers:
-  void infectious_start_event_handler( int day, Person * person );
-  void infectious_end_event_handler( int day, Person * person );
-  void symptoms_start_event_handler( int day, Person * person );
-  void symptoms_end_event_handler( int day, Person * person );
-  void immunity_start_event_handler( int day, Person * person );
-  void immunity_end_event_handler( int day, Person * person );
+  Events * infectious_start_event_queue;
+  Events * infectious_end_event_queue;
+  Events * symptoms_start_event_queue;
+  Events * symptoms_end_event_queue;
+  Events * immunity_start_event_queue;
+  Events * immunity_end_event_queue;
 
   // active sets
   std::set<Person*> infected_people;
@@ -331,7 +330,5 @@ private:
   int* census_tract_incidence;
 
 };
-
-typedef void (Epidemic::*EpidemicMemFn)(int day, event_t e);
 
 #endif // _FRED_EPIDEMIC_H

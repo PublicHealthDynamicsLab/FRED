@@ -14,7 +14,11 @@
 // File: Travel.cc
 //
 
+#include <vector>
+using namespace std;
+
 #include "Global.h"
+#include "Events.h"
 #include "Params.h"
 #include "Random.h"
 #include "Utils.h"
@@ -24,19 +28,11 @@
 #include "Place_List.h"
 #include "Household.h"
 
-#include <stdio.h>
-#include <vector>
-#include <set>
-
-typedef set<Person*> pset;			// set of person ptrs
-typedef set<Person*>::iterator piter;  // iterator to set of person ptrs
-typedef pset* pset_ptr;			// pointer to above type
-static pset* traveler_list;		   // list of travelers, per day
-static pset_ptr* traveler_list_ptr;        // pointers to above lists
+// #include <stdio.h>
 static double mean_trip_duration;		// mean days per trip
-typedef vector <Person*> pvec;			// vector of person ptrs
+typedef std::vector <Person*> pvec;		// vector of person ptrs
 
-Events<Travel>* Travel::return_queue = new Events<Travel>;
+Events * Travel::return_queue = new Events;
 
 // runtime parameters
 static double* Travel_Duration_Cdf;		// cdf for trip duration
@@ -54,7 +50,7 @@ typedef struct hub_record {
 } hub_t;
 
 // list of trave hubs
-vector<hub_t> hubs;
+std::vector<hub_t> hubs;
 int num_hubs;
 
 // a matrix containing the number of trips per day
@@ -66,7 +62,6 @@ void Travel::setup(char* directory) {
   read_hub_file();
   read_trips_per_day_file();
   setup_travelers_per_hub();
-  setup_travel_lists();
   travel_age_prob = new Age_Map("Travel Age Probability");
   travel_age_prob->read_from_input("travel_age_prob");
 }
@@ -182,36 +177,6 @@ void Travel::setup_travelers_per_hub() {
   fflush(stdout);
 }
 
-void Travel::setup_travel_lists(){
-  int n;
-  Params::get_param_from_string("travel_duration", &n);
-  Travel_Duration_Cdf = new double [n];
-  max_Travel_Duration = Params::get_param_vector((char*)"travel_duration",
-						 Travel_Duration_Cdf) - 1;
- 
-  if(Global::Verbose > 0) {
-    for(int i = 0; i <= max_Travel_Duration; ++i) {
-      fprintf(Global::Statusfp,"travel duration = %d %f ", i, Travel_Duration_Cdf[i]);
-    }
-    fprintf(Global::Statusfp,"\n");
-  }
-  mean_trip_duration = (max_Travel_Duration + 1) * 0.5;
-
-  // set up empty vectors of people currently on trips
-  // one vector for each day remaining
-  traveler_list = new pset[max_Travel_Duration + 1];
-  for(int i = 0; i <= max_Travel_Duration; ++i) {
-    traveler_list[i].clear();
-  }
-
-  // setup pointers to the above lists, to be advanced each day
-  // (so that lists are not copied)
-  traveler_list_ptr = new pset_ptr[max_Travel_Duration+1];
-  for(int i = 0; i <= max_Travel_Duration; ++i) {
-    traveler_list_ptr[i] = &traveler_list[i];
-  }
-}
-
 void Travel::update_travel(int day) {
 
   if(!Global::Enable_Travel) {
@@ -276,7 +241,6 @@ void Travel::update_travel(int day) {
 	    int duration = Random::draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
 	    int return_sim_day = day + duration;
 	    Travel::add_return_event(return_sim_day, traveler);
-	    traveler_list_ptr[duration]->insert(traveler);
 	    traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
 	    FRED_STATUS(1, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
 			day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
@@ -290,7 +254,6 @@ void Travel::update_travel(int day) {
 
   // process travelers who are returning home
   Travel::find_returning_travelers(day);
-  Travel::old_find_returning_travelers(day);
 
   if(Global::Verbose > 1) {
     fprintf(Global::Statusfp, "update_travel finished\n");
@@ -301,30 +264,14 @@ void Travel::update_travel(int day) {
 }
 
 void Travel::find_returning_travelers(int day) {
-  Travel::return_queue->event_handler(day, Travel::return_handler);
-}
-
-void Travel::return_handler(int day, Person* person) {
-  FRED_STATUS(1, "RETURNING FROM TRAVEL today %d id %d age %d\n",
-	      day, person->get_id(),person->get_age());
-  // person->stop_traveling();
-}
-
-void Travel::old_find_returning_travelers(int day) {
-  // printf("returning home:\n"); fflush(stdout);
-  for(piter it=traveler_list_ptr[0]->begin(); it != traveler_list_ptr[0]->end(); ++it) {
-    (*it)->stop_traveling();
+  int size = return_queue->get_size(day);
+  for (int i = 0; i < size; i++) {
+    Person * person = return_queue->get_event(day, i);
+    FRED_STATUS(1, "RETURNING FROM TRAVEL today %d id %d age %d\n",
+		day, person->get_id(),person->get_age());
+    person->stop_traveling();
   }
-  traveler_list_ptr[0]->clear();
-  
-  // update days still on travel (after today)
-  pset* tmp = traveler_list_ptr[0];
-  for(int i = 0; i < max_Travel_Duration; ++i) {
-    traveler_list_ptr[i] = traveler_list_ptr[i + 1];
-  }
-  traveler_list_ptr[max_Travel_Duration] = tmp;
 }
-
 
 void Travel::terminate_person(Person* person) {
   if(!person->get_travel_status()) {
@@ -333,14 +280,16 @@ void Travel::terminate_person(Person* person) {
   int return_day = person->get_activities()->get_return_from_travel_sim_day();
   assert(Global::Simulation_Day <= return_day);
   Travel::delete_return_event(return_day, person);
-  for(unsigned int i = 0; i <= max_Travel_Duration; ++i) {
-    piter it = traveler_list[i].find(person);
-    if(it != traveler_list[i].end()) {
-      traveler_list[i].erase(it);
-      break;
-    }
-  }
 }
 
 void Travel::quality_control(char* directory) {
 }
+
+void Travel::add_return_event(int day, Person* person) {
+  Travel::return_queue->add_event(day, person);
+}
+
+void Travel::delete_return_event(int day, Person* person) {
+  Travel::return_queue->delete_event(day, person);
+}
+

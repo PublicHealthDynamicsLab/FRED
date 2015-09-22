@@ -17,8 +17,7 @@
 #ifndef _FRED_TRAVEL_H
 #define _FRED_TRAVEL_H
 
-#include "Events.h"
-
+class Events;
 class Person;
 
 class Travel {
@@ -31,20 +30,13 @@ public:
   static void update_travel(int day);
   static void find_returning_travelers(int day);
   static void old_find_returning_travelers(int day);
-  static void return_handler(int day, Person* person);
   static void quality_control(char* directory);
   static void terminate_person(Person* per);
-
-  static void add_return_event(int day, Person* person) {
-    Travel::return_queue->add_event(day, person);
-  }
-
-  static void delete_return_event(int day, Person* person) {
-    Travel::return_queue->delete_event(day, person);
-  }
+  static void add_return_event(int day, Person* person);
+  static void delete_return_event(int day, Person* person);
 
 private:
-  static Events<Travel> * return_queue;
+  static Events * return_queue;
 };
 
 #endif // _FRED_TRAVEL_H
