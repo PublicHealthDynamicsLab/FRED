@@ -290,3 +290,15 @@ void Disease::become_immune(Person* person, bool susceptible, bool infectious, b
   this->epidemic->become_immune(person, susceptible, infectious, symptomatic);
 }
 
+bool Disease::is_case_fatality_enabled() {
+  return this->natural_history->is_case_fatality_enabled();
+}
+
+bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
+  return this->natural_history->is_fatal(real_age, symptoms, days_symptomatic);
+}
+
+bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
+  return this->natural_history->is_fatal(per, symptoms, days_symptomatic);
+}
+

@@ -722,6 +722,10 @@ public:
     return this->health.get_susceptibility_modifier_due_to_hygiene(disease_id);
   }
 
+  bool is_case_fatality(int disease_id) {
+    return this->health.is_case_fatality(disease_id);
+  }
+
   void terminate();
 
   void die() {

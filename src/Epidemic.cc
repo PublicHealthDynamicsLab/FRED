@@ -209,11 +209,6 @@ void Epidemic::infectious_end_event_handler(int day, Person* person) {
   // remove from active list
   this->potentially_infectious_people.erase(person);
 
-  // update epidemic counters
-  if(person->is_dead()) {
-    this->daily_case_fatality_count++;
-    this->total_case_fatality_count++;
-  }
   this->removed_people++;
 
   // update person's health chart
@@ -1607,7 +1602,37 @@ void Epidemic::update(int day) {
     Person* person = (*it);
     FRED_VERBOSE(1, "update_infection for person %d\n", person->get_id());
     person->update_infection(day, this->id);
-    if (person->is_infected(this->id) == false) {
+
+    // handle case fatality
+    if (person->is_case_fatality(this->id)) {
+      // cancel any events for this person
+      int date = person->get_symptoms_start_date(this->id);
+      if (date > day) {
+	cancel_symptoms_start(date, person);
+      }
+      date = person->get_symptoms_end_date(this->id);
+      if (date > day) {
+	cancel_symptoms_end(date, person);
+      }
+      date = person->get_infectious_start_date(this->id);
+      if (date > day) {
+	cancel_infectious_start(date, person);
+      }
+      date = person->get_infectious_end_date(this->id);
+      if (date > day) {
+	cancel_infectious_end(date, person);
+      }
+      date = person->get_immunity_end_date(this->id);
+      if (date > day) {
+	cancel_immunity_end(date, person);
+      } 
+
+      // update epidemic counters
+      this->daily_case_fatality_count++;
+      this->total_case_fatality_count++;
+    }
+
+    if (person->is_infected(this->id) == false || person->is_case_fatality(this->id)) {
       this->infected_people.erase(it++);
     }
     else {
@@ -1753,5 +1778,29 @@ void Epidemic::spread_infection_in_active_places(int day) {
     place->clear_infectious_people(this->id);
   }
   return;
+}
+
+void Epidemic::cancel_symptoms_start(int day, Person *person) {
+  symptoms_start_event_queue->delete_event(day, person);
+}
+
+void Epidemic::cancel_symptoms_end(int day, Person *person) {
+  symptoms_end_event_queue->delete_event(day, person);
+}
+
+void Epidemic::cancel_infectious_start(int day, Person *person) {
+  infectious_start_event_queue->delete_event(day, person);
+}
+
+void Epidemic::cancel_infectious_end(int day, Person *person) {
+  infectious_end_event_queue->delete_event(day, person);
+}
+
+void Epidemic::cancel_immunity_start(int day, Person *person) {
+  immunity_start_event_queue->delete_event(day, person);
+}
+
+void Epidemic::cancel_immunity_end(int day, Person *person) {
+  immunity_end_event_queue->delete_event(day, person);
 }
 

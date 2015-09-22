@@ -58,7 +58,7 @@ public:
 
   virtual void setup();
 
-  virtual void update(int day) {}
+  virtual void update(int day);
 
   virtual double get_infectivity(int day) {
     return (is_infectious(day) ? 1.0 : 0.0);
@@ -66,10 +66,6 @@ public:
 
   virtual double get_symptoms(int day) {
     return (is_symptomatic(day) ? 1.0 : 0.0);
-  }
-
-  virtual bool is_fatal(int day) {
-    return false; 
   }
 
   virtual void print();
@@ -144,6 +140,14 @@ public:
     }
   }
 
+  void set_fatal_infection() {
+    this->infection_is_fatal_today = true;
+  }
+
+  bool is_fatal(int day) {
+    return this->infection_is_fatal_today;
+  }
+
 protected:
 
   // associated disease
@@ -171,6 +175,8 @@ protected:
   // person is immune from infection starting on exposure_date until immunity_end_date
   int immunity_end_date;	  // -1 if immune forever after recovery
 
+  // is infection fata today?
+  bool infection_is_fatal_today;
 };
 
 #endif // _FRED_INFECTION_H

@@ -216,6 +216,13 @@ public:
     return id;
   }
 
+  void cancel_symptoms_start(int day, Person *person);
+  void cancel_symptoms_end(int day, Person *person);
+  void cancel_infectious_start(int day, Person *person);
+  void cancel_infectious_end(int day, Person *person);
+  void cancel_immunity_start(int day, Person *person);
+  void cancel_immunity_end(int day, Person *person);
+
 private:
   Disease* disease;
   int id;
@@ -240,27 +247,6 @@ private:
   void symptoms_end_event_handler( int day, Person * person );
   void immunity_start_event_handler( int day, Person * person );
   void immunity_end_event_handler( int day, Person * person );
-
-  // event scheduling:
-  /*
-  void add_infectious_start_event(int day, Person *person);
-  void delete_infectious_start_event(int day, Person *person);
-
-  void add_infectious_end_event(int day, Person *person);
-  void delete_infectious_end_event(int day, Person *person);
-
-  void add_symptoms_start_event(int day, Person *person);
-  void delete_symptoms_start_event(int day, Person *person);
-
-  void add_symptoms_end_event(int day, Person *person);
-  void delete_symptoms_end_event(int day, Person *person);
-
-  void add_immunity_start_event(int day, Person *person);
-  void delete_immunity_start_event(int day, Person *person);
-
-  void add_immunity_end_event(int day, Person *person);
-  void delete_immunity_end_event(int day, Person *person);
-  */
 
   // active sets
   std::set<Person*> infected_people;

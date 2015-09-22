@@ -165,6 +165,16 @@ public:
     return this->natural_history;
   }
 
+  // case fatality
+
+  virtual bool is_case_fatality_enabled();
+
+  virtual bool is_fatal(double real_age, double symptoms, int days_symptomatic);
+
+  virtual bool is_fatal(Person* per, double symptoms, int days_symptomatic);
+
+  // transmission mode
+
   char * get_transmission_mode() {
     return this->transmission_mode;
   }

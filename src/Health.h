@@ -159,6 +159,10 @@ public:
 
   // TESTS FOR HEALTH CONDITIONS
 
+  bool is_case_fatality(int disease_id) {
+    return this->case_fatality.test(disease_id);
+  }
+
   bool is_susceptible(int disease_id) const {
     return this->susceptible.test(disease_id);
   }
@@ -208,7 +212,7 @@ public:
     return day == get_symptoms_start_date(disease_id);
   }
 
-  bool is_alive() {
+  bool is_alive() const {
     return this->alive;
   }
 
@@ -657,6 +661,7 @@ private:
   fred::disease_bitset symptomatic;
   fred::disease_bitset recovered_today;
   fred::disease_bitset recovered;
+  fred::disease_bitset case_fatality;
 
   // Define a bitset type to hold health flags
   // Enumeration corresponding to positions in health

@@ -95,6 +95,8 @@ public:
 
   virtual void init_prior_immunity();
 
+  // case fatality
+
   virtual bool is_case_fatality_enabled() {
     return this->enable_case_fatality;
   }
@@ -103,7 +105,11 @@ public:
 
   virtual bool is_fatal(Person* per, double symptoms, int days_symptomatic);
 
+  // immunity after infection
+
   virtual bool gen_immunity_infection(double real_age);
+
+  // support for viral evolution
 
   virtual void initialize_evolution_reporting_grid(Regional_Layer* grid);
 

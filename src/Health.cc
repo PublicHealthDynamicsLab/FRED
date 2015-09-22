@@ -268,6 +268,7 @@ void Health::setup(Person* self) {
   this->recovered_today = fred::disease_bitset();
   this->recovered = fred::disease_bitset();
   this->immunity = fred::disease_bitset();
+
   // Determines if the agent is at risk
   this->at_risk = fred::disease_bitset();
   
@@ -288,6 +289,7 @@ void Health::setup(Person* self) {
     // printf("FACEMASK: has_face_mask_behavior = %d\n", this->has_face_mask_behavior?1:0);
   }
 
+  this->case_fatality = fred::disease_bitset();
   int diseases = Global::Diseases.get_number_of_diseases();
   FRED_VERBOSE(1, "Health::setup diseases %d\n", diseases);
   this->infection = new Infection* [diseases];
@@ -298,6 +300,7 @@ void Health::setup(Person* self) {
 
   for(int disease_id = 0; disease_id < diseases; disease_id++) {
 
+    this->case_fatality.reset(disease_id);
     this->infection[disease_id] = NULL;
     this->susceptibility_multp[disease_id] = 1.0;
     this->infectee_count[disease_id] = 0;
@@ -350,9 +353,10 @@ void Health::setup(Person* self) {
 }
 
 Health::~Health() {
-  // delete Infection objects pointed to
   for(size_t i = 0; i < Global::Diseases.get_number_of_diseases(); ++i) {
-    delete this->infection[i];
+    if (this->infection[i] != NULL) {
+      delete this->infection[i];
+    }
   }
 
   if(this->vaccine_health) {
@@ -550,10 +554,11 @@ void Health::update_infection(int day, int disease_id) {
   }
 
   // if this infections is fatal today, add this person to the
-  // population's death_list
+  // population's death_list and marked as a case_fatality
 
   if(this->infection[disease_id]->is_fatal(day)) {
     FRED_VERBOSE(0,"DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
+    this->case_fatality.set(disease_id);
     // queue removal from population
     Global::Pop.prepare_to_die(day, myself);
     return;
@@ -981,6 +986,9 @@ void Health::terminate(Person* self) {
   for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
     if(this->infection[disease_id] != NULL) {
       become_removed(self, disease_id);
+      // delete the infection object
+      delete this->infection[disease_id];
+      this->infection[disease_id] = NULL;
     }
   }
 }

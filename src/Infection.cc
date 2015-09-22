@@ -56,6 +56,7 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Place*
   this->symptoms_end_date = -1;
   this->immunity_end_date = -1;
   this->will_develop_symptoms = false;
+  this->infection_is_fatal_today = false;
 }
 
 
@@ -282,5 +283,24 @@ void Infection::report_infection(int day) {
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());
 }
 
+
+void Infection::update(int today) {
+
+  // if host is symptomatic, determine if infection is fatal today.
+  // if so, set flag and terminate infection update.
+  if(this->disease->is_case_fatality_enabled() && is_symptomatic(today)) {
+    int days_symptomatic = today - this->symptoms_start_date;
+    if(Global::Enable_Chronic_Condition) {
+      if(this->disease->is_fatal(this->host, get_symptoms(today), days_symptomatic)) {
+	set_fatal_infection();
+      }
+    } else {
+      if(this->disease->is_fatal(this->host->get_real_age(), get_symptoms(today), days_symptomatic)) {
+	set_fatal_infection();
+      }
+    }
+  }
+
+}
 
 
