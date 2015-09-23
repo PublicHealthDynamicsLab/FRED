@@ -113,6 +113,8 @@ public:
 
   virtual void initialize_evolution_reporting_grid(Regional_Layer* grid);
 
+  virtual void end_of_run(){}
+
 protected:
   Disease *disease;
   double probability_of_symptoms;

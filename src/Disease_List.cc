@@ -72,3 +72,8 @@ Disease* Disease_List::get_disease(char * disease_name) {
 }
 
 
+void Disease_List::end_of_run() {
+  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+    this->diseases[disease_id]->end_of_run(); 
+  }
+}

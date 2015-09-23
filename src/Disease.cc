@@ -302,3 +302,6 @@ bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
   return this->natural_history->is_fatal(per, symptoms, days_symptomatic);
 }
 
+void Disease::end_of_run() {
+  this->natural_history->end_of_run();
+}

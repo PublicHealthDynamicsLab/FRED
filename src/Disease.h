@@ -185,6 +185,8 @@ public:
 
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
+  void end_of_run();
+
 private:
 
   // disease identifiers

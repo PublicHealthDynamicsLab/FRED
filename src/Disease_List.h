@@ -48,6 +48,8 @@ public:
 
   void prepare_diseases();
 
+  void end_of_run();
+
 private:
   std::vector <Disease*> diseases;
   int number_of_diseases;

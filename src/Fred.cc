@@ -484,7 +484,8 @@ void fred_finish() {
 
   Global::Pop.end_of_run();
   Global::Places.end_of_run();
-  
+  Global::Diseases.end_of_run();
+
   // close all open output files with global file pointers
   Utils::fred_end();
 
