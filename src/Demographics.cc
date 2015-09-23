@@ -393,6 +393,7 @@ void Demographics::update(int day) {
     Person * person = conception_queue->get_event(day, i);
     person->get_demographics()->become_pregnant(day, person);
   }
+  conception_queue->clear_events(day);
 
   // add newborns to the population
   // FRED_VERBOSE(0, "maternity queue\n");
@@ -401,6 +402,7 @@ void Demographics::update(int day) {
     Person * person = maternity_queue->get_event(day, i);
     person->give_birth(day);
   }
+  maternity_queue->clear_events(day);
 
   // remove dead from population
   // FRED_VERBOSE(0, "mortality queue\n");
@@ -409,6 +411,7 @@ void Demographics::update(int day) {
     Person * person = mortality_queue->get_event(day, i);
     person->get_demographics()->die(day, person);
   }
+  mortality_queue->clear_events(day);
 
   return;
 

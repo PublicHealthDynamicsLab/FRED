@@ -15,7 +15,7 @@
 //
 
 #include "Events.h"
-// #include "Person.h"
+
 
 Events::Events() {
 
@@ -26,20 +26,20 @@ Events::Events() {
 }
 
 void Events::add_event(int day, event_t item) {
-    if (day < 0 || MAX_DAYS <= day) {
-      // won't happen during this simulation
-      return;
-    }
-    if(this->events[day].size() == this->events[day].capacity()) {
-      if(events[day].capacity() < 4) {
-	this->events[day].reserve(4);
-      }
-      this->events[day].reserve(2 * this->events[day].capacity());
-    }
-    this->events[day].push_back(item);
-    // printf("\nadd_event day %d new size %d\n", day, get_size(day));
-    // print_events(day);
+  if (day < 0 || MAX_DAYS <= day) {
+    // won't happen during this simulation
+    return;
   }
+  if(this->events[day].size() == this->events[day].capacity()) {
+    if(events[day].capacity() < 4) {
+      this->events[day].reserve(4);
+    }
+    this->events[day].reserve(2 * this->events[day].capacity());
+  }
+  this->events[day].push_back(item);
+  // printf("\nadd_event day %d new size %d\n", day, get_size(day));
+  // print_events(day);
+}
 
 void Events::delete_event(int day, event_t item) {
 

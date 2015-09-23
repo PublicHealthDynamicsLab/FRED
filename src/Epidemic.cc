@@ -1463,6 +1463,7 @@ void Epidemic::process_infectious_start_events(int day) {
     // update person's health chart
     person->become_infectious(this->disease);
   }
+  infectious_start_event_queue->clear_events(day);
 }
 
 void Epidemic::process_infectious_end_events(int day) {
@@ -1483,6 +1484,7 @@ void Epidemic::process_infectious_end_events(int day) {
     // update person's health chart
     person->recover(this->disease);
   }
+  infectious_end_event_queue->clear_events(day);
 }
 
 void Epidemic::process_symptoms_start_events(int day) {
@@ -1545,6 +1547,7 @@ void Epidemic::process_symptoms_start_events(int day) {
     // update person's health chart
     // person->start_symptoms(this->disease);
   }
+  symptoms_start_event_queue->clear_events(day);
 }
 
 void Epidemic::process_symptoms_end_events(int day) {
@@ -1560,6 +1563,7 @@ void Epidemic::process_symptoms_end_events(int day) {
     // update person's health chart
     // person->end_symptoms(this->disease);
   }
+  symptoms_end_event_queue->clear_events(day);
 }
 
 void Epidemic::process_immunity_start_events(int day) {
@@ -1575,6 +1579,7 @@ void Epidemic::process_immunity_start_events(int day) {
     // update person's health chart
     // person->become_immune(this->id);
   }
+  immunity_start_event_queue->clear_events(day);
 }
 
 void Epidemic::process_immunity_end_events(int day) {
@@ -1593,6 +1598,7 @@ void Epidemic::process_immunity_end_events(int day) {
     // update person's health chart
     person->become_susceptible(this->id);
   }
+  immunity_end_event_queue->clear_events(day);
 }
 
 

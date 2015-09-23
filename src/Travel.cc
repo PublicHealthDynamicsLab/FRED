@@ -271,6 +271,7 @@ void Travel::find_returning_travelers(int day) {
 		day, person->get_id(),person->get_age());
     person->stop_traveling();
   }
+  return_queue->clear_events(day);
 }
 
 void Travel::terminate_person(Person* person) {
