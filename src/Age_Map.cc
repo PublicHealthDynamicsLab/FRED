@@ -62,10 +62,10 @@ void Age_Map::read_from_input(string input) {
     size_t found2 = input.find_last_of("]");
     input_tmp.assign(input.begin(), input.begin() + found);
     number.assign(input.begin() + found + 1, input.begin() + found2);
-    sprintf(ages_string, "%s_upper_ages[%s]", input_tmp.c_str(), number.c_str());
+    sprintf(ages_string, "%s_age_groups[%s]", input_tmp.c_str(), number.c_str());
     sprintf(values_string, "%s_values[%s]", input_tmp.c_str(), number.c_str());
   } else {
-    sprintf(ages_string, "%s_upper_ages", input.c_str());
+    sprintf(ages_string, "%s_age_groups", input.c_str());
     sprintf(values_string, "%s_values", input.c_str());
   }
 

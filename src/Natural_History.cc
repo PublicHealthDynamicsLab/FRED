@@ -25,16 +25,16 @@
 
 Natural_History::~Natural_History() {
 
-  if (this->infection_immunity_prob != NULL) {
-    delete this->infection_immunity_prob;
+  if (this->age_specific_prob_infection_immunity != NULL) {
+    delete this->age_specific_prob_infection_immunity;
   }
   
   if(this->evol != NULL) {
     delete this->evol;
   }
   
-  if(this->case_fatality_age_factor != NULL) {
-    delete this->case_fatality_age_factor;
+  if(this->age_specific_prob_case_fatality != NULL) {
+    delete this->age_specific_prob_case_fatality;
   }
   
   if(this->case_fatality_prob_by_day != NULL) {
@@ -85,19 +85,19 @@ void Natural_History::setup(Disease * _disease) {
   this->days_infectious = NULL;
   this->days_incubating = NULL;
   this->days_symptomatic = NULL;
-  this->age_specific_prob_symptomatic = NULL;
+  this->age_specific_prob_symptoms = NULL;
   this->immunity_loss_rate = -1.0;
 
   this->symptomaticity_threshold = -1.0;
   this->infectivity_threshold = -1.0;
 
   this->enable_case_fatality = 0;
-  this->case_fatality_age_factor = NULL;
+  this->age_specific_prob_case_fatality = NULL;
   this->case_fatality_prob_by_day = NULL;
   this->min_symptoms_for_case_fatality = -1.0;
   this->max_days_case_fatality_prob = -1;
 
-  this->infection_immunity_prob = NULL;
+  this->age_specific_prob_infection_immunity = NULL;
   this->evol = NULL;
 
   FRED_VERBOSE(0, "Natural_History::setup finished\n");
@@ -118,9 +118,9 @@ void Natural_History::get_parameters() {
   Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
   
   // age specific probablility of symptoms
-  this->age_specific_prob_symptomatic = new Age_Map("Prob Symptomatic");
-  sprintf(paramstr, "%s_prob_symp", disease_name);
-  this->age_specific_prob_symptomatic->read_from_input(paramstr);
+  this->age_specific_prob_symptoms = new Age_Map("Symptoms");
+  sprintf(paramstr, "%s_prob_symptoms", disease_name);
+  this->age_specific_prob_symptoms->read_from_input(paramstr);
 
   int n;
   Params::get_indexed_param(disease_name,"days_latent",&n);
@@ -152,9 +152,9 @@ void Natural_History::get_parameters() {
   if(this->enable_case_fatality) {
     Params::get_indexed_param(disease_name, "min_symptoms_for_case_fatality",
 			      &(this->min_symptoms_for_case_fatality));
-    this->case_fatality_age_factor = new Age_Map("Case Fatality Age Factor");
-    sprintf(paramstr, "%s_case_fatality_age_factor", disease_name);
-    this->case_fatality_age_factor->read_from_input(paramstr);
+    this->age_specific_prob_case_fatality = new Age_Map("Case Fatality");
+    sprintf(paramstr, "%s_case_fatality", disease_name);
+    this->age_specific_prob_case_fatality->read_from_input(paramstr);
     Params::get_indexed_param(disease_name, "case_fatality_prob_by_day",
 			      &(this->max_days_case_fatality_prob));
     this->case_fatality_prob_by_day =
@@ -164,9 +164,9 @@ void Natural_History::get_parameters() {
   }
 
   // Probability of developing an immune response by past infections
-  this->infection_immunity_prob = new Age_Map("Infection Immunity Probability");
-  sprintf(paramstr, "%s_infection_immunity_prob", disease_name);
-  this->infection_immunity_prob->read_from_input(paramstr);
+  this->age_specific_prob_infection_immunity = new Age_Map("Infection Immunity");
+  sprintf(paramstr, "%s_infection_immunity", disease_name);
+  this->age_specific_prob_infection_immunity->read_from_input(paramstr);
 
   if (Global::Enable_Viral_Evolution) {
     int evolType;
@@ -180,11 +180,11 @@ void Natural_History::get_parameters() {
 
 
 double Natural_History::get_probability_of_symptoms(int age) {
-  if (this->age_specific_prob_symptomatic->is_empty()) {
+  if (this->age_specific_prob_symptoms->is_empty()) {
     return this->probability_of_symptoms;
   }
   else {
-    return this->age_specific_prob_symptomatic->find_value(age);
+    return this->age_specific_prob_symptoms->find_value(age);
   }
 }
 
@@ -210,7 +210,7 @@ int Natural_History::get_duration_of_immunity(Person* host) {
 
 
 bool Natural_History::gen_immunity_infection(double real_age) {
-  double prob = this->infection_immunity_prob->find_value(real_age);
+  double prob = this->age_specific_prob_infection_immunity->find_value(real_age);
   return (Random::draw_random() <= prob);
 }
 
@@ -225,7 +225,7 @@ void Natural_History::init_prior_immunity() {
 
 bool Natural_History::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   if(this->enable_case_fatality && symptoms >= this->min_symptoms_for_case_fatality) {
-    double age_prob = this->case_fatality_age_factor->find_value(real_age);
+    double age_prob = this->age_specific_prob_case_fatality->find_value(real_age);
     double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
     return (Random::draw_random() < age_prob * day_prob);
   }
@@ -235,7 +235,7 @@ bool Natural_History::is_fatal(double real_age, double symptoms, int days_sympto
 bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomatic) {
   if(Global::Enable_Chronic_Condition && this->enable_case_fatality) {
     if(per->has_chronic_condition()) {
-      double age_prob = this->case_fatality_age_factor->find_value(per->get_real_age());
+      double age_prob = this->age_specific_prob_case_fatality->find_value(per->get_real_age());
       double day_prob = this->case_fatality_prob_by_day[days_symptomatic];
       if(per->is_asthmatic()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::ASTHMA);

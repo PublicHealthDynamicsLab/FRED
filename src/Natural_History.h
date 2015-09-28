@@ -128,7 +128,7 @@ protected:
   double *days_infectious;
   double *days_incubating;
   double *days_symptomatic;
-  Age_Map *age_specific_prob_symptomatic;
+  Age_Map *age_specific_prob_symptoms;
   double immunity_loss_rate;
 
   // thresholds used in Infection class to determine if an agent is
@@ -139,11 +139,11 @@ protected:
   // case fatality parameters
   int enable_case_fatality;
   double min_symptoms_for_case_fatality;
-  Age_Map* case_fatality_age_factor;
+  Age_Map* age_specific_prob_case_fatality;
   double* case_fatality_prob_by_day;
   int max_days_case_fatality_prob;
 
-  Age_Map* infection_immunity_prob;
+  Age_Map* age_specific_prob_infection_immunity;
   Evolution* evol;
 
 };

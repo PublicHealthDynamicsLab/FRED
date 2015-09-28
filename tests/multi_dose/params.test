@@ -26,26 +26,26 @@ vaccine_starting_day[0]       = 0
 
 #### Vaccine #0 Dose #0
 vaccine_next_dosage_day[0][0] = 14
-vaccine_dose_efficacy_upper_ages[0][0] = 2 5 100
+vaccine_dose_efficacy_age_groups[0][0] = 2 5 100
 vaccine_dose_efficacy_values[0][0] = 2 0.10 0.33
 
-vaccine_dose_efficacy_delay_upper_ages[0][0] = 1 100
+vaccine_dose_efficacy_delay_age_groups[0][0] = 1 100
 vaccine_dose_efficacy_delay_values[0][0] = 1 14
 
 #### Vaccine #0 Dose #1
 vaccine_next_dosage_day[0][1] = 7
-vaccine_dose_efficacy_upper_ages[0][1] = 2 26 100
+vaccine_dose_efficacy_age_groups[0][1] = 2 26 100
 vaccine_dose_efficacy_values[0][1] = 2 0.5 0.5
 
-vaccine_dose_efficacy_delay_upper_ages[0][1] = 1 100
+vaccine_dose_efficacy_delay_age_groups[0][1] = 1 100
 vaccine_dose_efficacy_delay_values[0][1] = 1 7
 
 #### Vaccine #0 Dose#2
 vaccine_next_dosage_day[0][2] = 0
-vaccine_dose_efficacy_upper_ages[0][2] = 2 26 100
+vaccine_dose_efficacy_age_groups[0][2] = 2 26 100
 vaccine_dose_efficacy_values[0][2] = 2 1.0 1.0
 
-vaccine_dose_efficacy_delay_upper_ages[0][2] = 1 100
+vaccine_dose_efficacy_delay_age_groups[0][2] = 1 100
 vaccine_dose_efficacy_delay_values[0][2] = 1 7
 
 # these are the strain ids that the vaccine will
