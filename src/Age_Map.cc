@@ -44,8 +44,6 @@ void Age_Map::read_from_input(string input, int i, int j) {
   this->read_from_input(input_string.str());
 }
 
-// will leave this interface in, as it will automatically determine whether the 
-// input variable is indexed or not.
 void Age_Map::read_from_input(string input) {
   // printf("read_from_input with string = |%s|\n", input.c_str()); fflush(stdout);
   this->name = input + " Age Map";

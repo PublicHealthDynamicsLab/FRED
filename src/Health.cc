@@ -309,7 +309,7 @@ void Health::setup(Person* self) {
 
     become_susceptible(self, disease_id);
     Disease* disease = Global::Diseases.get_disease(disease_id);
-    if(!disease->get_at_risk()->is_empty()) {
+    if(disease->get_at_risk() != NULL && !disease->get_at_risk()->is_empty()) {
       double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
       if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
         declare_at_risk(disease);

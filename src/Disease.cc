@@ -70,7 +70,9 @@ Disease::Disease() {
 Disease::~Disease() {
   delete this->epidemic;
   delete this->residual_immunity;
-  delete this->at_risk;
+  if (this->at_risk != NULL) {
+    delete this->at_risk;
+  }
   delete this->natural_history;
 
   if(this->hospitalization_prob != NULL) {
@@ -193,9 +195,11 @@ void Disease::get_parameters(int disease_id, string name) {
   }
 
   // Define at risk people
-  this->at_risk = new Age_Map("At Risk Population");
-  sprintf(paramstr, "%s_at_risk", this->disease_name);
-  this->at_risk->read_from_input(paramstr);
+  if (Global::Enable_Vaccination) {
+    this->at_risk = new Age_Map("At Risk Population");
+    sprintf(paramstr, "%s_at_risk", this->disease_name);
+    this->at_risk->read_from_input(paramstr);
+  }
 
   FRED_VERBOSE(0, "disease %d %s read_parameters finished\n", this->id, this->disease_name);
 }

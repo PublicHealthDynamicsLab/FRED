@@ -815,35 +815,37 @@ void Population::quality_control() {
     fprintf(Global::Statusfp, "\n");
 
     // Print out At Risk distribution
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-      if(Global::Diseases.get_disease(d)->get_at_risk()->is_empty() == false) {
-        Disease* dis = Global::Diseases.get_disease(d);
-        int rcount[20];
-        for(int c = 0; c < 20; ++c) {
-          rcount[c] = 0;
-        }
-        for(int p = 0; p < this->get_index_size(); ++p) {
-	  Person* person = get_person_by_index(p);
-	  if(person == NULL) {
-	    continue;
+    if (Global::Enable_Vaccination) {
+      for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+	if(Global::Diseases.get_disease(d)->get_at_risk()->is_empty() == false) {
+	  Disease* dis = Global::Diseases.get_disease(d);
+	  int rcount[20];
+	  for(int c = 0; c < 20; ++c) {
+	    rcount[c] = 0;
 	  }
-          int a = person->get_age();
-          int n = a / 10;
-          if(person->get_health()->is_at_risk(d) == true) {
-            if(n < 20) {
-              rcount[n]++;
-            } else {
-              rcount[19]++;
-            }
-          }
-        }
-        fprintf(Global::Statusfp, "\n Age Distribution of At Risk for Disease %d: %d people\n", d,
-		total);
-        for(int c = 0; c < 10; ++c) {
-          fprintf(Global::Statusfp, "age %2d to %2d: %6d (%.2f%%)\n", 10 * c, 10 * (c + 1) - 1,
-		  rcount[c], (100.0 * rcount[c]) / total);
-        }
-        fprintf(Global::Statusfp, "\n");
+	  for(int p = 0; p < this->get_index_size(); ++p) {
+	    Person* person = get_person_by_index(p);
+	    if(person == NULL) {
+	      continue;
+	    }
+	    int a = person->get_age();
+	    int n = a / 10;
+	    if(person->get_health()->is_at_risk(d) == true) {
+	      if(n < 20) {
+		rcount[n]++;
+	      } else {
+		rcount[19]++;
+	      }
+	    }
+	  }
+	  fprintf(Global::Statusfp, "\n Age Distribution of At Risk for Disease %d: %d people\n", d,
+		  total);
+	  for(int c = 0; c < 10; ++c) {
+	    fprintf(Global::Statusfp, "age %2d to %2d: %6d (%.2f%%)\n", 10 * c, 10 * (c + 1) - 1,
+		    rcount[c], (100.0 * rcount[c]) / total);
+	  }
+	  fprintf(Global::Statusfp, "\n");
+	}
       }
     }
   }
