@@ -96,8 +96,8 @@ while ($error > 10*$threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "household_contacts = %0.4f\n", $h;
-  printf CAL "neighborhood_contacts = %0.5e\n", $n;
+  printf CAL "household_contacts = %0.3f\n", $h;
+  printf CAL "neighborhood_contacts = %0.3f\n", $n;
   printf CAL "school_contacts = %0.2f\n", $s;
   printf CAL "workplace_contacts = %0.2f\n", $w;
   printf CAL "classroom_contacts = %0.2f\n", 2*$s;
@@ -110,8 +110,8 @@ while ($error > 10*$threshold) {
 
   print "###  CALIBRATION PHASE I STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "household_contacts = %0.4f\n", $h;
-  printf "neighborhood_contacts = %0.5e\n", $n;
+  printf "household_contacts = %0.3f\n", $h;
+  printf "neighborhood_contacts = %0.3f\n", $n;
   printf "school_contacts = %0.2f\n", $s;
   printf "workplace_contacts = %0.2f\n", $w;
   printf "classroom_contacts = %0.2f\n", 2*$s;
@@ -185,8 +185,8 @@ while ($error > $threshold) {
   print CAL @orig;
   print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "household_contacts = %0.4f\n", $h;
-  printf CAL "neighborhood_contacts = %0.5e\n", $n;
+  printf CAL "household_contacts = %0.3f\n", $h;
+  printf CAL "neighborhood_contacts = %0.3f\n", $n;
   printf CAL "school_contacts = %0.2f\n", $s;
   printf CAL "workplace_contacts = %0.2f\n", $w;
   printf CAL "classroom_contacts = %0.2f\n", 2*$s;
@@ -199,8 +199,8 @@ while ($error > $threshold) {
 
   print "###  CALIBRATION PHASE II STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "household_contacts = %0.4f\n", $h;
-  printf "neighborhood_contacts = %0.5e\n", $n;
+  printf "household_contacts = %0.3f\n", $h;
+  printf "neighborhood_contacts = %0.3f\n", $n;
   printf "school_contacts = %0.2f\n", $s;
   printf "workplace_contacts = %0.2f\n", $w;
   printf "classroom_contacts = %0.2f\n", 2*$s;
@@ -231,10 +231,10 @@ while ($error > $threshold) {
   my $CAR = `fred_CAR -k $paramsfile | awk \'{print \$1}\'`;
   chomp $CAR;
   my $ea = $CAR - $CARtarget;;
-  printf "CAR = %0.4f\n", $CAR;
-  printf "errors: EA = %0.4f\n", $ea;
+  printf "CAR = %0.3f\n", $CAR;
+  printf "errors: EA = %0.3f\n", $ea;
   $error = abs($ea);
-  printf "total error = %0.4f\n\n\n", $error;
+  printf "total error = %0.3f\n\n\n", $error;
   
   # adjust to achieve desired CAR 
   my $ar_ratio = $CARtarget / $CAR;
