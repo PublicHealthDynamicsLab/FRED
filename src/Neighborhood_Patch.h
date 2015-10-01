@@ -82,7 +82,7 @@ public:
   /**
    * Create lists of persons, workplaces, schools (by age)
    */
-  void record_favorite_places();
+  void record_daily_activity_locations();
 
   /**
    * @return a pointer to a random Person in this Neighborhood_Patch

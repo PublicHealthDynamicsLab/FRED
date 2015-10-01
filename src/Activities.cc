@@ -161,7 +161,7 @@ Activities::Activities() {
   this->home_neighborhood = NULL;
   this->profile = UNDEFINED_PROFILE;
   this->schedule_updated = -1;
-  this->stored_favorite_places = NULL;
+  this->stored_daily_activity_locations = NULL;
   this->primary_healthcare_facility = NULL;
   this->is_traveling = false;
   this->is_traveling_outside = false;
@@ -170,7 +170,7 @@ Activities::Activities() {
   this->is_isolated = false;
   this->grade = 0;
   this->return_from_travel_sim_day = -1;
-  this->link = new Person_Place_Link [Activity_index::FAVORITE_PLACES];
+  this->link = new Person_Place_Link [Activity_index::DAILY_ACTIVITY_LOCATIONS];
 }
 
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
@@ -179,7 +179,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 	       self->get_id(), self->get_age(), house->get_label());
 
   myself = self;
-  clear_favorite_places();
+  clear_daily_activity_locations();
 
   FRED_VERBOSE(1,"set household %s\n", get_label_for_place(house));
   set_household(house);
@@ -1067,8 +1067,8 @@ void Activities::start_hospitalization(Person* self, int sim_day, int length_of_
       stop_traveling(self);
     }
 
-    //First see if this agent has a favorite hospital
-    Hospital* hosp = static_cast<Hospital*>(get_favorite_place(Activity_index::HOSPITAL_ACTIVITY));
+    //First see if this agent has a preferred hospital
+    Hospital* hosp = static_cast<Hospital*>(get_daily_activity_location(Activity_index::HOSPITAL_ACTIVITY));
     Household* hh = static_cast<Household*>(self->get_household());
     assert(hh != NULL);
 
@@ -1110,8 +1110,8 @@ void Activities::start_hospitalization(Person* self, int sim_day, int length_of_
       }
 
       if(hosp != NULL) {
-        store_favorite_places();
-        clear_favorite_places();
+        store_daily_activity_locations();
+        clear_daily_activity_locations();
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
         this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
@@ -1131,8 +1131,8 @@ void Activities::start_hospitalization(Person* self, int sim_day, int length_of_
       }
     } else {
       if(hosp->get_occupied_bed_count() < hosp->get_bed_count(sim_day)) {
-        store_favorite_places();
-        clear_favorite_places();
+        store_daily_activity_locations();
+        clear_daily_activity_locations();
         this->on_schedule[Activity_index::HOUSEHOLD_ACTIVITY] = false;
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = false;
         this->on_schedule[Activity_index::OFFICE_ACTIVITY] = false;
@@ -1164,7 +1164,7 @@ void Activities::end_hospitalization(Person* self) {
     Hospital* tmp_hosp = static_cast<Hospital*>(self->get_hospital());
     assert(tmp_hosp != NULL);
     tmp_hosp->decrement_occupied_bed_count();
-    restore_favorite_places();
+    restore_daily_activity_locations();
 
     //Set the flag for the household
     static_cast<Household*>(self->get_household())->set_household_has_hospitalized_member(false);
@@ -1552,8 +1552,8 @@ void Activities::start_traveling(Person* self, Person* visited) {
   if(visited == NULL) {
     this->is_traveling_outside = true;
   } else {
-    store_favorite_places();
-    clear_favorite_places();
+    store_daily_activity_locations();
+    clear_daily_activity_locations();
     set_household(visited->get_household());
     set_neighborhood(visited->get_neighborhood());
     if(this->profile == WORKER_PROFILE) {
@@ -1567,7 +1567,7 @@ void Activities::start_traveling(Person* self, Person* visited) {
 
 void Activities::stop_traveling(Person* self) {
   if(!this->is_traveling_outside) {
-    restore_favorite_places();
+    restore_daily_activity_locations();
   }
   this->is_traveling = false;
   this->is_traveling_outside = false;
@@ -1642,11 +1642,11 @@ void Activities::change_workplace(Place* place, int include_office) {
 std::string Activities::schedule_to_string(Person* self, int day) {
   std::stringstream ss;
   ss << "day " << day << " schedule for person " << self->get_id() << "  ";
-  for(int p = 0; p < Activity_index::FAVORITE_PLACES; ++p) {
-    if(get_favorite_place(p)) {
+  for(int p = 0; p < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++p) {
+    if(get_daily_activity_location(p)) {
       ss << activity_lookup(p) << ": ";
       ss << (this->on_schedule[p] ? "+" : "-");
-      ss << get_favorite_place_id(p) << " ";
+      ss << get_daily_activity_location_id(p) << " ";
     }
   }
   return ss.str();
@@ -1655,10 +1655,10 @@ std::string Activities::schedule_to_string(Person* self, int day) {
 std::string Activities::to_string() {
   std::stringstream ss;
   ss << "Activities: ";
-  for(int p = 0; p < Activity_index::FAVORITE_PLACES; p++) {
-    if(get_favorite_place(p)) {
+  for(int p = 0; p < Activity_index::DAILY_ACTIVITY_LOCATIONS; p++) {
+    if(get_daily_activity_location(p)) {
       ss << activity_lookup(p) << ": ";
-      ss << get_favorite_place_label(p) << " ";
+      ss << get_daily_activity_location_label(p) << " ";
     }
   }
   return ss.str();
@@ -1667,10 +1667,10 @@ std::string Activities::to_string() {
 std::string Activities::to_string(Person* self) {
   std::stringstream ss;
   ss << "Activities for person " << self->get_id() << ": ";
-  for(int p = 0; p < Activity_index::FAVORITE_PLACES; ++p) {
-    if(get_favorite_place(p)) {
+  for(int p = 0; p < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++p) {
+    if(get_daily_activity_location(p)) {
       ss << activity_lookup(p) << ": ";
-      ss << get_favorite_place_id(p) << " ";
+      ss << get_daily_activity_location_id(p) << " ";
     }
   }
   return ss.str();
@@ -1713,14 +1713,14 @@ void Activities::move_to_new_house(Person* self, Place* house) {
 void Activities::terminate(Person* self) {
   if(this->get_travel_status()) {
     if(this->is_traveling && !this->is_traveling_outside) {
-      restore_favorite_places();
+      restore_daily_activity_locations();
     }
     Travel::terminate_person(self);
   }
 
-  //If the agent was hospitalized, restore original favorite places
+  //If the agent was hospitalized, restore original daily activity locations
   if(this->is_hospitalized) {
-    restore_favorite_places();
+    restore_daily_activity_locations();
   }
 
   // decrease the population in county of residence
@@ -1728,7 +1728,7 @@ void Activities::terminate(Person* self) {
   Global::Places.decrement_population_of_county_with_index(index);
 
   // withdraw from society
-  unenroll_from_favorite_places();
+  unenroll_from_daily_activity_locations();
 }
 
 void Activities::end_of_run() {
@@ -1753,8 +1753,8 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
   }
 
   // see if the given place is on my schedule today
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if(this->on_schedule[i] && get_favorite_place(i) == place) {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    if(this->on_schedule[i] && get_daily_activity_location(i) == place) {
       if(self->is_susceptible(disease_id)) {
         status = 1;
         break;
@@ -1771,18 +1771,18 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
 }
 
 void Activities::update_enrollee_index(Place * place, int new_index) {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if (place == get_favorite_place(i)) {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    if (place == get_daily_activity_location(i)) {
       FRED_VERBOSE(1,"update_enrollee_index for person %d i %d new_index %d\n", myself->get_id(), i, new_index);
       link[i].update_enrollee_index(new_index);
       return;
     }
   }
-  FRED_VERBOSE(0, "update_enrollee_index: person %d place %d %s not found in favorite places: ",
+  FRED_VERBOSE(0, "update_enrollee_index: person %d place %d %s not found in daily activity locations: ",
 	       myself->get_id(), place->get_id(), place->get_label());
   
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    Place* place = get_favorite_place(i);
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    Place* place = get_daily_activity_location(i);
     printf("%s ", place ? place->get_label() : "NULL");
   }
   printf("\n");
@@ -1791,8 +1791,8 @@ void Activities::update_enrollee_index(Place * place, int new_index) {
 
 ///////////////////////////////////
 
-void Activities::clear_favorite_places() {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
+void Activities::clear_daily_activity_locations() {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
     if (link[i].is_enrolled()) {
       link[i].unenroll(myself);
     }
@@ -1800,57 +1800,57 @@ void Activities::clear_favorite_places() {
   }
 }
   
-void Activities::enroll_in_favorite_place(int i) {
-  Place* place = get_favorite_place(i);
+void Activities::enroll_in_daily_activity_location(int i) {
+  Place* place = get_daily_activity_location(i);
   if(place != NULL) {
     link[i].enroll(myself, place);
   }
 }
 
-void Activities::enroll_in_favorite_places() {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    enroll_in_favorite_place(i);
+void Activities::enroll_in_daily_activity_locations() {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    enroll_in_daily_activity_location(i);
   }
 }
 
-void Activities::unenroll_from_favorite_place(int i) {
-  Place* place = get_favorite_place(i);
+void Activities::unenroll_from_daily_activity_location(int i) {
+  Place* place = get_daily_activity_location(i);
   if (place != NULL) {
     link[i].unenroll(myself);
   }
 }
 
-void Activities::unenroll_from_favorite_places() {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    unenroll_from_favorite_place(i);
+void Activities::unenroll_from_daily_activity_locations() {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    unenroll_from_daily_activity_location(i);
   }
-  clear_favorite_places();
+  clear_daily_activity_locations();
 }
 
-void Activities::store_favorite_places() {
-  this->stored_favorite_places = new Place* [Activity_index::FAVORITE_PLACES];
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    this->stored_favorite_places[i] = get_favorite_place(i);
+void Activities::store_daily_activity_locations() {
+  this->stored_daily_activity_locations = new Place* [Activity_index::DAILY_ACTIVITY_LOCATIONS];
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    this->stored_daily_activity_locations[i] = get_daily_activity_location(i);
   }
 }
 
-void Activities::restore_favorite_places() {
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    set_favorite_place(i, stored_favorite_places[i]);
+void Activities::restore_daily_activity_locations() {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    set_daily_activity_location(i, stored_daily_activity_locations[i]);
   }
-  delete[] stored_favorite_places;
+  delete[] stored_daily_activity_locations;
 }
 
-int Activities::get_favorite_place_id(int p) {
-  return get_favorite_place(p) == NULL ? -1 : get_favorite_place(p)->get_id();
+int Activities::get_daily_activity_location_id(int p) {
+  return get_daily_activity_location(p) == NULL ? -1 : get_daily_activity_location(p)->get_id();
 }
 
-const char * Activities::get_favorite_place_label(int p) {
-  return (get_favorite_place(p) == NULL) ? "NULL" : get_favorite_place(p)->get_label();
+const char * Activities::get_daily_activity_location_label(int p) {
+  return (get_daily_activity_location(p) == NULL) ? "NULL" : get_daily_activity_location(p)->get_label();
 }
 
 
-void Activities::set_favorite_place(int i, Place* place) {
+void Activities::set_daily_activity_location(int i, Place* place) {
   if (place) {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
   }
@@ -1858,7 +1858,7 @@ void Activities::set_favorite_place(int i, Place* place) {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to NULL\n",i);
   }
   // update link if necessary
-  Place* old_place = get_favorite_place(i);
+  Place* old_place = get_daily_activity_location(i);
   FRED_VERBOSE(1, "old place %s\n", old_place? old_place->get_label():"NULL");
   if (place != old_place) {
     if (old_place != NULL) {
@@ -1870,7 +1870,7 @@ void Activities::set_favorite_place(int i, Place* place) {
       link[i].enroll(myself, place);
     }
   }
-  FRED_VERBOSE(1, "set favorite place finished\n");
+  FRED_VERBOSE(1, "set daily activity location finished\n");
 }
 
 bool Activities::is_present(Person *self, int sim_day, Place *place) {
@@ -1886,8 +1886,8 @@ bool Activities::is_present(Person *self, int sim_day, Place *place) {
   }
 
   // see if this place is on the list
-  for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-    if(get_favorite_place(i) == place && this->on_schedule[i]) {
+  for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+    if(get_daily_activity_location(i) == place && this->on_schedule[i]) {
       return true;
     }
   }

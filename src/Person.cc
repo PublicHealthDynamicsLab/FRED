@@ -98,7 +98,7 @@ void Person::print(FILE* fp, int disease) {
           this->health.get_infectious_start_date(disease),
           this->health.get_infectious_end_date(disease));
   fprintf(fp, "sympt: %d ", this->health.get_symptoms_start_date(disease));
-  fprintf(fp, "places %d ", Activity_index::FAVORITE_PLACES);
+  fprintf(fp, "places %d ", Activity_index::DAILY_ACTIVITY_LOCATIONS);
   fprintf(fp, "infected_at %c %6d ",
           this->health.get_infected_place_type(disease),
           this->health.get_infected_place_id(disease));

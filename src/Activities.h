@@ -80,7 +80,7 @@ namespace Activity_index {
     OFFICE_ACTIVITY,
     HOSPITAL_ACTIVITY,
     AD_HOC_ACTIVITY,
-    FAVORITE_PLACES
+    DAILY_ACTIVITY_LOCATIONS
   };
 };
 
@@ -91,7 +91,7 @@ public:
 
   static const char* activity_lookup(int idx) {
     assert(idx >= 0);
-    assert(idx < Activity_index::FAVORITE_PLACES);
+    assert(idx < Activity_index::DAILY_ACTIVITY_LOCATIONS);
     switch(idx) {
     case Activity_index::HOUSEHOLD_ACTIVITY:
       return "Household";
@@ -204,15 +204,15 @@ public:
 
   unsigned char get_deme_id();
 
-  Place* get_favorite_place(int i) {
+  Place* get_daily_activity_location(int i) {
     return link[i].get_place();
   }
 
-  std::vector<Place*> get_favorite_places() {
+  std::vector<Place*> get_daily_activity_locations() {
     std::vector<Place*> faves;
     faves.clear();
-    for(int i = 0; i < Activity_index::FAVORITE_PLACES; ++i) {
-      Place* place = get_favorite_place(i);
+    for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
+      Place* place = get_daily_activity_location(i);
       if (place != NULL) {
 	faves.push_back(place);
       }
@@ -220,42 +220,42 @@ public:
     return faves;
   }
 
-  void set_favorite_place(int i, Place* place);
+  void set_daily_activity_location(int i, Place* place);
 
   void set_household(Place* p) {
-    set_favorite_place(Activity_index::HOUSEHOLD_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::HOUSEHOLD_ACTIVITY, p);
   }
 
   void set_neighborhood(Place* p) {
-    set_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::NEIGHBORHOOD_ACTIVITY, p);
   }
 
   void reset_neighborhood() {
-    set_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY, this->home_neighborhood);
+    set_daily_activity_location(Activity_index::NEIGHBORHOOD_ACTIVITY, this->home_neighborhood);
   }
 
   void set_school(Place* p) {
-    set_favorite_place(Activity_index::SCHOOL_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::SCHOOL_ACTIVITY, p);
   }
 
   void set_classroom(Place* p) {
-    set_favorite_place(Activity_index::CLASSROOM_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::CLASSROOM_ACTIVITY, p);
   }
 
   void set_workplace(Place* p) {
-    set_favorite_place(Activity_index::WORKPLACE_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::WORKPLACE_ACTIVITY, p);
   }
 
   void set_office(Place* p) {
-    set_favorite_place(Activity_index::OFFICE_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::OFFICE_ACTIVITY, p);
   }
 
   void set_hospital(Place* p) {
-    set_favorite_place(Activity_index::HOSPITAL_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::HOSPITAL_ACTIVITY, p);
   }
 
   void set_ad_hoc(Place* p) {
-    set_favorite_place(Activity_index::AD_HOC_ACTIVITY, p);
+    set_daily_activity_location(Activity_index::AD_HOC_ACTIVITY, p);
   }
 
   void move_to_new_house(Person* self, Place* house);
@@ -264,7 +264,7 @@ public:
   void change_workplace(Place* place, int include_office = 1);
 
   Place* get_stored_household() {
-    return this->stored_favorite_places[Activity_index::HOUSEHOLD_ACTIVITY];
+    return this->stored_daily_activity_locations[Activity_index::HOUSEHOLD_ACTIVITY];
   }
 
   /**
@@ -287,56 +287,56 @@ public:
    * @return a pointer to this agent's Household
    */
   Place* get_household() {
-    return get_favorite_place(Activity_index::HOUSEHOLD_ACTIVITY);
+    return get_daily_activity_location(Activity_index::HOUSEHOLD_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Neighborhood
    */
   Place* get_neighborhood() {
-    return get_favorite_place(Activity_index::NEIGHBORHOOD_ACTIVITY);
+    return get_daily_activity_location(Activity_index::NEIGHBORHOOD_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's School
    */
   Place* get_school() {
-    return get_favorite_place(Activity_index::SCHOOL_ACTIVITY);
+    return get_daily_activity_location(Activity_index::SCHOOL_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Classroom
    */
   Place* get_classroom() {
-    return get_favorite_place(Activity_index::CLASSROOM_ACTIVITY);
+    return get_daily_activity_location(Activity_index::CLASSROOM_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Workplace
    */
   Place* get_workplace() {
-    return get_favorite_place(Activity_index::WORKPLACE_ACTIVITY);
+    return get_daily_activity_location(Activity_index::WORKPLACE_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Office
    */
   Place* get_office() {
-    return get_favorite_place(Activity_index::OFFICE_ACTIVITY);
+    return get_daily_activity_location(Activity_index::OFFICE_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Hospital
    */
   Place* get_hospital() {
-    return get_favorite_place(Activity_index::HOSPITAL_ACTIVITY);
+    return get_daily_activity_location(Activity_index::HOSPITAL_ACTIVITY);
   }
 
   /**
    * @return a pointer to this agent's Ad Hoc location
    */
   Place* get_ad_hoc() {
-    return get_favorite_place(Activity_index::AD_HOC_ACTIVITY);
+    return get_daily_activity_location(Activity_index::AD_HOC_ACTIVITY);
   }
 
   /**
@@ -393,17 +393,17 @@ public:
   void terminate(Person* self);
 
   /**
-   * The agent begins traveling.  The favorite places for this agent are stored, and it gets a new schedule
+   * The agent begins traveling.  The daily activity locations for this agent are stored, and it gets a new schedule
    * based on the agent it is visiting.
    *
    * @param visited a pointer to the Person object being visited
-   * @see Activities::store_favorite_places()
+   * @see Activities::store_daily_activity_locations()
    */
   void start_traveling(Person* self, Person* visited);
 
   /**
-   * The agent stops traveling and returns to its original favorite places
-   * @see Activities::restore_favorite_places()
+   * The agent stops traveling and returns to its original daily activity locations
+   * @see Activities::restore_daily_activity_locations()
    */
   void stop_traveling(Person* self);
 
@@ -425,8 +425,8 @@ public:
   int get_household_size();
   int get_group_size(int index) {
     int size = 0;
-    if(get_favorite_place(index) != NULL) {
-      size = get_favorite_place(index)->get_size();
+    if(get_daily_activity_location(index) != NULL) {
+      size = get_daily_activity_location(index)->get_size();
     }
     return size;
   }
@@ -583,13 +583,13 @@ private:
   // pointer to owner
   Person* myself;
 
-  // links to favorite places
+  // links to daily activity locations
   Person_Place_Link * link;
 
-  std::bitset<Activity_index::FAVORITE_PLACES> on_schedule; // true iff favorite place is on schedule
+  std::bitset<Activity_index::DAILY_ACTIVITY_LOCATIONS> on_schedule; // true iff daily activity location is on schedule
 
-  // list of favorite places, stored while traveling
-  Place** stored_favorite_places;
+  // list of daily activity locations, stored while traveling
+  Place** stored_daily_activity_locations;
 
   //Primary Care Location
   Hospital* primary_healthcare_facility;
@@ -661,16 +661,16 @@ private:
   static int entered_school;
   static int left_school;
 
-  void clear_favorite_places();
-  void enroll_in_favorite_place(int i);
-  void enroll_in_favorite_places();
+  void clear_daily_activity_locations();
+  void enroll_in_daily_activity_location(int i);
+  void enroll_in_daily_activity_locations();
   void update_enrollee_index(Place * place, int new_index);
-  void unenroll_from_favorite_place(int i);
-  void unenroll_from_favorite_places();
-  void store_favorite_places();
-  void restore_favorite_places();
-  int get_favorite_place_id(int i);
-  const char * get_favorite_place_label(int i);
+  void unenroll_from_daily_activity_location(int i);
+  void unenroll_from_daily_activity_locations();
+  void store_daily_activity_locations();
+  void restore_daily_activity_locations();
+  int get_daily_activity_location_id(int i);
+  const char * get_daily_activity_location_label(int i);
   bool is_present(Person *self, int sim_day, Place *place);
 
 protected:

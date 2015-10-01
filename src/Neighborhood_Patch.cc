@@ -80,7 +80,7 @@ void Neighborhood_Patch::add_household(Household *p) {
   }
 }
 
-void Neighborhood_Patch::record_favorite_places() {
+void Neighborhood_Patch::record_daily_activity_locations() {
   Household * house;
   Person * per;
   Place * p;

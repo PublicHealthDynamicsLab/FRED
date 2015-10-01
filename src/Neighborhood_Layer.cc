@@ -113,7 +113,7 @@ void Neighborhood_Layer::setup(Place::Allocator<Neighborhood> & neighborhood_all
 }
 
 void Neighborhood_Layer::prepare() {
-  record_favorite_places();
+  record_daily_activity_locations();
   if (Enable_neighborhood_gravity_model) {
     FRED_VERBOSE(0, "setup gravity model ...\n");
     setup_gravity_model();
@@ -281,7 +281,7 @@ int Neighborhood_Layer::get_number_of_neighborhoods() {
   return n;
 }
 
-void Neighborhood_Layer::record_favorite_places() {
+void Neighborhood_Layer::record_daily_activity_locations() {
 #pragma omp parallel
   {
     int partial_popsize = 0;
@@ -291,7 +291,7 @@ void Neighborhood_Layer::record_favorite_places() {
       for(int col = 0; col < this->cols; col++) {
         Neighborhood_Patch * patch = (Neighborhood_Patch *)&this->grid[row][col];
         if(patch->get_houses() > 0) {
-          patch->record_favorite_places();
+          patch->record_daily_activity_locations();
           partial_popsize += patch->get_neighborhood()->get_size();
           partial_households += patch->get_houses();
         }

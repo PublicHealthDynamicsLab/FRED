@@ -180,7 +180,7 @@ void fred_setup(int argc, char* argv[]) {
   Utils::fred_print_lap_time("Diseases.setup");
 
   // read in the population and have each person enroll
-  // in each favorite place identified in the population file
+  // in each daily activity location identified in the population file
   Utils::fred_print_wall_time("\nFRED Pop.setup started");
   Global::Pop.setup();
   Utils::fred_print_wall_time("FRED Pop.setup finished");

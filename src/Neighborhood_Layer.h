@@ -77,9 +77,9 @@ public:
   vector < Place * > get_households_by_distance(fred::geo lat, fred::geo lon, double radius_in_km);
 
   /**
-   * Make each patch in this layer store its favorite places, and then set popsize and households
+   * Make each patch in this layer store its daily activity locations, and then set popsize and households
    */
-  void record_favorite_places();
+  void record_daily_activity_locations();
 
   /**
    * @return the popsize
