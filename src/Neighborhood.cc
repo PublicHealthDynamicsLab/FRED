@@ -23,9 +23,10 @@
 #include "Disease_List.h"
 
 //Private static variables that will be set by parameter lookups
-double Neighborhood::contacts_per_day;
-double** Neighborhood::prob_transmission_per_contact;
-double Neighborhood::weekend_contact_rate;
+double Neighborhood::contacts_per_day = 0.0;
+double Neighborhood::same_age_bias = 0.0;
+double** Neighborhood::prob_transmission_per_contact = NULL;
+double Neighborhood::weekend_contact_rate = 0.0;
 
 Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
 			    fred::geo lat) {
@@ -36,6 +37,7 @@ Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred:
 
 void Neighborhood::get_parameters() {
   Params::get_param_from_string("neighborhood_contacts", &Neighborhood::contacts_per_day);
+  Params::get_param_from_string("neighborhood_same_age_bias", &Neighborhood::same_age_bias);
   int n = Params::get_param_matrix((char *)"neighborhood_trans_per_contact", &Neighborhood::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nNeighborhood_contact_prob:\n");
@@ -99,6 +101,17 @@ int Neighborhood::get_group(int disease, Person * per) {
   int age = per->get_age();
   if (age < Global::ADULT_AGE) { return 0; }
   else { return 1; }
+}
+
+double Neighborhood::get_transmission_probability(int disease, Person * i, Person * s) {
+  int age_i = i->get_age();
+  int age_s = s->get_age();
+  double diff = fabs(age_i - age_s);
+  double prob = 1.0 - Neighborhood::same_age_bias * diff;
+  if (prob < 0.0) {
+    prob = 0.0;
+  }
+  return prob;
 }
 
 double Neighborhood::get_transmission_prob(int disease, Person * i, Person * s) {

@@ -49,6 +49,8 @@ public:
    */
   int get_group(int disease, Person * per);
 
+  double get_transmission_probability(int disease, Person * i, Person * s);
+
   /**
    * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
    *
@@ -87,6 +89,7 @@ public:
 
 private:
   static double contacts_per_day;
+  static double same_age_bias;
   static double** prob_transmission_per_contact;
   static double weekend_contact_rate;
 };

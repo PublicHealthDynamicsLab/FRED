@@ -171,6 +171,10 @@ public:
    * @param s a pointer to a Person object
    * @return the probability that there will be a transmission of disease_id from i to s
    */
+  virtual double get_transmission_probability(int disease_id, Person * i, Person * s) {
+    return 1.0;
+  }
+
   virtual double get_transmission_prob(int disease_id, Person * i, Person * s) = 0;
 
   virtual double get_contacts_per_day(int disease_id) = 0; // access functions

@@ -226,6 +226,7 @@ public:
   static double School_absenteeism;
 
   //Boolean flags
+  static bool Enable_Transmission_Bias;
   static bool Enable_New_Transmission_Model;
   static bool Enable_Hospitals;
   static bool Enable_Health_Insurance;

@@ -138,15 +138,6 @@ void Place::update(int day) {
   // stub for future use.
 }
 
-/*
-double Place::get_transmission_prob(double*** contact_prob_matrix, int disease_id, Person* infector, Person* infectee) {
-  int row = get_group(disease_id, infector);
-  int col = get_group(disease_id, infectee);
-  double trans_prob = contact_prob[disease_id][row][col];
-  return trans_prob;
-}
-*/
-
 void Place::reset_visualization_data(int day) {
   for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
     this->new_infections[d] = 0;

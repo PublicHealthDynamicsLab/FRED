@@ -195,6 +195,7 @@ vaccine_offset = 0
 
 # test new transmission model if set
 enable_new_transmission_model = 0
+enable_transmission_bias = 0
 
 ##########################################################
 #
@@ -670,6 +671,8 @@ hospital_contacts = 0
 R0_a = 0.0312423
 R0_b = 0.670742
 R0 = -1.0
+
+neighborhood_same_age_bias = 0.0
 
 ##################### END FRED 3.x
 

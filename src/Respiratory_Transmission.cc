@@ -255,7 +255,13 @@ void Respiratory_Transmission::default_transmission_model(int day, int disease_i
 	continue;
       }
       // get the transmission probs for given infector/infectee pair
-      double transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+      double transmission_prob = 1.0;
+      if (Global::Enable_Transmission_Bias) {
+	transmission_prob = place->get_transmission_probability(disease_id, infector, infectee);
+      }
+      else {
+	transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+      }
       for(int draw = 0; draw < times_drawn; ++draw) {
         // only proceed if person is susceptible
         if(infectee->is_susceptible(disease_id)) {
@@ -315,7 +321,13 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
       // only proceed if person is susceptible
       if(infectee->is_susceptible(disease_id)) {
 	// get the transmission probs for infector/infectee pair
-	double transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+	double transmission_prob = 1.0;
+	if (Global::Enable_Transmission_Bias) {
+	  transmission_prob = place->get_transmission_probability(disease_id, infector, infectee);
+	}
+	else {
+	  transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+	}
 	double infectivity = infector->get_infectivity(disease_id, day);
 	// scale transmission prob by infectivity and contact prob
 	transmission_prob *= infectivity * contact_prob;     
