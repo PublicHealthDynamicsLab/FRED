@@ -27,8 +27,10 @@
 #include "Neighborhood.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
+#include "Network.h"
 #include "Params.h"
 #include "Person.h"
+#include "Person_Network_Link.h"
 #include "Place.h"
 #include "Place_List.h"
 #include "Random.h"
@@ -171,6 +173,7 @@ Activities::Activities() {
   this->grade = 0;
   this->return_from_travel_sim_day = -1;
   this->link = new Person_Place_Link [Activity_index::DAILY_ACTIVITY_LOCATIONS];
+  this->networks.clear();
 }
 
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
@@ -1892,5 +1895,49 @@ bool Activities::is_present(Person *self, int sim_day, Place *place) {
     }
   }
   return false;
+}
+
+void Activities::add_network_link_to(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->add_link_to(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::add_network_link_from(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->add_link_from(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::delete_network_link_to(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->delete_link_to(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::delete_network_link_from(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->delete_link_from(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
 }
 

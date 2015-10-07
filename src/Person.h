@@ -24,6 +24,7 @@ class Place;
 class Household;
 class Disease;
 class Infection;
+class Network;
 class Population;
 
 #include "Demographics.h"
@@ -924,6 +925,22 @@ public:
 
   void set_grade(int n) {
     this->activities.set_grade(n);
+  }
+
+  void add_network_link_to(Person * person, Network * network) {
+    this->activities.add_network_link_to(person, network);
+  }
+
+  void add_network_link_from(Person * person, Network * network) {
+    this->activities.add_network_link_from(person, network);
+  }
+
+  void delete_network_link_to(Person * person, Network * network) {
+    this->activities.delete_network_link_to(person, network);
+  }
+
+  void delete_network_link_from(Person * person, Network * network) {
+    this->activities.delete_network_link_from(person, network);
   }
 
 private:

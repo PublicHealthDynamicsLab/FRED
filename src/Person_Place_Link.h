@@ -44,7 +44,7 @@ class Person_Place_Link {
     return enrollee_index != -1;
   }
 
- private:
+ protected:
   Place * place;
   int enrollee_index;
 };

@@ -125,7 +125,7 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 	Vector_Layer.o Vector_Patch.o
 
 AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
-	Behavior.o Intention.o Perceptions.o Travel.o Population.o 
+	Behavior.o Intention.o Perceptions.o Travel.o Population.o Person_Network_Link.o
 
 DISEASE_MODULE = Disease.o Epidemic.o Infection.o HIV_Infection.o \
 	Natural_History.o HIV_Natural_History.o Transmission.o \
@@ -133,7 +133,7 @@ DISEASE_MODULE = Disease.o Epidemic.o Infection.o HIV_Infection.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o 
 
 PLACE_MODULE = Place.o Household.o Neighborhood.o School.o Classroom.o \
-	Workplace.o Office.o Hospital.o Place_List.o 
+	Workplace.o Office.o Hospital.o Place_List.o Network.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 	Antiviral.o Antivirals.o AV_Decisions.o AV_Policies.o AV_Manager.o AV_Health.o \

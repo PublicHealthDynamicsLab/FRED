@@ -32,7 +32,9 @@ using namespace std;
 
 class Age_Map;
 class Activities_Tracking_Data;
+class Network;
 class Person;
+class Person_Network_Link;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -578,6 +580,14 @@ public:
     return this->return_from_travel_sim_day;
   }
 
+  void add_network_link_to(Person * person, Network * network);
+
+  void add_network_link_from(Person * person, Network * network);
+
+  void delete_network_link_to(Person * person, Network * network);
+
+  void delete_network_link_from(Person * person, Network * network);
+
 private:
 
   // pointer to owner
@@ -585,6 +595,9 @@ private:
 
   // links to daily activity locations
   Person_Place_Link * link;
+
+  // links to networks of people
+  std::vector<Person_Network_Link*> networks;
 
   std::bitset<Activity_index::DAILY_ACTIVITY_LOCATIONS> on_schedule; // true iff daily activity location is on schedule
 

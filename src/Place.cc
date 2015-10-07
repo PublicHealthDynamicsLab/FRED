@@ -45,6 +45,7 @@ char Place::WORKPLACE = 'W';
 char Place::OFFICE = 'O';
 char Place::HOSPITAL = 'M';
 char Place::COMMUNITY = 'X';
+char Place::NETWORK = 'n';
 
 
 void Place::setup(const char* lab, fred::geo lon, fred::geo lat) {

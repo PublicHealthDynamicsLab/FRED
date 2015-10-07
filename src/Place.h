@@ -41,6 +41,7 @@ public:
   static char OFFICE;
   static char HOSPITAL;
   static char COMMUNITY;
+  static char NETWORK;
 
   virtual ~Place() {}
 
