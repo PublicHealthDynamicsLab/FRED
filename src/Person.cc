@@ -88,33 +88,24 @@ void Person::print(FILE* fp, int disease) {
   if(fp == NULL) {
     return;
   }
-  fprintf(fp, "%d id %7d  a %3d  s %c %d",
+  fprintf(fp, "%d id %7d  a %3d  s %c r %d ",
           disease, id,
           this->demographics.get_age(),
           this->demographics.get_sex(),
           this->demographics.get_race());
-  fprintf(fp, "exp: %2d  inf: %2d  rem: %2d ",
-          this->health.get_exposure_date(disease),
-          this->health.get_infectious_start_date(disease),
-          this->health.get_infectious_end_date(disease));
-  fprintf(fp, "sympt: %d ", this->health.get_symptoms_start_date(disease));
-  fprintf(fp, "places %d ", Activity_index::DAILY_ACTIVITY_LOCATIONS);
+  fprintf(fp, "exp: %2d ",
+          this->health.get_exposure_date(disease));
   fprintf(fp, "infected_at %c %6d ",
           this->health.get_infected_place_type(disease),
-          this->health.get_infected_place_id(disease));
-  Person* infector = this->health.get_infector(disease);
-  int infector_id;
-  if(infector == NULL) {
-    infector_id = -1;
-  } else {
-    infector_id = infector->get_id();
-  }
-  fprintf(fp, "infector %d ", infector_id);
+	  this->health.get_infected_place_id(disease));
+  fprintf(fp, "infector %d ", health.get_infector_id(disease));
   fprintf(fp, "infectees %d ", this->health.get_infectees(disease));
+  /*
   fprintf(fp, "antivirals: %2d ", this->health.get_number_av_taken());
   for(int i=0; i < this->health.get_number_av_taken(); ++i) {
     fprintf(fp," %2d", this->health.get_av_start_day(i));
   }
+  */
   fprintf(fp,"\n");
   fflush(fp);
 }

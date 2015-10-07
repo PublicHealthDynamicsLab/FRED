@@ -680,6 +680,10 @@ public:
     return vector_control_status;
   }
 
+  void set_id(int _id) {
+    this->id = _id;
+  }
+
 protected:
   char label[32];         // external id
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;
@@ -732,11 +736,6 @@ protected:
   friend class Place_List;
   friend class Neighborhood_Layer;
   friend class Neighborhood_Patch;
-
-  // friend Place_List can assign id
-  void set_id(int _id) {
-    this->id = _id;
-  }
 
   void add_infectious_visitor(int disease_id, Person * person) { 
     this->infectious_people[disease_id].push_back(person);

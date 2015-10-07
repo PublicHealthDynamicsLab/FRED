@@ -22,6 +22,7 @@
 #include "Disease_List.h"
 #include "Place_List.h"
 #include "Neighborhood_Layer.h"
+#include "Network.h"
 #include "Regional_Layer.h"
 #include "Vaccine_Manager.h"
 #include "Visualization_Layer.h"
@@ -228,6 +229,12 @@ void fred_setup(int argc, char* argv[]) {
   FRED_STATUS(0, "deleting place_label_map\n", "");
   Global::Places.delete_place_label_map();
   FRED_STATUS(0, "prepare places finished\n", "");
+
+  // create networks if needed
+  if(Global::Enable_Transmission_Network) {
+    Global::Transmission_Network = new Network("Transmission_Network",fred::PLACE_SUBTYPE_NONE, 0.0, 90.0);
+    Global::Transmission_Network->set_id(Global::Places.get_new_place_id());
+  }
 
   if(Global::Enable_Travel) {
     Utils::fred_print_wall_time("\nFRED Travel setup started");
@@ -485,6 +492,10 @@ void fred_finish() {
   Global::Pop.end_of_run();
   Global::Places.end_of_run();
   Global::Diseases.end_of_run();
+
+  if(Global::Enable_Transmission_Network) {
+    Global::Transmission_Network->print();
+  }
 
   // close all open output files with global file pointers
   Utils::fred_end();

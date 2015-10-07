@@ -196,6 +196,7 @@ vaccine_offset = 0
 # test new transmission model if set
 enable_new_transmission_model = 0
 enable_transmission_bias = 0
+enable_transmission_network = 0
 
 ##########################################################
 #

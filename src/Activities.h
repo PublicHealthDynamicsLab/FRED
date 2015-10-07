@@ -580,6 +580,14 @@ public:
     return this->return_from_travel_sim_day;
   }
 
+  void create_network_link_to(Person * person, Network * network);
+
+  void create_network_link_from(Person * person, Network * network);
+
+  void destroy_network_link_to(Person * person, Network * network);
+
+  void destroy_network_link_from(Person * person, Network * network);
+
   void add_network_link_to(Person * person, Network * network);
 
   void add_network_link_from(Person * person, Network * network);
@@ -587,6 +595,12 @@ public:
   void delete_network_link_to(Person * person, Network * network);
 
   void delete_network_link_from(Person * person, Network * network);
+
+  void join_transmission_network(Person * self);
+
+  bool is_enrolled_in_network(Network * network);
+
+  void print_transmission_network(FILE *fp, Person * self);
 
 private:
 

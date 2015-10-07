@@ -134,6 +134,7 @@ public:
   int get_symptoms_start_date(int disease_id) const;
   int get_symptoms_end_date(int disease_id) const;
   int get_immunity_end_date(int disease_id) const;
+  int get_infector_id(int disease_id) const;
   Person* get_infector(int disease_id) const;
   Place* get_infected_place(int disease_id) const;
   int get_infected_place_id(int disease_id) const;
@@ -645,6 +646,9 @@ private:
   double* susceptibility_multp;
   int* infectee_count;
   int* immunity_end_date;
+  int* exposure_date;
+  int* infector_id;
+  Place** place_infected;
   int days_symptomatic; 			// over all diseases
 
   // living or not?

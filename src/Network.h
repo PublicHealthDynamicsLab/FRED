@@ -54,6 +54,8 @@ public:
     return true;
   }
 
+  void print();
+
 private:
   static double contacts_per_day;
   static double** prob_transmission_per_contact;

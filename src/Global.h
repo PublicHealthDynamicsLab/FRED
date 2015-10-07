@@ -52,6 +52,7 @@ using namespace std::chrono;
 
 class Population;
 class Disease_List;
+class Network;
 class Place;
 class Place_List;
 class Neighborhood_Layer;
@@ -226,6 +227,7 @@ public:
   static double School_absenteeism;
 
   //Boolean flags
+  static bool Enable_Transmission_Network;
   static bool Enable_Transmission_Bias;
   static bool Enable_New_Transmission_Model;
   static bool Enable_Hospitals;
@@ -285,6 +287,7 @@ public:
   static Tracker<long int>* Tract_Tracker;
   static Tracker<int>* Income_Category_Tracker;
   static int Popsize_by_age[];
+  static Network* Transmission_Network;
 
   // global file pointers
   static FILE* Statusfp;

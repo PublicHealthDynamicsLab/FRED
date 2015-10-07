@@ -33,6 +33,7 @@ class Person_Network_Link: public Person_Place_Link {
   void add_link_from(Person* person);
   void delete_link_to(Person* person);
   void delete_link_from(Person* person);
+  void print(FILE *fp);
 
  private:
   Person * myself;

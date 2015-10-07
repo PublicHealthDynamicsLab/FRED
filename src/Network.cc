@@ -94,3 +94,19 @@ double Network::get_transmission_prob(int disease, Person * i, Person * s) {
 double Network::get_contacts_per_day(int disease) {
   return Network::contacts_per_day;
 }
+
+void Network::print() {
+  char filename[64];
+  sprintf(filename, "%s/%s.txt", Global::Simulation_directory, get_label());
+  FILE *link_fileptr = fopen(filename,"w");
+  sprintf(filename, "%s/%s-people.txt", Global::Simulation_directory, get_label());
+  FILE *people_fileptr = fopen(filename,"w");
+  int size = get_size();
+  for (int i = 0; i < size; i++) {
+    Person * person = get_enrollee(i);
+    person->print_transmission_network(link_fileptr);
+    person->print(people_fileptr,0);
+  }
+  fclose(link_fileptr);
+  fclose(people_fileptr);
+}

@@ -927,6 +927,22 @@ public:
     this->activities.set_grade(n);
   }
 
+  void create_network_link_to(Person * person, Network * network) {
+    this->activities.create_network_link_to(person, network);
+  }
+
+  void destroy_network_link_to(Person * person, Network * network) {
+    this->activities.destroy_network_link_to(person, network);
+  }
+
+  void create_network_link_from(Person * person, Network * network) {
+    this->activities.create_network_link_from(person, network);
+  }
+
+  void destroy_network_link_from(Person * person, Network * network) {
+    this->activities.destroy_network_link_from(person, network);
+  }
+
   void add_network_link_to(Person * person, Network * network) {
     this->activities.add_network_link_to(person, network);
   }
@@ -941,6 +957,14 @@ public:
 
   void delete_network_link_from(Person * person, Network * network) {
     this->activities.delete_network_link_from(person, network);
+  }
+
+  void join_transmission_network() {
+    this->activities.join_transmission_network(this);
+  }
+
+  void print_transmission_network(FILE *fp) {
+    this->activities.print_transmission_network(fp, this);
   }
 
 private:

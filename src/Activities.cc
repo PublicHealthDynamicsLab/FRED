@@ -1897,6 +1897,50 @@ bool Activities::is_present(Person *self, int sim_day, Place *place) {
   return false;
 }
 
+void Activities::create_network_link_to(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->create_link_to(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::create_network_link_from(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->create_link_from(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::destroy_network_link_to(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->destroy_link_to(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
+void Activities::destroy_network_link_from(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->destroy_link_from(person);
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+
 void Activities::add_network_link_to(Person * person, Network * network) {
   int size = networks.size();
   for (int i = 0; i < size; i++) {
@@ -1939,5 +1983,36 @@ void Activities::delete_network_link_from(Person * person, Network * network) {
     }
   }
   Utils::fred_abort("network not found");
+}
+
+void Activities::join_transmission_network(Person * self) {
+  FRED_VERBOSE(0, "JOINING TRANS NET: id = %d\n", self->get_id());
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == Global::Transmission_Network) {
+      return;
+    }
+  }
+  Person_Network_Link * network_link = new Person_Network_Link(self, Global::Transmission_Network);
+  networks.push_back(network_link);
+}
+
+bool Activities::is_enrolled_in_network(Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == Global::Transmission_Network) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Activities::print_transmission_network(FILE *fp, Person * self) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == Global::Transmission_Network) {
+      networks[i]->print(fp);
+    }
+  }
 }
 

@@ -74,6 +74,7 @@ char Global::Start_date[FRED_STRING_SIZE];
 char Global::Seasonality_Timestep[FRED_STRING_SIZE];
 double Global::Work_absenteeism = 0.0;
 double Global::School_absenteeism = 0.0;
+bool Global::Enable_Transmission_Network = false;
 bool Global::Enable_Transmission_Bias = false;
 bool Global::Enable_New_Transmission_Model = false;
 bool Global::Enable_Hospitals = false;
@@ -137,6 +138,7 @@ Seasonality* Global::Clim = NULL;
 Tracker<int>* Global::Daily_Tracker = NULL;
 Tracker<long int>* Global::Tract_Tracker = NULL;
 Tracker<int>* Global::Income_Category_Tracker = NULL;
+Network* Global::Transmission_Network = NULL;
 
 // global file pointers
 FILE* Global::Statusfp = NULL;
@@ -197,6 +199,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Size_Per_School = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_mean_household_distance_from_school", &temp_int);
   Global::Report_Mean_Household_Distance_From_School = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_transmission_network", &temp_int);
+  Global::Enable_Transmission_Network = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_transmission_bias", &temp_int);
   Global::Enable_Transmission_Bias = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_new_transmission_model", &temp_int);

@@ -15,12 +15,12 @@
 
 
 Person_Network_Link::Person_Network_Link(Person * person, Network * network) {
-  this->place = network;
+  this->place = NULL;
   this->enrollee_index = -1;
   this->myself = person;
   links_to.clear();
   links_from.clear();
-  enroll(this->myself, this->place);
+  enroll(this->myself, network);
 }
 
 void Person_Network_Link::remove_from_network() {
@@ -112,3 +112,19 @@ void Person_Network_Link::delete_link_from(Person* person) {
 
 
 
+void Person_Network_Link::print(FILE *fp) {
+  fprintf(fp,"%d : ", this->myself->get_id());
+  int size = links_to.size();
+  for (int i = 0; i < size; i++) {
+    fprintf(fp," %d", links_to[i]->get_id());
+  }
+  fprintf(fp,"\n");
+  return;
+
+  fprintf(fp,"%d from : ", this->myself->get_id());
+  size = links_from.size();
+  for (int i = 0; i < size; i++) {
+    fprintf(fp," %d", links_from[i]->get_id());
+  }
+  fprintf(fp,"\n\n");
+}

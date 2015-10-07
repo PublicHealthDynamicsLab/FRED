@@ -253,6 +253,9 @@ Health::Health() {
   this->immunity_end_date = NULL;
   this->infectee_count = NULL;
   this->susceptibility_multp = NULL;
+  this->exposure_date = NULL;
+  this->infector_id = NULL;
+  this->place_infected = NULL;
 }
 
 void Health::setup(Person* self) {
@@ -295,6 +298,9 @@ void Health::setup(Person* self) {
   this->infection = new Infection* [diseases];
   this->susceptibility_multp = new double [diseases];
   this->infectee_count = new int [diseases];
+  this->exposure_date = new int [diseases];
+  this->infector_id = new int [diseases];
+  this->place_infected = new Place * [diseases];
   this->immunity_end_date = new int [diseases];
   this->past_infections = new past_infections_type [diseases];
 
@@ -304,6 +310,9 @@ void Health::setup(Person* self) {
     this->infection[disease_id] = NULL;
     this->susceptibility_multp[disease_id] = 1.0;
     this->infectee_count[disease_id] = 0;
+    this->exposure_date[disease_id] = -1;
+    this->infector_id[disease_id] = -1;
+    this->place_infected[disease_id] = NULL;
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
 
@@ -431,6 +440,11 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
   }
+  if (infector != NULL) {
+    this->infector_id[disease_id] = infector->get_id();
+  }
+  this->exposure_date[disease_id] = day;
+  this->place_infected[disease_id] = place;
 
   if(Global::Verbose > 0) {
     if(place == NULL) {
@@ -659,11 +673,7 @@ void Health::advance_seed_infection(int disease_id, int days_to_advance) {
 }
 
 int Health::get_exposure_date(int disease_id) const {
-  if(this->infection[disease_id] == NULL) {
-    return -1;
-  } else {
-    return this->infection[disease_id]->get_exposure_date();
-  }
+  return this->exposure_date[disease_id];
 }
 
 int Health::get_infectious_start_date(int disease_id) const {
@@ -707,6 +717,10 @@ bool Health::is_recovered(int disease_id) {
 }
 
 
+int Health::get_infector_id(int disease_id) const {
+  return infector_id[disease_id];
+}
+
 Person* Health::get_infector(int disease_id) const {
   if(this->infection[disease_id] == NULL) {
     return NULL;
@@ -716,11 +730,7 @@ Person* Health::get_infector(int disease_id) const {
 }
 
 Place* Health::get_infected_place(int disease_id) const {
-  if(this->infection[disease_id] == NULL) {
-    return NULL;
-  } else {
-    return this->infection[disease_id]->get_place();
-  }
+  return place_infected[disease_id];
 }
 
 int Health::get_infected_place_id(int disease_id) const {
@@ -955,6 +965,13 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Place* place
 
   FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
 	      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
+
+  if(Global::Enable_Transmission_Network) {
+    FRED_VERBOSE(0, "Adding pair to transmission network: %d %d\n", self->get_id(),infectee->get_id());
+    self->join_transmission_network();
+    infectee->join_transmission_network();
+    self->create_network_link_to(infectee, Global::Transmission_Network);
+  }
 }
 
 void Health::update_place_counts(Person* self, int day, int disease_id, Place* place) {
