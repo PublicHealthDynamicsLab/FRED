@@ -2016,3 +2016,59 @@ void Activities::print_transmission_network(FILE *fp, Person * self) {
   }
 }
 
+bool Activities::is_connected_to(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      return networks[i]->is_connected_to(person);
+    }
+  }
+  Utils::fred_abort("network not found");
+  return false;
+}
+
+
+bool Activities::is_connected_from(Person * person, Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      return networks[i]->is_connected_from(person);
+    }
+  }
+  Utils::fred_abort("network not found");
+  return false;
+}
+
+int Activities::get_out_degree(Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      return networks[i]->get_out_degree();
+    }
+  }
+  Utils::fred_abort("network not found");
+  return 0;
+}
+
+int Activities::get_in_degree(Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      return networks[i]->get_in_degree();
+    }
+  }
+  Utils::fred_abort("network not found");
+  return 0;
+}
+
+void Activities::clear_network(Network * network) {
+  int size = networks.size();
+  for (int i = 0; i < size; i++) {
+    if (networks[i]->get_place() == network) {
+      networks[i]->clear();
+      return;
+    }
+  }
+  Utils::fred_abort("network not found");
+}
+

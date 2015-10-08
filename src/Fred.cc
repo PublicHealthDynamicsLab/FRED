@@ -51,6 +51,7 @@ class Place;
 #include <cstdlib>
 #include <cxxabi.h>
 
+
 //FRED main program
 
 int main(int argc, char* argv[]) {
@@ -234,6 +235,7 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Enable_Transmission_Network) {
     Global::Transmission_Network = new Network("Transmission_Network",fred::PLACE_SUBTYPE_NONE, 0.0, 90.0);
     Global::Transmission_Network->set_id(Global::Places.get_new_place_id());
+    Global::Transmission_Network->test();
   }
 
   if(Global::Enable_Travel) {
@@ -501,3 +503,4 @@ void fred_finish() {
   Utils::fred_end();
 
 }
+

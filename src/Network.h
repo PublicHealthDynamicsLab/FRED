@@ -19,42 +19,31 @@
 
 #include "Place.h"
 
-
-/**
- * This class represents an activity network in the FRED application. It
- * inherits from <code>Place</code>.  The class contains static
- * variables that will be filled with values from the parameter file.
- *
- * @see Place
- */
 class Network: public Place {
 public: 
 
   Network() {}
-
   ~Network() {}
-
   Network( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
-
   static void get_parameters();
-
   int get_group(int disease, Person * per) {
     return 0;
   }
-
   int get_container_size() {
     return get_size();
   }
-
   double get_transmission_prob(int disease, Person * i, Person * s);
-
   double get_contacts_per_day(int disease);
-
   bool should_be_open(int day, int disease) {
     return true;
   }
-
   void print();
+  void print_stdout();
+  bool is_connected_to(Person * p1, Person *p2);
+  bool is_connected_from(Person * p1, Person *p2);
+  double get_mean_degree();
+  void test();
+  void create_random_network(double mean_degree);
 
 private:
   static double contacts_per_day;

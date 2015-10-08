@@ -113,7 +113,7 @@ void Person_Network_Link::delete_link_from(Person* person) {
 
 
 void Person_Network_Link::print(FILE *fp) {
-  fprintf(fp,"%d : ", this->myself->get_id());
+  fprintf(fp,"%d ->", this->myself->get_id());
   int size = links_to.size();
   for (int i = 0; i < size; i++) {
     fprintf(fp," %d", links_to[i]->get_id());
@@ -121,10 +121,30 @@ void Person_Network_Link::print(FILE *fp) {
   fprintf(fp,"\n");
   return;
 
-  fprintf(fp,"%d from : ", this->myself->get_id());
   size = links_from.size();
   for (int i = 0; i < size; i++) {
-    fprintf(fp," %d", links_from[i]->get_id());
+    fprintf(fp,"%d ", links_from[i]->get_id());
   }
-  fprintf(fp,"\n\n");
+  fprintf(fp,"-> %d\n\n", this->myself->get_id());
 }
+
+bool Person_Network_Link::is_connected_to(Person * person) {
+  int size = links_to.size();
+  for (int i = 0; i < size; i++) {
+    if (links_to[i] == person) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Person_Network_Link::is_connected_from(Person * person) {
+  int size = links_from.size();
+  for (int i = 0; i < size; i++) {
+    if (links_from[i] == person) {
+      return true;
+    }
+  }
+  return false;
+}
+

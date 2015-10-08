@@ -454,6 +454,11 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
     }
   }
 
+  if(Global::Enable_Transmission_Network) {
+    FRED_VERBOSE(0, "Joining transmission network: %d\n", self->get_id());
+    self->join_transmission_network();
+  }
+
   if (Global::Enable_Vector_Transmission && Global::Diseases.get_number_of_diseases() > 1) {
     // special check for multi-serotype dengue:
     if(this->previous_infection_serotype == -1) {
@@ -967,9 +972,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Place* place
 	      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
 
   if(Global::Enable_Transmission_Network) {
-    FRED_VERBOSE(0, "Adding pair to transmission network: %d %d\n", self->get_id(),infectee->get_id());
-    self->join_transmission_network();
-    infectee->join_transmission_network();
+    FRED_VERBOSE(0, "Creating link in transmission network: %d -> %d\n", self->get_id(), infectee->get_id());
     self->create_network_link_to(infectee, Global::Transmission_Network);
   }
 }

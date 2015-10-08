@@ -19,8 +19,10 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+// #include "Disease.h"
+// #include "Disease_List.h"
+
+#include "Population.h" // for test only
 
 //Private static variables that will be set by parameter lookups
 double Network::contacts_per_day;
@@ -109,4 +111,119 @@ void Network::print() {
   }
   fclose(link_fileptr);
   fclose(people_fileptr);
+}
+
+void Network::print_stdout() {
+  int size = get_size();
+  for (int i = 0; i < size; i++) {
+    Person * person = get_enrollee(i);
+    person->print_transmission_network(stdout);
+  }
+  printf("mean degree = %0.2f\n", get_mean_degree());
+  printf("=======================\n\n");
+  fflush(stdout);
+}
+
+bool Network::is_connected_to(Person * p1, Person *p2) {
+  return p1->is_connected_to(p2, this);
+}
+
+bool Network::is_connected_from(Person * p1, Person *p2) {
+  return p1->is_connected_from(p2, this);
+}
+
+
+double Network::get_mean_degree() {
+  int size = get_size();
+  int total_out = 0;
+  for (int i = 0; i < size; i++) {
+    Person * person = get_enrollee(i);
+    int out_degree = person->get_out_degree(this);
+    total_out += out_degree;
+  }
+  double mean = 0.0;
+  if (size) {
+    mean = (double) total_out / (double) size;
+  }
+  return mean;
+}
+
+void Network::test() {
+  return;
+
+  for (int i = 0; i < 50; i++) {
+    Person * p = Global::Pop.select_random_person();
+    p->join_transmission_network();
+  }
+
+  printf("create_random_network(1.0)\n");
+  create_random_network(1.0);
+  print_stdout();
+  
+  printf("create_random_network(4.0)\n");
+  create_random_network(4.0);
+  print_stdout();
+  exit(0);
+
+  Person* p1 = Global::Pop.select_random_person();
+  printf("p1 %d\n", p1->get_id());
+  p1->join_transmission_network();
+
+  Person* p2 = Global::Pop.select_random_person();
+  printf("p2 %d\n", p2->get_id());
+  p2->join_transmission_network();
+
+  Person* p3 = Global::Pop.select_random_person();
+  printf("p3 %d\n", p3->get_id());
+  p3->join_transmission_network();
+
+  printf("empty net:\n");
+  print_stdout();
+
+  printf ("p1->create_network_link_to(p2, this);\np2->create_network_link_to(p3, this);\n");
+  p1->create_network_link_to(p2, this);
+  p2->create_network_link_to(p3, this);
+  print_stdout();
+
+  printf("p1->create_network_link_from(p3, this);\n");
+  p1->create_network_link_from(p3, this);
+  print_stdout();
+
+  printf("p2->destroy_network_link_from(p1, this);\n");
+  p2->destroy_network_link_from(p1, this);
+  print_stdout();
+
+  printf("p2->create_network_link_to(p1, this);\n");
+  p2->create_network_link_to(p1, this);
+  print_stdout();
+
+}
+
+void Network::create_random_network(double mean_degree) {
+  int size = get_size();
+  if (size < 2) {
+    return;
+  }
+  for (int i = 0; i < size; i++) {
+    Person * person = get_enrollee(i);
+    person->clear_network(this);
+  }
+  // print_stdout();
+  int number_edges = mean_degree * size + 0.5;
+  printf("size = %d  edges = %d\n\n", size, number_edges);
+  int i = 0;
+  while (i < number_edges) {
+    int pos1 = Random::draw_random_int(0, size-1);
+    Person * src = get_enrollee(pos1);
+    int pos2 = pos1;
+    while (pos2 == pos1) {
+      pos2 = Random::draw_random_int(0, size-1);
+    }
+    Person * dest = get_enrollee(pos2);
+    // printf("edge from %d to %d\n", src->get_id(), dest->get_id());
+    if (src->is_connected_to(dest, this) == false) {
+      src->create_network_link_to(dest, this);
+      i++;
+    }
+  }
 }

@@ -927,6 +927,8 @@ public:
     this->activities.set_grade(n);
   }
 
+  // convenience methods for Networks
+
   void create_network_link_to(Person * person, Network * network) {
     this->activities.create_network_link_to(person, network);
   }
@@ -965,6 +967,26 @@ public:
 
   void print_transmission_network(FILE *fp) {
     this->activities.print_transmission_network(fp, this);
+  }
+
+  bool is_connected_to(Person * person, Network * network) {
+    return this->activities.is_connected_to(person, network);
+  }
+
+  bool is_connected_from(Person * person, Network * network) {
+    return this->activities.is_connected_from(person, network);
+  }
+
+  int get_out_degree(Network * network) {
+    return this->activities.get_out_degree(network);
+  }
+
+  int get_in_degree(Network * network) {
+    return this->activities.get_in_degree(network);
+  }
+
+  void clear_network(Network * network) {
+    return this->activities.clear_network(network);
   }
 
 private:

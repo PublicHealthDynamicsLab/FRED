@@ -602,6 +602,16 @@ public:
 
   void print_transmission_network(FILE *fp, Person * self);
 
+  bool is_connected_to(Person * person, Network * network);
+
+  bool is_connected_from(Person * person, Network * network);
+
+  int get_out_degree(Network * network);
+
+  int get_in_degree(Network * network);
+
+  void clear_network(Network * network);
+
 private:
 
   // pointer to owner

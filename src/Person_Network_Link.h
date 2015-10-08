@@ -34,6 +34,18 @@ class Person_Network_Link: public Person_Place_Link {
   void delete_link_to(Person* person);
   void delete_link_from(Person* person);
   void print(FILE *fp);
+  bool is_connected_to(Person * person);
+  bool is_connected_from(Person * person);
+  int get_out_degree() {
+    return links_to.size();
+  }
+  int get_in_degree() {
+    return links_from.size();
+  }
+  void clear() {
+    links_to.clear();
+    links_from.clear();
+  }
 
  private:
   Person * myself;
