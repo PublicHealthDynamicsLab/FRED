@@ -208,7 +208,7 @@ void Disease::setup() {
 
   FRED_VERBOSE(0, "disease %d %s setup entered\n", this->id, this->disease_name);
 
-  this->epidemic = new Epidemic(this);
+  this->epidemic = Epidemic::get_epidemic(this);
   this->epidemic->setup();
 
   // Initialize Natural History Model
@@ -307,5 +307,6 @@ bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
 }
 
 void Disease::end_of_run() {
+  this->epidemic->end_of_run();
   this->natural_history->end_of_run();
 }

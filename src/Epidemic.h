@@ -94,10 +94,21 @@ struct Disease_Count_Info {
 
 class Epidemic {
 public:
+
+  /**
+   * This static factory method is used to get an instance of a specific
+   * Epidemic Model.  Depending on the model parameter, it will create a
+   * specific Epidemic Model and return a pointer to it.
+   *
+   * @param a string containing the requested Epidemic model type
+   * @return a pointer to a Epidemic model
+   */
+  static Epidemic * get_epidemic(Disease * disease);
+
   Epidemic(Disease* disease);
   ~Epidemic();
  
-  void setup();
+  virtual void setup();
   void print_stats(int day);
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
@@ -112,6 +123,7 @@ public:
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);
   void report_group_quarters_incidence(int day);
+  virtual void report_disease_specific_stats(int day) {}
   void read_time_step_map();
   void track_value(int day, char* key, int value);
   void track_value(int day, char* key, double value);
@@ -120,7 +132,7 @@ public:
   void get_imported_infections(int day);
   void become_exposed(Person* person, int day);
 
-  void update(int day);
+  virtual void update(int day);
 
   void find_active_places_of_type(int day, int place_type);
   void spread_infection_in_active_places(int day);
@@ -229,8 +241,9 @@ public:
   void cancel_infectious_end(int day, Person *person);
   void cancel_immunity_start(int day, Person *person);
   void cancel_immunity_end(int day, Person *person);
+  virtual void end_of_run(){}
 
-private:
+protected:
   Disease* disease;
   int id;
   int N;          // current population size

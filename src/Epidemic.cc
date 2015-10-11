@@ -46,6 +46,29 @@ using namespace std;
 #include "Vector_Layer.h"
 #include "Workplace.h"
 
+#include "HIV_Epidemic.h"
+
+/**
+ * This static factory method is used to get an instance of a specific
+ * Epidemic Model.  Depending on the model parameter, it will create a
+ * specific Epidemic Model and return a pointer to it.
+ *
+ * @param a string containing the requested Epidemic model type
+ * @return a pointer to a Epidemic model
+ */
+
+Epidemic * Epidemic::get_epidemic(Disease * disease) {
+  if (strcmp(disease->get_disease_name(),"hiv") == 0) {
+    return new HIV_Epidemic(disease);
+  }
+  else {
+    return new Epidemic(disease);
+  }
+}
+
+
+
+
 Epidemic::Epidemic(Disease* dis) {
   this->disease = dis;
   this->id = disease->get_id();
@@ -481,6 +504,8 @@ void Epidemic::print_stats(int day) {
   if (Global::Enable_Group_Quarters) {
     report_group_quarters_incidence(day);
   }
+
+  report_disease_specific_stats(day);
 
   if(Global::Verbose) {
     fprintf(Global::Statusfp, "\n");
