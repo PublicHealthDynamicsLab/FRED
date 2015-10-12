@@ -104,13 +104,10 @@ int Neighborhood::get_group(int disease, Person * per) {
 }
 
 double Neighborhood::get_transmission_probability(int disease, Person * i, Person * s) {
-  int age_i = i->get_age();
-  int age_s = s->get_age();
+  double age_i = i->get_real_age();
+  double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
-  double prob = 1.0 - Neighborhood::same_age_bias * diff;
-  if (prob < 0.0) {
-    prob = 0.0;
-  }
+  double prob = exp(-Neighborhood::same_age_bias * diff);
   return prob;
 }
 

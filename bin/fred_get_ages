@@ -2,6 +2,6 @@
 cp $1 params.ages
 ch track_infection_events 2 params.ages
 run_fred -p params.ages
-awk '{print $8, $31}' OUT/infections1.txt | grep -v -e -1 > ages.dat
+awk '{print $31, $8}' OUT/infections1.txt | grep -v -e -1 > ages.dat
 gnuplot -e 'set term png; set output "ages.png"; plot "ages.dat" u 1:2 t "" w po pt 5 ps 0.15'
 open ages.png
