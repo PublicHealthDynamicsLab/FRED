@@ -108,8 +108,9 @@ public:
     return cppstr;
   }
   static string get_day_of_week_string() {
-    return day_of_week_string[day_of_week];;
+    return day_of_week_string[day_of_week];
   }
+  static int get_sim_day(int y, int m, int d);
 
 private:
   static int year;

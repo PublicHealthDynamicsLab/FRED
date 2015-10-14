@@ -208,3 +208,22 @@ void Date::setup_dates(char * date_string) {
   sim_start_index = today;
 }
 
+int Date::get_sim_day(int y, int m, int d) {
+  if ((Date::is_leap_year(y)==false) && m == 2 && d == 29) {
+    d = 28;
+  }
+  int yr = Date::get_year(0);
+  int day = (y-yr)*365;
+  while (Date::get_year(day) < y) { 
+    day += 365 ;
+  }
+  while (Date::get_month(day) < m) {
+    day -= Date::get_days_in_month(m,y);
+  }
+  while (Date::get_month(day) > m) {
+    day -= Date::get_days_in_month(m,y);
+  }
+  day += d-Date::get_day_of_month(day);
+  printf("%d-%02d-%02d %d=%02d-%02d\n",y,m,d,Date::get_year(day),Date::get_month(day),Date::get_day_of_month(day)); fflush(stdout);
+  return day;
+}
