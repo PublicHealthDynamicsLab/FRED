@@ -372,12 +372,12 @@ void Place::setup_vector_model() {
   // initial vector counts
   if (this->is_neighborhood()) {
     // no vectors in neighborhoods (outdoors)
-    this->vector_disease_data->vectors_per_host = 0;
+    this->vector_disease_data->vectors_per_host = 0.0;
   }
   else {
+    this->vector_disease_data->vectors_per_host = 0.0;
     this->vector_disease_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
   }
-
   this->vector_disease_data->N_vectors = this->N_orig * this->vector_disease_data->vectors_per_host;
   this->vector_disease_data->S_vectors = this->vector_disease_data->N_vectors;
   for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
