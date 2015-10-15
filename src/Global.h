@@ -554,7 +554,7 @@ typedef std::vector<Place*> place_vector_t;
 #define VECTOR_DISEASE_TYPES 4
 
 typedef struct {
-  int vectors_per_host;
+  double vectors_per_host;
   int N_vectors;
   int S_vectors;
   int E_vectors[VECTOR_DISEASE_TYPES];

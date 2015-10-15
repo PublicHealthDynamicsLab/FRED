@@ -848,8 +848,15 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
 
       // Grab the first eleven (state and county + six) digits of stcotrbg to get the census tract
       // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
-      strncpy(census_tract_str, tokens[stcotrbg], 11);
-      census_tract_str[11] = '\0';
+
+      if(Global::Enable_Vector_Transmission) {
+	// Colombian census tracks are just 8 digits
+	strncpy(census_tract_str, tokens[stcotrbg], 8);
+	census_tract_str[8] = '\0';
+      }else{
+	strncpy(census_tract_str, tokens[stcotrbg], 11);
+	census_tract_str[11] = '\0';
+      }
       sscanf(census_tract_str, "%ld", &census_tract);
 
       // find the index for this census tract

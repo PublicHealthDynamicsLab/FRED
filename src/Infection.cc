@@ -21,7 +21,7 @@
 #include "Place.h"
 #include "Place_List.h"
 #include "Random.h"
-
+#include "Neighborhood_Patch.h"
 //
 // Terminology:
 //
@@ -277,6 +277,18 @@ void Infection::report_infection(int day) {
       infStrS << " host_census_tract " << census_tract;
     }
     infStrS << " | ";
+  }
+  if(Global::Track_infection_events > 3){
+    Neighborhood_Patch * pt = this->host->get_household()->get_patch();
+    if(pt != NULL){
+      double patch_lat = Geo::get_latitude(pt->get_center_y());
+      double patch_lon = Geo::get_longitude(pt->get_center_x());
+      int patch_pop = pt->get_popsize();
+      infStrS << " patch_lat " << patch_lat;
+      infStrS << " patch_lon " << patch_lon;
+      infStrS << " patch_pop " << patch_pop;
+      infStrS << " | ";
+    }
   }
   infStrS << "\n";
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());

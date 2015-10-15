@@ -76,16 +76,15 @@ Vector_Layer::Vector_Layer() {
   this->bite_rate = 0.76;
   this->incubation_rate = 1.0/11.0;
   this->suitability = 1.0;
-  this->pupae_per_host = 1.02; //Armenia average
+  Params::get_param_from_string("pupae_per_host", &this->pupae_per_host); 
   this->life_span = 18.0; // From Chao and longini
-  this->sucess_rate = 0.83; // Focks
-  this->female_ratio = 0.5;
+  this->sucess_rate = 0.83; // Focks 2000
+  this->female_ratio = 0.5; // Focks 2000
 
   // get vector_control parameters
   int temp_int;
   Params::get_param_from_string("enable_vector_control", &temp_int);
   Vector_Layer::Enable_Vector_Control = (temp_int == 0 ? false : true);
-
   if (Vector_Layer::Enable_Vector_Control) {
     Params::get_param_from_string("school_vector_control", &temp_int);
     Vector_Layer::School_Vector_Control = (temp_int == 0 ? false : true);
@@ -164,13 +163,16 @@ void Vector_Layer::read_temperature(){
   fred::geo lon;
   FILE* fp;
   char filename[FRED_STRING_SIZE];
-  strcpy(filename, "$FRED_HOME/input_files/countries/colombia/temperature_grid.txt");
+  Params::get_param_from_string("temperature_grid_file", filename);
   fp = Utils::fred_open_file(filename);
   //Obtain temperature values for each patch...lat,lon,oC
+  double house_;
+  double reservoir_;
+  double breteau_;
   if(fp != NULL) {
     while(!feof(fp))
       {
-	int char_count = fscanf(fp, "%lg, %lg, %lg", &lati, &longi, &patch_temperature);
+	int char_count = fscanf(fp,"%lg,%lg,%lg,%lg,%lg,%lg",&lati,&longi,&patch_temperature,&house_,&reservoir_,&breteau_);
 	lat = lati;
 	lon = longi;
 	Vector_Patch* patch = get_patch(lat,lon);
@@ -634,8 +636,8 @@ double Vector_Layer::get_vectors_per_host(Place* place) {
   double vectors_per_host = 0.0;
 
   //temperatures vs development times..FOCKS2000: DENGUE TRANSMISSION THRESHOLDS
-  double temps[8] = {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92}; //temperatures
-  double dev_times[8] = {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0}; //development times
+  double temps[8]= {15.0,20.0,22.0,24.0,26.0,28.0,30.0,32.0};  //temperatures
+  double dev_times[8] =  {8.49,3.11,4.06,3.3,2.66,2.04,1.46,0.92};//development times
 
   double temperature = -999.9;
   fred::geo lat = place->get_latitude();
@@ -650,16 +652,17 @@ double Vector_Layer::get_vectors_per_host(Place* place) {
   if(temperature <= 18) {
     vectors_per_host = 0;
   } else {
-    for(int i = 0; i < 8; ++i) {
+    for(int i = 0; i < 8; i++) {
       if(temperature <= temps[i]) {
-        //obtain the development time using linear interpolation
-        development_time = dev_times[i - 1] + (dev_times[i] - dev_times[i - 1]) / (temps[i] - temps[i-1]) * (temperature - temps[i - 1]);
+	//obtain the development time using linear interpolation
+	development_time = dev_times[i - 1] + (dev_times[i] - dev_times[i - 1]) / (temps[i] - temps[i-1]) *(temperature - temps[i - 1]);
+	break;
       }
     }
     vectors_per_host = pupae_per_host * female_ratio * sucess_rate * life_span / development_time;
   }
-  FRED_VERBOSE(1, "SET TEMP: place %s temp %f vectors_per_host %f N_vectors %d N_orig %d\n",
-	       place->get_label(), temperature, vectors_per_host);
+  FRED_VERBOSE(1, "SET TEMP: place %s lat %lg lon %lg temp %f devtime %f vectors_per_host %f N_orig %d\n",
+	       place->get_label(), place->get_latitude(), place->get_longitude(),temperature, development_time, vectors_per_host,place->get_orig_size());
   return vectors_per_host;
 }
 
@@ -681,9 +684,28 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
   
   int born_infectious[DISEASE_TYPES];
   int total_born_infectious = 0;
+  int lifespan_ = 1/this->death_rate;
 
   // new vectors are born susceptible
-  v.S_vectors += floor(this->birth_rate * v.N_vectors - this->death_rate * v.S_vectors);
+  if(v.N_vectors < lifespan_){
+      for(int k = 0; k < v.N_vectors; k++){
+	double r = Random::draw_random(0,1);
+	if(r < this->birth_rate){
+	  v.S_vectors++;
+	}
+      }
+      for(int k = 0; k < v.S_vectors; k++){
+	double r = Random::draw_random(0,1);
+	if(r < this->death_rate){
+	  v.S_vectors--;
+	}
+      }
+    }else{
+      v.S_vectors += floor(this->birth_rate * v.N_vectors - this->death_rate * v.S_vectors);
+    }
+
+
+
   FRED_VERBOSE(1,"vector_update_population:: S_vector: %d, N_vectors: %d\n", v.S_vectors, v.N_vectors);
   // but some are infected
   for(int d=0;d<DISEASE_TYPES;d++){
@@ -712,7 +734,7 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
   for(int i = 0; i < DISEASE_TYPES; ++i) {
     // some die
     FRED_VERBOSE(1,"vector_update_population:: E_vectors[%d] = %d \n",i, v.E_vectors[i]);
-    if(v.E_vectors[i] < 10){
+    if(v.E_vectors[i] < lifespan_ && v.E_vectors[i] > 0){
       for(int k = 0; k < v.E_vectors[i]; ++k) {
 	double r = Random::draw_random(0,1);
 	if(r < this->death_rate){
@@ -722,9 +744,10 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
     } else {
       v.E_vectors[i] -= floor(this->death_rate * v.E_vectors[i]);
     } 
+
     // some become infectious
     int become_infectious = 0;
-    if(v.E_vectors[i] < 10) {
+    if(v.E_vectors[i] < lifespan_) {
       for(int k = 0; k < v.E_vectors[i]; ++k) {
 	double r = Random::draw_random(0,1);
 	if(r < this->incubation_rate) {
@@ -742,7 +765,16 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
     if(v.E_vectors[i] < 0) v.E_vectors[i] = 0;
     // some die
     FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, v.I_vectors[i]);
-    v.I_vectors[i] -= floor(this->death_rate * v.I_vectors[i]);
+    if(v.I_vectors[i] < lifespan_ && v.I_vectors[i] > 0){
+      for(int k = 0; k < v.I_vectors[i]; k++){
+	double r = Random::draw_random(0,1);
+	if(r < this->death_rate){
+	  v.I_vectors[i]--;
+	}
+      }
+    }else{
+      v.I_vectors[i] -= floor(this->death_rate * v.I_vectors[i]);
+    }
     FRED_VERBOSE(1,"vector_update_population:: I_Vectors[%d] = %d \n", i, v.I_vectors[i]);
     // some become infectious
     v.I_vectors[i] += become_infectious;
@@ -754,7 +786,6 @@ vector_disease_data_t Vector_Layer::update_vector_population(int day, Place * pl
     if(v.I_vectors[i] < 0) {
       v.I_vectors[i] = 0;
     }
-
     // add to the total
     v.N_vectors += (v.E_vectors[i] + v.I_vectors[i]);
     FRED_VERBOSE(1, "update_vector_population entered S_vectors %d E_Vectors[%d] %d  I_Vectors[%d] %d N_Vectors %d\n",
