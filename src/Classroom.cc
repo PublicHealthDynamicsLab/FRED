@@ -31,11 +31,18 @@ double Classroom::Classroom_closure_threshold = 0.0;
 int Classroom::Classroom_closure_period = 0;
 int Classroom::Classroom_closure_delay = 0;
 
-Classroom::Classroom(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
+Classroom::Classroom() : Place() {
+  this->type = Place::CLASSROOM;
+  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->age_level = -1;
+  this->school = NULL;
+}
+
+Classroom::Classroom(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->type = Place::CLASSROOM;
   this->subtype = _subtype;
-  setup(lab, lon, lat);
   this->age_level = -1;
+  this->school = NULL;
 }
 
 void Classroom::get_parameters() {
@@ -46,7 +53,7 @@ void Classroom::get_parameters() {
     printf("\nClassroom_contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", Classroom::prob_transmission_per_contact[i][j]);
+	      printf("%f ", Classroom::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -55,19 +62,19 @@ void Classroom::get_parameters() {
   // normalize contact parameters
   // find max contact prob
   double max_prob = 0.0;
-  for(int i  = 0; i < n; i++)  {
-    for(int j  = 0; j < n; j++) {
+  for(int i  = 0; i < n; ++i)  {
+    for(int j  = 0; j < n; ++j) {
       if (Classroom::prob_transmission_per_contact[i][j] > max_prob) {
-	max_prob = Classroom::prob_transmission_per_contact[i][j];
+	      max_prob = Classroom::prob_transmission_per_contact[i][j];
       }
     }
   }
 
   // convert max contact prob to 1.0
   if (max_prob > 0) {
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	Classroom::prob_transmission_per_contact[i][j] /= max_prob;
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      Classroom::prob_transmission_per_contact[i][j] /= max_prob;
       }
     }
     // compensate contact rate
@@ -76,9 +83,9 @@ void Classroom::get_parameters() {
 
   if(Global::Verbose > 0) {
     printf("\nClassroom_contact_prob after normalization:\n");
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	printf("%f ", Classroom::prob_transmission_per_contact[i][j]);
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      printf("%f ", Classroom::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -91,11 +98,11 @@ double Classroom::get_contacts_per_day(int disease) {
   return Classroom::contacts_per_day;
 }
 
-int Classroom::get_group(int disease, Person * per) {
+int Classroom::get_group(int disease, Person* per) {
   return this->school->get_group(disease, per);
 }
 
-double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
+double Classroom::get_transmission_prob(int disease, Person* i, Person* s) {
 
   // i = infected agent
   // s = susceptible agent
@@ -107,7 +114,7 @@ double Classroom::get_transmission_prob(int disease, Person * i, Person * s) {
 
 bool Classroom::is_open(int day) {
   bool open = this->school->is_open(day);
-  if (!open) {
+  if(!open) {
     FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
   }
   return open;
@@ -133,16 +140,18 @@ int Classroom::enroll(Person* person) {
 
   FRED_VERBOSE(1,"Enrolled person %d age %d in classroom %d grade %d %s\n",
 	       person->get_id(), person->get_age(), this->id, this->age_level, this->label);
-  if (this->age_level == -1) { this->age_level = age; }
+  if(this->age_level == -1) {
+    this->age_level = age;
+  }
   assert(grade == this->age_level);
 
   return return_value;
 }
 
 void Classroom::unenroll(int pos) {
-  int size = enrollees.size();
+  int size = this->enrollees.size();
   assert(0 <= pos && pos < size);
-  Person *removed = enrollees[pos];
+  Person* removed = this->enrollees[pos];
   assert(removed->is_teacher() == false);
   int grade = removed->get_grade();
   FRED_VERBOSE(0,"UNENROLL removed %d age %d grade %d, is_teacher %d from school %d %s size = %d\n",

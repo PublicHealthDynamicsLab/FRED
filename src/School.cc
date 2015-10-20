@@ -55,9 +55,10 @@ bool School::global_closure_is_active = false;
 int School::global_close_date = 0;
 int School::global_open_date = 0;
 
-School::School() {
+School::School() : Place() {
   this->type = Place::SCHOOL;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->intimacy = 0.025;
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -71,10 +72,11 @@ School::School() {
   this->income_quartile = -1;
 }
 
-School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
+
+School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->type = Place::SCHOOL;
   this->subtype = _subtype;
-  setup(lab, lon, lat);
+  this->intimacy = 0.025;
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
     this->orig_students_in_grade[i] = 0;
@@ -108,7 +110,7 @@ void School::get_parameters() {
     printf("\nSchool_contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", School::prob_transmission_per_contact[i][j]);
+	      printf("%f ", School::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -117,19 +119,19 @@ void School::get_parameters() {
   // normalize contact parameters
   // find max contact prob
   double max_prob = 0.0;
-  for(int i  = 0; i < n; i++)  {
-    for(int j  = 0; j < n; j++) {
+  for(int i  = 0; i < n; ++i)  {
+    for(int j  = 0; j < n; ++j) {
       if (School::prob_transmission_per_contact[i][j] > max_prob) {
-	max_prob = School::prob_transmission_per_contact[i][j];
+	      max_prob = School::prob_transmission_per_contact[i][j];
       }
     }
   }
 
   // convert max contact prob to 1.0
-  if (max_prob > 0) {
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	School::prob_transmission_per_contact[i][j] /= max_prob;
+  if(max_prob > 0) {
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      School::prob_transmission_per_contact[i][j] /= max_prob;
       }
     }
     // compensate contact rate
@@ -138,9 +140,9 @@ void School::get_parameters() {
 
   if(Global::Verbose > 0) {
     printf("\nSchool_contact_prob after normalization:\n");
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	printf("%f ", School::prob_transmission_per_contact[i][j]);
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      printf("%f ", School::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -175,10 +177,10 @@ void School::get_parameters() {
     School::school_closure_duration = 7 * Weeks;
   }
 
-  int Cases;
-  Params::get_param_from_string("Cases", &Cases);
-  if(Cases > -1) {
-    School::school_closure_cases = Cases;
+  int cases;
+  Params::get_param_from_string("Cases", &cases);
+  if(cases > -1) {
+    School::school_closure_cases = cases;
   }
 }
 
@@ -239,8 +241,8 @@ bool School::should_be_open(int day, int disease_id) {
        (month == School::summer_end_month && day_of_month <= School::summer_end_day) ||
        (School::summer_start_month < month && month < School::summer_end_month)) {
       if(Global::Verbose > 1) {
-	fprintf(Global::Statusfp, "School %s closed for summer\n", label);
-	fflush(Global::Statusfp);
+	      fprintf(Global::Statusfp, "School %s closed for summer\n", label);
+	      fflush(Global::Statusfp);
       }
       return false;
     }
@@ -278,8 +280,8 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
         // the following only happens once
         School::global_close_date = day + School::school_closure_delay;
         School::global_open_date = day + School::school_closure_delay
-	  + School::school_closure_duration;
-	School::global_closure_is_active = true;
+	        + School::school_closure_duration;
+	      School::global_closure_is_active = true;
       }
     } else {
       // Close schools if the global symptomatic attack rate has reached the threshold (after a delay)
@@ -288,8 +290,8 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
         // the following only happens once
         School::global_close_date = day + School::school_closure_delay;
         School::global_open_date = day + School::school_closure_delay
-	  + School::school_closure_duration;
-	School::global_closure_is_active = true;
+	        + School::school_closure_duration;
+	      School::global_closure_is_active = true;
       }
     }
   }
@@ -408,8 +410,9 @@ int School::get_number_of_rooms() {
   }
   for(int a = 0; a < GRADES; ++a) {
     int n = this->students_in_grade[a];
-    if(n == 0)
+    if(n == 0) {
       continue;
+    }
     int rooms = n / School::school_classroom_size;
     if(n % School::school_classroom_size) {
       rooms++;

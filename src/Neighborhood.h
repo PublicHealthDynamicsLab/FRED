@@ -30,36 +30,35 @@ public:
 
   /**
    * Default constructor
+   * Note: really only used by Allocator
    */
-  Neighborhood() {};
-
-  ~Neighborhood() {};
+  Neighborhood() : Place() {}
 
   /**
-   * Convenience constructor that sets most of the values by calling Place::setup
-   *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont )
+   * Constructor with necessary parameters
    */
-  Neighborhood( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  Neighborhood(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+
+  ~Neighborhood() {};
 
   static void get_parameters();
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
-  int get_group(int disease, Person * per);
+  int get_group(int disease, Person* per);
 
-  double get_transmission_probability(int disease, Person * i, Person * s);
+  double get_transmission_probability(int disease, Person* i, Person* s);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Neighborhood::Neighborhood_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Neighborhood_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>neighborhood_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person * i, Person * s);
+  double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
    * @see Place::get_contacts_per_day(int disease)

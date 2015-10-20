@@ -27,13 +27,20 @@ class Classroom;
 
 class School : public Place {
 public:
-
+  /**
+   * Default constructor
+   * Note: really only used by Allocator
+   */
   School();
+
+  /**
+   * Constructor with necessary parameters
+   */
+  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
 
   ~School() {
   }
 
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
   void prepare();
   static void get_parameters();
   int get_group(int disease_id, Person* per);
@@ -154,8 +161,8 @@ public:
     return School::pop_income_Q4;
   }
 
-  static char * get_school_closure_policy() {
-    return school_closure_policy;
+  static char* get_school_closure_policy() {
+    return School::school_closure_policy;
   }
 
   //for access from Classroom:

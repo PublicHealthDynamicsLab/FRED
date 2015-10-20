@@ -41,7 +41,7 @@ public:
   /**
    * Default constructor
    */
-  Neighborhood_Patch() {}
+  Neighborhood_Patch();
   ~Neighborhood_Patch() {}
 
   /**
@@ -52,7 +52,7 @@ public:
    * @param j the column of this Neighborhood_Patch in the Neighborhood_Layer
    *
    */
-  void setup(Neighborhood_Layer * grd, int i, int j);
+  void setup(Neighborhood_Layer* grd, int i, int j);
 
   /**
    * Used during debugging to verify that code is functioning properly.
@@ -67,17 +67,17 @@ public:
    * @param the patch to check against
    * @return the distance from this patch to the one in question
    */
-  double distance_to_patch(Neighborhood_Patch * patch2);
+  double distance_to_patch(Neighborhood_Patch* patch2);
 
   /**
    * Setup the neighborhood in this Neighborhood_Patch
    */
-  void make_neighborhood(Place::Allocator<Neighborhood> & neighborhood_allocator);
+  void make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator);
 
   /**
    * Add household to this Neighborhood_Patch's household vector
    */
-  void add_household(Household *p);
+  void add_household(Household* p);
 
   /**
    * Create lists of persons, workplaces, schools (by age)
@@ -87,56 +87,56 @@ public:
   /**
    * @return a pointer to a random Person in this Neighborhood_Patch
    */
-  Person * select_random_person();
+  Person* select_random_person();
 
   /**
    * @return a pointer to a random Household in this Neighborhood_Patch
    */
-  Place * select_random_household();
+  Place* select_random_household();
 
   /**
    * @return a pointer to a random Workplace in this Neighborhood_Patch
    */
-  Place * select_random_workplace();
-  Place * select_workplace();
-  Place * select_workplace_in_neighborhood();
+  Place* select_random_workplace();
+  Place* select_workplace();
+  Place* select_workplace_in_neighborhood();
 
-  Place * select_random_school(int age);
-  Place * select_school(int age);
-  Place * select_school_in_neighborhood(int age, double threshold);
-  void find_schools_for_age(int age, place_vector * schools);
+  Place* select_random_school(int age);
+  Place* select_school(int age);
+  Place* select_school_in_neighborhood(int age, double threshold);
+  void find_schools_for_age(int age, place_vector* schools);
 
   /**
    * @return a count of houses in this Neighborhood_Patch
    */
   int get_houses() { 
-    return households.size();
+    return this->households.size();
   }
 
   /**
    * @return a pointer to this Neighborhood_Patch's Neighborhood
    */
-  Place * get_neighborhood() { 
-    return neighborhood; 
+  Place* get_neighborhood() {
+    return this->neighborhood;
   }
 
-  int enroll(Person * per) { 
-    return neighborhood->enroll(per); 
+  int enroll(Person* per) {
+    return this->neighborhood->enroll(per);
   }
 
   /**
    * @return the popsize
    */
   int get_popsize() { 
-    return popsize; 
+    return this->popsize;
   }
 
   double get_mean_household_income() { 
-    return mean_household_income; 
+    return this->mean_household_income;
   }
 
   int get_number_of_households() {
-    return (int) this->households.size();
+    return static_cast<int>(this->households.size());
   }
 
   Place* get_household(int i) {
@@ -186,9 +186,9 @@ public:
   void register_place(Place* place);
 
 protected:
-  Neighborhood_Layer * grid;
-  Place * neighborhood;
-  std::vector<Person *> person;
+  Neighborhood_Layer* grid;
+  Place* neighborhood;
+  std::vector<Person*> person;
   int popsize;
   double mean_household_income;
 

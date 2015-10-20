@@ -18,6 +18,7 @@
 #define _FRED_HOSPITAL_H
 
 #include "Health.h"
+#include "Mixing_Group.h"
 #include "Place.h"
 
 class HAZEL_Hospital_Init_Data;
@@ -35,18 +36,15 @@ class Hospital : public Place {
 public: 
   /**
    * Default constructor
+   * Note: really only used by Allocator
    */
   Hospital();
-  ~Hospital() { }
-
-  //static bool HAZEL_hospital_init_map_file_exists;
 
   /**
-   * Convenience constructor that sets most of the values by calling Place::setup
-   *
-   * @see Place::setup(const char* lab, fred::geo lon, fred::geo lat)
+   * Constructor with necessary parameters
    */
   Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  ~Hospital() { }
 
   static void get_parameters();
 
@@ -56,7 +54,7 @@ public:
   int get_group(int disease, Person* per);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_prob(int disease, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Hospital::Hospital_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />

@@ -19,11 +19,13 @@
 class Person;
 class Network;
 
-class Person_Network_Link: public Person_Place_Link {
+class Person_Network_Link {
  public:
-  Person_Network_Link();
   ~Person_Network_Link() {}
-  Person_Network_Link(Person * person, Network * network);
+  Person_Network_Link(Person* person, Network* network);
+
+  void enroll(Person* person, Network* new_network);
+  void unenroll(Person* person);
   void remove_from_network();
   void create_link_from(Person* person);
   void create_link_to(Person* person);
@@ -33,22 +35,27 @@ class Person_Network_Link: public Person_Place_Link {
   void add_link_from(Person* person);
   void delete_link_to(Person* person);
   void delete_link_from(Person* person);
-  void print(FILE *fp);
-  bool is_connected_to(Person * person);
-  bool is_connected_from(Person * person);
+  void print(FILE* fp);
+  Network* get_network() {
+    return this->network;
+  }
+  bool is_connected_to(Person* person);
+  bool is_connected_from(Person* person);
   int get_out_degree() {
-    return links_to.size();
+    return this->links_to.size();
   }
   int get_in_degree() {
-    return links_from.size();
+    return this->links_from.size();
   }
   void clear() {
-    links_to.clear();
-    links_from.clear();
+    this->links_to.clear();
+    this->links_from.clear();
   }
 
  private:
-  Person * myself;
+  Person* myself;
+  Network* network;
+  int enrollee_index;
   std::vector<Person*> links_to;
   std::vector<Person*> links_from;
 };

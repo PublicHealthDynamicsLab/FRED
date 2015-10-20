@@ -28,11 +28,10 @@ double Neighborhood::same_age_bias = 0.0;
 double** Neighborhood::prob_transmission_per_contact = NULL;
 double Neighborhood::weekend_contact_rate = 0.0;
 
-Neighborhood::Neighborhood( const char *lab, fred::place_subtype _subtype, fred::geo lon,
-			    fred::geo lat) {
-  type = NEIGHBORHOOD;
-  subtype = _subtype;
-  setup( lab, lon, lat);
+Neighborhood::Neighborhood(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->type = NEIGHBORHOOD;
+  this->subtype = _subtype;
+  this->intimacy = 0.0025;
 }
 
 void Neighborhood::get_parameters() {
@@ -43,7 +42,7 @@ void Neighborhood::get_parameters() {
     printf("\nNeighborhood_contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
+	      printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -52,9 +51,9 @@ void Neighborhood::get_parameters() {
 
   if(Global::Verbose > 0) {
     printf("\nprob_transmission_per_contact before normalization:\n");
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -64,19 +63,19 @@ void Neighborhood::get_parameters() {
   // normalize contact parameters
   // find max contact prob
   double max_prob = 0.0;
-  for(int i  = 0; i < n; i++)  {
-    for(int j  = 0; j < n; j++) {
-      if (Neighborhood::prob_transmission_per_contact[i][j] > max_prob) {
-	max_prob = Neighborhood::prob_transmission_per_contact[i][j];
+  for(int i  = 0; i < n; ++i)  {
+    for(int j  = 0; j < n; ++j) {
+      if(Neighborhood::prob_transmission_per_contact[i][j] > max_prob) {
+	      max_prob = Neighborhood::prob_transmission_per_contact[i][j];
       }
     }
   }
 
   // convert max contact prob to 1.0
-  if (max_prob > 0) {
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	Neighborhood::prob_transmission_per_contact[i][j] /= max_prob;
+  if(max_prob > 0) {
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      Neighborhood::prob_transmission_per_contact[i][j] /= max_prob;
       }
     }
     // compensate contact rate
@@ -85,11 +84,11 @@ void Neighborhood::get_parameters() {
 
     if(Global::Verbose > 0) {
       printf("\nprob_transmission_per_contact after normalization:\n");
-      for(int i  = 0; i < n; i++)  {
-	for(int j  = 0; j < n; j++) {
-	  printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
-	}
-	printf("\n");
+      for(int i  = 0; i < n; ++i)  {
+	      for(int j  = 0; j < n; ++j) {
+	        printf("%f ", Neighborhood::prob_transmission_per_contact[i][j]);
+	      }
+	      printf("\n");
       }
       printf("\ncontact rate: %f\n", Neighborhood::contacts_per_day);
     }
@@ -97,13 +96,16 @@ void Neighborhood::get_parameters() {
   }
 }
 
-int Neighborhood::get_group(int disease, Person * per) {
+int Neighborhood::get_group(int disease, Person* per) {
   int age = per->get_age();
-  if (age < Global::ADULT_AGE) { return 0; }
-  else { return 1; }
+  if(age < Global::ADULT_AGE) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
 
-double Neighborhood::get_transmission_probability(int disease, Person * i, Person * s) {
+double Neighborhood::get_transmission_probability(int disease, Person* i, Person* s) {
   double age_i = i->get_real_age();
   double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
@@ -111,7 +113,7 @@ double Neighborhood::get_transmission_probability(int disease, Person * i, Perso
   return prob;
 }
 
-double Neighborhood::get_transmission_prob(int disease, Person * i, Person * s) {
+double Neighborhood::get_transmission_prob(int disease, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
   int row = get_group(disease, i);

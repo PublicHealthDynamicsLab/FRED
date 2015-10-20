@@ -233,8 +233,8 @@ void fred_setup(int argc, char* argv[]) {
 
   // create networks if needed
   if(Global::Enable_Transmission_Network) {
-    Global::Transmission_Network = new Network("Transmission_Network",fred::PLACE_SUBTYPE_NONE, 0.0, 90.0);
-    Global::Transmission_Network->set_id(Global::Places.get_new_place_id());
+    Global::Transmission_Network = new Network("Transmission_Network");
+    //Global::Transmission_Network->set_id(Global::Places.get_new_place_id());
     Global::Transmission_Network->test();
   }
 
