@@ -18,17 +18,18 @@
 #define _FRED_PLACE_H
 
 #include <vector>
-using namespace std;
 
-#include "Global.h"
+
 #include "Geo.h"
+#include "Global.h"
+#include "Mixing_Group.h"
+
+using namespace std;
 
 class Neighborhood_Patch;
 class Person;
 
-typedef std::vector<Person*> person_vec_t;
-
-class Place {
+class Place : public Mixing_Group {
 
 public:
   
@@ -41,148 +42,56 @@ public:
   static char OFFICE;
   static char HOSPITAL;
   static char COMMUNITY;
-  static char NETWORK;
-
-  virtual ~Place() {}
+  static char UNSET;
 
   /**
-   *  Sets the id, label, logitude, latitude of this Place
-   *  Allocates disease-related memory for this place
-   *
-   *  @param lab this Place's label
-   *  @param lon this Place's longitude
-   *  @param lat this Place's latitude
+   * Default constructor
+   * Note: really only used by Allocator
    */
-  void setup(const char* lab, fred::geo lon, fred::geo lat);
+  Place();
+
+  /**
+   * Constructor with necessary parameters
+   */
+  Place(const char* lab, fred::geo lon, fred::geo lat);
+  virtual ~Place() {
+    if(this->vector_disease_data != NULL) {
+      delete this->vector_disease_data;
+    }
+  }
 
   virtual void print(int disease_id);
 
-  void reset_place_state(int disease_id) {
-    this->infectious_bitset.reset(disease_id);
-  }
-
   virtual void prepare();
 
-  // enroll/unenroll:
-  virtual int enroll(Person* per);
-  virtual void unenroll(int pos);
+  // enroll / unenroll:
+  int enroll(Person* per);
+  void unenroll(int pos);
 
   // daily update
-  virtual void update(int day);
+  virtual void update(int sim_day);
+  void reset_visualization_data(int sim_day);
 
-  void reset_visualization_data(int day);
-
-  void record_infectious_days(int day);
-
-  // infectious people
-  void clear_infectious_people(int disease_id) {
-    this->infectious_people[disease_id].clear();
-  }
-
-  void add_infectious_person(int disease_id, Person * person);
-
-  int get_number_of_infectious_people(int disease_id) {
-    return this->infectious_people[disease_id].size();
-  }
-
-  bool has_infectious_people(int disease_id) {
-    return this->infectious_people[disease_id].size() > 0;
-  }
-
-  bool is_infectious(int disease_id) {
-    return infectious_people[disease_id].size() > 0;
-  }
-  
-  bool is_infectious() {
-    return this->infectious_bitset.any();
-  }
-  
-  bool is_human_infectious(int disease_id) {
-    return this->human_infectious_bitset.test(disease_id);
-  }  
-
-  void set_human_infectious (int disease_id) {
-    if(!(this->human_infectious_bitset.test(disease_id))) {
-      this->human_infectious_bitset.set(disease_id);
-    }
-  }
-    
-  void reset_human_infectious() {
-    this->human_infectious_bitset.reset();
-  }
-    
-  void set_exposed(int disease_id) {
-    this->exposed_bitset.set(disease_id);
-  }
-  
-  void reset_exposed() {
-    this->exposed_bitset.reset();
-  }
-
-  bool is_exposed(int disease_id) {
-    return this->exposed_bitset.test(disease_id);
-  }
-
-  void set_recovered(int disease_id) {
-    this->recovered_bitset.set(disease_id);
-  }
-  
-  void reset_recovered() {
-    this->recovered_bitset.reset();
-  }
-  
-  bool is_recovered(int disease_id) {
-    return this->recovered_bitset.test(disease_id);
-  }
-
-
-  void print_infectious(int disease_id);
-
-  // disease transmission
-
-  std::vector<Person*> get_potential_infectors(int disease_id) {
-    return this->infectious_people[disease_id];
-  }
-
-  std::vector<Person*> get_potential_infectees(int disease_id) {
-    return this->enrollees;
-  }
-
-  // access methods:
-  int get_adults();
-  int get_children();
-  virtual bool is_open(int day) {
+  virtual bool is_open(int sim_day) {
     return true;
   }
 
-  /**
-   * Get the age group for a person given a particular disease_id.
-   *
-   * @param disease_id an integer representation of the disease
-   * @param per a pointer to a Person object
-   * @return the age group for the given person for the given diease
-   */
-  virtual int get_group(int disease_id, Person * per) = 0;
+  void print_infectious(int disease_id);
 
   /**
-   * Get the transmission probability for a given diease between two Person objects.
+   * Get the transmission probability for a given disease between two Person objects.
    *
-   * @param disease_id an integer representation of the disease
-   * @param i a pointer to a Person object
-   * @param s a pointer to a Person object
-   * @return the probability that there will be a transmission of disease_id from i to s
+   * @see Mixing_Group::get_transmission_probability(int disease_id, Person* i, Person* s)
    */
-  virtual double get_transmission_probability(int disease_id, Person * i, Person * s) {
+  virtual double get_transmission_probability(int disease_id, Person* i, Person* s) {
     return 1.0;
   }
-
-  virtual double get_transmission_prob(int disease_id, Person * i, Person * s) = 0;
 
   virtual double get_contacts_per_day(int disease_id) = 0; // access functions
 
   double get_contact_rate(int day, int disease_id);
 
-  int get_contact_count(Person* infector, int disease_id, int day, double contact_rate);
+  int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate);
 
   /**
    * Determine if the place should be open. It is dependent on the disease_id and simulation day.
@@ -191,7 +100,7 @@ public:
    * @param disease_id an integer representation of the disease
    * @return <code>true</code> if the place should be open; <code>false</code> if not
    */
-  virtual bool should_be_open(int day, int disease_id) = 0;
+  virtual bool should_be_open(int sim_day, int disease_id) = 0;
 
   /**
    * Get the id.
@@ -199,15 +108,6 @@ public:
    */
   int get_id() {
     return this->id;
-  }
-
-  /**
-   * Get the label.
-   *
-   * @return the label
-   */
-  char* get_label() {
-    return this->label;
   }
 
   /**
@@ -236,7 +136,7 @@ public:
     return this->type == Place::CLASSROOM;
   }
   
-  bool is_workplace(){
+  bool is_workplace() {
     return this->type == Place::WORKPLACE;
   }
   
@@ -253,27 +153,27 @@ public:
   }
 
   // test place subtypes
-  bool is_college(){
+  bool is_college() {
     return this->subtype == fred::PLACE_SUBTYPE_COLLEGE;
   }
   
-  bool is_prison(){
+  bool is_prison() {
     return this->subtype == fred::PLACE_SUBTYPE_PRISON;
   }
   
-  bool is_nursing_home(){
+  bool is_nursing_home() {
     return this->subtype == fred::PLACE_SUBTYPE_NURSING_HOME;
   }
   
-  bool is_military_base(){
+  bool is_military_base() {
     return this->subtype == fred::PLACE_SUBTYPE_MILITARY_BASE;
   }
     
-  bool is_healthcare_clinic(){
+  bool is_healthcare_clinic() {
     return this->subtype == fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC;
   }
 
-  bool is_mobile_healthcare_clinic(){
+  bool is_mobile_healthcare_clinic() {
     return this->subtype == fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC;
   }
     
@@ -312,30 +212,13 @@ public:
     return this->longitude;
   }
 
-  double get_distance(Place *place) {
+  double get_distance(Place* place) {
     double x1 = this->get_x();
     double y1 = this->get_y();
     double x2 = place->get_x();
     double y2 = place->get_y();
-    double distance = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    double distance = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     return distance;
-  }
-
-  /**
-   * Get the count of agents in this place.
-   *
-   * @return the count of agents
-   */
-  int get_size() {
-    return this->enrollees.size();
-  }
-
-  virtual int get_container_size() {
-    return get_size();
-  }
-
-  int get_orig_size() {
-    return this->N_orig;
   }
 
   /**
@@ -388,8 +271,8 @@ public:
    *
    * @param day the simulation day when the place will close
    */
-  void set_close_date(int day) {
-    this->close_date = day;
+  void set_close_date(int sim_day) {
+    this->close_date = sim_day;
   }
 
   /**
@@ -397,8 +280,8 @@ public:
    *
    * @param day the simulation day when the place will open
    */
-  void set_open_date(int day) {
-    this->open_date = day;
+  void set_open_date(int sim_day) {
+    this->open_date = sim_day;
   }
 
   /**
@@ -430,153 +313,6 @@ public:
 
   double get_y() {
     return Geo::get_y(this->latitude);
-  }
-
-  void add_new_infection(int disease_id) {
-    this->new_infections[disease_id]++;
-    this->total_infections[disease_id]++;
-  }
-  
-  void add_current_infection(int disease_id) {
-    this->current_infections[disease_id]++;
-  }
-  
-  void add_new_symptomatic_infection(int disease_id) {
-    this->new_symptomatic_infections[disease_id]++;
-    this->total_symptomatic_infections[disease_id]++;
-  }
-  
-  void add_current_symptomatic_infection(int disease_id) {
-    this->current_symptomatic_infections[disease_id]++;
-  }
-  
-  int get_new_infections(int disease_id) {
-    return this->new_infections[disease_id];
-  }
-
-  int get_current_infections(int disease_id) {
-    return this->current_infections[disease_id];
-  }
-
-  int get_total_infections(int disease_id) {
-    return this->total_infections[disease_id];
-  }
-
-  int get_new_symptomatic_infections(int disease_id) {
-    return this->new_symptomatic_infections[disease_id];
-  }
-
-  int get_current_symptomatic_infections(int disease_id) {
-    return this->current_symptomatic_infections[disease_id];
-  }
-
-  int get_total_symptomatic_infections(int disease_id) {
-    return this->total_symptomatic_infections[disease_id];
-  }
-
-  int get_current_infectious_visitors(int disease_id) {
-    return this->current_infectious_visitors[disease_id];
-  }
-
-  int get_current_symptomatic_visitors(int disease_id) {
-    return this->current_symptomatic_visitors[disease_id];
-  }
-
-  /**
-   * Get the number of cases of a given disease for day.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of cases for a given diease
-   */
-  int get_current_cases(int disease_id) {
-    return get_current_symptomatic_visitors(disease_id);
-  }
-
-  /**
-   * Get the number of deaths from a given disease for a day.
-   * The member variable deaths gets reset when <code>update()</code> is called, which for now is on a daily basis.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of deaths for a given disease
-   */
-  int get_new_deaths(int disease_id) {
-    return 0 /* new_deaths[disease_id] */;
-  }
-
-  int get_recovereds(int disease_id);
-
-  /**
-   * Get the number of cases of a given disease for the simulation thus far.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of cases for a given disease
-   */
-  int get_total_cases(int disease_id) {
-    return this->total_symptomatic_infections[disease_id];
-  }
-
-  /**
-   * Get the number of deaths from a given disease for the simulation thus far.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of deaths for a given disease
-   */
-  int get_total_deaths(int disease_id) {
-    return 0 /* total_deaths[disease_id] */;
-  }
-
-  /**
-   * Get the number of cases of a given disease for the simulation thus far divided by the
-   * number of agents in this place.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
-   */
-  double get_incidence_rate(int disease_id) {
-    return (double)this->total_symptomatic_infections[disease_id] / (double)get_size();
-  }
-  
-  /**
-   * Get the clincal attack rate = 100 * number of cases thus far divided by the
-   * number of agents in this place.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
-   */
-  double get_symptomatic_attack_rate(int disease_id) {
-    return (100.0 * this->total_symptomatic_infections[disease_id]) / (double) get_size();
-  }
-  
-  /**
-   * Get the attack rate = 100 * number of infections thus far divided by the
-   * number of agents in this place.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
-   */
-  double get_attack_rate(int disease_id) {
-    int n = get_size();
-    return(n>0 ? (100.0 * this->total_infections[disease_id]) / (double)n : 0.0);
-  }
-
-  int get_first_day_infectious() {
-    return this->first_day_infectious;
-  }
-
-  int get_last_day_infectious() {
-    return this->last_day_infectious;
-  }
-
-  person_vec_t * get_enrollees() {
-    return &(this->enrollees);
-  }
-
-  person_vec_t * get_infectious_people(int  disease_id) {
-    return &(this->infectious_people[disease_id]);
-  }
-
-  Person* get_enrollee(int i) {
-    return this->enrollees[i];
   }
 
   void set_index(int _index) {
@@ -629,8 +365,15 @@ public:
   
   static char* get_place_label(Place* p);
 
-  // vector transmission methods
+  double get_seeds(int dis, int sim_day);
 
+  void set_id(int _id) {
+    this->id = _id;
+  }
+
+  /*
+   * Vector Transmission methods
+   */
   void setup_vector_model();
 
   void mark_vectors_as_not_infected_today() {
@@ -648,7 +391,7 @@ public:
   int get_vector_population_size() {
     return this->vector_disease_data->N_vectors;
   }
-    
+
   int get_susceptible_vectors() {
     return this->vector_disease_data->S_vectors;
   }
@@ -661,95 +404,54 @@ public:
   int get_infectious_vectors(int disease_id) {
     return this->vector_disease_data->I_vectors[disease_id];
   }
-    
+
   void expose_vectors(int disease_id, int exposed_vectors) {
     this->vector_disease_data->E_vectors[disease_id] += exposed_vectors;
     this->vector_disease_data->S_vectors -= exposed_vectors;
   }
 
-  double get_seeds(int dis, int day);
-
   vector_disease_data_t get_vector_disease_data () {
-    assert(vector_disease_data != NULL);
-    return (*vector_disease_data);
+    assert(this->vector_disease_data != NULL);
+    return (*this->vector_disease_data);
   }
-  
-  void update_vector_population(int day);
+
+  void update_vector_population(int sim_day);
 
   bool get_vector_control_status() {
-    return vector_control_status;
-  }
-
-  void set_id(int _id) {
-    this->id = _id;
+    return this->vector_control_status;
   }
 
 protected:
-  char label[32];         // external id
+  static double** prob_contact;
+
   char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;
   fred::place_subtype subtype;
-  char worker_profile;
+  //char worker_profile;
   int id;                 // place id
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
   int close_date;         // this place will be closed during:
   int open_date;          //   [close_date, open_date)
-  int N_orig;		  // orig number of potential visitors
-  double intimacy;	  // prob of intimate contact
-  static double** prob_contact;
-  int index;		  // index for households
-  int staff_size;			// outside workers in this place
+  double intimacy;	      // prob of intimate contact
+  int index;		          // index for households
+  int staff_size;			    // outside workers in this place
 
   int household_fips;
   int county_index;
   int census_tract_index;
   
   Neighborhood_Patch* patch;       // geo patch for this place
-  
-  // lists of people
-  person_vec_t * infectious_people;
-  person_vec_t  enrollees;
 
-  // epidemic counters
-  int * new_infections;				// new infections today
-  int * current_infections;	      // current active infections today
-  int * total_infections;	       // total infections over all time
-  int * new_symptomatic_infections;	   // new sympt infections today
-  int * current_symptomatic_infections; // current active sympt infections
-  int * total_symptomatic_infections; // total sympt infections over all time
-
-  // these counts refer to today's visitors:
-  int * current_infectious_visitors;  // total infectious visitors today
-  int * current_symptomatic_visitors;	 // total sympt infections today
-
-  int first_day_infectious;
-  int last_day_infectious;
-
-  // track whether or not place is infectious with each disease
-  fred::disease_bitset infectious_bitset; 
-  fred::disease_bitset human_infectious_bitset;
-  fred::disease_bitset recovered_bitset; 
-  fred::disease_bitset exposed_bitset; 
+  // optional data for vector transmission model
+  vector_disease_data_t* vector_disease_data;
+  bool vectors_have_been_infected_today;
+  bool vector_control_status;
 
   // Place_List, Neighborhood_Layer and Neighborhood_Patch are friends so that they can access
-  // the Place Allocator.  
+  // the Place Allocator.
   friend class Place_List;
   friend class Neighborhood_Layer;
   friend class Neighborhood_Patch;
-
-  void add_infectious_visitor(int disease_id, Person * person) { 
-    this->infectious_people[disease_id].push_back(person);
-    this->current_infectious_visitors[disease_id]++;
-  }
-  
-  void add_symptomatic_visitor(int disease_id) {
-    this->current_symptomatic_visitors[disease_id]++;
-  }
-  
-  // optional data for vector transmission model
-  vector_disease_data_t * vector_disease_data;
-  bool vectors_have_been_infected_today;
-  bool vector_control_status;
 
   // Place Allocator reserves chunks of memory and hands out pointers for use
   // with placement new
@@ -771,7 +473,7 @@ protected:
       allocation_array = NULL;
     }
 
-    bool reserve( int n = 1 ) {
+    bool reserve(int n = 1) {
       if(remaining_allocations == 0) {
         current_allocation_size = n;
         allocation_array = new Place_Type[n];
@@ -814,7 +516,6 @@ protected:
       return allocations_made;
     }
   }; // end Place Allocator
-
 };
 
 

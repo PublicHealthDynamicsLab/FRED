@@ -184,3 +184,36 @@ void Person::terminate() {
   this->demographics.terminate(this);
 }
 
+double Person::get_x() {
+  Place* hh = this->get_household();
+
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+      hh = this->get_permanent_household();
+    }
+  }
+
+  if(hh == NULL) {
+    return 0.0;
+  } else {
+    return hh->get_x();
+  }
+}
+
+double Person::get_y() {
+  Place* hh = this->get_household();
+
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+      hh = this->get_permanent_household();
+    }
+  }
+
+  if(hh == NULL) {
+    return 0.0;
+  } else {
+    return hh->get_y();
+  }
+}
+
+

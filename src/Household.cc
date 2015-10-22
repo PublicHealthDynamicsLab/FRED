@@ -52,7 +52,7 @@ int Household::Min_hh_income = INT_MAX;
 int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
-Household::Household() {
+Household::Household() : Place() {
   this->type = Place::HOUSEHOLD;
   this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->sheltering = false;
@@ -61,6 +61,7 @@ Household::Household() {
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
   this->hh_working_adult_using_sick_leave = false;
+  this->seeking_healthcare = false;
   this->primary_healthcare_available = true;
   this->other_healthcare_location_that_accepts_insurance_available = true;
   this->healthcare_available = true;
@@ -71,11 +72,13 @@ Household::Household() {
   this->shelter_end_day = 0;
   this->deme_id = ' ';
   this->group_quarters_units = 0;
+  this->group_quarters_workplace = NULL;
   this->income_quartile = -1;
-  set_household_income(-1);
+  this->household_income = -1;
+  this->household_income_code = Household_income_level_code::UNCLASSIFIED;
 }
 
-Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
+Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->type = Place::HOUSEHOLD;
   this->subtype = _subtype;
   this->sheltering = false;
@@ -94,11 +97,12 @@ Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lo
   this->shelter_start_day = 0;
   this->shelter_end_day = 0;
   this->deme_id = ' ';
-  setup(lab, lon, lat);
+  this->intimacy = 1.0;
   this->group_quarters_units = 0;
   this->group_quarters_workplace = NULL;
   this->income_quartile = -1;
-  set_household_income(-1);
+  this->household_income = -1;
+  this->household_income_code = Household_income_level_code::UNCLASSIFIED;
 }
 
 void Household::get_parameters() {
@@ -109,7 +113,7 @@ void Household::get_parameters() {
     printf("\nHousehold contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", Household::prob_transmission_per_contact[i][j]);
+	      printf("%f ", Household::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }

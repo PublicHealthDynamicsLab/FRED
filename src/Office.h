@@ -33,37 +33,37 @@ public:
 
   /**
    * Default constructor
+   * Note: really only used by Allocator
    */
-  Office() {}
-  ~Office() {}
+  Office();
 
   /**
-   * Convenience constructor that sets most of the values by calling Place::setup
-   *
-   * @see Place::setup( const char *lab, fred::geo lon, fred::geo lat, Place* cont)
+   * Constructor with necessary parameters
    */
-  Office( const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  Office(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+
+  ~Office() {}
 
   static void get_parameters();
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
-  int get_group(int disease, Person * per) {
+  int get_group(int disease, Person* per) {
     return 0;
   }
 
   int get_container_size();
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   * @see Place::get_transmission_prob(int disease, Person* i, Person  s)
    *
    * This method returns the value from the static array <code>Office::Office_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Office_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>office_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person * i, Person * s);
+  double get_transmission_prob(int disease, Person* i, Person* s);
 
   /**
    * @see Place::get_contacts_per_day(int disease)
@@ -87,11 +87,11 @@ public:
   }
 
   void set_workplace(Workplace* _workplace) {
-    workplace = _workplace;
+    this->workplace = _workplace;
   }
 
-  Workplace * get_workplace() {
-    return workplace;
+  Workplace* get_workplace() {
+    return this->workplace;
   }
 
 private:

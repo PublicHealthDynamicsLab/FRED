@@ -17,7 +17,7 @@ Person_Place_Link::Person_Place_Link() {
   this->enrollee_index = -1;
 }
 
-void Person_Place_Link::enroll(Person *person, Place *new_place) {
+void Person_Place_Link::enroll(Person* person, Place* new_place) {
   if (this->place != NULL) {
     FRED_VERBOSE(0,"enroll failed: place %d %s  enrollee_index %d \n",
 	   this->place->get_id(), this->place->get_label(), enrollee_index);
@@ -25,26 +25,26 @@ void Person_Place_Link::enroll(Person *person, Place *new_place) {
   assert(this->place == NULL);
   assert(this->enrollee_index == -1);
   this->place = new_place;
-  enrollee_index = this->place->enroll(person);
+  this->enrollee_index = this->place->enroll(person);
   // printf("ENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
   assert(this->enrollee_index != -1);
 }
 
 
-void Person_Place_Link::unenroll(Person *person) {
-  assert(enrollee_index != -1);
-  assert(place != NULL);
-  place->unenroll(enrollee_index);
+void Person_Place_Link::unenroll(Person* person) {
+  assert(this->enrollee_index != -1);
+  assert(this->place != NULL);
+  this->place->unenroll(this->enrollee_index);
   // printf("UNENROLL: place %s size %d\n", place->get_label(), place->get_size()); fflush(stdout);
-  enrollee_index = -1;
-  place = NULL;
+  this->enrollee_index = -1;
+  this->place = NULL;
 }
   
 void Person_Place_Link::update_enrollee_index(int new_index) {
-  assert(enrollee_index != -1);
+  assert(this->enrollee_index != -1);
   assert(new_index != -1);
   // printf("update_enrollee_index: old = %d new = %d\n", enrollee_index, new_index); fflush(stdout);
-  enrollee_index = new_index;
+  this->enrollee_index = new_index;
 }
 
 

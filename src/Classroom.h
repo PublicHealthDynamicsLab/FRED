@@ -29,34 +29,35 @@ public:
 
   /**
    * Default constructor
+   * Note: really only used by Allocator
    */
-  Classroom() {}
-  ~Classroom() {}
+  Classroom();
 
   /**
-   * Convenience constructor that sets most of the values by calling Place::setup
+   * Constructor with necessary parameters
    */
-  Classroom( const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  Classroom(const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  ~Classroom() {}
 
   static void get_parameters();
 
-  int enroll(Person * per);
+  int enroll(Person* per);
   void unenroll(int pos);
 
   /**
-   * @see Place::get_group(int disease, Person * per)
+   * @see Place::get_group(int disease, Person* per)
    */
-  int get_group(int disease, Person * per);
+  int get_group(int disease, Person* per);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person * i, Person * s)
+   * @see Mixing_Group::get_transmission_prob(int disease, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Classroom::Classroom_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Classroom_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>classroom_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person * i, Person * s);
+  double get_transmission_prob(int disease, Person* i, Person* s);
 
   bool is_open(int day);
 
@@ -83,11 +84,11 @@ public:
   }
 
   void set_school(School* _school) {
-    school = _school;
+    this->school = _school;
   }
 
-  School * get_school() {
-    return school;
+  School* get_school() {
+    return this->school;
   }
 
   int get_container_size();
@@ -100,7 +101,7 @@ private:
   static double Classroom_closure_threshold;
   static int Classroom_closure_period;
   static int Classroom_closure_delay;
-  School * school;
+  School* school;
   int age_level;
 };
 

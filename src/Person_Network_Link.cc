@@ -13,99 +13,118 @@
 #include "Person.h"
 #include "Person_Network_Link.h"
 
-
-Person_Network_Link::Person_Network_Link(Person * person, Network * network) {
-  this->place = NULL;
-  this->enrollee_index = -1;
+Person_Network_Link::Person_Network_Link(Person* person, Network* network) {
   this->myself = person;
-  links_to.clear();
-  links_from.clear();
-  enroll(this->myself, network);
+  this->network = NULL;
+  this->enrollee_index = -1;
+  this->links_to.clear();
+  this->links_from.clear();
+  this->enroll(this->myself, network);
+}
+
+void Person_Network_Link::enroll(Person* person, Network* new_network) {
+  if(this->network != NULL) {
+    FRED_VERBOSE(0,"enroll failed: network %s  enrollee_index %d \n",
+      this->network->get_label(), enrollee_index);
+  }
+  assert(this->network == NULL);
+  assert(this->enrollee_index == -1);
+  this->network = new_network;
+  this->enrollee_index = this->network->enroll(person);
+  assert(this->enrollee_index != -1);
 }
 
 void Person_Network_Link::remove_from_network() {
   // remove links to other people
-  int size = links_to.size();
-  for (int i = 0; i < size; i++) {
-    links_to[i]->delete_network_link_from(this->myself, static_cast<Network*>(this->place));
+  int size = this->links_to.size();
+  for(int i = 0; i < size; ++i) {
+    this->links_to[i]->delete_network_link_from(this->myself, this->network);
   }
 
   // remove links from other people
-  size = links_from.size();
-  for (int i = 0; i < size; i++) {
-    links_from[i]->delete_network_link_to(this->myself, static_cast<Network*>(this->place));
+  size = this->links_from.size();
+  for(int i = 0; i < size; ++i) {
+    this->links_from[i]->delete_network_link_to(this->myself, this->network);
   }
 
   // unenroll in this network
   this->unenroll(this->myself);
 }
 
+void Person_Network_Link::unenroll(Person* person) {
+  assert(this->enrollee_index != -1);
+  assert(this->network != NULL);
+  this->network->unenroll(this->enrollee_index);
+  this->enrollee_index = -1;
+  this->network = NULL;
+}
+
 // these methods should be used to form or destroy new links
 
 void Person_Network_Link::create_link_from(Person* person) {
   add_link_from(person);
-  person->add_network_link_to(this->myself, static_cast<Network*>(this->place));
+  person->add_network_link_to(this->myself, this->network);
 }
 
 void Person_Network_Link::create_link_to(Person* person) {
   add_link_to(person);
-  person->add_network_link_from(this->myself, static_cast<Network*>(this->place));
+  person->add_network_link_from(this->myself, this->network);
 }
 
 void Person_Network_Link::destroy_link_from(Person* person) {
   delete_link_from(person);
-  person->delete_network_link_to(this->myself, static_cast<Network*>(this->place));
+  person->delete_network_link_to(this->myself, this->network);
 }
 
 void Person_Network_Link::destroy_link_to(Person* person) {
   delete_link_to(person);
-  person->delete_network_link_from(this->myself, static_cast<Network*>(this->place));
+  person->delete_network_link_from(this->myself, this->network);
 }
 
 // helper methods
 
 void Person_Network_Link::add_link_to(Person* person) {
-  int size = links_to.size();
-  for (int i = 0; i < size; i++) {
-    if (person == links_to[i]) {
+  int size = this->links_to.size();
+  for(int i = 0; i < size; ++i) {
+    if(person ==  this->links_to[i]) {
       return;
     }
   }
 
   // add person to my links_to list.
-  links_to.push_back(person);
+  this->links_to.push_back(person);
 }
 
 void Person_Network_Link::add_link_from(Person* person) {
-  int size = links_from.size();
-  for (int i = 0; i < size; i++) {
-    if (person == links_from[i]) {
+  int size =  this->links_from.size();
+  for(int i = 0; i < size; ++i) {
+    if(person ==  this->links_from[i]) {
       return;
     }
   }
 
   // add person to my links_from list.
-  links_from.push_back(person);
+  this->links_from.push_back(person);
 }
 
 void Person_Network_Link::delete_link_to(Person* person) {
   // delete person from my links_to list.
-  int size = links_to.size();
-  for (int i = 0; i < size; i++) {
-    if (person == links_to[i]) {
-      links_to[i] = links_to.back();
-      links_to.pop_back();
+  int size =  this->links_to.size();
+  for(int i = 0; i < size; ++i) {
+    if(person ==  this->links_to[i]) {
+      this->links_to[i] =  this->links_to.back();
+      this->links_to.pop_back();
     }
   }
 }
 
 void Person_Network_Link::delete_link_from(Person* person) {
   // delete person from my links_from list.
-  int size = links_from.size();
-  for (int i = 0; i < size; i++) {
-    if (person == links_from[i]) {
-      links_from[i] = links_from.back();
-      links_from.pop_back();
+  int size =  this->links_from.size();
+  for(int i = 0; i < size; i++) {
+    if(person ==  this->links_from[i]) {
+      this->links_from[i] =  this->links_from.back();
+      this->links_from.pop_back();
     }
   }
 }
@@ -114,34 +133,34 @@ void Person_Network_Link::delete_link_from(Person* person) {
 
 void Person_Network_Link::print(FILE *fp) {
   fprintf(fp,"%d ->", this->myself->get_id());
-  int size = links_to.size();
-  for (int i = 0; i < size; i++) {
-    fprintf(fp," %d", links_to[i]->get_id());
+  int size = this->links_to.size();
+  for (int i = 0; i < size; ++i) {
+    fprintf(fp," %d", this->links_to[i]->get_id());
   }
   fprintf(fp,"\n");
   return;
 
   size = links_from.size();
-  for (int i = 0; i < size; i++) {
-    fprintf(fp,"%d ", links_from[i]->get_id());
+  for(int i = 0; i < size; ++i) {
+    fprintf(fp,"%d ", this->links_from[i]->get_id());
   }
   fprintf(fp,"-> %d\n\n", this->myself->get_id());
 }
 
-bool Person_Network_Link::is_connected_to(Person * person) {
-  int size = links_to.size();
-  for (int i = 0; i < size; i++) {
-    if (links_to[i] == person) {
+bool Person_Network_Link::is_connected_to(Person* person) {
+  int size = this->links_to.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->links_to[i] == person) {
       return true;
     }
   }
   return false;
 }
 
-bool Person_Network_Link::is_connected_from(Person * person) {
-  int size = links_from.size();
-  for (int i = 0; i < size; i++) {
-    if (links_from[i] == person) {
+bool Person_Network_Link::is_connected_from(Person* person) {
+  int size = this->links_from.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->links_from[i] == person) {
       return true;
     }
   }

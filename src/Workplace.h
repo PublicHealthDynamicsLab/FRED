@@ -17,8 +17,10 @@
 #ifndef _FRED_WORKPLACE_H
 #define _FRED_WORKPLACE_H
 
-#include "Place.h"
+#include <climits>
 #include <vector>
+
+#include "Place.h"
 
 class Office;
 
@@ -27,20 +29,18 @@ public:
 
   /**
    * Default constructor
+   * Note: really only used by Allocator
    */
-  Workplace() {
-    this->offices.clear();
-    this->next_office = 0;
-  }
-    
-  ~Workplace() {}
+  Workplace();
 
   /**
-   * Convenience constructor that sets most of the values by calling Place::setup
-   *
-   * @see Place::setup()
+   * Constructor with necessary parameters
    */
   Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+
+  ~Workplace() {}
+
+
 
   static void get_parameters();
 
@@ -139,7 +139,27 @@ public:
 
   // for access from Office
   static double get_workplace_contacts_per_day(int disease_id) {
-    return contacts_per_day;
+    return Workplace::contacts_per_day;
+  }
+
+  static int get_workplace_size_group_size() {
+    return static_cast<int>(Workplace::workplace_size_max.size());
+  }
+
+  static int get_workplace_size_max_by_group_id(int group_id) {
+    if(group_id < 0 || group_id > Workplace::get_workplace_size_group_size()) {
+      return -1;
+    } else {
+      return Workplace::workplace_size_max[group_id];
+    }
+  }
+
+  static int get_workplace_size_by_group_id(int group_id) {
+    if(group_id < 0 || group_id >= Workplace::get_workplace_size_group_size()) {
+      return -1;
+    } else {
+      return Workplace::workplace_size_max[group_id];
+    }
   }
 
 private:
@@ -154,6 +174,10 @@ private:
   static int workers_in_medium_workplaces;
   static int workers_in_large_workplaces;
   static int workers_in_xlarge_workplaces;
+  
+  static std::vector<int> workplace_size_max; // vector to hold the upper limit for each workplace size group
+  static std::vector<int> workers_by_workplace_size; // vector to hold the counts of workers in each group (plus, the "greater than" group)
+  static int workplace_size_group_count;
 
   vector<Place*> offices;
   int next_office;

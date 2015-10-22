@@ -103,7 +103,7 @@ public:
    * @param a string containing the requested Epidemic model type
    * @return a pointer to a Epidemic model
    */
-  static Epidemic * get_epidemic(Disease * disease);
+  static Epidemic* get_epidemic(Disease* disease);
 
   Epidemic(Disease* disease);
   ~Epidemic();
@@ -119,6 +119,7 @@ public:
   void report_place_of_infection(int day);
   void report_presenteeism(int day);
   void report_school_attack_rates_by_income_level(int day);
+  void report_infections_by_workplace_size(int day);
   void report_serial_interval(int day);
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);
@@ -241,7 +242,7 @@ public:
   void cancel_infectious_end(int day, Person *person);
   void cancel_immunity_start(int day, Person *person);
   void cancel_immunity_end(int day, Person *person);
-  virtual void end_of_run(){}
+  virtual void end_of_run() {}
 
 protected:
   Disease* disease;
@@ -253,12 +254,12 @@ protected:
   bool report_transmission_by_age;
 
   // event queues
-  Events * infectious_start_event_queue;
-  Events * infectious_end_event_queue;
-  Events * symptoms_start_event_queue;
-  Events * symptoms_end_event_queue;
-  Events * immunity_start_event_queue;
-  Events * immunity_end_event_queue;
+  Events* infectious_start_event_queue;
+  Events* infectious_end_event_queue;
+  Events* symptoms_start_event_queue;
+  Events* symptoms_end_event_queue;
+  Events* immunity_start_event_queue;
+  Events* immunity_end_event_queue;
 
   // active sets
   std::set<Person*> infected_people;

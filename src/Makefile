@@ -133,7 +133,7 @@ DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
 	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  
 
-PLACE_MODULE = Place.o Household.o Neighborhood.o School.o Classroom.o \
+PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
 	Workplace.o Office.o Hospital.o Place_List.o Network.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \

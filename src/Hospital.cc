@@ -43,17 +43,43 @@ int Hospital::HAZEL_mobile_van_closure_day = 0;
 std::vector<double> Hospital::HAZEL_reopening_CDF;
 HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 
-Hospital::Hospital() {
+Hospital::Hospital() : Place() {
   this->type = Place::HOSPITAL;
+  this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->bed_count = 0;
   this->occupied_bed_count = 0;
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
-  this->HAZEL_closure_dates_have_been_set = false;
-  std::vector<bool>* checked_open_day_vec;
+  this->add_capacity = false;
+
+  if(Global::Enable_Health_Insurance) {
+    vector<double>::iterator itr;
+    int insr = static_cast<int>(Insurance_assignment_index::PRIVATE);
+    for(itr = Hospital::Hospital_health_insurance_prob.begin(); itr != Hospital::Hospital_health_insurance_prob.end(); ++itr, ++insr) {
+      set_accepts_insurance(insr, (Random::draw_random() < *itr));
+    }
+  }
+
+  if(Global::Enable_HAZEL && Hospital::HAZEL_hospital_init_map_file_exists) {
+    //Use the values read in from the map file
+    if(Hospital::HAZEL_hospital_init_map.find(string(this->get_label())) != Hospital::HAZEL_hospital_init_map.end()) {
+      HAZEL_Hospital_Init_Data init_data = Hospital::HAZEL_hospital_init_map.find(string(this->get_label()))->second;
+      this->set_accepts_insurance(Insurance_assignment_index::HIGHMARK, init_data.accpt_highmark);
+      this->set_accepts_insurance(Insurance_assignment_index::MEDICAID, init_data.accpt_medicaid);
+      this->set_accepts_insurance(Insurance_assignment_index::MEDICARE, init_data.accpt_medicare);
+      this->set_accepts_insurance(Insurance_assignment_index::PRIVATE, init_data.accpt_private);
+      this->set_accepts_insurance(Insurance_assignment_index::UNINSURED, init_data.accpt_uninsured);
+      this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
+      if(init_data.is_mobile) {
+        this->set_subtype(fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
+      }
+      this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
+      this->add_capacity = init_data.add_capacity;
+    }
+  }
 }
 
-Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
+Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->type = Place::HOSPITAL;
   this->subtype = _subtype;
   this->bed_count = 0;
@@ -61,7 +87,6 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
   this->daily_patient_capacity = -1;
   this->current_daily_patient_count = 0;
   this->add_capacity = false;
-  setup(lab, lon, lat);
 
   if(Global::Enable_Health_Insurance) {
     vector<double>::iterator itr;
@@ -97,7 +122,7 @@ void Hospital::get_parameters() {
     printf("\nHospital contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", Hospital::prob_transmission_per_contact[i][j]);
+	      printf("%f ", Hospital::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -154,7 +179,7 @@ void Hospital::get_parameters() {
               tokens[ACCPT_UPMC], tokens[ACCPT_UNINSRD], tokens[REOPEN_AFTR_DAYS],
               tokens[IS_MOBILE], tokens[ADD_CAPACITY]);
 
-	    Hospital::HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
+	          Hospital::HAZEL_hospital_init_map.insert(std::pair<string, HAZEL_Hospital_Init_Data>(hosp_id_str, init_data));
           }
           tokens.clear();
         }

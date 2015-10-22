@@ -26,8 +26,7 @@ using namespace std;
 #include "Global.h"
 #include "Epidemic.h"
 #include "Global.h"
-#include "Hospital.h"
-#include "Place.h" 
+#include "Person_Network_Link.h"
 #include "Person_Place_Link.h"
 
 class Age_Map;
@@ -35,6 +34,8 @@ class Activities_Tracking_Data;
 class Network;
 class Person;
 class Person_Network_Link;
+class Place;
+class Hospital;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -424,14 +425,7 @@ public:
    */
   int get_degree();
 
-  int get_household_size();
-  int get_group_size(int index) {
-    int size = 0;
-    if(get_daily_activity_location(index) != NULL) {
-      size = get_daily_activity_location(index)->get_size();
-    }
-    return size;
-  }
+  int get_group_size(int index);
 
   bool is_sick_leave_available() {
     return this->sick_leave_available;
@@ -481,80 +475,15 @@ public:
     return this->profile == NURSING_HOME_RESIDENT_PROFILE;
   }
 
-  bool is_hospital_staff() {
-    bool ret_val = false;
-    
-    if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
-      if(get_workplace() != NULL && get_household() != NULL) {
-        if(get_workplace()->is_hospital() &&
-           !get_household()->is_hospital()) {
-          ret_val = true;
-        }
-      }
-    }
-    
-    return ret_val;
-  }
+  bool is_hospital_staff();
 
-  bool is_prison_staff() {
-    bool ret_val = false;
-    
-    if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
-      if(get_workplace() != NULL && get_household() != NULL) {
-        if(get_workplace()->is_prison() &&
-           !get_household()->is_prison()) {
-          ret_val = true;
-        }
-      }
-    }
-    
-    return ret_val;
-  }
+  bool is_prison_staff();
 
-  bool is_college_dorm_staff() {
-    bool ret_val = false;
-    
-    if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
-      if(get_workplace() != NULL && get_household() != NULL) {
-        if(get_workplace()->is_college() &&
-           !get_household()->is_college()) {
-          ret_val = true;
-        }
-      }
-    }
-    
-    return ret_val;
-  }
+  bool is_college_dorm_staff();
 
-  bool is_military_base_staff() {
-    bool ret_val = false;
-    
-    if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
-      if(get_workplace() != NULL && get_household() != NULL) {
-        if(get_workplace()->is_military_base() &&
-           !get_household()->is_military_base()) {
-          ret_val = true;
-        }
-      }
-    }
-    
-    return ret_val;
-  }
+  bool is_military_base_staff();
 
-  bool is_nursing_home_staff() {
-    bool ret_val = false;
-    
-    if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
-      if(get_workplace() != NULL && get_household() != NULL) {
-        if(get_workplace()->is_nursing_home() &&
-           !get_household()->is_nursing_home()) {
-          ret_val = true;
-        }
-      }
-    }
-    
-    return ret_val;
-  }
+  bool is_nursing_home_staff();
 
   static void initialize_static_variables();
 
@@ -580,37 +509,37 @@ public:
     return this->return_from_travel_sim_day;
   }
 
-  void create_network_link_to(Person * person, Network * network);
+  void create_network_link_to(Person* person, Network* network);
 
-  void create_network_link_from(Person * person, Network * network);
+  void create_network_link_from(Person* person, Network* network);
 
-  void destroy_network_link_to(Person * person, Network * network);
+  void destroy_network_link_to(Person* person, Network* network);
 
-  void destroy_network_link_from(Person * person, Network * network);
+  void destroy_network_link_from(Person* person, Network* network);
 
-  void add_network_link_to(Person * person, Network * network);
+  void add_network_link_to(Person* person, Network* network);
 
-  void add_network_link_from(Person * person, Network * network);
+  void add_network_link_from(Person* person, Network* network);
 
-  void delete_network_link_to(Person * person, Network * network);
+  void delete_network_link_to(Person* person, Network* network);
 
-  void delete_network_link_from(Person * person, Network * network);
+  void delete_network_link_from(Person* person, Network* network);
 
-  void join_transmission_network(Person * self);
+  void join_transmission_network(Person* self);
 
-  bool is_enrolled_in_network(Network * network);
+  bool is_enrolled_in_network(Network* network);
 
-  void print_transmission_network(FILE *fp, Person * self);
+  void print_transmission_network(FILE* fp, Person* self);
 
-  bool is_connected_to(Person * person, Network * network);
+  bool is_connected_to(Person* person, Network* network);
 
-  bool is_connected_from(Person * person, Network * network);
+  bool is_connected_from(Person* person, Network* network);
 
-  int get_out_degree(Network * network);
+  int get_out_degree(Network* network);
 
-  int get_in_degree(Network * network);
+  int get_in_degree(Network* network);
 
-  void clear_network(Network * network);
+  void clear_network(Network* network);
 
 private:
 
@@ -618,7 +547,7 @@ private:
   Person* myself;
 
   // links to daily activity locations
-  Person_Place_Link * link;
+  Person_Place_Link* link;
 
   // links to networks of people
   std::vector<Person_Network_Link*> networks;
@@ -701,14 +630,14 @@ private:
   void clear_daily_activity_locations();
   void enroll_in_daily_activity_location(int i);
   void enroll_in_daily_activity_locations();
-  void update_enrollee_index(Place * place, int new_index);
+  void update_enrollee_index(Place* place, int new_index);
   void unenroll_from_daily_activity_location(int i);
   void unenroll_from_daily_activity_locations();
   void store_daily_activity_locations();
   void restore_daily_activity_locations();
   int get_daily_activity_location_id(int i);
-  const char * get_daily_activity_location_label(int i);
-  bool is_present(Person *self, int sim_day, Place *place);
+  const char* get_daily_activity_location_label(int i);
+  bool is_present(Person* self, int sim_day, Place* place);
 
 protected:
 

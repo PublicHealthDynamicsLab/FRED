@@ -9,6 +9,8 @@
   more information.
 */
 
+#include <cmath>
+
 #include "Age_Map.h"
 #include "MSEvolution.h"
 #include "Params.h"
@@ -18,98 +20,103 @@
 
 
 MSEvolution::MSEvolution() { 
-  halflife_inf = NULL;
-  halflife_vac = NULL;
-  init_prot_inf = 0.0;
-  init_prot_vac = 0.0;
-  sat_quantity = 0.0;
-  protection = NULL;
+  this->halflife_inf = NULL;
+  this->halflife_vac = NULL;
+  this->init_prot_inf = 0.0;
+  this->init_prot_vac = 0.0;
+  this->sat_quantity = 0.0;
+  this->protection = NULL;
+  this->prob_inoc_norm = 0.0;
 }
 
 void MSEvolution::setup( Disease * disease ) {
   Evolution::setup(disease);
-  halflife_inf = new Age_Map("Infection Protection Half Life");
-  halflife_inf->read_from_input("half_life_inf", disease->get_id());
+  this->halflife_inf = new Age_Map("Infection Protection Half Life");
+  this->halflife_inf->read_from_input("half_life_inf", disease->get_id());
 
-  halflife_vac = new Age_Map("Vaccination Protection Half Life");
-  halflife_vac->read_from_input("half_life_vac", disease->get_id());
+  this->halflife_vac = new Age_Map("Vaccination Protection Half Life");
+  this->halflife_vac->read_from_input("half_life_vac", disease->get_id());
   
-  Params::get_param((char *) "init_protection_inf", &init_prot_inf);
-  Params::get_param((char *) "init_protection_vac", &init_prot_vac);
-  Params::get_param((char *) "saturation_quantity", &sat_quantity);
+  Params::get_param((char*) "init_protection_inf", &this->init_prot_inf);
+  Params::get_param((char*) "init_protection_vac", &this->init_prot_vac);
+  Params::get_param((char*) "saturation_quantity", &this->sat_quantity);
   
-  protection = new Piecewise_Linear;
-  protection->setup( "strain_dependent_protection", disease );
+  this->protection = new Piecewise_Linear;
+  this->protection->setup("strain_dependent_protection", disease);
 
-  prob_inoc_norm = 1 - exp( -1 );
+  this->prob_inoc_norm = 1 - exp(-1);
  
 }
 
 MSEvolution::~MSEvolution() {
-  delete halflife_inf;
-  delete halflife_vac;
-  delete protection;
+  delete this->halflife_inf;
+  delete this->halflife_vac;
+  delete this->protection;
 }
 
-inline double MSEvolution::residual_immunity( Person * person, int challenge_strain, int day ) {
-  double probTaking = 1 - Evolution::residual_immunity( person, challenge_strain, day );
+inline double MSEvolution::residual_immunity(Person* person, int challenge_strain, int day)  {
+  double probTaking = 1 - Evolution::residual_immunity(person, challenge_strain, day);
   // Pr(Taking | Past-Infections)
   probTaking *= prob_past_infections(person, challenge_strain, day);
   // Pr(Taking | Protective Vaccinations)
   //probTaking *= prob_past_vaccinations(person, challenge_strain, day);
-  return ( 1 - probTaking );
+  return (1 - probTaking);
 }
 
 double MSEvolution::prob_inoc( double quantity ) {
   //static double norm = 1 - exp( -1 );
-  double prob = ( 1.0 - exp( ( 0 - quantity ) / sat_quantity ) ) / prob_inoc_norm;
-  return ( prob < 1.0 ) ? prob : 1.0;
+  double prob = ( 1.0 - exp((0 - quantity ) / this->sat_quantity)) / this->prob_inoc_norm;
+  return (prob < 1.0) ? prob : 1.0;
 }
 
 double MSEvolution::antigenic_distance( int strain1, int strain2 ) {
   int diff = strain1 - strain2;
-  if ( diff * diff == 0 ) return 0.0;
-  else if ( diff * diff == 1 ) return 1.0;
-  else return 10.0;
+  if(diff * diff == 0) {
+    return 0.0;
+  } else if(diff * diff == 1) {
+    return 1.0;
+  } else {
+    return 10.0;
+  }
 }
 
-double MSEvolution::prob_inf_blocking( int old_strain, int new_strain, int time, double real_age ) {
+double MSEvolution::prob_inf_blocking(int old_strain, int new_strain, int time, double real_age) {
   FRED_VERBOSE( 3, "Prob Blocking %f old strain %d new strain %d time %d halflife %f age %.2f init prot inf %f\n",
 		prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ),
 		old_strain, new_strain, time, halflife_inf->find_value( real_age ), real_age, init_prot_inf );
-  return prob_blocking( old_strain, new_strain, time, halflife_inf->find_value( real_age ), init_prot_inf ); 
+  return prob_blocking( old_strain, new_strain, time, this->halflife_inf->find_value( real_age ), this->init_prot_inf );
 }
 
-double MSEvolution::prob_vac_blocking( int old_strain, int new_strain, int time, double real_age ) {
-  return prob_blocking( old_strain, new_strain, time, halflife_vac->find_value( real_age ), init_prot_vac ); 
+double MSEvolution::prob_vac_blocking(int old_strain, int new_strain, int time, double real_age) {
+  return prob_blocking( old_strain, new_strain, time, this->halflife_vac->find_value( real_age ), this->init_prot_vac );
 }
 
-double MSEvolution::prob_blocking( int old_strain, int new_strain, int time, double halflife, double init_prot ) {
+double MSEvolution::prob_blocking(int old_strain, int new_strain, int time, double halflife, double init_prot) {
   double prob_block = 1.0;
   // Generalized Immunity
-  prob_block *= ( 1 - ( init_prot * exp( ( 0 - time ) / ( halflife / 0.693 ) ) ) );
+  prob_block *= (1 - (init_prot * exp((0 - time) / (halflife / 0.693))));
   // Strain Dependent Immunity 
-  double ad = antigenic_distance( old_strain, new_strain );
-  prob_block *= ( 1 - protection->get_prob( ad ) );
+  double ad = antigenic_distance( old_strain, new_strain);
+  prob_block *= (1 - this->protection->get_prob(ad));
   // Make sure that it's a valid probability 
-  assert( prob_block >= 0.0 && prob_block <= 1.0 );
-  return ( 1 - prob_block );
+  assert(prob_block >= 0.0 && prob_block <= 1.0);
+  return (1 - prob_block);
 }
 
-double MSEvolution::prob_past_infections( Person * infectee, int new_strain, int day ) {
-  int disease_id = disease->get_id();
+double MSEvolution::prob_past_infections(Person* infectee, int new_strain, int day) {
+  int disease_id = this->disease->get_id();
   double probTaking = 1.0;
-  int n = infectee->get_num_past_infections( disease_id );
-  for( int i = 0; i < n; i++ ) {
-    Past_Infection * past_infection = infectee->get_past_infection( disease_id, i );
+  int n = infectee->get_num_past_infections(disease_id);
+  for(int i = 0; i < n; ++i) {
+    Past_Infection * past_infection = infectee->get_past_infection(disease_id, i);
     //printf("DATES: %d %d\n", day, pastInf->get_infectious_end_date()); 
-    probTaking *= ( 1 - prob_inf_blocking( past_infection->get_strain(), new_strain, 
-					   day - past_infection->get_infectious_end_date(), past_infection->get_age_at_exposure() ) );
+    probTaking *= (1 - prob_inf_blocking(past_infection->get_strain(), new_strain,
+					   day - past_infection->get_infectious_end_date(), past_infection->get_age_at_exposure()));
   }
   return probTaking;
 }
 
-double MSEvolution::prob_past_vaccinations( Person * infectee, int new_strain, int day ) {
+double MSEvolution::prob_past_vaccinations(Person* infectee, int new_strain, int day) {
   double probTaking = 1.0;
   // TODO Handle getting past vaccinations through person instead of infection
   /*  int n = infection->get_num_past_vaccinations();
@@ -130,7 +137,7 @@ double MSEvolution::prob_past_vaccinations( Person * infectee, int new_strain, i
   return probTaking;
 }
 
-double MSEvolution::get_prob_taking( Person * infectee, int new_strain, double quantity, int day ) {
+double MSEvolution::get_prob_taking(Person* infectee, int new_strain, double quantity, int day) {
   double probTaking = 1.0;
   // Pr(Taking | quantity)
   probTaking *= prob_inoc(quantity);

@@ -42,7 +42,7 @@
 
 class Activities_Tracking_Data;
 
-const char * get_label_for_place(Place *place) {
+const char* get_label_for_place(Place* place) {
   return place ? place->get_label() : "NULL";
 }
 
@@ -139,13 +139,13 @@ void Activities::initialize_static_variables() {
       Person* per = NULL;
       Household* h = Global::Places.get_household_ptr(p);
       if(h->get_children() == 0) {
-	continue;
+	      continue;
       }
       if(h->has_school_aged_child()) {
-	count_has_school_age++;
+	      count_has_school_age++;
       }
       if(h->has_school_aged_child_and_unemployed_adult()) {
-	count_has_school_age_and_unemployed_adult++;
+	      count_has_school_age_and_unemployed_adult++;
       }
     }
     Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
@@ -154,6 +154,7 @@ void Activities::initialize_static_variables() {
 }
 
 Activities::Activities() {
+  this->myself = NULL;
   this->my_sick_days_absent = -1;
   this->my_sick_days_present = -1;
   this->sick_days_remaining = -1.0;
@@ -181,7 +182,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d age %d household %s\n",
 	       self->get_id(), self->get_age(), house->get_label());
 
-  myself = self;
+  this->myself = self;
   clear_daily_activity_locations();
 
   FRED_VERBOSE(1,"set household %s\n", get_label_for_place(house));
@@ -243,7 +244,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 }
 
 void Activities::prepare() {
-  initialize_sick_leave();
+  this->initialize_sick_leave();
 }
 
 void Activities::initialize_sick_leave() {
@@ -1328,6 +1329,89 @@ int Activities::get_degree() {
   return degree;
 }
 
+int Activities::get_group_size(int index) {
+  int size = 0;
+  if(get_daily_activity_location(index) != NULL) {
+    size = get_daily_activity_location(index)->get_size();
+  }
+  return size;
+}
+
+bool Activities::is_hospital_staff() {
+  bool ret_val = false;
+
+  if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
+    if(get_workplace() != NULL && get_household() != NULL) {
+      if(get_workplace()->is_hospital() &&
+         !get_household()->is_hospital()) {
+        ret_val = true;
+      }
+    }
+  }
+
+  return ret_val;
+}
+
+bool Activities::is_prison_staff() {
+  bool ret_val = false;
+
+  if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
+    if(get_workplace() != NULL && get_household() != NULL) {
+      if(get_workplace()->is_prison() &&
+         !get_household()->is_prison()) {
+        ret_val = true;
+      }
+    }
+  }
+
+  return ret_val;
+}
+
+bool Activities::is_college_dorm_staff() {
+  bool ret_val = false;
+
+  if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
+    if(get_workplace() != NULL && get_household() != NULL) {
+      if(get_workplace()->is_college() &&
+         !get_household()->is_college()) {
+        ret_val = true;
+      }
+    }
+  }
+
+  return ret_val;
+}
+
+bool Activities::is_military_base_staff() {
+  bool ret_val = false;
+
+  if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
+    if(get_workplace() != NULL && get_household() != NULL) {
+      if(get_workplace()->is_military_base() &&
+         !get_household()->is_military_base()) {
+        ret_val = true;
+      }
+    }
+  }
+
+  return ret_val;
+}
+
+bool Activities::is_nursing_home_staff() {
+  bool ret_val = false;
+
+  if(this->profile == WORKER_PROFILE || this->profile == WEEKEND_WORKER_PROFILE) {
+    if(get_workplace() != NULL && get_household() != NULL) {
+      if(get_workplace()->is_nursing_home() &&
+         !get_household()->is_nursing_home()) {
+        ret_val = true;
+      }
+    }
+  }
+
+  return ret_val;
+}
+
 void Activities::update_profile(Person* self) {
   int age = self->get_age();
 
@@ -1796,10 +1880,10 @@ void Activities::update_enrollee_index(Place * place, int new_index) {
 
 void Activities::clear_daily_activity_locations() {
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
-    if (link[i].is_enrolled()) {
-      link[i].unenroll(myself);
+    if(this->link[i].is_enrolled()) {
+      this->link[i].unenroll(myself);
     }
-    assert(link[i].get_place() == NULL);
+    assert(this->link[i].get_place() == NULL);
   }
 }
   
@@ -1818,8 +1902,8 @@ void Activities::enroll_in_daily_activity_locations() {
 
 void Activities::unenroll_from_daily_activity_location(int i) {
   Place* place = get_daily_activity_location(i);
-  if (place != NULL) {
-    link[i].unenroll(myself);
+  if(place != NULL) {
+    this->link[i].unenroll(myself);
   }
 }
 
@@ -1839,9 +1923,9 @@ void Activities::store_daily_activity_locations() {
 
 void Activities::restore_daily_activity_locations() {
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
-    set_daily_activity_location(i, stored_daily_activity_locations[i]);
+    set_daily_activity_location(i, this->stored_daily_activity_locations[i]);
   }
-  delete[] stored_daily_activity_locations;
+  delete[] this->stored_daily_activity_locations;
 }
 
 int Activities::get_daily_activity_location_id(int p) {
@@ -1856,27 +1940,26 @@ const char * Activities::get_daily_activity_location_label(int p) {
 void Activities::set_daily_activity_location(int i, Place* place) {
   if (place) {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
-  }
-  else {
+  } else {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to NULL\n",i);
   }
   // update link if necessary
   Place* old_place = get_daily_activity_location(i);
   FRED_VERBOSE(1, "old place %s\n", old_place? old_place->get_label():"NULL");
-  if (place != old_place) {
-    if (old_place != NULL) {
+  if(place != old_place) {
+    if(old_place != NULL) {
       // remove old link
       // printf("remove old link\n");
-      link[i].unenroll(myself);
+      this->link[i].unenroll(this->myself);
     }
-    if (place != NULL) {
-      link[i].enroll(myself, place);
+    if(place != NULL) {
+      this->link[i].enroll(this->myself, place);
     }
   }
   FRED_VERBOSE(1, "set daily activity location finished\n");
 }
 
-bool Activities::is_present(Person *self, int sim_day, Place *place) {
+bool Activities::is_present(Person* self, int sim_day, Place* place) {
 
   // not here if traveling abroad
   if(this->is_traveling_outside) {
@@ -1897,175 +1980,175 @@ bool Activities::is_present(Person *self, int sim_day, Place *place) {
   return false;
 }
 
-void Activities::create_network_link_to(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->create_link_to(person);
+void Activities::create_network_link_to(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->create_link_to(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::create_network_link_from(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->create_link_from(person);
+void Activities::create_network_link_from(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->create_link_from(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::destroy_network_link_to(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->destroy_link_to(person);
+void Activities::destroy_network_link_to(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->destroy_link_to(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::destroy_network_link_from(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->destroy_link_from(person);
+void Activities::destroy_network_link_from(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->destroy_link_from(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::add_network_link_to(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->add_link_to(person);
+void Activities::add_network_link_to(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->add_link_to(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::add_network_link_from(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->add_link_from(person);
+void Activities::add_network_link_from(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->add_link_from(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::delete_network_link_to(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->delete_link_to(person);
+void Activities::delete_network_link_to(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->delete_link_to(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::delete_network_link_from(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->delete_link_from(person);
+void Activities::delete_network_link_from(Person* person, Network* network) {
+  int size = this->networks.size();
+  for (int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->delete_link_from(person);
       return;
     }
   }
   Utils::fred_abort("network not found");
 }
 
-void Activities::join_transmission_network(Person * self) {
+void Activities::join_transmission_network(Person* self) {
   FRED_VERBOSE(0, "JOINING TRANS NET: id = %d\n", self->get_id());
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == Global::Transmission_Network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == Global::Transmission_Network) {
       return;
     }
   }
-  Person_Network_Link * network_link = new Person_Network_Link(self, Global::Transmission_Network);
-  networks.push_back(network_link);
+  Person_Network_Link* network_link = new Person_Network_Link(self, Global::Transmission_Network);
+  this->networks.push_back(network_link);
 }
 
-bool Activities::is_enrolled_in_network(Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == Global::Transmission_Network) {
+bool Activities::is_enrolled_in_network(Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == Global::Transmission_Network) {
       return true;
     }
   }
   return false;
 }
 
-void Activities::print_transmission_network(FILE *fp, Person * self) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == Global::Transmission_Network) {
-      networks[i]->print(fp);
+void Activities::print_transmission_network(FILE* fp, Person* self) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == Global::Transmission_Network) {
+      this->networks[i]->print(fp);
     }
   }
 }
 
-bool Activities::is_connected_to(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      return networks[i]->is_connected_to(person);
-    }
-  }
-  Utils::fred_abort("network not found");
-  return false;
-}
-
-
-bool Activities::is_connected_from(Person * person, Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      return networks[i]->is_connected_from(person);
+bool Activities::is_connected_to(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      return this->networks[i]->is_connected_to(person);
     }
   }
   Utils::fred_abort("network not found");
   return false;
 }
 
-int Activities::get_out_degree(Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      return networks[i]->get_out_degree();
+
+bool Activities::is_connected_from(Person* person, Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      return this->networks[i]->is_connected_from(person);
+    }
+  }
+  Utils::fred_abort("network not found");
+  return false;
+}
+
+int Activities::get_out_degree(Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      return this->networks[i]->get_out_degree();
     }
   }
   Utils::fred_abort("network not found");
   return 0;
 }
 
-int Activities::get_in_degree(Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      return networks[i]->get_in_degree();
+int Activities::get_in_degree(Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      return this->networks[i]->get_in_degree();
     }
   }
   Utils::fred_abort("network not found");
   return 0;
 }
 
-void Activities::clear_network(Network * network) {
-  int size = networks.size();
-  for (int i = 0; i < size; i++) {
-    if (networks[i]->get_place() == network) {
-      networks[i]->clear();
+void Activities::clear_network(Network* network) {
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      this->networks[i]->clear();
       return;
     }
   }

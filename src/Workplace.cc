@@ -13,6 +13,7 @@
 //
 // File: Workplace.cc
 //
+#include <climits>
 
 #include "Workplace.h"
 #include "Global.h"
@@ -41,10 +42,22 @@ int Workplace::workers_in_large_workplaces = 0;
 int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
-Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) {
+vector<int> Workplace::workplace_size_max;
+vector<int> Workplace::workers_by_workplace_size;
+int Workplace::workplace_size_group_count = 0;
+
+Workplace::Workplace() : Place() {
+  this->type = WORKPLACE;
+  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->intimacy = 0.01;
+  this->offices.clear();
+  this->next_office = 0;
+}
+
+Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->type = WORKPLACE;
   this->subtype = _subtype;
-  setup(lab, lon, lat);
+  this->intimacy = 0.01;
   this->offices.clear();
   this->next_office = 0;
 }
@@ -57,14 +70,23 @@ void Workplace::get_parameters() {
   Params::get_param_from_string("small_workplace_size", &Workplace::Small_workplace_size);
   Params::get_param_from_string("medium_workplace_size", &Workplace::Medium_workplace_size);
   Params::get_param_from_string("large_workplace_size", &Workplace::Large_workplace_size);
+    
+  Workplace::workplace_size_group_count = Params::get_param_vector((char*)"workplace_size_max", Workplace::workplace_size_max);
+  //Add the last column so that it goes to intmax
+  Workplace::workplace_size_max.push_back(INT_MAX);
+  Workplace::workplace_size_group_count++;
+  //Set all of the workplace counts to 0
+  for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
+    Workplace::workers_by_workplace_size.push_back(0);
+  }
 
   Params::get_param_from_string("workplace_contacts", &Workplace::contacts_per_day);
   int n = Params::get_param_matrix((char *)"workplace_trans_per_contact", &Workplace::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nWorkplace_contact_prob:\n");
-    for(int i  = 0; i < n; ++i)  {
+    for(int i  = 0; i < n; ++i) {
       for(int j  = 0; j < n; ++j) {
-	printf("%f ", Workplace::prob_transmission_per_contact[i][j]);
+	      printf("%f ", Workplace::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -73,19 +95,19 @@ void Workplace::get_parameters() {
   // normalize contact parameters
   // find max contact prob
   double max_prob = 0.0;
-  for(int i  = 0; i < n; i++)  {
-    for(int j  = 0; j < n; j++) {
-      if (Workplace::prob_transmission_per_contact[i][j] > max_prob) {
-	max_prob = Workplace::prob_transmission_per_contact[i][j];
+  for(int i  = 0; i < n; ++i)  {
+    for(int j  = 0; j < n; ++j) {
+      if(Workplace::prob_transmission_per_contact[i][j] > max_prob) {
+	      max_prob = Workplace::prob_transmission_per_contact[i][j];
       }
     }
   }
 
   // convert max contact prob to 1.0
-  if (max_prob > 0) {
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	Workplace::prob_transmission_per_contact[i][j] /= max_prob;
+  if(max_prob > 0) {
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      Workplace::prob_transmission_per_contact[i][j] /= max_prob;
       }
     }
     // compensate contact rate
@@ -94,9 +116,9 @@ void Workplace::get_parameters() {
 
   if(Global::Verbose > 0) {
     printf("\nWorkplace_contact_prob after normalization:\n");
-    for(int i  = 0; i < n; i++)  {
-      for(int j  = 0; j < n; j++) {
-	printf("%f ", Workplace::prob_transmission_per_contact[i][j]);
+    for(int i  = 0; i < n; ++i)  {
+      for(int j  = 0; j < n; ++j) {
+	      printf("%f ", Workplace::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -120,6 +142,21 @@ void Workplace::prepare() {
     Workplace::workers_in_xlarge_workplaces += get_size();
   }
   Workplace::total_workers += get_size();
+  
+    for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
+    if(get_size() < Workplace::workplace_size_max[i]) {
+      Workplace::workers_by_workplace_size[i] += get_size();
+      break;
+    }
+  }
+
+//  printf("DEBUG: Workplace[%d] ... size[%d]\n", this->get_id(), this->get_size());
+//  int wp_size_min = 0;
+//  for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
+//    printf("DEBUG: workplace size of %d - %d = %d\n", wp_size_min, Workplace::workplace_size_max[i], Workplace::workers_by_workplace_size[i]);
+//    wp_size_min = Workplace::workplace_size_max[i] + 1;
+//  }
+//  printf("DEBUG: -------------------------------------------------\n\n");
 
   // now call base class function to perform preparations common to all Places 
   Place::prepare();
@@ -162,10 +199,10 @@ void Workplace::setup_offices(Allocator<Office> &office_allocator) {
     char new_label[128];
     sprintf(new_label, "%s-%03d", this->get_label(), i);
     
-    Office* office = new (office_allocator.get_free())Office(new_label,
-							     fred::PLACE_SUBTYPE_NONE,
-							     this->get_longitude(),
-							     this->get_latitude());
+    Office* office = new(office_allocator.get_free())Office(new_label,
+							           fred::PLACE_SUBTYPE_NONE,
+							           this->get_longitude(),
+							           this->get_latitude());
 
     office->set_workplace(this);
 

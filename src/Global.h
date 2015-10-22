@@ -405,7 +405,7 @@ namespace fred {
 
   enum place_subtype {
     PLACE_SUBTYPE_NONE = 'X',
-    PLACE_SUBTYPE_EMPTY = 'E',
+    //PLACE_SUBTYPE_EMPTY = 'E',
     PLACE_SUBTYPE_COLLEGE = 'C',
     PLACE_SUBTYPE_PRISON = 'P',
     PLACE_SUBTYPE_MILITARY_BASE = 'M',

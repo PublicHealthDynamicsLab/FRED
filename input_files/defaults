@@ -273,6 +273,7 @@ office_size = 50
 small_workplace_size = 50
 medium_workplace_size = 100
 large_workplace_size = 500
+workplace_size_max = 0
 
 ##########################################################
 #

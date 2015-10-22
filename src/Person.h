@@ -858,37 +858,9 @@ public:
     return this->health.is_alive() == false;
   }
 
-  double get_x() {
-    Place* hh = this->get_household();
+  double get_x();
 
-    if(hh == NULL) {
-      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
-        hh = this->get_permanent_household();
-      }
-    }
-
-    if(hh == NULL) {
-      return 0.0;
-    } else {
-      return hh->get_x();
-    }
-  }
-
-  double get_y() {
-    Place* hh = this->get_household();
-
-    if(hh == NULL) {
-      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
-        hh = this->get_permanent_household();
-      }
-    }
-
-    if(hh == NULL) {
-      return 0.0;
-    } else {
-      return hh->get_y();
-    }
-  }
+  double get_y();
 
   bool is_prisoner() {
     return this->activities.is_prisoner();
