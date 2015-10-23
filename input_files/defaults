@@ -585,6 +585,14 @@ influenza_days_infectious = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 # influenza_days_incubating = 3       0.0 0.8 1.0
 # influenza_days_symptomatic = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
 
+influenza_use_incubation_offset = 0
+influenza_incubation_period_median = 1.9
+influenza_incubation_period_dispersion = 1.81 
+influenza_symptoms_duration_median = 4.0
+influenza_symptoms_duration_dispersion = 1.5 
+influenza_infectious_start_offset = 0
+influenza_infectious_end_offset = 0
+
 ### IMMUNITY
 influenza_immunity_loss_rate = 0
 influenza_residual_immunity_age_groups = 0

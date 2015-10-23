@@ -61,12 +61,18 @@ public:
 
   virtual int get_duration_of_immunity(Person* host);
 
-  // not used in default model: symptoms (if any) coincide with infectiousness
+  virtual double get_real_incubation_period(Person* host);
+
+  virtual double get_symptoms_duration(Person* host);
+
+  virtual double get_infectious_start_offset(Person* host);
+
+  virtual double get_infectious_end_offset(Person* host);
+
   virtual int get_incubation_period(Person* host) {
-    return NEVER;
+    return 1;
   }
 
-  // not used in default model: symptoms (if any) coincide with infectiousness
   virtual int get_duration_of_symptoms(Person* host) {
     return NEVER;
   }
@@ -115,6 +121,10 @@ public:
 
   virtual void end_of_run(){}
 
+  virtual int get_use_incubation_offset() {
+    return use_incubation_offset;
+  }
+
 protected:
   Disease *disease;
   double probability_of_symptoms;
@@ -130,6 +140,15 @@ protected:
   double *days_symptomatic;
   Age_Map *age_specific_prob_symptoms;
   double immunity_loss_rate;
+
+  // parameters for incubation period and infectious offsets
+  int use_incubation_offset;
+  double incubation_period_median;
+  double incubation_period_dispersion;
+  double symptoms_duration_median;
+  double symptoms_duration_dispersion;
+  double infectious_start_offset;
+  double infectious_end_offset;
 
   // thresholds used in Infection class to determine if an agent is
   // infectious/symptomatic at a given time point
