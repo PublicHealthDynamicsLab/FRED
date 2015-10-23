@@ -94,11 +94,64 @@ void Infection::setup() {
 
   FRED_VERBOSE(1, "infection::setup entered\n");
 
-  bool symptoms_coincide_with_infectious_period = disease->get_natural_history()->do_symptoms_coincide_with_infectiousness();
-
   // decide if this host will develop symptoms
   double prob_symptoms = disease->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
   this->will_develop_symptoms = (Random::draw_random() < prob_symptoms);
+
+  if (disease->get_natural_history()->get_use_incubation_offset()) {
+    double incubation_period = disease->get_natural_history()->get_incubation_period(this->host);
+    double symptoms_duration = disease->get_natural_history()->get_symptoms_duration(this->host);
+
+    // find symptoms dates (assuming symptoms will occur)
+    this->symptoms_start_date = this->exposure_date + floor(incubation_period);
+    double remainder = incubation_period - floor(incubation_period);
+    if (Random::draw_random() < remainder) {
+      this->symptoms_start_date++;
+    }
+    this->symptoms_end_date = this->exposure_date + floor(incubation_period + symptoms_duration);
+    remainder = incubation_period + symptoms_duration - floor(incubation_period + symptoms_duration);
+    if (Random::draw_random() < remainder) {
+      this->symptoms_end_date++;
+    }
+
+    // set infectious dates based on offset
+    double infectious_start_offset = disease->get_natural_history()->get_infectious_start_offset(this->host);
+    double infectious_end_offset = disease->get_natural_history()->get_infectious_end_offset(this->host);
+
+    this->infectious_start_date = this->symptoms_start_date + floor(infectious_start_offset);
+    remainder = infectious_start_offset - floor(infectious_start_offset);
+    if (Random::draw_random() < remainder) {
+      this->infectious_start_date++;
+    }
+    this->infectious_end_date = this->symptoms_end_date + floor(infectious_end_offset);
+    remainder = infectious_end_offset - floor(infectious_end_offset);
+    if (Random::draw_random() < remainder) {
+      this->infectious_end_date++;
+    }
+
+    // sanity checks
+    if (this->symptoms_start_date < this->exposure_date+1) {
+      this->symptoms_start_date = this->exposure_date+1;
+    }
+    if (this->symptoms_end_date < this->symptoms_start_date+1) {
+      this->symptoms_end_date = this->symptoms_start_date+1;
+    }
+    if (this->infectious_start_date < this->exposure_date+1) {
+      this->infectious_start_date = this->exposure_date+1;
+    }
+    if (this->infectious_end_date < this->infectious_start_date+1) {
+      this->infectious_end_date = this->infectious_start_date+1;
+    }
+
+    // adjust symptoms date if asymptomatic
+    if (this->will_develop_symptoms == false) {
+      this->symptoms_start_date = NEVER;
+      this->symptoms_end_date = NEVER;
+    }
+    return;
+  }
+
+  bool symptoms_coincide_with_infectious_period = disease->get_natural_history()->do_symptoms_coincide_with_infectiousness();
 
   // set transition dates for infectiousness
   int my_latent_period = disease->get_natural_history()->get_latent_period(this->host);

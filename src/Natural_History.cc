@@ -142,6 +142,17 @@ void Natural_History::get_parameters() {
   this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
   */
 
+  // incubation offset
+  Params::get_indexed_param(disease_name, "use_incubation_offset", &(this->use_incubation_offset));
+  if (this->use_incubation_offset) {
+    Params::get_indexed_param(disease_name, "incubation_period_median", &(this->incubation_period_median));
+    Params::get_indexed_param(disease_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
+    Params::get_indexed_param(disease_name, "symptoms_duration_median", &(this->symptoms_duration_median));
+    Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
+    Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
+    Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+  }
+
   // Initialize Infection Thresholds
   Params::get_indexed_param(disease_name, "infectivity_threshold", &(this->infectivity_threshold));
   Params::get_indexed_param(disease_name, "symptomaticity_threshold", &(this->symptomaticity_threshold));
@@ -268,5 +279,27 @@ bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomati
   } else {
     return is_fatal(per->get_age(), symptoms, days_symptomatic);
   }
+}
+
+double Natural_History::get_real_incubation_period(Person* host) {
+  double location = log(this->incubation_period_median);
+  double scale = log(this->incubation_period_dispersion);
+  double incubation_period = Random::draw_lognormal(location, scale);
+  return incubation_period;
+}
+
+double Natural_History::get_symptoms_duration(Person* host) {
+  double location = log(this->symptoms_duration_median);
+  double scale = log(this->symptoms_duration_dispersion);
+  double symptoms_duration = Random::draw_lognormal(location, scale);
+  return symptoms_duration;
+}
+
+double Natural_History::get_infectious_start_offset(Person* host) {
+  return this->infectious_start_offset;
+}
+
+double Natural_History::get_infectious_end_offset(Person* host) {
+  return this->infectious_end_offset;
 }
 
