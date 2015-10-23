@@ -1,0 +1,22 @@
+influenza_use_incubation_offset = 1
+influenza_incubation_period_median = 1.9
+influenza_incubation_period_dispersion = 1.81 
+influenza_symptoms_duration_median = 5.0
+influenza_symptoms_duration_dispersion = 1.5 
+influenza_infectious_start_offset = -1
+influenza_infectious_end_offset = 4
+
+R0_a = 0.0461403
+R0_b = 0.566744
+R0 = -1.0
+
+###  CALIBRATION PHASE II STEP 6 at Fri Oct 23 15:38:14 2015
+###  runs = 10  cores = 1
+household_contacts = 0.124
+neighborhood_contacts = 18.707
+school_contacts = 7.33
+workplace_contacts = 0.84
+classroom_contacts = 14.65
+office_contacts = 1.68
+track_infection_events = 0
+report_place_of_infection = 1

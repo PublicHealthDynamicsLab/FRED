@@ -283,7 +283,7 @@ bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomati
 
 double Natural_History::get_real_incubation_period(Person* host) {
   double location = log(this->incubation_period_median);
-  double scale = log(this->incubation_period_dispersion);
+  double scale = 0.5*log(this->incubation_period_dispersion);
   double incubation_period = Random::draw_lognormal(location, scale);
   return incubation_period;
 }

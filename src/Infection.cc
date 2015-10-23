@@ -99,10 +99,15 @@ void Infection::setup() {
   this->will_develop_symptoms = (Random::draw_random() < prob_symptoms);
 
   if (disease->get_natural_history()->get_use_incubation_offset()) {
-    double incubation_period = disease->get_natural_history()->get_incubation_period(this->host);
+    double incubation_period = disease->get_natural_history()->get_real_incubation_period(this->host);
     double symptoms_duration = disease->get_natural_history()->get_symptoms_duration(this->host);
 
     // find symptoms dates (assuming symptoms will occur)
+    this->symptoms_start_date = this->exposure_date + round(incubation_period);
+    this->symptoms_end_date = this->exposure_date + round(incubation_period + symptoms_duration);
+
+    // this does a more carefully rounding step:
+    /*
     this->symptoms_start_date = this->exposure_date + floor(incubation_period);
     double remainder = incubation_period - floor(incubation_period);
     if (Random::draw_random() < remainder) {
@@ -113,11 +118,18 @@ void Infection::setup() {
     if (Random::draw_random() < remainder) {
       this->symptoms_end_date++;
     }
+    */
 
     // set infectious dates based on offset
     double infectious_start_offset = disease->get_natural_history()->get_infectious_start_offset(this->host);
     double infectious_end_offset = disease->get_natural_history()->get_infectious_end_offset(this->host);
 
+    // apply the offset
+    this->infectious_start_date = this->symptoms_start_date + round(infectious_start_offset);
+    this->infectious_end_date = this->symptoms_start_date + round(infectious_end_offset);
+
+    // this does a more carefully rounding step:
+    /*
     this->infectious_start_date = this->symptoms_start_date + floor(infectious_start_offset);
     remainder = infectious_start_offset - floor(infectious_start_offset);
     if (Random::draw_random() < remainder) {
@@ -128,6 +140,11 @@ void Infection::setup() {
     if (Random::draw_random() < remainder) {
       this->infectious_end_date++;
     }
+    */
+
+    FRED_VERBOSE(1, "OFFSET inc %0.2f %d symp %0.2f %d\n", 
+	   incubation_period, this->symptoms_start_date-this->exposure_date,
+	   symptoms_duration, this->symptoms_end_date-this->symptoms_start_date);
 
     // sanity checks
     if (this->symptoms_start_date < this->exposure_date+1) {
