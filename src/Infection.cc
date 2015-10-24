@@ -98,132 +98,6 @@ void Infection::setup() {
   double prob_symptoms = disease->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
   this->will_develop_symptoms = (Random::draw_random() < prob_symptoms);
 
-  if (disease->get_natural_history()->get_use_incubation_offset()) {
-    double incubation_period = disease->get_natural_history()->get_real_incubation_period(this->host);
-    double symptoms_duration = disease->get_natural_history()->get_symptoms_duration(this->host);
-
-    // find symptoms dates (assuming symptoms will occur)
-    this->symptoms_start_date = this->exposure_date + round(incubation_period);
-    this->symptoms_end_date = this->exposure_date + round(incubation_period + symptoms_duration);
-
-    // this does a more carefully rounding step:
-    /*
-    this->symptoms_start_date = this->exposure_date + floor(incubation_period);
-    double remainder = incubation_period - floor(incubation_period);
-    if (Random::draw_random() < remainder) {
-      this->symptoms_start_date++;
-    }
-    this->symptoms_end_date = this->exposure_date + floor(incubation_period + symptoms_duration);
-    remainder = incubation_period + symptoms_duration - floor(incubation_period + symptoms_duration);
-    if (Random::draw_random() < remainder) {
-      this->symptoms_end_date++;
-    }
-    */
-
-    // set infectious dates based on offset
-    double infectious_start_offset = disease->get_natural_history()->get_infectious_start_offset(this->host);
-    double infectious_end_offset = disease->get_natural_history()->get_infectious_end_offset(this->host);
-
-    // apply the offset
-    this->infectious_start_date = this->symptoms_start_date + round(infectious_start_offset);
-    this->infectious_end_date = this->symptoms_start_date + round(infectious_end_offset);
-
-    // this does a more carefully rounding step:
-    /*
-    this->infectious_start_date = this->symptoms_start_date + floor(infectious_start_offset);
-    remainder = infectious_start_offset - floor(infectious_start_offset);
-    if (Random::draw_random() < remainder) {
-      this->infectious_start_date++;
-    }
-    this->infectious_end_date = this->symptoms_end_date + floor(infectious_end_offset);
-    remainder = infectious_end_offset - floor(infectious_end_offset);
-    if (Random::draw_random() < remainder) {
-      this->infectious_end_date++;
-    }
-    */
-
-    FRED_VERBOSE(1, "OFFSET inc %0.2f %d symp %0.2f %d\n", 
-	   incubation_period, this->symptoms_start_date-this->exposure_date,
-	   symptoms_duration, this->symptoms_end_date-this->symptoms_start_date);
-
-    // sanity checks
-    if (this->symptoms_start_date < this->exposure_date+1) {
-      this->symptoms_start_date = this->exposure_date+1;
-    }
-    if (this->symptoms_end_date < this->symptoms_start_date+1) {
-      this->symptoms_end_date = this->symptoms_start_date+1;
-    }
-    if (this->infectious_start_date < this->exposure_date+1) {
-      this->infectious_start_date = this->exposure_date+1;
-    }
-    if (this->infectious_end_date < this->infectious_start_date+1) {
-      this->infectious_end_date = this->infectious_start_date+1;
-    }
-
-    // adjust symptoms date if asymptomatic
-    if (this->will_develop_symptoms == false) {
-      this->symptoms_start_date = NEVER;
-      this->symptoms_end_date = NEVER;
-    }
-    return;
-  }
-
-  bool symptoms_coincide_with_infectious_period = disease->get_natural_history()->do_symptoms_coincide_with_infectiousness();
-
-  // set transition dates for infectiousness
-  int my_latent_period = disease->get_natural_history()->get_latent_period(this->host);
-  if (my_latent_period < 0) {
-    this->infectious_start_date = NEVER;
-    this->infectious_end_date = NEVER;
-  }
-  else  {
-    assert(my_latent_period > 0); // FRED needs at least one day to become infectious
-    this->infectious_start_date = this->exposure_date + my_latent_period;
-    
-    int my_duration_of_infectiousness = disease->get_natural_history()->get_duration_of_infectiousness(this->host);
-    // my_duration_of_infectiousness <= 0 means "infectious forever"
-    if (my_duration_of_infectiousness > 0) {
-      this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
-    }
-    else {
-      this->infectious_end_date = NEVER;
-    }
-  }
-  
-  // set transition dates for having symptoms
-  // note: in the default natural_history model, symptoms (if they occur) coincide with infectious period
-  if (symptoms_coincide_with_infectious_period) {
-    if (this->will_develop_symptoms) {
-      this->symptoms_start_date = this->infectious_start_date;
-      this->symptoms_end_date = this->infectious_end_date;
-    }
-    else {
-      this->symptoms_start_date = NEVER;
-      this->symptoms_end_date = NEVER;
-    }
-  }
-  else {
-    // the following handles symptoms that may be independent of infectious period:
-    int my_incubation_period = disease->get_natural_history()->get_incubation_period(this->host);
-    if (my_incubation_period < 0) {
-      this->symptoms_start_date = NEVER;
-      this->symptoms_end_date = NEVER;
-    }
-    else {
-      assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
-      this->symptoms_start_date = this->exposure_date + my_incubation_period;
-      
-      int my_duration_of_symptoms = disease->get_natural_history()->get_duration_of_symptoms(this->host);
-      // duration_of_symptoms <= 0 would mean "symptomatic forever"
-      if (my_duration_of_symptoms > 0) {
-	this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
-      }
-      else {
-	this->symptoms_end_date = NEVER;
-      }
-    }
-  }
-
   // set transition date for becoming susceptible after this infection
   int my_duration_of_immunity = this->disease->get_natural_history()->get_duration_of_immunity(this->host);
   // my_duration_of_immunity <= 0 means "immune forever"
@@ -233,6 +107,116 @@ void Infection::setup() {
   else {
     this->immunity_end_date = NEVER;
   }
+
+  double incubation_period = 0.0;
+  double symptoms_duration = 0.0;
+
+  // determine dates for symptoms
+  int symptoms_distribution_type = disease->get_natural_history()->get_symptoms_distribution_type();
+  if (symptoms_distribution_type == LOGNORMAL) {
+    incubation_period = disease->get_natural_history()->get_real_incubation_period(this->host);
+    symptoms_duration = disease->get_natural_history()->get_symptoms_duration(this->host);
+
+    // find symptoms dates (assuming symptoms will occur)
+    this->symptoms_start_date = this->exposure_date + round(incubation_period);
+    this->symptoms_end_date = this->exposure_date + round(incubation_period + symptoms_duration);
+  }
+  else {
+    // distribution type == CDF
+    int my_incubation_period = disease->get_natural_history()->get_incubation_period(this->host);
+    assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
+    this->symptoms_start_date = this->exposure_date + my_incubation_period;
+      
+    int my_duration_of_symptoms = disease->get_natural_history()->get_duration_of_symptoms(this->host);
+    // duration_of_symptoms <= 0 would mean "symptomatic forever"
+    if (my_duration_of_symptoms > 0) {
+      this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
+    }
+    else {
+      this->symptoms_end_date = NEVER;
+    }
+  }
+
+  // determine dates for infectiousness
+  int infectious_distribution_type = disease->get_natural_history()->get_infectious_distribution_type();
+  if (infectious_distribution_type == OFFSET_FROM_START_OF_SYMPTOMS ||
+      infectious_distribution_type == OFFSET_FROM_SYMPTOMS) {
+    // set infectious dates based on offset
+    double infectious_start_offset = disease->get_natural_history()->get_infectious_start_offset(this->host);
+    double infectious_end_offset = disease->get_natural_history()->get_infectious_end_offset(this->host);
+
+    // apply the offset
+    this->infectious_start_date = this->symptoms_start_date + round(infectious_start_offset);
+    if (infectious_distribution_type == OFFSET_FROM_START_OF_SYMPTOMS) {
+      this->infectious_end_date = this->symptoms_start_date + round(infectious_end_offset);
+    }
+    else {
+      this->infectious_end_date = this->symptoms_end_date + round(infectious_end_offset);
+    }
+  }
+  else if (infectious_distribution_type == LOGNORMAL) {
+    double latent_period = disease->get_natural_history()->get_real_latent_period(this->host);
+    double infectious_duration = disease->get_natural_history()->get_infectious_duration(this->host);
+    this->infectious_start_date = this->exposure_date + round(latent_period);
+    this->infectious_end_date = this->exposure_date + round(latent_period + infectious_duration);
+  }
+  else {
+    // distribution type == CDF
+    int my_latent_period = disease->get_natural_history()->get_latent_period(this->host);
+    if (my_latent_period < 0) {
+      this->infectious_start_date = NEVER;
+      this->infectious_end_date = NEVER;
+    }
+    else  {
+      assert(my_latent_period > 0); // FRED needs at least one day to become infectious
+      this->infectious_start_date = this->exposure_date + my_latent_period;
+      
+      int my_duration_of_infectiousness = disease->get_natural_history()->get_duration_of_infectiousness(this->host);
+      // my_duration_of_infectiousness <= 0 means "infectious forever"
+      if (my_duration_of_infectiousness > 0) {
+	this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
+      }
+      else {
+	this->infectious_end_date = NEVER;
+      }
+    }
+  }
+
+  /*
+  FRED_VERBOSE(0, "OFFSET inc %0.2f %d symp %0.2f %d %d %d\n", 
+	       incubation_period, this->symptoms_start_date-this->exposure_date,
+	       symptoms_duration, this->symptoms_end_date-this->symptoms_start_date,
+	       this->infectious_start_date-this->exposure_date,
+	       this->infectious_end_date-this->exposure_date);
+  */
+
+  FRED_VERBOSE(1, "OFFSET %d %d %d %d\n", 
+	       this->symptoms_start_date-this->exposure_date,
+	       this->symptoms_end_date-this->symptoms_start_date,
+	       this->infectious_start_date-this->exposure_date,
+	       this->infectious_end_date-this->infectious_start_date);
+
+  // sanity checks
+  if (this->symptoms_start_date < this->exposure_date+1) {
+    this->symptoms_start_date = this->exposure_date+1;
+  }
+  if (this->symptoms_end_date < this->symptoms_start_date+1) {
+    this->symptoms_end_date = this->symptoms_start_date+1;
+  }
+  if (this->infectious_start_date < this->exposure_date+1) {
+    this->infectious_start_date = this->exposure_date+1;
+  }
+  if (this->infectious_end_date < this->infectious_start_date+1) {
+    this->infectious_end_date = this->infectious_start_date+1;
+  }
+
+  // adjust symptoms date if asymptomatic
+  if (this->will_develop_symptoms == false) {
+    this->symptoms_start_date = NEVER;
+    this->symptoms_end_date = NEVER;
+  }
+  return;
+
   // print();
 }
 

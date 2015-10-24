@@ -21,6 +21,11 @@ class Infection;
 
 #define NEVER (-1)
 
+#define LOGNORMAL 0
+#define OFFSET_FROM_START_OF_SYMPTOMS 1
+#define OFFSET_FROM_SYMPTOMS 2
+#define CDF 3
+
 class Natural_History {
 public:
   
@@ -51,7 +56,9 @@ public:
 
   virtual void update_infection(int day, Person* host, Infection *infection) {}
 
-  virtual bool do_symptoms_coincide_with_infectiousness() { return true; }
+  virtual bool do_symptoms_coincide_with_infectiousness() {
+    return true;
+  }
 
   virtual double get_probability_of_symptoms(int age);
 
@@ -65,17 +72,17 @@ public:
 
   virtual double get_symptoms_duration(Person* host);
 
+  virtual double get_real_latent_period(Person* host);
+
+  virtual double get_infectious_duration(Person* host);
+
   virtual double get_infectious_start_offset(Person* host);
 
   virtual double get_infectious_end_offset(Person* host);
 
-  virtual int get_incubation_period(Person* host) {
-    return 1;
-  }
+  virtual int get_incubation_period(Person* host);
 
-  virtual int get_duration_of_symptoms(Person* host) {
-    return NEVER;
-  }
+  virtual int get_duration_of_symptoms(Person* host);
 
   // called from Transmission
 
@@ -121,8 +128,18 @@ public:
 
   virtual void end_of_run(){}
 
+  /*
   virtual int get_use_incubation_offset() {
-    return use_incubation_offset;
+    return 0;
+  }
+  */
+
+  int get_symptoms_distribution_type() {
+    return symptoms_distribution_type;
+  }
+
+  int get_infectious_distribution_type() {
+    return infectious_distribution_type;
   }
 
 protected:
@@ -130,23 +147,37 @@ protected:
   double probability_of_symptoms;
   double symptomatic_infectivity;
   double asymptomatic_infectivity;
-  int max_days_latent;
-  int max_days_infectious;
+
+  char symptoms_distributions[32];
+  char infectious_distributions[32];
+  int symptoms_distribution_type;
+  int infectious_distribution_type;
+
+  // CDFs
   int max_days_incubating;
   int max_days_symptomatic;
-  double *days_latent;
-  double *days_infectious;
   double *days_incubating;
   double *days_symptomatic;
+
+  int max_days_latent;
+  int max_days_infectious;
+  double *days_latent;
+  double *days_infectious;
+
   Age_Map *age_specific_prob_symptoms;
   double immunity_loss_rate;
 
   // parameters for incubation period and infectious offsets
-  int use_incubation_offset;
   double incubation_period_median;
   double incubation_period_dispersion;
   double symptoms_duration_median;
   double symptoms_duration_dispersion;
+
+  double latent_period_median;
+  double latent_period_dispersion;
+  double infectious_duration_median;
+  double infectious_duration_dispersion;
+
   double infectious_start_offset;
   double infectious_end_offset;
 

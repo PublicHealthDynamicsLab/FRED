@@ -109,6 +109,7 @@ void Natural_History::get_parameters() {
   // read in the disease-specific parameters
   char paramstr[256];
   char disease_name[20];
+  int n;
 
   strcpy(disease_name, disease->get_disease_name());
 
@@ -122,35 +123,55 @@ void Natural_History::get_parameters() {
   sprintf(paramstr, "%s_prob_symptoms", disease_name);
   this->age_specific_prob_symptoms->read_from_input(paramstr);
 
-  int n;
-  Params::get_indexed_param(disease_name,"days_latent",&n);
-  this->days_latent = new double [n];
-  this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
-
-  Params::get_indexed_param(disease_name,"days_infectious",&n);
-  this->days_infectious = new double [n];
-  this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
-
-  // not used in default model:
-  /*
-  Params::get_indexed_param(disease_name,"days_incubating",&n);
-  this->days_incubating = new double [n];
-  this->max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", this->days_incubating) -1;
-
-  Params::get_indexed_param(disease_name,"days_symptomatic",&n);
-  this->days_symptomatic = new double [n];
-  this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
-  */
-
-  // incubation offset
-  Params::get_indexed_param(disease_name, "use_incubation_offset", &(this->use_incubation_offset));
-  if (this->use_incubation_offset) {
+  Params::get_indexed_param(disease_name,"symptoms_distributions", (this->symptoms_distributions));
+  if (strcmp(this->symptoms_distributions, "lognormal")==0) {
     Params::get_indexed_param(disease_name, "incubation_period_median", &(this->incubation_period_median));
     Params::get_indexed_param(disease_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
     Params::get_indexed_param(disease_name, "symptoms_duration_median", &(this->symptoms_duration_median));
     Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
+    this->symptoms_distribution_type = LOGNORMAL;
+  }
+  else {
+    Params::get_indexed_param(disease_name,"days_incubating",&n);
+    this->days_incubating = new double [n];
+    this->max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", this->days_incubating) -1;
+    
+    Params::get_indexed_param(disease_name,"days_symptomatic",&n);
+    this->days_symptomatic = new double [n];
+    this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
+    this->symptoms_distribution_type = CDF;
+  }
+
+  Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
+  if (strcmp(this->infectious_distributions, "offset_from_symptoms")==0) {
     Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
     Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+    this->infectious_distribution_type = OFFSET_FROM_SYMPTOMS;
+  }
+  else if (strcmp(this->infectious_distributions, "offset_from_start_of_symptoms")==0) {
+    Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
+    Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+    this->infectious_distribution_type = OFFSET_FROM_START_OF_SYMPTOMS;
+  }
+  else if (strcmp(this->infectious_distributions, "lognormal")==0) {
+    Params::get_indexed_param(disease_name, "latent_period_median", &(this->latent_period_median));
+    Params::get_indexed_param(disease_name, "latent_period_dispersion", &(this->latent_period_dispersion));
+    Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
+    Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
+    this->infectious_distribution_type = LOGNORMAL;
+  }
+  else if (strcmp(this->infectious_distributions, "cdf")==0) {
+    Params::get_indexed_param(disease_name,"days_latent",&n);
+    this->days_latent = new double [n];
+    this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
+    
+    Params::get_indexed_param(disease_name,"days_infectious",&n);
+    this->days_infectious = new double [n];
+    this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
+    this->infectious_distribution_type = CDF;
+  }
+  else {
+    Utils::fred_abort("Natural_History: unrecognized infectious_distributions type: %s\n", this->infectious_distributions);
   }
 
   // Initialize Infection Thresholds
@@ -203,8 +224,16 @@ int Natural_History::get_latent_period(Person* host) {
   return Random::draw_from_distribution(max_days_latent, days_latent);
 }
 
+int Natural_History::get_incubation_period(Person* host) {
+  return Random::draw_from_distribution(max_days_incubating, days_incubating);
+}
+
 int Natural_History::get_duration_of_infectiousness(Person* host) {
   return Random::draw_from_distribution(max_days_infectious, days_infectious);
+}
+
+int Natural_History::get_duration_of_symptoms(Person* host) {
+  return Random::draw_from_distribution(max_days_symptomatic, days_symptomatic);
 }
 
 int Natural_History::get_duration_of_immunity(Person* host) {
@@ -281,6 +310,14 @@ bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomati
   }
 }
 
+double Natural_History::get_infectious_start_offset(Person* host) {
+  return this->infectious_start_offset;
+}
+
+double Natural_History::get_infectious_end_offset(Person* host) {
+  return this->infectious_end_offset;
+}
+
 double Natural_History::get_real_incubation_period(Person* host) {
   double location = log(this->incubation_period_median);
   double scale = 0.5*log(this->incubation_period_dispersion);
@@ -295,11 +332,17 @@ double Natural_History::get_symptoms_duration(Person* host) {
   return symptoms_duration;
 }
 
-double Natural_History::get_infectious_start_offset(Person* host) {
-  return this->infectious_start_offset;
+double Natural_History::get_real_latent_period(Person* host) {
+  double location = log(this->latent_period_median);
+  double scale = 0.5*log(this->latent_period_dispersion);
+  double latent_period = Random::draw_lognormal(location, scale);
+  return latent_period;
 }
 
-double Natural_History::get_infectious_end_offset(Person* host) {
-  return this->infectious_end_offset;
+double Natural_History::get_infectious_duration(Person* host) {
+  double location = log(this->infectious_duration_median);
+  double scale = log(this->infectious_duration_dispersion);
+  double infectious_duration = Random::draw_lognormal(location, scale);
+  return infectious_duration;
 }
 
