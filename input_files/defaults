@@ -577,46 +577,58 @@ influenza_prob_symptoms_values = 0
 influenza_symp_infectivity = 1.0
 influenza_asymp_infectivity = 0.5
 
+# Note: incubation refers to symptoms; latency refers to infectiousness
+
+#### Experimental lognormal incubation and infectious offset:
+#
 # influenza_symptoms_distributions = lognormal
-influenza_symptoms_distributions = cdf
-
-# Note: incubation refers to symptoms; latency refers to infectiousness
-
+#
 ### incubation lognormal distribution
-influenza_incubation_period_median = 1.9
-influenza_incubation_period_dispersion = 1.81 
-
-### symptoms lognormal distribution
-influenza_symptoms_duration_median = 5.0
-influenza_symptoms_duration_dispersion = 1.5 
-
-### incubation and symptoms durations CDFs
-influenza_days_incubating = 3    0.0 0.8 1.0
-influenza_days_symptomatic = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
-
-# Note: incubation refers to symptoms; latency refers to infectiousness
+# influenza_incubation_period_median = 1.9
+# influenza_incubation_period_dispersion = 1.81 
+#
+### symptoms duration lognormal distribution
+# influenza_symptoms_duration_median = 5.0
+# influenza_symptoms_duration_dispersion = 1.5 
+#
 # influenza_infectious_distributions = offset_from_start_of_symptoms
-influenza_infectious_distributions = offset_from_symptoms
-# influenza_infectious_distributions = lognormal
-# influenza_infectious_distributions = cdf
-
+#
 ### infectious offset from symptoms
 # influenza_infectious_start_offset = -1
 # influenza_infectious_end_offset = 4
+#
+#### end Experimental lognormal incubation and infectious offset:
+
+
+#### Backward Compatibility
+#
+# use the following to get back compatible flu distributions
+influenza_symptoms_distributions = cdf
+#
+### incubation and symptoms durations CDFs
+influenza_days_incubating = 3    0.0 0.8 1.0
+influenza_days_symptomatic = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+influenza_infectious_distributions = offset_from_symptoms
+#
+### infectious offset from symptoms
 influenza_infectious_start_offset = 0
 influenza_infectious_end_offset = 0
+#
+#### end of Backward Compatibility
 
-### latency lognormal distribution
+
+#### Optional distributions: use at your own risk
+# influenza_infectious_distributions = lognormal
 # influenza_latent_period_median = 1.9
 # influenza_latent_period_dispersion = 1.81 
-
-### infectious lognormal distribution
 # influenza_infectious_duration_median = 5.0
 # influenza_infectious_duration_dispersion = 1.5 
 
 ### latent and infectious period CDFs
+# influenza_infectious_distributions = cdf
 # influenza_days_latent = 3       0.0 0.8 1.0
 # influenza_days_infectious = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+#### end of Optional distributions
 
 ### IMMUNITY
 influenza_immunity_loss_rate = 0
@@ -666,34 +678,6 @@ influenza_outpatient_healthcare_prob_values = 0
 #
 ### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
 
-##################### FRED 2.10
-
-###  CALIBRATION PHASE II STEP 5 at Tue Sep 23 16:07:36 2014
-###  runs = 10  cores = 10
-household_contacts = 0.202
-neighborhood_contacts = 3.98e+01
-school_contacts = 17.6
-workplace_contacts = 1.6
-
-## value of -1 for classroom means that
-## 2/3 of the school contacts occur within the classroom
-classroom_contacts = -1
-
-## value of -1 for office means that
-## 2/3 of the workplace contacts occur within the office
-office_contacts = -1
-
-hospital_contacts = 0
-
-### values fitted for transformation to R0
-R0_a = 0.0950671
-R0_b = 0.492996
-R0 = -1.0
-
-##################### END FRED 2.10
-
-##################### FRED 3.x
-
 ###  CALIBRATION PHASE II STEP 16 at Fri Aug 14 15:19:48 2015
 ###  runs = 10  cores = 10
 household_contacts = 0.1622
@@ -709,7 +693,7 @@ R0 = -1.0
 
 neighborhood_same_age_bias = 0.0
 
-##################### END FRED 3.x
+##################### END calibration parameters
 
 # community contacts increase on weekends
 weekend_contact_rate = 1.5
