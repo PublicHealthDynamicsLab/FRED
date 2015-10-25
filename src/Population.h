@@ -141,15 +141,6 @@ public:
   }
 
   /**
-   * @param n the id of the Person
-   * Return a pointer to the Person object with this id
-   */
-  Person* get_person_by_id(int id);
-
-  // Modifiers on the entire pop;
-  // void apply_residual_immunity(Disease* disease) {}
-
-  /**
    * Assign agents in Schools to specific Classrooms within the school
    */
   void assign_classrooms();
@@ -192,29 +183,6 @@ public:
    */
   Person* select_random_person_by_age(int min_age, int max_age);
 
-  /*
-   * Set the mask bit for the person_index
-   *
-   * TODO redefine the mask type so that multiple sets of masks
-   * are available (one set for each disease)
-   */
-  void set_mask_by_index(fred::Pop_Masks mask, int person_index);
-
-  /*
-   * Clear the mask bit for the person_index
-   *
-   * TODO redefine the mask type so that multiple sets of masks
-   * are available (one set for each disease)
-   */
-  void clear_mask_by_index(fred::Pop_Masks mask, int person_index);
-
-  /*
-   * Check to see if mask is set for person_index
-   */
-  bool check_mask_by_index(fred::Pop_Masks mask, int person_index) {
-    return this->blq.mask_is_set( mask, person_index );
-  }
-
   void set_school_income_levels();
   void report_mean_hh_income_per_school();
   void report_mean_hh_size_per_school();
@@ -236,31 +204,6 @@ public:
   }
 
   void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
-
-  template<typename Functor>
-  void apply(Functor &f) {
-    this->blq.apply(f);
-  }
-
-  template<typename Functor>
-  void apply(fred::Pop_Masks m, Functor &f) {
-    this->blq.apply(m, f);
-  }
-
-  template<typename Functor>
-  void parallel_apply(Functor &f) {
-    this->blq.parallel_apply(f);
-  }
-
-  template<typename Functor>
-  void parallel_masked_apply(fred::Pop_Masks m, Functor &f) {
-    this->blq.parallel_masked_apply(m, f);
-  }
-
-  template<typename Functor>
-  void parallel_not_masked_apply(fred::Pop_Masks m, Functor &f) {
-    this->blq.parallel_not_masked_apply(m, f);
-  }
 
   const std::vector<Utils::Tokens> &get_demes() {
     return this->demes;
@@ -419,10 +362,6 @@ private:
   fred::Mutex mutex;
   fred::Mutex add_person_mutex;
   fred::Mutex batch_add_person_mutex;
-
-  void add_to_birthday_list(Person* person);
-  void delete_from_birthday_list(Person* person);
-  void update_people_on_birthday_list(int day);
 
 };
 

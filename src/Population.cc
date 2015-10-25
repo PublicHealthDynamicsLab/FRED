@@ -87,10 +87,6 @@ Person* Population::get_person_by_index(int _index) {
   }
 }
 
-//Person* Population::get_person_by_id( int _id ) {
-//  return blq.get_item_pointer_by_index( id_to_index[ _id ] ); 
-//}
-
 Population::~Population() {
   // free all memory
   this->pop_size = 0;
@@ -148,21 +144,6 @@ Person* Population::add_person(int age, char sex, int race, int rel,
   return person;
 }
 
-//
-// OBSOLETE:
-//
-void Population::set_mask_by_index(fred::Pop_Masks mask, int person_index) {
-  // assert that the mask has in fact been added
-  // this->blq.set_mask_by_index(mask, person_index);
-}
-
-//
-// OBSOLETE:
-//
-void Population::clear_mask_by_index(fred::Pop_Masks mask, int person_index) {
-  // assert that the mask has in fact been added
-  // this->blq.clear_mask_by_index(mask, person_index);
-}
 
 void Population::delete_person(Person* person) {
   FRED_VERBOSE(1, "DELETING PERSON: %d ...\n", person->get_id());
@@ -210,8 +191,6 @@ void Population::setup() {
     this->av_manager->print();
   }
 
-  // TODO provide clear() method for bloque
-  //id_to_index.clear();
   this->pop_size = 0;
   this->death_list.clear();
   read_all_populations();
