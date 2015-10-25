@@ -208,6 +208,10 @@ public:
     return this->load_completed;
   }
 
+  void initialize_health_insurance();
+
+  void set_health_insurance(Person* p);
+
   //Mitigation Managers
   AV_Manager* av_manager;
   Vaccine_Manager* vacc_manager;
@@ -314,11 +318,6 @@ private:
    * @param day the simulation day
    */
   void write_population_output_file(int day);
-
-  // functor for Health Insurance setup
-  struct Setup_Population_Health_Insurance {
-    void operator() (Person &p);
-  };
 
   struct infectious_sampler {
     double prob;
