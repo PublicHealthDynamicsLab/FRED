@@ -108,9 +108,6 @@ void fred_setup(int argc, char* argv[]) {
   Global::Pop.get_parameters();
   Utils::fred_print_lap_time("get_parameters");
 
-  // initialize masks in Global::Pop
-  Global::Pop.initialize_masks();
-
   if(strcmp(Global::Simulation_directory, "") == 0) {
     // use the directory in the params file
     strcpy(Global::Simulation_directory, Global::Output_directory);

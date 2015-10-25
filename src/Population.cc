@@ -66,18 +66,6 @@ Population::Population() {
 
 }
 
-//
-// OBSOLETE:
-//
-void Population::initialize_masks() {
-  // can't do this in the constructor because the Global:: variables aren't yet
-  // available when the Global::Pop is defined
-  this->blq.add_mask(fred::Infectious);
-  this->blq.add_mask(fred::Susceptible);
-  this->blq.add_mask(fred::Update_Health);
-  this->blq.add_mask(fred::Travel);
-}
-
 // index and id are not the same thing!
 Person* Population::get_person_by_index(int _index) {
   if(this->blq.is_valid_index(_index)) {

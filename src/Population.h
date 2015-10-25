@@ -54,8 +54,6 @@ public:
   Population();
   ~Population();
 
-  void initialize_masks();
-
   /**
    * Sets the static variables for the class from the parameter file.
    */
@@ -197,10 +195,6 @@ public:
   int size() {
     assert(this->blq.size() == this->pop_size);
     return this->blq.size();
-  }
-
-  int size(fred::Pop_Masks mask) {
-    return this->blq.size(mask);
   }
 
   void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
