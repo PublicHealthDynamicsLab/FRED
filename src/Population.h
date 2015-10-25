@@ -189,9 +189,6 @@ public:
   void report_mean_hh_stats_per_census_tract();
   void report_mean_hh_stats_per_income_category_per_census_tract();
 
-  //  //TODO REMOVE
-  //  void print_HAZEL_data();
-  
   int size() {
     assert(this->blq.size() == this->pop_size);
     return this->blq.size();
@@ -204,6 +201,8 @@ public:
   }
 
   void initialize_demographic_dynamics();
+
+  void initialize_population_behavior();
 
   bool is_load_completed() {
     return this->load_completed;
@@ -315,11 +314,6 @@ private:
    * @param day the simulation day
    */
   void write_population_output_file(int day);
-
-  // functor for behavior setup
-  struct Setup_Population_Behavior {
-    void operator() (Person &p);
-  };
 
   // functor for Health Insurance setup
   struct Setup_Population_Health_Insurance {

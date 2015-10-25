@@ -183,6 +183,24 @@ void Population::setup() {
   this->death_list.clear();
   read_all_populations();
 
+  if(Global::Enable_Behaviors) {
+    // select adult to make health decisions
+    initialize_population_behavior();
+  }
+
+  if(Global::Enable_Health_Insurance) {
+    // select insurance coverage
+    // try to make certain that everyone in a household has same coverage
+    Setup_Population_Health_Insurance setup_population_health_insurance;
+    this->blq.apply(setup_population_health_insurance);
+  }
+
+  this->load_completed = true;
+  
+  if(Global::Enable_Population_Dynamics) {
+    initialize_demographic_dynamics();
+  }
+
   if(Global::Verbose > 0) {
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       int count = 0;
@@ -438,26 +456,6 @@ void Population::read_all_populations() {
   // report on time take to read populations
   Utils::fred_print_lap_time("reading populations");
 
-  // select adult to make health decisions
-  Setup_Population_Behavior setup_population_behavior;
-  this->blq.apply(setup_population_behavior);
-
-  if(Global::Enable_Health_Insurance) {
-    // select insurance coverage
-    // try to make certain that everyone in a household has same coverage
-    Setup_Population_Health_Insurance setup_population_health_insurance;
-    this->blq.apply(setup_population_health_insurance);
-  }
-
-  this->load_completed = true;
-  
-  if(Global::Enable_Population_Dynamics) {
-    initialize_demographic_dynamics();
-  }
-}
-
-void Population::Setup_Population_Behavior::operator() (Person &p) {
-  p.setup_behavior();
 }
 
 void Population::Setup_Population_Health_Insurance::operator() (Person &p) {
@@ -1724,6 +1722,17 @@ void Population::get_age_distribution(int* count_males_by_age, int* count_female
       count_females_by_age[age]++;
     } else {
       count_males_by_age[age]++;
+    }
+  }
+}
+
+void Population::initialize_population_behavior() {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person != NULL) {
+      person->setup_behavior();
     }
   }
 }
