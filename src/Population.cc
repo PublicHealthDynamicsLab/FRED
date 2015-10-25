@@ -203,12 +203,12 @@ void Population::setup() {
   if(Global::Verbose > 0) {
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       int count = 0;
-      for(int i = 0; i < this->get_index_size(); ++i) {
-	if(get_person_by_index(i) == NULL) {
-	  continue;
-	}
-	if(get_person_by_index(i)->is_immune(d)) {
-	  count++;
+      for(int p = 0; p < this->get_index_size(); ++p) {
+	Person* person = get_person_by_index(p);
+	if(person != NULL) {
+	  if(person->is_immune(d)) {
+	    count++;
+	  }
 	}
       }
       FRED_STATUS(0, "number of residually immune people for disease %d = %d\n", d, count);
@@ -223,14 +223,13 @@ void Population::setup() {
   }
   for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
+    if(person != NULL) {
+      int age = person->get_age();
+      if(age > Demographics::MAX_AGE) {
+	age = Demographics::MAX_AGE;
+      }
+      Global::Popsize_by_age[age]++;
     }
-    int age = person->get_age();
-    if(age > Demographics::MAX_AGE) {
-      age = Demographics::MAX_AGE;
-    }
-    Global::Popsize_by_age[age]++;
   }
 
   FRED_STATUS(0, "population setup finished\n", "");
