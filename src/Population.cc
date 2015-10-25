@@ -648,21 +648,6 @@ void Population::remove_dead_person_from_population(int day, Person* person) {
   delete_person(person);
 }
 
-void Population::Update_Health_Interventions::operator() (Person &p) {
-  p.update_health_interventions(this->day);
-}
-
-void Population::Prepare_Population_Activities::operator()(Person &p) {
-  p.prepare_activities();
-}
-
-//
-// OBSOLETE:
-//
-void Population::Update_Population_Behaviors::operator() (Person &p) {
-  p.update_behavior(this->day);
-}
-
 void Population::report(int day) {
 
   if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {

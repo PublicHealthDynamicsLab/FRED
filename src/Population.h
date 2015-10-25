@@ -316,20 +316,6 @@ private:
    */
   void write_population_output_file(int day);
 
-  // functor for health interventions (vaccination & antivirals) updates
-  struct Update_Health_Interventions {
-    int day;
-    Update_Health_Interventions(int d) : day(d) { }
-    void operator() (Person &p );
-  };
-    
-  // functor for prepare activities
-  struct Prepare_Population_Activities {
-    int day;
-    Prepare_Population_Activities(int d) : day(d) { }
-    void operator() (Person &p);
-  };
-
   // functor for behavior setup
   struct Setup_Population_Behavior {
     void operator() (Person &p);
@@ -337,13 +323,6 @@ private:
 
   // functor for Health Insurance setup
   struct Setup_Population_Health_Insurance {
-    void operator() (Person &p);
-  };
-
-  // functor for behavior updates
-  struct Update_Population_Behaviors {
-    int day;
-    Update_Population_Behaviors(int d) : day(d) { }
     void operator() (Person &p);
   };
 
