@@ -142,6 +142,23 @@ public:
     return infectious_distribution_type;
   }
 
+  double get_full_symptoms_start() {
+    return full_symptoms_start;
+  }
+
+  double get_full_symptoms_end() {
+    return full_symptoms_end;
+  }
+
+  double get_full_infectivity_start() {
+    return full_infectivity_start;
+  }
+
+  double get_full_infectivity_end() {
+    return full_infectivity_end;
+  }
+
+
 protected:
   Disease *disease;
   double probability_of_symptoms;
@@ -186,6 +203,12 @@ protected:
   double infectivity_threshold;
   double symptomaticity_threshold;
 
+  // fraction of periods with full symptoms or infectivity
+  double full_symptoms_start;
+  double full_symptoms_end;
+  double full_infectivity_start;
+  double full_infectivity_end;
+  
   // case fatality parameters
   int enable_case_fatality;
   double min_symptoms_for_case_fatality;

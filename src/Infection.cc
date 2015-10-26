@@ -370,3 +370,47 @@ void Infection::update(int today) {
 }
 
 
+double Infection::get_infectivity(int day) {
+  if (day < this->infectious_start_date || this->infectious_end_date <= day) {
+    return 0.0;
+  }
+
+  // day is during infectious period
+  double start_full = this->disease->get_natural_history()->get_full_infectivity_start();
+  double end_full = this->disease->get_natural_history()->get_full_infectivity_end();
+  double fract = (double)(day - this->infectious_start_date + 1) / (double) (this->infectious_end_date - this->infectious_start_date + 1);
+  double result = 1.0;
+  if (fract < start_full) {
+    double x = fract / start_full;
+    result = 1.0 / (1.0 + exp(-10.0*(x-0.5)));
+  }
+  else if (end_full < fract) {
+    double x = (fract - end_full) / (1.0 - end_full);
+    result = 1.0 - 1.0 / (1.0 + exp(-10.0*(x-0.5)));
+  }
+  FRED_VERBOSE(1,"LOGISTIC: fract %f result %f\n", fract, result);
+  return result;
+}
+
+double Infection::get_symptoms(int day) {
+  if (day < this->symptoms_start_date || this->symptoms_end_date <= day) {
+    return 0.0;
+  }
+
+  // day is during symptoms period
+  double start_full = this->disease->get_natural_history()->get_full_symptoms_start();
+  double end_full = this->disease->get_natural_history()->get_full_symptoms_end();
+  double fract = (double)(day - this->symptoms_start_date + 1) / (double) (this->symptoms_end_date - this->symptoms_start_date + 1);
+  double result = 1.0;
+  if (fract < start_full) {
+    double x = fract / start_full;
+    result = 1.0 / (1.0 + exp(-10.0*(x-0.5)));
+  }
+  else if (end_full < fract) {
+    double x = (fract - end_full) / (1.0 - end_full);
+    result = 1.0 - 1.0 / (1.0 + exp(-10.0*(x-0.5)));
+  }
+  FRED_VERBOSE(1,"LOGISTIC: fract %f result %f\n", fract, result);
+  return result;
+}
+

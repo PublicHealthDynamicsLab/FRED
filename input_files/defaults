@@ -616,6 +616,12 @@ influenza_infectious_end_offset = 0
 #
 #### end of Backward Compatibility
 
+# ramp up and ramp down symptoms and infectivity
+# (values below provide binary symptoms and infectivity)
+influenza_full_symptoms_start = 0.0
+influenza_full_symptoms_end = 1.0
+influenza_full_infectivity_start = 0.0
+influenza_full_infectivity_end = 1.0
 
 #### Optional distributions: use at your own risk
 # influenza_infectious_distributions = lognormal

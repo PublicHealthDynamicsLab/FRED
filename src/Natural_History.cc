@@ -207,6 +207,26 @@ void Natural_History::get_parameters() {
     this->evol->setup(this->disease);
   }
 
+
+  // set defaults:
+  this->full_symptoms_start = 0.0;
+  this->full_symptoms_end = 1.0;
+  this->full_infectivity_start = 0.0;
+  this->full_infectivity_end = 1.0;
+
+  // make the following parameters optional
+  Params::disable_abort_on_failure();
+
+  // get fractions corresponding to full symptoms or infectivity
+  Params::get_indexed_param(disease_name, "full_symptoms_start", &(this->full_symptoms_start));
+  Params::get_indexed_param(disease_name, "full_symptoms_end", &(this->full_symptoms_end));
+  Params::get_indexed_param(disease_name, "full_infectivity_start", &(this->full_infectivity_start));
+  Params::get_indexed_param(disease_name, "full_infectivity_end", &(this->full_infectivity_end));
+
+  // restore requiring parameters
+  Params::set_abort_on_failure();
+
+
   FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
 }
 

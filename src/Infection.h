@@ -60,13 +60,9 @@ public:
 
   virtual void update(int day);
 
-  virtual double get_infectivity(int day) {
-    return (is_infectious(day) ? 1.0 : 0.0);
-  }
+  virtual double get_infectivity(int day);
 
-  virtual double get_symptoms(int day) {
-    return (is_symptomatic(day) ? 1.0 : 0.0);
-  }
+  virtual double get_symptoms(int day);
 
   virtual void print();
 
