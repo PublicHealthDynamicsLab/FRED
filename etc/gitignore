@@ -32,6 +32,8 @@ RESULTS/**
 # exclude FRED executables
 src/FRED
 bin/FRED
+src/FRED.md5
+src/FRED.tar.gz
 
 # exclude fsz executables
 src/fsz
