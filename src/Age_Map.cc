@@ -69,8 +69,15 @@ void Age_Map::read_from_input(string input) {
     sprintf(values_string, "%s_values", input.c_str());
   }
 
+  // Age map will be empty if not found.
+  // make the following parameters optional
+  Params::disable_abort_on_failure();
+
   Params::get_param_vector(ages_string, this->ages);
   Params::get_param_vector(values_string, this->values);
+
+  // restore requiring parameters
+  Params::set_abort_on_failure();
 
   if(quality_control() != true) {
     Utils::fred_abort("");
