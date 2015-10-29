@@ -75,6 +75,7 @@ char Global::Seasonality_Timestep[FRED_STRING_SIZE];
 double Global::Work_absenteeism = 0.0;
 double Global::School_absenteeism = 0.0;
 bool Global::Enable_Transmission_Network = false;
+bool Global::Enable_Sexual_Partner_Network = false;
 bool Global::Enable_Transmission_Bias = false;
 bool Global::Enable_New_Transmission_Model = false;
 bool Global::Enable_Hospitals = false;
@@ -139,6 +140,7 @@ Tracker<int>* Global::Daily_Tracker = NULL;
 Tracker<long int>* Global::Tract_Tracker = NULL;
 Tracker<int>* Global::Income_Category_Tracker = NULL;
 Network* Global::Transmission_Network = NULL;
+Sexual_Transmission_Network* Global::Sexual_Partner_Network = NULL;
 
 // global file pointers
 FILE* Global::Statusfp = NULL;
@@ -201,6 +203,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Distance_From_School = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_transmission_network", &temp_int);
   Global::Enable_Transmission_Network = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_sexual_partner_network", &temp_int);
+  Global::Enable_Sexual_Partner_Network = (temp_int == 0 ? false : true);  
   Params::get_param_from_string("enable_transmission_bias", &temp_int);
   Global::Enable_Transmission_Bias = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_new_transmission_model", &temp_int);
@@ -277,10 +281,8 @@ void Global::get_global_parameters() {
   // added for residual_immunity_by_FIPS
   Params::get_param_from_string("enable_residual_immunity_by_FIPS", &temp_int);
   Global::Residual_Immunity_by_FIPS = (temp_int == 0 ? false : true);
-  if (Global::Residual_Immunity_by_FIPS) {
+  if(Global::Residual_Immunity_by_FIPS) {
     Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
   }
-
-
 }
 

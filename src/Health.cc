@@ -238,6 +238,8 @@ double Health::get_chronic_condition_hospitalization_prob_mult(double real_age, 
 }
 
 Health::Health() {
+  this->myself = NULL;
+  this->past_infections = NULL;
   this->alive = true;
   this->av_health = NULL;
   this->checked_for_av = NULL;
@@ -306,6 +308,7 @@ void Health::setup(Person* self) {
 
   for(int disease_id = 0; disease_id < diseases; disease_id++) {
 
+    this->susceptible.reset(disease_id);
     this->case_fatality.reset(disease_id);
     this->infection[disease_id] = NULL;
     this->susceptibility_multp[disease_id] = 1.0;
@@ -363,7 +366,7 @@ void Health::setup(Person* self) {
 
 Health::~Health() {
   for(size_t i = 0; i < Global::Diseases.get_number_of_diseases(); ++i) {
-    if (this->infection[i] != NULL) {
+    if(this->infection[i] != NULL) {
       delete this->infection[i];
     }
   }
@@ -419,7 +422,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
   }
 }
 
-void Health::become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day) {
+void Health::become_exposed(Person* self, int disease_id, Person* infector, Place* place, int day) {
 
    FRED_VERBOSE(1, "become_exposed: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
 
@@ -456,37 +459,46 @@ void Health::become_exposed(Person* self, int disease_id, Person *infector, Plac
 
   if(Global::Enable_Transmission_Network) {
     FRED_VERBOSE(0, "Joining transmission network: %d\n", self->get_id());
-    self->join_transmission_network();
+    self->join_network(Global::Transmission_Network);
   }
 
-  if (Global::Enable_Vector_Transmission && Global::Diseases.get_number_of_diseases() > 1) {
+  if(Global::Enable_Vector_Transmission && Global::Diseases.get_number_of_diseases() > 1) {
     // special check for multi-serotype dengue:
     if(this->previous_infection_serotype == -1) {
       // remember this infection's serotype
       this->previous_infection_serotype = disease_id;
       // after the first infection, become immune to other two serotypes.
       for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
-	// if (sero == previous_infection_serotype) continue;
-	if(sero == disease_id) {
-	  continue;
-	}
-	FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+        // if (sero == previous_infection_serotype) continue;
+        if(sero == disease_id) {
+          continue;
+        }
+        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
       }
     } else {
       // after the second infection, become immune to other two serotypes.
       for(int sero = 0; sero < Global::Diseases.get_number_of_diseases(); ++sero) {
-	if(sero == previous_infection_serotype) {
-	  continue;
-	}
-	if(sero == disease_id) {
-	  continue;
-	}
-	FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
-	this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+        if(sero == this->previous_infection_serotype) {
+          continue;
+        }
+        if(sero == disease_id) {
+          continue;
+        }
+        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
       }
     }
   }
+}
+
+void Health::become_unsusceptible(Person* self, int disease_id) {
+  if(this->susceptible.test(disease_id) == false) {
+    return;
+  }
+  this->susceptible.reset(disease_id);
+  FRED_STATUS(1, "person %d is now UNSUSCEPTIBLE for disease %d\n",
+	            self->get_id(), disease_id);
 }
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {
@@ -496,7 +508,7 @@ void Health::become_unsusceptible(Person* self, Disease* disease) {
   }
   this->susceptible.reset(disease_id);
   FRED_STATUS(1, "person %d is now UNSUSCEPTIBLE for disease %d\n",
-	      self->get_id(), disease_id);
+	            self->get_id(), disease_id);
 }
 
 void Health::become_infectious(Person* self, Disease* disease) {
@@ -518,7 +530,7 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
   }
   this->symptomatic.set(disease_id);
   FRED_STATUS(1, "person %d is now SYMPTOMATIC for disease %d\n",
-	      self->get_id(), disease_id);
+	            self->get_id(), disease_id);
 }
 
 void Health::become_asymptomatic(Person* self, Disease* disease) {
@@ -528,7 +540,7 @@ void Health::become_asymptomatic(Person* self, Disease* disease) {
     this->symptomatic.reset(disease_id);
   }
   FRED_STATUS(1, "person %d is now ASYMPTOMATIC for disease %d\n",
-	      self->get_id(), disease_id);
+	            self->get_id(), disease_id);
 }
 
 void Health::recover(Person* self, Disease* disease) {
@@ -550,8 +562,7 @@ void Health::become_removed(Person* self, int disease_id) {
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  FRED_STATUS(1, "person %d is now REMOVED for disease %d\n", self->get_id(),
-	      disease_id);
+  FRED_STATUS(1, "person %d is now REMOVED for disease %d\n", self->get_id(), disease_id);
 }
 
 void Health::become_immune(Person* self, Disease* disease) {
@@ -562,8 +573,7 @@ void Health::become_immune(Person* self, Disease* disease) {
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  FRED_STATUS(0, "person %d is now IMMUNE for disease %d\n", self->get_id(),
-	      disease_id);
+  FRED_STATUS(0, "person %d is now IMMUNE for disease %d\n", self->get_id(), disease_id);
 }
 
 

@@ -61,6 +61,7 @@ class Visualization_Layer;
 class Vector_Layer;
 class Evolution;
 class Seasonality;
+class Sexual_Transmission_Network;
 
 #include "Tracker.h"
 
@@ -228,6 +229,7 @@ public:
 
   //Boolean flags
   static bool Enable_Transmission_Network;
+  static bool Enable_Sexual_Partner_Network;
   static bool Enable_Transmission_Bias;
   static bool Enable_New_Transmission_Model;
   static bool Enable_Hospitals;
@@ -288,6 +290,7 @@ public:
   static Tracker<int>* Income_Category_Tracker;
   static int Popsize_by_age[];
   static Network* Transmission_Network;
+  static Sexual_Transmission_Network* Sexual_Partner_Network;
 
   // global file pointers
   static FILE* Statusfp;
@@ -401,17 +404,6 @@ namespace fred {
     Susceptible = 'S',
     Update_Health = 'H',
     Travel = 'T'
-  };
-
-  enum place_subtype {
-    PLACE_SUBTYPE_NONE = 'X',
-    //PLACE_SUBTYPE_EMPTY = 'E',
-    PLACE_SUBTYPE_COLLEGE = 'C',
-    PLACE_SUBTYPE_PRISON = 'P',
-    PLACE_SUBTYPE_MILITARY_BASE = 'M',
-    PLACE_SUBTYPE_NURSING_HOME = 'N',
-    PLACE_SUBTYPE_HEALTHCARE_CLINIC = 'I',
-    PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC = 'Z'
   };
   
   ////////////////////// OpenMP Utilities

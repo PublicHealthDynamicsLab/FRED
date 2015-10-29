@@ -20,18 +20,21 @@
 #include "Transmission.h"
 class Place;
 class Disease;
+class Person;
+class Sexual_Transmission_Network;
 
 class Sexual_Transmission: public Transmission {
 
 public:
   Sexual_Transmission() {} 
   ~Sexual_Transmission() {} 
-  void get_parameters() {}
-  void setup(Disease *disease) {}
-  void spread_infection(int day, int disease_id, Place *place) {}
+  static void get_parameters();
+  void setup(Disease* disease);
+  void spread_infection(int day, int disease_id, Mixing_Group* mixing_group);
+  void spread_infection(int day, int disease_id, Sexual_Transmission_Network* sexual_trans_network);
 
 private:
-
+  bool attempt_transmission(Person* infector, Person* infectee, int disease_id, int day, Sexual_Transmission_Network* sexual_trans_network);
 };
 
 

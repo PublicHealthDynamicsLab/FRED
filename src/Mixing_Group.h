@@ -26,8 +26,46 @@ typedef std::vector<Person*> person_vec_t;
 
 class Mixing_Group {
 public:
+
+  static char TYPE_UNSET;
+  static char SUBTYPE_NONE;
+
   Mixing_Group(const char* lab);
   virtual ~Mixing_Group();
+
+  /**
+   * Get the id.
+   * @return the id
+   */
+  int get_id() {
+    return this->id;
+  }
+
+  void set_id(int _id) {
+    this->id = _id;
+  }
+
+  /**
+   * @return the type
+   */
+  char get_type() {
+    return this->type;
+  }
+
+  void set_type(char _type) {
+    this->type = _type;
+  }
+
+  /**
+   * @return the subtype
+   */
+  char get_subtype() {
+    return this->subtype;
+  }
+
+  void set_subtype(char _subtype) {
+    this->subtype = _subtype;
+  }
 
   /**
    * Get the label.
@@ -66,6 +104,10 @@ public:
   virtual double get_transmission_probability(int disease_id, Person* i, Person* s) = 0;
 
   virtual double get_transmission_prob(int disease_id, Person* i, Person* s) = 0;
+
+  virtual double get_contacts_per_day(int disease_id) = 0;
+  virtual double get_contact_rate(int day, int disease_id) = 0;
+  virtual int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) = 0;
 
   /**
    * Get the count of agents in this place.
@@ -152,6 +194,11 @@ public:
 
   int get_number_of_infectious_people(int disease_id) {
     return this->infectious_people[disease_id].size();
+  }
+  
+  Person* get_infectious_person(int disease_id, int n) {
+    assert(n < this->infectious_people[disease_id].size());
+    return this->infectious_people[disease_id][n];;
   }
 
   bool has_infectious_people(int disease_id) {
@@ -311,8 +358,6 @@ public:
   }
 
 protected:
-  char label[32];         // external id
-
   int N_orig;             // orig number of enrollees
 
   // lists of people
@@ -350,6 +395,12 @@ protected:
   void add_symptomatic_agent(int disease_id) {
     this->current_symptomatic_agents[disease_id]++;
   }
+
+private:
+  int id; // id
+  char label[32]; // external id
+  char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
+  char subtype;
 };
 
 #endif /* _FRED_MIXING_GROUP_H_ */

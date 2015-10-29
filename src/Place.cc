@@ -37,23 +37,32 @@
 #define PI 3.14159265359
 
 // static place type codes
-char Place::HOUSEHOLD = 'H';
-char Place::NEIGHBORHOOD = 'N';
-char Place::SCHOOL = 'S';
-char Place::CLASSROOM = 'C';
-char Place::WORKPLACE = 'W';
-char Place::OFFICE = 'O';
-char Place::HOSPITAL = 'M';
-char Place::COMMUNITY = 'X';
-char Place::UNSET = 'U';
+char Place::TYPE_HOUSEHOLD = 'H';
+char Place::TYPE_NEIGHBORHOOD = 'N';
+char Place::TYPE_SCHOOL = 'S';
+char Place::TYPE_CLASSROOM = 'C';
+char Place::TYPE_WORKPLACE = 'W';
+char Place::TYPE_OFFICE = 'O';
+char Place::TYPE_HOSPITAL = 'M';
+char Place::TYPE_COMMUNITY = 'X';
+char Place::TYPE_UNSET = 'U';
+
+// static place subtype codes
+char Place::SUBTYPE_NONE = 'X';
+char Place::SUBTYPE_COLLEGE = 'C';
+char Place::SUBTYPE_PRISON = 'P';
+char Place::SUBTYPE_MILITARY_BASE = 'M';
+char Place::SUBTYPE_NURSING_HOME = 'N';
+char Place::SUBTYPE_HEALTHCARE_CLINIC = 'I';
+char Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC = 'Z';
 
 Place::Place() : Mixing_Group("BLANK") {
-  this->id = -1;      // actual id assigned in Place_List::add_place
+  this->set_id(-1);      // actual id assigned in Place_List::add_place
+  this->set_type(Place::TYPE_UNSET);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->index = -1;
   this->staff_size = 0;
   this->household_fips = -1;
-  this->type = Place::UNSET;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->open_date = 0;
   this->close_date = INT_MAX;
   this->intimacy = 0.0;
@@ -100,14 +109,14 @@ Place::Place() : Mixing_Group("BLANK") {
 }
 
 Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) {
-  this->id = -1;      // actual id assigned in Place_List::add_place
+  this->set_id(-1);      // actual id assigned in Place_List::add_place
+  this->set_type(Place::TYPE_UNSET);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->index = -1;
   this->staff_size = 0;
   this->household_fips = -1;
   this->longitude = lon;
   this->latitude = lat;
-  this->type = Place::UNSET;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
   this->open_date = 0;
   this->close_date = INT_MAX;
   this->intimacy = 0.0;
@@ -170,7 +179,7 @@ void Place::prepare() {
 
   Global::Neighborhoods->register_place(this);
 
-  FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->id, this->label, this->type);
+  FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->get_id(), this->get_label(), this->get_type());
 }
 
 void Place::update(int sim_day) {
@@ -188,7 +197,7 @@ void Place::reset_visualization_data(int sim_day) {
 }
 
 void Place::print(int disease_id) {
-  printf("Place %d label %s type %c\n", this->id, this->label, this->type);
+  FRED_STATUS(0, "Place %d label %s type %c\n", this->get_id(), this->get_label(), this->get_type());
   fflush(stdout);
 }
 
@@ -198,33 +207,33 @@ int Place::enroll(Person* per) {
     this->enrollees.reserve(2 * this->get_size());
   }
   this->enrollees.push_back(per);
-  FRED_VERBOSE(1,"Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->id, this->label);
+  FRED_VERBOSE(1, "Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->get_id(), this->get_label());
   return this->enrollees.size()-1;
 }
 
 void Place::unenroll(int pos) {
   int size = this->enrollees.size();
   if(!(0 <= pos && pos < size)) {
-    printf("place %d %s pos = %d size = %d\n", this->id, this->label, pos, size);
+    FRED_VERBOSE(1, "place %d %s pos = %d size = %d\n", this->get_id(), this->get_label(), pos, size);
   }
   assert(0 <= pos && pos < size);
   Person* removed = this->enrollees[pos];
   if(pos < size-1) {
     Person* moved = this->enrollees[size - 1];
     FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved %d\n",
-		  this->id, this->label, pos, size, removed->get_id(), moved->get_id());
+		  this->get_id(), this->get_label(), pos, size, removed->get_id(), moved->get_id());
     this->enrollees[pos] = moved;
     moved->update_enrollee_index(this, pos);
   } else {
     FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved NONE\n",
-		 this->id, this->label, pos, size, removed->get_id());
+		 this->get_id(), this->get_label(), pos, size, removed->get_id());
   }
   this->enrollees.pop_back();
-  FRED_VERBOSE(1,"UNENROLL place %d %s size = %d\n", this->id, this->label, this->enrollees.size());
+  FRED_VERBOSE(1,"UNENROLL place %d %s size = %d\n", this->get_id(), this->get_label(), this->enrollees.size());
 }
 
 void Place::print_infectious(int disease_id) {
-  printf("INFECTIOUS in place %d Disease %d: ", this->id, disease_id);
+  printf("INFECTIOUS in place %d Disease %d: ", this->get_id(), disease_id);
   int size = this->infectious_people[disease_id].size();
   for(int i = 0; i < size; ++i) {
     printf(" %d", this->infectious_people[disease_id][i]->get_id());
@@ -234,43 +243,43 @@ void Place::print_infectious(int disease_id) {
 
 void Place::turn_workers_into_teachers(Place* school) {
   std::vector <Person*> workers;
-  workers.reserve((int)this->enrollees.size());
+  workers.reserve(static_cast<int>(this->enrollees.size()));
   workers.clear();
-  for(int i = 0; i < (int)this->enrollees.size(); ++i) {
+  for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
     workers.push_back(this->enrollees[i]);
   }
-  FRED_VERBOSE(0,"turn_workers_into_teachers: place %d %s has %d workers\n", this->id, this->get_label(), this->enrollees.size());
+  FRED_VERBOSE(0, "turn_workers_into_teachers: place %d %s has %d workers\n", this->get_id(), this->get_label(), this->enrollees.size());
   int new_teachers = 0;
-  for(int i = 0; i < (int)workers.size(); ++i) {
+  for(int i = 0; i < static_cast<int>(workers.size()); ++i) {
     Person* person = workers[i];
     assert(person != NULL);
-    FRED_VERBOSE(0,"Potential teacher %d age %d\n", person->get_id(), person->get_age());
+    FRED_VERBOSE(0, "Potential teacher %d age %d\n", person->get_id(), person->get_age());
     if(person->become_a_teacher(school)) {
       new_teachers++;
-      FRED_VERBOSE(0,"new teacher %d age %d moved from workplace %d %s to school %d %s\n",
-		   person->get_id(), person->get_age(), this->id, this->label, school->get_id(), school->get_label());
+      FRED_VERBOSE(0, "new teacher %d age %d moved from workplace %d %s to school %d %s\n",
+		   person->get_id(), person->get_age(), this->get_id(), this->get_label(), school->get_id(), school->get_label());
     }
   }
   FRED_VERBOSE(0, "%d new teachers reassigned from workplace %s to school %s\n", new_teachers,
-	       label, school->get_label());
+	       this->get_label(), school->get_label());
 }
 
 void Place::reassign_workers(Place* new_place) {
   std::vector<Person*> workers;
   workers.reserve((int)this->enrollees.size());
   workers.clear();
-  for(int i = 0; i < (int)this->enrollees.size(); ++i) {
+  for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
     workers.push_back(this->enrollees[i]);
   }
   int reassigned_workers = 0;
-  for(int i = 0; i < (int)workers.size(); ++i) {
+  for(int i = 0; i < static_cast<int>(workers.size()); ++i) {
     workers[i]->change_workplace(new_place, 0);
     // printf("worker %d age %d moving from workplace %s to place %s\n",
     //   workers[i]->get_id(), workers[i]->get_age(), label, new_place->get_label());
     reassigned_workers++;
   }
   FRED_VERBOSE(1, "%d workers reassigned from workplace %s to place %s\n", reassigned_workers,
-	       label, new_place->get_label());
+	       this->get_label(), new_place->get_label());
 }
 
 int Place::get_output_count(int disease_id, int output_code) {
@@ -297,7 +306,7 @@ int Place::get_output_count(int disease_id, int output_code) {
       return this->get_size();
       break;
     case Global::OUTPUT_HC_DEFICIT:
-      if(this->type == Place::HOUSEHOLD) {
+      if(this->get_type() == Place::TYPE_HOUSEHOLD) {
         Household* hh = static_cast<Household*>(this);
         return hh->get_count_hc_accept_ins_unav();
       } else {
@@ -399,7 +408,7 @@ void Place::setup_vector_model() {
     }
   }
   FRED_VERBOSE(1, "setup_vector_model: place %s vectors_per_host %f N_vectors %d N_orig %d\n",
-         this->label, this->vector_disease_data->vectors_per_host,
+         this->get_label(), this->vector_disease_data->vectors_per_host,
          this->vector_disease_data->N_vectors, this->N_orig);
 }
 
@@ -412,7 +421,7 @@ double Place::get_seeds(int dis, int sim_day) {
 }
 
 void Place::update_vector_population(int day) {
-  if (this->is_neighborhood()==false) {
+  if(this->is_neighborhood() == false) {
     *(this->vector_disease_data) = Global::Vectors->update_vector_population(day, this);
   }
 }

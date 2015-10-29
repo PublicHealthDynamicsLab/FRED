@@ -17,12 +17,12 @@
 #ifndef _FRED_DEMOGRAPHICS_H
 #define _FRED_DEMOGRAPHICS_H
 
-#include <vector>
 #include <map>
-
-using namespace std;
+#include <vector>
 
 #include "Global.h"
+
+using namespace std;
 
 class Events;
 class Date;
@@ -49,12 +49,12 @@ public:
    * @param day the simulation day
    * @param is_newborn needed to know how to set the date of birth
    */
-  void setup( Person * self, short int _age, char _sex, short int _race,
-	      short int rel, int day, bool is_newborn = false );
+  void setup(Person* self, short int _age, char _sex, short int _race,
+	           short int rel, int day, bool is_newborn = false );
 
   static void initialize_static_variables();
 
-  void initialize_demographic_dynamics(Person *self);
+  void initialize_demographic_dynamics(Person* self);
 
   /**
    * Perform the daily update for this object
@@ -72,24 +72,38 @@ public:
   /**
    * @return the agent's age
    */
-  short int get_age()      { return age; }
+  short int get_age() {
+    return this->age;
+  }
 
   /**
    * @return the agent's sex
    */
-  const char get_sex() const { return sex; }
+  const char get_sex() const {
+    return this->sex;
+  }
 
   /**
    * @return <code>true</code> if the agent is pregnant, <code>false</code> otherwise
    */
-  const bool is_pregnant() const { return pregnant; }
+  const bool is_pregnant() const {
+    return this->pregnant;
+  }
 
-  void unset_pregant() { pregnant = false; }
+  void set_pregnant() {
+    this->pregnant = true;
+  }
+
+  void unset_pregnant() {
+    this->pregnant = false;
+  }
 
   /**
    * @return <code>true</code> if the agent is deceased, <code>false</code> otherwise
    */
-  const bool is_deceased() const { return deceased; }
+  const bool is_deceased() const {
+    return this->deceased;
+  }
 
   /**
    * Print out information about this object
@@ -99,74 +113,116 @@ public:
   /**
    * @return the agent's init_age
    */
-  short int get_init_age() const { return init_age; }
+  short int get_init_age() const {
+    return this->init_age;
+  }
 
   /**
    * @return the agent's race
    */
-  short int get_race() const           { return race; }
+  short int get_race() const {
+    return this->race;
+  }
 
-  void set_relationship(int rel) { relationship = rel; }
+  void set_relationship(int rel) {
+    this->relationship = rel;
+  }
 
-  const int get_relationship() const { return relationship; }
+  const int get_relationship() const {
+    return this->relationship;
+  }
 
   /**
    * @return <code>true</code> if the agent is a householder, <code>false</code> otherwise
    */
-  bool is_householder() { return relationship == Global::HOUSEHOLDER; }
+  bool is_householder() {
+    return this->relationship == Global::HOUSEHOLDER;
+  }
 
-  void make_householder() { relationship = Global::HOUSEHOLDER; }
+  void make_householder() {
+    this->relationship = Global::HOUSEHOLDER;
+  }
 
   int get_day_of_year_for_birthday_in_nonleap_year();
 
   /**
    * Perform the necessary changes to the demographics on an agent's birthday
    */
-  void birthday( Person * self, int day );
+  void birthday(Person* self, int day);
 
-  void set_number_of_children(int n) { number_of_children = n; }
-  int get_number_of_children() { return number_of_children; }
+  void set_number_of_children(int n) {
+    this->number_of_children = n;
+  }
 
-  void terminate( Person * self ) { }
+  int get_number_of_children() {
+    return this->number_of_children;
+  }
 
-  int get_conception_sim_day() { return conception_sim_day; }
-  void set_conception_sim_day(int day) { conception_sim_day = day; }
-  int get_maternity_sim_day() { return maternity_sim_day; }
-  void set_maternity_sim_day(int day) { maternity_sim_day = day; }
-  void set_pregnant() { pregnant = true; }
-  void unset_pregnant() { pregnant = false; }
+  void terminate(Person* self);
 
-  static int get_births_ytd() { return births_ytd; }
-  static int get_total_births() { return total_births; }
-  static int get_deaths_today() { return deaths_today; }
-  static int get_deaths_ytd() { return deaths_ytd; }
-  static int get_total_deaths() { return total_deaths; }
+  int get_conception_sim_day() {
+    return this->conception_sim_day;
+  }
+
+  void set_conception_sim_day(int day) {
+    this->conception_sim_day = day;
+  }
+
+  int get_maternity_sim_day() {
+    return this->maternity_sim_day;
+  }
+
+  void set_maternity_sim_day(int day) {
+    this->maternity_sim_day = day;
+  }
+
+  static int get_births_ytd() {
+    return Demographics::births_ytd;
+  }
+
+  static int get_total_births() {
+    return Demographics::total_births;
+  }
+
+  static int get_deaths_today() {
+    return Demographics::deaths_today;
+  }
+
+  static int get_deaths_ytd() {
+    return Demographics::deaths_ytd;
+  }
+
+  static int get_total_deaths() {
+    return Demographics::total_deaths;
+  }
 
   // event handlers:
-  void cancel_conception( Person * self );
-  void become_pregnant( int day, Person * self );
-  void cancel_pregnancy( Person * self );
-  void update_birth_stats( int day, Person * self );
-  void die(int day, Person * self);
+  void cancel_conception(Person* self);
+  void become_pregnant(int day, Person* self);
+  void cancel_pregnancy(Person * self);
+  void update_birth_stats(int day, Person* self);
+  void die(int day, Person* self);
 
   // birthday lists
-  static void add_to_birthday_list(Person * person);
-  static void delete_from_birthday_list(Person * person);
+  static void add_to_birthday_list(Person* person);
+  static void delete_from_birthday_list(Person* person);
   static void update_people_on_birthday_list(int day);
 
-  static void add_conception_event(int day, Person *person);
-  static void delete_conception_event(int day, Person *person);
-  static void add_maternity_event(int day, Person *person);
-  static void delete_maternity_event(int day, Person *person);
-  static void add_mortality_event(int day, Person *person);
-  static void delete_mortality_event(int day, Person *person);
+  static void add_conception_event(int day, Person* person);
+  static void delete_conception_event(int day, Person* person);
+  static void add_maternity_event(int day, Person* person);
+  static void delete_maternity_event(int day, Person* person);
+  static void add_mortality_event(int day, Person* person);
+  static void delete_mortality_event(int day, Person* person);
   static void report(int day); 
+
+  static int find_fips_code(int n);
 
 private:
 
-  static Events * conception_queue;
-  static Events * maternity_queue;
-  static Events * mortality_queue;
+  static Events* conception_queue;
+  static Events* maternity_queue;
+  static Events* mortality_queue;
 
   short int init_age;			     // Initial age of the agent
   short int age;			     // Current age of the agent
@@ -190,8 +246,10 @@ private:
   static int deaths_ytd;
   static int total_deaths;
 
-  static std::vector <Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
+  static std::vector<Person*> birthday_vecs[367]; //0 won't be used | day 1 - 366
   static std::map<Person*, int> birthday_map;
+
+  static std::vector<int> fips_codes;
 
 protected:
 

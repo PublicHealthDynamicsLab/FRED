@@ -37,7 +37,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Neighborhood(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  Neighborhood(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
 
   ~Neighborhood() {};
 
@@ -77,14 +77,18 @@ public:
    * @param disease an integer representation of the disease
    * @return whether or not the neighborhood is open on the given day for the given disease
    */
-  bool should_be_open(int day, int disease) { return true; }
+  bool should_be_open(int day, int disease) {
+    return true;
+  }
 
   /**
    * Returns the rate by which to increase neighborhood contacts on weekends
    *
    * @return the rate by which to increase neighborhood contacts on weekends
    */
-  static double get_weekend_contact_rate(int disease) { return weekend_contact_rate; }
+  static double get_weekend_contact_rate(int disease) {
+    return Neighborhood::weekend_contact_rate;
+  }
 
 private:
   static double contacts_per_day;

@@ -53,8 +53,8 @@ int Household::Max_hh_income = -1;
 int Household::Min_hh_income_90_pct = -1;
 
 Household::Household() : Place() {
-  this->type = Place::HOUSEHOLD;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_HOUSEHOLD);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->sheltering = false;
   this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
   this->hh_schl_aged_chld = false;
@@ -78,9 +78,9 @@ Household::Household() : Place() {
   this->household_income_code = Household_income_level_code::UNCLASSIFIED;
 }
 
-Household::Household(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = Place::HOUSEHOLD;
-  this->subtype = _subtype;
+Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_HOUSEHOLD);
+  this->set_subtype(_subtype);
   this->sheltering = false;
   this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
   this->hh_schl_aged_chld = false;

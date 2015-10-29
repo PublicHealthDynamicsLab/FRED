@@ -147,7 +147,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Household(const char* lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  Household(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
 
   ~Household() {}
 

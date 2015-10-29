@@ -971,7 +971,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
 
             if(hosp != NULL) {
               assign_hospital(self, hosp);
-              if(hosp->get_subtype() == fred::PLACE_SUBTYPE_NONE) {
+              if(hosp->get_subtype() == Place::SUBTYPE_NONE) {
                 //then it is an emergency room visit
                 Global::Daily_Tracker->increment_index_key_pair(sim_day, ER_VISIT, 1);
               }
@@ -1001,7 +1001,7 @@ void Activities::decide_whether_to_seek_healthcare(Person* self, int sim_day) {
             }
           } else {
             assign_hospital(self, hosp);
-            if(hosp->get_subtype() == fred::PLACE_SUBTYPE_NONE) {
+            if(hosp->get_subtype() == Place::SUBTYPE_NONE) {
               //then it is an emergency room visit
               Global::Daily_Tracker->increment_index_key_pair(sim_day, ER_VISIT, 1);
             }
@@ -2068,32 +2068,32 @@ void Activities::delete_network_link_from(Person* person, Network* network) {
   Utils::fred_abort("network not found");
 }
 
-void Activities::join_transmission_network(Person* self) {
-  FRED_VERBOSE(0, "JOINING TRANS NET: id = %d\n", self->get_id());
+void Activities::join_network(Person* self, Network* network) {
+  FRED_VERBOSE(0, "JOINING NETWORK: id = %d\n", self->get_id());
   int size = this->networks.size();
   for(int i = 0; i < size; ++i) {
-    if(this->networks[i]->get_network() == Global::Transmission_Network) {
+    if(this->networks[i]->get_network() == network) {
       return;
     }
   }
-  Person_Network_Link* network_link = new Person_Network_Link(self, Global::Transmission_Network);
+  Person_Network_Link* network_link = new Person_Network_Link(self, network);
   this->networks.push_back(network_link);
 }
 
 bool Activities::is_enrolled_in_network(Network* network) {
   int size = this->networks.size();
   for(int i = 0; i < size; ++i) {
-    if(this->networks[i]->get_network() == Global::Transmission_Network) {
+    if(this->networks[i]->get_network() == network) {
       return true;
     }
   }
   return false;
 }
 
-void Activities::print_transmission_network(FILE* fp, Person* self) {
+void Activities::print_network(FILE* fp, Person* self, Network* network) {
   int size = this->networks.size();
   for(int i = 0; i < size; ++i) {
-    if(this->networks[i]->get_network() == Global::Transmission_Network) {
+    if(this->networks[i]->get_network() == network) {
       this->networks[i]->print(fp);
     }
   }
@@ -2153,5 +2153,10 @@ void Activities::clear_network(Network* network) {
     }
   }
   Utils::fred_abort("network not found");
+}
+
+Person* Activities::get_end_of_link(int n, Network* network) {
+  //TODO Stub for now
+  return NULL;
 }
 

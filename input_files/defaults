@@ -198,6 +198,11 @@ enable_new_transmission_model = 0
 enable_transmission_bias = 0
 enable_transmission_network = 0
 
+# sexual partner network params
+enable_sexual_partner_network = 0
+sexual_partner_contacts = 0.1
+sexual_trans_per_contact = 0.1
+
 ##########################################################
 #
 # PLACE PARAMETERS

@@ -40,7 +40,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Office(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  Office(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
 
   ~Office() {}
 

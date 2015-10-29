@@ -93,6 +93,7 @@ public:
   void become_susceptible(Person* self, Disease* disease);
   void become_susceptible_by_vaccine_waning(Person* self, int disease_id);
   void become_unsusceptible(Person* self, Disease* disease);
+  void become_unsusceptible(Person* self, int disease_id);
   void become_infectious(Person* self, Disease* disease);
   void become_symptomatic(Person* self, Disease* disease);
   void become_asymptomatic(Person* self, Disease* disease);

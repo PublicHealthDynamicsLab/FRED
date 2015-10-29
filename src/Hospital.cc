@@ -44,8 +44,8 @@ std::vector<double> Hospital::HAZEL_reopening_CDF;
 HospitalInitMapT Hospital::HAZEL_hospital_init_map;
 
 Hospital::Hospital() : Place() {
-  this->type = Place::HOSPITAL;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_HOSPITAL);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->bed_count = 0;
   this->occupied_bed_count = 0;
   this->daily_patient_capacity = -1;
@@ -71,7 +71,7 @@ Hospital::Hospital() : Place() {
       this->set_accepts_insurance(Insurance_assignment_index::UNINSURED, init_data.accpt_uninsured);
       this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
       if(init_data.is_mobile) {
-        this->set_subtype(fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
+        this->set_subtype(Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
       }
       this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
       this->add_capacity = init_data.add_capacity;
@@ -79,9 +79,9 @@ Hospital::Hospital() : Place() {
   }
 }
 
-Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = Place::HOSPITAL;
-  this->subtype = _subtype;
+Hospital::Hospital(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_HOSPITAL);
+  this->set_subtype(_subtype);
   this->bed_count = 0;
   this->occupied_bed_count = 0;
   this->daily_patient_capacity = -1;
@@ -107,7 +107,7 @@ Hospital::Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon,
       this->set_accepts_insurance(Insurance_assignment_index::UNINSURED, init_data.accpt_uninsured);
       this->set_accepts_insurance(Insurance_assignment_index::UPMC, init_data.accpt_upmc);
       if(init_data.is_mobile) {
-        this->set_subtype(fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
+        this->set_subtype(Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC);
       }
       this->set_daily_patient_capacity((init_data.panel_week / 5) + 1);
       this->add_capacity = init_data.add_capacity;
@@ -170,7 +170,7 @@ void Hospital::get_parameters() {
           tokens = Utils::split_by_delim(line, ',', tokens, false);
           // skip header line
           if(strcmp(tokens[HOSP_ID], "sp_id") != 0) {
-            char place_type = Place::HOSPITAL;
+            char place_type = Place::TYPE_HOSPITAL;
             char s[80];
             sprintf(s, "%c%s", place_type, tokens[HOSP_ID]);
             string hosp_id_str(s);
@@ -385,7 +385,7 @@ std::string Hospital::to_string() {
      << ", current_daily_patient_count: " << this->current_daily_patient_count
      << ", add_capacity: " << this->add_capacity
      << ", HAZEL_closure_dates_have_been_set: " << this->HAZEL_closure_dates_have_been_set
-     << ", subtype: " << this->subtype;
+     << ", subtype: " << this->get_subtype();
 
   return ss.str();
 }

@@ -18,9 +18,17 @@
 #define _FRED_NETWORK_H
 
 #include "Mixing_Group.h"
+class Disease;
 
 class Network : public Mixing_Group {
 public: 
+
+  // place type codes
+  static char TYPE_NETWORK;
+
+  static char SUBTYPE_NONE;
+  static char SUBTYPE_TRANSMISSION;
+  static char SUBTYPE_SEXUAL_PARTNER;
 
   Network(const char* lab);
   ~Network() {}
@@ -53,6 +61,9 @@ public:
   double get_transmission_prob(int disease_id, Person* i, Person* s);
   double get_contacts_per_day(int disease_id);
 
+  double get_contact_rate(int day, int disease_id);
+  int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate);
+
   int get_group(int disease, Person* per) {
     return 0;
   }
@@ -64,6 +75,7 @@ public:
   double get_mean_degree();
   void test();
   void create_random_network(double mean_degree);
+  void infect_random_nodes(double pct, Disease* disease);
 
 private:
   static double contacts_per_day;

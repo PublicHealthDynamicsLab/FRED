@@ -56,8 +56,8 @@ int School::global_close_date = 0;
 int School::global_open_date = 0;
 
 School::School() : Place() {
-  this->type = Place::SCHOOL;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_SCHOOL);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->intimacy = 0.025;
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
@@ -73,9 +73,9 @@ School::School() : Place() {
 }
 
 
-School::School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = Place::SCHOOL;
-  this->subtype = _subtype;
+School::School(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_SCHOOL);
+  this->set_subtype(_subtype);
   this->intimacy = 0.025;
   for(int i = 0; i < GRADES; ++i) {
     this->students_in_grade[i] = 0;
@@ -214,15 +214,15 @@ void School::close(int day, int day_to_close, int duration) {
   // log this school closure decision
   if(Global::Verbose > 0) {
     printf("SCHOOL %s CLOSURE decision day %d close_date %d duration %d open_date %d\n",
-	   this->label, day, this->close_date, duration, this->open_date);
+	   this->get_label(), day, this->close_date, duration, this->open_date);
   }
 }
 
 
 bool School::is_open(int day) {
   bool open = (day < this->close_date || this->open_date <= day);
-  if (!open) {
-    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
+  if(!open) {
+    FRED_VERBOSE(0, "Place %s is closed on day %d\n", this->get_label(), day);
   }
   return open;
 }
@@ -241,7 +241,7 @@ bool School::should_be_open(int day, int disease_id) {
        (month == School::summer_end_month && day_of_month <= School::summer_end_day) ||
        (School::summer_start_month < month && month < School::summer_end_month)) {
       if(Global::Verbose > 1) {
-	      fprintf(Global::Statusfp, "School %s closed for summer\n", label);
+	      fprintf(Global::Statusfp, "School %s closed for summer\n", this->get_label());
 	      fflush(Global::Statusfp);
       }
       return false;
@@ -356,7 +356,7 @@ int School::enroll(Person* person) {
   int return_value = Place::enroll(person);
 
   FRED_VERBOSE(1,"Enroll person %d age %d in school %d %s new size %d\n",
-	       person->get_id(), person->get_age(), this->id, this->label, this->get_size());
+	       person->get_id(), person->get_age(), this->get_id(), this->get_label(), this->get_size());
   if(person->is_teacher()) {
     this->staff_size++;
   } else {
@@ -364,7 +364,7 @@ int School::enroll(Person* person) {
     int grade = ((age < GRADES) ? age : GRADES - 1);
     assert(grade > 0);
     this->students_in_grade[grade]++;
-    if(grade > max_grade) {
+    if(grade > this->max_grade) {
       this->max_grade = grade;
     }
     person->set_grade(grade);
@@ -374,12 +374,12 @@ int School::enroll(Person* person) {
 }
 
 void School::unenroll(int pos) {
-  int size = enrollees.size();
+  int size = this->enrollees.size();
   assert(0 <= pos && pos < size);
-  Person *removed = enrollees[pos];
+  Person* removed = this->enrollees[pos];
   int grade = removed->get_grade();
   FRED_VERBOSE(1,"UNENROLL person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, get_size());
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->get_id(), this->get_label(), this->get_size());
 
   // call the base class method
   Place::unenroll(pos);
@@ -387,15 +387,15 @@ void School::unenroll(int pos) {
   if(removed->is_teacher() || grade == 0) {
     this->staff_size--;
   } else {
-    assert(0 < grade && grade <= max_grade);
+    assert(0 < grade && grade <= this->max_grade);
     this->students_in_grade[grade]--;
   }
   removed->set_grade(0);
-  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->id, this->label, get_size());
+  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->get_id(), this->get_label(), this->get_size());
 }
 
 void School::print(int disease_id) {
-  fprintf(Global::Statusfp, "Place %d label %s type %c ", this->id, this->label, this->type);
+  fprintf(Global::Statusfp, "Place %d label %s type %c ", this->get_id(), this->get_label(), this->get_type());
   for(int g = 0; g < GRADES; ++g) {
     fprintf(Global::Statusfp, "%d students in grade %d | ", this->students_in_grade[g], g);
   }
@@ -437,14 +437,14 @@ void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
       rooms++;
     }
 
-    FRED_STATUS(1, "school %d %s grade %d number %d rooms %d\n", id, label, a, n, rooms);
+    FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", this->get_id(), this->get_label(), a, n, rooms);
 
     for(int c = 0; c < rooms; ++c) {
       char new_label[128];
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
 
       Classroom* clsrm = new (classroom_allocator.get_free()) Classroom(new_label,
-									fred::PLACE_SUBTYPE_NONE,
+									Place::SUBTYPE_NONE,
 									this->get_longitude(),
 									this->get_latitude());
       clsrm->set_school(this);
@@ -464,7 +464,7 @@ Place* School::select_classroom_for_student(Person* per) {
   }
   if(Global::Verbose > 1) {
     fprintf(Global::Statusfp, "assign classroom for student %d in school %d %s grade %d\n",
-	    per->get_id(), this->id, this->label, grade);
+	    per->get_id(), this->get_id(), this->get_label(), grade);
     fflush(Global::Statusfp);
   }
 

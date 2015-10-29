@@ -36,7 +36,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  School(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  School(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
 
   ~School() {
   }

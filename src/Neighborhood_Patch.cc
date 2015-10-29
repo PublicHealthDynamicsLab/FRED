@@ -84,7 +84,7 @@ void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neigh
   fred::geo lon = Geo::get_longitude(this->center_x);
 
   this->neighborhood = new (neighborhood_allocator.get_free())
-  Neighborhood(str, fred::PLACE_SUBTYPE_NONE, lon, lat);
+  Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
 }
 
 void Neighborhood_Patch::add_household(Household* p) {

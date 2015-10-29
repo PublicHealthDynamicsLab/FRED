@@ -43,7 +43,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Hospital(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  Hospital(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
   ~Hospital() { }
 
   static void get_parameters();

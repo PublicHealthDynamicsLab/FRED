@@ -13,34 +13,34 @@
 //
 // File: Fred.cc
 //
+#include "Activities.h"
 #include "AV_Manager.h"
-#include "Fred.h"
-#include "Utils.h"
-#include "Global.h"
-#include "Population.h"
+#include "Behavior.h"
+#include "Date.h"
+#include "Demographics.h"
 #include "Disease.h"
 #include "Disease_List.h"
-#include "Place_List.h"
+#include "Evolution.h"
+#include "Epidemic.h"
+#include "Fred.h"
+#include "Global.h"
+#include "Health.h"
 #include "Neighborhood_Layer.h"
 #include "Network.h"
-#include "Regional_Layer.h"
-#include "Vaccine_Manager.h"
-#include "Visualization_Layer.h"
-#include "Vector_Layer.h"
 #include "Params.h"
+#include "Place_List.h"
+#include "Population.h"
 #include "Random.h"
-#include "Vaccine_Manager.h"
-#include "Date.h"
-#include "Evolution.h"
-#include "Travel.h"
-#include "Transmission.h"
-#include "Epidemic.h"
+#include "Regional_Layer.h"
 #include "Seasonality.h"
-#include "Activities.h"
-#include "Behavior.h"
-#include "Demographics.h"
-#include "Health.h"
+#include "Sexual_Transmission_Network.h"
 #include "Tracker.h"
+#include "Transmission.h"
+#include "Travel.h"
+#include "Utils.h"
+#include "Vaccine_Manager.h"
+#include "Vector_Layer.h"
+#include "Visualization_Layer.h"
 class Place;
 
 #ifndef __CYGWIN__
@@ -231,8 +231,13 @@ void fred_setup(int argc, char* argv[]) {
   // create networks if needed
   if(Global::Enable_Transmission_Network) {
     Global::Transmission_Network = new Network("Transmission_Network");
-    //Global::Transmission_Network->set_id(Global::Places.get_new_place_id());
-    Global::Transmission_Network->test();
+    //Global::Transmission_Network->test();
+  }
+
+  if(Global::Enable_Sexual_Partner_Network) {
+    Global::Sexual_Partner_Network = new Sexual_Transmission_Network("Sexual_Partner_Network");
+    Sexual_Transmission_Network::get_parameters();
+    //Global::Sexual_Partner_Network->test();
   }
 
   if(Global::Enable_Travel) {
@@ -494,6 +499,10 @@ void fred_finish() {
 
   if(Global::Enable_Transmission_Network) {
     Global::Transmission_Network->print();
+  }
+
+  if(Global::Enable_Sexual_Partner_Network) {
+    Global::Sexual_Partner_Network->print();
   }
 
   // close all open output files with global file pointers

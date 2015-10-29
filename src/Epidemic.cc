@@ -40,6 +40,7 @@ using namespace std;
 #include "Population.h"
 #include "Random.h"
 #include "School.h"
+#include "Sexual_Transmission_Network.h"
 #include "Tracker.h"
 #include "Transmission.h"
 #include "Utils.h"
@@ -64,9 +65,6 @@ Epidemic* Epidemic::get_epidemic(Disease* disease) {
     return new Epidemic(disease);
   }
 }
-
-
-
 
 Epidemic::Epidemic(Disease* dis) {
   this->disease = dis;
@@ -1036,7 +1034,7 @@ void Epidemic::report_presenteeism(int day) {
     infections_in_pop++;
 
     // presenteeism requires that place of infection is work or office
-    if(c != Place::WORKPLACE && c != Place::OFFICE) {
+    if(c != Place::TYPE_WORKPLACE && c != Place::TYPE_OFFICE) {
       continue;
     }
     infections_at_work++;
@@ -1136,7 +1134,7 @@ void Epidemic::report_school_attack_rates_by_income_level(int day) {
     char c = infectee->get_infected_place_type(this->id);
 
     // school presenteeism requires that place of infection is school or classroom
-    if(c != Place::SCHOOL && c != Place::CLASSROOM) {
+    if(c != Place::TYPE_SCHOOL && c != Place::TYPE_CLASSROOM) {
       continue;
     }
     infections_at_school++;
@@ -1477,7 +1475,7 @@ void Epidemic::process_infectious_start_events(int day) {
   FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
-    Person* person = infectious_start_event_queue->get_event(day, i);
+    Person* person =  this->infectious_start_event_queue->get_event(day, i);
 
     FRED_VERBOSE(1,"infectious_start_event day %d person %d\n",
 		 day, person->get_id());
@@ -1499,11 +1497,11 @@ void Epidemic::process_infectious_start_events(int day) {
 }
 
 void Epidemic::process_infectious_end_events(int day) {
-  int size = infectious_end_event_queue->get_size(day);
+  int size =  this->infectious_end_event_queue->get_size(day);
   FRED_VERBOSE(0, "INF_END_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
-    Person* person = infectious_end_event_queue->get_event(day, i);
+    Person* person =  this->infectious_end_event_queue->get_event(day, i);
 
     FRED_VERBOSE(1, "infectious_end_event day %d person %d\n",
 		  day, person->get_id());
@@ -1524,7 +1522,7 @@ void Epidemic::process_symptoms_start_events(int day) {
   FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
-    Person * person = symptoms_start_event_queue->get_event(day, i);
+    Person* person =  this->symptoms_start_event_queue->get_event(day, i);
 
     // update next event list
     int symptoms_end_date = person->get_symptoms_end_date(this->id);
@@ -1706,7 +1704,7 @@ void Epidemic::update(int day) {
   }
 
   // get list of actually infectious people
-  actually_infectious_people.clear();
+  this->actually_infectious_people.clear();
   for(std::set<Person*>::iterator it = this->potentially_infectious_people.begin(); it != this->potentially_infectious_people.end(); ++it) {
     Person* person = (*it);
     if(person->is_infectious(this->id)) {
@@ -1714,30 +1712,38 @@ void Epidemic::update(int day) {
       FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
     }
   }
-  this->infectious_people = actually_infectious_people.size();
+  this->infectious_people = this->actually_infectious_people.size();
   Utils::fred_print_epidemic_timer("identifying actually infections people");
 
   // update the daily activities of infectious people
   for(int i = 0; i < this->infectious_people; ++i) {
-    Person* person = actually_infectious_people[i];
-    FRED_VERBOSE(1, "updating activities of infectious person %d -- %d out of %d\n", person->get_id(), i, this->infectious_people);
-    // this will insert the infectious person onto the infectious list at each place attended
-    person->update_activities_of_infectious_person(day);
+    Person* person = this->actually_infectious_people[i];
+
+    if(strcmp("sexual", this->disease->get_transmission_mode()) == 0) {
+      // this will insert the infectious person onto the infectious list in sexual partner network
+      Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
+      st_network->add_infectious_person(this->id, person);
+    } else {
+      FRED_VERBOSE(1, "updating activities of infectious person %d -- %d out of %d\n", person->get_id(), i, this->infectious_people);
+      person->update_activities_of_infectious_person(day);
+      // note: infectious person will be added to the daily places in find_active_places_of_type()
+    }
   }
   Utils::fred_print_epidemic_timer("scheduled updated");
 
-  if(strcmp("sexual",this->disease->get_transmission_mode()) == 0) {
-    FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
-    return;
-  }
-  
-  // spread infection in places attended by actually infectious people
-  for(int type = 0; type < 7; ++type) {
-    find_active_places_of_type(day, type);
-    spread_infection_in_active_places(day);
-    char msg[80];
-    sprintf(msg, "spread_infection for type %d", type);
-    Utils::fred_print_epidemic_timer(msg);
+  if(strcmp("sexual", this->disease->get_transmission_mode()) == 0) {
+    Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
+    this->disease->get_transmission()->spread_infection(day, this->id, st_network);
+    st_network->clear_infectious_people(this->id);
+  } else {
+    // spread infection in places attended by actually infectious people
+    for(int type = 0; type < 7; ++type) {
+      find_active_places_of_type(day, type);
+      spread_infection_in_active_places(day);
+      char msg[80];
+      sprintf(msg, "spread_infection for type %d", type);
+      Utils::fred_print_epidemic_timer(msg);
+    }
   }
 
   FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
@@ -1751,7 +1757,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
   this->active_places.clear();
   FRED_VERBOSE(1, "find_active_places_of_type %d actual %d\n", place_type, this->infectious_people);
   for(int i = 0; i < this->infectious_people; i++) {
-    Person* person = actually_infectious_people[i];
+    Person* person =  this->actually_infectious_people[i];
     assert(person!=NULL);
     Place* place = NULL;
     switch(place_type) {
@@ -1828,11 +1834,11 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
   FRED_VERBOSE(1, "find_active_places_of_type %d found %d\n", place_type, this->active_places.size());
 
   // convert active set to vector
-  active_place_vec.clear();
+  this->active_place_vec.clear();
   for(std::set<Place*>::iterator it = active_places.begin(); it != this->active_places.end(); ++it) {
-    active_place_vec.push_back(*it);
+    this->active_place_vec.push_back(*it);
   }
-  FRED_VERBOSE(0, "find_active_places_of_type %d day %d found %d\n", place_type, day, active_place_vec.size());
+  FRED_VERBOSE(0, "find_active_places_of_type %d day %d found %d\n", place_type, day,  this->active_place_vec.size());
 
 }
   

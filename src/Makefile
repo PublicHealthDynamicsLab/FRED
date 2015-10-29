@@ -134,7 +134,7 @@ DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
 	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  
 
 PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
-	Workplace.o Office.o Hospital.o Place_List.o Network.o
+	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 	Antiviral.o Antivirals.o AV_Decisions.o AV_Policies.o AV_Manager.o AV_Health.o \

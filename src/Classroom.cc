@@ -32,15 +32,15 @@ int Classroom::Classroom_closure_period = 0;
 int Classroom::Classroom_closure_delay = 0;
 
 Classroom::Classroom() : Place() {
-  this->type = Place::CLASSROOM;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_CLASSROOM);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->age_level = -1;
   this->school = NULL;
 }
 
-Classroom::Classroom(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = Place::CLASSROOM;
-  this->subtype = _subtype;
+Classroom::Classroom(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_CLASSROOM);
+  this->set_subtype(_subtype);
   this->age_level = -1;
   this->school = NULL;
 }
@@ -115,7 +115,7 @@ double Classroom::get_transmission_prob(int disease, Person* i, Person* s) {
 bool Classroom::is_open(int day) {
   bool open = this->school->is_open(day);
   if(!open) {
-    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->label, day);
+    FRED_VERBOSE(0,"Place %s is closed on day %d\n", this->get_label(), day);
   }
   return open;
 }
@@ -139,7 +139,7 @@ int Classroom::enroll(Person* person) {
   assert(grade > 0);
 
   FRED_VERBOSE(1,"Enrolled person %d age %d in classroom %d grade %d %s\n",
-	       person->get_id(), person->get_age(), this->id, this->age_level, this->label);
+	       person->get_id(), person->get_age(), this->get_id(), this->age_level, this->get_label());
   if(this->age_level == -1) {
     this->age_level = age;
   }
@@ -155,7 +155,7 @@ void Classroom::unenroll(int pos) {
   assert(removed->is_teacher() == false);
   int grade = removed->get_grade();
   FRED_VERBOSE(0,"UNENROLL removed %d age %d grade %d, is_teacher %d from school %d %s size = %d\n",
-	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->id, this->label, get_size());
+	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->get_id(), this->get_label(), this->get_size());
   
   // call base class method
   Place::unenroll(pos);

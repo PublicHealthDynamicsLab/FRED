@@ -28,17 +28,17 @@ double Transmission::Seasonal_Reduction = 0.0;
 double* Transmission::Seasonality_multiplier = NULL;
 
 
-Transmission * Transmission::get_new_transmission(char* transmission_mode) {
+Transmission* Transmission::get_new_transmission(char* transmission_mode) {
   
-  if (strcmp(transmission_mode, "respiratory") == 0) {
+  if(strcmp(transmission_mode, "respiratory") == 0) {
     return new Respiratory_Transmission();
   }
   
-  if (strcmp(transmission_mode, "vector") == 0) {
+  if(strcmp(transmission_mode, "vector") == 0) {
     return new Vector_Transmission();
   }
 
-  if (strcmp(transmission_mode, "sexual") == 0) {
+  if(strcmp(transmission_mode, "sexual") == 0) {
     return new Sexual_Transmission();
   }
 
@@ -54,7 +54,7 @@ void Transmission::get_parameters() {
   Params::get_param_from_string("seasonal_reduction", &Transmission::Seasonal_Reduction);
   // setup seasonal multipliers
 
-  if (Transmission::Seasonal_Reduction > 0.0) {
+  if(Transmission::Seasonal_Reduction > 0.0) {
     int seasonal_peak_day_of_year; // e.g. Jan 1
     Params::get_param_from_string("seasonal_peak_day_of_year", &seasonal_peak_day_of_year);
 
@@ -63,14 +63,11 @@ void Transmission::get_parameters() {
     for(int day = 1; day <= 366; ++day) {
       int days_from_peak_transmissibility = abs(seasonal_peak_day_of_year - day);
       Transmission::Seasonality_multiplier[day] = (1.0 - Transmission::Seasonal_Reduction) +
-	Transmission::Seasonal_Reduction * 0.5 * (1.0 + cos(days_from_peak_transmissibility * (2 * PI / 365.0)));
+	      Transmission::Seasonal_Reduction * 0.5 * (1.0 + cos(days_from_peak_transmissibility * (2 * PI / 365.0)));
       if(Transmission::Seasonality_multiplier[day] < 0.0) {
-	Transmission::Seasonality_multiplier[day] = 0.0;
+	      Transmission::Seasonality_multiplier[day] = 0.0;
       }
       // printf("Seasonality_multiplier[%d] = %e %d\n", day, Transmission::Seasonality_multiplier[day], days_from_peak_transmissibility);
     }
   }
 }
-
-
-

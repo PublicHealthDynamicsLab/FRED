@@ -28,9 +28,9 @@ double Neighborhood::same_age_bias = 0.0;
 double** Neighborhood::prob_transmission_per_contact = NULL;
 double Neighborhood::weekend_contact_rate = 0.0;
 
-Neighborhood::Neighborhood(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = NEIGHBORHOOD;
-  this->subtype = _subtype;
+Neighborhood::Neighborhood(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_NEIGHBORHOOD);
+  this->set_subtype(_subtype);
   this->intimacy = 0.0025;
 }
 

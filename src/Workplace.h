@@ -36,7 +36,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Workplace(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat);
+  Workplace(const char* lab, char _subtype, fred::geo lon, fred::geo lat);
 
   ~Workplace() {}
 

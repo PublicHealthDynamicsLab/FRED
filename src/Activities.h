@@ -525,11 +525,11 @@ public:
 
   void delete_network_link_from(Person* person, Network* network);
 
-  void join_transmission_network(Person* self);
+  void join_network(Person* self, Network* network);
 
   bool is_enrolled_in_network(Network* network);
 
-  void print_transmission_network(FILE* fp, Person* self);
+  void print_network(FILE* fp, Person* self, Network* network);
 
   bool is_connected_to(Person* person, Network* network);
 
@@ -540,6 +540,8 @@ public:
   int get_in_degree(Network* network);
 
   void clear_network(Network* network);
+  
+  Person* get_end_of_link(int n, Network* network);
 
 private:
 

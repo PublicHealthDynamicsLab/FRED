@@ -28,21 +28,21 @@ double Office::contacts_per_day;
 double** Office::prob_transmission_per_contact;
 
 Office::Office() : Place() {
-  this->type = Place::OFFICE;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_OFFICE);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->workplace = NULL;
 }
 
-Office::Office(const char* lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = Place::OFFICE;
-  this->subtype = _subtype;
+Office::Office(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_OFFICE);
+  this->set_subtype(_subtype);
   this->workplace = NULL;
 }
 
 void Office::get_parameters() {
 
   Params::get_param_from_string("office_contacts", &Office::contacts_per_day);
-  int n = Params::get_param_matrix((char *)"office_trans_per_contact", &Office::prob_transmission_per_contact);
+  int n = Params::get_param_matrix((char*)"office_trans_per_contact", &Office::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nOffice_contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {

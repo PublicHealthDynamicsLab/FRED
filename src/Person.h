@@ -38,6 +38,14 @@ public:
 
   Person();
   ~Person();
+  
+  /**
+   * Make this agent unsusceptible to the given disease
+   * @param disease_id the id of the disease to reference
+   */
+  void become_unsusceptible(int disease_id) {
+    this->health.become_unsusceptible(this, disease_id);
+  }
 
   /**
    * Make this agent unsusceptible to the given disease
@@ -901,64 +909,68 @@ public:
 
   // convenience methods for Networks
 
-  void create_network_link_to(Person * person, Network * network) {
+  void create_network_link_to(Person* person, Network* network) {
     this->activities.create_network_link_to(person, network);
   }
 
-  void destroy_network_link_to(Person * person, Network * network) {
+  void destroy_network_link_to(Person* person, Network* network) {
     this->activities.destroy_network_link_to(person, network);
   }
 
-  void create_network_link_from(Person * person, Network * network) {
+  void create_network_link_from(Person* person, Network* network) {
     this->activities.create_network_link_from(person, network);
   }
 
-  void destroy_network_link_from(Person * person, Network * network) {
+  void destroy_network_link_from(Person* person, Network* network) {
     this->activities.destroy_network_link_from(person, network);
   }
 
-  void add_network_link_to(Person * person, Network * network) {
+  void add_network_link_to(Person* person, Network* network) {
     this->activities.add_network_link_to(person, network);
   }
 
-  void add_network_link_from(Person * person, Network * network) {
+  void add_network_link_from(Person* person, Network* network) {
     this->activities.add_network_link_from(person, network);
   }
 
-  void delete_network_link_to(Person * person, Network * network) {
+  void delete_network_link_to(Person* person, Network* network) {
     this->activities.delete_network_link_to(person, network);
   }
 
-  void delete_network_link_from(Person * person, Network * network) {
+  void delete_network_link_from(Person* person, Network* network) {
     this->activities.delete_network_link_from(person, network);
   }
 
-  void join_transmission_network() {
-    this->activities.join_transmission_network(this);
+  void join_network(Network* network) {
+    this->activities.join_network(this, network);
   }
 
-  void print_transmission_network(FILE *fp) {
-    this->activities.print_transmission_network(fp, this);
+  void print_network(FILE* fp, Network* network) {
+    this->activities.print_network(fp, this, network);
   }
 
-  bool is_connected_to(Person * person, Network * network) {
+  bool is_connected_to(Person* person, Network* network) {
     return this->activities.is_connected_to(person, network);
   }
 
-  bool is_connected_from(Person * person, Network * network) {
+  bool is_connected_from(Person* person, Network* network) {
     return this->activities.is_connected_from(person, network);
   }
 
-  int get_out_degree(Network * network) {
+  int get_out_degree(Network* network) {
     return this->activities.get_out_degree(network);
   }
 
-  int get_in_degree(Network * network) {
+  int get_in_degree(Network* network) {
     return this->activities.get_in_degree(network);
   }
 
-  void clear_network(Network * network) {
+  void clear_network(Network* network) {
     return this->activities.clear_network(network);
+  }
+  
+  Person* get_end_of_link(int n, Network* network) {
+    return this->activities.get_end_of_link(n, network);
   }
 
 private:

@@ -329,7 +329,7 @@ private:
   void read_school_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
-  void reassign_workers_to_group_quarters(fred::place_subtype subtype, int fixed_staff, double resident_to_staff_ratio);
+  void reassign_workers_to_group_quarters(char subtype, int fixed_staff, double resident_to_staff_ratio);
   void prepare_primary_care_assignment();
 
   /**
@@ -480,7 +480,7 @@ struct Place_Init_Data {
 
   char s[80];
   char place_type;
-  fred::place_subtype place_subtype;
+  char place_subtype;
   long int admin_id;
   int income;
   unsigned char deme_id;
@@ -493,7 +493,7 @@ struct Place_Init_Data {
   char gq_type[8];
   char gq_workplace[32];
 
-  void setup(char _s[], char _place_type, fred::place_subtype _place_subtype, const char* _lat, const char* _lon,
+  void setup(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
       unsigned char _deme_id, int _county, int _census_tract_index, const char* _income, bool _is_group_quarters,
       int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
     place_type = _place_type;
@@ -519,7 +519,7 @@ struct Place_Init_Data {
     strcpy(gq_workplace, _gq_workplace);
   }
 
-  Place_Init_Data(char _s[], char _place_type, fred::place_subtype _place_subtype, const char* _lat, const char* _lon,
+  Place_Init_Data(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
       unsigned char _deme_id, int _county = -1, int _census_tract = -1, const char* _income = "0",
       bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
       const char* gq_type = "X", const char* gq_workplace = "") {

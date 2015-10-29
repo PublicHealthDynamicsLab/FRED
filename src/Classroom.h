@@ -36,7 +36,7 @@ public:
   /**
    * Constructor with necessary parameters
    */
-  Classroom(const char *lab, fred::place_subtype subtype, fred::geo lon, fred::geo lat);
+  Classroom(const char *lab, char _subtype, fred::geo lon, fred::geo lat);
   ~Classroom() {}
 
   static void get_parameters();

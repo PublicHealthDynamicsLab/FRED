@@ -34,15 +34,23 @@ class Place : public Mixing_Group {
 public:
   
   // place type codes
-  static char HOUSEHOLD;
-  static char NEIGHBORHOOD;
-  static char SCHOOL;
-  static char CLASSROOM;
-  static char WORKPLACE;
-  static char OFFICE;
-  static char HOSPITAL;
-  static char COMMUNITY;
-  static char UNSET;
+  static char TYPE_HOUSEHOLD;
+  static char TYPE_NEIGHBORHOOD;
+  static char TYPE_SCHOOL;
+  static char TYPE_CLASSROOM;
+  static char TYPE_WORKPLACE;
+  static char TYPE_OFFICE;
+  static char TYPE_HOSPITAL;
+  static char TYPE_COMMUNITY;
+  static char TYPE_UNSET;
+
+  static char SUBTYPE_NONE;
+  static char SUBTYPE_COLLEGE;
+  static char SUBTYPE_PRISON;
+  static char SUBTYPE_MILITARY_BASE;
+  static char SUBTYPE_NURSING_HOME;
+  static char SUBTYPE_HEALTHCARE_CLINIC;
+  static char SUBTYPE_MOBILE_HEALTHCARE_CLINIC;
 
   /**
    * Default constructor
@@ -102,79 +110,62 @@ public:
    */
   virtual bool should_be_open(int sim_day, int disease_id) = 0;
 
-  /**
-   * Get the id.
-   * @return the id
-   */
-  int get_id() {
-    return this->id;
-  }
-
-  /**
-   * Get the type (H)OME, (W)ORK, (S)CHOOL, (C)OMMUNITY).
-   *
-   * @return the type
-   */
-  char get_type() {
-    return this->type;
-  }
-
   // test place types
   bool is_household() {
-    return this->type == Place::HOUSEHOLD;
+    return this->get_type() == Place::TYPE_HOUSEHOLD;
   }
   
   bool is_neighborhood() {
-    return this->type == Place::NEIGHBORHOOD;
+    return this->get_type() == Place::TYPE_NEIGHBORHOOD;
   }
   
   bool is_school() {
-    return this->type == Place::SCHOOL;
+    return this->get_type() == Place::TYPE_SCHOOL;
   }
   
   bool is_classroom() {
-    return this->type == Place::CLASSROOM;
+    return this->get_type() == Place::TYPE_CLASSROOM;
   }
   
   bool is_workplace() {
-    return this->type == Place::WORKPLACE;
+    return this->get_type() == Place::TYPE_WORKPLACE;
   }
   
   bool is_office() {
-    return this->type == Place::OFFICE;
+    return this->get_type() == Place::TYPE_OFFICE;
   }
   
   bool is_hospital() {
-    return this->type == Place::HOSPITAL;
+    return this->get_type() == Place::TYPE_HOSPITAL;
   }
   
   bool is_community() {
-    return this->type == Place::COMMUNITY;
+    return this->get_type() == Place::TYPE_COMMUNITY;
   }
 
   // test place subtypes
   bool is_college() {
-    return this->subtype == fred::PLACE_SUBTYPE_COLLEGE;
+    return this->get_subtype() == Place::SUBTYPE_COLLEGE;
   }
   
   bool is_prison() {
-    return this->subtype == fred::PLACE_SUBTYPE_PRISON;
+    return this->get_subtype() == Place::SUBTYPE_PRISON;
   }
   
   bool is_nursing_home() {
-    return this->subtype == fred::PLACE_SUBTYPE_NURSING_HOME;
+    return this->get_subtype() == Place::SUBTYPE_NURSING_HOME;
   }
   
   bool is_military_base() {
-    return this->subtype == fred::PLACE_SUBTYPE_MILITARY_BASE;
+    return this->get_subtype() == Place::SUBTYPE_MILITARY_BASE;
   }
     
   bool is_healthcare_clinic() {
-    return this->subtype == fred::PLACE_SUBTYPE_HEALTHCARE_CLINIC;
+    return this->get_subtype() == Place::SUBTYPE_HEALTHCARE_CLINIC;
   }
 
   bool is_mobile_healthcare_clinic() {
-    return this->subtype == fred::PLACE_SUBTYPE_MOBILE_HEALTHCARE_CLINIC;
+    return this->get_subtype() == Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC;
   }
     
   bool is_group_quarters() {
@@ -187,7 +178,7 @@ public:
   }
   
   bool is_prison_cell(){
-    return  is_household() && is_prison();
+    return is_household() && is_prison();
   }
   
   bool is_military_barracks() {
@@ -237,15 +228,6 @@ public:
    */
   int get_open_date() {
     return this->open_date;
-  }
-
-  /**
-   * Set the type.
-   *
-   * @param t the new type
-   */
-  void set_type(char t) {
-    this->type = t;
   }
 
   /**
@@ -322,14 +304,6 @@ public:
   int get_index() {
     return this->index;
   }
-
-  void set_subtype(fred::place_subtype _subtype) {
-    this->subtype = _subtype;
-  }
-  
-  fred::place_subtype get_subtype() {
-    return this->subtype;
-  }
   
   int get_staff_size() {
     return this->staff_size;
@@ -366,10 +340,6 @@ public:
   static char* get_place_label(Place* p);
 
   double get_seeds(int dis, int sim_day);
-
-  void set_id(int _id) {
-    this->id = _id;
-  }
 
   /*
    * Vector Transmission methods
@@ -424,10 +394,6 @@ public:
 protected:
   static double** prob_contact;
 
-  char type;              // HOME, WORK, SCHOOL, COMMUNITY, etc;
-  fred::place_subtype subtype;
-  //char worker_profile;
-  int id;                 // place id
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
   int close_date;         // this place will be closed during:

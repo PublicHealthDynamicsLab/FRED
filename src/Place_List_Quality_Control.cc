@@ -22,7 +22,7 @@ void Place_List::report_school_distributions(int day) {
     nsize[c] = 0;
   }
   for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::SCHOOL) {
+    if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
       int os = this->places[p]->get_orig_size();
       int ns = this->places[p]->get_size();
       int n = os / 50;
@@ -50,7 +50,7 @@ void Place_List::report_school_distributions(int day) {
   sprintf(filename, "%s/school-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");
   for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::SCHOOL) {
+    if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
       Place* h = this->places[p];
       fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size()-h->get_staff_size(), h->get_size()-h->get_staff_size());
       /*
@@ -70,7 +70,7 @@ void Place_List::report_school_distributions(int day) {
   sprintf(filename, "%s/work-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");
   for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::WORKPLACE) {
+    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
       Place* h = this->places[p];
       fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size(), h->get_size());
     }
@@ -440,20 +440,20 @@ void Place_List::quality_control() {
     for(int p = 0; p < number_places; ++p) {
       int n = this->places[p]->get_size();
       if(this->places[p]->is_household()) {
-	hn++;
-	hsize += n;
+	      hn++;
+	      hsize += n;
       }
-      if(this->places[p]->get_type() == Place::NEIGHBORHOOD) {
-	nn++;
-	nsize += n;
+      if(this->places[p]->get_type() == Place::TYPE_NEIGHBORHOOD) {
+	      nn++;
+	      nsize += n;
       }
-      if (this->places[p]->get_type() == Place::SCHOOL) {
-	sn++;
-	ssize += n;
+      if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
+	      sn++;
+	      ssize += n;
       }
-      if(this->places[p]->get_type() == Place::WORKPLACE) {
-	wn++;
-	wsize += n;
+      if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
+	      wn++;
+	      wsize += n;
       }
     }
     if(hn) {
@@ -478,10 +478,10 @@ void Place_List::quality_control() {
     FILE* fp = fopen(filename, "w");
     for(int p = 0; p < number_places; p++) {
       if(this->places[p]->is_household()) {
-	Place* h = this->places[p];
-	double x = Geo::get_x(h->get_longitude());
-	double y = Geo::get_y(h->get_latitude());
-	fprintf(fp, "%f %f\n", x, y);
+	      Place* h = this->places[p];
+	      double x = Geo::get_x(h->get_longitude());
+	      double y = Geo::get_y(h->get_latitude());
+	      fprintf(fp, "%f %f\n", x, y);
       }
     }
     fclose(fp);
@@ -517,7 +517,7 @@ void Place_List::quality_control() {
     int count[20];
     int total = 0;
     // adult distribution of households
-    for(int c = 0; c < 15; c++) {
+    for(int c = 0; c < 15; ++c) {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
@@ -612,19 +612,19 @@ void Place_List::quality_control() {
           int ch_age = child->get_age();
           if(ch_age < 18) {
             int ch_rel = child->get_relationship();
-	    Person* dm = child->get_health_decision_maker();
-	    if(dm == NULL) {
-	      printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
-		     h->get_id(), h->get_label(), ch_age, ch_rel);
-	    } else {
-	      int dm_age = dm->get_age();
-	      int dm_rel = dm->get_relationship();
-	      if(dm_rel != 1 || ch_rel != 3) {
-		printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
-		       h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
-	      }
-	    }
-	  }
+	          Person* dm = child->get_health_decision_maker();
+	          if(dm == NULL) {
+	            printf("DECISION_MAKER: household %d %s  child: %d %d is making own health decisions\n",
+		           h->get_id(), h->get_label(), ch_age, ch_rel);
+	          } else {
+	            int dm_age = dm->get_age();
+	            int dm_rel = dm->get_relationship();
+	            if(dm_rel != 1 || ch_rel != 3) {
+		            printf("DECISION_MAKER: household %d %s  decision_maker: %d %d child: %d %d\n",
+		            h->get_id(), h->get_label(), dm_age, dm_rel, ch_age, ch_rel);
+	            }
+	          }
+	        }
         }
       }
     }
@@ -692,7 +692,7 @@ void Place_List::quality_control() {
         }
         if(per == NULL) {
           FRED_WARNING("Help! No head of household found for household id %d label %s groupquarters: %d\n",
-		       h->get_id(), h->get_label(), h->is_group_quarters()?1:0);
+		       h->get_id(), h->get_label(), h->is_group_quarters() ? 1 : 0);
           count[0]++;
         } else {
           int a = per->get_age();
@@ -750,7 +750,7 @@ void Place_List::quality_control() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->get_type() == Place::SCHOOL) {
+      if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
         int s = this->places[p]->get_size();
         int n = s / 50;
         if(n < 20) {
@@ -777,7 +777,7 @@ void Place_List::quality_control() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->get_type() == Place::SCHOOL) {
+      if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
         // places[p]->print(0);
         for(int c = 0; c < 100; ++c) {
           count[c] += (static_cast<School*>(this->places[p]))->get_students_in_grade(c);
@@ -799,7 +799,7 @@ void Place_List::quality_control() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->get_type() == Place::CLASSROOM) {
+      if(this->places[p]->get_type() == Place::TYPE_CLASSROOM) {
         int s = this->places[p]->get_size();
         int n = s;
         if(n < 50) {
@@ -831,12 +831,12 @@ void Place_List::quality_control() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->get_type() == Place::WORKPLACE || places[p]->get_type() == Place::SCHOOL) {
+      if(this->places[p]->get_type() == Place::TYPE_WORKPLACE || places[p]->get_type() == Place::TYPE_SCHOOL) {
         int s = this->places[p]->get_size();
-	if(this->places[p]->get_type() == Place::SCHOOL) {
-	  School* school = static_cast<School*>(this->places[p]);
-	  s = school->get_staff_size();
-	}
+	      if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
+	        School* school = static_cast<School*>(this->places[p]);
+	        s = school->get_staff_size();
+	      }
         int n = s;
         if(n <= 100) {
           count[n]++;
@@ -934,13 +934,13 @@ void Place_List::quality_control() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->get_type() == Place::OFFICE) {
+      if(this->places[p]->get_type() == Place::TYPE_OFFICE) {
         int s = this->places[p]->get_size();
         int n = s;
         if(n < 60) {
           count[n]++;
         } else {
-          count[60-1]++;
+          count[60 - 1]++;
         }
         total++;
       }

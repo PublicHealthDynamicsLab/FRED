@@ -18,13 +18,13 @@
 #define _FRED_TRANSMISSION_H
 
 class Disease;
-class Place;
+class Mixing_Group;
 
 class Transmission {
 
 public:
   
-  ~Transmission() {} 
+  virtual ~Transmission() {}
 
   /**
    * This static factory method is used to get an instance of a
@@ -34,10 +34,10 @@ public:
    * @return a pointer to a specific Transmission object
    */
 
-  static Transmission * get_new_transmission(char* transmission_mode);
+  static Transmission* get_new_transmission(char* transmission_mode);
   static void get_parameters();
-  virtual void setup(Disease *disease) = 0;
-  virtual void spread_infection(int day, int disease_id, Place *place) = 0;
+  virtual void setup(Disease* disease) = 0;
+  virtual void spread_infection(int day, int disease_id, Mixing_Group* mixing_group) = 0;
 
 protected:
 

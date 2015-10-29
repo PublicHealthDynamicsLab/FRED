@@ -47,16 +47,16 @@ vector<int> Workplace::workers_by_workplace_size;
 int Workplace::workplace_size_group_count = 0;
 
 Workplace::Workplace() : Place() {
-  this->type = WORKPLACE;
-  this->subtype = fred::PLACE_SUBTYPE_NONE;
+  this->set_type(Place::TYPE_WORKPLACE);
+  this->set_subtype(Place::SUBTYPE_NONE);
   this->intimacy = 0.01;
   this->offices.clear();
   this->next_office = 0;
 }
 
-Workplace::Workplace(const char *lab, fred::place_subtype _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
-  this->type = WORKPLACE;
-  this->subtype = _subtype;
+Workplace::Workplace(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
+  this->set_type(Place::TYPE_WORKPLACE);
+  this->set_subtype(_subtype);
   this->intimacy = 0.01;
   this->offices.clear();
   this->next_office = 0;
@@ -193,14 +193,14 @@ int Workplace::get_number_of_rooms() {
 void Workplace::setup_offices(Allocator<Office> &office_allocator) {
   int rooms = get_number_of_rooms();
 
-  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", id, label, get_size(), rooms );
+  FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", this->get_id(), this->get_label(), this->get_size(), rooms);
   
   for(int i = 0; i < rooms; ++i) {
     char new_label[128];
     sprintf(new_label, "%s-%03d", this->get_label(), i);
     
     Office* office = new(office_allocator.get_free())Office(new_label,
-							           fred::PLACE_SUBTYPE_NONE,
+							           Place::SUBTYPE_NONE,
 							           this->get_longitude(),
 							           this->get_latitude());
 
@@ -208,8 +208,8 @@ void Workplace::setup_offices(Allocator<Office> &office_allocator) {
 
     this->offices.push_back(office);
 
-    FRED_STATUS(1, "workplace %d %s added office %d %s %d\n",
-		id, label,i,office->get_label(),office->get_id());
+    FRED_STATUS(1, "workplace %d %s added office %d %s %d\n", this->get_id(), this->get_label(), i,
+                office->get_label(), office->get_id());
   }
 }
 
@@ -219,8 +219,8 @@ Place* Workplace::assign_office(Person* per) {
     return NULL;
   }
 
-  FRED_STATUS( 1, "assign office for person %d at workplace %d %s size %d == ",
-	       per->get_id(), id, label, get_size());
+  FRED_STATUS(1, "assign office for person %d at workplace %d %s size %d == ", per->get_id(),
+              this->get_id(), this->get_label(), this->get_size());
 
   // pick next office, round-robin
   int i = this->next_office;
@@ -231,7 +231,7 @@ Place* Workplace::assign_office(Person* per) {
 	      i, offices[i]->get_label(), offices[i]->get_id());
 
   // update next pick
-  if(this->next_office < (int)this->offices.size() - 1) {
+  if(this->next_office < static_cast<int>(this->offices.size()) - 1) {
     this->next_office++;
   } else {
     this->next_office = 0;
