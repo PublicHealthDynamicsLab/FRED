@@ -34,6 +34,8 @@ public:
     return Sexual_Transmission_Network::sexual_transmission_per_contact;;
   }
 
+  void setup();
+
 private:
   static double sexual_contacts_per_day;
   static double sexual_transmission_per_contact;

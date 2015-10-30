@@ -106,6 +106,7 @@ int Mixing_Group::get_recovereds(int disease_id) {
 }
 
 void Mixing_Group::add_infectious_person(int disease_id, Person* person) {
+  FRED_VERBOSE(0, "ADD_INF: person %d mix_group %s\n", person->get_id(), this->label);
   this->infectious_people[disease_id].push_back(person);
 }
 

@@ -51,6 +51,9 @@ class Person_Network_Link {
     this->links_to.clear();
     this->links_from.clear();
   }
+  Person * get_end_of_link(int n) {
+    return this->links_to[n];
+  }
 
  private:
   Person* myself;

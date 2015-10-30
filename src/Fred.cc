@@ -342,6 +342,14 @@ void fred_setup(int argc, char* argv[]) {
     Global::Visualization->initialize();
   }
 
+  // initialize generic activities
+  Activities::before_run();
+
+  // initialize sexual transmission network if needed
+  if(Global::Enable_Sexual_Partner_Network) {
+    Global::Sexual_Partner_Network->setup();
+  }
+
   Utils::fred_print_wall_time("FRED initialization complete");
 
   Utils::fred_start_timer(&Global::Simulation_start_time);
@@ -485,6 +493,7 @@ void fred_finish() {
   } else if(Global::Report_Epidemic_Data_By_Census_Tract) {
     Global::Tract_Tracker->output_csv_report_format(Global::Tractfp);
   }
+  Activities::end_of_run();
 
   // report timing info
   Utils::fred_print_lap_time(&Global::Simulation_start_time,

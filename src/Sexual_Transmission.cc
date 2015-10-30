@@ -43,14 +43,16 @@ void Sexual_Transmission::spread_infection(int day, int disease_id, Mixing_Group
 
 void Sexual_Transmission::spread_infection(int day, int disease_id, Sexual_Transmission_Network* sexual_trans_network) {
   
-  std::vector<int> link_sum;
-  link_sum.clear();
-
-  // count all links from infectious hosts
   int infectious_hosts = sexual_trans_network->get_number_of_infectious_people(disease_id);
+  FRED_VERBOSE(0, "SEXUAL_TRANS: day %d infectious = %d\n", day, infectious_hosts);
   if (infectious_hosts == 0) {
     return;
   }
+
+  // count all links from infectious hosts
+  std::vector<int> link_sum;
+  link_sum.clear();
+
   int total_number_of_links = 0;
   for (int i = 0; i < infectious_hosts; i++) {
     Person* infector = sexual_trans_network->get_infectious_person(disease_id, i);

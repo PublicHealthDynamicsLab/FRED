@@ -362,6 +362,7 @@ void Activities::before_run() {
   if(Global::Report_Childhood_Presenteeism) {
     Global::Places.setup_household_income_quartile_sick_days();
   }
+
 }
 
 void Activities::assign_initial_profile(Person* self) {
@@ -2156,7 +2157,13 @@ void Activities::clear_network(Network* network) {
 }
 
 Person* Activities::get_end_of_link(int n, Network* network) {
-  //TODO Stub for now
+  int size = this->networks.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->networks[i]->get_network() == network) {
+      return this->networks[i]->get_end_of_link(n);
+    }
+  }
+  Utils::fred_abort("network not found");
   return NULL;
 }
 
