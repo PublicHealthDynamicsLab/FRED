@@ -24,6 +24,7 @@ class Place;
 class Household;
 class Disease;
 class Infection;
+class Mixing_Group;
 class Network;
 class Population;
 
@@ -55,8 +56,8 @@ public:
     this->health.become_unsusceptible(this, disease);
   }
 
-  void become_exposed(int disease_id, Person* infector, Place* place, int day) {
-    this->health.become_exposed(this, disease_id, infector, place, day);
+  void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
+    this->health.become_exposed(this, disease_id, infector, mixing_group, day);
   }
   /**
    * Make this agent immune to the given disease
@@ -81,15 +82,15 @@ public:
     return (this->health.get_exposure_date(disease) == day);
   }
 
-  int addInfected(int disease, vector<int> strains);
+  //int addInfected(int disease, vector<int> strains);
 
-  void infect(Person* infectee, int disease_id, Place* place, int day) {
-    this->health.infect(this, infectee, disease_id, place, day);
+  void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
+    this->health.infect(this, infectee, disease_id, mixing_group, day);
   }
 
-  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
-    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
-  }
+//  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
+//    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
+//  }
 
   /**
    * @param day the simulation day
@@ -134,10 +135,9 @@ public:
     this->activities.update_activities_of_infectious_person(this, sim_day);
   }
 
-  void update_enrollee_index(Place* place, int pos) {
-    this->activities.update_enrollee_index(place, pos);
+  void update_enrollee_index(Mixing_Group* mixing_group, int pos) {
+    this->activities.update_enrollee_index(mixing_group, pos);
   }
-
 
   /**
    * @Activities::update_profile()
@@ -154,21 +154,8 @@ public:
     this->health.become_susceptible_by_vaccine_waning(this, disease_id);
   }
 
-  void update_household_counts(int day, int disease_id) {
-    Place* hh = this->get_household();
-    if(hh == NULL) {
-      if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
-        hh = this->get_permanent_household();
-      }
-    }
-    if(hh != NULL) {
-      this->health.update_place_counts(this, day, disease_id, hh);
-    }
-  }
-
-  void update_school_counts(int day, int disease_id) {
-    this->health.update_place_counts(this, day, disease_id, get_school());
-  }
+  void update_household_counts(int day, int disease_id);
+  void update_school_counts(int day, int disease_id);
 
   /**
    * This agent will become infectious with the disease
@@ -457,32 +444,32 @@ public:
    * @param disease the disease to check
    * @return the id of the location where this agent became infected with disease
    */
-  int get_infected_place_id(int disease) const {
-    return this->health.get_infected_place_id(disease);
+  int get_infected_mixing_group_id(int disease) const {
+    return this->health.get_infected_mixing_group_id(disease);
   }
 
   /**
    * @param disease the disease to check
    * @return the pointer to the Place where this agent became infected with disease
    */
-  Place* get_infected_place(int disease) const {
-    return this->health.get_infected_place(disease);
+  Mixing_Group* get_infected_mixing_group(int disease) const {
+    return this->health.get_infected_mixing_group(disease);
   }
 
   /**
    * @param disease the disease to check
    * @return the label of the location where this agent became infected with disease
    */
-  char* get_infected_place_label(int disease) const {
-    return this->health.get_infected_place_label(disease);
+  char* get_infected_mixing_group_label(int disease) const {
+    return this->health.get_infected_mixing_group_label(disease);
   }
 
   /**
    * @param disease the disease to check
    * @return the type of the location where this agent became infected with disease
    */
-  char get_infected_place_type(int disease) const {
-    return this->health.get_infected_place_type(disease);
+  char get_infected_mixing_group_type(int disease) const {
+    return this->health.get_infected_mixing_group_type(disease);
   }
 
   /**

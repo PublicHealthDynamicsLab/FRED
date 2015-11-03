@@ -867,20 +867,26 @@ void Epidemic::report_group_quarters_incidence(int day) {
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
     // record infections occurring in group quarters
-    Place* place = infectee->get_infected_place(id);
-    if(place != NULL && place->is_group_quarters()) {
-      G++;
-      if(place->is_college()) {
-        D++;
-      }
-      if(place->is_prison()) {
-        J++;
-      }
-      if(place->is_nursing_home()) {
-        L++;
-      }
-      if(place->is_military_base()) {
-        B++;
+    Mixing_Group* mixing_group = infectee->get_infected_mixing_group(this->id);
+    if(dynamic_cast<Place*>(mixing_group) == NULL) {
+      //Only Places can be group quarters
+      continue;
+    } else {
+      Place* place = dynamic_cast<Place*>(mixing_group) ;
+      if(place->is_group_quarters()) {
+        G++;
+        if(place->is_college()) {
+          D++;
+        }
+        if(place->is_prison()) {
+          J++;
+        }
+        if(place->is_nursing_home()) {
+          L++;
+        }
+        if(place->is_military_base()) {
+          B++;
+        }
       }
     }
   }
@@ -910,8 +916,8 @@ void Epidemic::report_place_of_infection(int day) {
   int M = 0;
 
   for(int i = 0; i < this->people_becoming_infected_today; i++) {
-    Person * infectee = this->daily_infections_list[i];
-    char c = infectee->get_infected_place_type(id);
+    Person* infectee = this->daily_infections_list[i];
+    char c = infectee->get_infected_mixing_group_type(this->id);
     switch(c) {
     case 'X':
       X++;
@@ -963,25 +969,26 @@ void Epidemic::report_distance_of_infection(int day) {
   int n = 0;
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
-    Person* infector = infectee->get_infector(id);
+    Person* infector = infectee->get_infector(this->id);
     if(infector == NULL) {
       continue;
     }
-    Place* new_place = infectee->get_health()->get_infected_place(id);
-    if(new_place == NULL) {
+    Mixing_Group* new_mixing_group = infectee->get_health()->get_infected_mixing_group(this->id);
+    Mixing_Group* old_mixing_group = infector->get_health()->get_infected_mixing_group(this->id);
+    if(dynamic_cast<Place*>(new_mixing_group) == NULL || dynamic_cast<Place*>(old_mixing_group)) {
+      //Only Places have lat / lon
       continue;
+    } else {
+      Place* new_place = dynamic_cast<Place*>(new_mixing_group);
+      Place* old_place = dynamic_cast<Place*>(old_mixing_group);
+      fred::geo lat1 = new_place->get_latitude();
+      fred::geo lon1 = new_place->get_longitude();
+      fred::geo lat2 = old_place->get_latitude();
+      fred::geo lon2 = old_place->get_longitude();
+      double dist = Geo::xy_distance(lat1, lon1, lat2, lon2);
+      tot_dist += dist;
+      n++;
     }
-    Place* old_place = infector->get_health()->get_infected_place(id);
-    if(old_place == NULL) {
-      continue;
-    }
-    fred::geo lat1 = new_place->get_latitude();
-    fred::geo lon1 = new_place->get_longitude();
-    fred::geo lat2 = old_place->get_latitude();
-    fred::geo lon2 = old_place->get_longitude();
-    double dist = Geo::xy_distance(lat1, lon1, lat2, lon2);
-    tot_dist += dist;
-    n++;
   }
   if(n > 0) {
     ave_dist = tot_dist / n;
@@ -1030,7 +1037,7 @@ void Epidemic::report_presenteeism(int day) {
 
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
-    char c = infectee->get_infected_place_type(this->id);
+    char c = infectee->get_infected_mixing_group_type(this->id);
     infections_in_pop++;
 
     // presenteeism requires that place of infection is work or office
@@ -1131,7 +1138,7 @@ void Epidemic::report_school_attack_rates_by_income_level(int day) {
 
     Person* infectee = this->daily_infections_list[i];
     assert(infectee != NULL);
-    char c = infectee->get_infected_place_type(this->id);
+    char c = infectee->get_infected_mixing_group_type(this->id);
 
     // school presenteeism requires that place of infection is school or classroom
     if(c != Place::TYPE_SCHOOL && c != Place::TYPE_CLASSROOM) {

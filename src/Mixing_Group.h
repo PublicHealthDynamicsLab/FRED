@@ -90,8 +90,8 @@ public:
   virtual int get_group(int disease_id, Person* per) = 0;
 
   // enroll / unenroll:
-  virtual int enroll(Person* per) = 0;
-  virtual void unenroll(int pos) = 0;
+  int enroll(Person* per);
+  void unenroll(int pos);
 
   /**
    * Get the transmission probability for a given disease between two Person objects.
@@ -183,7 +183,7 @@ public:
   }
 
   void record_infectious_days(int day);
-  virtual void print_infectious(int disease_id) = 0;
+  void print_infectious(int disease_id);
 
   // infectious people
   void clear_infectious_people(int disease_id) {
@@ -206,7 +206,7 @@ public:
   }
 
   bool is_infectious(int disease_id) {
-    return infectious_people[disease_id].size() > 0;
+    return this->infectious_people[disease_id].size() > 0;
   }
 
   bool is_infectious() {
@@ -323,7 +323,7 @@ public:
    * @return the count of rate of cases per people for a given disease
    */
   double get_incidence_rate(int disease_id) {
-    return (double)this->total_symptomatic_infections[disease_id] / (double)get_size();
+    return static_cast<double>(this->total_symptomatic_infections[disease_id]) / static_cast<double>(get_size());
   }
 
   /**
@@ -334,7 +334,7 @@ public:
    * @return the count of rate of cases per people for a given disease
    */
   double get_symptomatic_attack_rate(int disease_id) {
-    return (100.0 * this->total_symptomatic_infections[disease_id]) / (double)get_size();
+    return (100.0 * this->total_symptomatic_infections[disease_id]) / static_cast<double>(get_size());
   }
 
   /**
@@ -346,7 +346,7 @@ public:
    */
   double get_attack_rate(int disease_id) {
     int n = get_size();
-    return(n > 0 ? (100.0 * this->total_infections[disease_id]) / (double)n : 0.0);
+    return(n > 0 ? (100.0 * this->total_infections[disease_id]) / static_cast<double>(n) : 0.0);
   }
 
   int get_first_day_infectious() {

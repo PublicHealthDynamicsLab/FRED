@@ -19,16 +19,14 @@
 
 class Disease;
 class Person;
-class Place;
+class Mixing_Group;
 
 class HIV_Infection : public Infection {
 
  public:
 
   // if primary infection, infector and place are null.
-  HIV_Infection(Disease* disease, Person* infector, Person* host, Place* place, int day);
-
-  HIV_Infection() {}
+  HIV_Infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
   ~HIV_Infection() {}
 

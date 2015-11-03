@@ -24,6 +24,7 @@
 #include "Global.h"
 #include "Household.h"
 #include "Manager.h"
+#include "Mixing_Group.h"
 #include "Neighborhood.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
@@ -1858,16 +1859,16 @@ int Activities::get_visiting_health_status(Person* self, Place* place, int day, 
   return status;
 }
 
-void Activities::update_enrollee_index(Place * place, int new_index) {
+void Activities::update_enrollee_index(Mixing_Group* mixing_group, int new_index) {
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
-    if (place == get_daily_activity_location(i)) {
+    if(mixing_group == get_daily_activity_location(i)) {
       FRED_VERBOSE(1,"update_enrollee_index for person %d i %d new_index %d\n", myself->get_id(), i, new_index);
-      link[i].update_enrollee_index(new_index);
+      this->link[i].update_enrollee_index(new_index);
       return;
     }
   }
   FRED_VERBOSE(0, "update_enrollee_index: person %d place %d %s not found in daily activity locations: ",
-	       myself->get_id(), place->get_id(), place->get_label());
+	       myself->get_id(), mixing_group->get_id(), mixing_group->get_label());
   
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
     Place* place = get_daily_activity_location(i);

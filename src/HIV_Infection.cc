@@ -16,13 +16,12 @@
 #include "Disease.h"
 #include "Global.h"
 #include "Person.h"
-#include "Place.h"
+#include "Mixing_Group.h"
 #include "Utils.h"
 
-HIV_Infection::HIV_Infection(Disease* _disease, Person* _infector, Person* _host, Place* _place, int day) :
-  Infection(_disease, _infector, _host, _place, day) {
+HIV_Infection::HIV_Infection(Disease* _disease, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) :
+  Infection(_disease, _infector, _host, _mixing_group, day) {
 }
-
 
 void HIV_Infection::setup() {
 
@@ -31,7 +30,6 @@ void HIV_Infection::setup() {
   // initialize HIV specific-variables here:
 
 }
-
 
 double HIV_Infection::get_infectivity(int day) {
   return (is_infectious(day) ? 1.0 : 0.0);
