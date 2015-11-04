@@ -113,8 +113,7 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* 
 
   if(place->is_neighborhood() && this->enable_neighborhood_density_transmission == true) {
     density_transmission_model(day, disease_id, place);
-  }
-  else {
+  } else {
     default_transmission_model(day, disease_id, place);
   }
 
@@ -371,8 +370,8 @@ void Respiratory_Transmission::density_transmission_model(int day, int disease_i
     exposed++;
   }
 
-  int infectee_count [inf_hosts];
-  for (int i = 0; i < inf_hosts; ++i) {
+  int infectee_count[inf_hosts];
+  for(int i = 0; i < inf_hosts; ++i) {
     infectee_count[i] = 0;
   }
     

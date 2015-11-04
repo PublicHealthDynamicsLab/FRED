@@ -33,12 +33,6 @@ public:
   Network(const char* lab);
   ~Network() {}
 
-  // enroll / unenroll:
-  int enroll(Person* per);
-  void unenroll(int pos);
-
-  void print_infectious(int disease_id);
-
   static void get_parameters();
 
   /**

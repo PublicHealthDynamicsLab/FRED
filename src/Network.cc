@@ -86,45 +86,6 @@ void Network::get_parameters() {
   // end normalization
 }
 
-int Network::enroll(Person* per) {
-  if(this->get_size() == this->enrollees.capacity()) {
-    // double capacity if needed (to reduce future reallocations)
-    this->enrollees.reserve(2 * this->get_size());
-  }
-  this->enrollees.push_back(per);
-  FRED_VERBOSE(1,"Enroll person %d age %d in Network %s\n", per->get_id(), per->get_age(), this->get_label());
-  return this->enrollees.size() - 1;
-}
-
-void Network::unenroll(int pos) {
-  int size = this->enrollees.size();
-  if(!(0 <= pos && pos < size)) {
-    printf("Network %s pos = %d size = %d\n", this->get_label(), pos, size);
-  }
-  assert(0 <= pos && pos < size);
-  Person* removed = this->enrollees[pos];
-  if(pos < size - 1) {
-    Person* moved = this->enrollees[size - 1];
-    FRED_VERBOSE(1, "UNENROLL Network %s pos = %d size = %d removed %d moved %d\n",
-      this->get_label(), pos, size, removed->get_id(), moved->get_id());
-    this->enrollees[pos] = moved;
-  } else {
-    FRED_VERBOSE(1, "UNENROLL Network %s pos = %d size = %d removed %d moved NONE\n",
-      this->get_label(), pos, size, removed->get_id());
-  }
-  this->enrollees.pop_back();
-  FRED_VERBOSE(1, "UNENROLL Network %s size = %d\n", this->get_label(), this->enrollees.size());
-}
-
-void Network::print_infectious(int disease_id) {
-  printf("INFECTIOUS in Network %s Disease %d: ", this->get_label(), disease_id);
-  int size = this->infectious_people[disease_id].size();
-  for(int i = 0; i < size; ++i) {
-    printf(" %d", this->infectious_people[disease_id][i]->get_id());
-  }
-  printf("\n");
-}
-
 double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent

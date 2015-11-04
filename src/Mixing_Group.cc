@@ -118,22 +118,22 @@ int Mixing_Group::enroll(Person* per) {
 void Mixing_Group::unenroll(int pos) {
   int size = this->enrollees.size();
   if(!(0 <= pos && pos < size)) {
-    FRED_VERBOSE(1, "place %d %s pos = %d size = %d\n", this->get_id(), this->get_label(), pos, size);
+    FRED_VERBOSE(1, "mixing group %d %s pos = %d size = %d\n", this->get_id(), this->get_label(), pos, size);
   }
   assert(0 <= pos && pos < size);
   Person* removed = this->enrollees[pos];
   if(pos < size-1) {
     Person* moved = this->enrollees[size - 1];
-    FRED_VERBOSE(1,"UNENROLL mixing group %d %s pos = %d size = %d removed %d moved %d\n",
+    FRED_VERBOSE(1, "UNENROLL mixing group %d %s pos = %d size = %d removed %d moved %d\n",
       this->get_id(), this->get_label(), pos, size, removed->get_id(), moved->get_id());
     this->enrollees[pos] = moved;
     moved->update_enrollee_index(this, pos);
   } else {
-    FRED_VERBOSE(1,"UNENROLL mixing group %d %s pos = %d size = %d removed %d moved NONE\n",
+    FRED_VERBOSE(1, "UNENROLL mixing group %d %s pos = %d size = %d removed %d moved NONE\n",
      this->get_id(), this->get_label(), pos, size, removed->get_id());
   }
   this->enrollees.pop_back();
-  FRED_VERBOSE(1,"UNENROLL mixing group %d %s size = %d\n", this->get_id(), this->get_label(), this->enrollees.size());
+  FRED_VERBOSE(1, "UNENROLL mixing group %d %s size = %d\n", this->get_id(), this->get_label(), this->enrollees.size());
 }
 
 void Mixing_Group::print_infectious(int disease_id) {

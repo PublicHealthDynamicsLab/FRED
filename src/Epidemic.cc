@@ -317,14 +317,14 @@ Epidemic::~Epidemic() {
 
 void Epidemic::become_exposed(Person* person, int day) {
 
-  infected_people.insert(person);
+  this->infected_people.insert(person);
 
   // update next event list
   int infectious_start_date = person->get_infectious_start_date(this->id);
-  infectious_start_event_queue->add_event(infectious_start_date, person);
+  this->infectious_start_event_queue->add_event(infectious_start_date, person);
 
   int symptoms_start_date = person->get_symptoms_start_date(this->id);
-  symptoms_start_event_queue->add_event(symptoms_start_date, person);
+  this->symptoms_start_event_queue->add_event(symptoms_start_date, person);
 
   // update epidemic counters
   this->exposed_people++;
@@ -975,7 +975,7 @@ void Epidemic::report_distance_of_infection(int day) {
     }
     Mixing_Group* new_mixing_group = infectee->get_health()->get_infected_mixing_group(this->id);
     Mixing_Group* old_mixing_group = infector->get_health()->get_infected_mixing_group(this->id);
-    if(dynamic_cast<Place*>(new_mixing_group) == NULL || dynamic_cast<Place*>(old_mixing_group)) {
+    if(dynamic_cast<Place*>(new_mixing_group) == NULL || dynamic_cast<Place*>(old_mixing_group) == NULL) {
       //Only Places have lat / lon
       continue;
     } else {

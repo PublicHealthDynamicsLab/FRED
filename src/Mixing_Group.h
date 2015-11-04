@@ -90,8 +90,8 @@ public:
   virtual int get_group(int disease_id, Person* per) = 0;
 
   // enroll / unenroll:
-  int enroll(Person* per);
-  void unenroll(int pos);
+  virtual int enroll(Person* per);
+  virtual void unenroll(int pos);
 
   /**
    * Get the transmission probability for a given disease between two Person objects.
@@ -122,7 +122,7 @@ public:
     return this->get_size();
   }
 
-  int get_orig_size() {
+  virtual int get_orig_size() {
     return this->N_orig;
   }
 

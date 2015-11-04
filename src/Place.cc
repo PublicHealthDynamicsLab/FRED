@@ -201,46 +201,6 @@ void Place::print(int disease_id) {
   fflush(stdout);
 }
 
-int Place::enroll(Person* per) {
-  if(this->get_size() == this->enrollees.capacity()) {
-    // double capacity if needed (to reduce future reallocations)
-    this->enrollees.reserve(2 * this->get_size());
-  }
-  this->enrollees.push_back(per);
-  FRED_VERBOSE(1, "Enroll person %d age %d in place %d %s\n", per->get_id(), per->get_age(), this->get_id(), this->get_label());
-  return this->enrollees.size()-1;
-}
-
-void Place::unenroll(int pos) {
-  int size = this->enrollees.size();
-  if(!(0 <= pos && pos < size)) {
-    FRED_VERBOSE(1, "place %d %s pos = %d size = %d\n", this->get_id(), this->get_label(), pos, size);
-  }
-  assert(0 <= pos && pos < size);
-  Person* removed = this->enrollees[pos];
-  if(pos < size-1) {
-    Person* moved = this->enrollees[size - 1];
-    FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved %d\n",
-		  this->get_id(), this->get_label(), pos, size, removed->get_id(), moved->get_id());
-    this->enrollees[pos] = moved;
-    moved->update_enrollee_index(this, pos);
-  } else {
-    FRED_VERBOSE(1,"UNENROLL place %d %s pos = %d size = %d removed %d moved NONE\n",
-		 this->get_id(), this->get_label(), pos, size, removed->get_id());
-  }
-  this->enrollees.pop_back();
-  FRED_VERBOSE(1,"UNENROLL place %d %s size = %d\n", this->get_id(), this->get_label(), this->enrollees.size());
-}
-
-void Place::print_infectious(int disease_id) {
-  printf("INFECTIOUS in place %d Disease %d: ", this->get_id(), disease_id);
-  int size = this->infectious_people[disease_id].size();
-  for(int i = 0; i < size; ++i) {
-    printf(" %d", this->infectious_people[disease_id][i]->get_id());
-  }
-  printf("\n");
-}
-
 void Place::turn_workers_into_teachers(Place* school) {
   std::vector <Person*> workers;
   workers.reserve(static_cast<int>(this->enrollees.size()));
@@ -355,7 +315,7 @@ int Place::get_contact_count(Person* infector, int disease_id, int sim_day, doub
   FRED_VERBOSE(1, "infector's effective contacts = %f\n", infector_contacts);
 
   // randomly round off the expected value of the contact counts
-  int contact_count = (int) infector_contacts;
+  int contact_count = static_cast<int>(infector_contacts);
   double r = Random::draw_random();
   if(r < infector_contacts - contact_count) {
     contact_count++;

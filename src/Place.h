@@ -72,10 +72,6 @@ public:
 
   virtual void prepare();
 
-  // enroll / unenroll:
-  int enroll(Person* per);
-  void unenroll(int pos);
-
   // daily update
   virtual void update(int sim_day);
   void reset_visualization_data(int sim_day);
@@ -83,8 +79,6 @@ public:
   virtual bool is_open(int sim_day) {
     return true;
   }
-
-  void print_infectious(int disease_id);
 
   /**
    * Get the transmission probability for a given disease between two Person objects.

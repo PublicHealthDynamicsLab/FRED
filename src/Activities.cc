@@ -1883,7 +1883,7 @@ void Activities::update_enrollee_index(Mixing_Group* mixing_group, int new_index
 void Activities::clear_daily_activity_locations() {
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
     if(this->link[i].is_enrolled()) {
-      this->link[i].unenroll(myself);
+      this->link[i].unenroll(this->myself);
     }
     assert(this->link[i].get_place() == NULL);
   }
@@ -1892,7 +1892,7 @@ void Activities::clear_daily_activity_locations() {
 void Activities::enroll_in_daily_activity_location(int i) {
   Place* place = get_daily_activity_location(i);
   if(place != NULL) {
-    link[i].enroll(myself, place);
+    this->link[i].enroll(this->myself, place);
   }
 }
 
@@ -1905,7 +1905,7 @@ void Activities::enroll_in_daily_activity_locations() {
 void Activities::unenroll_from_daily_activity_location(int i) {
   Place* place = get_daily_activity_location(i);
   if(place != NULL) {
-    this->link[i].unenroll(myself);
+    this->link[i].unenroll(this->myself);
   }
 }
 
@@ -1934,7 +1934,7 @@ int Activities::get_daily_activity_location_id(int p) {
   return get_daily_activity_location(p) == NULL ? -1 : get_daily_activity_location(p)->get_id();
 }
 
-const char * Activities::get_daily_activity_location_label(int p) {
+const char* Activities::get_daily_activity_location_label(int p) {
   return (get_daily_activity_location(p) == NULL) ? "NULL" : get_daily_activity_location(p)->get_label();
 }
 
