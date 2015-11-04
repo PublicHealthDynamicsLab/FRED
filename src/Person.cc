@@ -24,6 +24,7 @@
 #include "Disease_List.h"
 #include "Global.h"
 #include "Health.h"
+#include "Mixing_Group.h"
 #include "Place.h"
 #include "Population.h"
 #include "Random.h"
@@ -96,8 +97,8 @@ void Person::print(FILE* fp, int disease) {
   fprintf(fp, "exp: %2d ",
           this->health.get_exposure_date(disease));
   fprintf(fp, "infected_at %c %6d ",
-          this->health.get_infected_place_type(disease),
-	  this->health.get_infected_place_id(disease));
+          this->health.get_infected_mixing_group_type(disease),
+	  this->health.get_infected_mixing_group_id(disease));
   fprintf(fp, "infector %d ", health.get_infector_id(disease));
   fprintf(fp, "infectees %d ", this->health.get_infectees(disease));
   /*
@@ -108,6 +109,25 @@ void Person::print(FILE* fp, int disease) {
   */
   fprintf(fp,"\n");
   fflush(fp);
+}
+
+void Person::update_household_counts(int day, int disease_id) {
+  Mixing_Group* hh = this->get_household();
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
+      hh = this->get_permanent_household();
+    }
+  }
+  if(hh != NULL) {
+    this->health.update_mixing_group_counts(this, day, disease_id, hh);
+  }
+}
+
+void Person::update_school_counts(int day, int disease_id) {
+  Mixing_Group* school = this->get_school();
+  if(school != NULL) {
+    this->health.update_mixing_group_counts(this, day, disease_id, school);
+  }
 }
 
 void Person::become_immune(Disease* disease) {

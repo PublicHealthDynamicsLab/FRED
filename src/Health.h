@@ -32,7 +32,7 @@ class AV_Health;
 class AV_Manager;
 class Disease;
 class Person;
-class Place;
+class Mixing_Group;
 class Vaccine;
 class Vaccine_Health;
 class Vaccine_Manager;
@@ -88,7 +88,7 @@ public:
   void update_infection(int day, int disease_id);
   void update_face_mask_decision(Person* self, int day);
   void update_interventions(Person* self, int day);
-  void become_exposed(Person* self, int disease_id, Person *infector, Place* place, int day);
+  void become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day);
   void become_susceptible(Person* self, int disease_id);
   void become_susceptible(Person* self, Disease* disease);
   void become_susceptible_by_vaccine_waning(Person* self, int disease_id);
@@ -102,8 +102,8 @@ public:
   void declare_at_risk(Disease* disease);
   void recover(Person* self, Disease* disease);
   void advance_seed_infection(int disease_id, int days_to_advance);
-  void infect(Person* self, Person* infectee, int disease_id, Place* place, int day);
-  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Place* place, int day);
+  void infect(Person* self, Person* infectee, int disease_id, Mixing_Group* mixing_group, int day);
+//  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
   void start_wearing_face_mask() {
     this->wears_face_mask_today = true;
   }
@@ -121,13 +121,13 @@ public:
     this->past_infections[dis->get_id()].push_back(
 						   Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
-  void update_place_counts(Person* self, int day, int disease_id, Place* place);
+  void update_mixing_group_counts(Person* self, int day, int disease_id, Mixing_Group* mixing_group);
 
 
   // ACCESS TO HEALTH CONDITIONS
 
   int get_days_symptomatic() { 
-    return days_symptomatic;
+    return this->days_symptomatic;
   }
   int get_exposure_date(int disease_id) const;
   int get_infectious_start_date(int disease_id) const;
@@ -137,10 +137,10 @@ public:
   int get_immunity_end_date(int disease_id) const;
   int get_infector_id(int disease_id) const;
   Person* get_infector(int disease_id) const;
-  Place* get_infected_place(int disease_id) const;
-  int get_infected_place_id(int disease_id) const;
-  char* get_infected_place_label(int disease_id) const;
-  char get_infected_place_type(int disease_id) const;
+  Mixing_Group* get_infected_mixing_group(int disease_id) const;
+  int get_infected_mixing_group_id(int disease_id) const;
+  char* get_infected_mixing_group_label(int disease_id) const;
+  char get_infected_mixing_group_type(int disease_id) const;
   int get_infectees(int disease_id) const;
   double get_susceptibility(int disease_id) const;
   double get_infectivity(int disease_id, int day) const;
@@ -649,7 +649,7 @@ private:
   int* immunity_end_date;
   int* exposure_date;
   int* infector_id;
-  Place** place_infected;
+  Mixing_Group** mixing_group_infected;
   int days_symptomatic; 			// over all diseases
 
   // living or not?

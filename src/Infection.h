@@ -19,11 +19,11 @@
 using namespace std;
 
 // TODO: find the proper place for this:
-typedef std::map< int, double > Loads;
+typedef std::map<int, double> Loads;
 
 class Disease;
 class Person;
-class Place;
+class Mixing_Group;
 
 #define NEVER (-1)
 
@@ -33,11 +33,9 @@ class Infection {
 public:
 
   // if primary infection, infector and place are null.
-  Infection(Disease* disease, Person* infector, Person* host, Place* place, int day);
+  Infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
-  Infection() {}
-
-  ~Infection() {}
+  virtual ~Infection() {}
 
   /**
    * This static factory method is used to get an instance of a specific
@@ -48,7 +46,7 @@ public:
    * @return a pointer to a specific Infection object of a possible derived class
    */
   
-  static Infection * get_new_infection(Disease *disease, Person* infector, Person* host, Place* place, int day);
+  static Infection* get_new_infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
 
   /*
@@ -69,12 +67,19 @@ public:
   virtual void report_infection(int day);
 
   // methods for antivirals
-  virtual bool provides_immunity() { return true; }
+  virtual bool provides_immunity() {
+    return true;
+  }
+
   virtual void modify_infectivity(double multp) {} 
+
   virtual void advance_seed_infection(int days_to_advance) {}
   virtual void modify_infectious_period(double multp, int cur_day) {}
   virtual void modify_symptomatic_period(double multp, int cur_day) {}
-  virtual double get_susceptibility() { return 1.0; }
+  virtual double get_susceptibility() {
+    return 1.0;
+  }
+
   virtual void modify_asymptomatic_period(double multp, int cur_day) {}
   virtual void modify_develops_symptoms(bool symptoms, int cur_day) {}
 
@@ -90,8 +95,8 @@ public:
     return this->infector;
   }
 
-  Place * get_place() {
-    return this->place;
+  Mixing_Group* get_mixing_group() {
+    return this->mixing_group;
   }
 
   int get_exposure_date() {
@@ -121,17 +126,15 @@ public:
   bool is_infectious(int day) {
     if (this->infectious_start_date != NEVER) {
       return (this->infectious_start_date <= day && day < this->infectious_end_date);
-    }
-    else {
+    } else {
       return false;
     }
   }
 
   bool is_symptomatic(int day) {
-    if (this->symptoms_start_date != NEVER) {
+    if(this->symptoms_start_date != NEVER) {
       return (this->symptoms_start_date <= day && day < this->symptoms_end_date);
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -154,7 +157,7 @@ protected:
   Person* host;
 
   // where infection was caught
-  Place* place;
+  Mixing_Group* mixing_group;
 
   // date of infection (all dates are in sim_days)
   int exposure_date;

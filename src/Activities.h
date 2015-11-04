@@ -23,7 +23,6 @@
 using namespace std;
 
 #include "Disease_List.h"
-#include "Global.h"
 #include "Epidemic.h"
 #include "Global.h"
 #include "Person_Network_Link.h"
@@ -31,11 +30,12 @@ using namespace std;
 
 class Age_Map;
 class Activities_Tracking_Data;
+class Hospital;
+class Mixing_Group;
 class Network;
 class Person;
 class Person_Network_Link;
 class Place;
-class Hospital;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -632,7 +632,7 @@ private:
   void clear_daily_activity_locations();
   void enroll_in_daily_activity_location(int i);
   void enroll_in_daily_activity_locations();
-  void update_enrollee_index(Place* place, int new_index);
+  void update_enrollee_index(Mixing_Group* mixing_group, int new_index);
   void unenroll_from_daily_activity_location(int i);
   void unenroll_from_daily_activity_locations();
   void store_daily_activity_locations();

@@ -27,6 +27,7 @@
 #include "Health.h"
 #include "Household.h"
 #include "Manager.h"
+#include "Mixing_Group.h"
 #include "Past_Infection.h"
 #include "Person.h"
 #include "Place.h"
@@ -257,7 +258,7 @@ Health::Health() {
   this->susceptibility_multp = NULL;
   this->exposure_date = NULL;
   this->infector_id = NULL;
-  this->place_infected = NULL;
+  this->mixing_group_infected = NULL;
 }
 
 void Health::setup(Person* self) {
@@ -302,12 +303,11 @@ void Health::setup(Person* self) {
   this->infectee_count = new int [diseases];
   this->exposure_date = new int [diseases];
   this->infector_id = new int [diseases];
-  this->place_infected = new Place * [diseases];
+  this->mixing_group_infected = new Mixing_Group*[diseases];
   this->immunity_end_date = new int [diseases];
   this->past_infections = new past_infections_type [diseases];
 
-  for(int disease_id = 0; disease_id < diseases; disease_id++) {
-
+  for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     this->susceptible.reset(disease_id);
     this->case_fatality.reset(disease_id);
     this->infection[disease_id] = NULL;
@@ -315,7 +315,7 @@ void Health::setup(Person* self) {
     this->infectee_count[disease_id] = 0;
     this->exposure_date[disease_id] = -1;
     this->infector_id[disease_id] = -1;
-    this->place_infected[disease_id] = NULL;
+    this->mixing_group_infected[disease_id] = NULL;
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
 
@@ -422,7 +422,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
   }
 }
 
-void Health::become_exposed(Person* self, int disease_id, Person* infector, Place* place, int day) {
+void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
    FRED_VERBOSE(1, "become_exposed: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
 
@@ -432,8 +432,8 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Plac
 
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  Disease *disease = Global::Diseases.get_disease(disease_id);
-  this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, place, day);
+  Disease* disease = Global::Diseases.get_disease(disease_id);
+  this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, mixing_group, day);
   FRED_VERBOSE(1, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
@@ -447,10 +447,10 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Plac
     this->infector_id[disease_id] = infector->get_id();
   }
   this->exposure_date[disease_id] = day;
-  this->place_infected[disease_id] = place;
+  this->mixing_group_infected[disease_id] = mixing_group;
 
   if(Global::Verbose > 0) {
-    if(place == NULL) {
+    if(mixing_group == NULL) {
       FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease_id);
     } else {
       FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease_id);
@@ -517,6 +517,7 @@ void Health::become_infectious(Person* self, Disease* disease) {
   this->infectious.set(disease_id);
   int household_index = self->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
+  assert(h != NULL);
   h->set_human_infectious(disease_id);
   FRED_STATUS(1, "person %d is now INFECTIOUS for disease %d\n", self->get_id(),
 	      disease_id);
@@ -744,43 +745,40 @@ Person* Health::get_infector(int disease_id) const {
   }
 }
 
-Place* Health::get_infected_place(int disease_id) const {
-  return place_infected[disease_id];
+Mixing_Group* Health::get_infected_mixing_group(int disease_id) const {
+  return this->mixing_group_infected[disease_id];
 }
 
-int Health::get_infected_place_id(int disease_id) const {
-  Place* place = get_infected_place(disease_id);
-  if (place == NULL) {
+int Health::get_infected_mixing_group_id(int disease_id) const {
+  Mixing_Group* mixing_group = get_infected_mixing_group(disease_id);
+  if(mixing_group == NULL) {
     return -1;
-  }
-  else {
-    return place->get_id();
+  } else {
+    return mixing_group->get_id();
   }
 }
 
-char Health::get_infected_place_type(int disease_id) const {
-  Place* place = get_infected_place(disease_id);
-  if (place == NULL) {
+char Health::get_infected_mixing_group_type(int disease_id) const {
+  Mixing_Group* mixing_group = get_infected_mixing_group(disease_id);
+  if(mixing_group == NULL) {
     return 'X';
-  }
-  else {
-    return place->get_type();
+  } else {
+    return mixing_group->get_type();
   }
 }
 
 char dummy_label[8];
-char* Health::get_infected_place_label(int disease_id) const {
+char* Health::get_infected_mixing_group_label(int disease_id) const {
   if(this->infection[disease_id] == NULL) {
     strcpy(dummy_label, "-");
     return dummy_label;
   }
-  Place* place = get_infected_place(disease_id);
-  if (place == NULL) {
+  Mixing_Group* mixing_group = get_infected_mixing_group(disease_id);
+  if(mixing_group == NULL) {
     strcpy(dummy_label, "X");
     return dummy_label;
-  }
-  else {
-    return place->get_label();
+  } else {
+    return mixing_group->get_label();
   }
 }
 
@@ -967,8 +965,8 @@ int Health::get_av_start_day(int i) const {
   return (*this->av_health)[i]->get_av_start_day();
 }
 
-void Health::infect(Person* self, Person* infectee, int disease_id, Place* place, int day) {
-  infectee->become_exposed(disease_id, self, place, day);
+void Health::infect(Person* self, Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
+  infectee->become_exposed(disease_id, self, mixing_group, day);
 
 #pragma omp atomic
   ++(this->infectee_count[disease_id]);
@@ -987,25 +985,25 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Place* place
   }
 }
 
-void Health::update_place_counts(Person* self, int day, int disease_id, Place* place) {
-  if(place == NULL) {
+void Health::update_mixing_group_counts(Person* self, int day, int disease_id, Mixing_Group* mixing_group) {
+  if(mixing_group == NULL) {
     return;
   }
   if(is_infected(disease_id)) {
     // printf("DAY %d person %d place %s ", day, self->get_id(), place->get_label()); 
     if(is_newly_infected(day, disease_id)) {
-      place->add_new_infection(disease_id);
+      mixing_group->add_new_infection(disease_id);
       // printf("NEWLY "); 
     }
-    place->add_current_infection(disease_id);
+    mixing_group->add_current_infection(disease_id);
     // printf("INFECTED "); 
 
     if(is_symptomatic(disease_id)) {
       if(is_newly_symptomatic(day, disease_id)) {
-        place->add_new_symptomatic_infection(disease_id);
+        mixing_group->add_new_symptomatic_infection(disease_id);
         // printf("NEWLY ");
       }
-      place->add_current_symptomatic_infection(disease_id);
+      mixing_group->add_current_symptomatic_infection(disease_id);
       // printf("SYMPTOMATIC"); 
     }
     // printf("\n"); 
