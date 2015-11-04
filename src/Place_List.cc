@@ -2782,7 +2782,7 @@ void Place_List::select_households_for_evacuation() {
         evac_date_set = true;
         count_hh_evacuating++;
         for(int k = return_start_sim_day; k <= return_end_sim_day; ++k) {
-          if(Random::draw_random() < Place_List::HAZEL_disaster_evac_prob_per_day || k == return_end_sim_day) {
+          if(Random::draw_random() < Place_List::HAZEL_disaster_return_prob_per_day || k == return_end_sim_day) {
             if(k > j) { //Can't return before you leave
               tmp_hh->set_shelter_end_day(k);
               return_date_set = true;
