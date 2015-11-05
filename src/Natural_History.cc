@@ -131,7 +131,7 @@ void Natural_History::get_parameters() {
     Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
     this->symptoms_distribution_type = LOGNORMAL;
   }
-  else {
+  else if (strcmp(this->symptoms_distributions, "cdf")==0) {
     Params::get_indexed_param(disease_name,"days_incubating",&n);
     this->days_incubating = new double [n];
     this->max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", this->days_incubating) -1;
@@ -140,6 +140,9 @@ void Natural_History::get_parameters() {
     this->days_symptomatic = new double [n];
     this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
     this->symptoms_distribution_type = CDF;
+  }
+  else {
+    Utils::fred_abort("Natural_History: unrecognized symptoms_distributions type: %s\n", this->symptoms_distributions);
   }
 
   Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
