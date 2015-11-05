@@ -23,12 +23,14 @@ HIV_Natural_History::~HIV_Natural_History() {
 }
 
 void HIV_Natural_History::setup(Disease * _disease) {
-  Natural_History::setup(disease);
+  Natural_History::setup(_disease);
 }
 
 void HIV_Natural_History::get_parameters() {
 
   FRED_VERBOSE(0, "HIV::Natural_History::get_parameters\n");
+
+  Natural_History::get_parameters();
 
   // Read in any file having to do with HIV natural history, such as
   // mortality rates
@@ -45,7 +47,7 @@ void HIV_Natural_History::get_parameters() {
 
 
 double HIV_Natural_History::get_probability_of_symptoms(int age) {
-  return 0.0;
+  return 1.0;
 }
 
 int HIV_Natural_History::get_latent_period(Person* host) {

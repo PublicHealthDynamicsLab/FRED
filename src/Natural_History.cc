@@ -118,6 +118,8 @@ void Natural_History::get_parameters() {
   Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
   Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
   
+  FRED_VERBOSE(0, "Natural_History::get_parameters\n");
+
   // age specific probablility of symptoms
   this->age_specific_prob_symptoms = new Age_Map("Symptoms");
   sprintf(paramstr, "%s_prob_symptoms", disease_name);
