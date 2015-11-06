@@ -184,16 +184,22 @@ protected:
   Age_Map *age_specific_prob_symptoms;
   double immunity_loss_rate;
 
-  // parameters for incubation period and infectious offsets
+  // parameters for incubation and infectious periods and offsets
   double incubation_period_median;
   double incubation_period_dispersion;
+  double incubation_period_upper_bound;
+
   double symptoms_duration_median;
   double symptoms_duration_dispersion;
+  double symptoms_duration_upper_bound;
 
   double latent_period_median;
   double latent_period_dispersion;
+  double latent_period_upper_bound;
+
   double infectious_duration_median;
   double infectious_duration_dispersion;
+  double infectious_duration_upper_bound;
 
   double infectious_start_offset;
   double infectious_end_offset;

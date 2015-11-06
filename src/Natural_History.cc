@@ -131,6 +131,21 @@ void Natural_History::get_parameters() {
     Params::get_indexed_param(disease_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
     Params::get_indexed_param(disease_name, "symptoms_duration_median", &(this->symptoms_duration_median));
     Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
+
+    // make the following parameters optional
+    Params::disable_abort_on_failure();
+
+    // set defaults:
+    this->incubation_period_upper_bound = 0.0;
+    this->symptoms_duration_upper_bound = 0.0;
+
+    // override if specified in params file
+    Params::get_indexed_param(disease_name, "incubation_period_upper_bound", &(this->incubation_period_upper_bound));
+    Params::get_indexed_param(disease_name, "symptoms_duration_upper_bound", &(this->symptoms_duration_upper_bound));
+    
+    // restore requiring parameters
+    Params::set_abort_on_failure();
+
     this->symptoms_distribution_type = LOGNORMAL;
   }
   else if (strcmp(this->symptoms_distributions, "cdf")==0) {
@@ -163,6 +178,21 @@ void Natural_History::get_parameters() {
     Params::get_indexed_param(disease_name, "latent_period_dispersion", &(this->latent_period_dispersion));
     Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
     Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
+
+    // make the following parameters optional
+    Params::disable_abort_on_failure();
+
+    // set defaults:
+    this->latent_period_upper_bound = 0.0;
+    this->infectious_duration_upper_bound = 0.0;
+
+    // override if specified in params file
+    Params::get_indexed_param(disease_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
+    Params::get_indexed_param(disease_name, "infectious_duration_upper_bound", &(this->infectious_duration_upper_bound));
+    
+    // restore requiring parameters
+    Params::set_abort_on_failure();
+
     this->infectious_distribution_type = LOGNORMAL;
   }
   else if (strcmp(this->infectious_distributions, "cdf")==0) {
@@ -230,7 +260,6 @@ void Natural_History::get_parameters() {
 
   // restore requiring parameters
   Params::set_abort_on_failure();
-
 
   FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
 }
@@ -347,6 +376,9 @@ double Natural_History::get_real_incubation_period(Person* host) {
   double location = log(this->incubation_period_median);
   double scale = 0.5*log(this->incubation_period_dispersion);
   double incubation_period = Random::draw_lognormal(location, scale);
+  if (this->incubation_period_upper_bound > 0 && incubation_period > this->incubation_period_upper_bound) {
+    incubation_period = Random::draw_random(0.0,this->incubation_period_upper_bound);
+  }
   return incubation_period;
 }
 
@@ -354,6 +386,9 @@ double Natural_History::get_symptoms_duration(Person* host) {
   double location = log(this->symptoms_duration_median);
   double scale = log(this->symptoms_duration_dispersion);
   double symptoms_duration = Random::draw_lognormal(location, scale);
+  if (this->symptoms_duration_upper_bound > 0 && symptoms_duration > this->symptoms_duration_upper_bound) {
+    symptoms_duration = Random::draw_random(0.0,this->symptoms_duration_upper_bound);
+  }
   return symptoms_duration;
 }
 
@@ -361,6 +396,9 @@ double Natural_History::get_real_latent_period(Person* host) {
   double location = log(this->latent_period_median);
   double scale = 0.5*log(this->latent_period_dispersion);
   double latent_period = Random::draw_lognormal(location, scale);
+  if (this->latent_period_upper_bound > 0 && latent_period > this->latent_period_upper_bound) {
+    latent_period = Random::draw_random(0.0,this->latent_period_upper_bound);
+  }
   return latent_period;
 }
 
@@ -368,6 +406,9 @@ double Natural_History::get_infectious_duration(Person* host) {
   double location = log(this->infectious_duration_median);
   double scale = log(this->infectious_duration_dispersion);
   double infectious_duration = Random::draw_lognormal(location, scale);
+  if (this->infectious_duration_upper_bound > 0 && infectious_duration > this->infectious_duration_upper_bound) {
+    infectious_duration = Random::draw_random(0.0,this->infectious_duration_upper_bound);
+  }
   return infectious_duration;
 }
 
