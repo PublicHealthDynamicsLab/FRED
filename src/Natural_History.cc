@@ -75,7 +75,6 @@ void Natural_History::setup(Disease * _disease) {
   FRED_VERBOSE(0, "Natural_History::setup\n");
   this->disease = _disease;
   this->probability_of_symptoms = 0;
-  this->symptomatic_infectivity = 0;
   this->asymptomatic_infectivity = 0;
   this->max_days_latent = 0;
   this->max_days_infectious = 0;
@@ -114,7 +113,6 @@ void Natural_History::get_parameters() {
   strcpy(disease_name, disease->get_disease_name());
 
   Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
-  Params::get_indexed_param(disease_name,"symp_infectivity",&(this->symptomatic_infectivity));
   Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
   Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
   

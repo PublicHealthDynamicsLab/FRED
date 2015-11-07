@@ -383,6 +383,9 @@ double Infection::get_infectivity(int day) {
     result = 1.0 - 1.0 / (1.0 + exp(-10.0*(x-0.5)));
   }
   FRED_VERBOSE(1,"LOGISTIC: fract %f result %f\n", fract, result);
+  if (this->is_symptomatic(day) == false) {
+    result += this->disease->get_natural_history()->get_asymptomatic_infectivity();
+  }
   return result;
 }
 

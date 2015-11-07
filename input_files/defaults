@@ -578,8 +578,7 @@ influenza_probability_of_symptoms = 0.67
 influenza_prob_symptoms_age_groups = 0
 influenza_prob_symptoms_values = 0
 
-### multipliers for infectivity
-influenza_symp_infectivity = 1.0
+### multiplier for asymptomatic infectivity
 influenza_asymp_infectivity = 0.5
 
 # Note: incubation refers to symptoms; latency refers to infectiousness

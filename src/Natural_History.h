@@ -84,14 +84,8 @@ public:
 
   virtual int get_duration_of_symptoms(Person* host);
 
-  // called from Transmission
-
   virtual double get_asymptomatic_infectivity() {
     return asymptomatic_infectivity;
-  }
-
-  virtual double get_symptomatic_infectivity() {
-    return symptomatic_infectivity;
   }
 
   virtual Evolution* get_evolution() {
@@ -162,7 +156,6 @@ public:
 protected:
   Disease *disease;
   double probability_of_symptoms;
-  double symptomatic_infectivity;
   double asymptomatic_infectivity;
 
   char symptoms_distributions[32];
