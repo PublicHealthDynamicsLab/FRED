@@ -119,25 +119,19 @@ void Natural_History::get_parameters() {
 
   strcpy(disease_name, disease->get_disease_name());
 
-  Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
-  Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
-  
   FRED_VERBOSE(0, "Natural_History::get_parameters\n");
 
-  // age specific probablility of symptoms
-  this->age_specific_prob_symptoms = new Age_Map("Symptoms");
-  sprintf(paramstr, "%s_prob_symptoms", disease_name);
-  this->age_specific_prob_symptoms->read_from_input(paramstr);
+  // get required natural history parameters
 
   Params::get_indexed_param(disease_name,"symptoms_distributions", (this->symptoms_distributions));
+
   if (strcmp(this->symptoms_distributions, "lognormal")==0) {
     Params::get_indexed_param(disease_name, "incubation_period_median", &(this->incubation_period_median));
     Params::get_indexed_param(disease_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
     Params::get_indexed_param(disease_name, "symptoms_duration_median", &(this->symptoms_duration_median));
     Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
 
-
-    // set optional parameters
+    // set optional lognormal parameters
     Params::disable_abort_on_failure();
 
     Params::get_indexed_param(disease_name, "incubation_period_upper_bound", &(this->incubation_period_upper_bound));
@@ -163,6 +157,7 @@ void Natural_History::get_parameters() {
   }
 
   Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
+
   if (strcmp(this->infectious_distributions, "offset_from_symptoms")==0) {
     Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
     Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
@@ -179,7 +174,7 @@ void Natural_History::get_parameters() {
     Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
     Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
 
-    // set optional parameters
+    // set optional lognormal parameters
     Params::disable_abort_on_failure();
 
     Params::get_indexed_param(disease_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
@@ -204,19 +199,12 @@ void Natural_History::get_parameters() {
     Utils::fred_abort("Natural_History: unrecognized infectious_distributions type: %s\n", this->infectious_distributions);
   }
 
-  // Probability of developing an immune response by past infections
-  this->age_specific_prob_infection_immunity = new Age_Map("Infection Immunity");
-  sprintf(paramstr, "%s_infection_immunity", disease_name);
-  this->age_specific_prob_infection_immunity->read_from_input(paramstr);
+  // set required parameters
+  Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
+  Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
+  
+  // set optional parameters: if not found, we use the values set in setup()
 
-  if (Global::Enable_Viral_Evolution) {
-    int evolType;
-    Params::get_indexed_param(disease_name, "evolution", &evolType);
-    this->evol = EvolutionFactory::newEvolution(evolType);
-    this->evol->setup(this->disease);
-  }
-
-  // set optional parameters
   Params::disable_abort_on_failure();
 
   // get fractions corresponding to full symptoms or infectivity
@@ -227,6 +215,16 @@ void Natural_History::get_parameters() {
   Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
   Params::get_indexed_param(disease_name, "infectivity_threshold", &(this->infectivity_threshold));
   Params::get_indexed_param(disease_name, "symptomaticity_threshold", &(this->symptomaticity_threshold));
+
+  // age specific probablility of symptoms
+  this->age_specific_prob_symptoms = new Age_Map("Symptoms");
+  sprintf(paramstr, "%s_prob_symptoms", disease_name);
+  this->age_specific_prob_symptoms->read_from_input(paramstr);
+
+  // probability of developing an immune response by past infections
+  this->age_specific_prob_infection_immunity = new Age_Map("Infection Immunity");
+  sprintf(paramstr, "%s_infection_immunity", disease_name);
+  this->age_specific_prob_infection_immunity->read_from_input(paramstr);
 
   //case fatality parameters
   Params::get_indexed_param(disease_name, "enable_case_fatality",
@@ -247,6 +245,13 @@ void Natural_History::get_parameters() {
 
   // restore requiring parameters
   Params::set_abort_on_failure();
+
+  if (Global::Enable_Viral_Evolution) {
+    int evolType;
+    Params::get_indexed_param(disease_name, "evolution", &evolType);
+    this->evol = EvolutionFactory::newEvolution(evolType);
+    this->evol->setup(this->disease);
+  }
 
   FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
 }
