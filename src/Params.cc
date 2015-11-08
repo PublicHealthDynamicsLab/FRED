@@ -377,13 +377,14 @@ int Params::get_param_vector(char* s, vector<int> &p){
 
 int Params::get_param_vector(char* s, vector<double> &p){
   char str[MAX_PARAM_SIZE];
-  int n;
-  char* pch;
-  double v;
-  Params::get_param(s, str);
-  pch = strtok(str," ");
+  int n = Params::get_param(s, str);
+  if (n == 0) {
+    return n;
+  }
+  char* pch = strtok(str," ");
   if (sscanf(pch, "%d", &n) == 1) {
     for (int i = 0; i < n; i++) {
+      double v;
       pch = strtok (NULL, " ");
       if(pch == NULL) {
         Utils::fred_abort("Help! bad param vector: %s\n", s); 

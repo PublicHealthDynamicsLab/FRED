@@ -45,10 +45,10 @@ void Age_Map::read_from_input(string input, int i, int j) {
 }
 
 void Age_Map::read_from_input(string input) {
-  // printf("read_from_input with string = |%s|\n", input.c_str()); fflush(stdout);
+  // FRED_VERBOSE(0,"read_from_input with string = |%s|\n", input.c_str());
   this->name = input + " Age Map";
-  ages.clear();
-  values.clear();
+  this->ages.clear();
+  this->values.clear();
 
   char ages_string[FRED_STRING_SIZE];
   char values_string[FRED_STRING_SIZE];
@@ -80,7 +80,7 @@ void Age_Map::read_from_input(string input) {
   Params::set_abort_on_failure();
 
   if(quality_control() != true) {
-    Utils::fred_abort("");
+    Utils::fred_abort("Bad input on age map %s", this->name.c_str());
   }
   return;
 }
