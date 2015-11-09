@@ -195,7 +195,6 @@ vaccine_offset = 0
 
 # test new transmission model if set
 enable_new_transmission_model = 0
-enable_transmission_bias = 0
 enable_transmission_network = 0
 
 # sexual partner network params
@@ -658,20 +657,21 @@ influenza_outpatient_healthcare_prob_values = 0
 #
 ### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
 
-###  CALIBRATION PHASE II STEP 11 at Mon Nov  9 11:05:33 2015
-###  runs = 10  cores = 10
-household_contacts = 0.107
-neighborhood_contacts = 13.810
-school_contacts = 6.44
-workplace_contacts = 0.50
-classroom_contacts = 12.88
-office_contacts = 1.00
-hospital_contacts = 0
-R0_a = 0.0625174
-R0_b = 0.646003
+R0_a = 0.0383433
+R0_b = 0.635247
 R0 = -1.0
 
-neighborhood_same_age_bias = 0.0
+###  CALIBRATION PHASE II STEP 12 at Mon Nov  9 15:08:01 2015
+###  runs = 10  cores = 10
+household_contacts = 0.037
+neighborhood_contacts = 66.648
+school_contacts = 2.83
+workplace_contacts = 0.56
+classroom_contacts = 5.65
+office_contacts = 1.11
+
+enable_transmission_bias = 1
+neighborhood_same_age_bias = 0.1
 
 ##################### END calibration parameters
 

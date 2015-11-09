@@ -94,6 +94,8 @@ while ($error > 10*$threshold) {
   print "Creating paramsfile $paramsfile\n";
   open CAL, ">$paramsfile" or die "$0: Can't create paramsfile $paramsfile\n";
   print CAL @orig;
+  print CAL "track_infection_events = 0\n";
+  print CAL "report_place_of_infection = 1\n\n";
   print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
   printf CAL "household_contacts = %0.3f\n", $h;
@@ -102,12 +104,12 @@ while ($error > 10*$threshold) {
   printf CAL "workplace_contacts = %0.2f\n", $w;
   printf CAL "classroom_contacts = %0.2f\n", 2*$s;
   printf CAL "office_contacts = %0.2f\n", 2*$w;
-  print CAL "track_infection_events = 0\n";
-  print CAL "report_place_of_infection = 1\n";
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
 
+  print "track_infection_events = 0\n";
+  print "report_place_of_infection = 1\n\n";
   print "###  CALIBRATION PHASE I STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
   printf "household_contacts = %0.3f\n", $h;
@@ -116,8 +118,6 @@ while ($error > 10*$threshold) {
   printf "workplace_contacts = %0.2f\n", $w;
   printf "classroom_contacts = %0.2f\n", 2*$s;
   printf "office_contacts = %0.2f\n", 2*$w;
-  print "track_infection_events = 0\n";
-  print "report_place_of_infection = 1\n";
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
@@ -183,6 +183,8 @@ while ($error > $threshold) {
 
   open CAL, ">$paramsfile";
   print CAL @orig;
+  print CAL "track_infection_events = 0\n";
+  print CAL "report_place_of_infection = 1\n\n";
   print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
   printf CAL "household_contacts = %0.3f\n", $h;
@@ -191,12 +193,12 @@ while ($error > $threshold) {
   printf CAL "workplace_contacts = %0.2f\n", $w;
   printf CAL "classroom_contacts = %0.2f\n", 2*$s;
   printf CAL "office_contacts = %0.2f\n", 2*$w;
-  print CAL "track_infection_events = 0\n";
-  print CAL "report_place_of_infection = 1\n";
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
 
+  print "track_infection_events = 0\n";
+  print "report_place_of_infection = 1\n\n";
   print "###  CALIBRATION PHASE II STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
   printf "household_contacts = %0.3f\n", $h;
@@ -205,8 +207,6 @@ while ($error > $threshold) {
   printf "workplace_contacts = %0.2f\n", $w;
   printf "classroom_contacts = %0.2f\n", 2*$s;
   printf "office_contacts = %0.2f\n", 2*$w;
-  print "track_infection_events = 0\n";
-  print "report_place_of_infection = 1\n";
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
