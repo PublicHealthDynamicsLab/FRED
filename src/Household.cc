@@ -33,6 +33,7 @@ using namespace std;
 
 //Private static variables that will be set by parameter lookups
 double Household::contacts_per_day;
+double Household::same_age_bias = 0.0;
 double** Household::prob_transmission_per_contact;
 
 std::set<long int> Household::census_tract_set;
@@ -108,6 +109,8 @@ Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo la
 void Household::get_parameters() {
 
   Params::get_param_from_string("household_contacts", &Household::contacts_per_day);
+  Params::get_param_from_string("neighborhood_same_age_bias", &Household::same_age_bias);
+  Household::same_age_bias *= 0.5;
   int n = Params::get_param_matrix((char *)"household_trans_per_contact", &Household::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nHousehold contact_prob:\n");
@@ -135,6 +138,14 @@ int Household::get_group(int disease, Person* per) {
   } else {
     return 1;
   }
+}
+
+double Household::get_transmission_probability(int disease, Person* i, Person* s) {
+  double age_i = i->get_real_age();
+  double age_s = s->get_real_age();
+  double diff = fabs(age_i - age_s);
+  double prob = exp(-Household::same_age_bias * diff);
+  return prob;
 }
 
 double Household::get_transmission_prob(int disease, Person* i, Person* s) {

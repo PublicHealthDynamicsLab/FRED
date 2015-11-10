@@ -168,6 +168,8 @@ public:
    */
   double get_transmission_prob(int disease_id, Person* i, Person* s);
 
+  double get_transmission_probability(int disease, Person* i, Person* s);
+
   /**
    * @see Place::get_contacts_per_day(int disease)
    *
@@ -436,6 +438,7 @@ public:
 private:
 
   static double contacts_per_day;
+  static double same_age_bias;
   static double** prob_transmission_per_contact;
 
   //Income Limits for classification
