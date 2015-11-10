@@ -100,10 +100,10 @@ while ($error > 10*$threshold) {
   print CAL "###  runs = $runs  cores = $cores\n";
   printf CAL "household_contacts = %0.3f\n", $h;
   printf CAL "neighborhood_contacts = %0.3f\n", $n;
-  printf CAL "school_contacts = %0.2f\n", $s;
-  printf CAL "workplace_contacts = %0.2f\n", $w;
-  printf CAL "classroom_contacts = %0.2f\n", 2*$s;
-  printf CAL "office_contacts = %0.2f\n", 2*$w;
+  printf CAL "school_contacts = %0.3f\n", $s;
+  printf CAL "workplace_contacts = %0.3f\n", $w;
+  printf CAL "classroom_contacts = %0.3f\n", 2*$s;
+  printf CAL "office_contacts = %0.3f\n", 2*$w;
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
@@ -114,10 +114,10 @@ while ($error > 10*$threshold) {
   print "###  runs = $runs  cores = $cores\n";
   printf "household_contacts = %0.3f\n", $h;
   printf "neighborhood_contacts = %0.3f\n", $n;
-  printf "school_contacts = %0.2f\n", $s;
-  printf "workplace_contacts = %0.2f\n", $w;
-  printf "classroom_contacts = %0.2f\n", 2*$s;
-  printf "office_contacts = %0.2f\n", 2*$w;
+  printf "school_contacts = %0.3f\n", $s;
+  printf "workplace_contacts = %0.3f\n", $w;
+  printf "classroom_contacts = %0.3f\n", 2*$s;
+  printf "office_contacts = %0.3f\n", 2*$w;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
@@ -189,10 +189,10 @@ while ($error > $threshold) {
   print CAL "###  runs = $runs  cores = $cores\n";
   printf CAL "household_contacts = %0.3f\n", $h;
   printf CAL "neighborhood_contacts = %0.3f\n", $n;
-  printf CAL "school_contacts = %0.2f\n", $s;
-  printf CAL "workplace_contacts = %0.2f\n", $w;
-  printf CAL "classroom_contacts = %0.2f\n", 2*$s;
-  printf CAL "office_contacts = %0.2f\n", 2*$w;
+  printf CAL "school_contacts = %0.3f\n", $s;
+  printf CAL "workplace_contacts = %0.3f\n", $w;
+  printf CAL "classroom_contacts = %0.3f\n", 2*$s;
+  printf CAL "office_contacts = %0.3f\n", 2*$w;
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
@@ -203,10 +203,10 @@ while ($error > $threshold) {
   print "###  runs = $runs  cores = $cores\n";
   printf "household_contacts = %0.3f\n", $h;
   printf "neighborhood_contacts = %0.3f\n", $n;
-  printf "school_contacts = %0.2f\n", $s;
-  printf "workplace_contacts = %0.2f\n", $w;
-  printf "classroom_contacts = %0.2f\n", 2*$s;
-  printf "office_contacts = %0.2f\n", 2*$w;
+  printf "school_contacts = %0.3f\n", $s;
+  printf "workplace_contacts = %0.3f\n", $w;
+  printf "classroom_contacts = %0.3f\n", 2*$s;
+  printf "office_contacts = %0.3f\n", 2*$w;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
