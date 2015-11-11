@@ -20,6 +20,7 @@
 #include "Antiviral.h"
 #include "AV_Health.h"
 #include "AV_Manager.h"
+#include "Date.h"
 #include "Disease.h"
 #include "Disease_List.h"
 #include "Evolution.h"
@@ -394,7 +395,8 @@ Health::~Health() {
 
 void Health::become_susceptible(Person* self, int disease_id) {
   if(this->susceptible.test(disease_id)) {
-    FRED_STATUS(0, "person %d is already SUSCEPTIBLE for disease %d\n",
+    FRED_STATUS(1, "HEALTH CHART: %s person %d is already SUSCEPTIBLE for disease %d\n",
+		Date::get_date_string().c_str(),
 		self->get_id(), disease_id);
     return;
   }
@@ -402,7 +404,8 @@ void Health::become_susceptible(Person* self, int disease_id) {
   this->susceptibility_multp[disease_id] = 1.0;
   this->susceptible.set(disease_id);
   assert(is_susceptible(disease_id));
-  FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is SUSCEPTIBLE for disease %d\n",
+	      Date::get_date_string().c_str(),
 	      self->get_id(), disease_id);
 }
 
@@ -414,20 +417,35 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
     // not already infected
     this->susceptibility_multp[disease_id] = 1.0;
     this->susceptible.set(disease_id);
-    FRED_STATUS(1, "person %d is now SUSCEPTIBLE for disease %d\n",
+    FRED_STATUS(1, "HEALTH CHART: %s person %d is SUSCEPTIBLE for disease %d\n",
+		Date::get_date_string().c_str(),
 		self->get_id(), disease_id);
   } else {
-    FRED_STATUS(1, "person %d had no vaccine waning because was already infected with disease %d\n",
+    FRED_STATUS(1, "HEALTH CHART: %s person %d had no vaccine waning because was already infected with disease %d\n",
+		Date::get_date_string().c_str(),
 		self->get_id(), disease_id);
   }
 }
 
 void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
-   FRED_VERBOSE(1, "become_exposed: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+   FRED_VERBOSE(0, "become-exposed: person %d is exposed to disease %d day %d\n",
+		self->get_id(), disease_id, day);
 
   if(this->infection[disease_id] != NULL) {
     Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+  }
+
+  if(Global::Verbose > 0) {
+    if(mixing_group == NULL) {
+      FRED_STATUS(0, "HEALTH CHART: %s person %d is an IMPORTED EXPOSURE to disease %d\n",
+		  Date::get_date_string().c_str(),
+		  self->get_id(), disease_id);
+    } else {
+      FRED_STATUS(1, "HEALTH CHART: %s person %d is EXPOSED to disease %d\n",
+		  Date::get_date_string().c_str(),
+		  self->get_id(), disease_id);
+    }
   }
 
   this->infectious.reset(disease_id);
@@ -449,14 +467,6 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
   this->exposure_date[disease_id] = day;
   this->mixing_group_infected[disease_id] = mixing_group;
 
-  if(Global::Verbose > 0) {
-    if(mixing_group == NULL) {
-      FRED_STATUS(1, "SEEDED person %d with disease %d\n", self->get_id(), disease_id);
-    } else {
-      FRED_STATUS(1, "EXPOSED person %d to disease %d\n", self->get_id(), disease_id);
-    }
-  }
-
   if(Global::Enable_Transmission_Network) {
     FRED_VERBOSE(1, "Joining transmission network: %d\n", self->get_id());
     self->join_network(Global::Transmission_Network);
@@ -473,7 +483,8 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
         if(sero == disease_id) {
           continue;
         }
-        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n",
+		    self->get_id(), sero);
         this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
       }
     } else {
@@ -485,7 +496,8 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
         if(sero == disease_id) {
           continue;
         }
-        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n", self->get_id(), sero);
+        FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n",
+		    self->get_id(), sero);
         this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
       }
     }
@@ -497,8 +509,9 @@ void Health::become_unsusceptible(Person* self, int disease_id) {
     return;
   }
   this->susceptible.reset(disease_id);
-  FRED_STATUS(1, "person %d is now UNSUSCEPTIBLE for disease %d\n",
-	            self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {
@@ -507,8 +520,9 @@ void Health::become_unsusceptible(Person* self, Disease* disease) {
     return;
   }
   this->susceptible.reset(disease_id);
-  FRED_STATUS(1, "person %d is now UNSUSCEPTIBLE for disease %d\n",
-	            self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 void Health::become_infectious(Person* self, Disease* disease) {
@@ -519,7 +533,9 @@ void Health::become_infectious(Person* self, Disease* disease) {
   Household* h = Global::Places.get_household_ptr(household_index);
   assert(h != NULL);
   h->set_human_infectious(disease_id);
-  FRED_STATUS(1, "person %d is now INFECTIOUS for disease %d\n", self->get_id(),
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is INFECTIOUS for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(),
 	      disease_id);
 }
 
@@ -527,13 +543,15 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
-    FRED_STATUS(1, "person %d is already SYMPTOMATIC for disease %d\n",
+    FRED_STATUS(1, "HEALTH CHART: %s person %d is ALREADY SYMPTOMATIC for disease %d\n",
+		Date::get_date_string().c_str(),
 		self->get_id(), disease_id);
     return;
   }
   this->symptomatic.set(disease_id);
-  FRED_STATUS(1, "person %d is now SYMPTOMATIC for disease %d\n",
-	            self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is SYMPTOMATIC for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 void Health::resolve_symptoms(Person* self, Disease* disease) {
@@ -542,14 +560,17 @@ void Health::resolve_symptoms(Person* self, Disease* disease) {
   if(this->symptomatic.test(disease_id)) {
     this->symptomatic.reset(disease_id);
   }
-  FRED_STATUS(1, "person %d is now ASYMPTOMATIC for disease %d\n",
-	            self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is ASYMPTOMATIC for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 void Health::recover(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   // assert(this->infection[disease_id] != NULL);
-  FRED_STATUS(1, "person %d is now RECOVERED for disease %d\n", self->get_id(),
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is UNINFECTIOUS for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(),
 	      disease_id);
   become_removed(self, disease_id);
   this->recovered_today.set(disease_id);
@@ -565,7 +586,9 @@ void Health::become_removed(Person* self, int disease_id) {
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  FRED_STATUS(1, "person %d is now REMOVED for disease %d\n", self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is REMOVED for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 void Health::become_immune(Person* self, Disease* disease) {
@@ -576,7 +599,9 @@ void Health::become_immune(Person* self, Disease* disease) {
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
-  FRED_STATUS(0, "person %d is now IMMUNE for disease %d\n", self->get_id(), disease_id);
+  FRED_STATUS(1, "HEALTH CHART: %s person %d is IMMUNE for disease %d\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), disease_id);
 }
 
 
