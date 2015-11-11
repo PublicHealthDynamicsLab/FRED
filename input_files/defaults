@@ -657,18 +657,18 @@ influenza_outpatient_healthcare_prob_values = 0
 #
 ### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
 
-R0_a = 0.0476556
-R0_b = 0.644064
+R0_a = 0.0552486
+R0_b = 0.639453
 R0 = -1.0
 
-###  CALIBRATION PHASE II STEP 10 at Tue Nov 10 12:39:51 2015
+###  CALIBRATION PHASE II STEP 9 at Wed Nov 11 16:00:34 2015
 ###  runs = 10  cores = 10
-household_contacts = 0.0941
-neighborhood_contacts = 0.3281
-school_contacts = 0.2296
-workplace_contacts = 0.0284
-classroom_contacts = 0.4592
-office_contacts = 0.0567
+household_contacts = 0.0955
+neighborhood_contacts = 0.4241
+school_contacts = 0.3172
+workplace_contacts = 0.0368
+classroom_contacts = 0.6344
+office_contacts = 0.0736
 
 enable_transmission_bias = 1
 neighborhood_same_age_bias = 0.1
