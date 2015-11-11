@@ -173,8 +173,8 @@ public:
     this->health.become_symptomatic(this, disease);
   }
 
-  void become_asymptomatic(Disease* disease) {
-    this->health.become_asymptomatic(this, disease);
+  void resolve_symptoms(Disease* disease) {
+    this->health.resolve_symptoms(this, disease);
   }
 
   /**

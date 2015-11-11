@@ -536,9 +536,9 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
 	            self->get_id(), disease_id);
 }
 
-void Health::become_asymptomatic(Person* self, Disease* disease) {
+void Health::resolve_symptoms(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  assert(this->infection[disease_id] != NULL);
+  // assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
     this->symptomatic.reset(disease_id);
   }

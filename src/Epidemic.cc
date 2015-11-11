@@ -1531,9 +1531,6 @@ void Epidemic::process_symptoms_start_events(int day) {
   for(int i = 0; i < size; ++i) {
     Person* person =  this->symptoms_start_event_queue->get_event(day, i);
 
-    // person becomes symptomatic
-    person->become_symptomatic(this->disease);
-
     // update next event list
     int symptoms_end_date = person->get_symptoms_end_date(this->id);
     this->symptoms_end_event_queue->add_event(symptoms_end_date, person);
@@ -1585,7 +1582,8 @@ void Epidemic::process_symptoms_start_events(int day) {
     }
 
     // update person's health chart
-    // person->start_symptoms(this->disease);
+    person->become_symptomatic(this->disease);
+
   }
   this->symptoms_start_event_queue->clear_events(day);
 }
@@ -1601,7 +1599,7 @@ void Epidemic::process_symptoms_end_events(int day) {
     this->people_with_current_symptoms--;
 
     // update person's health chart
-    // person->end_symptoms(this->disease);
+    person->resolve_symptoms(this->disease);
   }
   this->symptoms_end_event_queue->clear_events(day);
 }
