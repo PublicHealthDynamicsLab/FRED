@@ -1531,6 +1531,9 @@ void Epidemic::process_symptoms_start_events(int day) {
   for(int i = 0; i < size; ++i) {
     Person* person =  this->symptoms_start_event_queue->get_event(day, i);
 
+    // person becomes symptomatic
+    person->become_symptomatic(this->disease);
+
     // update next event list
     int symptoms_end_date = person->get_symptoms_end_date(this->id);
     this->symptoms_end_event_queue->add_event(symptoms_end_date, person);
@@ -1727,7 +1730,7 @@ void Epidemic::update(int day) {
     Person* person = this->actually_infectious_people[i];
 
     if(strcmp("sexual", this->disease->get_transmission_mode()) == 0) {
-      FRED_VERBOSE(0, "ADDING_ACTUALLY INF person %d\n", person->get_id());
+      FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d\n", person->get_id());
       // this will insert the infectious person onto the infectious list in sexual partner network
       Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
       st_network->add_infectious_person(this->id, person);

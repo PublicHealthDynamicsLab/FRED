@@ -148,6 +148,51 @@ void Network::print() {
   }
   fclose(link_fileptr);
   fclose(people_fileptr);
+
+  if (strcmp(get_label(), "Transmission_Network") != 0) {
+    return;
+  }
+
+  int a[20][20];
+  for (int i = 0; i < 20; i++) {
+    for (int j = 0; j < 20; j++) {
+      a[i][j] = 0;
+    }
+  }
+
+  int total_out = 0;
+  int max = -1;
+  for(int i = 0; i < size; ++i) {
+    Person* person = this->get_enrollee(i);
+    int age_src = person->get_age();
+    if (age_src > 99) {
+      age_src = 99;
+    }
+    int out_degree = person->get_out_degree(this);
+    for (int j = 0; j < out_degree; j++) {
+      int age_dest = person->get_end_of_link(j,this)->get_age();
+      if (age_dest > 99) {
+	age_dest = 99;
+      }
+      a[age_src/5][age_dest/5]++;
+      if (max < a[age_src/5][age_dest/5]) {
+	max = a[age_src/5][age_dest/5];
+      }
+    }
+    total_out += out_degree;
+  }
+  
+  sprintf(filename, "%s/source.dat", Global::Simulation_directory);
+  FILE* fileptr = fopen(filename,"w");
+  for (int i = 0; i < 20; i++) {
+    for (int j = 0; j < 20; j++) {
+      double x = max? (255.0 * (double) a[i][j] / (double) max) : 0.0;
+      fprintf(fileptr, "%d %d %3.0f\n", i, j, x);
+    }
+    fprintf(fileptr, "\n");
+  }
+  fclose(fileptr);
+
 }
 
 void Network::print_stdout() {

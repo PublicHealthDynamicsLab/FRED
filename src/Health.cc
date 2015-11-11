@@ -458,7 +458,7 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
   }
 
   if(Global::Enable_Transmission_Network) {
-    FRED_VERBOSE(0, "Joining transmission network: %d\n", self->get_id());
+    FRED_VERBOSE(1, "Joining transmission network: %d\n", self->get_id());
     self->join_network(Global::Transmission_Network);
   }
 
@@ -527,6 +527,8 @@ void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
+    FRED_STATUS(1, "person %d is already SYMPTOMATIC for disease %d\n",
+		self->get_id(), disease_id);
     return;
   }
   this->symptomatic.set(disease_id);
@@ -980,7 +982,7 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Mixing_Group
 	      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
 
   if(Global::Enable_Transmission_Network) {
-    FRED_VERBOSE(0, "Creating link in transmission network: %d -> %d\n", self->get_id(), infectee->get_id());
+    FRED_VERBOSE(1, "Creating link in transmission network: %d -> %d\n", self->get_id(), infectee->get_id());
     self->create_network_link_to(infectee, Global::Transmission_Network);
   }
 }

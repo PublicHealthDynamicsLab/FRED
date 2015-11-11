@@ -2071,7 +2071,7 @@ void Activities::delete_network_link_from(Person* person, Network* network) {
 }
 
 void Activities::join_network(Person* self, Network* network) {
-  FRED_VERBOSE(0, "JOINING NETWORK: id = %d\n", self->get_id());
+  FRED_VERBOSE(1, "JOINING NETWORK: id = %d\n", self->get_id());
   int size = this->networks.size();
   for(int i = 0; i < size; ++i) {
     if(this->networks[i]->get_network() == network) {
