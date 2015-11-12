@@ -495,74 +495,57 @@ void Population::Setup_Population_Health_Insurance::operator() (Person &p) {
     return;
   }
 
-  //  assert(Global::Places.is_load_completed());
-  //
-  //  //65 or older will use Medicare
-  //  if(p.get_real_age() >= 65.0) {
-  //    p.get_health()->set_insurance_type(Insurance_assignment_index::MEDICARE);
-  //  } else {
-  //    //Get the household of the agent to see if anyone already has insurance
-  //    Household* hh = static_cast<Household*>(p.get_household());
-  //    if(hh == NULL) {
-  //      if(Global::Enable_Hospitals && p.is_hospitalized() && p.get_permanent_household() != NULL) {
-  //        hh = static_cast<Household*>(p.get_permanent_household());;
-  //      }
-  //    }
-  //    assert(hh != NULL);
-  //
-  //    double low_income_threshold = 2.0 * Household::get_min_hh_income();
-  //    double hh_income = hh->get_household_income();
-  //    if(hh_income <= low_income_threshold && Random::draw_random() < (1.0 - (hh_income / low_income_threshold))) {
-  //      p.get_health()->set_insurance_type(Insurance_assignment_index::MEDICAID);
-  //    } else {
-  //      std::vector<Person*> inhab_vec = hh->get_inhabitants();
-  //      for(std::vector<Person*>::iterator itr = inhab_vec.begin();
-  //          itr != inhab_vec.end(); ++itr) {
-  //        Insurance_assignment_index::e insr = (*itr)->get_health()->get_insurance_type();
-  //        if(insr != Insurance_assignment_index::UNSET && insr != Insurance_assignment_index::MEDICARE) {
-  //          //Set this agent's insurance to the same one
-  //          p.get_health()->set_insurance_type(insr);
-  //          return;
-  //        }
-  //      }
-  //
-  //      //No one had insurance, so set to insurance from distribution
-  //      Insurance_assignment_index::e insr = Health::get_health_insurance_from_distribution();
-  //      p.get_health()->set_insurance_type(insr);
-  //    }
-  //  }
+  assert(Global::Places.is_load_completed());
 
-  //If agent already has insurance set (by another household agent), then return
-  if(p.get_health()->get_insurance_type() != Insurance_assignment_index::UNSET) {
-    return;
-  }
+  //65 or older will use Medicare
+  if(p.get_real_age() >= 65.0) {
+    p.get_health()->set_insurance_type(Insurance_assignment_index::MEDICARE);
+  } else {
+    //Get the household of the agent to see if anyone already has insurance
+    Household* hh = static_cast<Household*>(p.get_household());
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && p.is_hospitalized() && p.get_permanent_household() != NULL) {
+        hh = static_cast<Household*>(p.get_permanent_household());;
+      }
+    }
+    assert(hh != NULL);
 
-  //Get the household of the agent to see if anyone already has insurance
-  Household* hh = static_cast<Household*>(p.get_household());
-  if(hh == NULL) {
-    if(Global::Enable_Hospitals && p.is_hospitalized() && p.get_permanent_household() != NULL) {
-      hh = static_cast<Household*>(p.get_permanent_household());;
+    double low_income_threshold = 2.0 * Household::get_min_hh_income();
+    double hh_income = hh->get_household_income();
+    if(hh_income <= low_income_threshold && Random::draw_random() < (1.0 - (hh_income / low_income_threshold))) {
+      p.get_health()->set_insurance_type(Insurance_assignment_index::MEDICAID);
+    } else {
+      //If agent already has insurance set (by another household agent), then return
+      if(p.get_health()->get_insurance_type() != Insurance_assignment_index::UNSET) {
+        return;
+      }
+
+      //Get the household of the agent to see if anyone already has insurance
+      Household* hh = static_cast<Household*>(p.get_household());
+      if(hh == NULL) {
+        if(Global::Enable_Hospitals && p.is_hospitalized() && p.get_permanent_household() != NULL) {
+          hh = static_cast<Household*>(p.get_permanent_household());;
+        }
+      }
+      assert(hh != NULL);
+      std::vector<Person*> inhab_vec = hh->get_inhabitants();
+      for(std::vector<Person*>::iterator itr = inhab_vec.begin();
+          itr != inhab_vec.end(); ++itr) {
+        Insurance_assignment_index::e insr = (*itr)->get_health()->get_insurance_type();
+        if(insr != Insurance_assignment_index::UNSET) {
+          //Set this agent's insurance to the same one
+          p.get_health()->set_insurance_type(insr);
+          return;
+        }
+      }
+
+      //No one had insurance, so set everyone in household to the same insurance
+      Insurance_assignment_index::e insr = Health::get_health_insurance_from_distribution();
+      for(std::vector<Person*>::iterator itr = inhab_vec.begin(); itr != inhab_vec.end(); ++itr) {
+        (*itr)->get_health()->set_insurance_type(insr);
+      }
     }
   }
-  assert(hh != NULL);
-  std::vector<Person*> inhab_vec = hh->get_inhabitants();
-  for(std::vector<Person*>::iterator itr = inhab_vec.begin();
-      itr != inhab_vec.end(); ++itr) {
-    Insurance_assignment_index::e insr = (*itr)->get_health()->get_insurance_type();
-    if(insr != Insurance_assignment_index::UNSET) {
-      //Set this agent's insurance to the same one
-      p.get_health()->set_insurance_type(insr);
-      return;
-    }
-  }
-
-  //No one had insurance, so set everyone in household to the same insurance
-  Insurance_assignment_index::e insr = Health::get_health_insurance_from_distribution();
-  for(std::vector<Person*>::iterator itr = inhab_vec.begin();
-      itr != inhab_vec.end(); ++itr) {
-    (*itr)->get_health()->set_insurance_type(insr);
-  }
-
 }
 
 void Population::read_population(const char* pop_dir, const char* pop_id, const char* pop_type) {
