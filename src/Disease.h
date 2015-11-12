@@ -185,6 +185,10 @@ public:
 
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
+  bool assume_susceptible() {
+    return make_all_susceptible;
+  }
+
   void end_of_run();
 
 private:
@@ -196,6 +200,7 @@ private:
   // the course of infection within a host
   char natural_history_model[20];
   Natural_History* natural_history;
+  bool make_all_susceptible;
 
   // how the disease spreads
   char transmission_mode[20];

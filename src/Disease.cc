@@ -65,6 +65,7 @@ Disease::Disease() {
   this->hand_washing_susceptibility_efficacy = -1.0;
   this->face_mask_plus_hand_washing_transmission_efficacy = -1.0;
   this->face_mask_plus_hand_washing_susceptibility_efficacy = -1.0;
+  this->make_all_susceptible = true;
 }
 
 Disease::~Disease() {
@@ -107,6 +108,13 @@ void Disease::get_parameters(int disease_id, string name) {
   if (found == 0) {
     Params::get_indexed_param(this->disease_name, "transmissibility", &(this->transmissibility));
   }
+
+  // optional parameters:
+  Params::disable_abort_on_failure();
+  int n = 1;
+  Params::get_indexed_param(this->disease_name, "make_all_susceptible", &n);
+  this->make_all_susceptible = n ? true : false;
+  Params::set_abort_on_failure();
 
 
   // convenience parameters (for single disease simulations only)

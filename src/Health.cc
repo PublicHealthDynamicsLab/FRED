@@ -320,8 +320,11 @@ void Health::setup(Person* self) {
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
 
-    become_susceptible(self, disease_id);
     Disease* disease = Global::Diseases.get_disease(disease_id);
+    if (disease->assume_susceptible()) {
+      become_susceptible(self, disease_id);
+    }
+
     if(disease->get_at_risk() != NULL && !disease->get_at_risk()->is_empty()) {
       double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
       if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
@@ -505,9 +508,6 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
 }
 
 void Health::become_unsusceptible(Person* self, int disease_id) {
-  if(this->susceptible.test(disease_id) == false) {
-    return;
-  }
   this->susceptible.reset(disease_id);
   FRED_STATUS(1, "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for disease %d\n",
 	      Date::get_date_string().c_str(),
@@ -516,13 +516,7 @@ void Health::become_unsusceptible(Person* self, int disease_id) {
 
 void Health::become_unsusceptible(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  if(this->susceptible.test(disease_id) == false) {
-    return;
-  }
-  this->susceptible.reset(disease_id);
-  FRED_STATUS(1, "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for disease %d\n",
-	      Date::get_date_string().c_str(),
-	      self->get_id(), disease_id);
+  become_unsusceptible(self, disease_id);
 }
 
 void Health::become_infectious(Person* self, Disease* disease) {
