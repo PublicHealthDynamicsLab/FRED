@@ -259,7 +259,7 @@ Health::Health() {
   this->susceptibility_multp = NULL;
   this->exposure_date = NULL;
   this->infector_id = NULL;
-  this->mixing_group_infected = NULL;
+  this->infected_in_mixing_group = NULL;
 }
 
 void Health::setup(Person* self) {
@@ -304,7 +304,7 @@ void Health::setup(Person* self) {
   this->infectee_count = new int [diseases];
   this->exposure_date = new int [diseases];
   this->infector_id = new int [diseases];
-  this->mixing_group_infected = new Mixing_Group*[diseases];
+  this->infected_in_mixing_group = new Mixing_Group*[diseases];
   this->immunity_end_date = new int [diseases];
   this->past_infections = new past_infections_type [diseases];
 
@@ -316,7 +316,7 @@ void Health::setup(Person* self) {
     this->infectee_count[disease_id] = 0;
     this->exposure_date[disease_id] = -1;
     this->infector_id[disease_id] = -1;
-    this->mixing_group_infected[disease_id] = NULL;
+    this->infected_in_mixing_group[disease_id] = NULL;
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
 
@@ -465,7 +465,7 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
     this->infector_id[disease_id] = infector->get_id();
   }
   this->exposure_date[disease_id] = day;
-  this->mixing_group_infected[disease_id] = mixing_group;
+  this->infected_in_mixing_group[disease_id] = mixing_group;
 
   if(Global::Enable_Transmission_Network) {
     FRED_VERBOSE(1, "Joining transmission network: %d\n", self->get_id());
@@ -773,7 +773,7 @@ Person* Health::get_infector(int disease_id) const {
 }
 
 Mixing_Group* Health::get_infected_mixing_group(int disease_id) const {
-  return this->mixing_group_infected[disease_id];
+  return this->infected_in_mixing_group[disease_id];
 }
 
 int Health::get_infected_mixing_group_id(int disease_id) const {

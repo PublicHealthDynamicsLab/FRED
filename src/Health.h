@@ -649,7 +649,7 @@ private:
   int* immunity_end_date;
   int* exposure_date;
   int* infector_id;
-  Mixing_Group** mixing_group_infected;
+  Mixing_Group** infected_in_mixing_group;
   int days_symptomatic; 			// over all diseases
 
   // living or not?
