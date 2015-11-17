@@ -77,7 +77,7 @@ sub extract_from_outfile {
       if ($rows == 0) {
 	push @varname, $var;
       }
-      $value[$rows][$col] = $val;;
+      $value[$rows][$col] = $val;
     }
     $rows++;
   }
@@ -98,23 +98,27 @@ sub extract_from_outfile {
 
 ###############################################
 
-my %sum_up = (
-	      C => 1,
-	      College => 1,
-	      Cs => 1,
-	      GQ => 1,
-	      Military => 1,
-	      Nursing_Home => 1,
-	      Prison => 1,
-	      ScCl => 1
-);
-
 sub get_weekly_tables {
   my ($tables,$var) = @_;
   if ($var eq "Day" or $var eq "Date" or $var eq "Week" or $var eq "Year" or $var eq "WkDay") {
     return;
   }
-  my $print_sum = exists $sum_up{$var};
+  my %sum_up = (
+      C => 1,
+      College => 1,
+      Cs => 1,
+      GQ => 1,
+      Military => 1,
+      Nursing_Home => 1,
+      Prison => 1,
+      ScCl => 1,
+      County_ => 1,
+      Tract_Cs_ => 1,
+  );
+  my $t_var = $var;
+  $t_var =~ s/\d//g;
+  my $print_sum = exists $sum_up{$t_var};
+
   my $ls = `ls $tables/$var-*.txt`;
   chomp $ls;
   my @files = split " ", $ls;

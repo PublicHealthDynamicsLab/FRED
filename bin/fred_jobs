@@ -10,6 +10,8 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $FREDRESULTS = $ENV{FRED_RESULTS};
 $FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
 
+my $jobs_key = shift @ARGV;
+
 my $usage = "$0 [ --help ]\nThis command lists all jobs in $FREDRESULTS\n";
 my ($help) = @ARGV;
 die $usage if $help;
@@ -22,7 +24,14 @@ open FH, "$dir/KEY" or die "$0: Can't find $dir/KEY\n";
 while (<FH>) {
   chomp;
   my ($key, $id) = split;
-  printf "KEY = %-20s\tJOB = %3d\t", $key, $id;
-  print "STATUS = ", `$FRED/bin/fred_status -k $key`;
+  if($jobs_key){
+      if($key =~/$jobs_key/i){
+	  printf "KEY = %-20s\tJOB = %3d\t", $key, $id;
+	  print "STATUS = ", `$FRED/bin/fred_status -k $key`;
+      }
+  }else{
+      printf "KEY = %-20s\tJOB = %3d\t", $key, $id;
+      print "STATUS = ", `$FRED/bin/fred_status -k $key`;
+  }
 }
 close FH;

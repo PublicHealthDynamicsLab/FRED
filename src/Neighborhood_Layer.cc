@@ -822,6 +822,7 @@ void Neighborhood_Layer::register_place(Place *place) {
   Neighborhood_Patch * patch = get_patch(place->get_latitude(), place->get_longitude());
   if (patch != NULL) {
     patch->register_place(place);
+    //    place->set_patch(patch);  
   }
   else {
     FRED_VERBOSE(0, "register place:can't find patch for place %s county = %d\n",

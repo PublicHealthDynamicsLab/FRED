@@ -126,6 +126,9 @@ Epidemic::Epidemic(Disease* dis) {
   this->daily_infections_list.reserve(Global::Pop.get_pop_size());
   this->daily_infections_list.clear();
 
+  this->daily_symptomatic_list.reserve(Global::Pop.get_pop_size());
+  this->daily_symptomatic_list.clear();
+
   this->case_fatality_incidence = 0;
   this->counties = 0;
   this->county_incidence = NULL;
@@ -230,6 +233,8 @@ void Epidemic::symptoms_start_event_handler(int day, Person* person) {
   // update epidemic counters
   this->people_with_current_symptoms++;
   this->people_becoming_symptomatic_today++;
+
+  this->daily_symptomatic_list.push_back(person);
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
@@ -580,7 +585,9 @@ void Epidemic::print_stats(int day) {
   if(Global::Report_Incidence_By_Census_Tract) {
     report_incidence_by_census_tract(day);
   }
-
+  if(Global::Report_Symptomatic_Incidence_By_Census_Tract) {
+    report_symptomatic_incidence_by_census_tract(day);
+  }
   if(this->report_generation_time || Global::Report_Serial_Interval) {
     report_serial_interval(day);
   }
@@ -613,6 +620,7 @@ void Epidemic::print_stats(int day) {
   this->people_becoming_symptomatic_today = 0;
   this->daily_case_fatality_count = 0;
   this->daily_infections_list.clear();
+  this->daily_symptomatic_list.clear();
 }
 
 void Epidemic::report_age_of_infection(int day) {
@@ -923,6 +931,37 @@ void Epidemic::report_incidence_by_county(int day) {
     track_value(day,name, Global::Places.get_population_of_county_with_index(c));
     // prepare for next day
     this->county_incidence[c] = 0;
+  }
+}
+void Epidemic::report_symptomatic_incidence_by_census_tract(int day) {
+  if(day == 0) {
+    // set up census_tract counts
+    this->census_tracts = Global::Places.get_number_of_census_tracts();
+    this->census_tract_symp_incidence = new int[this->census_tracts];
+  }
+  for(int t = 0; t < this->census_tracts; t++) {
+    this->census_tract_symp_incidence[t] = 0;
+  }
+  for(int i = 0; i < this->people_becoming_symptomatic_today; i++) {
+    Person * infectee = this->daily_symptomatic_list[i];
+    Household * h = (Household *) infectee->get_household();
+    int t = h->get_census_tract_index();
+    assert(0 <= t && t < this->census_tracts);
+    this->census_tract_symp_incidence[t]++;
+  }
+  for(int t = 0; t < this->census_tracts; t++) {
+    char name[80];
+    sprintf(name, "Tract_Cs_%ld", Global::Places.get_census_tract_with_index(t));
+    track_value(day,name,  this->census_tract_symp_incidence[t]);
+  }
+}
+int Epidemic::get_symptomatic_incidence_by_tract_index(int index_){
+  this->census_tracts = Global::Places.get_number_of_census_tracts();
+  if(index_ >= 0 && index_ < this->census_tracts){
+    FRED_VERBOSE(0,"Census_tracts %d index %d\n",this->census_tracts, index_);
+    return this->census_tract_symp_incidence[index_];
+  }else{
+    return -1;
   }
 }
 

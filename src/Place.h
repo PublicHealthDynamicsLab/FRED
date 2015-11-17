@@ -670,9 +670,15 @@ public:
   }
   
   void update_vector_population(int day);
-
+ 
   bool get_vector_control_status() {
     return vector_control_status;
+  }
+  void set_vector_control(){
+    vector_control_status = true;
+  }
+  void stop_vector_control(){
+      vector_control_status = false;
   }
 
 protected:

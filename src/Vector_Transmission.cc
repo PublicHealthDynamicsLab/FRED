@@ -50,6 +50,7 @@ void Vector_Transmission::spread_infection(int day, int disease_id, Place * plac
   place->record_infectious_days(day);
 
   visitors.clear();
+  susceptible_visitors.clear();
 
   person_vec_t * tmp = place->get_enrollees();
   int tmp_size = tmp->size();
@@ -58,6 +59,9 @@ void Vector_Transmission::spread_infection(int day, int disease_id, Place * plac
     person->update_schedule(day);
     if (person->is_present(day, place)) {
       visitors.push_back(person);
+      if(person->is_susceptible(disease_id)) {
+	susceptible_visitors.push_back(person);
+      }
     }
   }
   FRED_VERBOSE(1, "Vector_Transmission::spread_infection entered place %s visitors %d\n",place->get_label(),visitors.size());
@@ -100,8 +104,8 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
     return;
   }
   
-  FRED_VERBOSE(1, "spread_infection::infect_vectors entered susceptible_vectors %d total_inf_hosts %d\n",
-	       susceptible_vectors, total_infectious_hosts);
+  FRED_VERBOSE(1, "spread_infection::infect_vectors entered susceptible_vectors %d total_inf_hosts %d total_hosts %d\n",
+	       susceptible_vectors, total_infectious_hosts,total_hosts);
 
   // the vector infection model of Chao and Longini
 
@@ -115,8 +119,8 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
   int total_infections = 0;
   if(susceptible_vectors > 0 && susceptible_vectors < 18){
     for(int k = 0; k < susceptible_vectors; k++){
-      double r = Random::draw_random();
-      if(r < prob_infection){
+      double r = Random::draw_random(0,1);
+      if(r <= prob_infection){
 	total_infections++;
       }
     }
@@ -134,6 +138,10 @@ void Vector_Transmission::infect_vectors(int day, Place * place) {
     newly_infected += exposed_vectors;
   }
   place->mark_vectors_as_infected_today();
+  if(Global::Vectors->get_vector_control_status()){
+    FRED_VERBOSE(1, "Infect_vectors attempting to add infectious patch, day %d place %s\n",day,place->get_label());
+    Global::Vectors->add_infectious_patch(place,day);
+  }
   FRED_VERBOSE(1, "newly_infected_vectors %d\n", newly_infected);
 }
 
@@ -141,6 +149,11 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
 
   int total_hosts = visitors.size();
   if(total_hosts == 0) {
+    return;
+  }
+
+  int susceptible_hosts = susceptible_visitors.size();
+  if(susceptible_hosts == 0){
     return;
   }
 
@@ -155,41 +168,89 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
   }
 
   int exposed_hosts = 0;
-  double bite_rate = Global::Vectors->get_bite_rate();
 
+  double bite_rate = Global::Vectors->get_bite_rate();
+  /*
+  if(total_hosts <= 10){
+    int actual_infections = 0;
+    double number_of_bites_per_host = bite_rate * infectious_vectors / total_hosts;
+    int min_number_of_bites_per_host = floor(number_of_bites_per_host);
+    double remainder = number_of_bites_per_host - min_number_of_bites_per_host;
+    for(int j = 0; j < visitors.size();++j){
+      Person* infectee = visitors[j];
+      int max_number_of_bites_per_host = min_number_of_bites_per_host;
+      if(Random::draw_random(0,1) < remainder) {
+	max_number_of_bites_per_host++;
+      }
+      if(infectee->is_susceptible(disease_id)) {
+	bool effective_bite = false;
+	for(int k=0;k<max_number_of_bites_per_host && effective_bite == false;k++){
+	  if(Random::draw_random(0,1) < transmission_efficiency) {
+	    effective_bite = true;
+	  }
+	}
+	if(effective_bite){
+	  // create a new infection in infectee
+	  actual_infections++;
+	  FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
+	  infectee->become_exposed(disease_id, NULL, place, day);
+	  Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
+	  int diseases = Global::Diseases.get_number_of_diseases();
+	  if (diseases > 1) {
+	    // for dengue: become unsusceptible to other diseases
+	    for(int d = 0; d < diseases; d++) {
+	      if(d != disease_id) {
+		Disease* other_disease = Global::Diseases.get_disease(d);
+		infectee->become_unsusceptible(other_disease);
+		FRED_VERBOSE(1,"host %d not susceptible to disease %d\n", infectee->get_id(),d);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    FRED_VERBOSE(0, "infect_hosts: place %s day %d number of bites %d number of bites %f  actual_infections %d infectious mosquitoes %d total hosts %d\n", place->get_label(),day,min_number_of_bites_per_host,number_of_bites_per_host,actual_infections,infectious_vectors,total_hosts);
+  }else{
+  */
   // each host's probability of infection
   double prob_infection = 1.0 - pow((1.0 - transmission_efficiency), (bite_rate * infectious_vectors / total_hosts));
   
   // select a number of hosts to be infected
-  double expected_infections = total_hosts * prob_infection;
-  int max_exposed_hosts = floor(expected_infections);
-  double remainder = expected_infections - max_exposed_hosts;
-  if(Random::draw_random() < remainder) {
+  FRED_VERBOSE(1, "infect_hosts: place %s day %d  infectious_vectors %d prob_infection %f total_hosts %d\n", place->get_label(),day,infectious_vectors,prob_infection,total_hosts);
+  //  double number_of_hosts_receiving_a_potentially_infectious_bite = susceptible_hosts * prob_infection;
+  double number_of_hosts_receiving_a_potentially_infectious_bite = susceptible_hosts * prob_infection;
+  int max_exposed_hosts = floor(number_of_hosts_receiving_a_potentially_infectious_bite);
+  double remainder = number_of_hosts_receiving_a_potentially_infectious_bite - max_exposed_hosts;
+  if(Random::draw_random(0,1) < remainder) {
     max_exposed_hosts++;
   }
   FRED_VERBOSE(1, "infect_hosts: place %s day %d  max_exposed_hosts[%d] = %d\n", place->get_label(),day,disease_id, max_exposed_hosts);
-
+  
   // attempt to infect the max_exposed_hosts
-
+  
   // randomize the order of processing the susceptible list
   std::vector<int> shuffle_index;
   shuffle_index.reserve(total_hosts);
   for (int i = 0; i < total_hosts; i++) {
     shuffle_index[i] = i;
   }
+  int actual_infections = 0;
   FYShuffle<int>(shuffle_index);
-
+  
   // get the disease object   
   Disease* disease = Global::Diseases.get_disease(disease_id);
-
-  for(int j = 0; j < max_exposed_hosts; ++j) {
-    Person* infectee = visitors[shuffle_index[j]];
+  
+  for(int j = 0; j < max_exposed_hosts && j < susceptible_visitors.size(); ++j) {
+    //for(int j = 0; j < max_exposed_hosts && j < visitors.size(); ++j) {
+    Person* infectee = susceptible_visitors[shuffle_index[j]];
+    //Person* infectee = visitors[shuffle_index[j]];
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
     // NOTE: need to check if infectee already infected
     if(infectee->is_susceptible(disease_id)) {
       // create a new infection in infectee
       FRED_VERBOSE(1,"transmitting to host %d\n", infectee->get_id());
       infectee->become_exposed(disease_id, NULL, place, day);
+      actual_infections++;
       Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
       int diseases = Global::Diseases.get_number_of_diseases();
       if (diseases > 1) {
@@ -204,9 +265,10 @@ void Vector_Transmission::infect_hosts(int day, int disease_id, Place * place) {
       }
     }
     else {
-      FRED_VERBOSE(1,"host %d not susceptible\n", infectee->get_id());
+      FRED_VERBOSE(0,"host %d not susceptible\n", infectee->get_id());
     }
   }
+  FRED_VERBOSE(1, "infect_hosts: place %s day %d  max_exposed_hosts[%d] = %d actual_infections %d\n", place->get_label(),day,disease_id, max_exposed_hosts,actual_infections);
 }
 
 

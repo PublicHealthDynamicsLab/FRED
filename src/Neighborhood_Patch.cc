@@ -58,6 +58,7 @@ void Neighborhood_Patch::setup(Neighborhood_Layer * grd, int i, int j) {
   popsize = 0;
   mean_household_income = 0.0;
   neighborhood = NULL;
+  vector_control_status = 0;
 }
 
 void Neighborhood_Patch::make_neighborhood( Place::Allocator< Neighborhood > & neighborhood_allocator ) {

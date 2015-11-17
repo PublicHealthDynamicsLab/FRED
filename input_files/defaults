@@ -70,6 +70,7 @@ report_generation_time = 0
 report_serial_interval = 0 
 report_incidence_by_county = 0
 report_incidence_by_census_tract = 0
+report_symptomatic_incidence_by_census_tract = 0
 quality_control = 1
 print_household_locations = 0
 rr_delay = 10
@@ -811,9 +812,9 @@ influenza_fixed_symptomaticity_profile[15] = 5   0 1 1 1 1
 enable_vector_layer = 0
 enable_vector_transmission = 0
 enable_vector_control = 0
-school_vector_control = 0
-workplace_vector_control = 0
-household_vector_control = 0
+school_vector_control = 1
+workplace_vector_control = 1
+household_vector_control = 1
 neighborhood_vector_control = 0
 limit_vector_control = 0
 report_vector_population = 0
@@ -822,6 +823,19 @@ report_vector_population = 0
 vector_patch_size = 1.0
 vector_infection_efficiency = 0.2
 vector_transmission_efficiency = 0.3
+
+###### VECTOR CONTROL PARAMETERS##########
+vector_control_random = 0
+vector_control_coverage = 0.0
+vector_control_efficacy = 0.0
+vector_control_neighborhoods_rate = 0.0
+vector_control_day_on = 0
+vector_control_day_off = 0
+vector_control_threshold = 100000
+vector_control_threshold_fast = -1
+vector_control_max_places = 100000
+limit_vector_control = 0
+vector_control_census_tracts_file = $FRED_HOME/input_files/countries/colombia/vector_control_census.txt
 
 ##########################################################
 #
