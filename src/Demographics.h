@@ -31,7 +31,7 @@ class Person;
 class Demographics {
 public:
 
-  static const int MAX_AGE = 100;
+  static const int MAX_AGE = 110;
   static const int MIN_PREGNANCY_AGE = 12;
   static const int MAX_PREGNANCY_AGE = 60;
   static const double MEAN_PREG_DAYS;
@@ -201,7 +201,6 @@ public:
   void become_pregnant(int day, Person* self);
   void cancel_pregnancy(Person * self);
   void update_birth_stats(int day, Person* self);
-  void die(int day, Person* self);
 
   // birthday lists
   static void add_to_birthday_list(Person* person);

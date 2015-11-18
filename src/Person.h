@@ -88,9 +88,9 @@ public:
     this->health.infect(this, infectee, disease_id, mixing_group, day);
   }
 
-//  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
-//    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
-//  }
+  //  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
+  //    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
+  //  }
 
   /**
    * @param day the simulation day
@@ -723,10 +723,6 @@ public:
   }
 
   void terminate();
-
-  void die() {
-    this->health.die();
-  }
 
   void set_pop_index(int idx) {
     this->index = idx;

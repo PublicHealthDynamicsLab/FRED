@@ -1040,6 +1040,7 @@ void Health::terminate(Person* self) {
       this->infection[disease_id] = NULL;
     }
   }
+  this->alive = false;
 }
 
 

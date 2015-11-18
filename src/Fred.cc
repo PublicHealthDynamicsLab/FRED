@@ -388,6 +388,7 @@ void fred_step(int day) {
   // optional: update population dynamics 
   if(Global::Enable_Population_Dynamics) {
     Demographics::update(day);
+    Utils::fred_print_lap_time("day %d update demographics", day);
     Global::Places.update_population_dynamics(day);
     Utils::fred_print_lap_time("day %d update population dynamics", day);
   }
@@ -507,11 +508,11 @@ void fred_finish() {
   Global::Diseases.end_of_run();
 
   if(Global::Enable_Transmission_Network) {
-    Global::Transmission_Network->print();
+    // Global::Transmission_Network->print();
   }
 
   if(Global::Enable_Sexual_Partner_Network) {
-    Global::Sexual_Partner_Network->print();
+    // Global::Sexual_Partner_Network->print();
   }
 
   // close all open output files with global file pointers

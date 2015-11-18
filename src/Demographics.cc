@@ -247,44 +247,6 @@ void Demographics::update_birth_stats(int day, Person* self) {
   }
 }
 
-void Demographics::die(int day, Person* self) {
-
-  // cancel any planned pregnancy
-  if(day <= this->conception_sim_day) {
-    FRED_STATUS(0, "DEATH CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
-	              day, self->get_id(), this->age, this->conception_sim_day);
-    cancel_conception(self);
-  }
-
-  // cancel any current pregnancy
-  if(this->pregnant) {
-    FRED_STATUS(0, "DEATH CANCELS PREGNANCY: today %d person %d age %d due %d\n",
-	              day, self->get_id(), this->age, this->maternity_sim_day);
-    cancel_pregnancy(self);
-  }
-
-  // update death stats
-  Demographics::deaths_today++;
-  Demographics::deaths_ytd++;
-  Demographics::total_deaths++;
-
-  if(Global::Deathfp != NULL) {
-    // report deaths
-    fprintf(Global::Deathfp, "day %d person %d age %d\n",
-	    day, self->get_id(), self->get_age());
-    fflush(Global::Deathfp);
-  }
-  self->die();
-  this->deceased = true;
-
-  // remove from the birthday lists
-  if(Global::Enable_Population_Dynamics) {
-    Demographics::delete_from_birthday_list(self);
-  }
-
-  // queue removal from population
-  Global::Pop.prepare_to_die(day, self);
-}
 
 void Demographics::birthday(Person* self, int day ) {
 
@@ -293,7 +255,7 @@ void Demographics::birthday(Person* self, int day ) {
   }
 
   FRED_STATUS(2, "Birthday entered for person %d with (previous) age %d\n", self->get_id(), self->get_age());
-  
+
   // change age
   this->age++;
 
@@ -353,6 +315,42 @@ void Demographics::birthday(Person* self, int day ) {
 }
 
 void Demographics::terminate(Person* self) {
+  int day = Global::Simulation_Day;
+  FRED_STATUS(1, "Demographics::terminate day %d person %d age %d\n",
+	      day, self->get_id(), this->age);
+
+  // cancel any planned pregnancy
+  if(day <= this->conception_sim_day) {
+    FRED_STATUS(0, "DEATH CANCELS PLANNED CONCEPTION: today %d person %d age %d conception %d\n",
+	              day, self->get_id(), this->age, this->conception_sim_day);
+    cancel_conception(self);
+  }
+
+  // cancel any current pregnancy
+  if(this->pregnant) {
+    FRED_STATUS(0, "DEATH CANCELS PREGNANCY: today %d person %d age %d due %d\n",
+	              day, self->get_id(), this->age, this->maternity_sim_day);
+    cancel_pregnancy(self);
+  }
+
+  // remove from the birthday lists
+  if(Global::Enable_Population_Dynamics) {
+    Demographics::delete_from_birthday_list(self);
+  }
+
+  // update death stats
+  Demographics::deaths_today++;
+  Demographics::deaths_ytd++;
+  Demographics::total_deaths++;
+
+  if(Global::Deathfp != NULL) {
+    // report deaths
+    fprintf(Global::Deathfp, "day %d person %d age %d\n",
+	    day, self->get_id(), self->get_age());
+    fflush(Global::Deathfp);
+  }
+  // self->die();
+  this->deceased = true;
 }
 
 
@@ -406,12 +404,12 @@ void Demographics::update(int day) {
   size = Demographics::mortality_queue->get_size(day);
   for(int i = 0; i < size; ++i) {
     Person * person = Demographics::mortality_queue->get_event(day, i);
-    person->get_demographics()->die(day, person);
+    // queue removal from population
+    Global::Pop.prepare_to_die(day, person);
+    // person->get_demographics()->die(day, person);
   }
   Demographics::mortality_queue->clear_events(day);
-
   return;
-
 }
 
 void Demographics::add_to_birthday_list(Person* person) {
@@ -425,6 +423,11 @@ void Demographics::add_to_birthday_list(Person* person) {
 
 void Demographics::delete_from_birthday_list(Person* person) {
   int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
+
+  FRED_VERBOSE(2,
+	       "deleting person %d to birthday vector for day = %d.\n ... birthday_vecs[ %d ].size() = %zu\n",
+	       person->get_id(), day_of_year, day_of_year, Demographics::birthday_vecs[ day_of_year ].size());
+
   map<Person*, int>::iterator itr;
   itr = Demographics::birthday_map.find(person);
   if(itr == Demographics::birthday_map.end()) {
@@ -444,13 +447,20 @@ void Demographics::delete_from_birthday_list(Person* person) {
 
   // delete from birthday map
   Demographics::birthday_map.erase(itr);
+
+  FRED_VERBOSE(2,
+	       "deleted person %d to birthday vector for day = %d.\n ... birthday_vecs[ %d ].size() = %zu\n",
+	       person->get_id(), day_of_year, day_of_year, Demographics::birthday_vecs[ day_of_year ].size());
+
 }
 
 void Demographics::update_people_on_birthday_list(int day) {
+
   int birthday_index = Date::get_day_of_year();
   if(Date::is_leap_year()) {
     // skip feb 29
     if(birthday_index == 60) {
+      FRED_VERBOSE(1, "LEAP DAY day %d index %d\n", day, birthday_index);
       return;
     }
     // shift all days after feb 28 forward
@@ -458,17 +468,34 @@ void Demographics::update_people_on_birthday_list(int day) {
       birthday_index--;
     }
   }
-
-  // update everyone on today birthday list
-  int birthday_count = 0;
+  
   int size = static_cast<int>(Demographics::birthday_vecs[birthday_index].size());
+
+  FRED_VERBOSE(1, "day %d update_people_on_birthday_list started. size = %d\n",
+	       day, size);
+  
+  // make a temporary list of birthday people
+  std::vector<Person*> birthday_list;
+  birthday_list.reserve(size);
+  birthday_list.clear();
   for(int p = 0; p < size; ++p) {
-    Demographics::birthday_vecs[birthday_index][p]->birthday(day);
+    Person* person = Demographics::birthday_vecs[birthday_index][p];
+    birthday_list.push_back(person);
+  }
+
+  // update everyone on birthday list
+  int birthday_count = 0;
+  for(int p = 0; p < size; ++p) {
+    Person* person = birthday_list[p];
+    person->birthday(day);
     birthday_count++;
   }
+
+  size = static_cast<int>(Demographics::birthday_vecs[birthday_index].size());
+
+  FRED_VERBOSE(1, "day %d update_people_on_birthday_list finished. size = %d\n",
+	       day, size);
   
-  FRED_VERBOSE(1, "update_people_on_birthday_list: index = %d count = %d\n",
-	       birthday_index, birthday_count);
 }
 
 void Demographics::report(int day) {

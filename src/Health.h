@@ -103,7 +103,7 @@ public:
   void recover(Person* self, Disease* disease);
   void advance_seed_infection(int disease_id, int days_to_advance);
   void infect(Person* self, Person* infectee, int disease_id, Mixing_Group* mixing_group, int day);
-//  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
+  //  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
   void start_wearing_face_mask() {
     this->wears_face_mask_today = true;
   }
@@ -111,9 +111,6 @@ public:
     this->wears_face_mask_today = false;
   }
   void terminate(Person* self);
-  void die() {
-    this->alive = false;
-  }
   void clear_past_infections(int disease_id) {
     this->past_infections[disease_id].clear();
   }
