@@ -84,6 +84,10 @@ pop_outfile = pop_out
 # date match should be in format MM-DD-YYYY with * as a wildcard for any of the fields
 output_population_date_match = 01-01-* 
 
+# if set, out each person health status changes to logfile
+# with tag "HEALTH CHART:"
+enable_health_charts = 0
+
 ##########################################################
 #
 # VISUALIZATION DATA COLLECTION (OPTIONAL)

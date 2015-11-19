@@ -228,6 +228,7 @@ public:
   static double School_absenteeism;
 
   //Boolean flags
+  static bool Enable_Health_Charts;
   static bool Enable_Transmission_Network;
   static bool Enable_Sexual_Partner_Network;
   static bool Enable_Transmission_Bias;

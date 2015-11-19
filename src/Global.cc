@@ -74,6 +74,7 @@ char Global::Start_date[FRED_STRING_SIZE];
 char Global::Seasonality_Timestep[FRED_STRING_SIZE];
 double Global::Work_absenteeism = 0.0;
 double Global::School_absenteeism = 0.0;
+bool Global::Enable_Health_Charts = false;
 bool Global::Enable_Transmission_Network = false;
 bool Global::Enable_Sexual_Partner_Network = false;
 bool Global::Enable_Transmission_Bias = false;
@@ -201,6 +202,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Size_Per_School = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_mean_household_distance_from_school", &temp_int);
   Global::Report_Mean_Household_Distance_From_School = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_health_charts", &temp_int);
+  Global::Enable_Health_Charts = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_transmission_network", &temp_int);
   Global::Enable_Transmission_Network = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_sexual_partner_network", &temp_int);
