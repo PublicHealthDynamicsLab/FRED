@@ -19,6 +19,7 @@
 
 #include "Global.h"
 #include "Abstract_Grid.h"
+#include "Neighborhood_Patch.h"
 #include <fstream>
 
 class Epidemic;
@@ -61,6 +62,13 @@ public:
   double get_bite_rate() { return this->bite_rate; }
   void get_vector_population(int disease_id);
 
+  std::vector<int> read_vector_control_tracts(char * filename);
+  void setup_vector_control_by_census_tract();
+  int select_places_for_vector_control(Neighborhood_Patch * patch_n, int day);
+  void update_vector_control_by_census_tract(int day);
+  void add_infectious_patch(Place * p, int day);
+  bool get_vector_control_status(){return this->Enable_Vector_Control;}
+
 protected:
   void get_county_ids();
   void get_immunity_from_file();
@@ -102,6 +110,8 @@ protected:
   int workplace_vectors;
   int household_vectors;
   int neighborhood_vectors;
+
+  // vector control parameters
   int total_places_in_vector_control;
   int schools_in_vector_control;
   int households_in_vector_control;
@@ -117,7 +127,7 @@ protected:
   double vector_control_efficacy;
   double vector_control_neighborhoods_rate;
 
-  // vector control parameters
+
   static bool Enable_Vector_Control;
   static bool School_Vector_Control;
   static bool Workplace_Vector_Control;

@@ -436,7 +436,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
 
 void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
-   FRED_VERBOSE(0, "become-exposed: person %d is exposed to disease %d day %d\n",
+   FRED_VERBOSE(1, "become_exposed: person %d is exposed to disease %d day %d\n",
 		self->get_id(), disease_id, day);
 
   if(this->infection[disease_id] != NULL) {

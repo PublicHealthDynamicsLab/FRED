@@ -23,7 +23,7 @@
 #include "Person.h"
 #include "Place_List.h"
 #include "Random.h"
-
+#include "Neighborhood_Patch.h"
 //
 // Terminology:
 //

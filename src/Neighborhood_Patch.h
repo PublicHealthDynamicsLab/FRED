@@ -185,12 +185,17 @@ public:
 
   void register_place(Place* place);
 
+  void set_vector_control_status(int v_s){this->vector_control_status = v_s;}
+
+  int get_vector_control_status(){return this->vector_control_status;}
+
 protected:
   Neighborhood_Layer* grid;
   Place* neighborhood;
   std::vector<Person*> person;
   int popsize;
   double mean_household_income;
+  int vector_control_status;
 
   // lists of places by type
   place_vector_t households;

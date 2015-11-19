@@ -108,6 +108,7 @@ bool Global::Report_Childhood_Presenteeism = false;
 bool Global::Report_Serial_Interval = false;
 bool Global::Report_Incidence_By_County = false;
 bool Global::Report_Incidence_By_Census_Tract = false;
+bool Global::Report_Symptomatic_Incidence_By_Census_Tract = false;  
 bool Global::Assign_Teachers = false;
 bool Global::Enable_Household_Shelter = 0;
 bool Global::Enable_Isolation = 0;
@@ -275,6 +276,8 @@ void Global::get_global_parameters() {
   Global::Report_Incidence_By_County = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_incidence_by_census_tract",&temp_int);
   Global::Report_Incidence_By_Census_Tract = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_symptomatic_incidence_by_census_tract",&temp_int);
+  Global::Report_Symptomatic_Incidence_By_Census_Tract = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_shelter_in_place", &temp_int);
   Global::Enable_Household_Shelter = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_isolation", &temp_int);

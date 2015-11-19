@@ -384,6 +384,12 @@ public:
   bool get_vector_control_status() {
     return this->vector_control_status;
   }
+  void set_vector_control(){
+    vector_control_status = true;
+  }
+  void stop_vector_control(){
+      vector_control_status = false;
+  }
 
 protected:
   static double** prob_contact;

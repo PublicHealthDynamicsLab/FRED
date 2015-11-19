@@ -188,10 +188,7 @@ void fred_setup(int argc, char* argv[]) {
   Utils::fred_print_lap_time("Places.setup_group_quarters");
   Global::Places.setup_households();
   Utils::fred_print_lap_time("Places.setup_households");
-  if(Global::Enable_Vector_Layer) {
-    Global::Vectors->setup();
-    Utils::fred_print_lap_time("Vectors->setup");
-  }
+
 
   // define FRED-specific places and have each person enroll as needed
 
@@ -227,6 +224,11 @@ void fred_setup(int argc, char* argv[]) {
   FRED_STATUS(0, "deleting place_label_map\n", "");
   Global::Places.delete_place_label_map();
   FRED_STATUS(0, "prepare places finished\n", "");
+  
+  if(Global::Enable_Vector_Layer) {
+    Global::Vectors->setup();
+    Utils::fred_print_lap_time("Vectors->setup");
+  }
 
   // create networks if needed
   if(Global::Enable_Transmission_Network) {
@@ -403,6 +405,11 @@ void fred_step(int day) {
 
   // update activity profiles on July 1
   if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1){
+  }
+
+  // Update vector dynamics
+  if(Global::Enable_Vector_Layer) {
+    Global::Vectors->update(day);
   }
 
   // update travel decisions

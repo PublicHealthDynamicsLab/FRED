@@ -39,6 +39,7 @@ private:
   void infect_vectors(int day, Place* place);
   void infect_hosts(int day, int disease_id, Place* place);
   std::vector<Person*> visitors;
+  std::vector<Person*> susceptible_visitors;
 };
 
 #endif // _FRED_VECTOR_TRANSMISSION_H

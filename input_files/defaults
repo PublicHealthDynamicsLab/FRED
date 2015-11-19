@@ -70,6 +70,7 @@ report_generation_time = 0
 report_serial_interval = 0 
 report_incidence_by_county = 0
 report_incidence_by_census_tract = 0
+report_symptomatic_incidence_by_census_tract = 0
 quality_control = 1
 print_household_locations = 0
 rr_delay = 10

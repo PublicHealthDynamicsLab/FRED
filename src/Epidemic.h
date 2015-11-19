@@ -116,6 +116,7 @@ public:
   void report_transmission_by_age_group_to_file(int day);
   void report_incidence_by_county(int day);
   void report_incidence_by_census_tract(int day);
+  void report_symptomatic_incidence_by_census_tract(int day);
   void report_place_of_infection(int day);
   void report_presenteeism(int day);
   void report_school_attack_rates_by_income_level(int day);
@@ -206,6 +207,8 @@ public:
     return this->symptomatic_incidence;
   }
 
+  int get_symptomatic_incidence_by_tract_index(int index_);
+
   int get_prevalence_count() {
     return this->prevalence_count;
   }
@@ -289,6 +292,8 @@ protected:
   void advance_seed_infection(Person* person);
 
   vector<Person*> daily_infections_list;
+  vector<Person*> daily_symptomatic_list;
+
   static int get_age_group(int age);
 
   // population health state counters
@@ -342,6 +347,7 @@ protected:
   // used for incidence counts by census_tracts
   int census_tracts;
   int* census_tract_incidence;
+  int * census_tract_symp_incidence; 
 
 };
 
