@@ -175,32 +175,40 @@ void Infection::setup() {
     }
   }
 
-  /*
-  FRED_VERBOSE(0, "OFFSET inc %0.2f %d symp %0.2f %d %d %d\n", 
-	       incubation_period, this->symptoms_start_date-this->exposure_date,
-	       symptoms_duration, this->symptoms_end_date-this->symptoms_start_date,
-	       this->infectious_start_date-this->exposure_date,
-	       this->infectious_end_date-this->exposure_date);
-  */
+  // code for testing ramps
+  if (Global::Test > 1) {
+    for (int i = 0; i <= 1000; i++) {
+      double dur = (this->infectious_end_date-this->infectious_start_date+1);
+      double t = 0.001*i*dur;
+      double start_full = this->disease->get_natural_history()->get_full_infectivity_start();
+      double end_full = this->disease->get_natural_history()->get_full_infectivity_end();
+      double x = t / dur;
+      double result;
+      if(x < start_full) {
+	result = exp(x/start_full - 1.0);
+      } else if(x < end_full) {
+	result = 1.0;
+      } else {
+	result = exp(-3.5*(x-end_full)/(1.0-end_full));
+      }
+      printf("RAMP: %f %f %d %d \n", t, result, this->infectious_start_date, this->infectious_end_date);
+    }
+    Global::Test = 0;
+    abort();
+  }
 
-  FRED_VERBOSE(1, "OFFSET %d %d %d %d\n", 
-	       this->symptoms_start_date-this->exposure_date,
-	       this->symptoms_end_date-this->symptoms_start_date,
-	       this->infectious_start_date-this->exposure_date,
-	       this->infectious_end_date-this->infectious_start_date);
-
-  // sanity checks
-  if(this->symptoms_start_date < this->exposure_date + 1) {
-    this->symptoms_start_date = this->exposure_date + 1;
-  }
-  if(this->symptoms_end_date < this->symptoms_start_date + 1) {
-    this->symptoms_end_date = this->symptoms_start_date + 1;
-  }
-  if(this->infectious_start_date < this->exposure_date + 1) {
-    this->infectious_start_date = this->exposure_date + 1;
-  }
-  if(this->infectious_end_date < this->infectious_start_date + 1) {
-    this->infectious_end_date = this->infectious_start_date + 1;
+  if (Global::Verbose > 1) {
+    printf("INFECTION day %d incub %0.2f symp_onset %d symp_dur %0.2f symp_dur %2d symp_start_date %d inf_start_date %d inf_end_date %d inf_onset %d inf_dur %d ",
+	   this->exposure_date, incubation_period, this->symptoms_start_date-this->exposure_date,
+	   symptoms_duration, this->symptoms_end_date-this->symptoms_start_date,
+	   this->symptoms_start_date, this->infectious_start_date,  this->infectious_end_date, 
+	   this->infectious_start_date-this->exposure_date,
+	   this->infectious_end_date-this->infectious_start_date);
+    for (int d = this->infectious_start_date; d <= this->infectious_end_date; d++) {
+      printf("%f ", get_infectivity(d));
+    }
+    printf("\n");
+    fflush(stdout);
   }
 
   // adjust symptoms date if asymptomatic
@@ -367,24 +375,32 @@ void Infection::update(int today) {
 
 double Infection::get_infectivity(int day) {
   if(day < this->infectious_start_date || this->infectious_end_date <= day) {
+    FRED_VERBOSE(0,"INFECTION: day %d OUT OF BOUNDS inf_start %d inf_end %d result 0.0\n",
+		 day, this->infectious_start_date, this->infectious_end_date);
     return 0.0;
   }
 
   // day is during infectious period
   double start_full = this->disease->get_natural_history()->get_full_infectivity_start();
   double end_full = this->disease->get_natural_history()->get_full_infectivity_end();
-  double fract = (double)(day - this->infectious_start_date + 1) / (double) (this->infectious_end_date - this->infectious_start_date + 1);
-  double result = 1.0;
-  if(fract < start_full) {
-    double x = fract / start_full;
-    result = 1.0 / (1.0 + exp(-10.0*(x-0.5)));
-  } else if(end_full < fract) {
-    double x = (fract - end_full) / (1.0 - end_full);
-    result = 1.0 - 1.0 / (1.0 + exp(-10.0*(x-0.5)));
+
+  // assumes total duration of infectiousness starts one day before infectious_start_date:
+  int total_duration = this->infectious_end_date - this->infectious_start_date + 1;
+  int days_infectious = day - this->infectious_start_date + 1;
+  double fraction = static_cast<double>(days_infectious) / static_cast<double>(total_duration);
+  double result = 0.0;
+  if(fraction < start_full) {
+    result = exp(fraction/start_full - 1.0);
+  } else if(fraction <= end_full) {
+    result = 1.0;
+  } else {
+    result = exp(-3.5*(fraction-end_full)/(1.0-end_full));
   }
-  FRED_VERBOSE(1,"LOGISTIC: fract %f result %f\n", fract, result);
-  if (this->is_symptomatic(day) == false) {
-    result += this->disease->get_natural_history()->get_asymptomatic_infectivity();
+  FRED_VERBOSE(1,"INFECTION: day %d days_infectious %d / %d  fract %f start_full %f end_full %f result %f\n", 
+	       day, days_infectious, total_duration, fraction, start_full, end_full, result);
+
+  if (this->will_develop_symptoms == false) {
+    result *= this->disease->get_natural_history()->get_asymptomatic_infectivity();
   }
   return result;
 }
@@ -397,16 +413,21 @@ double Infection::get_symptoms(int day) {
   // day is during symptoms period
   double start_full = this->disease->get_natural_history()->get_full_symptoms_start();
   double end_full = this->disease->get_natural_history()->get_full_symptoms_end();
-  double fract = static_cast<double>(day - this->symptoms_start_date + 1) / static_cast<double>(this->symptoms_end_date - this->symptoms_start_date + 1);
-  double result = 1.0;
-  if(fract < start_full) {
-    double x = fract / start_full;
-    result = 1.0 / (1.0 + exp(-10.0*(x-0.5)));
-  } else if(end_full < fract) {
-    double x = (fract - end_full) / (1.0 - end_full);
-    result = 1.0 - 1.0 / (1.0 + exp(-10.0 * (x - 0.5)));
+
+  // assumes total duration of symptoms starts one day before symptoms_start_date:
+  int total_duration = this->symptoms_end_date - this->symptoms_start_date + 1;
+
+  int days_symptomatic = day - this->symptoms_start_date + 1;
+  double fraction = static_cast<double>(days_symptomatic) / static_cast<double>(total_duration);
+  double result = 0.0;
+  if(fraction < start_full) {
+    result = exp(fraction/start_full - 1.0);
+  } else if(fraction <= end_full) {
+    result = 1.0;
+  } else {
+    result = exp(-3.5*(fraction-end_full)/(1.0-end_full));
   }
-  FRED_VERBOSE(1,"LOGISTIC: fract %f result %f\n", fract, result);
   return result;
 }
+
 

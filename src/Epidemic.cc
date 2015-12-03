@@ -322,9 +322,17 @@ void Epidemic::become_exposed(Person* person, int day) {
 
   // update next event list
   int infectious_start_date = person->get_infectious_start_date(this->id);
+  if (0 <= infectious_start_date && infectious_start_date <= day) {
+    FRED_VERBOSE(0, "TIME WARP day %d inf %d\n", day, infectious_start_date);
+    infectious_start_date = day+1;
+  }
   this->infectious_start_event_queue->add_event(infectious_start_date, person);
 
   int symptoms_start_date = person->get_symptoms_start_date(this->id);
+  if (0 <= symptoms_start_date && symptoms_start_date <= day) {
+    FRED_VERBOSE(0, "TIME WARP day %d symp %d\n", day, symptoms_start_date);
+    symptoms_start_date = day+1;
+  }
   this->symptoms_start_event_queue->add_event(symptoms_start_date, person);
 
   // update epidemic counters

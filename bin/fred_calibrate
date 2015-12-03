@@ -238,10 +238,11 @@ while ($error > $threshold) {
   
   # adjust to achieve desired CAR 
   my $ar_ratio = $CARtarget / $CAR;
-  $h = ($h + $h * $ar_ratio ) / 2.0;
-  $n = ($n + $n * $ar_ratio ) / 2.0;
-  $s = ($s + $s * $ar_ratio ) / 2.0;
-  $w = ($w + $w * $ar_ratio ) / 2.0;
+  my $adjust = (2.0 + $ar_ratio) / 3.0;
+  $h *= $adjust;
+  $n *= $adjust;
+  $s *= $adjust;
+  $w *= $adjust;
   $h = 1.0 if $h > 1.0;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
