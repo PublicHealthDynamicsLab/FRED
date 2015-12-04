@@ -1,11 +1,12 @@
+######################################################
 #
 # File: params.influenza_ramp
 #
 
-# This file includes a model of influenza in which infectivity starting
-# 1 day before symptoms and lasts for 7 days.  Both symptoms and
-# infectivity ramps up and ramps down. Contact rates have been
-# recalibrated and are include below.
+# This file includes a model of influenza in which infectivity starts 1
+# day before symptoms and lasts for 7 days.  Both symptoms and
+# infectivity ramp up and ramp down. Contact rates have been
+# recalibrated and are included below.
 
 #### lognormal incubation and infectious offset
 influenza_symptoms_distributions = lognormal
