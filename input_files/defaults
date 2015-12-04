@@ -1200,11 +1200,12 @@ accept_vaccine_dose_for_child_barriers_odds_ratio = 1
 
 # ALTERNATIVE INFLUENZA MODEL:
 
-# This file includes a model of influenza in which infectivity startS
-# 1 day before symptoms and lasts for 7 days.  Both symptoms and
-# infectivity ramp up and ramp down. Contact rates have been
-# recalibrated and are includes.
-# To use this model, uncomment the next line:
+# The file params.influenza_ramp includes a model of influenza in which
+# infectivity starts 1 day before symptoms and lasts for 7 days.  Both
+# symptoms and infectivity ramp up and ramp down. Contact rates have
+# been recalibrated and are included.  To use this model, uncomment the
+# following line:
+
 #include $FRED_HOME/input_files/params.influenza_ramp
 
 
