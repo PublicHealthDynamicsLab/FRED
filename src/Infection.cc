@@ -14,6 +14,7 @@
 
 #include "Disease.h"
 #include "Global.h"
+#include "Drug_Use_Infection.h"
 #include "HIV_Infection.h"
 #include "Household.h"
 #include "Infection.h"
@@ -73,6 +74,10 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Mixing
 Infection* Infection::get_new_infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day) {
   if(strcmp(disease->get_natural_history_model(), "basic") == 0) {
     return new Infection(disease, infector, host, mixing_group, day);
+  }
+  
+  if(strcmp(disease->get_natural_history_model(), "drug_use") == 0) {
+    return new Drug_Use_Infection(disease, infector, host, mixing_group, day);
   }
   
   if(strcmp(disease->get_natural_history_model(), "hiv") == 0) {

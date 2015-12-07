@@ -47,6 +47,7 @@ using namespace std;
 #include "Vector_Layer.h"
 #include "Workplace.h"
 
+#include "Drug_Use_Epidemic.h"
 #include "HIV_Epidemic.h"
 
 /**
@@ -59,7 +60,10 @@ using namespace std;
  */
 
 Epidemic* Epidemic::get_epidemic(Disease* disease) {
-  if(strcmp(disease->get_disease_name(), "hiv") == 0) {
+  if(strcmp(disease->get_disease_name(), "drug_use") == 0) {
+    return new Drug_Use_Epidemic(disease);
+  }
+  else if(strcmp(disease->get_disease_name(), "hiv") == 0) {
     return new HIV_Epidemic(disease);
   } else {
     return new Epidemic(disease);

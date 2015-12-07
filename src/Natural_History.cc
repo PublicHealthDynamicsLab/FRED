@@ -13,6 +13,7 @@
 #include "Natural_History.h"
 
 #include "Age_Map.h"
+#include "Drug_Use_Natural_History.h"
 #include "HIV_Natural_History.h"
 #include "Disease.h"
 #include "Evolution.h"
@@ -56,6 +57,10 @@ Natural_History * Natural_History::get_new_natural_history(char* natural_history
   
   if (strcmp(natural_history_model, "basic") == 0) {
     return new Natural_History;
+  }
+  
+  if (strcmp(natural_history_model, "drug_use") == 0) {
+    return new Drug_Use_Natural_History;
   }
   
   if (strcmp(natural_history_model, "hiv") == 0) {
