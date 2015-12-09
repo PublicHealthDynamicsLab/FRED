@@ -31,7 +31,13 @@ public:
   void end_of_run();
 
 private:
-
+  double pct_init_nonusers;
+  double pct_init_asymp;
+  double pct_init_symp;
+  int user_count;
+  int non_users;
+  int asymptomatic_users;
+  int symptomatic_users;
 };
 
 #endif // _FRED_DRUG_USE_EPIDEMIC_H
