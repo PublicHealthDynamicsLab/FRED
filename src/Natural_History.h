@@ -12,6 +12,9 @@
 #ifndef _FRED_NATURAL_HISTORY_H
 #define _FRED_NATURAL_HISTORY_H
 
+#include <string>
+using namespace std;
+
 class Age_Map;
 class Disease;
 class Evolution;
@@ -127,6 +130,18 @@ public:
     return 0;
   }
   */
+
+  virtual int get_number_of_states() {
+    return 1;
+  }
+
+  virtual double get_transition_probability(int i, int j) {
+    return 0.0;
+  }
+
+  std::string get_state_name(int i) {
+    return "";
+  }
 
   int get_symptoms_distribution_type() {
     return symptoms_distribution_type;

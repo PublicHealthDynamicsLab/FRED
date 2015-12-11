@@ -9,18 +9,24 @@
   more information.
 */
 
-#ifndef _FRED_DRUG_USE_EPIDEMIC_H
-#define _FRED_DRUG_USE_EPIDEMIC_H
+#ifndef _FRED_MARKOV_EPIDEMIC_H
+#define _FRED_MARKOV_EPIDEMIC_H
+
+#include <vector>
+using namespace std;
 
 #include "Epidemic.h"
 class Disease;
 
-class Drug_Use_Epidemic : public Epidemic {
+typedef std::vector<Person*> person_vector_t;
+
+
+class Markov_Epidemic : public Epidemic {
 
 public:
-  Drug_Use_Epidemic(Disease * disease);
+  Markov_Epidemic(Disease * disease);
 
-  ~Drug_Use_Epidemic() {}
+  ~Markov_Epidemic() {}
 
   void setup();
 
@@ -30,14 +36,12 @@ public:
 
   void end_of_run();
 
+  void process_transition(int day, int i, int j, Person * person);
+
 private:
-  double pct_init_nonusers;
-  double pct_init_asymp;
-  double pct_init_symp;
-  int user_count;
-  int non_users;
-  int asymptomatic_users;
-  int symptomatic_users;
+  int number_of_states;
+  person_vector_t * people_in_state;
+
 };
 
-#endif // _FRED_DRUG_USE_EPIDEMIC_H
+#endif // _FRED_MARKOV_EPIDEMIC_H

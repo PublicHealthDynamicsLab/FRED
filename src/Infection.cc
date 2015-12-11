@@ -14,7 +14,6 @@
 
 #include "Disease.h"
 #include "Global.h"
-#include "Drug_Use_Infection.h"
 #include "HIV_Infection.h"
 #include "Household.h"
 #include "Infection.h"
@@ -76,8 +75,8 @@ Infection* Infection::get_new_infection(Disease* disease, Person* infector, Pers
     return new Infection(disease, infector, host, mixing_group, day);
   }
   
-  if(strcmp(disease->get_natural_history_model(), "drug_use") == 0) {
-    return new Drug_Use_Infection(disease, infector, host, mixing_group, day);
+  if(strcmp(disease->get_natural_history_model(), "markov") == 0) {
+    return new Infection(disease, infector, host, mixing_group, day);
   }
   
   if(strcmp(disease->get_natural_history_model(), "hiv") == 0) {
@@ -221,9 +220,8 @@ void Infection::setup() {
     this->symptoms_start_date = NEVER;
     this->symptoms_end_date = NEVER;
   }
+  print();
   return;
-
-  // print();
 }
 
 

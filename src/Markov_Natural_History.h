@@ -9,17 +9,20 @@
   more information.
 */
 
-#ifndef _FRED_DRUG_USE_NATURAL_HISTORY_H
-#define _FRED_DRUG_USE_NATURAL_HISTORY_H
+#ifndef _FRED_MARKOV_NATURAL_HISTORY_H
+#define _FRED_MARKOV_NATURAL_HISTORY_H
 
 #include "Natural_History.h"
 
-class Drug_Use_Natural_History : public Natural_History {
+#include <vector>
+using namespace std;
+
+class Markov_Natural_History : public Natural_History {
 
 public:
-  Drug_Use_Natural_History();
+  Markov_Natural_History();
 
-  ~Drug_Use_Natural_History();
+  ~Markov_Natural_History();
 
   void setup(Disease *disease);
 
@@ -47,9 +50,24 @@ public:
 
   bool gen_immunity_infection(double real_age) { return true; }
 
-  void initialize_evolution_reporting_grid(Regional_Layer* grid) {}
+  void print();
+
+  int get_number_of_states() {
+    return this->number_of_states;
+  }
+
+  std::string get_state_name(int i) {
+    return this->state_name[i];
+  }
+
+  double get_transition_probability(int i, int j) {
+    return this->transition_matrix[i][j];
+  }
 
 private:
+  int number_of_states;
+  std::vector<std::string>state_name;
+  double ** transition_matrix;
 
 };
 

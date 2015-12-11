@@ -47,7 +47,7 @@ using namespace std;
 #include "Vector_Layer.h"
 #include "Workplace.h"
 
-#include "Drug_Use_Epidemic.h"
+#include "Markov_Epidemic.h"
 #include "HIV_Epidemic.h"
 
 /**
@@ -61,7 +61,7 @@ using namespace std;
 
 Epidemic* Epidemic::get_epidemic(Disease* disease) {
   if(strcmp(disease->get_disease_name(), "drug_use") == 0) {
-    return new Drug_Use_Epidemic(disease);
+    return new Markov_Epidemic(disease);
   }
   else if(strcmp(disease->get_disease_name(), "hiv") == 0) {
     return new HIV_Epidemic(disease);
@@ -1556,20 +1556,25 @@ void Epidemic::process_infectious_end_events(int day) {
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
-
-    FRED_VERBOSE(1, "infectious_end_event day %d person %d\n",
-		 day, person->get_id());
-
-    // remove from active list
-    this->potentially_infectious_people.erase(person);
-
-    this->removed_people++;
-
-    // update person's health chart
-    person->recover(this->disease);
+    recover(person, day);
   }
   this->infectious_end_event_queue->clear_events(day);
 }
+
+void Epidemic::recover(Person* person, int day) {
+  FRED_VERBOSE(1, "infectious_end_event day %d person %d\n",
+	       day, person->get_id());
+  
+  // remove from active list
+  this->potentially_infectious_people.erase(person);
+  
+  this->removed_people++;
+  
+  // update person's health chart
+  person->recover(this->disease);
+  person->update_infection(day, this->id);
+}
+
 
 void Epidemic::process_symptoms_start_events(int day) {
   int size = symptoms_start_event_queue->get_size(day);
@@ -1719,7 +1724,7 @@ void Epidemic::update(int day) {
   // update list of infected people
   for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ) {
     Person* person = (*it);
-    FRED_VERBOSE(1, "update_infection for person %d\n", person->get_id());
+    FRED_VERBOSE(1, "update_infection for person %d day %d\n", person->get_id(), day);
     person->update_infection(day, this->id);
 
     // handle case fatality
@@ -1752,6 +1757,7 @@ void Epidemic::update(int day) {
     }
 
     if(person->is_infected(this->id) == false || person->is_case_fatality(this->id)) {
+      FRED_VERBOSE(1, "update_infection for person %d day %d - deleting from infected_people list\n", person->get_id(), day);
       this->infected_people.erase(it++);
     } else {
       ++it;
