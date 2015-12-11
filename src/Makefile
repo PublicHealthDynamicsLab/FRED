@@ -131,7 +131,8 @@ DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
 	Natural_History.o Transmission.o \
 	Respiratory_Transmission.o Sexual_Transmission.o Vector_Transmission.o \
 	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
-	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  
+	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
+	Markov_Epidemic.o Markov_Natural_History.o
 
 PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
 	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o

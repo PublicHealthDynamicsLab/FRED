@@ -235,6 +235,7 @@ public:
   // events processing
   void process_infectious_start_events(int day);
   void process_infectious_end_events(int day);
+  void recover(Person* person, int day);
   void process_symptoms_start_events(int day);
   void process_symptoms_end_events(int day);
   void process_immunity_start_events(int day);

@@ -216,9 +216,6 @@ void Disease::setup() {
 
   FRED_VERBOSE(0, "disease %d %s setup entered\n", this->id, this->disease_name);
 
-  this->epidemic = Epidemic::get_epidemic(this);
-  this->epidemic->setup();
-
   // Initialize Natural History Model
   this->natural_history = Natural_History::get_new_natural_history(this->natural_history_model);
 
@@ -231,6 +228,10 @@ void Disease::setup() {
 
   // read in parameters and files associated with this transmission mode: 
   this->transmission->setup(this);
+
+  // Initialize Epidemic Model
+  this->epidemic = Epidemic::get_epidemic(this);
+  this->epidemic->setup();
 
   fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
   fflush(Global::Statusfp);
