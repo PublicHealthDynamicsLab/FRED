@@ -38,7 +38,6 @@ void Markov_Epidemic::setup() {
 
   this->people_in_state = new person_vector_t [this->number_of_states];
 
-
   for (int i = 0; i < this->number_of_states; i++) {
     this->people_in_state[i].reserve(Global::Pop.get_pop_size());
     this->people_in_state[i].clear();
@@ -55,36 +54,42 @@ void Markov_Epidemic::update(int day) {
   if (day == 0) {
     double pct_init_nonusers = 32675.0 / 34653.0;
     double pct_init_asymp = 861.0 / 34653.0;
-    double pct_init_symp = 1117.0 / 34653.0;
+    double pct_init_problem = 1117.0 / 34653.0;
 
     // set initial users
+    int popsize = Global::Pop.get_pop_size();
+    int n = 0;
     for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
       Person* person = Global::Pop.get_person_by_index(p);
       if(person == NULL) {
 	continue;
       }
-      double r = Random::draw_random();
-      if (r < pct_init_asymp + pct_init_symp) {
-
-	// infect the person
-	person->become_exposed(this->id, NULL, NULL, day);
-	// notify the epidemic
-	Epidemic::become_exposed(person, day);
-
-	if (r < pct_init_symp) {
-	  // person is problem user
-	  // person->become_symptomatic(this->disease);
-	  people_in_state[2].push_back(person);
-	}
-	else {
-	  // person is asymptomatic user
-	  people_in_state[1].push_back(person);
-	}
-      }
-      else {
+      if (n < pct_init_nonusers * popsize) {
 	people_in_state[0].push_back(person);
       }
+      else {
+	if (n < popsize * (pct_init_nonusers + pct_init_asymp)) {
+	  people_in_state[1].push_back(person);
+	}
+	else {
+	  people_in_state[2].push_back(person);
+	}
+	// infect the person
+	person->become_exposed(this->id, NULL, NULL, day);
+	Epidemic::become_exposed(person, day);
+      }
+      n++;
     }
+
+    /*
+    FILE * fp = fopen("xx", "w");
+    int nn = people_in_state[0].size();
+    int an = people_in_state[1].size();
+    int pn = people_in_state[2].size();
+    fprintf(fp, "0 %d %d %d\n", nn, an, pn);
+    fclose(fp);
+    */
+
   }
 
   if (day > 0 && day % 7 == 0) {
@@ -137,6 +142,16 @@ void Markov_Epidemic::update(int day) {
 	}
       }
     }
+
+    /*
+    FILE * fp = fopen("xx", "a");
+    int nn = people_in_state[0].size();
+    int an = people_in_state[1].size();
+    int pn = people_in_state[2].size();
+    fprintf(fp, "%d %d %d %d\n", day/7, nn, an, pn);
+    fclose(fp);
+    */
+
   }
 
   Epidemic::update(day);
@@ -145,8 +160,14 @@ void Markov_Epidemic::update(int day) {
 
 void Markov_Epidemic::process_transition(int day, int i, int j, Person * person) {
 
-  FRED_VERBOSE(0, "Markov transition day %d state %d to state %d person %d\n",
-	       day,i,j,person->get_id());
+  char state_i[80];
+  char state_j[80];
+
+  strcpy(state_i, this->disease->get_natural_history()->get_state_name(i).c_str());
+  strcpy(state_j, this->disease->get_natural_history()->get_state_name(j).c_str());
+
+  FRED_VERBOSE(0, "Markov transition day %d from %s to %sperson %d\n",
+	       day,state_i,state_j,person->get_id());
 
   if (i == 0) {
     // infect the person
@@ -186,15 +207,12 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
 
 void Markov_Epidemic::report_disease_specific_stats(int day) {
 
-  // put values that should appear in outfile here:
-
+  FRED_VERBOSE(0, "Markov report day %d \n",day);
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->disease->get_natural_history()->get_state_name(i).c_str());
     track_value(day, str, (int)(people_in_state[i].size()));
   }
-
-  // print additional daily output here:
 
 }
 

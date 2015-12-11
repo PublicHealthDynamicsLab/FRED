@@ -139,7 +139,7 @@ public:
     return 0.0;
   }
 
-  std::string get_state_name(int i) {
+  virtual std::string get_state_name(int i) {
     return "";
   }
 
