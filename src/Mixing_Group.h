@@ -126,16 +126,6 @@ public:
     return this->N_orig;
   }
 
-  /**
-   * Get the number of cases of a given disease for day.
-   *
-   * @param disease_id an integer representation of the disease
-   * @return the count of cases for a given diease
-   */
-  int get_current_cases(int disease_id) {
-    return this->get_current_symptomatic_agents(disease_id);
-  }
-
 //  /**
 //   * Get the number of deaths from a given disease for a day.
 //   * The member variable deaths gets reset when <code>update()</code> is called, which for now is on a daily basis.
@@ -255,29 +245,51 @@ public:
     this->infectious_bitset.reset(disease_id);
   }
 
-  void add_new_infection(int disease_id) {
+  void increment_new_infections(int day, int disease_id) {
+    if (this->last_update < day) {
+      this->last_update = day;
+      this->new_infections[disease_id] = 0;
+    }
     this->new_infections[disease_id]++;
     this->total_infections[disease_id]++;
   }
 
-  void add_current_infection(int disease_id) {
+  void increment_current_infections(int day, int disease_id) {
+    if (this->last_update < day) {
+      this->last_update = day;
+      this->current_infections[disease_id] = 0;
+    }
     this->current_infections[disease_id]++;
   }
 
-  void add_new_symptomatic_infection(int disease_id) {
+  void increment_new_symptomatic_infections(int day, int disease_id) {
+    if (this->last_update < day) {
+      this->last_update = day;
+      this->new_symptomatic_infections[disease_id] = 0;
+    }
     this->new_symptomatic_infections[disease_id]++;
     this->total_symptomatic_infections[disease_id]++;
   }
 
-  void add_current_symptomatic_infection(int disease_id) {
+  void increment_current_symptomatic_infections(int day, int disease_id) {
+    if (this->last_update < day) {
+      this->last_update = day;
+      this->current_symptomatic_infections[disease_id] = 0;
+    }
     this->current_symptomatic_infections[disease_id]++;
   }
 
-  int get_new_infections(int disease_id) {
+  int get_new_infections(int day, int disease_id) {
+    if (last_update < day) {
+      return 0;
+    }
     return this->new_infections[disease_id];
   }
 
-  int get_current_infections(int disease_id) {
+  int get_current_infections(int day, int disease_id) {
+    if (last_update < day) {
+      return 0;
+    }
     return this->current_infections[disease_id];
   }
 
@@ -285,24 +297,22 @@ public:
     return this->total_infections[disease_id];
   }
 
-  int get_new_symptomatic_infections(int disease_id) {
+  int get_new_symptomatic_infections(int day, int disease_id) {
+    if (last_update < day) {
+      return 0;
+    }
     return this->new_symptomatic_infections[disease_id];
   }
 
-  int get_current_symptomatic_infections(int disease_id) {
+  int get_current_symptomatic_infections(int day, int disease_id) {
+    if (last_update < day) {
+      return 0;
+    }
     return this->current_symptomatic_infections[disease_id];
   }
 
   int get_total_symptomatic_infections(int disease_id) {
     return this->total_symptomatic_infections[disease_id];
-  }
-
-  int get_current_infectious_agents(int disease_id) {
-    return this->current_infectious_agents[disease_id];
-  }
-
-  int get_current_symptomatic_agents(int disease_id) {
-    return this->current_symptomatic_agents[disease_id];
   }
 
   /**
@@ -357,6 +367,13 @@ public:
     return this->last_day_infectious;
   }
 
+  void resets(int disease_id) {
+    new_infections[disease_id] = 0;
+    current_infections[disease_id] = 0;
+    new_symptomatic_infections[disease_id] = 0;
+    current_symptomatic_infections[disease_id] = 0;
+  }
+
 protected:
   int N_orig;             // orig number of enrollees
 
@@ -364,17 +381,14 @@ protected:
   person_vec_t* infectious_people;
 
   // epidemic counters
-  int* new_infections;        // new infections today
-  int* current_infections;        // current active infections today
-  int* total_infections;         // total infections over all time
-  int* new_symptomatic_infections;     // new sympt infections today
+  int* new_infections;				// new infections today
+  int* current_infections;	      // current active infections today
+  int* new_symptomatic_infections;	   // new sympt infections today
   int* current_symptomatic_infections; // current active sympt infections
+  int* total_infections;         // total infections over all time
   int* total_symptomatic_infections; // total sympt infections over all time
 
-  // these counts refer to today's agents:
-  int* current_infectious_agents;  // total infectious agents today
-  int* current_symptomatic_agents;   // total sympt infections today
-
+  // first and last days when visited by infectious people
   int first_day_infectious;
   int last_day_infectious;
 
@@ -387,20 +401,12 @@ protected:
   fred::disease_bitset recovered_bitset;
   fred::disease_bitset exposed_bitset;
 
-  void add_infectious_agent(int disease_id, Person* person) {
-    this->infectious_people[disease_id].push_back(person);
-    this->current_infectious_agents[disease_id]++;
-  }
-
-  void add_symptomatic_agent(int disease_id) {
-    this->current_symptomatic_agents[disease_id]++;
-  }
-
 private:
   int id; // id
   char label[32]; // external id
   char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
   char subtype;
+  int last_update;
 };
 
 #endif /* _FRED_MIXING_GROUP_H_ */

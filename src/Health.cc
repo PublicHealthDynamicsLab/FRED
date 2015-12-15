@@ -1033,27 +1033,26 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Mixing_Group
 }
 
 void Health::update_mixing_group_counts(Person* self, int day, int disease_id, Mixing_Group* mixing_group) {
+  // this is only called for people with an active infection
+  assert(is_infected(disease_id));
+
+  // mixing group must exist to update
   if(mixing_group == NULL) {
     return;
   }
-  if(is_infected(disease_id)) {
-    // printf("DAY %d person %d place %s ", day, self->get_id(), place->get_label()); 
-    if(is_newly_infected(day, disease_id)) {
-      mixing_group->add_new_infection(disease_id);
-      // printf("NEWLY "); 
-    }
-    mixing_group->add_current_infection(disease_id);
-    // printf("INFECTED "); 
 
-    if(is_symptomatic(disease_id)) {
-      if(is_newly_symptomatic(day, disease_id)) {
-        mixing_group->add_new_symptomatic_infection(disease_id);
-        // printf("NEWLY ");
-      }
-      mixing_group->add_current_symptomatic_infection(disease_id);
-      // printf("SYMPTOMATIC"); 
+  // update infection counters
+  if(is_newly_infected(day, disease_id)) {
+    mixing_group->increment_new_infections(day, disease_id);
+  }
+  mixing_group->increment_current_infections(day, disease_id);
+
+  // update symptomatic infection counters
+  if(is_symptomatic(disease_id)) {
+    if(is_newly_symptomatic(day, disease_id)) {
+      mixing_group->increment_new_symptomatic_infections(day, disease_id);
     }
-    // printf("\n"); 
+    mixing_group->increment_current_symptomatic_infections(day, disease_id);
   }
 }
 

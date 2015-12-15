@@ -287,8 +287,6 @@ void Visualization_Layer::print_visualization_data(int day) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/VIS/run%d", Global::Simulation_directory, Global::Simulation_run_number);
       print_household_data(dir, disease_id, day);
-      // print_household_data(dir, disease_id, Global::OUTPUT_P, (char *)"P", day);
-      // print_household_data(dir, disease_id, Global::OUTPUT_R, (char *)"R", day);
     }
   }
 
@@ -320,6 +318,19 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
     if(house->is_exposed(disease_id)) {
+      fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+    }
+  }
+  fclose(fp);
+
+  // household with active infections
+  sprintf(filename, "%s/dis%d/P/households-%d.txt", dir, disease_id, day);
+  fp = fopen(filename, "w");
+  fprintf(fp, "lat long\n");
+  for(int i = 0; i < size; ++i) {
+    Place* house = this->households[i];
+    //  just consider human infectious, not mosquito neither infectious places visited
+    if(house->get_current_infections(day, disease_id) > 0) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
@@ -420,7 +431,7 @@ void Visualization_Layer::print_output_data(char* dir, int disease_id, int outpu
   // printf("print_output_data to file %s\n", filename);
 
   // get the counts for this output_code
-  Global::Places.get_visualization_data_from_households(disease_id, output_code);
+  Global::Places.get_visualization_data_from_households(day, disease_id, output_code);
 
   // print out the non-zero patches
   for(int i = 0; i < this->rows; ++i) {
@@ -443,7 +454,7 @@ void Visualization_Layer::print_census_tract_data(char* dir, int disease_id, int
   sprintf(filename, "%s/dis%d/%s/census_tracts-%d.txt", dir, disease_id, output_str, day);
 
   // get the counts for this output_code
-  Global::Places.get_census_tract_data_from_households(disease_id, output_code);
+  Global::Places.get_census_tract_data_from_households(day, disease_id, output_code);
 
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "Census_tract\tCount\tPopsize\n");
@@ -470,7 +481,7 @@ void Visualization_Layer::print_population_data(char* dir, int disease_id, int d
 
   // get the counts for an arbitrary output code;
   // we only care about the popsize here.
-  Global::Places.get_visualization_data_from_households(disease_id, Global::OUTPUT_C);
+  Global::Places.get_visualization_data_from_households(day, disease_id, Global::OUTPUT_C);
   for(int i = 0; i < this->rows; ++i) {
     for(int j = 0; j < this->cols; ++j) {
       Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];

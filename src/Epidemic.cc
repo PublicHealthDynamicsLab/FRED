@@ -1751,15 +1751,20 @@ void Epidemic::update(int day) {
 	cancel_immunity_end(date, person);
       } 
 
-      // update epidemic counters
+      // update epidemic fatality counters
       this->daily_case_fatality_count++;
       this->total_case_fatality_count++;
     }
 
     if(person->is_infected(this->id) == false || person->is_case_fatality(this->id)) {
       FRED_VERBOSE(1, "update_infection for person %d day %d - deleting from infected_people list\n", person->get_id(), day);
+      // delete from infected list
       this->infected_people.erase(it++);
     } else {
+      // update person's mixing group infection counters
+      person->update_household_counts(day, this->id);
+      person->update_school_counts(day, this->id);
+      // move on the next infected person
       ++it;
     }
   }
