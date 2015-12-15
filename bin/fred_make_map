@@ -124,11 +124,11 @@ set style line 7 lc rgb "orange" lt 1 lw 0.2
 set style line 8 lc rgb "orange-red" lt 1 lw 0.2
 set style line 9 lc rgb "red" lt 1 lw 0.2
 set style line 10 lc rgb "red" lt 1 lw 0.2
-set style line 11 lc rgb "red" lt 1 lw 0.2
-set style line 12 lc rgb "beige" lt 1 lw 0.2
-set style line 13 lc rgb "cornsilk" lt 1 lw 0.2
-set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
-set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
+# set style line 11 lc rgb "red" lt 1 lw 0.2
+# set style line 12 lc rgb "beige" lt 1 lw 0.2
+# set style line 13 lc rgb "light-goldenrod" lt 1 lw 0.2
+# set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
+# set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
 
 set style line 999 lc rgb 'white' lt 1 lw 1
 set style line 99 lc rgb 'gray' lt 1 lw 1
