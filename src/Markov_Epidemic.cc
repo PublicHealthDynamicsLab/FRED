@@ -178,7 +178,7 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
       // person is asymptomatic
     }
     if (j == 2) {
-      // person->become_symptomatic(this->disease);
+      person->become_symptomatic(this->disease);
     }
   }
   
@@ -187,7 +187,7 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
       Epidemic::recover(person, day);
     }
     if (j == 2) {
-      // person->become_symptomatic(this->disease);
+      person->become_symptomatic(this->disease);
     }
   }
   
@@ -196,7 +196,7 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
       Epidemic::recover(person, day);
     }
     if (j == 1) {
-      // person->resolve_symptoms(this->disease);
+      person->resolve_symptoms(this->disease);
     }
   }
 

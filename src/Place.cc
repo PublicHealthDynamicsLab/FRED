@@ -88,8 +88,6 @@ Place::Place() : Mixing_Group("BLANK") {
   this->new_symptomatic_infections = new int[diseases];
   this->current_symptomatic_infections = new int[diseases];
   this->total_symptomatic_infections = new int[diseases];
-  this->current_infectious_agents = new int[diseases];
-  this->current_symptomatic_agents = new int[diseases];
 
   // zero out all disease-specific counts
   for(int d = 0; d < diseases; ++d) {
@@ -98,8 +96,6 @@ Place::Place() : Mixing_Group("BLANK") {
     this->total_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
     this->total_symptomatic_infections[d] = 0;
-    this->current_infectious_agents[d] = 0;
-    this->current_symptomatic_agents[d] = 0;
     this->infectious_people[d].clear();
   }
 
@@ -138,8 +134,6 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->new_symptomatic_infections = new int[diseases];
   this->current_symptomatic_infections = new int[diseases];
   this->total_symptomatic_infections = new int[diseases];
-  this->current_infectious_agents = new int[diseases];
-  this->current_symptomatic_agents = new int[diseases];
 
   // zero out all disease-specific counts
   for(int d = 0; d < diseases; ++d) {
@@ -148,8 +142,6 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
     this->total_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
     this->total_symptomatic_infections[d] = 0;
-    this->current_infectious_agents[d] = 0;
-    this->current_symptomatic_agents[d] = 0;
     this->infectious_people[d].clear();
   }
 
@@ -164,8 +156,6 @@ void Place::prepare() {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
-    this->current_infectious_agents[d] = 0;
-    this->current_symptomatic_agents[d] = 0;
   }
   this->open_date = 0;
   this->close_date = INT_MAX;
@@ -184,16 +174,6 @@ void Place::prepare() {
 
 void Place::update(int sim_day) {
   // stub for future use.
-}
-
-void Place::reset_visualization_data(int sim_day) {
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    this->new_infections[d] = 0;
-    this->current_infections[d] = 0;
-    this->new_symptomatic_infections[d] = 0;
-    this->current_infectious_agents[d] = 0;
-    this->current_symptomatic_agents[d] = 0;
-  }
 }
 
 void Place::print(int disease_id) {
@@ -242,22 +222,22 @@ void Place::reassign_workers(Place* new_place) {
 	       this->get_label(), new_place->get_label());
 }
 
-int Place::get_output_count(int disease_id, int output_code) {
+int Place::get_visualization_counter(int day, int disease_id, int output_code) {
   switch(output_code) {
     case Global::OUTPUT_I:
-      return this->get_current_infectious_agents(disease_id);
+      return this->get_number_of_infectious_people(disease_id);
       break;
     case Global::OUTPUT_Is:
-      return this->get_current_symptomatic_agents(disease_id);
+      return this->get_current_symptomatic_infections(day, disease_id);
       break;
     case Global::OUTPUT_C:
-      return this->get_new_infections(disease_id);
+      return this->get_new_infections(day, disease_id);
       break;
     case Global::OUTPUT_Cs:
-      return this->get_new_symptomatic_infections(disease_id);
+      return this->get_new_symptomatic_infections(day, disease_id);
       break;
     case Global::OUTPUT_P:
-      return this->get_current_infections(disease_id);
+      return this->get_current_infections(day, disease_id);
       break;
     case Global::OUTPUT_R:
       return this->get_recovereds(disease_id);

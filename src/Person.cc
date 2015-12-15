@@ -112,6 +112,7 @@ void Person::print(FILE* fp, int disease) {
 }
 
 void Person::update_household_counts(int day, int disease_id) {
+  // this is only called for people with an active infection.
   Mixing_Group* hh = this->get_household();
   if(hh == NULL) {
     if(Global::Enable_Hospitals && this->is_hospitalized() && this->get_permanent_household() != NULL) {
@@ -124,6 +125,7 @@ void Person::update_household_counts(int day, int disease_id) {
 }
 
 void Person::update_school_counts(int day, int disease_id) {
+  // this is only called for people with an active infection.
   Mixing_Group* school = this->get_school();
   if(school != NULL) {
     this->health.update_mixing_group_counts(this, day, disease_id, school);

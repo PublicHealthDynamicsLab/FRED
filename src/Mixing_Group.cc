@@ -52,19 +52,15 @@ Mixing_Group::Mixing_Group(const char* lab) {
   this->new_symptomatic_infections = new int[diseases];
   this->current_symptomatic_infections = new int[diseases];
   this->total_symptomatic_infections = new int[diseases];
-  // these counts refer to today's agents
-  this->current_infectious_agents = new int[diseases];
-  this->current_symptomatic_agents = new int[diseases];
 
   // zero out all disease-specific counts
+  this->last_update = 0;
   for(int d = 0; d < diseases; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->total_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
     this->total_symptomatic_infections[d] = 0;
-    this->current_infectious_agents[d] = 0;
-    this->current_symptomatic_agents[d] = 0;
     this->infectious_people[d].clear();
   }
 }
@@ -96,12 +92,6 @@ Mixing_Group::~Mixing_Group() {
   }
   if(this->total_symptomatic_infections != NULL) {
     delete this->total_symptomatic_infections;
-  }
-  if(this->current_infectious_agents != NULL) {
-    delete this->current_infectious_agents;
-  }
-  if(this->current_symptomatic_agents != NULL) {
-    delete this->current_symptomatic_agents;
   }
 }
 

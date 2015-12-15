@@ -1288,14 +1288,6 @@ void Place_List::update(int day) {
     }
   }
 
-  if(Global::Enable_Visualization_Layer) {
-    int number_places = this->places.size();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      place->reset_visualization_data(day);
-    }
-  }
-
   if(Global::Enable_HAZEL) {
     int number_places = this->places.size();
     for(int p = 0; p < number_places; ++p) {
@@ -2304,22 +2296,22 @@ void Place_List::get_initial_visualization_data_from_households() {
   }
 }
 
-void Place_List::get_visualization_data_from_households(int disease_id, int output_code) {
+void Place_List::get_visualization_data_from_households(int day, int disease_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
     Household* h = this->get_household_ptr(i);
-    int count = h->get_output_count(disease_id, output_code);
+    int count = h->get_visualization_counter(day, disease_id, output_code);
     int popsize = h->get_size();
     // update appropriate visualization patch
     Global::Visualization->update_data(h->get_latitude(), h->get_longitude(), count, popsize);
   }
 }
 
-void Place_List::get_census_tract_data_from_households(int disease_id, int output_code) {
+void Place_List::get_census_tract_data_from_households(int day, int disease_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
     Household* h = this->get_household_ptr(i);
-    int count = h->get_output_count(disease_id, output_code);
+    int count = h->get_visualization_counter(day, disease_id, output_code);
     int popsize = h->get_size();
     int census_tract_index = h->get_census_tract_index();
     long int census_tract = this->get_census_tract_with_index(census_tract_index);
@@ -2515,12 +2507,12 @@ void Place_List::report_shelter_stats(int day) {
   for(int i = 0; i < num_households; ++i) {
     Household* h = this->get_household_ptr(i);
     if(h->is_sheltering()) {
-      sheltering_new_infections += h->get_new_infections(0);
+      sheltering_new_infections += h->get_new_infections(day,0);
       sheltering_total_infections += h->get_total_infections(0);
       sheltering_total_pop += h->get_size();
     } else {
       non_sheltering_pop += h->get_size();
-      non_sheltering_new_infections += h->get_new_infections(0);
+      non_sheltering_new_infections += h->get_new_infections(day,0);
       non_sheltering_total_infections += h->get_total_infections(0);
     }
     if(h->is_sheltering_today(day)) {
@@ -2549,10 +2541,12 @@ void Place_List::end_of_run() {
     for(int p = 0; p < number_places; ++p) {
       Place* place = this->places[p];
       fprintf(Global::Statusfp,
-          "PLACE REPORT: id %d type %c size %d inf %d attack_rate %5.2f current %d new %d first_day %d last_day %d\n",
-          place->get_id(), place->get_type(), place->get_size(), place->get_total_infections(0),
-          100.0 * place->get_attack_rate(0), place->get_current_infectious_agents(0), place->get_new_infections(0),
-          place->get_first_day_infectious(), place->get_last_day_infectious());
+	      "PLACE REPORT: id %d type %c size %d inf %d attack_rate %5.2f first_day %d last_day %d\n",
+	      place->get_id(), place->get_type(), place->get_size(),
+	      place->get_total_infections(0),
+	      100.0 * place->get_attack_rate(0),
+	      place->get_first_day_infectious(),
+	      place->get_last_day_infectious());
     }
   }
   if(Global::Enable_Household_Shelter) {

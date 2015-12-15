@@ -124,11 +124,11 @@ set style line 7 lc rgb "orange" lt 1 lw 0.2
 set style line 8 lc rgb "orange-red" lt 1 lw 0.2
 set style line 9 lc rgb "red" lt 1 lw 0.2
 set style line 10 lc rgb "red" lt 1 lw 0.2
-# set style line 11 lc rgb "red" lt 1 lw 0.2
-# set style line 12 lc rgb "beige" lt 1 lw 0.2
-# set style line 13 lc rgb "light-goldenrod" lt 1 lw 0.2
-# set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
-# set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
+set style line 11 lc rgb "red" lt 1 lw 0.2
+set style line 12 lc rgb "beige" lt 1 lw 0.2
+set style line 13 lc rgb "cornsilk" lt 1 lw 0.2
+set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
+set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
 
 set style line 999 lc rgb 'white' lt 1 lw 1
 set style line 99 lc rgb 'gray' lt 1 lw 1
@@ -377,10 +377,10 @@ if (show_infectious) {
 
 if (show_incidence) {
   if (point_size > 0) {
-   replot household_incidence u 2:1 t '' wi po ls 15 pt 5 ps (2*point_size)
+   replot household_incidence u 2:1 t '' wi po ls 9 pt 5 ps (2*point_size)
   }
   else {
-   replot household_incidence u 2:1 t '' wi dots ls 15
+   replot household_incidence u 2:1 t '' wi dots ls 9
   }
 }
 if (show_hc_unav) {

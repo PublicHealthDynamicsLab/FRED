@@ -570,27 +570,6 @@ void Population::remove_dead_person_from_population(int day, Person* person) {
 
 void Population::report(int day) {
 
-  if(Global::Enable_Visualization_Layer || Global::Enable_Household_Shelter) {
-    // update infection counters for places
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-      for(int i = 0; i < this->get_index_size(); ++i) {
-	Person* person = get_person_by_index(i);
-	if(person == NULL) {
-	  continue;
-	}
-	if(person->is_infected(d)) {
-	  // Update the infection counters for household
-	  person->update_household_counts(day, d);
-	  
-	  // Update the infection counters for schools
-	  if(person->get_school() != NULL) {
-	    person->update_school_counts(day, d);
-	  }
-	}
-      }
-    }
-  }
-
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
 

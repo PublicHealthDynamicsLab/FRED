@@ -278,7 +278,7 @@ public:
     this->patch = p;
   }
   
-  int get_output_count(int disease_id, int output_code);
+  int get_visualization_counter(int day, int disease_id, int output_code);
 
   void turn_workers_into_teachers(Place* school);
   void reassign_workers(Place* place);
