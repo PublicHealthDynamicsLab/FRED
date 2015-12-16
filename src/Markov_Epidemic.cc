@@ -58,27 +58,33 @@ void Markov_Epidemic::update(int day) {
 
     // set initial users
     int popsize = Global::Pop.get_pop_size();
-    int n = 0;
     for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
       Person* person = Global::Pop.get_person_by_index(p);
       if(person == NULL) {
 	continue;
       }
-      if (n < pct_init_nonusers * popsize) {
-	people_in_state[0].push_back(person);
-      }
-      else {
-	if (n < popsize * (pct_init_nonusers + pct_init_asymp)) {
-	  people_in_state[1].push_back(person);
-	}
-	else {
-	  people_in_state[2].push_back(person);
-	}
-	// infect the person
-	person->become_exposed(this->id, NULL, NULL, day);
-	Epidemic::become_exposed(person, day);
-      }
-      n++;
+      people_in_state[0].push_back(person);
+    }
+
+    // shuffle the list
+    FYShuffle<Person *>(people_in_state[0]);
+    
+    // move people from the back of the shuffled list to state 1
+    int n = pct_init_asymp * popsize;
+    for (int t = 0; t < n; t++) {
+      Person * person = this->people_in_state[0].back();
+      this->people_in_state[0].pop_back();
+      people_in_state[1].push_back(person);
+      process_transition(day, 0, 1, person);
+    }
+
+    // move people from the back of the shuffled list to state 2
+    n = pct_init_problem * popsize;
+    for (int t = 0; t < n; t++) {
+      Person * person = this->people_in_state[0].back();
+      this->people_in_state[0].pop_back();
+      people_in_state[2].push_back(person);
+      process_transition(day, 0, 2, person);
     }
 
     /*
