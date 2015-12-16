@@ -633,7 +633,7 @@ public:
 
   void set_fatal_infection(int disease_id) {
     assert(this->infection[disease_id] != NULL);
-    this->infection[disease_id]->set_fatal+infection();
+    this->infection[disease_id]->set_fatal_infection();
   }
 
 private:
