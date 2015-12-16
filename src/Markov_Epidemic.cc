@@ -16,6 +16,7 @@
 #include "Disease.h"
 #include "Global.h"
 #include "Person.h"
+#include "Health.h"
 #include "Place.h"
 #include "Utils.h"
 #include "Population.h"

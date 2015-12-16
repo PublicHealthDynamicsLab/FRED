@@ -631,6 +631,10 @@ public:
 
   static bool Enable_hh_income_based_susc_mod;
 
+  void set_fatal_infection(int disease_id) {
+    assert(this->infection[disease_id] != NULL);
+    this->infection[disease_id]->set_fatal+infection();
+  }
 
 private:
 
