@@ -64,7 +64,6 @@ struct Time_Step_Map {
   }
 };
 
-
 struct Disease_Count_Info {
   int tot_ppl_evr_inf;
   int tot_ppl_evr_sympt;
@@ -91,7 +90,6 @@ struct Disease_Count_Info {
   }
 };
 
-
 class Epidemic {
 public:
 
@@ -106,7 +104,7 @@ public:
   static Epidemic* get_epidemic(Disease* disease);
 
   Epidemic(Disease* disease);
-  ~Epidemic();
+  virtual ~Epidemic();
  
   virtual void setup();
   void print_stats(int day);
@@ -240,12 +238,12 @@ public:
   void process_symptoms_end_events(int day);
   void process_immunity_start_events(int day);
   void process_immunity_end_events(int day);
-  void cancel_symptoms_start(int day, Person *person);
-  void cancel_symptoms_end(int day, Person *person);
-  void cancel_infectious_start(int day, Person *person);
-  void cancel_infectious_end(int day, Person *person);
-  void cancel_immunity_start(int day, Person *person);
-  void cancel_immunity_end(int day, Person *person);
+  void cancel_symptoms_start(int day, Person* person);
+  void cancel_symptoms_end(int day, Person* person);
+  void cancel_infectious_start(int day, Person* person);
+  void cancel_infectious_end(int day, Person* person);
+  void cancel_immunity_start(int day, Person* person);
+  void cancel_immunity_end(int day, Person* person);
   virtual void end_of_run() {}
 
 protected:

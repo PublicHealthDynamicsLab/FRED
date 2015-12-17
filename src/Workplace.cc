@@ -31,15 +31,8 @@
 double Workplace::contacts_per_day;
 double** Workplace::prob_transmission_per_contact;
 int Workplace::Office_size = 0;
-int Workplace::Small_workplace_size = 0;
-int Workplace::Medium_workplace_size = 0;
-int Workplace::Large_workplace_size = 0;
 
 //Private static variables for population level statistics
-int Workplace::workers_in_small_workplaces = 0;
-int Workplace::workers_in_medium_workplaces = 0;
-int Workplace::workers_in_large_workplaces = 0;
-int Workplace::workers_in_xlarge_workplaces = 0;
 int Workplace::total_workers = 0;
 
 vector<int> Workplace::workplace_size_max;
@@ -67,10 +60,6 @@ void Workplace::get_parameters() {
   Params::get_param_from_string("office_size", &Workplace::Office_size);
 
   // workplace size limits
-  Params::get_param_from_string("small_workplace_size", &Workplace::Small_workplace_size);
-  Params::get_param_from_string("medium_workplace_size", &Workplace::Medium_workplace_size);
-  Params::get_param_from_string("large_workplace_size", &Workplace::Large_workplace_size);
-    
   Workplace::workplace_size_group_count = Params::get_param_vector((char*)"workplace_size_max", Workplace::workplace_size_max);
   //Add the last column so that it goes to intmax
   Workplace::workplace_size_max.push_back(INT_MAX);
@@ -131,32 +120,21 @@ void Workplace::get_parameters() {
 void Workplace::prepare() {
 
   assert(Global::Pop.is_load_completed());
-  // update employment stats based on size of workplace
-  if(get_size() < Workplace::Small_workplace_size) {
-    Workplace::workers_in_small_workplaces += get_size();
-  } else if(get_size() < Workplace::Medium_workplace_size) {
-    Workplace::workers_in_medium_workplaces += get_size();
-  } else if(get_size() < Workplace::Large_workplace_size) {
-    Workplace::workers_in_large_workplaces += get_size();
-  } else {
-    Workplace::workers_in_xlarge_workplaces += get_size();
-  }
+
   Workplace::total_workers += get_size();
   
-    for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
+  // update employment stats based on size of workplace
+  for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
     if(get_size() < Workplace::workplace_size_max[i]) {
       Workplace::workers_by_workplace_size[i] += get_size();
       break;
     }
   }
 
-//  printf("DEBUG: Workplace[%d] ... size[%d]\n", this->get_id(), this->get_size());
-//  int wp_size_min = 0;
-//  for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
-//    printf("DEBUG: workplace size of %d - %d = %d\n", wp_size_min, Workplace::workplace_size_max[i], Workplace::workers_by_workplace_size[i]);
-//    wp_size_min = Workplace::workplace_size_max[i] + 1;
-//  }
-//  printf("DEBUG: -------------------------------------------------\n\n");
+  int wp_size_min = 0;
+  for(int i = 0; i < Workplace::workplace_size_group_count; ++i) {
+    wp_size_min = Workplace::workplace_size_max[i] + 1;
+  }
 
   // now call base class function to perform preparations common to all Places 
   Place::prepare();

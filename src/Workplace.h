@@ -40,8 +40,6 @@ public:
 
   ~Workplace() {}
 
-
-
   static void get_parameters();
 
   /**
@@ -90,6 +88,15 @@ public:
    */
   Place* assign_office(Person* per);
 
+  int get_workplace_size_group_id() {
+    for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+      if(i <= Workplace::get_workplace_size_max_by_group_id(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   /**
    * Determine if the Workplace should be open. It is dependent on the disease and simulation day.
    *
@@ -109,56 +116,28 @@ public:
     return Workplace::total_workers;
   }
     
-  static int get_workers_in_small_workplaces() {
-    return Workplace::workers_in_small_workplaces;
-  }
-    
-  static int get_workers_in_medium_workplaces() {
-    return Workplace::workers_in_medium_workplaces;
-  }
-    
-  static int get_workers_in_large_workplaces() {
-    return Workplace::workers_in_large_workplaces;
-  }
-    
-  static int get_workers_in_xlarge_workplaces() {
-    return Workplace::workers_in_xlarge_workplaces;
-  }
-    
-  static int get_small_workplace_size() {
-    return Workplace::Small_workplace_size;
-  }
-    
-  static int get_medium_workplace_size() {
-    return Workplace::Medium_workplace_size;
-  }
-    
-  static int get_large_workplace_size() {
-    return Workplace::Large_workplace_size;
-  }
-
   // for access from Office
   static double get_workplace_contacts_per_day(int disease_id) {
     return Workplace::contacts_per_day;
   }
 
-  static int get_workplace_size_group_size() {
-    return static_cast<int>(Workplace::workplace_size_max.size());
+  static int get_workplace_size_group_count() {
+    return Workplace::workplace_size_group_count;
   }
 
   static int get_workplace_size_max_by_group_id(int group_id) {
-    if(group_id < 0 || group_id > Workplace::get_workplace_size_group_size()) {
+    if(group_id < 0 || group_id > Workplace::get_workplace_size_group_count()) {
       return -1;
     } else {
       return Workplace::workplace_size_max[group_id];
     }
   }
 
-  static int get_workplace_size_by_group_id(int group_id) {
-    if(group_id < 0 || group_id >= Workplace::get_workplace_size_group_size()) {
+  static int get_count_workers_by_workplace_size(int group_id) {
+    if(group_id < 0 || group_id > Workplace::workplace_size_group_count) {
       return -1;
     } else {
-      return Workplace::workplace_size_max[group_id];
+      return Workplace::workers_by_workplace_size[group_id];
     }
   }
 
@@ -166,14 +145,8 @@ private:
   static double contacts_per_day;
   static double** prob_transmission_per_contact;
   static int Office_size;
-  static int Small_workplace_size;
-  static int Medium_workplace_size;
-  static int Large_workplace_size;
+
   static int total_workers;
-  static int workers_in_small_workplaces;
-  static int workers_in_medium_workplaces;
-  static int workers_in_large_workplaces;
-  static int workers_in_xlarge_workplaces;
   
   static std::vector<int> workplace_size_max; // vector to hold the upper limit for each workplace size group
   static std::vector<int> workers_by_workplace_size; // vector to hold the counts of workers in each group (plus, the "greater than" group)
