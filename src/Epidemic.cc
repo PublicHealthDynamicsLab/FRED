@@ -112,7 +112,7 @@ Epidemic::Epidemic(Disease* dis) {
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     //Values for household census_tract based stratification
     for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
-	census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
+	      census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
@@ -326,16 +326,16 @@ void Epidemic::become_exposed(Person* person, int day) {
 
   // update next event list
   int infectious_start_date = person->get_infectious_start_date(this->id);
-  if (0 <= infectious_start_date && infectious_start_date <= day) {
+  if(0 <= infectious_start_date && infectious_start_date <= day) {
     FRED_VERBOSE(0, "TIME WARP day %d inf %d\n", day, infectious_start_date);
-    infectious_start_date = day+1;
+    infectious_start_date = day + 1;
   }
   this->infectious_start_event_queue->add_event(infectious_start_date, person);
 
   int symptoms_start_date = person->get_symptoms_start_date(this->id);
-  if (0 <= symptoms_start_date && symptoms_start_date <= day) {
+  if(0 <= symptoms_start_date && symptoms_start_date <= day) {
     FRED_VERBOSE(0, "TIME WARP day %d symp %d\n", day, symptoms_start_date);
-    symptoms_start_date = day+1;
+    symptoms_start_date = day + 1;
   }
   this->symptoms_start_event_queue->add_event(symptoms_start_date, person);
 
@@ -1062,26 +1062,17 @@ void Epidemic::report_infections_by_workplace_size(int day) {
 void Epidemic::report_presenteeism(int day) {
   // daily totals
   int infections_in_pop = 0;
-  int presenteeism_small = 0;
-  int presenteeism_med = 0;
-  int presenteeism_large = 0;
-  int presenteeism_xlarge = 0;
-  int presenteeism_small_with_sl = 0;
-  int presenteeism_med_with_sl = 0;
-  int presenteeism_large_with_sl = 0;
-  int presenteeism_xlarge_with_sl = 0;
+  vector<int> presenteeism;
+  vector<int> presenteeism_with_sl;
   int infections_at_work = 0;
 
-  // company size limits
-  static int small;
-  static int medium;
-  static int large;
-  if(day == 0) {
-    small = Workplace::get_small_workplace_size();
-    medium = Workplace::get_medium_workplace_size();
-    large = Workplace::get_large_workplace_size();
+  for(int i = 0; i <= Workplace::get_workplace_size_group_count(); ++i) {
+    presenteeism.push_back(0);
+    presenteeism_with_sl.push_back(0);
   }
 
+  int presenteeism_tot = 0;
+  int presenteeism_with_sl_tot = 0;
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
     char c = infectee->get_infected_mixing_group_type(this->id);
@@ -1106,63 +1097,72 @@ void Epidemic::report_presenteeism(int day) {
       // determine whether sick leave was available to infector
       bool infector_has_sick_leave = infector->is_sick_leave_available();
 
-      if(size < small) {			// small workplace
-        presenteeism_small++;
-        if(infector_has_sick_leave) {
-          presenteeism_small_with_sl++;
-        }
-      } else if(size < medium) {		// medium workplace
-        presenteeism_med++;
-        if(infector_has_sick_leave) {
-          presenteeism_med_with_sl++;
-        }
-      } else if(size < large) {		// large workplace
-        presenteeism_large++;
-        if(infector_has_sick_leave) {
-          presenteeism_large_with_sl++;
-        }
-      } else {					// xlarge workplace
-        presenteeism_xlarge++;
-        if(infector_has_sick_leave) {
-          presenteeism_xlarge_with_sl++;
+      for(int j = 0; j <= Workplace::get_workplace_size_group_count(); ++j) {
+        if(size < Workplace::get_workplace_size_max_by_group_id(j)) {
+          presenteeism[j]++;
+          presenteeism_tot++;
+          if(infector_has_sick_leave) {
+            presenteeism_with_sl[j]++;
+            presenteeism_with_sl_tot++;
+          }
         }
       }
     }
   } // end loop over infectees
 
-  // raw counts
-  int presenteeism = presenteeism_small + presenteeism_med + presenteeism_large
-    + presenteeism_xlarge;
-  int presenteeism_with_sl = presenteeism_small_with_sl + presenteeism_med_with_sl
-    + presenteeism_large_with_sl + presenteeism_xlarge_with_sl;
-
   //Write to log file
-  Utils::fred_log("\nDay %d PRESENTEE: ", day);
-  Utils::fred_log(" small %d ", presenteeism_small);
-  Utils::fred_log("small_n %d ", Workplace::get_workers_in_small_workplaces());
-  Utils::fred_log("med %d ", presenteeism_med);
-  Utils::fred_log("med_n %d ", Workplace::get_workers_in_medium_workplaces());
-  Utils::fred_log("large %d ", presenteeism_large);
-  Utils::fred_log("large_n %d ", Workplace::get_workers_in_large_workplaces());
-  Utils::fred_log("xlarge %d ", presenteeism_xlarge);
-  Utils::fred_log("xlarge_n %d ", Workplace::get_workers_in_xlarge_workplaces());
-  Utils::fred_log("pres %d ", presenteeism);
-  Utils::fred_log("pres_sl %d ", presenteeism_with_sl);
+  Utils::fred_log("\nDay %d PRESENTEEISM: ", day);
+  for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+    if(i == 0) {
+      Utils::fred_log("wp_0_%d_pres %d ", Workplace::get_workplace_size_max_by_group_id(i), presenteeism[i]);
+      Utils::fred_log("wp_0_%d_pres_sl %d ", Workplace::get_workplace_size_max_by_group_id(i), presenteeism_with_sl[i]);
+      Utils::fred_log("wp_0_%d_n %d ", Workplace::get_workplace_size_max_by_group_id(i), Workplace::get_count_workers_by_workplace_size(i));
+    } else if(i + 1 < Workplace::get_workplace_size_group_count()) {
+      Utils::fred_log("wp_%d_%d_pres %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i), presenteeism[i]);
+      Utils::fred_log("wp_%d_%d_pres_sl %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i), presenteeism_with_sl[i]);
+      Utils::fred_log("wp_%d_%d_n %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i), Workplace::get_count_workers_by_workplace_size(i));
+    } else {
+      Utils::fred_log("wp_%d_up_pres %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), presenteeism[i]);
+      Utils::fred_log("wp_%d_up_pres_sl %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), presenteeism_with_sl[i]);
+      Utils::fred_log("wp_%d_up_n %d ", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_count_workers_by_workplace_size(i));
+    }
+  }
+  Utils::fred_log("presenteeism_tot %d ", presenteeism_tot);
+  Utils::fred_log("presenteeism_with_sl_tot %d ", presenteeism_with_sl_tot);
   Utils::fred_log("inf_at_work %d ", infections_at_work);
   Utils::fred_log("tot_emp %d ", Workplace::get_total_workers());
   Utils::fred_log("N %d\n", this->N);
 
   //Store for daily output file
-  Global::Daily_Tracker->set_index_key_pair(day, "small", presenteeism_small);
-  Global::Daily_Tracker->set_index_key_pair(day, "small_n", Workplace::get_workers_in_small_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day, "med", presenteeism_med);
-  Global::Daily_Tracker->set_index_key_pair(day, "med_n", Workplace::get_workers_in_medium_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day, "large", presenteeism_large);
-  Global::Daily_Tracker->set_index_key_pair(day, "large_n", Workplace::get_workers_in_large_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day, "xlarge", presenteeism_xlarge);
-  Global::Daily_Tracker->set_index_key_pair(day, "xlarge_n", Workplace::get_workers_in_xlarge_workplaces());
-  Global::Daily_Tracker->set_index_key_pair(day, "pres", presenteeism);
-  Global::Daily_Tracker->set_index_key_pair(day, "pres_sl", presenteeism_with_sl);
+  for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+    char wp_pres[30];
+    char wp_pres_sl[30];
+    char wp_n[30];
+    if(i == 0) {
+      sprintf(wp_pres, "wp_0_%d_pres", Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres, presenteeism[i]);
+      sprintf(wp_pres_sl, "wp_0_%d_pres_sl", Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres_sl, presenteeism_with_sl[i]);
+      sprintf(wp_n, "wp_0_%d_n", Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_n, Workplace::get_count_workers_by_workplace_size(i));
+    } else if(i + 1 < Workplace::get_workplace_size_group_count()) {
+      sprintf(wp_pres, "wp_%d_%d_pres", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres, presenteeism[i]);
+      sprintf(wp_pres_sl, "wp_%d_%d_pres_sl", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres_sl, presenteeism_with_sl[i]);
+      sprintf(wp_n, "wp_%d_%d_n", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1), Workplace::get_workplace_size_max_by_group_id(i));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_n, Workplace::get_count_workers_by_workplace_size(i));
+    } else {
+      sprintf(wp_pres, "wp_%d_up_pres", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres, presenteeism[i]);
+      sprintf(wp_pres_sl, "wp_%d_up_pres_sl", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_pres_sl, presenteeism_with_sl[i]);
+      sprintf(wp_n, "wp_%d_up_n", (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1));
+      Global::Daily_Tracker->set_index_key_pair(day, wp_n, Workplace::get_count_workers_by_workplace_size(i));
+    }
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, "presenteeism_tot", presenteeism_tot);
+  Global::Daily_Tracker->set_index_key_pair(day, "presenteeism_with_sl_tot", presenteeism_with_sl_tot);
   Global::Daily_Tracker->set_index_key_pair(day, "inf_at_work", infections_at_work);
   Global::Daily_Tracker->set_index_key_pair(day, "tot_emp", Workplace::get_total_workers());
   Global::Daily_Tracker->set_index_key_pair(day, "N", this->N);
@@ -1562,8 +1562,7 @@ void Epidemic::process_infectious_end_events(int day) {
 }
 
 void Epidemic::recover(Person* person, int day) {
-  FRED_VERBOSE(1, "infectious_end_event day %d person %d\n",
-	       day, person->get_id());
+  FRED_VERBOSE(1, "infectious_end_event day %d person %d\n", day, person->get_id());
   
   // remove from active list
   this->potentially_infectious_people.erase(person);
@@ -1574,7 +1573,6 @@ void Epidemic::recover(Person* person, int day) {
   person->recover(this->disease);
   person->update_infection(day, this->id);
 }
-
 
 void Epidemic::process_symptoms_start_events(int day) {
   int size = symptoms_start_event_queue->get_size(day);
@@ -1732,15 +1730,15 @@ void Epidemic::update(int day) {
       // cancel any events for this person
       int date = person->get_symptoms_start_date(this->id);
       if(date > day) {
-	cancel_symptoms_start(date, person);
+	      cancel_symptoms_start(date, person);
       }
       date = person->get_symptoms_end_date(this->id);
       if(date > day) {
-	cancel_symptoms_end(date, person);
+	      cancel_symptoms_end(date, person);
       }
       date = person->get_infectious_start_date(this->id);
       if(date > day) {
-	cancel_infectious_start(date, person);
+	      cancel_infectious_start(date, person);
       }
       date = person->get_infectious_end_date(this->id);
       if(date > day) {
@@ -1748,7 +1746,7 @@ void Epidemic::update(int day) {
       }
       date = person->get_immunity_end_date(this->id);
       if(date > day) {
-	cancel_immunity_end(date, person);
+	      cancel_immunity_end(date, person);
       } 
 
       // update epidemic fatality counters
@@ -1764,7 +1762,7 @@ void Epidemic::update(int day) {
       // update person's mixing group infection counters
       person->update_household_counts(day, this->id);
       person->update_school_counts(day, this->id);
-      // move on the next infected person
+      // move on the next infected person    
       ++it;
     }
   }

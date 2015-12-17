@@ -33,8 +33,11 @@ County::~County() {
 }
 
 County::County(int _fips) {
+  this->is_initialized = false;
   this->fips = _fips;
-  this->current_popsize = 0;
+  this->tot_current_popsize = 0;
+  this->tot_female_popsize = 0;
+  this->tot_male_popsize = 0;
   this->target_popsize = 0;
   this->population_growth_rate = 0.0;
   this->college_departure_rate = 0.0;
@@ -50,6 +53,11 @@ County::County(int _fips) {
   this->ready_to_move.clear();
   this->households.clear();
   this->mortality_rate_adjustment_weight = 0.0;
+
+  for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
+    this->female_popsize[i] = 0;
+    this->male_popsize[i] = 0;
+  }
 
   if(Global::Enable_Population_Dynamics == false) {
     return;
@@ -96,15 +104,14 @@ County::County(int _fips) {
   // set up pregnancy rates
   for(int i = 0; i < Demographics::MAX_AGE; ++i) {
     // approx 3/4 of pregnancies deliver at the next age of the mother
-    this->pregnancy_rate[i] =
-      0.25 * this->birth_rate[i] + 0.75 * this->birth_rate[i+1];
+    this->pregnancy_rate[i] = 0.25 * this->birth_rate[i] + 0.75 * this->birth_rate[i + 1];
   }
   this->pregnancy_rate[Demographics::MAX_AGE] = 0.0;
 
   if(Global::Verbose) {
     for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
-      fprintf(Global::Statusfp, "BIRTH RATE     for age %d %e\n", i, birth_rate[i]);
-      fprintf(Global::Statusfp, "PREGNANCY RATE for age %d %e\n", i, pregnancy_rate[i]);
+      fprintf(Global::Statusfp, "BIRTH RATE     for age %d %e\n", i, this->birth_rate[i]);
+      fprintf(Global::Statusfp, "PREGNANCY RATE for age %d %e\n", i, this->pregnancy_rate[i]);
     }
   }
 
@@ -124,8 +131,8 @@ County::County(int _fips) {
     if(Global::Verbose) {
       fprintf(Global::Statusfp, "MORTALITY RATE for age %d: female: %e male: %e\n", age, female_rate, male_rate);
     }
-    this->female_mortality_rate[i] = mortality_rate_multiplier*female_rate;
-    this->male_mortality_rate[i] = mortality_rate_multiplier*male_rate;
+    this->female_mortality_rate[i] = mortality_rate_multiplier * female_rate;
+    this->male_mortality_rate[i] = mortality_rate_multiplier * male_rate;
   }
   fclose(fp);
 
@@ -133,9 +140,51 @@ County::County(int _fips) {
     this->adjusted_female_mortality_rate[i] = this->female_mortality_rate[i];
     this->adjusted_male_mortality_rate[i] = this->male_mortality_rate[i];
   }
-
 }
 
+bool County::increment_popsize(Person* person) {
+  int age = person->get_age();
+  char sex = person->get_sex();
+  if(age > Demographics::MAX_AGE) {
+    age = Demographics::MAX_AGE;
+  }
+  if(age >= 0) {
+    if(sex == 'F') {
+      this->female_popsize[age]++;
+      this->tot_female_popsize++;
+      this->tot_current_popsize++;
+      return true;
+    } else if(sex == 'M') {
+      this->male_popsize[age]++;
+      this->tot_male_popsize++;
+      this->tot_current_popsize++;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool County::decrement_popsize(Person* person) {
+  int age = person->get_age();
+  char sex = person->get_sex();
+  if(age > Demographics::MAX_AGE) {
+    age = Demographics::MAX_AGE;
+  }
+  if(age >= 0) {
+    if(sex == 'F') {
+      this->female_popsize[age]--;
+      this->tot_female_popsize--;
+      this->tot_current_popsize--;
+      return true;
+    } else if(sex == 'M') {
+      this->male_popsize[age]--;
+      this->tot_male_popsize--;
+      this->tot_current_popsize--;
+      return true;
+    }
+  }
+  return false;
+}
 
 void County::update(int day) {
 
@@ -161,7 +210,7 @@ void County::update_population_dynamics(int day) {
   static double total_adj = 1.0;
 
   // no adjustment for first year, to avoid overreacting to low birth rate
-  if (day < 1) {
+  if(day < 1) {
     return;
   }
 
@@ -171,9 +220,9 @@ void County::update_population_dynamics(int day) {
   // get the target population size for the end of the coming year
   this->target_popsize = (1.0 + 0.01 * this->population_growth_rate) * this->target_popsize;
 
-  double error = (this->current_popsize - this->target_popsize) / (1.0*this->target_popsize);
+  double error = (this->tot_current_popsize - this->target_popsize) / (1.0 * this->target_popsize);
   
-  double mortality_rate_adjustment = 1.0 + mortality_rate_adjustment_weight * error;
+  double mortality_rate_adjustment = 1.0 + this->mortality_rate_adjustment_weight * error;
   
   total_adj *= mortality_rate_adjustment;
 
@@ -184,54 +233,55 @@ void County::update_population_dynamics(int day) {
   }
 
   // message to LOG file
-  FRED_VERBOSE(0,
-	       "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f  total_adj = %0.4f\n",
-	       this->fips, year, this->current_popsize, this->target_popsize, 100.0*error, mortality_rate_adjustment, total_adj); 
+  FRED_VERBOSE(0, "COUNTY %d POP_DYN: year %d  popsize = %d  target = %d  pct_error = %0.2f death_adj = %0.4f  total_adj = %0.4f\n",
+	             this->fips, year, this->tot_current_popsize, this->target_popsize, 100.0 * error, mortality_rate_adjustment, total_adj);
   
 }
 
 void County::get_housing_imbalance(int day) {
-  get_housing_data(beds, occupants);
+  get_housing_data(this->beds, this->occupants);
   int imbalance = 0;
-  int houses = households.size();
+  int houses = this->households.size();
   for (int i = 0; i < houses; ++i) {
     // skip group quarters
-    if (households[i]->is_group_quarters()) continue;
+    if(this->households[i]->is_group_quarters()) {
+      continue;
+    }
     imbalance += abs(this->beds[i] - this->occupants[i]);
   }
-  printf("DAY %d HOUSING: houses = %d, imbalance = %d\n", day, houses, imbalance);
+  FRED_DEBUG(1, "DAY %d HOUSING: houses = %d, imbalance = %d\n", day, houses, imbalance);
 }
 
 int County::fill_vacancies(int day) {
   // move ready_to_moves into underfilled units
   int moved = 0;
-  if(ready_to_move.size() > 0) {
+  if(this->ready_to_move.size() > 0) {
     // first focus on the empty units
-    int houses = households.size();
+    int houses = this->households.size();
     for (int newhouse = 0; newhouse < houses; ++newhouse) {
       if(this->occupants[newhouse] > 0) {
         continue;
       }
       int vacancies = this->beds[newhouse] - this->occupants[newhouse];
       if(vacancies > 0) {
-	Household * houseptr = this->households[newhouse];
-	// skip group quarters
-	if(houseptr->is_group_quarters()) {
-	  continue;
-	}
-	for(int j = 0; (j < vacancies) && (ready_to_move.size() > 0); ++j) {
-	  Person* person = ready_to_move.back().first;
-	  int oldhouse = ready_to_move.back().second;
-	  Household * ohouseptr = this->households[oldhouse];
-	  ready_to_move.pop_back();
-	  if(ohouseptr->is_group_quarters() || (this->occupants[oldhouse] - this->beds[oldhouse] > 0)) {
-	    // move person to new home
-	    person->move_to_new_house(houseptr);
-	    this->occupants[oldhouse]--;
-	    this->occupants[newhouse]++;
-	    moved++;
-	  }
-	}
+	      Household* houseptr = this->households[newhouse];
+	      // skip group quarters
+	      if(houseptr->is_group_quarters()) {
+	        continue;
+	      }
+	      for(int j = 0; (j < vacancies) && (this->ready_to_move.size() > 0); ++j) {
+	        Person* person = this->ready_to_move.back().first;
+	        int oldhouse = this->ready_to_move.back().second;
+	        Household* ohouseptr = this->households[oldhouse];
+	        this->ready_to_move.pop_back();
+	        if(ohouseptr->is_group_quarters() || (this->occupants[oldhouse] - this->beds[oldhouse] > 0)) {
+	          // move person to new home
+	          person->move_to_new_house(houseptr);
+	          this->occupants[oldhouse]--;
+	          this->occupants[newhouse]++;
+	          moved++;
+	        }
+	      }
       }
     }
 
@@ -239,24 +289,24 @@ int County::fill_vacancies(int day) {
     for(int newhouse = 0; newhouse < houses; ++newhouse) {
       int vacancies = beds[newhouse] - this->occupants[newhouse];
       if(vacancies > 0) {
-	Household * houseptr = this->households[newhouse];
-	// skip group quarters
-	if(houseptr->is_group_quarters()) {
-	  continue;
-	}
-	for(int j = 0; (j < vacancies) && (ready_to_move.size() > 0); ++j) {
-	  Person* person = ready_to_move.back().first;
-	  int oldhouse = ready_to_move.back().second;
-	  Household * ohouseptr = this->households[oldhouse];
-	  ready_to_move.pop_back();
-	  if(ohouseptr->is_group_quarters() || (this->occupants[oldhouse] - this->beds[oldhouse] > 0)) {
-	    // move person to new home
-	    person->move_to_new_house(houseptr);
-	    this->occupants[oldhouse]--;
-	    this->occupants[newhouse]++;
-	    moved++;
-	  }
-	}
+	      Household* houseptr = this->households[newhouse];
+	      // skip group quarters
+	      if(houseptr->is_group_quarters()) {
+	        continue;
+	      }
+	      for(int j = 0; (j < vacancies) && (this->ready_to_move.size() > 0); ++j) {
+	        Person* person = this->ready_to_move.back().first;
+	        int oldhouse = this->ready_to_move.back().second;
+	        Household* ohouseptr = this->households[oldhouse];
+	        this->ready_to_move.pop_back();
+	        if(ohouseptr->is_group_quarters() || (this->occupants[oldhouse] - this->beds[oldhouse] > 0)) {
+	          // move person to new home
+	          person->move_to_new_house(houseptr);
+	          this->occupants[oldhouse]--;
+	          this->occupants[newhouse]++;
+	          moved++;
+	        }
+	      }
       }
     }
   }
@@ -272,26 +322,27 @@ void County::update_housing(int day) {
     // initialize house data structures
     this->beds = new int[houses];
     this->occupants = new int[houses];
-    this->target_popsize = current_popsize;
+    this->target_popsize = tot_current_popsize;
   }
 
   // reserve ready_to_move vector:
-  ready_to_move.reserve(current_popsize);
+  this->ready_to_move.reserve(tot_current_popsize);
 
   get_housing_data(this->beds, this->occupants);
-  max_beds = -1;
-  max_occupants = -1;
-  for(int i = 0; i < houses; ++i) {
-    if(this->beds[i] > max_beds) {
-      max_beds = this->beds[i];
+  this->max_beds = -1;
+  this->max_occupants = -1;
+  for(int i = 0; i < this->houses; ++i) {
+    if(this->beds[i] > this->max_beds) {
+      this->max_beds = this->beds[i];
     }
-    if(this->occupants[i] > max_occupants) {
-      max_occupants = this->occupants[i];
+    if(this->occupants[i] > this->max_occupants) {
+      this->max_occupants = this->occupants[i];
     }
   }
-  printf("DAY %d HOUSING: houses = %d, max_beds = %d max_occupants = %d\n",
-	 day, houses, max_beds, max_occupants);
-  printf("BEFORE "); get_housing_imbalance(day);
+  FRED_DEBUG(1, "DAY %d HOUSING: houses = %d, max_beds = %d max_occupants = %d\n",
+	 day, this->houses, this->max_beds, this->max_occupants);
+  FRED_DEBUG(1, "BEFORE ");
+  get_housing_imbalance(day);
 
   move_college_students_out_of_dorms(day);
   get_housing_imbalance(day);
@@ -330,23 +381,23 @@ void County::update_housing(int day) {
 
 void County::move_college_students_out_of_dorms(int day) {
   // printf("MOVE FORMER COLLEGE RESIDENTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int college = 0;
   // find students ready to move off campus
   int houses = this->households.size();
   for(int i = 0; i < houses; ++i) {
-    Household * house = households[i];
+    Household* house = this->households[i];
     if(house->is_college()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	// printf("PERSON %d LIVES IN COLLEGE DORM %s\n", person->get_id(), house->get_label());
-	assert(person->is_college_dorm_resident());
-	college++;
-	// some college students leave each year
-	if(Random::draw_random() < this->college_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      // printf("PERSON %d LIVES IN COLLEGE DORM %s\n", person->get_id(), house->get_label());
+	      assert(person->is_college_dorm_resident());
+	      college++;
+	      // some college students leave each year
+	      if(Random::draw_random() < this->college_departure_rate) {
+          this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -358,7 +409,7 @@ void County::move_college_students_out_of_dorms(int day) {
 
 void County::move_college_students_into_dorms(int day) {
   // printf("GENERATE NEW COLLEGE RESIDENTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int moved = 0;
   int college = 0;
 
@@ -378,7 +429,7 @@ void County::move_college_students_into_dorms(int day) {
   int dorm_vacancies = (int)dorm_rooms.size();
   // printf("COLLEGE COUNT %d VACANCIES %d\n", college, dorm_vacancies);
   if(dorm_vacancies == 0) {
-    printf("NO COLLEGE VACANCIES FOUND\n");
+    FRED_DEBUG(1, "NO COLLEGE VACANCIES FOUND\n");
     return;
   }
 
@@ -391,53 +442,49 @@ void County::move_college_students_into_dorms(int day) {
         continue;
       }
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	int age = person->get_age();
-	if(18 < age && age < 40 && person->get_number_of_children() == 0) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if(18 < age && age < 40 && person->get_number_of_children() == 0) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("COLLEGE APPLICANTS %d\n", (int)ready_to_move.size());
 
-  if(ready_to_move.size() == 0) {
-    printf("NO COLLEGE APPLICANTS FOUND\n");
+  if(this->ready_to_move.size() == 0) {
+    FRED_DEBUG(1, "NO COLLEGE APPLICANTS FOUND\n");
     return;
   }
 
   // shuffle the applicants
-  FYShuffle< pair<Person*, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(this->ready_to_move);
 
   // pick the top of the list to move into dorms
-  for(int i = 0; i < dorm_vacancies && ready_to_move.size() > 0; ++i) {
+  for(int i = 0; i < dorm_vacancies &&this->ready_to_move.size() > 0; ++i) {
     int newhouse = dorm_rooms[i];
     Place* houseptr = Global::Places.get_household(newhouse);
-    /*
-      printf("VACANT DORM %s ORIG %d SIZE %d\n", houseptr->get_label(),
-      houseptr->get_orig_size(),houseptr->get_size());
-    */
-    Person* person = ready_to_move.back().first;
-    int oldhouse = ready_to_move.back().second;
+//      printf("VACANT DORM %s ORIG %d SIZE %d\n", houseptr->get_label(),
+//      houseptr->get_orig_size(),houseptr->get_size());
+    Person* person = this->ready_to_move.back().first;
+    int oldhouse = this->ready_to_move.back().second;
     Place* ohouseptr = Global::Places.get_household(oldhouse);
-    ready_to_move.pop_back();
+    this->ready_to_move.pop_back();
     // move person to new home
-    /*
-      printf("APPLICANT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
-      person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
-      ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
-    */
+//      printf("APPLICANT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
+//      person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
+//      ohouseptr->get_size(),ohouseptr->get_orig_size(),person->get_profile());
     person->move_to_new_house(houseptr);
     this->occupants[oldhouse]--;
     this->occupants[newhouse]++;
     moved++;
   }
-  printf("DAY %d ACCEPTED %d COLLEGE STUDENTS, CURRENT = %d  MAX = %d\n", day, moved, college+moved, college + dorm_vacancies);
+  FRED_DEBUG(1, "DAY %d ACCEPTED %d COLLEGE STUDENTS, CURRENT = %d  MAX = %d\n", day, moved, college+moved, college + dorm_vacancies);
 }
 
 void County::move_military_personnel_out_of_barracks(int day) {
   // printf("MOVE FORMER MILITARY =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int military = 0;
   // find military personnel to discharge
   for(int i = 0; i < this->houses; ++i) {
@@ -445,14 +492,14 @@ void County::move_military_personnel_out_of_barracks(int day) {
     if(house->is_military_base()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	// printf("PERSON %d LIVES IN MILITARY BARRACKS %s\n", person->get_id(), house->get_label());
-	assert(person->is_military_base_resident());
-	military++;
-	// some military leave each each year
-	if(Random::draw_random() < this->military_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      // printf("PERSON %d LIVES IN MILITARY BARRACKS %s\n", person->get_id(), house->get_label());
+	      assert(person->is_military_base_resident());
+	      military++;
+	      // some military leave each each year
+	      if(Random::draw_random() < this->military_departure_rate) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
@@ -463,7 +510,7 @@ void County::move_military_personnel_out_of_barracks(int day) {
 
 void County::move_military_personnel_into_barracks(int day) {
   // printf("GENERATE NEW MILITARY BASE RESIDENTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int moved = 0;
   int military = 0;
 
@@ -483,7 +530,7 @@ void County::move_military_personnel_into_barracks(int day) {
   int barracks_vacancies = (int)barracks_units.size();
   // printf("MILITARY VACANCIES %d\n", barracks_vacancies);
   if(barracks_vacancies == 0) {
-    printf("NO MILITARY VACANCIES FOUND\n");
+    FRED_DEBUG(1, "NO MILITARY VACANCIES FOUND\n");
     return;
   }
 
@@ -494,23 +541,23 @@ void County::move_military_personnel_into_barracks(int day) {
       int hsize = house->get_size();
       if(hsize <= house->get_orig_size()) continue;
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	int age = person->get_age();
-	if(18 < age && age < 40 && person->get_number_of_children() == 0) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if(18 < age && age < 40 && person->get_number_of_children() == 0) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("MILITARY RECRUITS %d\n", (int)ready_to_move.size());
 
-  if(ready_to_move.size() == 0) {
-    printf("NO MILITARY RECRUITS FOUND\n");
+  if(this->ready_to_move.size() == 0) {
+    FRED_DEBUG(1, "NO MILITARY RECRUITS FOUND\n");
     return;
   }
 
   // shuffle the recruits
-  FYShuffle< pair<Person*, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(this->ready_to_move);
 
   // pick the top of the list to move into dorms
   for(int i = 0; i < barracks_vacancies && ready_to_move.size() > 0; ++i) {
@@ -518,10 +565,10 @@ void County::move_military_personnel_into_barracks(int day) {
     Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED BARRACKS %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
-    Person* person = ready_to_move.back().first;
-    int oldhouse = ready_to_move.back().second;
+    Person* person = this->ready_to_move.back().first;
+    int oldhouse = this->ready_to_move.back().second;
     Place* ohouseptr = Global::Places.get_household(oldhouse);
-    ready_to_move.pop_back();
+    this->ready_to_move.pop_back();
     // move person to new home
     // printf("RECRUIT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
     // person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
@@ -531,12 +578,12 @@ void County::move_military_personnel_into_barracks(int day) {
     this->occupants[newhouse]++;
     moved++;
   }
-  printf("DAY %d ADDED %d MILITARY, CURRENT = %d  MAX = %d\n",day,moved,military+moved,military+barracks_vacancies);
+  FRED_DEBUG(1, "DAY %d ADDED %d MILITARY, CURRENT = %d  MAX = %d\n", day, moved, military + moved, military + barracks_vacancies);
 }
 
 void County::move_inmates_out_of_prisons(int day) {
   // printf("RELEASE PRISONERS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int prisoners = 0;
   // find former prisoners still in jail
   for(int i = 0; i < this->houses; ++i) {
@@ -544,25 +591,25 @@ void County::move_inmates_out_of_prisons(int day) {
     if(house->is_prison()) {
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	// printf("PERSON %d LIVES IN PRISON %s\n", person->get_id(), house->get_label());
-	assert(person->is_prisoner());
-	prisoners++;
-	// some prisoners get out each year
-	if(Random::draw_random() < this->prison_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      // printf("PERSON %d LIVES IN PRISON %s\n", person->get_id(), house->get_label());
+	      assert(person->is_prisoner());
+	      prisoners++;
+	      // some prisoners get out each year
+	      if(Random::draw_random() < this->prison_departure_rate) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("DAY %d READY TO MOVE %d FORMER PRISONERS\n", day, (int) ready_to_move.size());
   int moved = fill_vacancies(day);
-  printf("DAY %d RELEASED %d PRISONERS, TOTAL NOW %d\n",day,moved,prisoners-moved);
+  FRED_DEBUG(1, "DAY %d RELEASED %d PRISONERS, TOTAL NOW %d\n", day, moved, prisoners - moved);
 }
 
 void County::move_inmates_into_prisons(int day) {
   // printf("GENERATE NEW PRISON RESIDENTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int moved = 0;
   int prisoners = 0;
 
@@ -582,7 +629,7 @@ void County::move_inmates_into_prisons(int day) {
   int jail_cell_vacancies = (int)jail_cell_units.size();
   // printf("PRISON VACANCIES %d\n", jail_cell_vacancies);
   if(jail_cell_vacancies == 0) {
-    printf("NO PRISON VACANCIES FOUND\n");
+    FRED_DEBUG(1, "NO PRISON VACANCIES FOUND\n");
     return;
   }
 
@@ -593,34 +640,34 @@ void County::move_inmates_into_prisons(int day) {
       int hsize = house->get_size();
       if(hsize <= house->get_orig_size()) continue;
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	int age = person->get_age();
-	if((18 < age && person->get_number_of_children() == 0) || (age < 50)) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if((18 < age && person->get_number_of_children() == 0) || (age < 50)) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("PRISON POSSIBLE INMATES %d\n", (int)ready_to_move.size());
 
-  if(ready_to_move.size() == 0) {
-    printf("NO INMATES FOUND\n");
+  if(this->ready_to_move.size() == 0) {
+    FRED_DEBUG(1, "NO INMATES FOUND\n");
     return;
   }
 
   // shuffle the inmates
-  FYShuffle< pair<Person*, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(this->ready_to_move);
 
   // pick the top of the list to move into dorms
-  for(int i = 0; i < jail_cell_vacancies && ready_to_move.size() > 0; ++i) {
+  for(int i = 0; i < jail_cell_vacancies && this->ready_to_move.size() > 0; ++i) {
     int newhouse = jail_cell_units[i];
     Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED JAIL_CELL %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
-    Person* person = ready_to_move.back().first;
-    int oldhouse = ready_to_move.back().second;
+    Person* person = this->ready_to_move.back().first;
+    int oldhouse = this->ready_to_move.back().second;
     Place* ohouseptr = Global::Places.get_household(oldhouse);
-    ready_to_move.pop_back();
+    this->ready_to_move.pop_back();
     // move person to new home
     // printf("INMATE %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
     // person->get_id(),person->get_sex(),person->get_age(),ohouseptr->get_label(),
@@ -630,12 +677,12 @@ void County::move_inmates_into_prisons(int day) {
     this->occupants[newhouse]++;
     moved++;
   }
-  printf("DAY %d ADDED %d PRISONERS, CURRENT = %d  MAX = %d\n",day,moved,prisoners+moved,prisoners+jail_cell_vacancies);
+  FRED_DEBUG(1, "DAY %d ADDED %d PRISONERS, CURRENT = %d  MAX = %d\n", day, moved, prisoners + moved, prisoners + jail_cell_vacancies);
 }
 
 void County::move_patients_into_nursing_homes(int day) {
   // printf("NEW NURSING HOME RESIDENTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
   int moved = 0;
   int nursing_home_residents = 0;
   int beds = 0;
@@ -655,7 +702,7 @@ void County::move_patients_into_nursing_homes(int day) {
   int nursing_home_vacancies = (int)nursing_home_units.size();
   // printf("NURSING HOME VACANCIES %d\n", nursing_home_vacancies);
   if(nursing_home_vacancies == 0) {
-    printf("DAY %d ADDED %d NURSING HOME PATIENTS, TOTAL NOW %d BEDS = %d\n", day, 0, nursing_home_residents, beds);
+    FRED_DEBUG(1, "DAY %d ADDED %d NURSING HOME PATIENTS, TOTAL NOW %d BEDS = %d\n", day, 0, nursing_home_residents, beds);
     return;
   }
 
@@ -668,28 +715,28 @@ void County::move_patients_into_nursing_homes(int day) {
         continue;
       }
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	int age = person->get_age();
-	if(60 <= age) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if(60 <= age) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("NURSING HOME POSSIBLE PATIENTS %d\n", (int)ready_to_move.size());
 
   // shuffle the patients
-  FYShuffle< pair<Person*, int> >(ready_to_move);
+  FYShuffle< pair<Person*, int> >(this->ready_to_move);
 
   // pick the top of the list to move into nursing_home
-  for(int i = 0; i < nursing_home_vacancies && ready_to_move.size() > 0; ++i) {
+  for(int i = 0; i < nursing_home_vacancies && this->ready_to_move.size() > 0; ++i) {
     int newhouse = nursing_home_units[i];
     Place* houseptr = Global::Places.get_household(newhouse);
     // printf("UNFILLED NURSING_HOME UNIT %s ORIG %d SIZE %d\n", houseptr->get_label(),houseptr->get_orig_size(),houseptr->get_size());
-    Person* person = ready_to_move.back().first;
-    int oldhouse = ready_to_move.back().second;
+    Person* person = this->ready_to_move.back().first;
+    int oldhouse = this->ready_to_move.back().second;
     Place* ohouseptr = Global::Places.get_household(oldhouse);
-    ready_to_move.pop_back();
+    this->ready_to_move.pop_back();
     // move person to new home
     /*
       printf("PATIENT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
@@ -701,12 +748,12 @@ void County::move_patients_into_nursing_homes(int day) {
     this->occupants[newhouse]++;
     moved++;
   }
-  printf("DAY %d ADDED %d NURSING HOME PATIENTS, CURRENT = %d  MAX = %d\n",day,moved,nursing_home_residents+moved,beds);
+  FRED_DEBUG(1, "DAY %d ADDED %d NURSING HOME PATIENTS, CURRENT = %d  MAX = %d\n",day,moved,nursing_home_residents+moved,beds);
 }
 
 void County::move_young_adults(int day) {
   // printf("MOVE YOUNG ADULTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
 
   // find young adults in overfilled units who are ready to move out
   for(int i = 0; i < this->houses; ++i) {
@@ -714,26 +761,25 @@ void County::move_young_adults(int day) {
       Household* house = this->households[i];
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	Person* person = house->get_enrollee(j);
-	int age = person->get_age();
-	if(18 <= age && age < 30) {
-	  if(Random::draw_random() < this->youth_home_departure_rate) {
-	    ready_to_move.push_back(make_pair(person,i));
-	    // printf("READY: PERSON %d AGE %d OLDHOUSE %d\n", person->get_id(), person->get_age(),i);
-	  }
-	}
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if(18 <= age && age < 30) {
+	        if(Random::draw_random() < this->youth_home_departure_rate) {
+	          this->ready_to_move.push_back(make_pair(person,i));
+	        }
+	      }
       }
     }
   }
   // printf("DAY %d READY TO MOVE young adults = %d\n", day, (int) ready_to_move.size());
   int moved = fill_vacancies(day);
-  printf("MOVED %d YOUNG ADULTS =======================\n",moved);
+  FRED_DEBUG(1, "MOVED %d YOUNG ADULTS =======================\n",moved);
 }
 
 
 void County::move_older_adults(int day) {
   // printf("MOVE OLDER ADULTS =======================\n");
-  ready_to_move.clear();
+  this->ready_to_move.clear();
 
   // find older adults in overfilled units
   for(int i = 0; i < this->houses; ++i) {
@@ -746,47 +792,46 @@ void County::move_older_adults(int day) {
       int pos = -1;
       int adults = 0;
       for(int j = 0; j < hsize; ++j) {
-	int age = house->get_enrollee(j)->get_age();
-	if(age > max_age) {
-	  max_age = age; pos = j;
-	}
-	if(age > 20) {
-	  adults++;
-	}
+	      int age = house->get_enrollee(j)->get_age();
+	      if(age > max_age) {
+	        max_age = age; pos = j;
+	      }
+	      if(age > 20) {
+	        adults++;
+	      }
       }
       if(adults > 1) {
-	Person* person = house->get_enrollee(pos);
-	if(Random::draw_random() < this->adult_home_departure_rate) {
-	  ready_to_move.push_back(make_pair(person,i));
-	}
+	      Person* person = house->get_enrollee(pos);
+	      if(Random::draw_random() < this->adult_home_departure_rate) {
+	        this->ready_to_move.push_back(make_pair(person,i));
+	      }
       }
     }
   }
   // printf("DAY %d READY TO MOVE older adults = %d\n", day, (int) ready_to_move.size());
   int moved = fill_vacancies(day);
-  printf("MOVED %d OLDER ADULTS =======================\n",moved);
+  FRED_DEBUG(1, "MOVED %d OLDER ADULTS =======================\n",moved);
 }
 
 void County::report_ages(int day, int house_id) {
   Household* house = this->households[house_id];
-  printf("HOUSE %d BEDS %d OCC %d AGES ",
-	 house->get_id(), this->beds[house_id], this->occupants[house_id]);
+  FRED_DEBUG(1, "HOUSE %d BEDS %d OCC %d AGES ", house->get_id(), this->beds[house_id], this->occupants[house_id]);
   int hsize = house->get_size();
   for(int j = 0; j < hsize; ++j) {
     int age = house->get_enrollee(j)->get_age();
-    printf("%d ", age);
+    FRED_DEBUG(1, "%d ", age);
   }
 }
 
 
 void County::swap_houses(int day) {
-  printf("SWAP HOUSES =======================\n");
+  FRED_DEBUG(1, "SWAP HOUSES =======================\n");
 
   // two-dim array of vectors of imbalanced houses
   HouselistT** houselist;
-  houselist = new HouselistT* [13];
+  houselist = new HouselistT*[13];
   for(int i = 0; i < 13; ++i) {
-    houselist[i] = new HouselistT [13];
+    houselist[i] = new HouselistT[13];
     for(int j = 0; j < 13; ++j) {
       houselist[i][j].clear();
     }
@@ -811,18 +856,18 @@ void County::swap_houses(int day) {
 
   // find complementary pairs (beds=i,occ=j) and (beds=j,occ=i)
   for(int i = 1; i < 10; ++i) {
-    for(int j = i+1; j < 10; ++j) {
+    for(int j = i + 1; j < 10; ++j) {
       while(houselist[i][j].size() > 0 && houselist[j][i].size() > 0) {
-	int hi = houselist[i][j].back();
-	houselist[i][j].pop_back();
-	int hj = houselist[j][i].back();
-	houselist[j][i].pop_back();
-	// swap houses hi and hj
-	// printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
-	Global::Places.swap_houses(hi, hj);
-	this->occupants[hi] = i;
-	this->occupants[hj] = j;
-	// printf("AFTER:\n"); report_ages(day,hi); report_ages(day,hj);
+	      int hi = houselist[i][j].back();
+	      houselist[i][j].pop_back();
+	      int hj = houselist[j][i].back();
+	      houselist[j][i].pop_back();
+	      // swap houses hi and hj
+	      // printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
+	      Global::Places.swap_houses(hi, hj);
+	      this->occupants[hi] = i;
+	      this->occupants[hj] = j;
+	      // printf("AFTER:\n"); report_ages(day,hi); report_ages(day,hj);
       }
     }
   }
@@ -891,28 +936,28 @@ void County::swap_houses(int day) {
     if(diff < -1 || diff > 1) {
       // take a look at this house
       Household* house = this->households[i];
-      printf("DAY %d PROBLEM HOUSE %d BEDS %d OCC %d AGES ",
+      FRED_DEBUG(1, "DAY %d PROBLEM HOUSE %d BEDS %d OCC %d AGES ",
 	     day, house->get_id(), beds[i], occupants[i]);
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
-	int age = house->get_enrollee(j)->get_age();
-	printf("%d ", age);
+	      int age = house->get_enrollee(j)->get_age();
+	      FRED_DEBUG(1, "%d ", age);
       }
-      printf("\n");
+      FRED_DEBUG(1, "\n");
     }
   }
 
   // make lists of overfilled houses
   vector<int>* overfilled;
-  overfilled = new vector<int> [max_beds+1];
-  for(int i = 0; i <= max_beds; ++i) {
+  overfilled = new vector<int>[this->max_beds + 1];
+  for(int i = 0; i <= this->max_beds; ++i) {
     overfilled[i].clear();
   }
   
   // make lists of underfilled houses
   vector<int>* underfilled;
-  underfilled = new vector<int> [max_beds + 1];
-  for(int i = 0; i <= max_beds; ++i) {
+  underfilled = new vector<int>[this->max_beds + 1];
+  for(int i = 0; i <= this->max_beds; ++i) {
     underfilled[i].clear();
   }
 
@@ -925,38 +970,38 @@ void County::swap_houses(int day) {
       overfilled[this->beds[i]].push_back(i);
     }
     if (diff < 0) {
-      underfilled[beds[i]].push_back(i);
+      underfilled[this->beds[i]].push_back(i);
     }
   }
 
   int count[100];
-  for(int i = 0; i <= max_beds; ++i) {
-    for (int j = 0; j <= max_beds+1; ++j) {
+  for(int i = 0; i <= this->max_beds; ++i) {
+    for(int j = 0; j <= this->max_beds+1; ++j) {
       count[j] = 0;
     }
     for(int k = 0; k < (int) overfilled[i].size(); ++k) {
       int kk = overfilled[i][k];
       int occ = this->occupants[kk];
-      if (occ <= max_beds + 1) {
-	count[occ]++;
+      if(occ <= this->max_beds + 1) {
+	      count[occ]++;
       } else {
-	count[max_beds+1]++;
+	      count[this->max_beds+1]++;
       }
     }
     for(int k = 0; k < (int) underfilled[i].size(); ++k) {
       int kk = underfilled[i][k];
       int occ = this->occupants[kk];
-      if(occ <= max_beds+1) {
-	count[occ]++;
+      if(occ <= this->max_beds+1) {
+	      count[occ]++;
       } else {
-	count[max_beds+1]++;
+	      count[this->max_beds+1]++;
       }
     }
-    printf("DAY %4d BEDS %2d ", day, i);
-    for(int j = 0; j <= max_beds+1; ++j) {
-      printf("%3d ", count[j]);
+    FRED_DEBUG(1, "DAY %4d BEDS %2d ", day, i);
+    for(int j = 0; j <= this->max_beds+1; ++j) {
+      FRED_DEBUG(1, "%3d ", count[j]);
     }
-    printf("\n");
+    FRED_DEBUG(1, "\n");
     fflush(stdout);
   }
 
@@ -987,16 +1032,15 @@ void County::report_household_distributions() {
     for(int p = 0; p < houses; ++p) {
       int n = this->households[p]->get_size();
       if(n <= 10) {
-	count[n]++;
+	      count[n]++;
       } else {
-	count[10]++;
+	      count[10]++;
       }
       total++;
     }
     fprintf(Global::Statusfp, "Household size distribution: N = %d ", total);
     for(int c = 0; c <= 10; ++c) {
-      fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) ",
-	      c, count[c], (100.0 * count[c]) / total);
+      fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) ", c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
 
@@ -1012,18 +1056,18 @@ void County::report_household_distributions() {
       int n = this->households[p]->get_orig_size();
       int hs = this->households[p]->get_size();
       if(n <= 10) {
-	count[n]++;
-	hsize[n] += hs;
+	      count[n]++;
+	      hsize[n] += hs;
       } else {
-	count[10]++;
-	hsize[10] += hs;
+	      count[10]++;
+	      hsize[10] += hs;
       }
       total++;
     }
     fprintf(Global::Statusfp, "Household orig distribution: N = %d ", total);
     for(int c = 0; c <= 10; c++) {
-      fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) %0.2f ",
-	      c, count[c], (100.0 * count[c]) / total, count[c] ? ((double)hsize[c] / (double)count[c]) : 0.0);
+      fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) %0.2f ", c, count[c],
+             (100.0 * count[c]) / total, count[c] ? ((double)hsize[c] / (double)count[c]) : 0.0);
     }
     fprintf(Global::Statusfp, "\n");
   }

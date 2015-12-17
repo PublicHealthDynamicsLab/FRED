@@ -166,25 +166,54 @@ public:
       return 0;
     }
     assert(index < this->counties.size());
-    return this->counties[index]->get_popsize();
+    return this->counties[index]->get_tot_current_popsize();
   }
 
-  void increment_population_of_county_with_index(int index) {
+  int get_population_of_county_with_index(int index, int age) {
+    if(index < 0) {
+      return 0;
+    }
+    assert(index < this->counties.size());
+    int retval = this->counties[index]->get_current_popsize(age);
+    return (retval < 0 ? 0 : retval);
+  }
+
+  int get_population_of_county_with_index(int index, int age, char sex) {
+    if(index < 0) {
+      return 0;
+    }
+    assert(index < this->counties.size());
+    int retval = this->counties[index]->get_current_popsize(age, sex);
+    return (retval < 0 ? 0 : retval);
+  }
+
+  int get_population_of_county_with_index(int index, int age_min, int age_max, char sex) {
+    if(index < 0) {
+      return 0;
+    }
+    assert(index < this->counties.size());
+    int retval = this->counties[index]->get_current_popsize(age_min, age_max, sex);
+    return (retval < 0 ? 0 : retval);
+  }
+
+  void increment_population_of_county_with_index(int index, Person* person) {
     if(index < 0) {
       return;
     }
     assert(index < this->counties.size());
     int fips = this->counties[index]->get_fips();
-    this->counties[index]->increment_popsize();
+    bool test = this->counties[index]->increment_popsize(person);
+    assert(test);
     return;
   }
 
-  void decrement_population_of_county_with_index(int index) {
+  void decrement_population_of_county_with_index(int index, Person* person) {
     if(index < 0) {
       return;
     }
     assert(index < this->counties.size());
-    this->counties[index]->decrement_popsize();
+    bool test = this->counties[index]->decrement_popsize(person);
+    assert(test);
     return;
   }
 

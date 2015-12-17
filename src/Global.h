@@ -264,6 +264,7 @@ public:
   static bool Report_Incidence_By_County;
   static bool Report_Incidence_By_Census_Tract;
   static bool Report_Symptomatic_Incidence_By_Census_Tract; 
+  static bool Report_County_Demographic_Information;
   static bool Assign_Teachers;
   static bool Enable_Household_Shelter;
   static bool Enable_Isolation;

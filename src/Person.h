@@ -124,15 +124,15 @@ public:
   }
 
   bool is_present(int sim_day, Place *place) {
-    return this->activities.is_present(this, sim_day, place);
+    return this->activities.is_present(sim_day, place);
   }
 
   void update_schedule(int sim_day) {
-    this->activities.update_schedule(this, sim_day);
+    this->activities.update_schedule(sim_day);
   }
 
   void update_activities_of_infectious_person(int sim_day) {
-    this->activities.update_activities_of_infectious_person(this, sim_day);
+    this->activities.update_activities_of_infectious_person(sim_day);
   }
 
   void update_enrollee_index(Mixing_Group* mixing_group, int pos) {
@@ -143,7 +143,7 @@ public:
    * @Activities::update_profile()
    */
   void update_activity_profile() {
-    this->activities.update_profile(this);
+    this->activities.update_profile();
   }
 
   void become_susceptible(int disease_id) {
@@ -197,7 +197,7 @@ public:
    */
   void assign_classroom() {
     if(this->activities.get_school()) {
-      this->activities.assign_classroom(this);
+      this->activities.assign_classroom();
     }
   }
 
@@ -206,7 +206,7 @@ public:
    * @see Activities::assign_office()
    */
   void assign_office() {
-    this->activities.assign_office(this);
+    this->activities.assign_office();
   }
 
   /**
@@ -214,7 +214,7 @@ public:
    * @see Activities::assign_primary_healthcare_facility()
    */
   void assign_primary_healthcare_facility() {
-    this->activities.assign_primary_healthcare_facility(this);
+    this->activities.assign_primary_healthcare_facility();
   }
 
   /**
@@ -621,7 +621,7 @@ public:
    * @see Activities::start_traveling(Person* visited)
    */
   void start_traveling(Person* visited) {
-    this->activities.start_traveling(this, visited);
+    this->activities.start_traveling(visited);
   }
 
   /**
@@ -629,7 +629,7 @@ public:
    * @see Activities::stop_traveling()
    */
   void stop_traveling() {
-    this->activities.stop_traveling(this);
+    this->activities.stop_traveling();
   }
 
   /**
@@ -737,7 +737,7 @@ public:
   }
 
   bool become_a_teacher(Place* school) {
-    return this->activities.become_a_teacher(this, school);
+    return this->activities.become_a_teacher(school);
   }
 
   bool is_teacher() {
@@ -749,7 +749,7 @@ public:
   }
 
   void move_to_new_house(Place* house) {
-    activities.move_to_new_house(this, house);
+    activities.move_to_new_house(house);
   }
 
   void change_school(Place* place) {
@@ -765,7 +765,7 @@ public:
   }
 
   int get_visiting_health_status(Place* place, int day, int disease_id) {
-    return this->activities.get_visiting_health_status(this, place, day, disease_id);
+    return this->activities.get_visiting_health_status(place, day, disease_id);
   }
 
   /**
@@ -925,11 +925,11 @@ public:
   }
 
   void join_network(Network* network) {
-    this->activities.join_network(this, network);
+    this->activities.join_network(network);
   }
 
   void print_network(FILE* fp, Network* network) {
-    this->activities.print_network(fp, this, network);
+    this->activities.print_network(fp, network);
   }
 
   bool is_connected_to(Person* person, Network* network) {

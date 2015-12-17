@@ -17,8 +17,9 @@
 #ifndef _FRED_COUNTY_H
 #define _FRED_COUNTY_H
 
-#include "Demographics.h"
 #include <vector>
+#include "Demographics.h"
+
 class Person;
 class Household;
 
@@ -33,14 +34,78 @@ public:
   County(int _fips);
   ~County();
 
-  int get_fips() { return fips; }
-  int get_popsize() { return current_popsize; }
-  void increment_popsize() { current_popsize++; }
-  void decrement_popsize() { current_popsize--; }
-  void add_household(Household * h) { households.push_back(h); }
+  int get_fips() {
+    return this->fips;
+  }
+
+  int get_tot_current_popsize() {
+    return this->tot_current_popsize;
+  }
+
+  int get_tot_female_popsize() {
+    return this->tot_female_popsize;
+  }
+
+  int get_tot_male_popsize() {
+    return this->tot_male_popsize;
+  }
+
+  int get_current_popsize(int age) {
+    if(age > Demographics::MAX_AGE) {
+      age = Demographics::MAX_AGE;
+    }
+    if(age >= 0) {
+      return this->female_popsize[age] + this->male_popsize[age];
+    }
+    return -1;
+  }
+
+  int get_current_popsize(int age, char sex) {
+    if(age > Demographics::MAX_AGE) {
+      age = Demographics::MAX_AGE;
+    }
+    if(age >= 0) {
+      if(sex == 'F') {
+        return this->female_popsize[age];
+      } else if(sex == 'M') {
+        return this->male_popsize[age];
+      }
+    }
+    return -1;
+  }
+
+  int get_current_popsize(int age_min, int age_max, char sex) {
+    if(age_min > Demographics::MAX_AGE) {
+      age_min = Demographics::MAX_AGE;
+    }
+    if(age_max > Demographics::MAX_AGE) {
+      age_max = Demographics::MAX_AGE;
+    }
+    if(age_min >= 0 && age_max >= 0 && age_min <= age_max) {
+      if(sex == 'F' || sex == 'M') {
+        int temp_count = 0;
+        for(int i = age_min; i <= age_max; ++i) {
+          temp_count += (sex == 'F' ? this->female_popsize[i] : this->male_popsize[i]);
+        }
+        return temp_count;
+      }
+    }
+    return -1;
+  }
+
+  bool increment_popsize(Person* person);
+
+  bool decrement_popsize(Person* person);
+
+  void add_household(Household* h) {
+    this->households.push_back(h);
+  }
   
   void update(int day);
-  void set_initial_popsize(int popsize) { target_popsize = popsize; }
+  void set_initial_popsize(int popsize) {
+    this->target_popsize = popsize;
+  }
+
   void update_population_dynamics(int day);
   void get_housing_imbalance(int day);
   int fill_vacancies(int day);
@@ -59,20 +124,36 @@ public:
   int find_fips_code(int n);
   int get_housing_data(int* target_size, int* current_size);
   void report_household_distributions();
-  double get_pregnancy_rate(int age) { return pregnancy_rate[age]; } 
+  void report_county_population();
+  double get_pregnancy_rate(int age) {
+    return this->pregnancy_rate[age];
+  }
+
   double get_mortality_rate(int age, char sex) { 
-    if (sex == 'F') {
-      return adjusted_female_mortality_rate[age]; 
-    }
-    else {
-      return adjusted_male_mortality_rate[age]; 
+    if(sex == 'F') {
+      if(age > Demographics::MAX_AGE) {
+        return this->adjusted_female_mortality_rate[Demographics::MAX_AGE];
+      } else {
+        return this->adjusted_female_mortality_rate[age];
+      }
+    } else {
+      if(age > Demographics::MAX_AGE) {
+        return this->adjusted_male_mortality_rate[Demographics::MAX_AGE];
+      } else {
+        return this->adjusted_male_mortality_rate[age];
+      }
     }
   } 
 
 private:
   int fips;
-  int current_popsize;
+  int tot_current_popsize;
+  int male_popsize[Demographics::MAX_AGE + 1];
+  int tot_male_popsize;
+  int female_popsize[Demographics::MAX_AGE + 1];
+  int tot_female_popsize;
   int target_popsize;
+
   double male_mortality_rate[Demographics::MAX_AGE + 1];
   double female_mortality_rate[Demographics::MAX_AGE + 1];
   double mortality_rate_adjustment_weight;
@@ -88,8 +169,8 @@ private:
   double prison_departure_rate;
   double youth_home_departure_rate;
   double adult_home_departure_rate;
-  int * beds;
-  int * occupants;
+  int* beds;
+  int* occupants;
   int max_beds;
   int max_occupants;
   std::vector< pair<Person*, int> > ready_to_move;

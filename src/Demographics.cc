@@ -239,6 +239,28 @@ void Demographics::update_birth_stats(int day, Person* self) {
   Demographics::births_today++;
   Demographics::births_ytd++;
   Demographics::total_births++;
+
+  if(Global::Report_County_Demographic_Information) {
+    Place* hh = self->get_household();
+    int index = -1;
+    if(hh != NULL) {
+      index = hh->get_county_index();
+    } else if(Global::Enable_Hospitals && self->is_hospitalized()) {
+      hh = self->get_permanent_household();
+      if(hh != NULL) {
+        index = hh->get_county_index();
+      }
+    } else if(Global::Enable_Travel) {
+      hh = self->get_permanent_household();
+      if(hh != NULL) {
+        index = hh->get_county_index();
+      }
+    }
+
+    assert(index != -1);
+    Global::Places.increment_population_of_county_with_index(index, self);
+  }
+
   if(Global::Birthfp != NULL) {
     // report births
     fprintf(Global::Birthfp, "day %d mother %d age %d\n",
@@ -250,7 +272,7 @@ void Demographics::update_birth_stats(int day, Person* self) {
 
 void Demographics::birthday(Person* self, int day ) {
 
-  if(Global::Enable_Population_Dynamics == false) {
+  if(!Global::Enable_Population_Dynamics) {
     return;
   }
 

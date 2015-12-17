@@ -200,16 +200,18 @@ void Population::setup() {
     initialize_demographic_dynamics();
   }
 
+  initialize_activities();
+
   if(Global::Verbose > 0) {
     for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
       int count = 0;
       for(int p = 0; p < this->get_index_size(); ++p) {
-	Person* person = get_person_by_index(p);
-	if(person != NULL) {
-	  if(person->is_immune(d)) {
-	    count++;
-	  }
-	}
+	      Person* person = get_person_by_index(p);
+	      if(person != NULL) {
+	        if(person->is_immune(d)) {
+	          count++;
+	        }
+	      }
       }
       FRED_STATUS(0, "number of residually immune people for disease %d = %d\n", d, count);
     }
@@ -218,7 +220,7 @@ void Population::setup() {
   this->vacc_manager->reset();
 
   // record age-specific popsize
-  for (int age = 0; age <= Demographics::MAX_AGE; ++age) {
+  for(int age = 0; age <= Demographics::MAX_AGE; ++age) {
     Global::Popsize_by_age[age] = 0;
   }
   for(int p = 0; p < this->get_index_size(); ++p) {
@@ -226,7 +228,7 @@ void Population::setup() {
     if(person != NULL) {
       int age = person->get_age();
       if(age > Demographics::MAX_AGE) {
-	age = Demographics::MAX_AGE;
+	      age = Demographics::MAX_AGE;
       }
       Global::Popsize_by_age[age]++;
     }
@@ -1634,6 +1636,17 @@ void Population::initialize_population_behavior() {
     Person* person = get_person_by_index(p);
     if(person != NULL) {
       person->setup_behavior();
+    }
+  }
+}
+
+void Population::initialize_activities() {
+  // NOTE: use this idiom to loop through pop.
+  // Note that pop_size is the number of valid indexes, NOT the size of blq.
+  for(int p = 0; p < this->get_index_size(); ++p) {
+    Person* person = get_person_by_index(p);
+    if(person != NULL) {
+      person->prepare_activities();
     }
   }
 }

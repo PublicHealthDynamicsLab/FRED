@@ -200,6 +200,8 @@ public:
     return this->demes;
   }
 
+  void initialize_activities();
+
   void initialize_demographic_dynamics();
 
   void initialize_population_behavior();
