@@ -143,6 +143,22 @@ public:
     return "";
   }
 
+  virtual int get_initial_state() {
+    return 0;
+  }
+
+  virtual double get_infectivity(int state) {
+    return 0.0;
+  }
+
+  virtual double get_symptoms(int state) {
+    return 0.0;
+  }
+
+  virtual bool is_fatal(int state) {
+    return false;
+  }
+
   int get_symptoms_distribution_type() {
     return symptoms_distribution_type;
   }

@@ -64,9 +64,27 @@ public:
     return this->transition_matrix[i][j];
   }
 
+  double get_infectivity(int s) {
+    return state_infectivity[s];
+  }
+
+  double get_symptoms(int s) {
+    return state_symptoms[s];
+  }
+
+  bool is_fatal(int s) {
+    return (state_fatality[s] == 1);
+  }
+
+  int get_initial_state();
+
 private:
   int number_of_states;
   std::vector<std::string>state_name;
+  std::vector<double>state_infectivity;
+  std::vector<double>state_symptoms;
+  std::vector<int>state_fatality;
+  std::vector<double>state_initial_percent;
   double ** transition_matrix;
 
 };

@@ -15,6 +15,7 @@
 #include "Disease.h"
 #include "Global.h"
 #include "HIV_Infection.h"
+#include "Markov_Infection.h"
 #include "Household.h"
 #include "Infection.h"
 #include "Mixing_Group.h"
@@ -76,7 +77,7 @@ Infection* Infection::get_new_infection(Disease* disease, Person* infector, Pers
   }
   
   if(strcmp(disease->get_natural_history_model(), "markov") == 0) {
-    return new Infection(disease, infector, host, mixing_group, day);
+    return new Markov_Infection(disease, infector, host, mixing_group, day);
   }
   
   if(strcmp(disease->get_natural_history_model(), "hiv") == 0) {
