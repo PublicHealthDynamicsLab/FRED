@@ -72,9 +72,12 @@ void Markov_Natural_History::get_parameters() {
     this->state_symptoms.push_back(symp);
     this->state_fatality.push_back(fatal);
     this->state_initial_percent.push_back(init);
-    initial_total += init;
+    if (i > 0) {
+      initial_total += init;
+    }
   }
-  assert(initial_total == 100.0);
+  this->state_initial_percent[0] = 100.0 - initial_total;
+  // assert(initial_total == 100.0);
   for (int i = 0; i < this->number_of_states; i++) {
     this->transition_matrix[i] = new double [number_of_states];
     for (int j = 0; j < this->number_of_states; j++) {
@@ -130,43 +133,6 @@ int Markov_Natural_History::get_initial_state() {
   }  
   assert(r < sum);
 }
-
-double Markov_Natural_History::get_probability_of_symptoms(int age) {
-  return 1.0;
-}
-
-int Markov_Natural_History::get_latent_period(Person* host) {
-  return -1;
-}
-
-int Markov_Natural_History::get_duration_of_infectiousness(Person* host) {
-  // infectious forever
-  return -1;
-}
-
-int Markov_Natural_History::get_duration_of_immunity(Person* host) {
-  // immune forever
-  return -1;
-}
-
-int Markov_Natural_History::get_incubation_period(Person* host) {
-  return -1;
-}
-
-int Markov_Natural_History::get_duration_of_symptoms(Person* host) {
-  // symptoms last forever
-  return -1;
-}
-
-
-bool Markov_Natural_History::is_fatal(double real_age, double symptoms, int days_symptomatic) {
-  return false;
-}
-
-bool Markov_Natural_History::is_fatal(Person* per, double symptoms, int days_symptomatic) {
-  return false;
-}
-
 
 void Markov_Natural_History::update_infection(int day, Person* host, Infection *infection) {
   // put daily updates to host here.

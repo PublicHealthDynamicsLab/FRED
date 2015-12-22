@@ -132,6 +132,9 @@ public:
   void get_imported_infections(int day);
   void become_exposed(Person* person, int day);
 
+  virtual void preliminary_updates(int day) {
+  }
+
   virtual void update(int day);
 
   void find_active_places_of_type(int day, int place_type);

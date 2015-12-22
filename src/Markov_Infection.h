@@ -40,6 +40,14 @@ class Markov_Infection : public Infection {
 
   bool is_fatal(int day);
 
+  int get_state() {
+    return this->state;
+  }
+
+  void set_state(int _state) {
+    this->state = _state;
+  }
+
  private:
   int state;
 };

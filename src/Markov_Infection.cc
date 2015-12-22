@@ -39,6 +39,7 @@ void Markov_Infection::setup() {
   // initialize Markov specific-variables here:
 
     this->state = disease->get_natural_history()->get_initial_state();
+    printf("MARKOV INIT state %d\n", this->state);
     if (this->get_infectivity(this->exposure_date) > 0.0) {
       this->infectious_start_date = this->exposure_date;
       this->infectious_end_date = 99999;
@@ -67,3 +68,4 @@ void Markov_Infection::update(int day) {
 
   // put daily update here
 }
+

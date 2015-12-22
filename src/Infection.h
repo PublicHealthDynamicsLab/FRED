@@ -147,6 +147,13 @@ public:
     return this->infection_is_fatal_today;
   }
 
+  virtual int get_state() {
+    return 0;
+  }
+
+  virtual void set_state(int state) {
+  }
+
 protected:
 
   // associated disease

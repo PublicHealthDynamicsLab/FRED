@@ -28,28 +28,6 @@ public:
 
   void get_parameters();
 
-  void update_infection(int day, Person* host, Infection *infection);
-
-  double get_probability_of_symptoms(int age);
-
-  int get_latent_period(Person* host);
-
-  int get_duration_of_infectiousness(Person* host);
-
-  int get_duration_of_immunity(Person* host);
-
-  int get_incubation_period(Person* host);
-
-  int get_duration_of_symptoms(Person* host);
-
-  bool is_fatal(double real_age, double symptoms, int days_symptomatic);
-
-  bool is_fatal(Person* per, double symptoms, int days_symptomatic);
-
-  void init_prior_immunity() {}
-
-  bool gen_immunity_infection(double real_age) { return true; }
-
   void print();
 
   int get_number_of_states() {
@@ -78,6 +56,37 @@ public:
 
   int get_initial_state();
 
+  // the following are unused in this model:
+  double get_probability_of_symptoms(int age) {
+    return 0.0;
+  }
+  int get_latent_period(Person* host) {
+    return -1;
+  }
+  int get_duration_of_infectiousness(Person* host) {
+    return -1;
+  }
+  int get_duration_of_immunity(Person* host) {
+    return -1;
+  }
+  int get_incubation_period(Person* host) {
+    return -1;
+  }
+  int get_duration_of_symptoms(Person* host) {
+    return -1;
+  }
+  bool is_fatal(double real_age, double symptoms, int days_symptomatic) {
+    return false;
+  }
+  bool is_fatal(Person* per, double symptoms, int days_symptomatic) {
+    return false;
+  }
+  void init_prior_immunity() {}
+  bool gen_immunity_infection(double real_age) {
+    return true;
+  }
+  void update_infection(int day, Person* host, Infection *infection);
+
 private:
   int number_of_states;
   std::vector<std::string>state_name;
@@ -86,7 +95,6 @@ private:
   std::vector<int>state_fatality;
   std::vector<double>state_initial_percent;
   double ** transition_matrix;
-
 };
 
 #endif

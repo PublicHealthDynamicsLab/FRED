@@ -11,16 +11,17 @@
 
 // File Markov_Epidemic.cc
 
-#include "Markov_Epidemic.h"
-#include "Markov_Natural_History.h"
+#include "Events.h"
 #include "Disease.h"
 #include "Global.h"
-#include "Person.h"
 #include "Health.h"
-#include "Place.h"
-#include "Utils.h"
+#include "Markov_Epidemic.h"
+#include "Markov_Natural_History.h"
+#include "Person.h"
 #include "Population.h"
+#include "Place.h"
 #include "Random.h"
+#include "Utils.h"
 
 Markov_Epidemic::Markov_Epidemic(Disease* _disease) :
   Epidemic(_disease) {
@@ -34,8 +35,10 @@ void Markov_Epidemic::setup() {
   FRED_VERBOSE(0, "Markov_Epidemic::setup\n");
 
   // initialize Markov specific-variables here:
+
   this->number_of_states = this->disease->get_natural_history()->get_number_of_states();
   FRED_VERBOSE(0, "Markov_Epidemic::setup states = %d\n", this->number_of_states);
+
 
   this->people_in_state = new person_vector_t [this->number_of_states];
 
@@ -44,123 +47,105 @@ void Markov_Epidemic::setup() {
     this->people_in_state[i].clear();
   }
 
+  this->transition_to_state_event_queue = new Events* [this->number_of_states];
+  for (int i = 0; i < this->number_of_states; i++) {
+    this->transition_to_state_event_queue[i] = new Events;
+  }
+
   FRED_VERBOSE(0, "Markov_Epidemic::setup finished\n");
 }
 
 
-void Markov_Epidemic::update(int day) {
+void Markov_Epidemic::get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day) {
+  *transition_day = -1;
+  *new_state = old_state;
+  for (int j = 0; j < this->number_of_states; j++) {
+    if (j == old_state) {
+      continue;
+    }
+    double lambda = this->disease->get_natural_history()->get_transition_probability(old_state, j);
+    if (lambda == 0.0) {
+      continue;
+    }
+    int t = day + 1 + round(Random::draw_exponential(lambda) * 7.0);
+    if (*transition_day < 0 || t < *transition_day) {
+      *transition_day = t;
+      *new_state = j;
+    }
+  }
+}
 
-  FRED_VERBOSE(0, "Markov_Epidemic::update day %d\n", day);
+void Markov_Epidemic::process_transitions_to_state(int day, int state) {
+  int size = this->transition_to_state_event_queue[state]->get_size(day);
+  FRED_VERBOSE(0, "MARKOV_TRANS_TO_STATE %d day %d size %d\n", state, day, size);
+
+  for(int i = 0; i < size; ++i) {
+    Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
+
+    FRED_VERBOSE(1,"TRANSITION to state %d  day %d person %d\n",
+		 state, day, person->get_id());
+
+    int old_state = person->get_health()->get_infection(this->id)->get_state();
+
+    // delete from old list
+    for (int j = 0; j < people_in_state[old_state].size(); j++) {
+      if (people_in_state[old_state][j] == person) {
+	people_in_state[old_state][j] = people_in_state[old_state].back();
+	people_in_state[old_state].pop_back();
+      }
+    }
+
+    // add to active people list
+    people_in_state[state].push_back(person);
+
+    // update person's health chart
+    person->get_health()->get_infection(this->id)->set_state(state);
+
+    // change person's epidemic status
+    // process_transition(day, old_state, state, person);
+
+    // update next event list
+    int new_state, transition_day;
+    get_next_state_and_time(day, state, &new_state, &transition_day);
+    this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
+
+  }
+  this->transition_to_state_event_queue[state]->clear_events(day);
+}
+
+void Markov_Epidemic::preliminary_updates(int day) {
 
   if (day == 0) {
-    double pct_init_nonusers = 32675.0 / 34653.0;
-    double pct_init_asymp = 861.0 / 34653.0;
-    double pct_init_problem = 1117.0 / 34653.0;
-
-    // set initial users
     int popsize = Global::Pop.get_pop_size();
     for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
       Person* person = Global::Pop.get_person_by_index(p);
       if(person == NULL) {
 	continue;
       }
-      people_in_state[0].push_back(person);
+      if (person->is_infected(this->id)) {
+	int state = person->get_health()->get_infection(this->id)->get_state();
+	people_in_state[state].push_back(person);
+	int new_state, transition_day;
+	get_next_state_and_time(day, state, &new_state, &transition_day);
+	printf("PRELIM day %d person %d state %d new_state %d transition_day %d\n",
+	       day, person->get_id(), state, new_state, transition_day);
+	this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
+      }
     }
-
-    // shuffle the list
-    FYShuffle<Person *>(people_in_state[0]);
-    
-    // move people from the back of the shuffled list to state 1
-    int n = pct_init_asymp * popsize;
-    for (int t = 0; t < n; t++) {
-      Person * person = this->people_in_state[0].back();
-      this->people_in_state[0].pop_back();
-      people_in_state[1].push_back(person);
-      process_transition(day, 0, 1, person);
+  }
+  else {
+    for (int i = 0; i < this->number_of_states; i++) {
+      process_transitions_to_state(day, i);
     }
-
-    // move people from the back of the shuffled list to state 2
-    n = pct_init_problem * popsize;
-    for (int t = 0; t < n; t++) {
-      Person * person = this->people_in_state[0].back();
-      this->people_in_state[0].pop_back();
-      people_in_state[2].push_back(person);
-      process_transition(day, 0, 2, person);
-    }
-
-    /*
-    FILE * fp = fopen("xx", "w");
-    int nn = people_in_state[0].size();
-    int an = people_in_state[1].size();
-    int pn = people_in_state[2].size();
-    fprintf(fp, "0 %d %d %d\n", nn, an, pn);
-    fclose(fp);
-    */
-
   }
 
-  if (day > 0 && day % 7 == 0) {
+  int nn = people_in_state[0].size();
+  int an = people_in_state[1].size();
+  int pn = people_in_state[2].size();
+  printf("PRELIM UPDATE day %d non %d asymp %d prob %d\n", day, nn, an, pn);
+}
 
-    // create a matrix to count people for transition
-    int ** transitions;
-    transitions = new int * [this->number_of_states];
-    for (int i = 0; i < this->number_of_states; i++) {
-      transitions[i] = new int [this->number_of_states];
-    }
-    
-    // create temporary lists of people in transition
-    person_vector_t * in_transition;
-    in_transition = new person_vector_t [this->number_of_states];
-
-    // compute expected numbers of Markov transitions
-    for (int i = 0; i < this->number_of_states; i++) {
-      int size = people_in_state[i].size();
-      transitions[i][i] = 0;
-      int sum = 0;
-      for (int j = 0; j < this->number_of_states; j++) {
-	if (i != j) {
-	  // find number of people to transition from state i to j
-	  double pij = this->disease->get_natural_history()->get_transition_probability(i,j);
-	  transitions[i][j] = round(pij * size);
-	  sum += transitions[i][j];
-	}
-      }
-      in_transition[i].reserve(sum);
-
-      // shuffle the list
-      FYShuffle<Person *>(people_in_state[i]);
-      for (int t = 0; t < sum; t++) {
-	// move people from the back of the shuffled list to the temp list
-	Person * person = this->people_in_state[i].back();
-	this->people_in_state[i].pop_back();
-	in_transition[i].push_back(person);
-      }
-    }
-
-    // make the transitions
-    for (int i = 0; i < this->number_of_states; i++) {
-      for (int j = 0; j < this->number_of_states; j++) {
-	for (int t = 0 ; t < transitions[i][j]; t++) {
-	  assert(in_transition[i].size() > 0);
-	  Person * person = in_transition[i].back();
-	  in_transition[i].pop_back();
-	  people_in_state[j].push_back(person);
-	  process_transition(day, i, j, person);
-	}
-      }
-    }
-
-    /*
-    FILE * fp = fopen("xx", "a");
-    int nn = people_in_state[0].size();
-    int an = people_in_state[1].size();
-    int pn = people_in_state[2].size();
-    fprintf(fp, "%d %d %d %d\n", day/7, nn, an, pn);
-    fclose(fp);
-    */
-
-  }
-
+void Markov_Epidemic::update(int day) {
   Epidemic::update(day);
 }
 
@@ -173,7 +158,7 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
   strcpy(state_i, this->disease->get_natural_history()->get_state_name(i).c_str());
   strcpy(state_j, this->disease->get_natural_history()->get_state_name(j).c_str());
 
-  FRED_VERBOSE(0, "Markov transition day %d from %s to %sperson %d\n",
+  FRED_VERBOSE(0, "Markov transition day %d from %s to %s person %d\n",
 	       day,state_i,state_j,person->get_id());
 
   if (i == 0) {
@@ -213,14 +198,12 @@ void Markov_Epidemic::process_transition(int day, int i, int j, Person * person)
 
 
 void Markov_Epidemic::report_disease_specific_stats(int day) {
-
   FRED_VERBOSE(0, "Markov report day %d \n",day);
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->disease->get_natural_history()->get_state_name(i).c_str());
     track_value(day, str, (int)(people_in_state[i].size()));
   }
-
 }
 
 void Markov_Epidemic::end_of_run() {

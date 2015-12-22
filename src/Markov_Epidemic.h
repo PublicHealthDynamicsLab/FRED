@@ -30,6 +30,12 @@ public:
 
   void setup();
 
+  void get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day);
+
+  void process_transitions_to_state(int day, int state);
+
+  void preliminary_updates(int day);
+
   void update(int day);
 
   void report_disease_specific_stats(int day);
@@ -41,6 +47,9 @@ public:
 private:
   int number_of_states;
   person_vector_t * people_in_state;
+
+  // event queues
+  Events** transition_to_state_event_queue;
 
 };
 
