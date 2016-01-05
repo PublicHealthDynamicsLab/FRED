@@ -202,7 +202,7 @@ void Markov_Epidemic::report_disease_specific_stats(int day) {
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->disease->get_natural_history()->get_state_name(i).c_str());
-    track_value(day, str, (int)(people_in_state[i].size()));
+    Utils::track_value(day, str, (int)(people_in_state[i].size()));
   }
 }
 

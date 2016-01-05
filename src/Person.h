@@ -20,6 +20,7 @@
 #include <vector>
 using namespace std;
 
+class Markov_Model;
 class Place;
 class Household;
 class Disease;
@@ -954,6 +955,18 @@ public:
   
   Person* get_end_of_link(int n, Network* network) {
     return this->activities.get_end_of_link(n, network);
+  }
+
+  bool has_health_process(Markov_Model* process) {
+    return this->health.has_health_process(process);
+  }
+
+  int get_health_state(Markov_Model* process) {
+    return this->health.get_health_state(process);
+  }
+
+  void set_health_state(Markov_Model* process, int state) {
+    this->health.set_health_state(process, state);
   }
 
 private:

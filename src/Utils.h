@@ -235,6 +235,10 @@ namespace Utils {
   Tokens split_by_delim(const char* str,
 			const char delim, bool collapse_consecutive_delims = true);
 
+  void track_value(int day, char* key, int value, int id = 0);
+  void track_value(int day, char* key, double value, int id = 0);
+  void track_value(int day, char* key, string value, int id = 0);
+
 }
 
 #endif /* UTILS_H_ */

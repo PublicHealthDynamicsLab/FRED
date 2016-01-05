@@ -132,6 +132,7 @@ int Markov_Natural_History::get_initial_state() {
     }
   }  
   assert(r < sum);
+  return -1;
 }
 
 void Markov_Natural_History::update_infection(int day, Person* host, Infection *infection) {

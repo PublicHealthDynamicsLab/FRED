@@ -260,6 +260,8 @@ Health::Health() {
   this->exposure_date = NULL;
   this->infector_id = NULL;
   this->infected_in_mixing_group = NULL;
+  this->health_process.clear();
+  this->health_state.clear();
 }
 
 void Health::setup(Person* self) {
@@ -1067,5 +1069,39 @@ void Health::terminate(Person* self) {
   }
   this->alive = false;
 }
+
+
+int Health::find_health_process(Markov_Model* process) {
+  int size = this->health_process.size();
+  for(int i = 0; i < size; ++i) {
+    if(this->health_process[i] == process) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+bool Health::has_health_process(Markov_Model* process) {
+  int n = find_health_process(process);
+  return (-1 < n);
+}
+
+int Health::get_health_state(Markov_Model* process) {
+  int n = find_health_process(process);
+  assert(-1 < n);
+  return this->health_state[n];
+}
+
+void Health::set_health_state(Markov_Model* process, int state) {
+  int n = find_health_process(process);
+  if (-1 < n) {
+    this->health_state[n] = state;
+  }
+  else {
+    this->health_process.push_back(process);
+    this->health_state.push_back(state);
+  }
+}
+
 
 

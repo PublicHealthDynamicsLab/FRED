@@ -110,6 +110,7 @@ void Params::read_parameter_file(char* paramfile) {
 	  read_parameter_file(includefilename);
 	}
       } else {
+	// printf("PARAM NAME = |%s|\n",name);fflush(stdout);
         if(fscanf(fp, " = %[^\n]", Params::param_value[Params::param_count]) == 1) {
           
           //Remove end of line comments if they are there
@@ -149,6 +150,7 @@ void Params::read_parameter_file(char* paramfile) {
     abort();
     // Utils::fred_abort("Help!  Can't read paramfile %s\n", paramfile);
   }
+  fprintf(stdout, "FRED finished reading parameter file %s\n", paramfile); fflush(stdout);
   fclose(fp);
 }
 

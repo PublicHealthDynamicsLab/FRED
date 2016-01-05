@@ -663,3 +663,38 @@ Utils::Tokens Utils::split_by_delim(const char* str,
 }
 
 
+void Utils::track_value(int day, char* key, int value, int id) {
+  char key_str[80];
+  if(id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+  
+  
+void Utils::track_value(int day, char* key, double value, int id) {
+  char key_str[80];
+  if(id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+  
+  
+void Utils::track_value(int day, char* key, string value, int id) {
+  char key_str[80];
+  if(id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+
+
+
+
