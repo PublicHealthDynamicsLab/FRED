@@ -24,13 +24,19 @@ class Events;
 class Markov_Model {
 
 public:
-  Markov_Model(char* _name);
+  Markov_Model();
 
   ~Markov_Model();
+
+  void setup(char* _name) {
+    strcpy(this->name, _name);
+  }
 
   void get_parameters();
 
   void print();
+
+  void prepare();
 
   int get_number_of_states() {
     return this->number_of_states;
@@ -54,10 +60,12 @@ public:
 
   void end_of_run();
 
-private:
+protected:
   char name[256];
   int number_of_states;
   std::vector<std::string>state_name;
+
+private:
   std::vector<double>state_initial_percent;
   double ** transition_matrix;
   int period_in_transition_probabilities;

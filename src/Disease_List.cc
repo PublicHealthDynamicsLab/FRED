@@ -52,12 +52,13 @@ void Disease_List::setup() {
 }
 
 void Disease_List::prepare_diseases() {
-  if (Global::Enable_Viral_Evolution) {
-    for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
-      Disease *disease = this->diseases[disease_id]; 
+  for(int disease_id = 0; disease_id < this->number_of_diseases; ++disease_id) {
+    Disease *disease = this->diseases[disease_id]; 
+    if (Global::Enable_Viral_Evolution) {
       disease->get_natural_history()->initialize_evolution_reporting_grid(Global::Simulation_Region);
       disease->get_natural_history()->init_prior_immunity();
     }
+    disease->prepare();
   }
 }
 

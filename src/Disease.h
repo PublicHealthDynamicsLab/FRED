@@ -46,6 +46,8 @@ public:
    */
   void setup();
 
+  void prepare();
+
   /**
    * @return this Disease's id
    */

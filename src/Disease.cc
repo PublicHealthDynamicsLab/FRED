@@ -233,8 +233,17 @@ void Disease::setup() {
   this->epidemic = Epidemic::get_epidemic(this);
   this->epidemic->setup();
 
-  fprintf(Global::Statusfp, "disease %d %s setup finished\n", this->id, this->disease_name);
-  fflush(Global::Statusfp);
+  FRED_VERBOSE(0, "disease %d %s setup finished\n", this->id, this->disease_name);
+}
+
+void Disease::prepare() {
+
+  FRED_VERBOSE(0, "disease %d %s prepare entered\n", this->id, this->disease_name);
+
+  // prepare Natural History Model
+  this->natural_history->prepare();
+
+  FRED_VERBOSE(0, "disease %d %s prepare finished\n", this->id, this->disease_name);
 }
 
 double Disease::get_attack_rate() {

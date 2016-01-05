@@ -12,14 +12,17 @@
 #ifndef _FRED_MARKOV_NATURAL_HISTORY_H
 #define _FRED_MARKOV_NATURAL_HISTORY_H
 
-#include "Natural_History.h"
-
 #include <vector>
 using namespace std;
 
-class Markov_Natural_History : public Natural_History {
+#include "Markov_Model.h"
+#include "Natural_History.h"
+
+
+class Markov_Natural_History : public Natural_History, public Markov_Model {
 
 public:
+
   Markov_Natural_History();
 
   ~Markov_Natural_History();
@@ -27,6 +30,8 @@ public:
   void setup(Disease *disease);
 
   void get_parameters();
+
+  void prepare();
 
   void print();
 
@@ -38,9 +43,11 @@ public:
     return this->state_name[i];
   }
 
+  /*
   double get_transition_probability(int i, int j) {
     return this->transition_matrix[i][j];
   }
+  */
 
   double get_infectivity(int s) {
     return state_infectivity[s];
@@ -88,13 +95,9 @@ public:
   void update_infection(int day, Person* host, Infection *infection);
 
 private:
-  int number_of_states;
-  std::vector<std::string>state_name;
   std::vector<double>state_infectivity;
   std::vector<double>state_symptoms;
   std::vector<int>state_fatality;
-  std::vector<double>state_initial_percent;
-  double ** transition_matrix;
 };
 
 #endif

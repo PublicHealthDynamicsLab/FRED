@@ -9,131 +9,80 @@
   more information.
 */
 
-#include "Markov_Natural_History.h"
 #include "Disease.h"
+#include "Global.h"
+#include "Markov_Natural_History.h"
 #include "Params.h"
-#include "Person.h"
-#include "Population.h"
-#include "Random.h"
 #include "Utils.h"
+
+class Person;
+
 
 Markov_Natural_History::Markov_Natural_History() {
 }
 
+
 Markov_Natural_History::~Markov_Natural_History() {
 }
 
+
 void Markov_Natural_History::setup(Disease * _disease) {
   Natural_History::setup(_disease);
+  Markov_Model::setup(this->disease->get_disease_name());
 }
+
 
 void Markov_Natural_History::get_parameters() {
 
-  FRED_VERBOSE(0, "Markov::Natural_History::get_parameters\n");
+  FRED_VERBOSE(0, "Markov_Natural_History::get_parameters\n");
 
   Natural_History::get_parameters();
+  Markov_Model::get_parameters();
 
-  // read in the disease-specific parameters
-  char state_description_file[256];
-  char paramstr[256];
-  char disease_name[20];
-  int n;
-
-  strcpy(disease_name, this->disease->get_disease_name());
-
-  Params::get_indexed_param(disease_name,"state_description_file", state_description_file);
-  FILE *fp = NULL;
-  fp = Utils::fred_open_file(state_description_file);
-  if (fp == NULL) {
-    fprintf(Global::Statusfp, "State description file %s not found\n", state_description_file);
-    exit(1);
-  }
-  fscanf(fp, " Number of states = %d ", &(this->number_of_states));
-  this->transition_matrix = new double * [this->number_of_states];
-  this->state_name.reserve(this->number_of_states);
   this->state_infectivity.reserve(this->number_of_states);
   this->state_symptoms.reserve(this->number_of_states);
+  this->state_fatality.reserve(this->number_of_states);
     
-  double initial_total = 0.0;
+  this->state_infectivity.clear();
+  this->state_symptoms.clear();
+  this->state_fatality.clear();
+    
+  char paramstr[256];
+  int fatal;
+  double inf, symp;
   for (int i = 0; i < this->number_of_states; i++) {
-    int j;
-    char str[80];
-    double inf, symp, init;
-    int fatal;
-    fscanf(fp, " state %d: ", &j);
-    assert(i==j);
-    assert (fscanf(fp, " name = %s ", str) == 1);
-    assert (fscanf(fp, " infectivity = %lf ", &inf) == 1);
-    assert (fscanf(fp, " symptoms = %lf ", &symp) == 1);
-    assert (fscanf(fp, " fatality = %d ", &fatal) == 1);
-    assert (fscanf(fp, " initial_percent = %lf ", &init) == 1);
-    this->state_name.push_back(str);
+    sprintf(paramstr, "%s[%d].infectivity", this->name, i);
+    Params::get_param(paramstr, &inf);
+    sprintf(paramstr, "%s[%d].symptoms", this->name, i);
+    Params::get_param(paramstr, &symp);
+    sprintf(paramstr, "%s[%d].fatality", this->name, i);
+    Params::get_param(paramstr, &fatal);
     this->state_infectivity.push_back(inf);
     this->state_symptoms.push_back(symp);
     this->state_fatality.push_back(fatal);
-    this->state_initial_percent.push_back(init);
-    if (i > 0) {
-      initial_total += init;
-    }
   }
-  this->state_initial_percent[0] = 100.0 - initial_total;
-  // assert(initial_total == 100.0);
+
+  // print
   for (int i = 0; i < this->number_of_states; i++) {
-    this->transition_matrix[i] = new double [number_of_states];
-    for (int j = 0; j < this->number_of_states; j++) {
-      this->transition_matrix[i][j] = 0.0;
-    }
+    printf("MARKOV MODEL %s[%d].infectivity = %f\n",
+	   this->name, i, this->state_infectivity[i]);
+    printf("MARKOV MODEL %s[%d].symptoms = %f\n",
+	   this->name, i, this->state_symptoms[i]);
+    printf("MARKOV MODEL %s[%d].fatality = %d\n",
+	   this->name, i, this->state_fatality[i]);
   }
-  fscanf(fp, " state transition probabilities: ");
-  int i, j;
-  double p;
-  while (fscanf(fp, " %d %d %lf ", &i, &j, &p) == 3) {
-    this->transition_matrix[i][j] = p;
-    // printf("read %d to %d: %f\n",i,j,p);
-  }
-  // gaurantee probability distribution by making same-state transition the default
-  for (int i = 0; i < this->number_of_states; i++) {
-    double sum = 0;
-    for (int j = 0; j < this->number_of_states; j++) {
-      if (i != j) {
-	sum += this->transition_matrix[i][j];
-      }
-    }
-    assert(sum <= 1.0);
-    this->transition_matrix[i][i] = 1.0 - sum;
-  }
-  fclose(fp);
-  print();
 }
 
 
-void Markov_Natural_History::print() {
-  for (int i = 0; i < this->number_of_states; i++) {
-    printf("MARKOV State %d: name = %s\n", i, this->state_name[i].c_str());
-    printf("MARKOV State %d %s: infectivity = %f\n", i, this->state_name[i].c_str(), this->state_infectivity[i]);
-    printf("MARKOV State %d %s: symptoms = %f\n", i, this->state_name[i].c_str(), this->state_symptoms[i]);
-    printf("MARKOV State %d %s: fatality = %d\n", i, this->state_name[i].c_str(), this->state_fatality[i]);
-    printf("MARKOV State %d %s: initial_percent = %f\n", i, this->state_name[i].c_str(), this->state_initial_percent[i]);
-  }
-  for (int i = 0; i < this->number_of_states; i++) {
-    for (int j = 0; j < this->number_of_states; j++) {
-      printf("MARKOV prob %d to %d: %f\n",i,j,this->transition_matrix[i][j]);
-    }
-  }
+void Markov_Natural_History::prepare() {
+  Markov_Model::prepare();
 }
+
 
 int Markov_Natural_History::get_initial_state() {
-  double r = 100.0 * Random::draw_random();
-  double sum = 0.0;
-  for (int i = 0; i < this->number_of_states; i++) {
-    sum += this->state_initial_percent[i];
-    if (r < sum) {
-      return i;
-    }
-  }  
-  assert(r < sum);
-  return -1;
+  return Markov_Model::get_initial_state();
 }
+
 
 void Markov_Natural_History::update_infection(int day, Person* host, Infection *infection) {
   // put daily updates to host here.
