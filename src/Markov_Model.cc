@@ -166,6 +166,12 @@ void Markov_Model::prepare() {
 	   this->name, 0, person->get_id(), state, new_state, transition_day);
   }
 
+  FRED_STATUS(0, "Markov_Model(%s)::prepare: state/size: \n", this->name);
+  for (int i = 0; i < this->number_of_states; i++) {
+    FRED_STATUS(0, " | %d %s = %d", i, this->state_name[i].c_str(), this->people_in_state[i].size());
+  }
+  FRED_STATUS(0, "\n");
+
   FRED_VERBOSE(0, "Markov_Model(%s)::prepare finished\n", this->name);
 }
 
