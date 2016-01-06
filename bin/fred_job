@@ -13,7 +13,7 @@ $| = 1;  # AUTO_FLUSH
 # File: fred_job
 # Author: John Grefenstette
 # Created: Jan 12, 2010
-# Updated: Feb 11, 2014 
+# Updated: Jan 7, 2017 
 
 # get current working directory
 my $cwd = getcwd();
@@ -106,25 +106,6 @@ if ($cores) {
   $using_pbs = 0;
   $cpus = $cores;
 }
-
-# get the file parameters from the params files
-my $diseases = get_param_value("diseases", $paramsfile);
-# print "diseases = $diseases\n";
-
-my $primary = get_param_value("primary_cases_file",$paramsfile);
-my $primary_cases_base = $primary;
-$primary_cases_base =~ s/.*\/// if $primary_cases_base =~ /\//;
-
-my $mortality_rate_file =  get_param_value("mortality_rate_file",$paramsfile);
-my $birth_rate_file =  get_param_value("birth_rate_file",$paramsfile);
-my $seasonality_file = get_param_value("seasonality_timestep_file",$paramsfile);
-
-my $mortality_rate_file_base = $mortality_rate_file;
-$mortality_rate_file_base =~ s/.*\/// if $mortality_rate_file_base =~ /\//;
-my $birth_rate_file_base = $birth_rate_file;
-$birth_rate_file_base =~ s/.*\/// if $birth_rate_file_base =~ /\//;
-my $seasonality_file_base = $seasonality_file;
-$seasonality_file_base =~ s/.*\/// if $seasonality_file_base =~ /\//;
 
 # NOTE: the next part of the script runs in the FRED_HOME directory
 chdir $FRED or die "Can't change to FRED directory $FRED\n";
@@ -318,19 +299,25 @@ chdir $cwd;
 
 # copy the input files to working directory
 `cp $FRED/input_files/defaults $work/defaults`;
+
 my $params = "$work/$params_base";
 `cp $paramsfile $params`;
-`cp $mortality_rate_file "$work/$mortality_rate_file_base"` if $mortality_rate_file ne "none";
-`cp $birth_rate_file "$work/$birth_rate_file_base"` if $birth_rate_file ne "none";
-`cp $seasonality_file "$work/$seasonality_file_base"` if $seasonality_file ne "none";
-`cp $primary "$work/$primary_cases_base"`;
-`$FRED/bin/fred_set primary_cases_file $primary_cases_base $params 1 >> $logfile`;
 
-# redirect output parameters
-`$FRED/bin/fred_set outdir $out $params >> $logfile`;
-`$FRED/bin/fred_set mortality_rate_file $mortality_rate_file_base $params >> $logfile` if $mortality_rate_file ne "none";
-`$FRED/bin/fred_set birth_rate_file $birth_rate_file_base $params >> $logfile` if $birth_rate_file ne "none";
-`$FRED/bin/fred_set seasonality_timestep_file $seasonality_file_base $params >> $logfile` if $seasonality_file ne "none";
+# get file parameters
+my @file_params = get_file_parameters("$FRED/input_files/defaults", $paramsfile);
+# print "|$_|\n" for @file_params;
+
+# for each file parameter, copy the file to working directory and
+# redirect parameter
+
+for my $file_param (@file_params) {
+  my $file = get_param_value($file_param, $paramsfile);
+  next if $file eq "none";
+  my $file_base = $file;
+  $file_base =~ s/.*\/// if $file_base =~ /\//;
+  `cp $file "$work/$file_base"`;
+  `echo $file_param = $file_base >> $params`;
+}
 
 # update run status
 `echo RUNNING > $meta/STATUS`;
@@ -512,3 +499,33 @@ sub get_param_value {
 }
 
 
+sub get_file_parameters {
+  my ($defaults,$paramsfile) = @_;
+  my $lines = `grep "file = " $defaults`;
+  $lines .= `grep "file = " $paramsfile`;
+  my @file_lines = split '\n', $lines;
+  my @param_list = ();
+  for my $line (@file_lines) {
+    chomp $line;
+    next if ($line =~ /^#/);
+    my ($param) = $line =~ /^(.*) =/;
+    push @param_list, $param;
+  }
+  my @uniq_params = uniq(@param_list);
+  my @file_pars = ();
+  for my $par (@uniq_params) {
+    my $val = get_param_value($par, $paramsfile);
+    next if $val eq "none";
+    next if $val =~ /FRED_HOME\/input_files/;
+    next if $par =~ /outfile$/;
+    # print "$par = $val\n";
+    push @file_pars, $par;
+  }
+  return @file_pars;
+}
+
+
+sub uniq {
+  my %seen;
+  return grep { !$seen{$_}++ } @_;
+}

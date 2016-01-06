@@ -750,7 +750,6 @@ vector_transmission_efficiency = 0.3
 ##########################################################
 
 enable_viral_evolution = 0
-dbfile = dbfile.txt
 all_diseases_antigenically_identical = 0
 influenza_evolution = 0
 influenza_num_strains = 1
