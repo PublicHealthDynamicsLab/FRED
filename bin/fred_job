@@ -64,11 +64,6 @@ my $runs = $end_run - $start_run + 1;
 
 $parallel = 1 if ($multiple_cpus > 1);
 
-# get the base of the params file name
-my $params_base = $paramsfile;
-$params_base =~ s/.*\/// if $params_base =~ /\//;
-my @a = ();
-
 # declare these in package
 my $cpus;
 my $using_pbs;
@@ -300,23 +295,30 @@ chdir $cwd;
 # copy the input files to working directory
 `cp $FRED/input_files/defaults $work/defaults`;
 
+# get the base of the params file name
+my $params_base = $paramsfile;
+$params_base =~ s/.*\/// if $params_base =~ /\//;
 my $params = "$work/$params_base";
 `cp $paramsfile $params`;
 
+# handle include files
+handle_include_files($paramsfile, $params);
+
 # get file parameters
-my @file_params = get_file_parameters("$FRED/input_files/defaults", $paramsfile);
+my @file_params = get_file_parameters("$FRED/input_files/defaults", $params);
 # print "|$_|\n" for @file_params;
 
 # for each file parameter, copy the file to working directory and
 # redirect parameter
 
+`echo '#' redirected file parameters: >> $params` if @file_params;
 for my $file_param (@file_params) {
-  my $file = get_param_value($file_param, $paramsfile);
+  my $file = get_param_value($file_param, $params);
   next if $file eq "none";
   my $file_base = $file;
   $file_base =~ s/.*\/// if $file_base =~ /\//;
   `cp $file "$work/$file_base"`;
-  `echo $file_param = $file_base >> $params`;
+  `echo $file_param = $file_base >> $params` if $file ne $file_base;
 }
 
 # update run status
@@ -528,4 +530,62 @@ sub get_file_parameters {
 sub uniq {
   my %seen;
   return grep { !$seen{$_}++ } @_;
+}
+
+sub handle_include_files {
+  my ($oldparams, $params) = @_;
+
+  # find all include files in old params file
+  my $lines .= `grep "include " $oldparams`;
+  my @file_lines = split '\n', $lines;
+  my @file_list = ();
+  for my $line (@file_lines) {
+    chomp $line;
+    next if ($line =~ /^#/);
+    my ($file) = $line =~ /^include (\S*)/;
+    push @file_list, $file;
+  }
+
+  # check for recursive includes
+  my $more = 1;
+  my @search_file_list = @file_list;
+  while (@search_file_list) {
+    my @new_file_list = ();
+    for my $file (@search_file_list) {
+      my $lines .= `grep "include " $file`;
+      my @file_lines = split '\n', $lines;
+      for my $line (@file_lines) {
+	chomp $line;
+	next if ($line =~ /^#/);
+	my ($file) = $line =~ /^include (\S*)/;
+	push @new_file_list, $file;
+      }
+    }
+    push @file_list, @new_file_list;
+    @search_file_list = @new_file_list;
+  }
+
+  # tack each one onto the end of new params
+  for my $file (@file_list) {
+    `echo '#' included file: $file >> $params`;
+    `cat $file >> $params`;
+    `echo >> $params`;
+  }
+
+  # comment out the include lines in new params
+  open OUT,">$params.new";
+  open IN, $params;
+  while (my $line = <IN>) {
+    if ($line =~ /^include /) {
+      print OUT "# $line";
+    }
+    else {
+      print OUT $line;
+    }
+  }
+  close IN;
+  close OUT;
+  # `cp $params $params.old`;
+  `mv $params.new $params`;
+
 }
