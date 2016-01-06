@@ -239,6 +239,12 @@ void Utils::fred_end(void){
   if(Global::Householdfp != NULL) {
     fclose(Global::Householdfp);
   }
+  if(Global::Tractfp != NULL) {
+    fclose(Global::Tractfp);
+  }
+  if(Global::IncomeCatfp != NULL) {
+    fclose(Global::IncomeCatfp);
+  }
 }
 
 

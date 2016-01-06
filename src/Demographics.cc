@@ -159,7 +159,7 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
     if(days_since_birthday < 0) {
       days_since_birthday += 365;
     }
-    double fraction_of_year = (double) days_since_birthday / 366.0;
+    double fraction_of_year = static_cast<double>(days_since_birthday) / 366.0;
     
     if(Random::draw_random() < fraction_of_year) {
       // already pregnant
@@ -258,7 +258,6 @@ void Demographics::update_birth_stats(int day, Person* self) {
     }
 
     assert(index != -1);
-    Global::Places.increment_population_of_county_with_index(index, self);
   }
 
   if(Global::Birthfp != NULL) {
@@ -278,8 +277,13 @@ void Demographics::birthday(Person* self, int day ) {
 
   FRED_STATUS(2, "Birthday entered for person %d with (previous) age %d\n", self->get_id(), self->get_age());
 
+  int county_index = self->get_household()->get_county_index();
+  //The count of agents at the current age is decreased by 1
+  Global::Places.decrement_population_of_county_with_index(county_index, self);
   // change age
   this->age++;
+  //The count of agents at the new age is increased by 1
+  Global::Places.increment_population_of_county_with_index(county_index, self);
 
   // will this person die in the next year?
   double age_specific_probability_of_death = 0.0;
@@ -293,7 +297,6 @@ void Demographics::birthday(Person* self, int day ) {
     */
   } else {
     // look up mortality in the mortality rate tables
-    int county_index = self->get_household()->get_county_index();
     age_specific_probability_of_death = Global::Places.get_county_with_index(county_index)->get_mortality_rate(this->age, this->sex);
   }
   if(this->deceased == false && this->deceased_sim_day == -1 &&
@@ -302,14 +305,12 @@ void Demographics::birthday(Person* self, int day ) {
     // Yes, so set the death day (in simulation days)
     this->deceased_sim_day = (day + Random::draw_random_int(0,364));
     Demographics::add_mortality_event(deceased_sim_day, self);
-    FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n",
-		day, self->get_id(), age, deceased_sim_day);
+    FRED_STATUS(1, "MORTALITY EVENT ADDDED today %d id %d age %d decease %d\n", day, self->get_id(), age, deceased_sim_day);
   } else {
     FRED_STATUS(2, "SURVIVER: AGE %d deceased_sim_day = %d\n", age, this->deceased_sim_day);
   }
   
   // Will this person conceive in the coming year year?
-  int county_index = self->get_household()->get_county_index();
   double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
   if(this->sex == 'F' &&
      Demographics::MIN_PREGNANCY_AGE <= this->age &&

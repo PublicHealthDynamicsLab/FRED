@@ -404,7 +404,7 @@ void fred_step(int day) {
   Global::Pop.remove_dead_from_population(day);
 
   // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1){
+  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1) {
   }
 
   // Update vector dynamics
@@ -462,10 +462,16 @@ void fred_step(int day) {
     Utils::fred_print_lap_time("day %d print_visualization_data", day);
   }
 
-  // optional: report change in demographics and end of each year
+  // optional: report change in demographics at end of each year
   if(Global::Enable_Population_Dynamics && Global::Verbose
      && Date::get_month() == 12 && Date::get_day_of_month() == 31) {
     Global::Pop.quality_control();
+  }
+
+
+  // optional: report County demographics at end of each year
+  if(Global::Report_County_Demographic_Information && Date::get_month() == 12 && Date::get_day_of_month() == 31) {
+    Global::Places.report_county_populations();
   }
 
 #pragma omp parallel sections

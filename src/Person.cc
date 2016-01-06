@@ -162,6 +162,10 @@ Person* Person::give_birth(int day) {
   Person* baby = Global::Pop.add_person(age, sex, race, rel,
 					house, school, work, day, today_is_birthday);
 
+  if(Global::Enable_Population_Dynamics) {
+    baby->get_demographics()->initialize_demographic_dynamics(baby);
+  }
+
   if(Global::Enable_Behaviors) {
     // turn mother into an adult decision maker, if not already
     if(this->is_health_decision_maker() == false) {

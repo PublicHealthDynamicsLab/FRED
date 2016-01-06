@@ -75,11 +75,14 @@ public:
   }
 
   int get_current_popsize(int age_min, int age_max, char sex) {
-    if(age_min > Demographics::MAX_AGE) {
-      age_min = Demographics::MAX_AGE;
+    if(age_min < 0) {
+      age_min = 0;
     }
     if(age_max > Demographics::MAX_AGE) {
       age_max = Demographics::MAX_AGE;
+    }
+    if(age_min > age_max) {
+      age_min = 0;
     }
     if(age_min >= 0 && age_max >= 0 && age_min <= age_max) {
       if(sex == 'F' || sex == 'M') {

@@ -1073,3 +1073,23 @@ void County::report_household_distributions() {
   }
   return;
 }
+
+void County::report_county_population() {
+  if(Global::Report_County_Demographic_Information) {
+    Utils::fred_report("County_Demographic_Information,fips[%d],date[%s]\n", this->get_fips(), Date::get_date_string().c_str());
+    Utils::fred_report("County_Demographic_Information,Total,Males,Females\n");
+    Utils::fred_report("County_Demographic_Information,%d,%d,%d\n", this->tot_current_popsize, this->tot_male_popsize, this->tot_female_popsize);
+    Utils::fred_report("County_Demographic_Information,By Age Groups:\n");
+    Utils::fred_report("County_Demographic_Information,Ages,Total,Males,Females\n");
+    for(int i = 0; i <= Demographics::MAX_AGE; i += 5) {
+      if(i == 5) { //want 0 - 5, then 6 - 10, 11 - 15, 16 - 20, etc.)
+        i++;
+      }
+      int max =  (i == 0 ? i + 5 : (i + 4 > Demographics::MAX_AGE ? Demographics::MAX_AGE : i + 4));
+      int males = this->get_current_popsize(i, max, 'M');
+      int females = this->get_current_popsize(i, max, 'F');
+      Utils::fred_report("County_Demographic_Information,(%d - %d),%d,%d,%d\n", i, max, males + females, males, females);
+    }
+    Utils::fred_report("County_Demographic_Information\n");
+  }
+}

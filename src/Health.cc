@@ -548,7 +548,7 @@ void Health::become_infectious(Person* self, Disease* disease) {
 void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   if (this->infection[disease_id]==NULL) {
-    printf("Help: becoming symptomatic with no infection: person %d\n", self->get_id());
+    printf("Help: becoming symptomatic with no infection: person %d, disease_id %d\n", self->get_id(), disease_id);
   }
   assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {

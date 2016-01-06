@@ -217,6 +217,12 @@ public:
     return;
   }
 
+  void report_county_populations() {
+   for(int index = 0; index < this->counties.size(); ++index) {
+     this->counties[index]->report_county_population();
+   }
+  }
+
   int get_number_of_census_tracts() {
     return (int)this->census_tracts.size();
   }
