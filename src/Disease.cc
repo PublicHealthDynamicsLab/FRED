@@ -240,8 +240,8 @@ void Disease::prepare() {
 
   FRED_VERBOSE(0, "disease %d %s prepare entered\n", this->id, this->disease_name);
 
-  // prepare Natural History Model
-  this->natural_history->prepare();
+  // final prep for epidemic
+  this->epidemic->prepare();
 
   FRED_VERBOSE(0, "disease %d %s prepare finished\n", this->id, this->disease_name);
 }

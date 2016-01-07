@@ -9,14 +9,9 @@
   more information.
 */
 
-#include "Events.h"
-#include "Global.h"
 #include "Markov_Model.h"
 #include "Params.h"
 #include "Random.h"
-#include "Person.h"
-#include "Population.h"
-#include "Utils.h"
 
 
 Markov_Model::Markov_Model() {
@@ -81,7 +76,7 @@ void Markov_Model::get_parameters() {
   // restore requiring parameters
   Params::set_abort_on_failure();
 
-  // gaurantee probability distribution by making same-state transition the default
+  // guarantee probability distribution by making same-state transition the default
   for (int i = 0; i < this->number_of_states; i++) {
     double sum = 0;
     for (int j = 0; j < this->number_of_states; j++) {
@@ -92,7 +87,6 @@ void Markov_Model::get_parameters() {
     assert(sum <= 1.0);
     this->transition_matrix[i][i] = 1.0 - sum;
   }
-  Markov_Model::print();
 }
 
 
@@ -125,77 +119,6 @@ int Markov_Model::get_initial_state() {
 }
 
 
-void Markov_Model::prepare() {
-
-  FRED_VERBOSE(0, "Markov_Model(%s)::prepare\n", this->name);
-
-  this->people_in_state = new person_vector_t [this->number_of_states];
-
-  for (int i = 0; i < this->number_of_states; i++) {
-    this->people_in_state[i].reserve(Global::Pop.get_pop_size());
-    this->people_in_state[i].clear();
-  }
-
-  this->transition_to_state_event_queue = new Events* [this->number_of_states];
-  for (int i = 0; i < this->number_of_states; i++) {
-    this->transition_to_state_event_queue[i] = new Events;
-  }
-
-  // initialize the population
-
-  int popsize = Global::Pop.get_pop_size();
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-    int state = get_initial_state();
-    
-    // add to state list
-    people_in_state[state].push_back(person);
-    
-    // update person's state
-    person->set_health_state(this, state);
-    
-    // update next event list
-    int new_state, transition_day;
-    get_next_state_and_time(0, state, &new_state, &transition_day);
-    this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
-    
-    FRED_VERBOSE(1,"INITIALIZE MARKOV MODEL %s day %d person %d state %d new_state %d transition_day %d\n",
-	   this->name, 0, person->get_id(), state, new_state, transition_day);
-  }
-
-  FRED_STATUS(0, "Markov_Model(%s)::prepare: state/size: \n", this->name);
-  for (int i = 0; i < this->number_of_states; i++) {
-    FRED_STATUS(0, " | %d %s = %d", i, this->state_name[i].c_str(), this->people_in_state[i].size());
-  }
-  FRED_STATUS(0, "\n");
-
-  FRED_VERBOSE(0, "Markov_Model(%s)::prepare finished\n", this->name);
-}
-
-
-void Markov_Model::setup() {
-  return;
-  FRED_VERBOSE(0, "Markov_Model(%s)::setup\n", this->name);
-
-  this->people_in_state = new person_vector_t [this->number_of_states];
-
-  for (int i = 0; i < this->number_of_states; i++) {
-    this->people_in_state[i].reserve(Global::Pop.get_pop_size());
-    this->people_in_state[i].clear();
-  }
-
-  this->transition_to_state_event_queue = new Events* [this->number_of_states];
-  for (int i = 0; i < this->number_of_states; i++) {
-    this->transition_to_state_event_queue[i] = new Events;
-  }
-
-  FRED_VERBOSE(0, "Markov_Model(%s)::setup finished\n", this->name);
-}
-
-
 void Markov_Model::get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day) {
   *transition_day = -1;
   *new_state = old_state;
@@ -215,64 +138,5 @@ void Markov_Model::get_next_state_and_time(int day, int old_state, int* new_stat
   }
 }
 
-void Markov_Model::process_transitions_to_state(int day, int state) {
-  int size = this->transition_to_state_event_queue[state]->get_size(day);
-  FRED_VERBOSE(0, "MARKOV_TRANS_TO_STATE %d %s day %d size %d\n",
-	       state, this->state_name[state].c_str(), day, size);
-
-  for(int i = 0; i < size; ++i) {
-    Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
-
-    FRED_VERBOSE(1,"TRANSITION to state %d  day %d person %d\n",
-		 state, day, person->get_id());
-
-    int old_state = person->get_health_state(this);
-
-    // delete from old list
-    for (int j = 0; j < people_in_state[old_state].size(); j++) {
-      if (people_in_state[old_state][j] == person) {
-	people_in_state[old_state][j] = people_in_state[old_state].back();
-	people_in_state[old_state].pop_back();
-      }
-    }
-
-    // add to state list
-    people_in_state[state].push_back(person);
-
-    // update person's state
-    person->set_health_state(this, state);
-
-    // update next event list
-    int new_state, transition_day;
-    get_next_state_and_time(day, state, &new_state, &transition_day);
-    this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
-
-  }
-  this->transition_to_state_event_queue[state]->clear_events(day);
-}
-
-void Markov_Model::update(int day) {
-  FRED_VERBOSE(0, "Markov_Model(%s)::update for day %d\n", this->name, day);
-  for (int i = 0; i < this->number_of_states; i++) {
-    process_transitions_to_state(day, i);
-  }
-  FRED_VERBOSE(0, "Markov_Model(%s)::update finished for day %d\n", this->name, day);
-}
-
-void Markov_Model::report(int day) {
-  FRED_VERBOSE(0, "Markov Model %s report day %d \n",this->name,day);
-  for (int i = 0; i < this->number_of_states; i++) {
-    char str[80];
-    strcpy(str,this->state_name[i].c_str());
-    Utils::track_value(day, str, (int)(people_in_state[i].size()));
-  }
-}
-
-void Markov_Model::end_of_run() {
-
-  // print end-of-run statistics here:
-  printf("Markov_Model finished\n");
-
-}
 
 

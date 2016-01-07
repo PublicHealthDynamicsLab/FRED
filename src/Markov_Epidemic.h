@@ -12,11 +12,12 @@
 #ifndef _FRED_MARKOV_EPIDEMIC_H
 #define _FRED_MARKOV_EPIDEMIC_H
 
+#include <string>
 #include <vector>
 using namespace std;
 
 #include "Epidemic.h"
-class Disease;
+class Markov_Model;
 
 typedef std::vector<Person*> person_vector_t;
 
@@ -30,13 +31,13 @@ public:
 
   void setup();
 
-  void get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day);
-
-  void process_transitions_to_state(int day, int state);
-
-  void preliminary_updates(int day);
+  void prepare();
 
   void update(int day);
+
+  void markov_updates(int day);
+
+  void process_transitions_to_state(int day, int state);
 
   void report_disease_specific_stats(int day);
 
@@ -45,12 +46,12 @@ public:
   void process_transition(int day, int i, int j, Person * person);
 
 private:
+  Markov_Model* markov_model;
   int number_of_states;
   person_vector_t * people_in_state;
 
   // event queues
   Events** transition_to_state_event_queue;
-
 };
 
 #endif // _FRED_MARKOV_EPIDEMIC_H

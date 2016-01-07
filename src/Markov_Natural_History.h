@@ -12,14 +12,15 @@
 #ifndef _FRED_MARKOV_NATURAL_HISTORY_H
 #define _FRED_MARKOV_NATURAL_HISTORY_H
 
+#include <string>
 #include <vector>
 using namespace std;
 
-#include "Markov_Model.h"
 #include "Natural_History.h"
+class Markov_Model;
 
 
-class Markov_Natural_History : public Natural_History, public Markov_Model {
+class Markov_Natural_History : public Natural_History {
 
 public:
 
@@ -31,23 +32,7 @@ public:
 
   void get_parameters();
 
-  void prepare();
-
   void print();
-
-  int get_number_of_states() {
-    return this->number_of_states;
-  }
-
-  std::string get_state_name(int i) {
-    return this->state_name[i];
-  }
-
-  /*
-  double get_transition_probability(int i, int j) {
-    return this->transition_matrix[i][j];
-  }
-  */
 
   double get_infectivity(int s) {
     return state_infectivity[s];
@@ -61,7 +46,15 @@ public:
     return (state_fatality[s] == 1);
   }
 
-  int get_initial_state();
+  Markov_Model* get_markov_model() {
+    return markov_model;
+  }
+
+  char* get_name();
+
+  int get_number_of_states();
+
+  std::string get_state_name(int i);
 
   // the following are unused in this model:
   double get_probability_of_symptoms(int age) {
@@ -92,9 +85,9 @@ public:
   bool gen_immunity_infection(double real_age) {
     return true;
   }
-  void update_infection(int day, Person* host, Infection *infection);
 
 private:
+  Markov_Model* markov_model;
   std::vector<double>state_infectivity;
   std::vector<double>state_symptoms;
   std::vector<int>state_fatality;

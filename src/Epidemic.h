@@ -107,6 +107,7 @@ public:
   virtual ~Epidemic();
  
   virtual void setup();
+  virtual void prepare() {}
   void print_stats(int day);
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
@@ -132,10 +133,8 @@ public:
   void get_imported_infections(int day);
   void become_exposed(Person* person, int day);
 
-  virtual void preliminary_updates(int day) {
-  }
-
   virtual void update(int day);
+  virtual void markov_updates(int day) {}
 
   void find_active_places_of_type(int day, int place_type);
   void spread_infection_in_active_places(int day);

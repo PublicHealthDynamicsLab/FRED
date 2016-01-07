@@ -55,8 +55,6 @@ public:
 
   virtual void get_parameters();
 
-  virtual void prepare() {}
-
   // called from Infection
 
   virtual void update_infection(int day, Person* host, Infection *infection) {}

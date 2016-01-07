@@ -1698,8 +1698,9 @@ void Epidemic::update(int day) {
   // import infections from unknown sources
   get_imported_infections(day);
   Utils::fred_print_epidemic_timer("imported infections");
-
-  preliminary_updates(day);
+  
+  // update markov transitions
+  markov_updates(day);
 
   // transition to infectious
   process_infectious_start_events(day);

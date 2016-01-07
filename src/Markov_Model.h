@@ -16,11 +16,6 @@
 #include <vector>
 using namespace std;
 
-typedef std::vector<Person*> person_vector_t;
-class Events;
-
-
-
 class Markov_Model {
 
 public:
@@ -28,15 +23,17 @@ public:
 
   ~Markov_Model();
 
-  void setup(char* _name) {
-    strcpy(this->name, _name);
+  void setup(char* disease_name) {
+    strcpy(name, disease_name);
   }
 
   void get_parameters();
 
   void print();
 
-  void prepare();
+  char* get_name() {
+    return this->name;
+  }
 
   int get_number_of_states() {
     return this->number_of_states;
@@ -48,17 +45,7 @@ public:
 
   int get_initial_state();
 
-  void setup();
-
   void get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day);
-
-  void process_transitions_to_state(int day, int state);
-
-  void update(int day);
-
-  void report(int day);
-
-  void end_of_run();
 
 protected:
   char name[256];
@@ -69,10 +56,6 @@ private:
   std::vector<double>state_initial_percent;
   double ** transition_matrix;
   int period_in_transition_probabilities;
-  person_vector_t * people_in_state;
-
-  // event queues
-  Events** transition_to_state_event_queue;
 };
 
 #endif
