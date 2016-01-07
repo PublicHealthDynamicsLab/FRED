@@ -38,7 +38,9 @@ void Markov_Natural_History::get_parameters() {
 
   FRED_VERBOSE(0, "Markov_Natural_History::get_parameters\n");
 
-  Natural_History::get_parameters();
+  // skip get_parameters() in base class:
+  // Natural_History::get_parameters();
+
   markov_model->get_parameters();
 
   this->state_infectivity.reserve(get_number_of_states());

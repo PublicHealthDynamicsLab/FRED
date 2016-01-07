@@ -96,10 +96,6 @@ void Disease::get_parameters(int disease_id, string name) {
 
   FRED_VERBOSE(0, "disease %d %s read_parameters entered\n", this->id, this->disease_name);
 
-  // type of natural history and transmission mode
-  Params::get_indexed_param(this->disease_name, "natural_history_model", this->natural_history_model);
-  Params::get_indexed_param(this->disease_name, "transmission_mode", this->transmission_mode);
-  
   // contagiousness
   // Note: the following tries first to find "trans" but falls back to "transmissibility":
   Params::disable_abort_on_failure();
@@ -109,6 +105,12 @@ void Disease::get_parameters(int disease_id, string name) {
     Params::get_indexed_param(this->disease_name, "transmissibility", &(this->transmissibility));
   }
 
+  // type of natural history and transmission mode
+  Params::get_indexed_param(this->disease_name, "natural_history_model", this->natural_history_model);
+  if (this->transmissibility > 0.0) {
+    Params::get_indexed_param(this->disease_name, "transmission_mode", this->transmission_mode);
+  }
+  
   // optional parameters:
   Params::disable_abort_on_failure();
   int n = 1;
@@ -223,11 +225,13 @@ void Disease::setup() {
   this->natural_history->setup(this);
   this->natural_history->get_parameters();
 
-  // Initialize Transmission Model
-  this->transmission = Transmission::get_new_transmission(this->transmission_mode);
+  if (this->transmissibility > 0.0) {
+    // Initialize Transmission Model
+    this->transmission = Transmission::get_new_transmission(this->transmission_mode);
 
-  // read in parameters and files associated with this transmission mode: 
-  this->transmission->setup(this);
+    // read in parameters and files associated with this transmission mode: 
+    this->transmission->setup(this);
+  }
 
   // Initialize Epidemic Model
   this->epidemic = Epidemic::get_epidemic(this);

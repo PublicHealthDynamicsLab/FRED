@@ -79,38 +79,51 @@ Natural_History * Natural_History::get_new_natural_history(char* natural_history
 void Natural_History::setup(Disease * _disease) {
   FRED_VERBOSE(0, "Natural_History::setup\n");
   this->disease = _disease;
+
+  // set defaults 
   this->probability_of_symptoms = 0;
   this->asymptomatic_infectivity = 0;
-
-  // set defaults for optional parameters
-  this->incubation_period_upper_bound = 0.0;
-  this->symptoms_duration_upper_bound = 0.0;
-  this->latent_period_upper_bound = 0.0;
-  this->infectious_duration_upper_bound = 0.0;
-  this->full_symptoms_start = 0.0;
-  this->full_symptoms_end = 1.0;
-  this->full_infectivity_start = 0.0;
-  this->full_infectivity_end = 1.0;
-  this->immunity_loss_rate = 0.0;
-  this->symptomaticity_threshold = 0.0;
-  this->infectivity_threshold = 0.0;
-  this->enable_case_fatality = 0;
-  this->age_specific_prob_case_fatality = NULL;
-  this->case_fatality_prob_by_day = NULL;
-  this->min_symptoms_for_case_fatality = -1.0;
-  this->max_days_case_fatality_prob = -1;
-  this->max_days_latent = 0;
-  this->max_days_infectious = 0;
+  strcpy(symptoms_distributions, "none");
+  strcpy(infectious_distributions, "none");
+  this->symptoms_distribution_type = 0;
+  this->infectious_distribution_type = 0;
   this->max_days_incubating = 0;
   this->max_days_symptomatic = 0;
-  this->days_latent = NULL;
-  this->days_infectious = NULL;
   this->days_incubating = NULL;
   this->days_symptomatic = NULL;
+  this->max_days_latent = 0;
+  this->max_days_infectious = 0;
+  this->days_latent = NULL;
+  this->days_infectious = NULL;
   this->age_specific_prob_symptoms = NULL;
+  this->immunity_loss_rate = 0;
+  this->incubation_period_median = 0;
+  this->incubation_period_dispersion = 0;
+  this->incubation_period_upper_bound = 0;
+  this->symptoms_duration_median = 0;
+  this->symptoms_duration_dispersion = 0;
+  this->symptoms_duration_upper_bound = 0;
+  this->latent_period_median = 0;
+  this->latent_period_dispersion = 0;
+  this->latent_period_upper_bound = 0;
+  this->infectious_duration_median = 0;
+  this->infectious_duration_dispersion = 0;
+  this->infectious_duration_upper_bound = 0;
+  this->infectious_start_offset = 0;
+  this->infectious_end_offset = 0;
+  this->infectivity_threshold = 0;
+  this->symptomaticity_threshold = 0;
+  this->full_symptoms_start = 0;
+  this->full_symptoms_end = 1;
+  this->full_infectivity_start = 0;
+  this->full_infectivity_end = 1;
+  this->enable_case_fatality = 0;
+  this->min_symptoms_for_case_fatality = -1;
+  this->age_specific_prob_case_fatality = NULL;
+  this->case_fatality_prob_by_day = NULL;
+  this->max_days_case_fatality_prob = -1;
   this->age_specific_prob_infection_immunity = NULL;
   this->evol = NULL;
-
   FRED_VERBOSE(0, "Natural_History::setup finished\n");
 }
 
@@ -161,52 +174,55 @@ void Natural_History::get_parameters() {
     Utils::fred_abort("Natural_History: unrecognized symptoms_distributions type: %s\n", this->symptoms_distributions);
   }
 
-  Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
+  if (this->disease->get_transmissibility() > 0.0) {
 
-  if (strcmp(this->infectious_distributions, "offset_from_symptoms")==0) {
-    Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
-    Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
-    this->infectious_distribution_type = OFFSET_FROM_SYMPTOMS;
-  }
-  else if (strcmp(this->infectious_distributions, "offset_from_start_of_symptoms")==0) {
-    Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
-    Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
-    this->infectious_distribution_type = OFFSET_FROM_START_OF_SYMPTOMS;
-  }
-  else if (strcmp(this->infectious_distributions, "lognormal")==0) {
-    Params::get_indexed_param(disease_name, "latent_period_median", &(this->latent_period_median));
-    Params::get_indexed_param(disease_name, "latent_period_dispersion", &(this->latent_period_dispersion));
-    Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
-    Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
+    Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
 
-    // set optional lognormal parameters
-    Params::disable_abort_on_failure();
+    if (strcmp(this->infectious_distributions, "offset_from_symptoms")==0) {
+      Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
+      Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+      this->infectious_distribution_type = OFFSET_FROM_SYMPTOMS;
+    }
+    else if (strcmp(this->infectious_distributions, "offset_from_start_of_symptoms")==0) {
+      Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
+      Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+      this->infectious_distribution_type = OFFSET_FROM_START_OF_SYMPTOMS;
+    }
+    else if (strcmp(this->infectious_distributions, "lognormal")==0) {
+      Params::get_indexed_param(disease_name, "latent_period_median", &(this->latent_period_median));
+      Params::get_indexed_param(disease_name, "latent_period_dispersion", &(this->latent_period_dispersion));
+      Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
+      Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
 
-    Params::get_indexed_param(disease_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
-    Params::get_indexed_param(disease_name, "infectious_duration_upper_bound", &(this->infectious_duration_upper_bound));
+      // set optional lognormal parameters
+      Params::disable_abort_on_failure();
+
+      Params::get_indexed_param(disease_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
+      Params::get_indexed_param(disease_name, "infectious_duration_upper_bound", &(this->infectious_duration_upper_bound));
     
-    // restore requiring parameters
-    Params::set_abort_on_failure();
+      // restore requiring parameters
+      Params::set_abort_on_failure();
 
-    this->infectious_distribution_type = LOGNORMAL;
-  }
-  else if (strcmp(this->infectious_distributions, "cdf")==0) {
-    Params::get_indexed_param(disease_name,"days_latent",&n);
-    this->days_latent = new double [n];
-    this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
+      this->infectious_distribution_type = LOGNORMAL;
+    }
+    else if (strcmp(this->infectious_distributions, "cdf")==0) {
+      Params::get_indexed_param(disease_name,"days_latent",&n);
+      this->days_latent = new double [n];
+      this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
     
-    Params::get_indexed_param(disease_name,"days_infectious",&n);
-    this->days_infectious = new double [n];
-    this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
-    this->infectious_distribution_type = CDF;
-  }
-  else {
-    Utils::fred_abort("Natural_History: unrecognized infectious_distributions type: %s\n", this->infectious_distributions);
+      Params::get_indexed_param(disease_name,"days_infectious",&n);
+      this->days_infectious = new double [n];
+      this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
+      this->infectious_distribution_type = CDF;
+    }
+    else {
+      Utils::fred_abort("Natural_History: unrecognized infectious_distributions type: %s\n", this->infectious_distributions);
+    }
+    Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
   }
 
   // set required parameters
   Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
-  Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
   
   // set optional parameters: if not found, we use the values set in setup()
 

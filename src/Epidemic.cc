@@ -325,12 +325,24 @@ void Epidemic::become_exposed(Person* person, int day) {
   this->infected_people.insert(person);
 
   // update next event list
-  int infectious_start_date = person->get_infectious_start_date(this->id);
-  if(0 <= infectious_start_date && infectious_start_date <= day) {
-    FRED_VERBOSE(0, "TIME WARP day %d inf %d\n", day, infectious_start_date);
-    infectious_start_date = day + 1;
+  int infectious_start_date = -1;
+  if (this->disease->get_transmissibility() > 0.0) {
+    infectious_start_date = person->get_infectious_start_date(this->id);
+    if(0 <= infectious_start_date && infectious_start_date <= day) {
+      FRED_VERBOSE(0, "TIME WARP day %d inf %d\n", day, infectious_start_date);
+      infectious_start_date = day + 1;
+    }
+    this->infectious_start_event_queue->add_event(infectious_start_date, person);
+  } 
+  else {
+    // This disease is not transmissible, therefore, no one ever becomes
+    // infectious.  Consequently, spread_infection is never called. So
+    // no transmission model is even generated (see Disease::setup()).
+
+    // This is how FRED supports non-communicable disease. Just use the parameter:
+    // <disease_name>_transmissibility = 0
+    //
   }
-  this->infectious_start_event_queue->add_event(infectious_start_date, person);
 
   int symptoms_start_date = person->get_symptoms_start_date(this->id);
   if(0 <= symptoms_start_date && symptoms_start_date <= day) {

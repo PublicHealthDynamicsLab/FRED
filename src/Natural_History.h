@@ -186,9 +186,14 @@ public:
 
 protected:
   Disease *disease;
+
+  // prob of getting symptoms
   double probability_of_symptoms;
+
+  // relative infectivity if asymptomatic
   double asymptomatic_infectivity;
 
+  // distributions for symptoms and infectiousness
   char symptoms_distributions[32];
   char infectious_distributions[32];
   int symptoms_distribution_type;
