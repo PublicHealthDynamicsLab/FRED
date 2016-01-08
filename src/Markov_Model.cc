@@ -28,9 +28,6 @@ void Markov_Model::get_parameters() {
   char paramstr[256];
   char state_name[256];
 
-  Params::get_indexed_param(this->name,"model_file", model_file);
-  Params::read_parameter_file(model_file);
-
   Params::get_indexed_param(this->name, "states", &(this->number_of_states));
   this->transition_matrix = new double * [this->number_of_states];
   this->state_name.reserve(this->number_of_states);

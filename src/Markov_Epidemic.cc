@@ -81,7 +81,7 @@ void Markov_Epidemic::prepare() {
     this->markov_model->get_next_state_and_time(0, state, &new_state, &transition_day);
     this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
     
-    FRED_VERBOSE(0,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
+    FRED_STATUS(1,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
 	   this->disease->get_disease_name(), 0, person->get_id(), state, new_state, transition_day);
   }
 
