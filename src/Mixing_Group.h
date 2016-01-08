@@ -126,28 +126,7 @@ public:
     return this->N_orig;
   }
 
-//  /**
-//   * Get the number of deaths from a given disease for a day.
-//   * The member variable deaths gets reset when <code>update()</code> is called, which for now is on a daily basis.
-//   *
-//   * @param disease_id an integer representation of the disease
-//   * @return the count of deaths for a given disease
-//   */
-//  int get_new_deaths(int disease_id) {
-//    return 0 /* new_deaths[disease_id] */;
-//  }
-
   int get_recovereds(int disease_id);
-
-//  /**
-//   * Get the number of deaths from a given disease for the simulation thus far.
-//   *
-//   * @param disease_id an integer representation of the disease
-//   * @return the count of deaths for a given disease
-//   */
-//  int get_total_deaths(int disease_id) {
-//    return 0 /* total_deaths[disease_id] */;
-//  }
 
   person_vec_t* get_enrollees() {
     return &(this->enrollees);

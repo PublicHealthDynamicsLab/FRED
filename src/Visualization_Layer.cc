@@ -317,7 +317,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   int size = this->households.size();
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
-    if(house->is_exposed(disease_id)) {
+    if(house->get_new_infections(day, disease_id) > 0) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
