@@ -166,6 +166,10 @@ public:
     this->health.become_infectious(this, disease);
   }
 
+  void become_noninfectious(Disease* disease) {
+    this->health.become_noninfectious(this, disease);
+  }
+
   /**
    * This agent will become symptomatic with the disease
    * @param disease a pointer to the Disease

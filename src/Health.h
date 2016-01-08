@@ -96,6 +96,7 @@ public:
   void become_unsusceptible(Person* self, Disease* disease);
   void become_unsusceptible(Person* self, int disease_id);
   void become_infectious(Person* self, Disease* disease);
+  void become_noninfectious(Person* self, Disease* disease);
   void become_symptomatic(Person* self, Disease* disease);
   void resolve_symptoms(Person* self, Disease* disease);
   void become_immune(Person* self, Disease* disease);

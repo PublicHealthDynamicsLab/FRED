@@ -1568,7 +1568,15 @@ void Epidemic::process_infectious_end_events(int day) {
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
-    recover(person, day);
+
+    // update person's health chart
+    person->become_noninfectious(this->disease);
+
+    // check to see if person has fully recovered:
+    int symptoms_end_date = person->get_symptoms_end_date(this->id);
+    if (-1 < symptoms_end_date && symptoms_end_date < day) {
+      recover(person, day);
+    }
   }
   this->infectious_end_event_queue->clear_events(day);
 }
@@ -1662,6 +1670,12 @@ void Epidemic::process_symptoms_end_events(int day) {
 
     // update person's health chart
     person->resolve_symptoms(this->disease);
+
+    // check to see if person has fully recovered:
+    int infectious_end_date = person->get_infectious_end_date(this->id);
+    if (-1 < infectious_end_date && infectious_end_date <= day) {
+      recover(person, day);
+    }
   }
   this->symptoms_end_event_queue->clear_events(day);
 }

@@ -379,8 +379,8 @@ void Infection::update(int today) {
 
 double Infection::get_infectivity(int day) {
   if(day < this->infectious_start_date || this->infectious_end_date <= day) {
-    FRED_VERBOSE(0,"INFECTION: day %d OUT OF BOUNDS inf_start %d inf_end %d result 0.0\n",
-		 day, this->infectious_start_date, this->infectious_end_date);
+    FRED_VERBOSE(0,"INFECTION: day %d OUT OF BOUNDS id %d inf_start %d inf_end %d result 0.0\n",
+		 day, this->host->get_id(), this->infectious_start_date, this->infectious_end_date);
     return 0.0;
   }
 

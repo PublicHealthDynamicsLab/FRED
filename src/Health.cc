@@ -545,6 +545,16 @@ void Health::become_infectious(Person* self, Disease* disease) {
 			  self->get_id(), disease_id);
 }
 
+void Health::become_noninfectious(Person* self, Disease* disease) {
+  int disease_id = disease->get_id();
+  assert(this->infection[disease_id] != NULL);
+  this->infectious.reset(disease_id);
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Charts,
+			  "HEALTH CHART: %s person %d is NONINFECTIOUS for disease %d\n",
+			  Date::get_date_string().c_str(),
+			  self->get_id(), disease_id);
+}
+
 void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
   if (this->infection[disease_id]==NULL) {
