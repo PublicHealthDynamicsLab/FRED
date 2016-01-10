@@ -38,6 +38,14 @@ class Vaccine;
 class Vaccine_Health;
 class Vaccine_Manager;
 
+typedef struct {
+  int state;
+  int last_transition_day;
+  int next_state;
+  int next_transition_day;
+} health_condition_t;
+
+
 // The following enum defines symbolic names for Chronic Medical Conditions.
 // The last element should always be CHRONIC_MEDICAL_CONDITIONS.
 namespace Chronic_condition_index {
@@ -646,6 +654,32 @@ public:
 
   void set_health_state(Markov_Model* process, int state);
 
+  int get_health_state(int disease_id) {
+    return this->health_condition[disease_id].state;
+  }
+
+  void set_health_state(int disease_id, int s, int day) {
+    this->health_condition[disease_id].state = s;
+    this->health_condition[disease_id].last_transition_day = day;
+  }
+
+  int get_last_transition_day(int disease_id) {
+    return this->health_condition[disease_id].last_transition_day;
+  }
+
+  int get_next_health_state(int disease_id) {
+    return this->health_condition[disease_id].next_state;
+  }
+
+  void set_next_health_state(int disease_id, int s, int day) {
+    this->health_condition[disease_id].next_state = s;
+    this->health_condition[disease_id].next_transition_day = day;
+  }
+
+  int get_next_transition_day(int disease_id) {
+    return this->health_condition[disease_id].next_transition_day;
+  }
+
 private:
 
   // link back to person
@@ -653,6 +687,9 @@ private:
 
   // active infections (NULL if not infected)
   Infection** infection;
+
+  // health condition array
+  health_condition_t* health_condition;
 
   // persistent infection data (kept after infection clears)
   double* susceptibility_multp;

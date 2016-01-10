@@ -74,12 +74,15 @@ void Markov_Epidemic::prepare() {
     people_in_state[state].push_back(person);
     
     // update person's state
-    person->set_health_state(this->markov_model, state);
-    
+    person->set_health_state(this->id, state, 0);
+
     // update next event list
     int new_state, transition_day;
     this->markov_model->get_next_state_and_time(0, state, &new_state, &transition_day);
     this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
+    
+    // update person's next state
+    person->set_next_health_state(this->id, new_state, transition_day);
     
     FRED_STATUS(1,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
 	   this->disease->get_disease_name(), 0, person->get_id(), state, new_state, transition_day);
@@ -122,13 +125,17 @@ void Markov_Epidemic::process_transitions_to_state(int day, int state) {
     people_in_state[state].push_back(person);
 
     // update person's state
-    person->set_health_state(this->markov_model, state);
+    person->set_health_state(this->id, state, day);
 
     // update next event list
     int new_state, transition_day;
     this->markov_model->get_next_state_and_time(day, state, &new_state, &transition_day);
     this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
+    
+    // update person's next state
+    person->set_next_health_state(this->id, new_state, transition_day);
 
+    // handle disease-related transition
   }
   this->transition_to_state_event_queue[state]->clear_events(day);
 }

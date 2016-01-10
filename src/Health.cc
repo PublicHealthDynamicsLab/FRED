@@ -260,6 +260,7 @@ Health::Health() {
   this->exposure_date = NULL;
   this->infector_id = NULL;
   this->infected_in_mixing_group = NULL;
+  this->health_condition = NULL;
   this->health_process.clear();
   this->health_state.clear();
 }
@@ -309,6 +310,7 @@ void Health::setup(Person* self) {
   this->infected_in_mixing_group = new Mixing_Group*[diseases];
   this->immunity_end_date = new int [diseases];
   this->past_infections = new past_infections_type [diseases];
+  this->health_condition = new health_condition_t [diseases];
 
   for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     this->recovered.reset(disease_id);
@@ -323,6 +325,10 @@ void Health::setup(Person* self) {
     this->infected_in_mixing_group[disease_id] = NULL;
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
+    this->health_condition[disease_id].state = 0;
+    this->health_condition[disease_id].last_transition_day = 0;
+    this->health_condition[disease_id].next_state = 0;
+    this->health_condition[disease_id].next_transition_day = -1;
 
     Disease* disease = Global::Diseases.get_disease(disease_id);
     if (disease->assume_susceptible()) {
@@ -1112,6 +1118,9 @@ void Health::set_health_state(Markov_Model* process, int state) {
     this->health_state.push_back(state);
   }
 }
+
+
+
 
 
 

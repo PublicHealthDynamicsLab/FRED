@@ -973,6 +973,30 @@ public:
     this->health.set_health_state(process, state);
   }
 
+  int get_health_state(int disease_id) {
+    return this->health.get_health_state(disease_id);
+  }
+
+  void set_health_state(int disease_id, int s, int day) {
+    return this->health.set_health_state(disease_id, s, day);
+  }
+
+  int get_last_health_transition_day(int disease_id) {
+    return this->health.get_last_transition_day(disease_id);
+  }
+
+  int get_next_health_state(int disease_id) {
+    return this->health.get_next_health_state(disease_id);
+  }
+
+  void set_next_health_state(int disease_id, int s, int day) {
+    return this->health.set_next_health_state(disease_id, s, day);
+  }
+
+  int get_next_health_transition_day(int disease_id) {
+    return this->health.get_next_transition_day(disease_id);
+  }
+
 private:
 
   // id: Person's unique identifier (never reused)
