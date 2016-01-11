@@ -16,6 +16,7 @@
 #define _FRED_INFECTION_H
 
 #include <map>
+#include "Natural_History.h"
 using namespace std;
 
 // TODO: find the proper place for this:
@@ -24,9 +25,6 @@ typedef std::map<int, double> Loads;
 class Disease;
 class Person;
 class Mixing_Group;
-
-#define NEVER (-1)
-
 
 class Infection {
 
@@ -124,7 +122,7 @@ public:
   }
 
   bool is_infectious(int day) {
-    if (this->infectious_start_date != NEVER) {
+    if(this->infectious_start_date != Natural_History::NEVER) {
       return (this->infectious_start_date <= day && day < this->infectious_end_date);
     } else {
       return false;
@@ -132,7 +130,7 @@ public:
   }
 
   bool is_symptomatic(int day) {
-    if(this->symptoms_start_date != NEVER) {
+    if(this->symptoms_start_date != Natural_History::NEVER) {
       return (this->symptoms_start_date <= day && day < this->symptoms_end_date);
     } else {
       return false;

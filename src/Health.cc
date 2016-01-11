@@ -385,7 +385,7 @@ Health::~Health() {
   }
 
   if(this->vaccine_health) {
-    for(unsigned int i = 0; i < this->vaccine_health->size(); i++) {
+    for(unsigned int i = 0; i < this->vaccine_health->size(); ++i) {
       delete (*this->vaccine_health)[i];
     }
     this->vaccine_health->clear();
@@ -393,7 +393,7 @@ Health::~Health() {
   }
 
   if(this->av_health) {
-    for(unsigned int i = 0; i < this->av_health->size(); i++) {
+    for(unsigned int i = 0; i < this->av_health->size(); ++i) {
       delete (*this->av_health)[i];
     }
     this->av_health->clear();
@@ -447,7 +447,7 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
 void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
    FRED_VERBOSE(1, "become_exposed: person %d is exposed to disease %d day %d\n",
-		self->get_id(), disease_id, day);
+		            self->get_id(), disease_id, day);
 
   if(this->infection[disease_id] != NULL) {
     Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
@@ -480,7 +480,7 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
     self->get_household()->set_exposed(disease_id);
     self->set_exposed_household(self->get_household()->get_index());
   }
-  if (infector != NULL) {
+  if(infector != NULL) {
     this->infector_id[disease_id] = infector->get_id();
   }
   this->exposure_date[disease_id] = day;
@@ -562,8 +562,8 @@ void Health::become_noninfectious(Person* self, Disease* disease) {
 
 void Health::become_symptomatic(Person* self, Disease* disease) {
   int disease_id = disease->get_id();
-  if (this->infection[disease_id]==NULL) {
-    printf("Help: becoming symptomatic with no infection: person %d, disease_id %d\n", self->get_id(), disease_id);
+  if(this->infection[disease_id] == NULL) {
+    FRED_STATUS(1, "Help: becoming symptomatic with no infection: person %d, disease_id %d\n", self->get_id(), disease_id);
   }
   assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
@@ -640,18 +640,18 @@ void Health::update_infection(int day, int disease_id) {
     this->update_face_mask_decision(myself, day);
   }
 
-  if (this->infection[disease_id] == NULL) {
+  if(this->infection[disease_id] == NULL) {
     return;
   }
 
-  FRED_VERBOSE(1,"update_infection %d on day %d person %d\n", disease_id, day, myself->get_id());
+  FRED_VERBOSE(1, "update_infection %d on day %d person %d\n", disease_id, day, myself->get_id());
   this->infection[disease_id]->update(day);
 
   // if this infections is fatal today, add this person to the
   // population's death_list and marked as a case_fatality
 
   if(this->infection[disease_id]->is_fatal(day)) {
-    FRED_VERBOSE(0,"DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
+    FRED_VERBOSE(0, "DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
     this->case_fatality.set(disease_id);
     // queue removal from population
     Global::Pop.prepare_to_die(day, myself);
@@ -661,7 +661,7 @@ void Health::update_infection(int day, int disease_id) {
   // if the infection_update called recover(), it is now safe to
   // collect the immunity_end date and delete the Infection object
   if(this->recovered_today.test(disease_id)) {
-    FRED_VERBOSE(1,"update_infection %d RECOVERED on day %d person %d\n", disease_id, day, myself->get_id());
+    FRED_VERBOSE(1, "update_infection %d RECOVERED on day %d person %d\n", disease_id, day, myself->get_id());
     this->immunity_end_date[disease_id] = this->infection[disease_id]->get_immunity_end_date();
 
     // TODO: encapsulate the following in infection[disease_id]->store_previous_infections(day);
@@ -678,18 +678,16 @@ void Health::update_infection(int day, int disease_id) {
       }
       }
     */
-
     // delete the infection object
     delete this->infection[disease_id];
     this->infection[disease_id] = NULL;
     this->recovered_today.reset(disease_id);
-  }
-  else {
+  } else {
     // update days_symptomatic if needed
     if(this->is_symptomatic(disease_id)) {
       int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
       if(days_symp_so_far > this->days_symptomatic) {
-	this->days_symptomatic = days_symp_so_far;
+	      this->days_symptomatic = days_symp_so_far;
       }
     }
   }
@@ -959,8 +957,8 @@ void Health::modify_symptomatic_period(int disease_id, double multp, int cur_day
 void Health::modify_develops_symptoms(int disease_id, bool symptoms, int cur_day) {
   if(this->infection[disease_id] != NULL
      && ((this->infection[disease_id]->is_infectious(cur_day)
-	  && !this->infection[disease_id]->is_symptomatic(cur_day))
-	 || !this->infection[disease_id]->is_infectious(cur_day))) {
+	        && !this->infection[disease_id]->is_symptomatic(cur_day))
+	        || !this->infection[disease_id]->is_infectious(cur_day))) {
 
     this->infection[disease_id]->modify_develops_symptoms(symptoms, cur_day);
     this->symptomatic.set(disease_id);
@@ -1084,9 +1082,6 @@ void Health::terminate(Person* self) {
   }
   this->alive = false;
 }
-
-
-
 
 
 

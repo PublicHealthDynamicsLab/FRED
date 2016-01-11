@@ -224,7 +224,7 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
   // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
-  FRED_VERBOSE(1,"ACTIVITIES_SETUP: person %d neighborhood %d %s\n", this->myself->get_id(),
+  FRED_VERBOSE(1, "ACTIVITIES_SETUP: person %d neighborhood %d %s\n", this->myself->get_id(),
 	       get_neighborhood()->get_id(), get_neighborhood()->get_label());
   FRED_CONDITIONAL_VERBOSE(0, get_neighborhood() == NULL,
 			   "Help! NO NEIGHBORHOOD for person %d house %d \n", this->myself->get_id(), get_household()->get_id());

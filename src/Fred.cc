@@ -468,7 +468,6 @@ void fred_step(int day) {
     Global::Pop.quality_control();
   }
 
-
   // optional: report County demographics at end of each year
   if(Global::Report_County_Demographic_Information && Date::get_month() == 12 && Date::get_day_of_month() == 31) {
     Global::Places.report_county_populations();

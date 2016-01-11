@@ -22,16 +22,15 @@ class Person;
 class Regional_Layer;
 class Infection;
 
-#define NEVER (-1)
-
-#define LOGNORMAL 0
-#define OFFSET_FROM_START_OF_SYMPTOMS 1
-#define OFFSET_FROM_SYMPTOMS 2
-#define CDF 3
-
 class Natural_History {
 public:
   
+  static const int NEVER = -1;
+  static const int LOGNORMAL = 0;
+  static const int OFFSET_FROM_START_OF_SYMPTOMS = 1;
+  static const int OFFSET_FROM_SYMPTOMS = 2;
+  static const int CDF = 3;
+
   virtual ~Natural_History();
 
   /**
@@ -43,7 +42,7 @@ public:
    * @return a pointer to a specific Natural_History model
    */
 
-  static Natural_History * get_new_natural_history(char* natural_history_model);
+  static Natural_History* get_new_natural_history(char* natural_history_model);
 
   /*
    * The Natural History base class implements an SEIR(S) model.
@@ -51,13 +50,15 @@ public:
    * virtual methods as needed.
    */
 
-  virtual void setup(Disease *disease);
+  virtual void setup(Disease* disease);
 
   virtual void get_parameters();
 
+  virtual void prepare() {}
+
   // called from Infection
 
-  virtual void update_infection(int day, Person* host, Infection *infection) {}
+  virtual void update_infection(int day, Person* host, Infection* infection) {}
 
   virtual bool do_symptoms_coincide_with_infectiousness() {
     return true;
@@ -88,7 +89,7 @@ public:
   virtual int get_duration_of_symptoms(Person* host);
 
   virtual double get_asymptomatic_infectivity() {
-    return asymptomatic_infectivity;
+    return this->asymptomatic_infectivity;
   }
 
   virtual Evolution* get_evolution() {
@@ -123,7 +124,7 @@ public:
 
   virtual void initialize_evolution_reporting_grid(Regional_Layer* grid);
 
-  virtual void end_of_run(){}
+  virtual void end_of_run() {}
 
   /*
   virtual int get_use_incubation_offset() {
@@ -160,36 +161,34 @@ public:
   }
 
   int get_symptoms_distribution_type() {
-    return symptoms_distribution_type;
+    return this->symptoms_distribution_type;
   }
 
   int get_infectious_distribution_type() {
-    return infectious_distribution_type;
+    return this->infectious_distribution_type;
   }
 
   double get_full_symptoms_start() {
-    return full_symptoms_start;
+    return this->full_symptoms_start;
   }
 
   double get_full_symptoms_end() {
-    return full_symptoms_end;
+    return this->full_symptoms_end;
   }
 
   double get_full_infectivity_start() {
-    return full_infectivity_start;
+    return this->full_infectivity_start;
   }
 
   double get_full_infectivity_end() {
-    return full_infectivity_end;
+    return this->full_infectivity_end;
   }
 
 
 protected:
-  Disease *disease;
-
+  Disease* disease;
   // prob of getting symptoms
   double probability_of_symptoms;
-
   // relative infectivity if asymptomatic
   double asymptomatic_infectivity;
 
@@ -202,15 +201,15 @@ protected:
   // CDFs
   int max_days_incubating;
   int max_days_symptomatic;
-  double *days_incubating;
-  double *days_symptomatic;
+  double* days_incubating;
+  double* days_symptomatic;
 
   int max_days_latent;
   int max_days_infectious;
-  double *days_latent;
-  double *days_infectious;
+  double* days_latent;
+  double* days_infectious;
 
-  Age_Map *age_specific_prob_symptoms;
+  Age_Map* age_specific_prob_symptoms;
   double immunity_loss_rate;
 
   // parameters for incubation and infectious periods and offsets

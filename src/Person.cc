@@ -67,19 +67,20 @@ void Person::setup(int _index, int _id, int age, char sex,
       Disease* dis = Global::Diseases.get_disease(disease);
       
       if(Global::Residual_Immunity_by_FIPS) {
-	Age_Map* temp_map = new Age_Map();
-	vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
-	vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
-	temp_map->set_ages(temp_ages);
-	temp_map->set_values(temp_values);
-     	double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
-	if(Random::draw_random() < residual_immunity_by_fips_prob) 
-	  become_immune(dis);
+	      Age_Map* temp_map = new Age_Map();
+	      vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
+	      vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
+	      temp_map->set_ages(temp_ages);
+	      temp_map->set_values(temp_values);
+     	  double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
+	      if(Random::draw_random() < residual_immunity_by_fips_prob) {
+	        become_immune(dis);
+	      }
       } else if(!dis->get_residual_immunity()->is_empty()) {
-	double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	if(Random::draw_random() < residual_immunity_prob) {
-	  become_immune(dis);
-	}
+	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
+	      if(Random::draw_random() < residual_immunity_prob) {
+	        become_immune(dis);
+	      }
       }
     }
   }

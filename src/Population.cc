@@ -548,7 +548,6 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
     unlink(temp_file);
   }
   FRED_VERBOSE(0, "finished reading uncompressed population, pop_size = %d\n", pop_size);
-
 }
 
 void Population::remove_dead_from_population(int day) {
@@ -566,6 +565,11 @@ void Population::remove_dead_person_from_population(int day, Person* person) {
   if(this->vacc_manager->do_vaccination()) {
     FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
     this->vacc_manager->remove_from_queue(person);
+  }
+  // remove the person from any event lists associated with any diseases in turn
+  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+    Disease* disease = Global::Diseases.get_disease(disease_id);
+    disease->terminate(person, day);
   }
   delete_person(person);
 }

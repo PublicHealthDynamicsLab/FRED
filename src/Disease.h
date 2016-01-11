@@ -37,7 +37,7 @@ public:
    * Default constructor
    */
   Disease();
-  ~Disease();
+  virtual ~Disease();
 
   void get_parameters(int disease, string name);
 
@@ -119,6 +119,8 @@ public:
  
   void update(int day);
 
+  void terminate(Person* person, int day);
+
   double get_face_mask_transmission_efficacy() {
     return this->face_mask_transmission_efficacy;
   }
@@ -159,11 +161,11 @@ public:
   
   vector<double> get_residual_immunity_values_by_FIPS(int FIPS_string);
    
-  char * get_natural_history_model() {
+  char* get_natural_history_model() {
     return this->natural_history_model;
   }
 
-  Natural_History * get_natural_history() {
+  Natural_History* get_natural_history() {
     return this->natural_history;
   }
 
@@ -177,18 +179,18 @@ public:
 
   // transmission mode
 
-  char * get_transmission_mode() {
+  char* get_transmission_mode() {
     return this->transmission_mode;
   }
 
-  Transmission * get_transmission() {
+  Transmission* get_transmission() {
     return this->transmission;
   }
 
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
   bool assume_susceptible() {
-    return make_all_susceptible;
+    return this->make_all_susceptible;
   }
 
   void end_of_run();

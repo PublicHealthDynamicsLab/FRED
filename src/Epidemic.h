@@ -225,11 +225,12 @@ public:
     ++(this->number_infected_by_cohort[cohort_day]);
   }
 
-
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
+  void terminate(Person* person, int day);
+
   int get_id() {
-    return id;
+    return this->id;
   }
 
   // events processing
@@ -348,7 +349,7 @@ protected:
   // used for incidence counts by census_tracts
   int census_tracts;
   int* census_tract_incidence;
-  int * census_tract_symp_incidence; 
+  int* census_tract_symp_incidence;
 
 };
 

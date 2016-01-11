@@ -95,7 +95,7 @@ void Disease::get_parameters(int disease_id, string name) {
   strcpy(this->disease_name, name.c_str());
 
   FRED_VERBOSE(0, "disease %d %s read_parameters entered\n", this->id, this->disease_name);
-
+  
   // contagiousness
   // Note: the following tries first to find "trans" but falls back to "transmissibility":
   Params::disable_abort_on_failure();
@@ -104,7 +104,7 @@ void Disease::get_parameters(int disease_id, string name) {
   if (found == 0) {
     Params::get_indexed_param(this->disease_name, "transmissibility", &(this->transmissibility));
   }
-
+  
   // type of natural history and transmission mode
   Params::get_indexed_param(this->disease_name, "natural_history_model", this->natural_history_model);
   if (this->transmissibility > 0.0) {
@@ -225,7 +225,7 @@ void Disease::setup() {
   this->natural_history->setup(this);
   this->natural_history->get_parameters();
 
-  if (this->transmissibility > 0.0) {
+  if(this->transmissibility > 0.0) {
     // Initialize Transmission Model
     this->transmission = Transmission::get_new_transmission(this->transmission_mode);
 
@@ -310,6 +310,10 @@ void Disease::increment_cohort_infectee_count(int day) {
  
 void Disease::update(int day) {
   this->epidemic->update(day);
+}
+
+void Disease::terminate(Person* person, int day) {
+  this->epidemic->terminate(person, day);
 }
 
 void Disease::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
