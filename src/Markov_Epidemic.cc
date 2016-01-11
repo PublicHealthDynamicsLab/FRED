@@ -84,15 +84,18 @@ void Markov_Epidemic::prepare() {
     // update person's next state
     person->set_next_health_state(this->id, new_state, transition_day);
     
-    FRED_STATUS(1,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
-	   this->disease->get_disease_name(), 0, person->get_id(), state, new_state, transition_day);
+    // handle disease-related transition
+    transition_person(person, 0, 0, state);
+
+    FRED_VERBOSE(0,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
+		this->disease->get_disease_name(), 0, person->get_id(), state, new_state, transition_day);
   }
 
-  FRED_STATUS(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
   for (int i = 0; i < this->number_of_states; i++) {
-    FRED_STATUS(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->people_in_state[i].size());
+    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->people_in_state[i].size());
   }
-  FRED_STATUS(0, "\n");
+  FRED_VERBOSE(0, "\n");
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare finished\n", this->disease->get_disease_name());
 }
@@ -108,7 +111,7 @@ void Markov_Epidemic::process_transitions_to_state(int day, int state) {
     FRED_VERBOSE(0,"TRANSITION to state %d  day %d person %d\n",
 		 state, day, person->get_id());
 
-    int old_state = person->get_health_state(this->markov_model);
+    int old_state = person->get_health_state(this->id);
 
     FRED_VERBOSE(0,"TRANSITION to state %d  day %d person %d old_state %d\n",
 		 state, day, person->get_id(), old_state);
@@ -136,6 +139,8 @@ void Markov_Epidemic::process_transitions_to_state(int day, int state) {
     person->set_next_health_state(this->id, new_state, transition_day);
 
     // handle disease-related transition
+    transition_person(person, day, old_state, state);
+
   }
   this->transition_to_state_event_queue[state]->clear_events(day);
 }
@@ -174,49 +179,65 @@ void Markov_Epidemic::end_of_run() {
 
 /// move to Health.cc
 
-void Markov_Epidemic::process_transition(int day, int i, int j, Person * person) {
+void Markov_Epidemic::transition_person(Person* person, int day, int old_state, int new_state) {
 
-  char state_i[80];
-  char state_j[80];
+  char old_state_name[80];
+  char new_state_name[80];
 
-  strcpy(state_i, this->markov_model->get_state_name(i).c_str());
-  strcpy(state_j, this->markov_model->get_state_name(j).c_str());
+  strcpy(old_state_name, this->markov_model->get_state_name(old_state).c_str());
+  strcpy(new_state_name, this->markov_model->get_state_name(new_state).c_str());
 
-  FRED_VERBOSE(0, "Markov transition day %d from %s to %s person %d\n",
-	       day,state_i,state_j,person->get_id());
+  FRED_VERBOSE(0, "MARKOV TRANSITION PERSON day %d from %s to %s person %d\n",
+	       day,old_state_name,new_state_name,person->get_id());
 
-  if (i == 0) {
+  if (old_state == 0 && new_state != 0) {
     // infect the person
     person->become_exposed(this->id, NULL, NULL, day);
     // notify the epidemic
     Epidemic::become_exposed(person, day);
-    if (j == 1) {
-      // person is asymptomatic
-    }
-    if (j == 2) {
-      person->become_symptomatic(this->disease);
-    }
   }
   
-  if (i == 1) {
-    if (j == 0) {
-      Epidemic::recover(person, day);
-    }
-    if (j == 2) {
-      person->become_symptomatic(this->disease);
-    }
-  }
-  
-  if (i == 2) {
-    if (j == 0) {
-      Epidemic::recover(person, day);
-    }
-    if (j == 1) {
-      person->resolve_symptoms(this->disease);
-    }
+  if (this->disease->get_natural_history()->get_symptoms(new_state) > 0.0 && person->is_symptomatic(this->id)==false) {
+    // update epidemic counters
+    this->people_with_current_symptoms++;
+    this->people_becoming_symptomatic_today++;
+
+    // update person's health chart
+    person->become_symptomatic(this->disease);
   }
 
-  FRED_VERBOSE(0, "Markov transition day %d state %d to state %d person %d is_infected %d is_symptomatic %d \n",
-	       day,i,j,person->get_id(), person->is_infected(0)?1:0, person->is_symptomatic(0)?1:0);
+  if (this->disease->get_natural_history()->get_symptoms(new_state) == 0.0 && person->is_symptomatic(this->id)) {
+    // update epidemic counters
+    this->people_with_current_symptoms--;
+
+    // update person's health chart
+    person->resolve_symptoms(this->disease);
+  }
+
+  if (this->disease->get_natural_history()->get_infectivity(new_state) > 0.0 && person->is_infectious(this->id)==false) {
+    // add to active people list
+    this->potentially_infectious_people.insert(person);
+
+    // update epidemic counters
+    this->exposed_people--;
+
+    // update person's health chart
+    person->become_infectious(this->disease);
+  }
+
+  if (this->disease->get_natural_history()->get_infectivity(new_state) == 0.0 && person->is_infectious(this->id)) {
+    // update person's health chart
+    person->become_noninfectious(this->disease);
+
+    // remove from active list
+    this->potentially_infectious_people.erase(person);
+  }
+
+  if (old_state != 0 && new_state == 0) {
+    // update person's health chart
+    person->recover(this->disease);
+    // record removed person
+    this->removed_people++;
+  }
 }
 

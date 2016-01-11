@@ -43,7 +43,7 @@ public:
 
   void end_of_run();
 
-  void process_transition(int day, int i, int j, Person * person);
+  void transition_person(Person* person, int day, int old_state, int new_state);
 
 private:
   Markov_Model* markov_model;

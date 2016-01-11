@@ -32,7 +32,6 @@ class AV_Health;
 class AV_Manager;
 class Disease;
 class Person;
-class Markov_Model;
 class Mixing_Group;
 class Vaccine;
 class Vaccine_Health;
@@ -646,14 +645,6 @@ public:
     this->infection[disease_id]->set_fatal_infection();
   }
 
-  bool has_health_process(Markov_Model* process);
-
-  int find_health_process(Markov_Model* process);
-
-  int get_health_state(Markov_Model* process);
-
-  void set_health_state(Markov_Model* process, int state);
-
   int get_health_state(int disease_id) {
     return this->health_condition[disease_id].state;
   }
@@ -754,8 +745,7 @@ private:
   // previous infection serotype (for dengue)
   int previous_infection_serotype;
 
-  // markov processes related to health
-  std::vector<Markov_Model*> health_process;
+  // processes related to health
   std::vector<int> health_state;
 
   /////// STATIC MEMBERS
