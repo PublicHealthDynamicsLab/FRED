@@ -52,6 +52,8 @@ Mixing_Group::Mixing_Group(const char* lab) {
   this->new_symptomatic_infections = new int[diseases];
   this->current_symptomatic_infections = new int[diseases];
   this->total_symptomatic_infections = new int[diseases];
+  this->current_case_fatalities = new int[diseases];
+  this->total_case_fatalities = new int[diseases];
 
   // zero out all disease-specific counts
   this->last_update = 0;
@@ -62,6 +64,8 @@ Mixing_Group::Mixing_Group(const char* lab) {
     this->new_symptomatic_infections[d] = 0;
     this->total_symptomatic_infections[d] = 0;
     this->infectious_people[d].clear();
+    this->current_case_fatalities[d] = 0;
+    this->total_case_fatalities[d] = 0;
   }
 }
 

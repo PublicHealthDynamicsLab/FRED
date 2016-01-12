@@ -47,6 +47,8 @@ my $google = 1;
 my $shapefile = 1;
 my $point_size = 0.5;
 my $hazel = 0;
+my $case_fatalities = 0;
+my $total_case_fatalities = 0;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -54,6 +56,8 @@ my $opt_result = GetOptions(
 			    "start=i" => \$start,
 			    "interval=i" => \$interval,
 			    "census_tracts" => \$census_tracts,
+			    "cf=i" => \$case_fatalities,
+			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
 			    "d=i" => \$disease_id,
@@ -84,8 +88,8 @@ my $opt_result = GetOptions(
 			    "recovered=i" => \$show_recovered,
 			    "hc_unav=i" => \$show_hc_unav,
 			    "hc_deficit=i"=>\$show_hc_deficit,
-				"primary_hc_unav=i" => \$show_primary_hc_unav,
-				"accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
+			    "primary_hc_unav=i" => \$show_primary_hc_unav,
+			    "accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
 			    "shapefile=i" => \$shapefile,
 			    "movieformat=s" => \$movie_format,
 			    "hazel=i" => \$hazel,
@@ -156,7 +160,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities";
 
 # print "$command\n"; exit;
 

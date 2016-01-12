@@ -646,6 +646,19 @@ void Health::become_case_fatality(int disease_id, int day) {
 			   Date::get_date_string().c_str(),
 			   myself->get_id(), disease_id);
   become_removed(disease_id, day);
+
+  // update household counts
+  Mixing_Group* hh = myself->get_household();
+  if(hh == NULL) {
+    if(Global::Enable_Hospitals && myself->is_hospitalized() && myself->get_permanent_household() != NULL) {
+      hh = myself->get_permanent_household();
+    }
+  }
+  if(hh != NULL) {
+    hh->increment_case_fatalities(day, disease_id);
+  }
+
+
   // queue removal from population
   Global::Pop.prepare_to_die(day, myself);
 }

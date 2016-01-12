@@ -91,6 +91,8 @@ public:
   static const int OUTPUT_P = 10;
   static const int OUTPUT_N = 11;
   static const int OUTPUT_HC_DEFICIT = 12;
+  static const int OUTPUT_TD = 13;
+
 
 
   // global constants

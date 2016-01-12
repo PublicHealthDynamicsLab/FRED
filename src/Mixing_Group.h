@@ -258,6 +258,26 @@ public:
     this->current_symptomatic_infections[disease_id]++;
   }
 
+  void increment_case_fatalities(int day, int disease_id) {
+    if (this->last_update < day) {
+      this->last_update = day;
+      this->current_case_fatalities[disease_id] = 0;
+    }
+    this->current_case_fatalities[disease_id]++;
+    this->total_case_fatalities[disease_id]++;
+  }
+
+  int get_current_case_fatalities(int day, int disease_id) {
+    if (last_update < day) {
+      return 0;
+    }
+    return current_case_fatalities[disease_id];
+  }
+
+  int get_total_case_fatalities(int disease_id) {
+    return total_case_fatalities[disease_id];
+  }
+
   int get_new_infections(int day, int disease_id) {
     if (last_update < day) {
       return 0;
@@ -366,6 +386,8 @@ protected:
   int* current_symptomatic_infections; // current active sympt infections
   int* total_infections;         // total infections over all time
   int* total_symptomatic_infections; // total sympt infections over all time
+  int* current_case_fatalities;
+  int* total_case_fatalities;
 
   // first and last days when visited by infectious people
   int first_day_infectious;

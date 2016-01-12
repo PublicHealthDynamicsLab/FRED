@@ -38,6 +38,12 @@ if (!exists("show_infectious")) {
 if (!exists("show_recovered")) {
   show_recovered = 1
 }
+if (!exists("show_case_fatalities")) {
+  show_case_fatalities = 0
+}
+if (!exists("show_total_case_fatalities")) {
+  show_total_case_fatalities = 0
+}
 if (!exists("show_hc_unav")) {
   show_hc_unav = 0
 }
@@ -86,6 +92,12 @@ if (!exists("infectious_households")) {
 if (!exists("recovered_households")) {
   recovered_households = "recovered_households.txt"
 }
+if (!exists("case_fatalities_households")) {
+  case_fatalities_households = "case_fatalities_households.txt"
+}
+if (!exists("total_case_fatalities_households")) {
+  total_case_fatalities_households = "total_case_fatalities_households.txt"
+}
 if (!exists("fipsfile")) {
   fipsfile = "FIPS"
 }
@@ -126,9 +138,9 @@ set style line 9 lc rgb "red" lt 1 lw 0.2
 set style line 10 lc rgb "red" lt 1 lw 0.2
 set style line 11 lc rgb "red" lt 1 lw 0.2
 set style line 12 lc rgb "beige" lt 1 lw 0.2
-set style line 13 lc rgb "cornsilk" lt 1 lw 0.2
-set style line 14 lc rgb "dodgerblue" lt 1 lw 0.2
-set style line 15 lc rgb "darkgreen" lt 1 lw 0.2
+set style line 13 lc rgb "light-goldenrod" lt 1 lw 0.2
+set style line 14 lc rgb "medium-blue" lt 1 lw 0.2
+set style line 15 lc rgb "dark-green" lt 1 lw 0.2
 
 set style line 999 lc rgb 'white' lt 1 lw 1
 set style line 99 lc rgb 'gray' lt 1 lw 1
@@ -153,7 +165,7 @@ if (filled) {
   # print cmd
   values = system(cmd)
 }
-print values
+# print "values =" . values
 
 # get the line style associate with a FIPS code
 get_raw(n) =  1 + int((10.0*word(values,n))/max)
@@ -250,8 +262,9 @@ else {
  print sprintf("ymax = %f",ymax)
  print sprintf("xmax = %f",xmax)
  set print
-
- if (google) {
+}
+ 
+if (google) {
   cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s %d", ymin, xmin, ymax, xmax, api_key, lightness)
   # print cmd
   system(cmd)
@@ -262,7 +275,6 @@ else {
     print "FAILED TO CREATE googlemap.png"
     exit;
   }
- }
 }
 
 # ready for the actual plot:
@@ -363,6 +375,24 @@ if (show_recovered) {
   }
   else {
    replot recovered_households u 2:1 t '' wi dots ls 1
+  }
+}
+
+if (show_case_fatalities) {
+  if (point_size > 0) {
+   replot case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
+  }
+  else {
+   replot case_fatalities_households u 2:1 t '' wi dots ls 9
+  }
+}
+
+if (show_total_case_fatalities) {
+  if (point_size > 0) {
+   replot total_case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
+  }
+  else {
+   replot total_case_fatalities_households u 2:1 t '' wi dots ls 9
   }
 }
 

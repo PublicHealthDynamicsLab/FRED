@@ -44,6 +44,8 @@ my $google = 1;
 my $use_shapefile = 1;
 my $point_size = 0.5;
 my $hazel = 0;
+my $case_fatalities = 0;
+my $total_case_fatalities = 0;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
@@ -51,6 +53,8 @@ my $opt_result = GetOptions(
 			    "start=i" => \$start,
 			    "interval=i" => \$interval,
 			    "census_tracts=i" => \$census_tracts,
+			    "cf=i" => \$case_fatalities,
+			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
 			    "disease=i" => \$disease_id,
 			    "filled=i" => \$filled,
@@ -252,6 +256,8 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_incidence = $show_incidence\n";
   print LD "show_infectious = $show_infectious\n";
   print LD "show_recovered = $show_recovered\n";
+  print LD "show_case_fatalities = $case_fatalities\n";
+  print LD "show_total_case_fatalities = $total_case_fatalities\n";
   print LD "show_hc_unav = $show_hc_unav\n"; 
   print LD "show_primary_hc_unav = $show_primary_hc_unav\n"; 
   print LD "show_accept_insr_hc_unav = $show_accept_insr_hc_unav\n";
@@ -262,6 +268,8 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
+  print LD "case_fatalities_households = '$vis/D/households-$day.txt'\n";
+  print LD "total_case_fatalities_households = '$vis/TD/households-$day.txt'\n";
   print LD "primary_hc_unav_household = '$vis/HH_primary_hc_unav/households-$day.txt'\n";;
   print LD "accept_insr_hc_unav_incidence = '$vis/HH_accept_insr_hc_unav/households-$day.txt'\n";
   print LD "hc_unav_households = '$vis/HH_hc_unav/households-$day.txt'\n";
