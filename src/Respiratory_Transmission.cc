@@ -89,6 +89,9 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Mixing_
 
 void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* place) {
 
+  FRED_VERBOSE(1, "spread_infection day %d disease %d place %d %s\n",
+	       day, disease_id, place->get_id(), place->get_label());
+
   // abort if transmissibility == 0 or if place is closed
   Disease* disease = Global::Diseases.get_disease(disease_id);
   double beta = disease->get_transmissibility();
@@ -108,6 +111,8 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* 
 
   if(place->is_household()) {
     pairwise_transmission_model(day, disease_id, place);
+    FRED_VERBOSE(1, "spread_infection finished day %d disease %d place %d %s\n",
+		 day, disease_id, place->get_id(), place->get_label());
     return;
   }
 
@@ -124,6 +129,9 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* 
     default_transmission_model(day, disease_id, place);
   }
   */
+  FRED_VERBOSE(1, "spread_infection finished day %d disease %d place %d %s\n",
+	       day, disease_id, place->get_id(), place->get_label());
+
   return;
 }
 /////////////////////////////////////////
@@ -290,8 +298,7 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
   
   for(int infector_pos = 0; infector_pos < infectious->size(); ++infector_pos) {
     Person* infector = (*infectious)[infector_pos];      // infectious individual
-    FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is %d\n",
-		 day, place->get_label(), infector_pos, infector->get_id());
+    // FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is %d\n", day, place->get_label(), infector_pos, infector->get_id());
     
     if(infector->is_infectious(disease_id) == false) {
       FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is not infectious!\n",
@@ -305,24 +312,29 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
       if(infector == infectee) {
 	      continue;
       }
+      int infectee_id = infectee->get_id();
+      char* label = place->get_label();
+
       FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee is %d\n",
-		   day, place->get_label(), infectee->get_id());
+		   day, label, infectee_id);
       
       if(infectee->is_infectious(disease_id) == false) {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not infectious -- updating schedule\n",
-		                 day, place->get_label(), infectee->get_id());
+		                 day, label, infectee_id);
 	      infectee->update_schedule(day);
       } else {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is infectious\n",
-		                 day, place->get_label(), infectee->get_id());
+		                 day, label, infectee_id);
       }
       if(!infectee->is_present(day, place)) {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not present today\n",
-		                 day, place->get_label(), infectee->get_id());
+		                 day, label, infectee_id);
 	      continue;
       }
       // only proceed if person is susceptible
       if(infectee->is_susceptible(disease_id)) {
+	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is present and susceptible\n",
+		                 day, label, infectee_id);
 	      // get the transmission probs for infector/infectee pair
 	      double transmission_prob = 1.0;
 	      if(Global::Enable_Transmission_Bias) {
@@ -336,7 +348,7 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
 	      attempt_transmission(transmission_prob, infector, infectee, disease_id, day, place);
       } else {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not susceptible\n",
-		                 day, place->get_label(), infectee->get_id());
+		                 day, label, infectee_id);
       }
     } // end susceptibles loop
   }

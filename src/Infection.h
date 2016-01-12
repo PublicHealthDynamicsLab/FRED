@@ -152,6 +152,8 @@ public:
   virtual void set_state(int state) {
   }
 
+  void terminate(int day);
+
 protected:
 
   // associated disease

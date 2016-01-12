@@ -113,11 +113,6 @@ public:
 		     Place* school, Place* work, int day, bool today_is_birthday);
 
   /**
-   * @param per a pointer to the Person to remove from the Population
-   */
-  void delete_person(Person* per);
-
-  /**
    * Perform the necessary steps for an agent's death
    * @param day the simulation day
    * @param person the agent who will die

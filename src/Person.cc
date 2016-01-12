@@ -121,7 +121,7 @@ void Person::update_household_counts(int day, int disease_id) {
     }
   }
   if(hh != NULL) {
-    this->health.update_mixing_group_counts(this, day, disease_id, hh);
+    this->health.update_mixing_group_counts(day, disease_id, hh);
   }
 }
 
@@ -129,14 +129,14 @@ void Person::update_school_counts(int day, int disease_id) {
   // this is only called for people with an active infection.
   Mixing_Group* school = this->get_school();
   if(school != NULL) {
-    this->health.update_mixing_group_counts(this, day, disease_id, school);
+    this->health.update_mixing_group_counts(day, disease_id, school);
   }
 }
 
 void Person::become_immune(Disease* disease) {
   int disease_id = disease->get_id();
   if(this->health.is_susceptible(disease_id)) {
-    this->health.become_immune(this, disease);
+    this->health.become_immune(disease);
   }
 }
 
@@ -203,11 +203,11 @@ string Person::to_string() {
   return tmp_string_stream.str();
 }
 
-void Person::terminate() {
+void Person::terminate(int day) {
   FRED_VERBOSE(1, "terminating person %d\n", id);
   this->behavior.terminate(this);
   this->activities.terminate();
-  this->health.terminate(this);
+  this->health.terminate(day);
   this->demographics.terminate(this);
 }
 

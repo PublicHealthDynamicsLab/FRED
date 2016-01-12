@@ -427,6 +427,10 @@ void Demographics::update(int day) {
   size = Demographics::mortality_queue->get_size(day);
   for(int i = 0; i < size; ++i) {
     Person * person = Demographics::mortality_queue->get_event(day, i);
+    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
+			     "HEALTH CHART: %s person %d age %d DIES FROM UNKNOWN CAUSE.\n",
+			     Date::get_date_string().c_str(),
+			     person->get_id(), person->get_age());
     // queue removal from population
     Global::Pop.prepare_to_die(day, person);
     // person->get_demographics()->die(day, person);

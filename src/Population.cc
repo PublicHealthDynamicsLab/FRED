@@ -133,26 +133,6 @@ Person* Population::add_person(int age, char sex, int race, int rel,
 }
 
 
-void Population::delete_person(Person* person) {
-  FRED_VERBOSE(1, "DELETING PERSON: %d ...\n", person->get_id());
-
-  person->terminate();
-  FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
-
-  if(Global::Enable_Travel) {
-    Travel::terminate_person(person);
-  }
-
-  int idx = person->get_pop_index();
-  assert(get_person_by_index(idx) == person);
-  // call Person's destructor directly!!!
-  get_person_by_index(idx)->~Person();
-  this->blq.mark_invalid_by_index(person->get_pop_index());
-
-  this->pop_size--;
-  assert((unsigned)this->pop_size == this->blq.size());
-}
-
 void Population::prepare_to_die(int day, Person* person) {
   // add person to daily death_list
   fred::Scoped_Lock lock(this->mutex);
@@ -566,12 +546,23 @@ void Population::remove_dead_person_from_population(int day, Person* person) {
     FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
     this->vacc_manager->remove_from_queue(person);
   }
-  // remove the person from any event lists associated with any diseases in turn
-  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    disease->terminate(person, day);
+
+  FRED_VERBOSE(1, "DELETING PERSON: %d ...\n", person->get_id());
+  person->terminate(day);
+  FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
+
+  if(Global::Enable_Travel) {
+    Travel::terminate_person(person);
   }
-  delete_person(person);
+
+  int idx = person->get_pop_index();
+  assert(get_person_by_index(idx) == person);
+  // call Person's destructor directly!!!
+  get_person_by_index(idx)->~Person();
+  this->blq.mark_invalid_by_index(person->get_pop_index());
+
+  this->pop_size--;
+  assert((unsigned)this->pop_size == this->blq.size());
 }
 
 void Population::report(int day) {
@@ -1672,7 +1663,7 @@ void Population::update_health_interventions(int day) {
   for(int p = 0; p < this->get_index_size(); ++p) {
     Person* person = get_person_by_index(p);
     if(person != NULL) {
-      person->get_health()->update_interventions(person, day);
+      person->update_health_interventions(day);
     }
   }
 }

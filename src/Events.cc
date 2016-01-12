@@ -26,6 +26,7 @@ Events::Events() {
 }
 
 void Events::add_event(int day, event_t item) {
+
   if (day < 0 || MAX_DAYS <= day) {
     // won't happen during this simulation
     return;
@@ -42,6 +43,7 @@ void Events::add_event(int day, event_t item) {
 }
 
 void Events::delete_event(int day, event_t item) {
+
   if(day < 0 || MAX_DAYS <= day) {
     // won't happen during this simulation
     return;
@@ -61,6 +63,7 @@ void Events::delete_event(int day, event_t item) {
   }
   // item not found
   FRED_WARNING("delete_events: item not found\n");
+  assert(false);
 }
 
 void Events::clear_events(int day) {

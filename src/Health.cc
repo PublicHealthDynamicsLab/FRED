@@ -266,7 +266,7 @@ Health::Health() {
 
 void Health::setup(Person* self) {
   this->myself = self;
-  FRED_VERBOSE(1, "Health::setup for person %d\n", self->get_id());
+  FRED_VERBOSE(1, "Health::setup for person %d\n", myself->get_id());
   this->alive = true;
   this->intervention_flags = intervention_flags_type();
   // infection pointers stored in statically allocated array (length of which
@@ -274,7 +274,6 @@ void Health::setup(Person* self) {
   this->susceptible = fred::disease_bitset();
   this->infectious = fred::disease_bitset();
   this->symptomatic = fred::disease_bitset();
-  this->recovered_today = fred::disease_bitset();
   this->recovered = fred::disease_bitset();
   this->immunity = fred::disease_bitset();
 
@@ -313,7 +312,6 @@ void Health::setup(Person* self) {
 
   for(int disease_id = 0; disease_id < diseases; ++disease_id) {
     this->recovered.reset(disease_id);
-    this->recovered_today.reset(disease_id);
     this->susceptible.reset(disease_id);
     this->case_fatality.reset(disease_id);
     this->infection[disease_id] = NULL;
@@ -331,11 +329,11 @@ void Health::setup(Person* self) {
 
     Disease* disease = Global::Diseases.get_disease(disease_id);
     if (disease->assume_susceptible()) {
-      become_susceptible(self, disease_id);
+      become_susceptible(disease_id);
     }
 
     if(disease->get_at_risk() != NULL && !disease->get_at_risk()->is_empty()) {
-      double at_risk_prob = disease->get_at_risk()->find_value(self->get_real_age());
+      double at_risk_prob = disease->get_at_risk()->find_value(myself->get_real_age());
       if(Random::draw_random() < at_risk_prob) { // Now a probability <=1.0
         declare_at_risk(disease);
       }
@@ -354,25 +352,25 @@ void Health::setup(Person* self) {
 
   if(Global::Enable_Chronic_Condition && Health::is_initialized) {
     double prob = 0.0;
-    prob = Health::asthma_prob->find_value(self->get_real_age());
+    prob = Health::asthma_prob->find_value(myself->get_real_age());
     set_is_asthmatic((Random::draw_random() < prob));
 
-    prob = Health::COPD_prob->find_value(self->get_real_age());
+    prob = Health::COPD_prob->find_value(myself->get_real_age());
     set_has_COPD((Random::draw_random() < prob));
 
-    prob = Health::chronic_renal_disease_prob->find_value(self->get_real_age());
+    prob = Health::chronic_renal_disease_prob->find_value(myself->get_real_age());
     set_has_chronic_renal_disease((Random::draw_random() < prob));
 
-    prob = Health::diabetes_prob->find_value(self->get_real_age());
+    prob = Health::diabetes_prob->find_value(myself->get_real_age());
     set_is_diabetic((Random::draw_random() < prob));
 
-    prob = Health::heart_disease_prob->find_value(self->get_real_age());
+    prob = Health::heart_disease_prob->find_value(myself->get_real_age());
     set_has_heart_disease((Random::draw_random() < prob));
 
-    prob = Health::hypertension_prob->find_value(self->get_real_age());
+    prob = Health::hypertension_prob->find_value(myself->get_real_age());
     set_has_hypertension((Random::draw_random() < prob));
 
-    prob = Health::hypercholestrolemia_prob->find_value(self->get_real_age());
+    prob = Health::hypercholestrolemia_prob->find_value(myself->get_real_age());
     set_has_hypercholestrolemia((Random::draw_random() < prob));
   }
 }
@@ -405,12 +403,12 @@ Health::~Health() {
   }
 }
 
-void Health::become_susceptible(Person* self, int disease_id) {
+void Health::become_susceptible(int disease_id) {
   if(this->susceptible.test(disease_id)) {
     FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			    "HEALTH CHART: %s person %d is already SUSCEPTIBLE for disease %d\n",
 			    Date::get_date_string().c_str(),
-			    self->get_id(), disease_id);
+			    myself->get_id(), disease_id);
     return;
   }
   assert(this->infection[disease_id] == NULL);
@@ -421,10 +419,10 @@ void Health::become_susceptible(Person* self, int disease_id) {
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is SUSCEPTIBLE for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) {
+void Health::become_susceptible_by_vaccine_waning(int disease_id) {
   if(this->susceptible.test(disease_id)) {
     return;
   }
@@ -435,22 +433,22 @@ void Health::become_susceptible_by_vaccine_waning(Person* self, int disease_id) 
     FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			    "HEALTH CHART: %s person %d is SUSCEPTIBLE for disease %d\n",
 			    Date::get_date_string().c_str(),
-			    self->get_id(), disease_id);
+			    myself->get_id(), disease_id);
   } else {
     FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			    "HEALTH CHART: %s person %d had no vaccine waning because was already infected with disease %d\n",
 			    Date::get_date_string().c_str(),
-			    self->get_id(), disease_id);
+			    myself->get_id(), disease_id);
   }
 }
 
-void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
+void Health::become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
    FRED_VERBOSE(1, "become_exposed: person %d is exposed to disease %d day %d\n",
-		            self->get_id(), disease_id, day);
+		            myself->get_id(), disease_id, day);
 
   if(this->infection[disease_id] != NULL) {
-    Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+    Utils::fred_abort("DOUBLE EXPOSURE: person %d dis_id %d day %d\n", myself->get_id(), disease_id, day);
   }
 
   if(Global::Verbose > 0) {
@@ -458,27 +456,27 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
       FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			      "HEALTH CHART: %s person %d is an IMPORTED EXPOSURE to disease %d\n",
 			      Date::get_date_string().c_str(),
-			      self->get_id(), disease_id);
+			      myself->get_id(), disease_id);
     } else {
       FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			      "HEALTH CHART: %s person %d is EXPOSED to disease %d\n",
 			      Date::get_date_string().c_str(),
-			      self->get_id(), disease_id);
+			      myself->get_id(), disease_id);
     }
   }
 
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   Disease* disease = Global::Diseases.get_disease(disease_id);
-  this->infection[disease_id] = Infection::get_new_infection(disease, infector, self, mixing_group, day);
-  FRED_VERBOSE(1, "setup infection: person %d dis_id %d day %d\n", self->get_id(), disease_id, day);
+  this->infection[disease_id] = Infection::get_new_infection(disease, infector, myself, mixing_group, day);
+  FRED_VERBOSE(1, "setup infection: person %d dis_id %d day %d\n", myself->get_id(), disease_id, day);
   this->infection[disease_id]->setup();
   this->infection[disease_id]->report_infection(day);
-  self->become_unsusceptible(disease);
+  become_unsusceptible(disease);
   this->immunity_end_date[disease_id] = -1;
-  if(self->get_household() != NULL) {
-    self->get_household()->set_exposed(disease_id);
-    self->set_exposed_household(self->get_household()->get_index());
+  if(myself->get_household() != NULL) {
+    myself->get_household()->set_exposed(disease_id);
+    myself->set_exposed_household(myself->get_household()->get_index());
   }
   if(infector != NULL) {
     this->infector_id[disease_id] = infector->get_id();
@@ -487,8 +485,8 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
   this->infected_in_mixing_group[disease_id] = mixing_group;
 
   if(Global::Enable_Transmission_Network) {
-    FRED_VERBOSE(1, "Joining transmission network: %d\n", self->get_id());
-    self->join_network(Global::Transmission_Network);
+    FRED_VERBOSE(1, "Joining transmission network: %d\n", myself->get_id());
+    myself->join_network(Global::Transmission_Network);
   }
 
   if(Global::Enable_Vector_Transmission && Global::Diseases.get_number_of_diseases() > 1) {
@@ -503,8 +501,8 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
           continue;
         }
         FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n",
-		    self->get_id(), sero);
-        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+		    myself->get_id(), sero);
+        become_unsusceptible(Global::Diseases.get_disease(sero));
       }
     } else {
       // after the second infection, become immune to other two serotypes.
@@ -516,71 +514,71 @@ void Health::become_exposed(Person* self, int disease_id, Person* infector, Mixi
           continue;
         }
         FRED_STATUS(1, "DENGUE: person %d now immune to serotype %d\n",
-		    self->get_id(), sero);
-        this->become_unsusceptible(self, Global::Diseases.get_disease(sero));
+		    myself->get_id(), sero);
+        become_unsusceptible(Global::Diseases.get_disease(sero));
       }
     }
   }
 }
 
-void Health::become_unsusceptible(Person* self, int disease_id) {
+void Health::become_unsusceptible(int disease_id) {
   this->susceptible.reset(disease_id);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::become_unsusceptible(Person* self, Disease* disease) {
+void Health::become_unsusceptible(Disease* disease) {
   int disease_id = disease->get_id();
-  become_unsusceptible(self, disease_id);
+  become_unsusceptible(disease_id);
 }
 
-void Health::become_infectious(Person* self, Disease* disease) {
+void Health::become_infectious(Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->infection[disease_id] != NULL);
   this->infectious.set(disease_id);
-  int household_index = self->get_exposed_household_index();
+  int household_index = myself->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
   assert(h != NULL);
   h->set_human_infectious(disease_id);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is INFECTIOUS for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::become_noninfectious(Person* self, Disease* disease) {
+void Health::become_noninfectious(Disease* disease) {
   int disease_id = disease->get_id();
   assert(this->infection[disease_id] != NULL);
   this->infectious.reset(disease_id);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is NONINFECTIOUS for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::become_symptomatic(Person* self, Disease* disease) {
+void Health::become_symptomatic(Disease* disease) {
   int disease_id = disease->get_id();
   if(this->infection[disease_id] == NULL) {
-    FRED_STATUS(1, "Help: becoming symptomatic with no infection: person %d, disease_id %d\n", self->get_id(), disease_id);
+    FRED_STATUS(1, "Help: becoming symptomatic with no infection: person %d, disease_id %d\n", myself->get_id(), disease_id);
   }
   assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
     FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			    "HEALTH CHART: %s person %d is ALREADY SYMPTOMATIC for disease %d\n",
 			    Date::get_date_string().c_str(),
-			    self->get_id(), disease_id);
+			    myself->get_id(), disease_id);
     return;
   }
   this->symptomatic.set(disease_id);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is SYMPTOMATIC for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::resolve_symptoms(Person* self, Disease* disease) {
+void Health::resolve_symptoms(Disease* disease) {
   int disease_id = disease->get_id();
   // assert(this->infection[disease_id] != NULL);
   if(this->symptomatic.test(disease_id)) {
@@ -589,39 +587,46 @@ void Health::resolve_symptoms(Person* self, Disease* disease) {
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is ASYMPTOMATIC for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
-void Health::recover(Person* self, Disease* disease) {
+// this is called by Epidemic:
+
+void Health::recover(Disease* disease, int day) {
   int disease_id = disease->get_id();
   // assert(this->infection[disease_id] != NULL);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s RECOVER person %d is UNINFECTIOUS for disease %d\n",
-			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
-  become_removed(self, disease_id);
-  this->recovered_today.set(disease_id);
+			   "HEALTH CHART: %s person %d is RECOVERED from disease %d\n",
+			   Date::get_date_string().c_str(),
+			   myself->get_id(), disease_id);
   this->recovered.set(disease_id);
-  int household_index = self->get_exposed_household_index();
+  int household_index = myself->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
   h->set_recovered(disease_id);
   h->reset_human_infectious();
-  self->reset_neighborhood();
+  myself->reset_neighborhood();
+
+  this->immunity_end_date[disease_id] = this->infection[disease_id]->get_immunity_end_date();
+  if (this->immunity_end_date[disease_id] > -1) {
+    this->immunity_end_date[disease_id] += day;
+  }
+  become_removed(disease_id, day);
 }
 
-void Health::become_removed(Person* self, int disease_id) {
+void Health::become_removed(int disease_id, int day) {
+  terminate_infection(disease_id, day);
   this->susceptible.reset(disease_id);
   this->infectious.reset(disease_id);
   this->symptomatic.reset(disease_id);
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is REMOVED for disease %d\n",
-			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			   "HEALTH CHART: %s person %d is REMOVED for disease %d\n",
+			   Date::get_date_string().c_str(),
+			   myself->get_id(), disease_id);
 }
 
-void Health::become_immune(Person* self, Disease* disease) {
+void Health::become_immune(Disease* disease) {
   int disease_id = disease->get_id();
-  disease->become_immune(self, this->susceptible.test(disease_id),
+  disease->become_immune(myself, this->susceptible.test(disease_id),
       this->infectious.test(disease_id), this->symptomatic.test(disease_id));
   this->immunity.set(disease_id);
   this->susceptible.reset(disease_id);
@@ -630,79 +635,60 @@ void Health::become_immune(Person* self, Disease* disease) {
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
 			  "HEALTH CHART: %s person %d is IMMUNE for disease %d\n",
 			  Date::get_date_string().c_str(),
-			  self->get_id(), disease_id);
+			  myself->get_id(), disease_id);
 }
 
+
+void Health::become_case_fatality(int disease_id, int day) {
+  FRED_VERBOSE(0, "DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
+  this->case_fatality.set(disease_id);
+  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
+			   "HEALTH CHART: %s person %d is CASE_FATALITY for disease %d\n",
+			   Date::get_date_string().c_str(),
+			   myself->get_id(), disease_id);
+  become_removed(disease_id, day);
+  // queue removal from population
+  Global::Pop.prepare_to_die(day, myself);
+}
 
 void Health::update_infection(int day, int disease_id) {
 
   if(this->has_face_mask_behavior) {
-    this->update_face_mask_decision(myself, day);
+    update_face_mask_decision(day);
   }
-
+  
   if(this->infection[disease_id] == NULL) {
     return;
   }
-
+  
   FRED_VERBOSE(1, "update_infection %d on day %d person %d\n", disease_id, day, myself->get_id());
   this->infection[disease_id]->update(day);
-
-  // if this infections is fatal today, add this person to the
-  // population's death_list and marked as a case_fatality
-
-  if(this->infection[disease_id]->is_fatal(day)) {
-    FRED_VERBOSE(0, "DISEASE %d is FATAL: day %d person %d\n", disease_id, day, myself->get_id());
-    this->case_fatality.set(disease_id);
-    // queue removal from population
-    Global::Pop.prepare_to_die(day, myself);
-    return;
-  }
   
-  // if the infection_update called recover(), it is now safe to
-  // collect the immunity_end date and delete the Infection object
-  if(this->recovered_today.test(disease_id)) {
-    FRED_VERBOSE(1, "update_infection %d RECOVERED on day %d person %d\n", disease_id, day, myself->get_id());
-    this->immunity_end_date[disease_id] = this->infection[disease_id]->get_immunity_end_date();
-
-    // TODO: encapsulate the following in infection[disease_id]->store_previous_infections(day);
-    /*
-      if(infection[disease_id]->provides_immunity()) {
-      std::vector<int> strains;
-      this->infection[disease_id]->get_strains(strains);
-      std::vector<int>::iterator itr = strains.begin();
-      for(; itr != strains.end(); ++itr) {
-      int strain = *itr;
-      int recovery_date = this->infection[disease_id]->get_infectious_end_date();
-      int age_at_exposure = self->get_age();
-      this->past_infections[disease_id].push_back(Past_Infection(strain, recovery_date, age_at_exposure));
-      }
-      }
-    */
-    // delete the infection object
-    delete this->infection[disease_id];
-    this->infection[disease_id] = NULL;
-    this->recovered_today.reset(disease_id);
-  } else {
-    // update days_symptomatic if needed
-    if(this->is_symptomatic(disease_id)) {
-      int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
-      if(days_symp_so_far > this->days_symptomatic) {
-	      this->days_symptomatic = days_symp_so_far;
-      }
+  // update days_symptomatic if needed
+  if(this->is_symptomatic(disease_id)) {
+    int days_symp_so_far = (day - this->get_symptoms_start_date(disease_id));
+    if(days_symp_so_far > this->days_symptomatic) {
+      this->days_symptomatic = days_symp_so_far;
     }
   }
 
+  // case_fatality?
+  if(this->infection[disease_id]->is_fatal(day)) {
+    become_case_fatality(disease_id, day);
+  }
   
-  FRED_VERBOSE(1,"update_infection %d FINISHED on day %d person %d\n", disease_id, day, myself->get_id());
+  FRED_VERBOSE(1,"update_infection %d FINISHED on day %d person %d\n",
+	       disease_id, day, myself->get_id());
+
 } // end Health::update_infection //
 
 
-void Health::update_face_mask_decision(Person* self, int day) {
-  // printf("update_face_mask_decision entered on day %d for person %d\n", day, self->get_id());
+void Health::update_face_mask_decision(int day) {
+  // printf("update_face_mask_decision entered on day %d for person %d\n", day, myself->get_id());
 
   // should we start use face mask?
   if(this->is_symptomatic(day) && this->days_wearing_face_mask == 0) {
-    FRED_VERBOSE(1, "FACEMASK: person %d starts wearing face mask on day %d\n", self->get_id(), day);
+    FRED_VERBOSE(1, "FACEMASK: person %d starts wearing face mask on day %d\n", myself->get_id(), day);
     this->start_wearing_face_mask();
   }
 
@@ -711,13 +697,13 @@ void Health::update_face_mask_decision(Person* self, int day) {
     if (this->is_symptomatic(day) && this->days_wearing_face_mask < Health::Days_to_wear_face_masks) {
       this->days_wearing_face_mask++;
     } else {
-      FRED_VERBOSE(1, "FACEMASK: person %d stops wearing face mask on day %d\n", self->get_id(), day);
+      FRED_VERBOSE(1, "FACEMASK: person %d stops wearing face mask on day %d\n", myself->get_id(), day);
       this->stop_wearing_face_mask();
     }
   }
 }
 
-void Health::update_interventions(Person* self, int day) {
+void Health::update_interventions(int day) {
   // if deceased, health status should have been cleared during population
   // update (by calling Person->die(), then Health->die(), which will reset (bool) alive
   if(!(this->alive)) {
@@ -728,7 +714,7 @@ void Health::update_interventions(Person* self, int day) {
     if(this->intervention_flags[Intervention_flag::TAKES_VACCINE]) {
       int size = (int)(this->vaccine_health->size());
       for(int i = 0; i < size; ++i) {
-        (*this->vaccine_health)[i]->update(day, self->get_real_age());
+        (*this->vaccine_health)[i]->update(day, myself->get_real_age());
       }
     }
     // update antiviral status
@@ -966,9 +952,9 @@ void Health::modify_develops_symptoms(int disease_id, bool symptoms, int cur_day
 }
 
 //Medication operators
-void Health::take_vaccine(Person* self, Vaccine* vaccine, int day, Vaccine_Manager* vm) {
+void Health::take_vaccine(Vaccine* vaccine, int day, Vaccine_Manager* vm) {
   // Compliance will be somewhere else
-  double real_age = self->get_real_age();
+  double real_age = myself->get_real_age();
   // Is this our first dose?
   Vaccine_Health * vaccine_health_for_dose = NULL;
 
@@ -983,14 +969,14 @@ void Health::take_vaccine(Person* self, Vaccine* vaccine, int day, Vaccine_Manag
   }
 
   if(vaccine_health_for_dose == NULL) { // This is our first dose of this vaccine
-    this->vaccine_health->push_back(new Vaccine_Health(day, vaccine, real_age, self, vm));
+    this->vaccine_health->push_back(new Vaccine_Health(day, vaccine, real_age, myself, vm));
     this->intervention_flags[Intervention_flag::TAKES_VACCINE] = true;
   } else { // Already have a dose, need to take the next dose
     vaccine_health_for_dose->update_for_next_dose(day, real_age);
   }
 
   if(Global::VaccineTracefp != NULL) {
-    fprintf(Global::VaccineTracefp, " id %7d vaccid %3d", self->get_id(),
+    fprintf(Global::VaccineTracefp, " id %7d vaccid %3d", myself->get_id(),
 	    (*this->vaccine_health)[this->vaccine_health->size() - 1]->get_vaccine()->get_ID());
     (*this->vaccine_health)[this->vaccine_health->size() - 1]->printTrace();
     fprintf(Global::VaccineTracefp, "\n");
@@ -1027,8 +1013,8 @@ int Health::get_av_start_day(int i) const {
   return (*this->av_health)[i]->get_av_start_day();
 }
 
-void Health::infect(Person* self, Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
-  infectee->become_exposed(disease_id, self, mixing_group, day);
+void Health::infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
+  infectee->become_exposed(disease_id, myself, mixing_group, day);
 
 #pragma omp atomic
   ++(this->infectee_count[disease_id]);
@@ -1039,15 +1025,15 @@ void Health::infect(Person* self, Person* infectee, int disease_id, Mixing_Group
   disease->increment_cohort_infectee_count(exp_day);
 
   FRED_STATUS(1, "person %d infected person %d infectees = %d\n",
-	      self->get_id(), infectee->get_id(), infectee_count[disease_id]);
+	      myself->get_id(), infectee->get_id(), infectee_count[disease_id]);
 
   if(Global::Enable_Transmission_Network) {
-    FRED_VERBOSE(1, "Creating link in transmission network: %d -> %d\n", self->get_id(), infectee->get_id());
-    self->create_network_link_to(infectee, Global::Transmission_Network);
+    FRED_VERBOSE(1, "Creating link in transmission network: %d -> %d\n", myself->get_id(), infectee->get_id());
+    myself->create_network_link_to(infectee, Global::Transmission_Network);
   }
 }
 
-void Health::update_mixing_group_counts(Person* self, int day, int disease_id, Mixing_Group* mixing_group) {
+void Health::update_mixing_group_counts(int day, int disease_id, Mixing_Group* mixing_group) {
   // this is only called for people with an active infection
   assert(is_infected(disease_id));
 
@@ -1071,13 +1057,20 @@ void Health::update_mixing_group_counts(Person* self, int day, int disease_id, M
   }
 }
 
-void Health::terminate(Person* self) {
+void Health::terminate_infection(int disease_id, int day) {
+  if(this->infection[disease_id] != NULL) {
+    // delete effects of infection in epidemic
+    this->infection[disease_id]->terminate(day);
+    // delete the infection object
+    delete this->infection[disease_id];
+    this->infection[disease_id] = NULL;
+  }
+}
+
+void Health::terminate(int day) {
   for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
     if(this->infection[disease_id] != NULL) {
-      become_removed(self, disease_id);
-      // delete the infection object
-      delete this->infection[disease_id];
-      this->infection[disease_id] = NULL;
+      become_removed(disease_id, day);
     }
   }
   this->alive = false;

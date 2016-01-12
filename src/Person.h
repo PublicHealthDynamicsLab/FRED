@@ -45,7 +45,7 @@ public:
    * @param disease_id the id of the disease to reference
    */
   void become_unsusceptible(int disease_id) {
-    this->health.become_unsusceptible(this, disease_id);
+    this->health.become_unsusceptible(disease_id);
   }
 
   /**
@@ -53,11 +53,11 @@ public:
    * @param disease the disease to reference
    */
   void become_unsusceptible(Disease* disease) {
-    this->health.become_unsusceptible(this, disease);
+    this->health.become_unsusceptible(disease);
   }
 
   void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
-    this->health.become_exposed(this, disease_id, infector, mixing_group, day);
+    this->health.become_exposed(disease_id, infector, mixing_group, day);
   }
   /**
    * Make this agent immune to the given disease
@@ -65,32 +65,11 @@ public:
    */
   void become_immune(Disease* disease);
 
-  /**
-   * Print out information about this object with regards to a disease to a file.
-   *
-   * @param fp a pointer to the file where this print should write
-   * @param disease the disease about which to get information
-   */
-  void print(FILE* fp, int disease);
-
-  /**
-   * @param day the simulation day
-   * @param disease the disease to check
-   * @return <code>true</code> if the exposure day to the disease = day, <code>false</code> otherwise
-   */
-  int is_new_case(int day, int disease) const {
-    return (this->health.get_exposure_date(disease) == day);
-  }
-
-  //int addInfected(int disease, vector<int> strains);
+  void print(FILE* fp, int disease_id);
 
   void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
-    this->health.infect(this, infectee, disease_id, mixing_group, day);
+    this->health.infect(infectee, disease_id, mixing_group, day);
   }
-
-  //  void increment_infectee_count(int disease_id, Person* infectee, Place* place, int day) {
-  //    this->health.increment_infectee_count(this, disease_id, infectee, place, day);
-  //  }
 
   /**
    * @param day the simulation day
@@ -105,7 +84,7 @@ public:
   }
 
   void update_health_interventions(int day) {
-    this->health.update_interventions(this, day);
+    this->health.update_interventions(day);
   }
 
   /**
@@ -147,11 +126,11 @@ public:
   }
 
   void become_susceptible(int disease_id) {
-    this->health.become_susceptible(this, disease_id);
+    this->health.become_susceptible(disease_id);
   }
 
   void become_susceptible_by_vaccine_waning(int disease_id) {
-    this->health.become_susceptible_by_vaccine_waning(this, disease_id);
+    this->health.become_susceptible_by_vaccine_waning(disease_id);
   }
 
   void update_household_counts(int day, int disease_id);
@@ -162,11 +141,11 @@ public:
    * @param disease a pointer to the Disease
    */
   void become_infectious(Disease* disease) {
-    this->health.become_infectious(this, disease);
+    this->health.become_infectious(disease);
   }
 
   void become_noninfectious(Disease* disease) {
-    this->health.become_noninfectious(this, disease);
+    this->health.become_noninfectious(disease);
   }
 
   /**
@@ -174,19 +153,19 @@ public:
    * @param disease a pointer to the Disease
    */
   void become_symptomatic(Disease* disease) {
-    this->health.become_symptomatic(this, disease);
+    this->health.become_symptomatic(disease);
   }
 
   void resolve_symptoms(Disease* disease) {
-    this->health.resolve_symptoms(this, disease);
+    this->health.resolve_symptoms(disease);
   }
 
   /**
    * This agent will recover from the disease
    * @param disease a pointer to the Disease
    */
-  void recover(Disease* disease) {
-    this->health.recover(this, disease);
+  void recover(int day, Disease* disease) {
+    this->health.recover(disease, day);
   }
 
   /**
@@ -386,8 +365,8 @@ public:
    * @return the specific Disease's infectivity for this Person
    * @see Health::get_infectivity(int disease, int day)
    */
-  double get_infectivity(int disease, int day) const {
-    return this->health.get_infectivity(disease, day);
+  double get_infectivity(int disease_id, int day) const {
+    return this->health.get_infectivity(disease_id, day);
   }
 
   /**
@@ -396,8 +375,8 @@ public:
    * @return the Symptoms for this Person
    * @see Health::get_symptoms(int day)
    */
-  double get_symptoms(int disease, int day) const {
-    return this->health.get_symptoms(disease, day);
+  double get_symptoms(int disease_id, int day) const {
+    return this->health.get_symptoms(disease_id, day);
   }
 
   /*
@@ -662,7 +641,7 @@ public:
   }
 
   void take_vaccine(Vaccine* vacc, int day, Vaccine_Manager* vm) {
-    this->health.take_vaccine(this, vacc, day, vm);
+    this->health.take_vaccine(vacc, day, vm);
   }
 
   // set up and access health behaviors
@@ -726,7 +705,7 @@ public:
     return this->health.is_case_fatality(disease_id);
   }
 
-  void terminate();
+  void terminate(int day);
 
   void set_pop_index(int idx) {
     this->index = idx;

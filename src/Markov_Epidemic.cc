@@ -235,7 +235,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int old_state, 
 
   if (old_state != 0 && new_state == 0) {
     // update person's health chart
-    person->recover(this->disease);
+    person->recover(day, this->disease);
     // record removed person
     this->removed_people++;
   }

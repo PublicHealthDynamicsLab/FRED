@@ -202,12 +202,6 @@ void Infection::setup() {
     abort();
   }
 
-//  // Don't care about anyone who will develop symptoms after their infectivity period is over
-//  // The disease will be deleted once the agent becomes recovered
-//  if(this->symptoms_start_date >= this->infectious_end_date) {
-//    this->will_develop_symptoms = false;
-//  }
-
   if(Global::Verbose > 1) {
     printf("INFECTION day %d incub %0.2f symp_onset %d symp_dur %0.2f symp_dur %2d symp_start_date %d inf_start_date %d inf_end_date %d inf_onset %d inf_dur %d ",
            this->exposure_date, incubation_period, this->symptoms_start_date - this->exposure_date,
@@ -227,7 +221,7 @@ void Infection::setup() {
     this->symptoms_start_date = Natural_History::NEVER;
     this->symptoms_end_date = Natural_History::NEVER;
   }
-  print();
+  // print();
   return;
 }
 
@@ -432,4 +426,8 @@ double Infection::get_symptoms(int day) {
     result = exp(-3.5 * (fraction - end_full) / (1.0 - end_full));
   }
   return result;
+}
+
+void Infection::terminate(int day) {
+  this->disease->terminate(host, day);
 }

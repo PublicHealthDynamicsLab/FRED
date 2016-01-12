@@ -225,28 +225,43 @@ void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, 
 }
 
 void Epidemic::terminate(Person* person, int day) {
+  FRED_VERBOSE(1, "EPIDEMIC TERMINATE person %d day %d\n",
+	       person->get_id(), day);
 
   // cancel any events for this person
   int date = person->get_symptoms_start_date(this->id);
-  if(date >= day) {
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_start_date %d %d\n", date, day);
     cancel_symptoms_start(date, person);
   }
-  date = person->get_symptoms_end_date(this->id);
-  if(date >= day) {
-    cancel_symptoms_end(date, person);
+  else if (date > -1) {
+    date = person->get_symptoms_end_date(this->id);
+    if(date > day) {
+      FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_end_date %d %d\n", date, day);
+      cancel_symptoms_end(date, person);
+    }
   }
+
   date = person->get_infectious_start_date(this->id);
-  if(date >= day) {
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_start_date %d %d\n", date, day);
     cancel_infectious_start(date, person);
   }
-  date = person->get_infectious_end_date(this->id);
-  if(date >= day) {
-    cancel_infectious_end(date, person);
+  else if (date > -1) {
+    date = person->get_infectious_end_date(this->id);
+    if(date > day) {
+      FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_end_date %d %d\n", date, day);
+      cancel_infectious_end(date, person);
+    }
   }
+
   date = person->get_immunity_end_date(this->id);
-  if(date >= day) {
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL immunity_end_date %d %d\n", date, day);
     cancel_immunity_end(date, person);
   }
+
+  FRED_VERBOSE(1, "EPIDEMIC TERMINATE finished\n");
 }
 
 
@@ -1559,7 +1574,7 @@ void Epidemic::advance_seed_infection(Person* person) {
 
 void Epidemic::process_infectious_start_events(int day) {
   int size = this->infectious_start_event_queue->get_size(day);
-  FRED_VERBOSE(0, "INF_START_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "INF_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_start_event_queue->get_event(day, i);
@@ -1585,7 +1600,7 @@ void Epidemic::process_infectious_start_events(int day) {
 
 void Epidemic::process_infectious_end_events(int day) {
   int size =  this->infectious_end_event_queue->get_size(day);
-  FRED_VERBOSE(0, "INF_END_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "INF_END_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
@@ -1610,13 +1625,12 @@ void Epidemic::recover(Person* person, int day) {
   this->removed_people++;
   
   // update person's health chart
-  person->recover(this->disease);
-  person->update_infection(day, this->id);
+  person->recover(day, this->disease);
 }
 
 void Epidemic::process_symptoms_start_events(int day) {
   int size = this->symptoms_start_event_queue->get_size(day);
-  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->symptoms_start_event_queue->get_event(day, i);
@@ -1680,7 +1694,7 @@ void Epidemic::process_symptoms_start_events(int day) {
 
 void Epidemic::process_symptoms_end_events(int day) {
   int size = symptoms_end_event_queue->get_size(day);
-  FRED_VERBOSE(0, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "SYMP_END_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person = this->symptoms_end_event_queue->get_event(day, i);
@@ -1702,7 +1716,7 @@ void Epidemic::process_symptoms_end_events(int day) {
 
 void Epidemic::process_immunity_start_events(int day) {
   int size = immunity_start_event_queue->get_size(day);
-  FRED_VERBOSE(0, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "IMMUNITY_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person = this->immunity_start_event_queue->get_event(day, i);
@@ -1718,7 +1732,7 @@ void Epidemic::process_immunity_start_events(int day) {
 
 void Epidemic::process_immunity_end_events(int day) {
   int size = immunity_end_event_queue->get_size(day);
-  FRED_VERBOSE(0, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "IMMUNITY_END_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person = this->immunity_end_event_queue->get_event(day, i);
@@ -1742,7 +1756,7 @@ void Epidemic::update(int day) {
 
   // import infections from unknown sources
   get_imported_infections(day);
-  Utils::fred_print_epidemic_timer("imported infections");
+  // Utils::fred_print_epidemic_timer("imported infections");
 
   // update markov transitions
   markov_updates(day);
@@ -1765,7 +1779,7 @@ void Epidemic::update(int day) {
   // transition to susceptible
   process_immunity_end_events(day);
 
-  Utils::fred_print_epidemic_timer("transition events");
+  // Utils::fred_print_epidemic_timer("transition events");
 
   // update list of infected people
   for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ) {
@@ -1775,7 +1789,6 @@ void Epidemic::update(int day) {
 
     // handle case fatality
     if(person->is_case_fatality(this->id)) {
-      this->terminate(person, day);
       // update epidemic fatality counters
       this->daily_case_fatality_count++;
       this->total_case_fatality_count++;
@@ -1804,7 +1817,7 @@ void Epidemic::update(int day) {
     }
   }
   this->infectious_people = this->actually_infectious_people.size();
-  Utils::fred_print_epidemic_timer("identifying actually infections people");
+  // Utils::fred_print_epidemic_timer("identifying actually infections people");
 
   // update the daily activities of infectious people
   for(int i = 0; i < this->infectious_people; ++i) {
@@ -1933,6 +1946,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
 }
   
 void Epidemic::spread_infection_in_active_places(int day) {
+  FRED_VERBOSE(0, "spread_infection__active_places day %d\n", day);
   for(int i = 0; i < this->active_place_vec.size(); ++i) {
     Place* place = this->active_place_vec[i];
     this->disease->get_transmission()->spread_infection(day, this->id, place);

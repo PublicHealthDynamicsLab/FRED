@@ -94,32 +94,32 @@ public:
   // UPDATE THE PERSON'S HEALTH CONDITIONS
 
   void update_infection(int day, int disease_id);
-  void update_face_mask_decision(Person* self, int day);
-  void update_interventions(Person* self, int day);
-  void become_exposed(Person* self, int disease_id, Person* infector, Mixing_Group* mixing_group, int day);
-  void become_susceptible(Person* self, int disease_id);
-  void become_susceptible(Person* self, Disease* disease);
-  void become_susceptible_by_vaccine_waning(Person* self, int disease_id);
-  void become_unsusceptible(Person* self, Disease* disease);
-  void become_unsusceptible(Person* self, int disease_id);
-  void become_infectious(Person* self, Disease* disease);
-  void become_noninfectious(Person* self, Disease* disease);
-  void become_symptomatic(Person* self, Disease* disease);
-  void resolve_symptoms(Person* self, Disease* disease);
-  void become_immune(Person* self, Disease* disease);
-  void become_removed(Person* self, int disease_id);
+  void update_face_mask_decision(int day);
+  void update_interventions(int day);
+  void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day);
+  void become_susceptible(int disease_id);
+  void become_susceptible(Disease* disease);
+  void become_susceptible_by_vaccine_waning(int disease_id);
+  void become_unsusceptible(Disease* disease);
+  void become_unsusceptible(int disease_id);
+  void become_infectious(Disease* disease);
+  void become_noninfectious(Disease* disease);
+  void become_symptomatic(Disease* disease);
+  void resolve_symptoms(Disease* disease);
+  void become_case_fatality(int disease_id, int day);
+  void become_immune(Disease* disease);
+  void become_removed(int disease_id, int day);
   void declare_at_risk(Disease* disease);
-  void recover(Person* self, Disease* disease);
+  void recover(Disease* disease, int day);
   void advance_seed_infection(int disease_id, int days_to_advance);
-  void infect(Person* self, Person* infectee, int disease_id, Mixing_Group* mixing_group, int day);
-  //  void increment_infectee_count(Person* self, int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
+  void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day);
+  //  void increment_infectee_count(int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
   void start_wearing_face_mask() {
     this->wears_face_mask_today = true;
   }
   void stop_wearing_face_mask() {
     this->wears_face_mask_today = false;
   }
-  void terminate(Person* self);
   void clear_past_infections(int disease_id) {
     this->past_infections[disease_id].clear();
   }
@@ -127,8 +127,10 @@ public:
     this->past_infections[dis->get_id()].push_back(
 						   Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
-  void update_mixing_group_counts(Person* self, int day, int disease_id, Mixing_Group* mixing_group);
+  void update_mixing_group_counts(int day, int disease_id, Mixing_Group* mixing_group);
 
+  void terminate_infection(int disease_id, int day);
+  void terminate(int day);
 
   // ACCESS TO HEALTH CONDITIONS
 
@@ -233,7 +235,7 @@ public:
    * @param day the simulation day
    * @param vm a pointer to the Manager of the Vaccinations
    */
-  void take_vaccine(Person* self, Vaccine* vacc, int day, Vaccine_Manager* vm);
+  void take_vaccine(Vaccine* vacc, int day, Vaccine_Manager* vm);
 
   /**
    * Agent will take an antiviral
