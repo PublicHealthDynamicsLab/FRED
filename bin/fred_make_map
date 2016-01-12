@@ -265,15 +265,19 @@ else {
 }
  
 if (google) {
-  cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s %d", ymin, xmin, ymax, xmax, api_key, lightness)
-  # print cmd
-  system(cmd)
-  # make sure googlemap.png exists
+  # check if googlemap already exists
   ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
   if (ok == 0) {
-    system("echo 1 > FAILED");    
-    print "FAILED TO CREATE googlemap.png"
-    exit;
+    cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s %d", ymin, xmin, ymax, xmax, api_key, lightness)
+    print cmd
+    system(cmd)
+    # make sure googlemap.png exists
+    ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
+    if (ok == 0) {
+      system("echo 1 > FAILED");    
+      print "FAILED TO CREATE googlemap.png"
+      exit;
+    }
   }
 }
 
@@ -285,11 +289,11 @@ title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
 
 if (terminal eq "png") {
   set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,0 font "Arial, 16"
+  set title title_string offset 0,-1.5 font "Arial, 16"
 }
 if (terminal eq "pdf") {
   set term pdf enhanced font "Helvetica,18" size 8.888,8.888
-  set title title_string offset 0,0 font "Helvetica,24"
+  set title title_string offset 0,-1.5 font "Helvetica,24"
 }
 
 # set the ranges for the axes
@@ -342,8 +346,8 @@ if (filled) {
 }
 else {
 	if (hazel == 0) {
-	set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
-	set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
+	# set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
+	# set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
 	}
 }
 
