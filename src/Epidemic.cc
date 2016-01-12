@@ -479,7 +479,7 @@ void Epidemic::print_stats(int day) {
   this->case_fatality_incidence = this->daily_case_fatality_count;
   double case_fatality_rate = 0.0;
   if(this->population_infection_counts.tot_ppl_evr_sympt > 0) {
-    case_fatality_rate = 100.0 * static_cast<double>(this->total_case_fatality_count)
+    case_fatality_rate = 100000.0 * static_cast<double>(this->total_case_fatality_count)
       / static_cast<double>(this->population_infection_counts.tot_ppl_evr_sympt);
   }
 
@@ -499,6 +499,7 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"R", this->removed_people);
   if(this->disease->get_natural_history()->is_case_fatality_enabled()) {
     track_value(day, (char*)"D", this->daily_case_fatality_count);
+    track_value(day, (char*)"TD", this->total_case_fatality_count);
     track_value(day, (char*)"CF", case_fatality_rate);
   }
   track_value(day, (char*)"M", this->immune_people);
@@ -1792,9 +1793,12 @@ void Epidemic::update(int day) {
       // update epidemic fatality counters
       this->daily_case_fatality_count++;
       this->total_case_fatality_count++;
+      // record removed person
+      this->removed_people++;
     }
 
-    if(person->is_infected(this->id) == false || person->is_case_fatality(this->id)) {
+    // note: case fatalities will be uninfected at this point
+    if(person->is_infected(this->id) == false) {
       FRED_VERBOSE(1, "update_infection for person %d day %d - deleting from infected_people list\n", person->get_id(), day);
       // delete from infected list
       this->infected_people.erase(it++);

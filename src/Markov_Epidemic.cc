@@ -12,6 +12,7 @@
 // File Markov_Epidemic.cc
 
 #include "Events.h"
+#include "Date.h"
 #include "Disease.h"
 #include "Global.h"
 #include "Health.h"
@@ -101,9 +102,18 @@ void Markov_Epidemic::prepare() {
 }
 
 
+void Markov_Epidemic::markov_updates(int day) {
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->disease->get_disease_name(), day);
+  for (int i = 0; i < this->number_of_states; i++) {
+    process_transitions_to_state(day, i);
+  }
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update finished for day %d\n", this->disease->get_disease_name(), day);
+  return;
+}
+
 void Markov_Epidemic::process_transitions_to_state(int day, int state) {
   int size = this->transition_to_state_event_queue[state]->get_size(day);
-  FRED_VERBOSE(0, "MARKOV_TRANS_TO_STATE %d day %d size %d\n", state, day, size);
+  FRED_VERBOSE(0, "MARKOV_TRANSITION_TO_STATE %d day %d size %d\n", state, day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
@@ -150,15 +160,6 @@ void Markov_Epidemic::update(int day) {
 }
 
 
-void Markov_Epidemic::markov_updates(int day) {
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->disease->get_disease_name(), day);
-  for (int i = 0; i < this->number_of_states; i++) {
-    process_transitions_to_state(day, i);
-  }
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update finished for day %d\n", this->disease->get_disease_name(), day);
-  return;
-}
-
 void Markov_Epidemic::report_disease_specific_stats(int day) {
   FRED_VERBOSE(0, "Markov Epidemic %s report day %d \n",this->disease->get_disease_name(),day);
   for (int i = 0; i < this->number_of_states; i++) {
@@ -187,8 +188,8 @@ void Markov_Epidemic::transition_person(Person* person, int day, int old_state, 
   strcpy(old_state_name, this->markov_model->get_state_name(old_state).c_str());
   strcpy(new_state_name, this->markov_model->get_state_name(new_state).c_str());
 
-  FRED_VERBOSE(0, "MARKOV TRANSITION PERSON day %d from %s to %s person %d\n",
-	       day,old_state_name,new_state_name,person->get_id());
+  FRED_VERBOSE(0, "MARKOV TRANSITION PERSON day %d %s from %s to %s person %d\n",
+	       day, Date::get_date_string().c_str(), old_state_name,new_state_name,person->get_id());
 
   if (old_state == 0 && new_state != 0) {
     // infect the person
@@ -206,14 +207,6 @@ void Markov_Epidemic::transition_person(Person* person, int day, int old_state, 
     person->become_symptomatic(this->disease);
   }
 
-  if (this->disease->get_natural_history()->get_symptoms(new_state) == 0.0 && person->is_symptomatic(this->id)) {
-    // update epidemic counters
-    this->people_with_current_symptoms--;
-
-    // update person's health chart
-    person->resolve_symptoms(this->disease);
-  }
-
   if (this->disease->get_natural_history()->get_infectivity(new_state) > 0.0 && person->is_infectious(this->id)==false) {
     // add to active people list
     this->potentially_infectious_people.insert(person);
@@ -225,19 +218,29 @@ void Markov_Epidemic::transition_person(Person* person, int day, int old_state, 
     person->become_infectious(this->disease);
   }
 
+  if (this->disease->get_natural_history()->get_symptoms(new_state) == 0.0 && person->is_symptomatic(this->id)) {
+    // update epidemic counters
+    this->people_with_current_symptoms--;
+
+    // update person's health chart
+    person->resolve_symptoms(this->disease);
+  }
+
   if (this->disease->get_natural_history()->get_infectivity(new_state) == 0.0 && person->is_infectious(this->id)) {
     // update person's health chart
     person->become_noninfectious(this->disease);
-
-    // remove from active list
-    this->potentially_infectious_people.erase(person);
   }
 
   if (old_state != 0 && new_state == 0) {
-    // update person's health chart
-    person->recover(day, this->disease);
-    // record removed person
-    this->removed_people++;
+    // notify the epidemic
+    recover(person, day);
   }
+
+  if (this->disease->get_natural_history()->is_fatal(new_state)) {
+    // update person's health chart
+    person->become_case_fatality(day, this->disease);
+  }
+
+  
 }
 

@@ -585,12 +585,11 @@ void Health::resolve_symptoms(Disease* disease) {
     this->symptomatic.reset(disease_id);
   }
   FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is ASYMPTOMATIC for disease %d\n",
+			  "HEALTH CHART: %s person %d RESOLVES SYMPTOMS for disease %d\n",
 			  Date::get_date_string().c_str(),
 			  myself->get_id(), disease_id);
 }
 
-// this is called by Epidemic:
 
 void Health::recover(Disease* disease, int day) {
   int disease_id = disease->get_id();

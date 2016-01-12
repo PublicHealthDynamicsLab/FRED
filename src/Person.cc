@@ -244,3 +244,6 @@ double Person::get_y() {
 }
 
 
+void Person::become_case_fatality(int day, Disease* disease) {
+  this->health.become_case_fatality(disease->get_id(), day);
+}

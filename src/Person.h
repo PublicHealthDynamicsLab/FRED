@@ -168,6 +168,8 @@ public:
     this->health.recover(disease, day);
   }
 
+  void become_case_fatality(int day, Disease* disease);
+
   /**
    * This agent creates a new agent
    * @return a pointer to the new Person

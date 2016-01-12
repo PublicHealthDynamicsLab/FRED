@@ -72,6 +72,8 @@ void Markov_Natural_History::get_parameters() {
     Params::get_param(paramstr, &vis);
     this->state_visualization.push_back(vis);
   }
+  // enable case_fatality, as specified by each state
+  this->enable_case_fatality = 1;
 
 }
 
