@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Geo::GoogleMaps::FitBoundsZoomer;
 use Env;
 
 my $FRED = $ENV{FRED_HOME};
@@ -9,30 +10,107 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $gsize = 640;
 my $usage = "usage: $0 bottom left top right filename\n";
 
-my ($bottom, $left, $top, $right, $file, $api_key, $lightness) = @ARGV;
-die $usage if not $file;
+my $api_key = $ENV{FRED_API_KEY};
+# print "$api_key\n";
+
+open BB, "BBOX";
+my $bottom = <BB>;
+chomp $bottom;
+$bottom =~ s/.*= //;
+my $left = <BB>;
+chomp $left;
+$left =~ s/.*= //;
+my $top = <BB>;
+chomp $top;
+$top =~ s/.*= //;
+my $right = <BB>;
+chomp $right;
+$right =~ s/.*= //;
+close BB;
+
+my $file = "googlemap.png";
 unlink $file;
-$api_key = "none" if not $api_key;
-$lightness = 0 if not $lightness;
 
+my $lightness = 0;
+
+my $cmd = "";
+
+# find bbox in google map
+my $zoomer = Geo::GoogleMaps::FitBoundsZoomer::->new();
+my @map_points =  ( 
+   {'lat' => $bottom, 'long' => $left},
+   {'lat' => $top, 'long' => $right},
+  );
+my $map_height_pixels = 640;
+my $map_width_pixels  = 640;
+my $zoom = $zoomer->max_bounding_zoom( points => \@map_points,
+				       height => $map_height_pixels,
+				       width  => $map_width_pixels );
+my $center = $zoomer->bounding_box_center();
+my $lat = $$center{lat};
+my $lon = $$center{long};
+# print "zoom = $zoom\n";
+# print "center: $lat $lon\n";
+
+# google static map API url
+my $url = "https://maps.googleapis.com/maps/api/staticmap?key=$api_key&center=$lat,$lon&format=png&size=640x640&zoom=$zoom";
+# print "$url\n";
+
+# get tmp image
 my $tmpimage = "google-$$.png";
-my $tmpcrop = "crop-$$.png";
-my $tmpfile = "Rscript.out";
-my $cmd = "Rscript $FRED/bin/get_googlemap_from_bbox.R $bottom $left $top $right $tmpimage $api_key $lightness \&> $tmpfile";
-# print "fred_get_googlemap: $cmd\n";
-system "$cmd";
-my $bbox = `tail -1 $tmpfile`;
-# unlink $tmpfile;
+$cmd = "curl '$url' > $tmpimage";
+system $cmd;
 
-chomp $bbox;
-if ($bbox =~ /halted/i) {
-  die "$0: get_googlemap_from_bbox failed. Check API key\n";
+# find corner of image
+my $b = $bottom;
+my $t = $top;
+my $z = $zoom;
+my $lt = $lat;
+my $ln = $lon;
+my $gbottom = $b;
+my $gtop = $t;
+# printf "$b $t $z $zoom $lt $lat $ln $lon\n";
+while ($z eq $zoom and $lt eq $lat and $ln = $lon) {
+  $gbottom = $b;
+  $gtop = $t;
+  $b -= 0.001;
+  $t += 0.001;
+  $zoomer = Geo::GoogleMaps::FitBoundsZoomer->new();
+  $z = $zoomer->max_bounding_zoom( points => [{lat=>$b, long=>$left}, {lat=>$t, long=>$right}],
+				   height => $map_height_pixels,
+				   width  => $map_width_pixels );
+  my $c = $zoomer->bounding_box_center();
+  $lt = $$c{lat};
+  $ln = $$c{long};
+  # printf "$b $t $z $zoom $lt $lat $ln $lon\n";
 }
-# print "|$bbox|\n";
-# print "google bbox: $bbox\n";
-# system "echo $tmpfile; cat $tmpfile";
 
-my ($gbottom, $gleft, $gtop, $gright) = split " ", $bbox;
+my $lf = $left;
+my $rt = $right;
+$z = $zoom;
+$lt = $lat;
+$ln = $lon;
+my $gright = $rt;
+my $gleft = $lf;
+# printf "$b $t $z $zoom $lt $lat $ln $lon\n";
+while ($z eq $zoom and $lt eq $lat and $ln = $lon) {
+  $gleft = $lf;
+  $gright = $rt;
+  $lf -= 0.001;
+  $rt += 0.001;
+  $zoomer = Geo::GoogleMaps::FitBoundsZoomer->new();
+  $z = $zoomer->max_bounding_zoom( points => [{lat=>$gbottom, long=>$lf}, {lat=>$gtop, long=>$rt}],
+				   height => $map_height_pixels,
+				   width  => $map_width_pixels );
+  my $c = $zoomer->bounding_box_center();
+  $lt = $$c{lat};
+  $ln = $$c{long};
+  # printf "$b $t $z $zoom $lt $lat $ln $lon\n";
+}
+
+# print "ymin = $gbottom\nxmin = $gleft\nymax = $gtop\nxmax = $gright\n";
+
+my $tmpcrop = "crop-$$.png";
 my $xrange = $right-$left;
 my $yrange = $top-$bottom;
 my $gxrange = $gright-$gleft;
