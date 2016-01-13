@@ -10,7 +10,7 @@ die "$0: Please set environmental variable FRED_HOME to location of FRED home di
 my $gsize = 640;
 my $usage = "usage: $0 bottom left top right filename\n";
 
-my $api_key = $ENV{FRED_API_KEY};
+# my $api_key = $ENV{FRED_API_KEY};
 # print "$api_key\n";
 
 open BB, "BBOX";
@@ -31,7 +31,18 @@ close BB;
 my $file = "googlemap.png";
 unlink $file;
 
-my $lightness = 0;
+my ($api_key, $lightness) = @ARGV;
+$lightness = 0 if not $lightness;
+$api_key = "none" if not $api_key;
+
+# used in FRED/measles
+
+my $my_style = "lightness:0&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off";
+
+if ($lightness>0) {
+  $my_style = "lightness:25&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off";
+}
+
 
 my $cmd = "";
 
@@ -53,7 +64,7 @@ my $lon = $$center{long};
 # print "center: $lat $lon\n";
 
 # google static map API url
-my $url = "https://maps.googleapis.com/maps/api/staticmap?key=$api_key&center=$lat,$lon&format=png&size=640x640&zoom=$zoom";
+my $url = "https://maps.googleapis.com/maps/api/staticmap?key=$api_key&center=$lat,$lon&format=png&size=640x640&zoom=$zoom&$my_style";
 # print "$url\n";
 
 # get tmp image

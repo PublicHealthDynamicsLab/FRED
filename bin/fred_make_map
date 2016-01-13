@@ -268,7 +268,7 @@ if (google) {
   # check if googlemap already exists
   ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
   if (ok == 0) {
-    cmd = sprintf("fred_get_googlemap %f %f %f %f googlemap.png %s %d", ymin, xmin, ymax, xmax, api_key, lightness)
+    cmd = sprintf("fred_get_googlemap %s %d", api_key, lightness)
     print cmd
     system(cmd)
     # make sure googlemap.png exists
