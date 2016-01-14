@@ -105,6 +105,7 @@ usage: $0 [ options ], where options include [default values]
   --api_key <key>: if set, use this api_key to obtain Google maps ["none"]
   --border 0/1: if set, display border around map with lat-lon labels [0]
   --census_tracts 0/1: plot census tracts [0]
+  --cf 0/1: plot daily case_fatalities [0]
   --country <name> : plot the named country [usa]
   --disease <id> : plot results for the disease id [0]
   --filled <0/1>:  if set, plot filled curves [0]
@@ -132,8 +133,9 @@ usage: $0 [ options ], where options include [default values]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
   --start day: start movie on specified day [0]
   --subtitle <str> : subtitle for each map [" "]
+  --tcf 0/1: plot total case_fatalities [0]
   --term <type> : plot using the specified terminal type [png]
-  --title <str> : title for each map ["FRED Allegheny County"]
+  --title <str> : title for each map ["FRED Simulation"]
   -x <xmin> : min value for x axis 
   -X <xmax> : max value for x axis 
   -y <ymin> : min value for y axis

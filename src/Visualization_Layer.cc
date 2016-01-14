@@ -248,7 +248,9 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
     Utils::fred_make_directory(vis_var_dir);
     sprintf(vis_var_dir, "%s/D", vis_dis_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/TD", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/CF", vis_dis_dir);
+    Utils::fred_make_directory(vis_var_dir);
+    sprintf(vis_var_dir, "%s/TCF", vis_dis_dir);
     Utils::fred_make_directory(vis_var_dir);
 
     if(this->household_mode && Global::Enable_HAZEL) {
@@ -279,8 +281,8 @@ void Visualization_Layer::print_visualization_data(int day) {
       print_census_tract_data(dir, disease_id, Global::OUTPUT_Cs, (char*)"Cs", day);
       print_census_tract_data(dir, disease_id, Global::OUTPUT_P, (char*)"P", day);
       if (Global::Diseases.get_disease(disease_id)->is_case_fatality_enabled()) {
-	print_census_tract_data(dir, disease_id, Global::OUTPUT_D, (char*)"D", day);
-	print_census_tract_data(dir, disease_id, Global::OUTPUT_TD, (char*)"TD", day);
+	print_census_tract_data(dir, disease_id, Global::OUTPUT_CF, (char*)"CF", day);
+	print_census_tract_data(dir, disease_id, Global::OUTPUT_TCF, (char*)"TCF", day);
       }
     }
 
@@ -371,7 +373,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
 
   if (Global::Diseases.get_disease(disease_id)->is_case_fatality_enabled()) {
     // household with current case fatalities
-    sprintf(filename, "%s/dis%d/D/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/CF/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -383,7 +385,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
     fclose(fp);
 
     // households with any case_fatalities
-    sprintf(filename, "%s/dis%d/TD/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/TCF/households-%d.txt", dir, disease_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {

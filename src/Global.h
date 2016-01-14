@@ -91,9 +91,8 @@ public:
   static const int OUTPUT_P = 10;
   static const int OUTPUT_N = 11;
   static const int OUTPUT_HC_DEFICIT = 12;
-  static const int OUTPUT_TD = 13;
-
-
+  static const int OUTPUT_CF = 13;
+  static const int OUTPUT_TCF = 13;
 
   // global constants
   static const int DAYS_PER_WEEK = 7;

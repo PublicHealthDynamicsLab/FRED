@@ -96,6 +96,7 @@ usage: $0 [ options ], where options include:
   --api_key <key>: if set, use this api_key to obtain Google maps ["none"]
   --border 0/1: if set, display border around map with lat-lon labels [0]
   --census_tracts 0/1: plot census tracts [0]
+  --cf 0/1: plot daily case_fatalities [0]
   --country <name> : plot the named country [usa]
   --disease <id> : plot results for the disease id [0]
   --display <0/1> : if set, play the movie after it is made [0]
@@ -123,7 +124,8 @@ usage: $0 [ options ], where options include:
   --start day: start movie on specified day [0]
   --subtitle <str> : subtitle for each map [" "]
   --term <type> : plot using the specified terminal type [png]
-  --title <str> : title for each map ["FRED Allegheny County"]
+  --tcf 0/1: plot total case_fatalities [0]
+  --title <str> : title for each map ["FRED Simulation"]
   -x <xmin> : min value for x axis 
   -X <xmax> : max value for x axis 
   -y <ymin> : min value for y axis
@@ -269,8 +271,8 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
-  print LD "case_fatalities_households = '$vis/D/households-$day.txt'\n";
-  print LD "total_case_fatalities_households = '$vis/TD/households-$day.txt'\n";
+  print LD "case_fatalities_households = '$vis/CF/households-$day.txt'\n";
+  print LD "total_case_fatalities_households = '$vis/TCF/households-$day.txt'\n";
   print LD "primary_hc_unav_household = '$vis/HH_primary_hc_unav/households-$day.txt'\n";;
   print LD "accept_insr_hc_unav_incidence = '$vis/HH_accept_insr_hc_unav/households-$day.txt'\n";
   print LD "hc_unav_households = '$vis/HH_hc_unav/households-$day.txt'\n";

@@ -498,9 +498,9 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"Is", this->people_with_current_symptoms);
   track_value(day, (char*)"R", this->removed_people);
   if(this->disease->get_natural_history()->is_case_fatality_enabled()) {
-    track_value(day, (char*)"D", this->daily_case_fatality_count);
-    track_value(day, (char*)"TD", this->total_case_fatality_count);
-    track_value(day, (char*)"CF", case_fatality_rate);
+    track_value(day, (char*)"CF", this->daily_case_fatality_count);
+    track_value(day, (char*)"TCF", this->total_case_fatality_count);
+    track_value(day, (char*)"CFR", case_fatality_rate);
   }
   track_value(day, (char*)"M", this->immune_people);
   track_value(day, (char*)"P",this->prevalence_count);
