@@ -52,7 +52,7 @@ void Markov_Model::get_parameters() {
     double initial_total = 0.0;
     for (int i = 0; i < this->number_of_states; i++) {
       double init_pct;
-      sprintf(paramstr, "%s[%d][%d].initial_percent", this->name, group, i);
+      sprintf(paramstr, "%s.group[%d].initial_percent[%d]", this->name, group, i);
       printf("read param %s\n", paramstr); fflush(stdout);
       Params::get_param(paramstr, &init_pct);
       this->state_initial_percent[group][i] = init_pct;
@@ -83,7 +83,7 @@ void Markov_Model::get_parameters() {
       for (int j = 0; j < this->number_of_states; j++) {
 	// default value if not in params file:
 	double prob = 0.0;
-	sprintf(paramstr, "%s_trans[%d][%d][%d]", this->name, group,i,j);
+	sprintf(paramstr, "%s.group[%d].trans[%d][%d]", this->name, group,i,j);
 	Params::get_param(paramstr, &prob);
 	this->transition_matrix[group][i][j] = prob;
       }
@@ -114,13 +114,13 @@ void Markov_Model::print() {
 
   for (int g = 0; g < this->age_groups; g++) {
     for (int i = 0; i < this->number_of_states; i++) {
-      printf("MARKOV MODEL %s[%d][%d].initial_percent = %f\n",
+      printf("MARKOV MODEL %s.group[%d].initial_percent[%d] = %f\n",
 	     this->name, g, i, this->state_initial_percent[g][i]);
     }
 
     for (int i = 0; i < this->number_of_states; i++) {
       for (int j = 0; j < this->number_of_states; j++) {
-	printf("MARKOV MODEL %s_trans[%d][%d][%d] = %f\n",
+	printf("MARKOV MODEL %s.group[%d].trans[%d][%d] = %f\n",
 	       this->name,g,i,j,this->transition_matrix[g][i][j]);
       }
     }
