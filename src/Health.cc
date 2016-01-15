@@ -322,9 +322,9 @@ void Health::setup(Person* self) {
     this->infected_in_mixing_group[disease_id] = NULL;
     this->immunity_end_date[disease_id] = -1;
     this->past_infections[disease_id].clear();
-    this->health_condition[disease_id].state = 0;
-    this->health_condition[disease_id].last_transition_day = 0;
-    this->health_condition[disease_id].next_state = 0;
+    this->health_condition[disease_id].state = -1;
+    this->health_condition[disease_id].last_transition_day = -1;
+    this->health_condition[disease_id].next_state = -1;
     this->health_condition[disease_id].next_transition_day = -1;
 
     Disease* disease = Global::Diseases.get_disease(disease_id);
@@ -444,7 +444,7 @@ void Health::become_susceptible_by_vaccine_waning(int disease_id) {
 
 void Health::become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
 
-   FRED_VERBOSE(1, "become_exposed: person %d is exposed to disease %d day %d\n",
+   FRED_VERBOSE(0, "become_exposed: person %d is exposed to disease %d day %d\n",
 		            myself->get_id(), disease_id, day);
 
   if(this->infection[disease_id] != NULL) {
@@ -1070,9 +1070,10 @@ void Health::update_mixing_group_counts(int day, int disease_id, Mixing_Group* m
 }
 
 void Health::terminate_infection(int disease_id, int day) {
+  if(this->health_condition[disease_id].state > -1) {
+    Global::Diseases.get_disease(disease_id)->terminate_person(myself, day);
+  }
   if(this->infection[disease_id] != NULL) {
-    // delete effects of infection in epidemic
-    this->infection[disease_id]->terminate(day);
     // delete the infection object
     delete this->infection[disease_id];
     this->infection[disease_id] = NULL;
@@ -1084,11 +1085,18 @@ void Health::terminate(int day) {
     if(this->infection[disease_id] != NULL) {
       become_removed(disease_id, day);
     }
+    if(this->health_condition[disease_id].state == 0) {
+      Global::Diseases.get_disease(disease_id)->terminate_person(myself, day);;
+    }
   }
   this->alive = false;
 }
 
-
-
-
+void Health::update_health_conditions(int day) {
+  for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+    if(this->health_condition[disease_id].state > -1) {
+      Global::Diseases.get_disease(disease_id)->get_epidemic()->transition_person(this->myself, day, this->health_condition[disease_id].state);
+    }    
+  }  
+}
 

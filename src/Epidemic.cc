@@ -224,7 +224,7 @@ void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, 
   this->immune_people++;
 }
 
-void Epidemic::terminate(Person* person, int day) {
+void Epidemic::terminate_person(Person* person, int day) {
   FRED_VERBOSE(1, "EPIDEMIC TERMINATE person %d day %d\n",
 	       person->get_id(), day);
 
@@ -527,6 +527,7 @@ void Epidemic::print_stats(int day) {
   }
 
   if(Global::Report_Place_Of_Infection) {
+    FRED_VERBOSE(0, "report place if infection\n");
     report_place_of_infection(day);
   }
 
@@ -539,6 +540,7 @@ void Epidemic::print_stats(int day) {
   }
 
   if(Global::Report_Incidence_By_County) {
+    FRED_VERBOSE(0, "report incidence by county\n");
     report_incidence_by_county(day);
   }
 
@@ -549,6 +551,7 @@ void Epidemic::print_stats(int day) {
     report_symptomatic_incidence_by_census_tract(day);
   }
   if(this->report_generation_time || Global::Report_Serial_Interval) {
+    FRED_VERBOSE(0, "report serial interval\n");
     report_serial_interval(day);
   }
   
@@ -570,6 +573,7 @@ void Epidemic::print_stats(int day) {
     report_group_quarters_incidence(day);
   }
 
+  FRED_VERBOSE(0, "report disease specific stats\n");
   report_disease_specific_stats(day);
 
   if(Global::Verbose) {
@@ -871,8 +875,11 @@ void Epidemic::report_incidence_by_county(int day) {
       this->county_incidence[i] = 0;
     }
   }
-  for(int i = 0; i < this->people_becoming_infected_today; ++i) {
+  FRED_VERBOSE(0, "county incidence day %d\n", day);
+  int infected = this->people_becoming_infected_today;
+  for(int i = 0; i < infected; ++i) {
     Person* infectee = this->daily_infections_list[i];
+    FRED_VERBOSE(0, "person %d is %d out of %d\n", infectee->get_id(), i, infected);
     Household* hh = static_cast<Household*>(infectee->get_household());
     if(hh == NULL) {
       if(Global::Enable_Hospitals && infectee->is_hospitalized() && infectee->get_permanent_household() != NULL) {
@@ -883,7 +890,9 @@ void Epidemic::report_incidence_by_county(int day) {
     int c = hh->get_county_index();
     assert(0 <= c && c < this->counties);
     this->county_incidence[c]++;
+    FRED_VERBOSE(0, "county %d incidence %d %d out of %d person %d \n", c, this->county_incidence[c], i, infected, infectee->get_id());
   }
+  FRED_VERBOSE(1, "county incidence day %d\n", day);
   for(int c = 0; c < this->counties; ++c) {
     char name[80];
     sprintf(name, "County_%d", Global::Places.get_fips_of_county_with_index(c));
@@ -893,7 +902,10 @@ void Epidemic::report_incidence_by_county(int day) {
     // prepare for next day
     this->county_incidence[c] = 0;
   }
+  FRED_VERBOSE(1, "county incidence day %d done\n", day);
 }
+
+
 void Epidemic::report_symptomatic_incidence_by_census_tract(int day) {
   if(day == 0) {
     // set up census_tract counts

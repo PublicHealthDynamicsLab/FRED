@@ -673,6 +673,8 @@ public:
     return this->health_condition[disease_id].next_transition_day;
   }
 
+  void update_health_conditions(int day);
+
 private:
 
   // link back to person

@@ -312,8 +312,8 @@ void Disease::update(int day) {
   this->epidemic->update(day);
 }
 
-void Disease::terminate(Person* person, int day) {
-  this->epidemic->terminate(person, day);
+void Disease::terminate_person(Person* person, int day) {
+  this->epidemic->terminate_person(person, day);
 }
 
 void Disease::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {

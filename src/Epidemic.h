@@ -130,7 +130,7 @@ public:
   void track_value(int day, char* key, double value);
   void track_value(int day, char* key, string value);
 
-  void get_imported_infections(int day);
+  virtual void get_imported_infections(int day);
   void become_exposed(Person* person, int day);
 
   virtual void update(int day);
@@ -227,11 +227,11 @@ public:
 
   void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
-  void terminate(Person* person, int day);
-
   int get_id() {
     return this->id;
   }
+
+  virtual void transition_person(Person* person, int day, int state) {}
 
   // events processing
   void process_infectious_start_events(int day);
@@ -248,6 +248,7 @@ public:
   void cancel_immunity_start(int day, Person* person);
   void cancel_immunity_end(int day, Person* person);
   virtual void end_of_run() {}
+  virtual void terminate_person(Person* person, int day);
 
 protected:
   Disease* disease;

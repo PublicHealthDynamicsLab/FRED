@@ -429,5 +429,5 @@ double Infection::get_symptoms(int day) {
 }
 
 void Infection::terminate(int day) {
-  this->disease->terminate(host, day);
+  this->disease->terminate_person(host, day);
 }

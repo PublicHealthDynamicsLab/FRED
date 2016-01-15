@@ -33,17 +33,19 @@ public:
 
   void prepare();
 
+  void get_imported_infections(int day) {}
+
   void update(int day);
 
   void markov_updates(int day);
 
-  void process_transitions_to_state(int day, int state);
+  void transition_person(Person* person, int day, int state);
 
   void report_disease_specific_stats(int day);
 
   void end_of_run();
 
-  void transition_person(Person* person, int day, int old_state, int new_state);
+  void terminate_person(Person* person, int day);
 
 private:
   Markov_Model* markov_model;

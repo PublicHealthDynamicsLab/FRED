@@ -62,7 +62,7 @@ void Markov_Epidemic::prepare() {
   }
 
   // initialize the population
-
+  int day = 0;
   int popsize = Global::Pop.get_pop_size();
   for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
     Person* person = Global::Pop.get_person_by_index(p);
@@ -71,26 +71,7 @@ void Markov_Epidemic::prepare() {
     }
     double age = person->get_real_age();
     int state = this->markov_model->get_initial_state(age);
-    
-    // add to state list
-    people_in_state[state].push_back(person);
-    
-    // update person's state
-    person->set_health_state(this->id, state, 0);
-
-    // update next event list
-    int new_state, transition_day;
-    this->markov_model->get_next_state_and_time(0, age, state, &new_state, &transition_day);
-    this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
-    
-    // update person's next state
-    person->set_next_health_state(this->id, new_state, transition_day);
-    
-    // handle disease-related transition
-    transition_person(person, 0, 0, state);
-
-    FRED_VERBOSE(0,"INITIALIZE MARKOV Epidemic %s day %d person %d age %d state %d new_state %d transition_day %d\n",
-		 this->disease->get_disease_name(), 0, person->get_id(), person->get_age(), state, new_state, transition_day);
+    transition_person(person, day, state);
   }
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
@@ -105,60 +86,129 @@ void Markov_Epidemic::prepare() {
 
 void Markov_Epidemic::markov_updates(int day) {
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->disease->get_disease_name(), day);
-  for (int i = 0; i < this->number_of_states; i++) {
-    process_transitions_to_state(day, i);
+
+  // handle scheduled transitions to each state
+  for (int state = 0; state < this->number_of_states; state++) {
+
+    int size = this->transition_to_state_event_queue[state]->get_size(day);
+    FRED_VERBOSE(0, "MARKOV_TRANSITION_TO_STATE %d day %d %s size %d\n", state, day, Date::get_date_string().c_str(), size);
+    
+    for(int i = 0; i < size; ++i) {
+      Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
+      transition_person(person, day, state);
+    }
+
+    this->transition_to_state_event_queue[state]->clear_events(day);
   }
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update finished for day %d\n", this->disease->get_disease_name(), day);
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::markov_update finished for day %d\n", this->disease->get_disease_name(), day);
   return;
 }
 
-void Markov_Epidemic::process_transitions_to_state(int day, int state) {
-  int size = this->transition_to_state_event_queue[state]->get_size(day);
-  FRED_VERBOSE(0, "MARKOV_TRANSITION_TO_STATE %d day %d size %d\n", state, day, size);
 
-  for(int i = 0; i < size; ++i) {
-    Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
-
-    FRED_VERBOSE(0,"TRANSITION to state %d  day %d person %d\n",
-		 state, day, person->get_id());
-
-    int old_state = person->get_health_state(this->id);
-
-    FRED_VERBOSE(0,"TRANSITION to state %d  day %d person %d old_state %d\n",
-		 state, day, person->get_id(), old_state);
-
-    // delete from old list
-    for (int j = 0; j < people_in_state[old_state].size(); j++) {
-      if (people_in_state[old_state][j] == person) {
-	people_in_state[old_state][j] = people_in_state[old_state].back();
-	people_in_state[old_state].pop_back();
-      }
-    }
-
-    // add to active people list
-    people_in_state[state].push_back(person);
-
-    // update person's state
-    person->set_health_state(this->id, state, day);
-
-    // update next event list
-    int new_state, transition_day;
-    double age = person->get_real_age();
-    this->markov_model->get_next_state_and_time(day, age, state, &new_state, &transition_day);
-    this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
-    
-    // update person's next state
-    person->set_next_health_state(this->id, new_state, transition_day);
-
-    // handle disease-related transition
-    transition_person(person, day, old_state, state);
-
-  }
-  this->transition_to_state_event_queue[state]->clear_events(day);
-}
 
 void Markov_Epidemic::update(int day) {
   Epidemic::update(day);
+}
+
+
+void Markov_Epidemic::transition_person(Person* person, int day, int state) {
+
+  int old_state = person->get_health_state(this->id);
+  double age = person->get_real_age();
+
+  // cancel any scheduled transition
+  int next_state = person->get_next_health_state(this->id);
+  int transition_day = person->get_next_health_transition_day(this->id);
+  if (0 <= next_state && day < transition_day) {
+    this->transition_to_state_event_queue[next_state]->delete_event(transition_day, person);
+  }
+
+  // change active list if necessary
+  if (old_state != state) {
+    if (0 <= old_state) {
+      // delete from old list
+      for (int j = 0; j < people_in_state[old_state].size(); j++) {
+	if (people_in_state[old_state][j] == person) {
+	  people_in_state[old_state][j] = people_in_state[old_state].back();
+	  people_in_state[old_state].pop_back();
+	}
+      }
+    }
+    if (0 <= state) {
+      // add to active people list
+      people_in_state[state].push_back(person);
+    }
+  }
+
+  // update person's state
+  person->set_health_state(this->id, state, day);
+
+  // update next event list
+  this->markov_model->get_next_state_and_time(day, age, state, &next_state, &transition_day);
+  this->transition_to_state_event_queue[next_state]->add_event(transition_day, person);
+    
+  // update person's next state
+  person->set_next_health_state(this->id, next_state, transition_day);
+
+  FRED_VERBOSE(0,"MARKOV TRANSITION day %d %s person %d age %.0f from old_state %d to state %d, next_state %d on day %d\n",
+	       day, Date::get_date_string().c_str(), person->get_id(), age, old_state, state, next_state, transition_day);
+
+  // update epidemic counters and person's health chart
+
+  if (old_state <= 0 && state != 0) {
+
+    FRED_VERBOSE(0,"MARKOV TRANSITION day %d %s person %d age %.0f from old_state %d to state %d => become_exposed\n",
+		 day, Date::get_date_string().c_str(), person->get_id(), age, old_state, state);
+
+    // infect the person
+    person->become_exposed(this->id, NULL, NULL, day);
+
+    // notify the epidemic
+    Epidemic::become_exposed(person, day);
+  }
+  
+  if (this->disease->get_natural_history()->get_symptoms(state) > 0.0 && person->is_symptomatic(this->id)==false) {
+    // update epidemic counters
+    this->people_with_current_symptoms++;
+    this->people_becoming_symptomatic_today++;
+
+    // update person's health chart
+    person->become_symptomatic(this->disease);
+  }
+
+  if (this->disease->get_natural_history()->get_infectivity(state) > 0.0 && person->is_infectious(this->id)==false) {
+    // add to active people list
+    this->potentially_infectious_people.insert(person);
+
+    // update epidemic counters
+    this->exposed_people--;
+
+    // update person's health chart
+    person->become_infectious(this->disease);
+  }
+
+  if (this->disease->get_natural_history()->get_symptoms(state) == 0.0 && person->is_symptomatic(this->id)) {
+    // update epidemic counters
+    this->people_with_current_symptoms--;
+
+    // update person's health chart
+    person->resolve_symptoms(this->disease);
+  }
+
+  if (this->disease->get_natural_history()->get_infectivity(state) == 0.0 && person->is_infectious(this->id)) {
+    // update person's health chart
+    person->become_noninfectious(this->disease);
+  }
+
+  if (old_state > 0 && state == 0) {
+    // notify the epidemic
+    recover(person, day);
+  }
+
+  if (this->disease->get_natural_history()->is_fatal(state)) {
+    // update person's health chart
+    person->become_case_fatality(day, this->disease);
+  }
 }
 
 
@@ -171,6 +221,7 @@ void Markov_Epidemic::report_disease_specific_stats(int day) {
   }
 }
 
+
 void Markov_Epidemic::end_of_run() {
 
   // print end-of-run statistics here:
@@ -179,70 +230,37 @@ void Markov_Epidemic::end_of_run() {
 }
 
 
+void Markov_Epidemic::terminate_person(Person* person, int day) {
+  FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s\n",
+	       person->get_id(), day, Date::get_date_string().c_str());
 
-/// move to Health.cc
-
-void Markov_Epidemic::transition_person(Person* person, int day, int old_state, int new_state) {
-
-  char old_state_name[80];
-  char new_state_name[80];
-
-  strcpy(old_state_name, this->markov_model->get_state_name(old_state).c_str());
-  strcpy(new_state_name, this->markov_model->get_state_name(new_state).c_str());
-
-  FRED_VERBOSE(0, "MARKOV TRANSITION PERSON day %d %s from %s to %s person %d\n",
-	       day, Date::get_date_string().c_str(), old_state_name,new_state_name,person->get_id());
-
-  if (old_state == 0 && new_state != 0) {
-    // infect the person
-    person->become_exposed(this->id, NULL, NULL, day);
-    // notify the epidemic
-    Epidemic::become_exposed(person, day);
-  }
-  
-  if (this->disease->get_natural_history()->get_symptoms(new_state) > 0.0 && person->is_symptomatic(this->id)==false) {
-    // update epidemic counters
-    this->people_with_current_symptoms++;
-    this->people_becoming_symptomatic_today++;
-
-    // update person's health chart
-    person->become_symptomatic(this->disease);
+  // delete from state list
+  int state = person->get_health_state(this->id);
+  if (0 <= state) {
+    for (int j = 0; j < people_in_state[state].size(); j++) {
+      if (people_in_state[state][j] == person) {
+	people_in_state[state][j] = people_in_state[state].back();
+	people_in_state[state].pop_back();
+      }
+    }
+    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from list for state %d\n",
+		 person->get_id(), day, Date::get_date_string().c_str(), state);
   }
 
-  if (this->disease->get_natural_history()->get_infectivity(new_state) > 0.0 && person->is_infectious(this->id)==false) {
-    // add to active people list
-    this->potentially_infectious_people.insert(person);
-
-    // update epidemic counters
-    this->exposed_people--;
-
-    // update person's health chart
-    person->become_infectious(this->disease);
+  // cancel any scheduled transition
+  int next_state = person->get_next_health_state(this->id);
+  int transition_day = person->get_next_health_transition_day(this->id);
+  if (0 <= next_state && day <= transition_day) {
+    printf("person %d delete_event for state %d transition_day %d\n", person->get_id(), next_state, transition_day);
+    this->transition_to_state_event_queue[next_state]->delete_event(transition_day, person);
   }
 
-  if (this->disease->get_natural_history()->get_symptoms(new_state) == 0.0 && person->is_symptomatic(this->id)) {
-    // update epidemic counters
-    this->people_with_current_symptoms--;
+  person->set_health_state(this->id, -1, day);
 
-    // update person's health chart
-    person->resolve_symptoms(this->disease);
-  }
+  // notify Epidemic
+  Epidemic::terminate_person(person, day);
 
-  if (this->disease->get_natural_history()->get_infectivity(new_state) == 0.0 && person->is_infectious(this->id)) {
-    // update person's health chart
-    person->become_noninfectious(this->disease);
-  }
-
-  if (old_state != 0 && new_state == 0) {
-    // notify the epidemic
-    recover(person, day);
-  }
-
-  if (this->disease->get_natural_history()->is_fatal(new_state)) {
-    // update person's health chart
-    person->become_case_fatality(day, this->disease);
-  }
-
-  
+  FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE finished\n");
 }
+
 

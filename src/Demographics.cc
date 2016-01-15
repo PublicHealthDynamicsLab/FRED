@@ -197,6 +197,13 @@ int Demographics::get_day_of_year_for_birthday_in_nonleap_year() {
   return day_of_year;
 }
 
+void Demographics::cancel_mortality(Person* self) {
+  assert(this->deceased_sim_day > -1);
+  Demographics::delete_mortality_event(this->deceased_sim_day, self);
+  FRED_STATUS(0, "MORTALITY EVENT DELETED\n");
+  this->deceased_sim_day = -1;
+}
+
 void Demographics::cancel_conception(Person* self) {
   assert(this->conception_sim_day > -1);
   Demographics::delete_conception_event(this->conception_sim_day, self);
@@ -334,6 +341,9 @@ void Demographics::birthday(Person* self, int day ) {
     self->become_health_decision_maker(self);
   }
   
+  // update any state-base health conditions
+  self->update_health_conditions(day);
+
   FRED_STATUS(2, "Birthday finished for person %d with new age %d\n", self->get_id(), self->get_age());
 }
 
@@ -359,6 +369,13 @@ void Demographics::terminate(Person* self) {
   // remove from the birthday lists
   if(Global::Enable_Population_Dynamics) {
     Demographics::delete_from_birthday_list(self);
+  }
+
+  // cancel any future mortality event
+  if(day < this->deceased_sim_day) {
+    FRED_STATUS(0, "DEATH CANCELS FUTURE MORTALITY: today %d person %d age %d mortality %d\n",
+	              day, self->get_id(), this->age, this->deceased_sim_day);
+    cancel_mortality(self);
   }
 
   // update death stats
@@ -433,7 +450,6 @@ void Demographics::update(int day) {
 			     person->get_id(), person->get_age());
     // queue removal from population
     Global::Pop.prepare_to_die(day, person);
-    // person->get_demographics()->die(day, person);
   }
   Demographics::mortality_queue->clear_events(day);
   return;

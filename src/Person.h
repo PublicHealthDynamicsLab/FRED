@@ -965,6 +965,10 @@ public:
     return this->health.get_next_transition_day(disease_id);
   }
 
+  void update_health_conditions(int day) {
+    this->health.update_health_conditions(day);
+  }
+
 private:
 
   // id: Person's unique identifier (never reused)

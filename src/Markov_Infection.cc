@@ -14,6 +14,7 @@
 #include "Markov_Infection.h"
 #include "Markov_Natural_History.h"
 #include "Disease.h"
+#include "Epidemic.h"
 #include "Global.h"
 #include "Person.h"
 #include "Mixing_Group.h"
@@ -38,7 +39,7 @@ void Markov_Infection::setup() {
 
   // initialize Markov specific-variables here:
 
-    this->state = disease->get_natural_history()->get_initial_state();
+    this->state = this->disease->get_natural_history()->get_initial_state();
     printf("MARKOV INIT state %d\n", this->state);
     if (this->get_infectivity(this->exposure_date) > 0.0) {
       this->infectious_start_date = this->exposure_date;
@@ -51,15 +52,15 @@ void Markov_Infection::setup() {
 }
 
 double Markov_Infection::get_infectivity(int day) {
-  return (disease->get_natural_history()->get_infectivity(this->state));
+  return (this->disease->get_natural_history()->get_infectivity(this->state));
 }
 
 double Markov_Infection::get_symptoms(int day) {
-  return (disease->get_natural_history()->get_symptoms(this->state));
+  return (this->disease->get_natural_history()->get_symptoms(this->state));
 }
 
 bool Markov_Infection::is_fatal(int day) {
-  return (disease->get_natural_history()->is_fatal(this->state));
+  return (this->disease->get_natural_history()->is_fatal(this->state));
 }
 
 void Markov_Infection::update(int day) {
@@ -68,4 +69,6 @@ void Markov_Infection::update(int day) {
 
   // put daily update here
 }
+
+
 

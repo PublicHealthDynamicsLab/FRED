@@ -201,6 +201,7 @@ public:
   void become_pregnant(int day, Person* self);
   void cancel_pregnancy(Person * self);
   void update_birth_stats(int day, Person* self);
+  void cancel_mortality(Person* self);
 
   // birthday lists
   static void add_to_birthday_list(Person* person);

@@ -119,7 +119,7 @@ public:
  
   void update(int day);
 
-  void terminate(Person* person, int day);
+  void terminate_person(Person* person, int day);
 
   double get_face_mask_transmission_efficacy() {
     return this->face_mask_transmission_efficacy;
