@@ -116,13 +116,19 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   int old_state = person->get_health_state(this->id);
   double age = person->get_real_age();
 
+  if (state == old_state && 1 <= age &&
+      this->markov_model->get_age_group(age) == this->markov_model->get_age_group(age-1)) { 
+    // this is a birthday check-in and no age group change has occurred.
+    return;
+  }
+
   // cancel any scheduled transition
   int next_state = person->get_next_health_state(this->id);
   int transition_day = person->get_next_health_transition_day(this->id);
   if (0 <= next_state && day < transition_day) {
     this->transition_to_state_event_queue[next_state]->delete_event(transition_day, person);
   }
-
+  
   // change active list if necessary
   if (old_state != state) {
     if (0 <= old_state) {
@@ -141,7 +147,9 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   // update person's state
-  person->set_health_state(this->id, state, day);
+  if (old_state != state) {
+    person->set_health_state(this->id, state, day);
+  }
 
   // update next event list
   this->markov_model->get_next_state_and_time(day, age, state, &next_state, &transition_day);

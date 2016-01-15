@@ -164,4 +164,6 @@ void Markov_Model::get_next_state_and_time(int day, double age, int old_state, i
 }
 
 
-
+int Markov_Model::get_age_group(double age) {
+  return (int) this->age_map->find_value(age);
+}

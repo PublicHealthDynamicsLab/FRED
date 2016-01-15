@@ -49,6 +49,8 @@ public:
 
   void get_next_state_and_time(int day, double age, int old_state, int* new_state, int* transition_day);
 
+  int get_age_group(double age);
+
 protected:
   char name[256];
   int number_of_states;
