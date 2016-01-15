@@ -52,7 +52,7 @@ void Markov_Natural_History::get_parameters() {
   this->state_fatality.clear();
     
   char paramstr[256];
-  int fatal, vis;
+  int fatal;
   double inf, symp;
   for (int i = 0; i < get_number_of_states(); i++) {
 
@@ -68,9 +68,6 @@ void Markov_Natural_History::get_parameters() {
     Params::get_param(paramstr, &fatal);
     this->state_fatality.push_back(fatal);
 
-    sprintf(paramstr, "%s[%d].visualization", get_name(), i);
-    Params::get_param(paramstr, &vis);
-    this->state_visualization.push_back(vis);
   }
   // enable case_fatality, as specified by each state
   this->enable_case_fatality = 1;
@@ -98,8 +95,6 @@ void Markov_Natural_History::print() {
 	   get_name(), i, this->state_symptoms[i]);
     printf("MARKOV MODEL %s[%d].fatality = %d\n",
 	   get_name(), i, this->state_fatality[i]);
-    printf("MARKOV MODEL %s[%d].visualization = %d\n",
-	   get_name(), i, this->state_visualization[i]);
   }
 }
 

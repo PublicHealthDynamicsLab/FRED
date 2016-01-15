@@ -91,7 +91,6 @@ private:
   std::vector<double>state_infectivity;
   std::vector<double>state_symptoms;
   std::vector<int>state_fatality;
-  std::vector<int>state_visualization;
 };
 
 #endif

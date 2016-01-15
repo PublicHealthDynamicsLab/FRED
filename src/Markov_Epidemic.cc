@@ -69,7 +69,8 @@ void Markov_Epidemic::prepare() {
     if(person == NULL) {
       continue;
     }
-    int state = this->markov_model->get_initial_state();
+    double age = person->get_real_age();
+    int state = this->markov_model->get_initial_state(age);
     
     // add to state list
     people_in_state[state].push_back(person);
@@ -79,7 +80,7 @@ void Markov_Epidemic::prepare() {
 
     // update next event list
     int new_state, transition_day;
-    this->markov_model->get_next_state_and_time(0, state, &new_state, &transition_day);
+    this->markov_model->get_next_state_and_time(0, age, state, &new_state, &transition_day);
     this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
     
     // update person's next state
@@ -88,8 +89,8 @@ void Markov_Epidemic::prepare() {
     // handle disease-related transition
     transition_person(person, 0, 0, state);
 
-    FRED_VERBOSE(0,"INITIALIZE MARKOV Epidemic %s day %d person %d state %d new_state %d transition_day %d\n",
-		this->disease->get_disease_name(), 0, person->get_id(), state, new_state, transition_day);
+    FRED_VERBOSE(0,"INITIALIZE MARKOV Epidemic %s day %d person %d age %d state %d new_state %d transition_day %d\n",
+		 this->disease->get_disease_name(), 0, person->get_id(), person->get_age(), state, new_state, transition_day);
   }
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
@@ -142,7 +143,8 @@ void Markov_Epidemic::process_transitions_to_state(int day, int state) {
 
     // update next event list
     int new_state, transition_day;
-    this->markov_model->get_next_state_and_time(day, state, &new_state, &transition_day);
+    double age = person->get_real_age();
+    this->markov_model->get_next_state_and_time(day, age, state, &new_state, &transition_day);
     this->transition_to_state_event_queue[new_state]->add_event(transition_day, person);
     
     // update person's next state

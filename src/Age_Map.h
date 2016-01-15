@@ -119,6 +119,10 @@ public:
    */
   void print() const;
 
+  int get_groups() {
+    return this->ages.size();
+  }
+
   /**
    * Perform validation on the Age_Map, making sure the age
    * groups are mutually exclusive.

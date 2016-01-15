@@ -13,8 +13,10 @@
 #define _FRED_MARKOV_MODEL_H
 
 #include <string>
-#include <vector>
 using namespace std;
+
+class Age_Map;
+
 
 class Markov_Model {
 
@@ -43,9 +45,9 @@ public:
     return this->state_name[i];
   }
 
-  int get_initial_state();
+  int get_initial_state(double age);
 
-  void get_next_state_and_time(int day, int old_state, int* new_state, int* transition_day);
+  void get_next_state_and_time(int day, double age, int old_state, int* new_state, int* transition_day);
 
 protected:
   char name[256];
@@ -53,8 +55,10 @@ protected:
   std::vector<std::string>state_name;
 
 private:
-  std::vector<double>state_initial_percent;
-  double ** transition_matrix;
+  Age_Map* age_map;
+  int age_groups;
+  double** state_initial_percent;
+  double*** transition_matrix;
   int period_in_transition_probabilities;
 };
 
