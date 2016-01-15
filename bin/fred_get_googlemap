@@ -7,7 +7,8 @@ use Env;
 my $FRED = $ENV{FRED_HOME};
 die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
-my $gsize = 640;
+my $gxsize = 640;
+my $gysize = 640;
 my $usage = "usage: $0 bottom left top right filename\n";
 
 # my $api_key = $ENV{FRED_API_KEY};
@@ -52,8 +53,8 @@ my @map_points =  (
    {'lat' => $bottom, 'long' => $left},
    {'lat' => $top, 'long' => $right},
   );
-my $map_height_pixels = 640;
-my $map_width_pixels  = 640;
+my $map_height_pixels = $gysize;
+my $map_width_pixels  = $gxsize;
 my $zoom = $zoomer->max_bounding_zoom( points => \@map_points,
 				       height => $map_height_pixels,
 				       width  => $map_width_pixels );
@@ -64,7 +65,7 @@ my $lon = $$center{long};
 # print "center: $lat $lon\n";
 
 # google static map API url
-my $url = "https://maps.googleapis.com/maps/api/staticmap?key=$api_key&center=$lat,$lon&format=png&size=640x640&zoom=$zoom&$my_style";
+my $url = "https://maps.googleapis.com/maps/api/staticmap?key=$api_key&center=$lat,$lon&format=png&size=${map_height_pixels}x${map_width_pixels}&zoom=$zoom&$my_style";
 # print "$url\n";
 
 # get tmp image
@@ -126,13 +127,13 @@ my $xrange = $right-$left;
 my $yrange = $top-$bottom;
 my $gxrange = $gright-$gleft;
 my $gyrange = $gtop-$gbottom;
-my $xsize = int($gsize*$xrange/$gxrange);
-my $ysize = int($gsize*$yrange/$gyrange);
-my $xoffset = int(0.5*($gsize-$xsize));
-my $yoffset = int(0.5*($gsize-$ysize));
+my $xsize = int($gxsize*$xrange/$gxrange);
+my $ysize = int($gysize*$yrange/$gyrange);
+my $xoffset = int(0.5*($gxsize-$xsize));
+my $yoffset = int(0.5*($gysize-$ysize));
 # print "want $xrange $yrange got $gxrange $gyrange size $xsize $ysize\n";
  
-$cmd = "convert -size ${gsize}x${gsize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
+$cmd = "convert -antialias -size ${gxsize}x${gysize} -depth 8 -extract ${xsize}x${ysize}+$xoffset+$yoffset $tmpimage $tmpcrop";
 # print "fred_get_googlemap: $cmd\n";
 system "$cmd";
 

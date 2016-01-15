@@ -212,46 +212,31 @@ else {
  km_per_deg_lat = 111.325
  mean_lat = (ymax + ymin) / 2.0
  km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
- lat_lon_ratio = km_per_deg_lon / km_per_deg_lat
+ lat_lon_ratio = 0.9 * km_per_deg_lon / km_per_deg_lat
  
  # print sprintf("mean latitude = %0.5f", mean_lat)
  # print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
  # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
  # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
  
- # find the x and y bbox
- xrng = xmax - xmin
- yrng = ymax - ymin
- 
- # adjust the x range if too small
- xtarg = yrng / lat_lon_ratio
- xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
- xmin = xmin - xxtra
- xmax = xmax + xxtra
- 
- # adjust the y range if too small
- ytarg = lat_lon_ratio * xrng
- yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
- ymin = ymin - yxtra
- ymax = ymax + yxtra
- # print xmin, xmax, ymin, ymax
- 
- # find the x and y bbox
- xrng = xmax - xmin
- yrng = ymax - ymin
- 
- # adjust the x range if too small
- xtarg = yrng / lat_lon_ratio
- xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
- xmin = xmin - xxtra
- xmax = xmax + xxtra
- 
- # adjust the y range if too small
- ytarg = lat_lon_ratio * xrng
- yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
- ymin = ymin - yxtra
- ymax = ymax + yxtra
- # print xmin, xmax, ymin, ymax
+ do for [i=1:5] {
+   # find the x and y bbox
+   xrng = xmax - xmin
+   yrng = ymax - ymin
+   
+   # adjust the x range if too small
+   xtarg = yrng / lat_lon_ratio
+   xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+   xmin = xmin - xxtra
+   xmax = xmax + xxtra
+   
+   # adjust the y range if too small
+   ytarg = lat_lon_ratio * xrng
+   yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+   ymin = ymin - yxtra
+   ymax = ymax + yxtra
+   # print xmin, xmax, ymin, ymax
+ }
  
  # save the bbox to a file
  print "writing bbox to  BBOX"
@@ -289,11 +274,11 @@ title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
 
 if (terminal eq "png") {
   set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,-1.5 font "Arial, 16"
+  set title title_string offset 0,-2 font "Arial, 16"
 }
 if (terminal eq "pdf") {
   set term pdf enhanced font "Helvetica,18" size 8.888,8.888
-  set title title_string offset 0,-1.5 font "Helvetica,24"
+  set title title_string offset 0,-2 font "Helvetica,24"
 }
 
 # set the ranges for the axes
