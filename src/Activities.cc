@@ -18,8 +18,8 @@
 #include "Classroom.h"
 #include "Global.h"
 #include "Date.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Household.h"
@@ -927,13 +927,13 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
 
       //First check to see if agent will seek health care for any active symptomatic infection
       if(this->myself->is_symptomatic()) {
-        //Get specific symptomatic diseases for multiplier
-        for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
-          if(this->myself->get_health()->is_infected(disease_id)) {
-            Disease* disease = Global::Diseases.get_disease(disease_id);
-            if(this->myself->get_health()->get_symptoms(disease_id, sim_day) > disease->get_min_symptoms_for_seek_healthcare()) {
-              hospitalization_prob += disease->get_hospitalization_prob(this->myself);
-              seek_healthcare_prob += disease->get_outpatient_healthcare_prob(this->myself);
+        //Get specific symptomatic conditions for multiplier
+        for(int condition_id = 0; condition_id < Global::Conditions.get_number_of_conditions(); ++condition_id) {
+          if(this->myself->get_health()->is_infected(condition_id)) {
+            Condition* condition = Global::Conditions.get_condition(condition_id);
+            if(this->myself->get_health()->get_symptoms(condition_id, sim_day) > condition->get_min_symptoms_for_seek_healthcare()) {
+              hospitalization_prob += condition->get_hospitalization_prob(this->myself);
+              seek_healthcare_prob += condition->get_outpatient_healthcare_prob(this->myself);
             }
           }
         }
@@ -953,8 +953,8 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
             hospitalization_prob *= mult;
             seek_healthcare_prob *= mult;
           }
-          if(this->myself->has_chronic_renal_disease()) {
-            mult = Health::get_chronic_condition_hospitalization_prob_mult(this->myself->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+          if(this->myself->has_chronic_renal_condition()) {
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(this->myself->get_age(), Chronic_condition_index::CHRONIC_RENAL_CONDITION);
             hospitalization_prob *= mult;
             seek_healthcare_prob *= mult;
           }
@@ -963,8 +963,8 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
             hospitalization_prob *= mult;
             seek_healthcare_prob *= mult;
           }
-          if(this->myself->has_heart_disease()) {
-            mult = Health::get_chronic_condition_hospitalization_prob_mult(this->myself->get_age(), Chronic_condition_index::HEART_DISEASE);
+          if(this->myself->has_heart_condition()) {
+            mult = Health::get_chronic_condition_hospitalization_prob_mult(this->myself->get_age(), Chronic_condition_index::HEART_CONDITION);
             hospitalization_prob *= mult;
             seek_healthcare_prob *= mult;
           }
@@ -1941,7 +1941,7 @@ void Activities::end_of_run() {
   }
 }
 
-int Activities::get_visiting_health_status(Place* place, int day, int disease_id) {
+int Activities::get_visiting_health_status(Place* place, int day, int condition_id) {
 
   // assume we are not visiting this place today
   int status = 0;
@@ -1962,10 +1962,10 @@ int Activities::get_visiting_health_status(Place* place, int day, int disease_id
   // see if the given place is on my schedule today
   for(int i = 0; i < Activity_index::DAILY_ACTIVITY_LOCATIONS; ++i) {
     if(this->on_schedule[i] && get_daily_activity_location(i) == place) {
-      if(this->myself->is_susceptible(disease_id)) {
+      if(this->myself->is_susceptible(condition_id)) {
         status = 1;
         break;
-      } else if(this->myself->is_infectious(disease_id)) {
+      } else if(this->myself->is_infectious(condition_id)) {
         status = 2;
         break;
       } else {

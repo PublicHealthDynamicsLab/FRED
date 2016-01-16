@@ -137,8 +137,8 @@ public:
 
   int get_housing_data(int* target_size, int* current_size);
   void get_initial_visualization_data_from_households();
-  void get_visualization_data_from_households(int day, int disease_id, int output_code);
-  void get_census_tract_data_from_households(int day, int disease_id, int output_code);
+  void get_visualization_data_from_households(int day, int condition_id, int output_code);
+  void get_census_tract_data_from_households(int day, int condition_id, int output_code);
   void swap_houses(int house_index1, int house_index2);
   void combine_households(int house_index1, int house_index2);
 

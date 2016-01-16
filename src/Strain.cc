@@ -33,24 +33,24 @@ using namespace std;
 #include "Age_Map.h"
 #include "Epidemic.h"
 #include "Timestep_Map.h"
-#include "Disease.h"
+#include "Condition.h"
 
 Strain::Strain( int num_elements ) : strain_data( num_elements ) {
   transmissibility = -1.0;
-  disease = NULL;
+  condition = NULL;
 }
 
 Strain::Strain( const Strain & other ) : strain_data( other.strain_data ) { 
   transmissibility = other.transmissibility;
-  disease = other.disease;
+  condition = other.condition;
 }
 
 Strain::~Strain() {
 }
 
-void Strain::setup( int _strain_id, Disease * _disease, double _transmissibility, Strain * _parent ) {
+void Strain::setup( int _strain_id, Condition * _condition, double _transmissibility, Strain * _parent ) {
   id = _strain_id;
-  disease = _disease;
+  condition = _condition;
   transmissibility = _transmissibility;
   parent = _parent;
 }

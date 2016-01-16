@@ -20,8 +20,8 @@
 #include "Age_Map.h"
 #include "Behavior.h"
 #include "Demographics.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Health.h"
 #include "Mixing_Group.h"
@@ -63,8 +63,8 @@ void Person::setup(int _index, int _id, int age, char sex,
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
   } else {
     // residual immunity does NOT apply to newborns
-    for(int disease = 0; disease < Global::Diseases.get_number_of_diseases(); ++disease) {
-      Disease* dis = Global::Diseases.get_disease(disease);
+    for(int condition = 0; condition < Global::Conditions.get_number_of_conditions(); ++condition) {
+      Condition* dis = Global::Conditions.get_condition(condition);
       
       if(Global::Residual_Immunity_by_FIPS) {
 	      Age_Map* temp_map = new Age_Map();
@@ -86,22 +86,22 @@ void Person::setup(int _index, int _id, int age, char sex,
   }
 }
 
-void Person::print(FILE* fp, int disease) {
+void Person::print(FILE* fp, int condition) {
   if(fp == NULL) {
     return;
   }
   fprintf(fp, "%d id %7d  a %3d  s %c r %d ",
-          disease, id,
+          condition, id,
           this->demographics.get_age(),
           this->demographics.get_sex(),
           this->demographics.get_race());
   fprintf(fp, "exp: %2d ",
-          this->health.get_exposure_date(disease));
+          this->health.get_exposure_date(condition));
   fprintf(fp, "infected_at %c %6d ",
-          this->health.get_infected_mixing_group_type(disease),
-	  this->health.get_infected_mixing_group_id(disease));
-  fprintf(fp, "infector %d ", health.get_infector_id(disease));
-  fprintf(fp, "infectees %d ", this->health.get_infectees(disease));
+          this->health.get_infected_mixing_group_type(condition),
+	  this->health.get_infected_mixing_group_id(condition));
+  fprintf(fp, "infector %d ", health.get_infector_id(condition));
+  fprintf(fp, "infectees %d ", this->health.get_infectees(condition));
   /*
   fprintf(fp, "antivirals: %2d ", this->health.get_number_av_taken());
   for(int i=0; i < this->health.get_number_av_taken(); ++i) {
@@ -112,7 +112,7 @@ void Person::print(FILE* fp, int disease) {
   fflush(fp);
 }
 
-void Person::update_household_counts(int day, int disease_id) {
+void Person::update_household_counts(int day, int condition_id) {
   // this is only called for people with an active infection.
   Mixing_Group* hh = this->get_household();
   if(hh == NULL) {
@@ -121,22 +121,22 @@ void Person::update_household_counts(int day, int disease_id) {
     }
   }
   if(hh != NULL) {
-    this->health.update_mixing_group_counts(day, disease_id, hh);
+    this->health.update_mixing_group_counts(day, condition_id, hh);
   }
 }
 
-void Person::update_school_counts(int day, int disease_id) {
+void Person::update_school_counts(int day, int condition_id) {
   // this is only called for people with an active infection.
   Mixing_Group* school = this->get_school();
   if(school != NULL) {
-    this->health.update_mixing_group_counts(day, disease_id, school);
+    this->health.update_mixing_group_counts(day, condition_id, school);
   }
 }
 
-void Person::become_immune(Disease* disease) {
-  int disease_id = disease->get_id();
-  if(this->health.is_susceptible(disease_id)) {
-    this->health.become_immune(disease);
+void Person::become_immune(Condition* condition) {
+  int condition_id = condition->get_id();
+  if(this->health.is_susceptible(condition_id)) {
+    this->health.become_immune(condition);
   }
 }
 
@@ -244,6 +244,6 @@ double Person::get_y() {
 }
 
 
-void Person::become_case_fatality(int day, Disease* disease) {
-  this->health.become_case_fatality(disease->get_id(), day);
+void Person::become_case_fatality(int day, Condition* condition) {
+  this->health.become_case_fatality(condition->get_id(), day);
 }

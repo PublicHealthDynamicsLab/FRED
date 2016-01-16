@@ -25,7 +25,7 @@ typedef std::vector<Person*> person_vector_t;
 class Markov_Epidemic : public Epidemic {
 
 public:
-  Markov_Epidemic(Disease * disease);
+  Markov_Epidemic(Condition * condition);
 
   ~Markov_Epidemic() {}
 
@@ -41,7 +41,7 @@ public:
 
   void transition_person(Person* person, int day, int state);
 
-  void report_disease_specific_stats(int day);
+  void report_condition_specific_stats(int day);
 
   void end_of_run();
 

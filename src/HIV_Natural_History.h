@@ -21,7 +21,7 @@ public:
 
   ~HIV_Natural_History();
 
-  void setup(Disease *disease);
+  void setup(Condition *condition);
 
   void get_parameters();
 

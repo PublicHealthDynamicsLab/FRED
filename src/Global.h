@@ -51,7 +51,7 @@ using namespace std::chrono;
 #define FRED_FIPS_LIST_SIZE 1000
 
 class Population;
-class Disease_List;
+class Condition_List;
 class Network;
 class Place;
 class Place_List;
@@ -99,10 +99,10 @@ public:
   static const int ADULT_AGE = 18;
   static const int SCHOOL_AGE = 5;
   static const int RETIREMENT_AGE = 67;
-  // MAX_NUM_DISEASES sets the size of stl::bitsets and static arrays used throughout FRED
-  // to store disease-specific flags and pointers; set to the visualizationest possible value 
+  // MAX_NUM_CONDITIONS sets the size of stl::bitsets and static arrays used throughout FRED
+  // to store condition-specific flags and pointers; set to the visualizationest possible value 
   // for optimal performance and memory usage
-  static const int MAX_NUM_DISEASES = 4;
+  static const int MAX_NUM_CONDITIONS = 4;
   // Change this constant and recompile to allow more threads.  For efficiency should be
   // equal to OMP_NUM_THREADS value that will be used.  If OMP_NUM_THREADS greater than
   // MAX_NUM_THREADS is used, FRED will abort the run.
@@ -281,7 +281,7 @@ public:
 
   // global singleton objects
   static Population Pop;
-  static Disease_List Diseases;
+  static Condition_List Conditions;
   static Place_List Places;
   static Neighborhood_Layer* Neighborhoods;
   static Regional_Layer* Simulation_Region;
@@ -390,16 +390,16 @@ namespace fred {
 
 
   /* 
-   * bitset big enough to store flags for MAX_NUM_DISEASES
-   * Global::MAX_NUM_DISEASES should be equal to number of diseases
+   * bitset big enough to store flags for MAX_NUM_CONDITIONS
+   * Global::MAX_NUM_CONDITIONS should be equal to number of conditions
    * for efficiency. 
-   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual diseases may be less than
-   * 'MAX_NUM_DISEASES' so care should be taken when performing operations
-   * (such as any(), flip(), reset(), etc.) on a disease_bitset to avoid
-   * unintended setting/resetting flags for non-existent diseases.
+   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual conditions may be less than
+   * 'MAX_NUM_CONDITIONS' so care should be taken when performing operations
+   * (such as any(), flip(), reset(), etc.) on a condition_bitset to avoid
+   * unintended setting/resetting flags for non-existent conditions.
    *
    */
-  typedef tiny_bitset<Global::MAX_NUM_DISEASES> disease_bitset;
+  typedef tiny_bitset<Global::MAX_NUM_CONDITIONS> condition_bitset;
 
   typedef float geo;
 
@@ -562,6 +562,6 @@ typedef struct {
   int place_seeds[VECTOR_DISEASE_TYPES];
   int day_start_seed[VECTOR_DISEASE_TYPES];
   int day_end_seed[VECTOR_DISEASE_TYPES];
-} vector_disease_data_t;
+} vector_condition_data_t;
 
 #endif // _FRED_GLOBAL_H

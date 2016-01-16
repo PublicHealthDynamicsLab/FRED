@@ -292,7 +292,7 @@ workplace_size_max = 0
 
 enable_hospitals = 0
 # These are the probabilities for general hospital or outpatient healthcare
-# see also disease specific values for probabilities
+# see also condition specific values for probabilities
 hospitalization_prob_age_groups = 0
 hospitalization_prob_values = 0
 outpatient_healthcare_prob_age_groups = 0
@@ -419,7 +419,7 @@ enable_antivirals = 0
 number_antivirals = 0
 
 ## Sample Antiviral 1:
-av_disease[0] = 0
+av_condition[0] = 0
 av_initial_stock[0] = 100
 av_total_avail[0] = 1000
 av_additional_per_day[0] = 100
@@ -496,7 +496,7 @@ isolation_rate = 1.0
 # 
 # Note: HAZEL is concerned with Hospitals, Health 
 #  Insurance, Chronic conditions, and visualization of 
-#  such. Also it is not so much about disease transmission.
+#  such. Also it is not so much about condition transmission.
 #  So, at least the following should be set 
 #  (along with any specific params needed:
 #
@@ -558,11 +558,11 @@ HAZEL_seek_hc_ramp_up_mult = 1.0
 #
 ##########################################################
 
-# Number of diseases circulating
-diseases = 1
+# Number of conditions circulating
+conditions = 1
 
-# Names of diseases
-disease_names = 1 influenza
+# Names of conditions
+condition_names = 1 influenza
 
 ### DISEASE TRANSMISSION MODE
 influenza_transmission_mode = respiratory
@@ -750,7 +750,7 @@ vector_transmission_efficiency = 0.3
 ##########################################################
 
 enable_viral_evolution = 0
-all_diseases_antigenically_identical = 0
+all_conditions_antigenically_identical = 0
 influenza_evolution = 0
 influenza_num_strains = 1
 influenza_strain_data[0] = a:1
@@ -801,7 +801,7 @@ influenza_face_mask_plus_hand_washing_susceptibility_efficacy = 0.33
 ##########################################################
 
 # The following parameters provide a sinusoidal reduction in
-# transmission in all diseases, with a peak tranmissibility of the given
+# transmission in all conditions, with a peak tranmissibility of the given
 # day of the year, and the minimum transmissibility 183 days before or
 # after the peak.
 #
@@ -885,12 +885,12 @@ asthma_prob_age_groups = 0
 asthma_prob_values = 0
 COPD_prob_age_groups = 0
 COPD_prob_values = 0
-chronic_renal_disease_prob_age_groups = 0
-chronic_renal_disease_prob_values = 0
+chronic_renal_condition_prob_age_groups = 0
+chronic_renal_condition_prob_values = 0
 diabetes_prob_age_groups = 0
 diabetes_prob_values = 0
-heart_disease_prob_age_groups = 0
-heart_disease_prob_values = 0
+heart_condition_prob_age_groups = 0
+heart_condition_prob_values = 0
 hypertension_prob_age_groups = 0
 hypertension_prob_values = 0
 hypercholestrolemia_prob_age_groups = 0
@@ -901,12 +901,12 @@ asthma_hospitalization_prob_mult_age_groups = 1 120
 asthma_hospitalization_prob_mult_values = 1 1.0
 COPD_hospitalization_prob_mult_age_groups = 1 120
 COPD_hospitalization_prob_mult_values = 1 1.0
-chronic_renal_disease_hospitalization_prob_mult_age_groups = 1 120
-chronic_renal_disease_hospitalization_prob_mult_values = 1 1.0
+chronic_renal_condition_hospitalization_prob_mult_age_groups = 1 120
+chronic_renal_condition_hospitalization_prob_mult_values = 1 1.0
 diabetes_hospitalization_prob_mult_age_groups = 1 120
 diabetes_hospitalization_prob_mult_values = 1 1.0
-heart_disease_hospitalization_prob_mult_age_groups = 1 120
-heart_disease_hospitalization_prob_mult_values = 1 1.0
+heart_condition_hospitalization_prob_mult_age_groups = 1 120
+heart_condition_hospitalization_prob_mult_values = 1 1.0
 hypertension_hospitalization_prob_mult_age_groups = 1 120
 hypertension_hospitalization_prob_mult_values = 1 1.0
 hypercholestrolemia_hospitalization_prob_mult_age_groups = 1 120
@@ -919,12 +919,12 @@ asthma_case_fatality_prob_mult_age_groups = 1 120
 asthma_case_fatality_prob_mult_values = 1 1.0
 COPD_case_fatality_prob_mult_age_groups = 1 120
 COPD_case_fatality_prob_mult_values = 1 1.0
-chronic_renal_disease_case_fatality_prob_mult_age_groups = 1 120
-chronic_renal_disease_case_fatality_prob_mult_values = 1 1.0
+chronic_renal_condition_case_fatality_prob_mult_age_groups = 1 120
+chronic_renal_condition_case_fatality_prob_mult_values = 1 1.0
 diabetes_case_fatality_prob_mult_age_groups = 1 120
 diabetes_case_fatality_prob_mult_values = 1 1.0
-heart_disease_case_fatality_prob_mult_age_groups = 1 120
-heart_disease_case_fatality_prob_mult_values = 1 1.0
+heart_condition_case_fatality_prob_mult_age_groups = 1 120
+heart_condition_case_fatality_prob_mult_values = 1 1.0
 hypertension_case_fatality_prob_mult_age_groups = 1 120
 hypertension_case_fatality_prob_mult_values = 1 1.0
 hypercholestrolemia_case_fatality_prob_mult_age_groups = 1 120

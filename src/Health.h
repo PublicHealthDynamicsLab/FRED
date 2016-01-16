@@ -21,7 +21,7 @@
 using namespace std;
 
 #include "Age_Map.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Infection.h"
 #include "Past_Infection.h"
@@ -30,7 +30,7 @@ class Antiviral;
 class Antivirals;
 class AV_Health;
 class AV_Manager;
-class Disease;
+class Condition;
 class Person;
 class Mixing_Group;
 class Vaccine;
@@ -50,10 +50,10 @@ typedef struct {
 namespace Chronic_condition_index {
   enum e {
     ASTHMA,
-    COPD, //Chronic Obstructive Pulmonary Disease
-    CHRONIC_RENAL_DISEASE,
+    COPD, //Chronic Obstructive Pulmonary Condition
+    CHRONIC_RENAL_CONDITION,
     DIABETES,
-    HEART_DISEASE,
+    HEART_CONDITION,
     HYPERTENSION,
     HYPERCHOLESTROLEMIA,
     CHRONIC_MEDICAL_CONDITIONS
@@ -93,43 +93,43 @@ public:
 
   // UPDATE THE PERSON'S HEALTH CONDITIONS
 
-  void update_infection(int day, int disease_id);
+  void update_infection(int day, int condition_id);
   void update_face_mask_decision(int day);
   void update_interventions(int day);
-  void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day);
-  void become_susceptible(int disease_id);
-  void become_susceptible(Disease* disease);
-  void become_susceptible_by_vaccine_waning(int disease_id);
-  void become_unsusceptible(Disease* disease);
-  void become_unsusceptible(int disease_id);
-  void become_infectious(Disease* disease);
-  void become_noninfectious(Disease* disease);
-  void become_symptomatic(Disease* disease);
-  void resolve_symptoms(Disease* disease);
-  void become_case_fatality(int disease_id, int day);
-  void become_immune(Disease* disease);
-  void become_removed(int disease_id, int day);
-  void declare_at_risk(Disease* disease);
-  void recover(Disease* disease, int day);
-  void advance_seed_infection(int disease_id, int days_to_advance);
-  void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day);
-  //  void increment_infectee_count(int disease_id, Person* infectee, Mixing_Group* mixing_group, int day);
+  void become_exposed(int condition_id, Person* infector, Mixing_Group* mixing_group, int day);
+  void become_susceptible(int condition_id);
+  void become_susceptible(Condition* condition);
+  void become_susceptible_by_vaccine_waning(int condition_id);
+  void become_unsusceptible(Condition* condition);
+  void become_unsusceptible(int condition_id);
+  void become_infectious(Condition* condition);
+  void become_noninfectious(Condition* condition);
+  void become_symptomatic(Condition* condition);
+  void resolve_symptoms(Condition* condition);
+  void become_case_fatality(int condition_id, int day);
+  void become_immune(Condition* condition);
+  void become_removed(int condition_id, int day);
+  void declare_at_risk(Condition* condition);
+  void recover(Condition* condition, int day);
+  void advance_seed_infection(int condition_id, int days_to_advance);
+  void infect(Person* infectee, int condition_id, Mixing_Group* mixing_group, int day);
+  //  void increment_infectee_count(int condition_id, Person* infectee, Mixing_Group* mixing_group, int day);
   void start_wearing_face_mask() {
     this->wears_face_mask_today = true;
   }
   void stop_wearing_face_mask() {
     this->wears_face_mask_today = false;
   }
-  void clear_past_infections(int disease_id) {
-    this->past_infections[disease_id].clear();
+  void clear_past_infections(int condition_id) {
+    this->past_infections[condition_id].clear();
   }
-  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Disease* dis) {
+  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Condition* dis) {
     this->past_infections[dis->get_id()].push_back(
 						   Past_Infection(strain_id, recovery_date, age_at_exposure));
   }
-  void update_mixing_group_counts(int day, int disease_id, Mixing_Group* mixing_group);
+  void update_mixing_group_counts(int day, int condition_id, Mixing_Group* mixing_group);
 
-  void terminate_infection(int disease_id, int day);
+  void terminate_infection(int condition_id, int day);
   void terminate(int day);
 
   // ACCESS TO HEALTH CONDITIONS
@@ -137,73 +137,73 @@ public:
   int get_days_symptomatic() { 
     return this->days_symptomatic;
   }
-  int get_exposure_date(int disease_id) const;
-  int get_infectious_start_date(int disease_id) const;
-  int get_infectious_end_date(int disease_id) const;
-  int get_symptoms_start_date(int disease_id) const;
-  int get_symptoms_end_date(int disease_id) const;
-  int get_immunity_end_date(int disease_id) const;
-  int get_infector_id(int disease_id) const;
-  Person* get_infector(int disease_id) const;
-  Mixing_Group* get_infected_mixing_group(int disease_id) const;
-  int get_infected_mixing_group_id(int disease_id) const;
-  char* get_infected_mixing_group_label(int disease_id) const;
-  char get_infected_mixing_group_type(int disease_id) const;
-  int get_infectees(int disease_id) const;
-  double get_susceptibility(int disease_id) const;
-  double get_infectivity(int disease_id, int day) const;
-  double get_symptoms(int disease_id, int day) const;
-  Infection* get_infection(int disease_id) const {
-    return this->infection[disease_id];
+  int get_exposure_date(int condition_id) const;
+  int get_infectious_start_date(int condition_id) const;
+  int get_infectious_end_date(int condition_id) const;
+  int get_symptoms_start_date(int condition_id) const;
+  int get_symptoms_end_date(int condition_id) const;
+  int get_immunity_end_date(int condition_id) const;
+  int get_infector_id(int condition_id) const;
+  Person* get_infector(int condition_id) const;
+  Mixing_Group* get_infected_mixing_group(int condition_id) const;
+  int get_infected_mixing_group_id(int condition_id) const;
+  char* get_infected_mixing_group_label(int condition_id) const;
+  char get_infected_mixing_group_type(int condition_id) const;
+  int get_infectees(int condition_id) const;
+  double get_susceptibility(int condition_id) const;
+  double get_infectivity(int condition_id, int day) const;
+  double get_symptoms(int condition_id, int day) const;
+  Infection* get_infection(int condition_id) const {
+    return this->infection[condition_id];
   }
-  double get_transmission_modifier_due_to_hygiene(int disease_id);
-  double get_susceptibility_modifier_due_to_hygiene(int disease_id);
-  double get_susceptibility_modifier_due_to_household_income(int disease_id);
-  int get_num_past_infections(int disease) {
-    return this->past_infections[disease].size();
+  double get_transmission_modifier_due_to_hygiene(int condition_id);
+  double get_susceptibility_modifier_due_to_hygiene(int condition_id);
+  double get_susceptibility_modifier_due_to_household_income(int condition_id);
+  int get_num_past_infections(int condition) {
+    return this->past_infections[condition].size();
   }
-  Past_Infection* get_past_infection(int disease, int i) {
-    return &(this->past_infections[disease].at(i));
+  Past_Infection* get_past_infection(int condition, int i) {
+    return &(this->past_infections[condition].at(i));
   }
 
 
   // TESTS FOR HEALTH CONDITIONS
 
-  bool is_case_fatality(int disease_id) {
-    return this->case_fatality.test(disease_id);
+  bool is_case_fatality(int condition_id) {
+    return this->case_fatality.test(condition_id);
   }
 
-  bool is_susceptible(int disease_id) const {
-    return this->susceptible.test(disease_id);
+  bool is_susceptible(int condition_id) const {
+    return this->susceptible.test(condition_id);
   }
 
-  bool is_infectious(int disease_id) const {
-    return this->infectious.test(disease_id);
+  bool is_infectious(int condition_id) const {
+    return this->infectious.test(condition_id);
   }
 
-  bool is_infected(int disease_id) const {
-    return this->infection[disease_id] != NULL;
+  bool is_infected(int condition_id) const {
+    return this->infection[condition_id] != NULL;
   }
 
   bool is_symptomatic() const {
     return this->symptomatic.any();
   }
 
-  bool is_symptomatic(int disease_id) {
-    return this->symptomatic.test(disease_id);
+  bool is_symptomatic(int condition_id) {
+    return this->symptomatic.test(condition_id);
   }
 
-  bool is_recovered(int disease_id);
+  bool is_recovered(int condition_id);
 
-  bool is_immune(int disease_id) const {
-    return this->immunity.test(disease_id);
+  bool is_immune(int condition_id) const {
+    return this->immunity.test(condition_id);
   }
 
-  bool is_at_risk(int disease_id) const {
-    return this->at_risk.test(disease_id);
+  bool is_at_risk(int condition_id) const {
+    return this->at_risk.test(condition_id);
   }
 
-  bool is_on_av_for_disease(int day, int disease_id) const;
+  bool is_on_av_for_condition(int day, int condition_id) const;
 
   // Personal Health Behaviors
   bool is_wearing_face_mask() { 
@@ -214,12 +214,12 @@ public:
     return this->washes_hands; 
   }
 
-  bool is_newly_infected(int day, int disease_id) {
-    return day == get_exposure_date(disease_id);
+  bool is_newly_infected(int day, int condition_id) {
+    return day == get_exposure_date(condition_id);
   }
 
-  bool is_newly_symptomatic(int day, int disease_id) {
-    return day == get_symptoms_start_date(disease_id);
+  bool is_newly_symptomatic(int day, int condition_id) {
+    return day == get_symptoms_start_date(condition_id);
   }
 
   bool is_alive() const {
@@ -325,52 +325,52 @@ public:
   // MODIFIERS
 
   /**
-   * Alter the susceptibility of the agent to the given disease by a multiplier
-   * @param disease the disease to which the agent is suceptible
+   * Alter the susceptibility of the agent to the given condition by a multiplier
+   * @param condition the condition to which the agent is suceptible
    * @param multp the multiplier to apply
    */
-  void modify_susceptibility(int disease_id, double multp);
+  void modify_susceptibility(int condition_id, double multp);
 
   /**
-   * Alter the infectivity of the agent to the given disease by a multiplier
-   * @param disease the disease with which the agent is infectious
+   * Alter the infectivity of the agent to the given condition by a multiplier
+   * @param condition the condition with which the agent is infectious
    * @param multp the multiplier to apply
    */
-  void modify_infectivity(int disease_id, double multp);
+  void modify_infectivity(int condition_id, double multp);
 
   /**
-   * Alter the infectious period of the agent for the given disease by a multiplier.
+   * Alter the infectious period of the agent for the given condition by a multiplier.
    * Modifying infectious period is equivalent to modifying symptomatic and asymptomatic
    * periods by the same amount. Current day is needed to modify infectious period, because we can't cause this
    * infection to recover in the past.
    *
-   * @param disease the disease with which the agent is infectious
+   * @param condition the condition with which the agent is infectious
    * @param multp the multiplier to apply
    * @param cur_day the simulation day
    */
-  void modify_infectious_period(int disease_id, double multp, int cur_day);
+  void modify_infectious_period(int condition_id, double multp, int cur_day);
 
   /**
-   * Alter the symptomatic period of the agent for the given disease by a multiplier.
+   * Alter the symptomatic period of the agent for the given condition by a multiplier.
    * Current day is needed to modify symptomatic period, because we can't cause this
    * infection to recover in the past.
    *
-   * @param disease the disease with which the agent is symptomatic
+   * @param condition the condition with which the agent is symptomatic
    * @param multp the multiplier to apply
    * @param cur_day the simulation day
    */
-  void modify_symptomatic_period(int disease_id, double multp, int cur_day);
+  void modify_symptomatic_period(int condition_id, double multp, int cur_day);
 
   /**
-   * Alter the asymptomatic period of the agent for the given disease by a multiplier.
+   * Alter the asymptomatic period of the agent for the given condition by a multiplier.
    * Current day is needed to modify symptomatic period, because we can't cause this
    * infection to recover in the past.
    *
-   * @param disease the disease with which the agent is asymptomatic
+   * @param condition the condition with which the agent is asymptomatic
    * @param multp the multiplier to apply
    * @param cur_day the simulation day
    */
-  void modify_asymptomatic_period(int disease_id, double multp, int cur_day);
+  void modify_asymptomatic_period(int condition_id, double multp, int cur_day);
 
   /**
    * Alter the whether or not the agent will develop symptoms.
@@ -378,11 +378,11 @@ public:
    * Current day is needed to modify symptomatic period, because we can't change symptomaticity that
    * is in the past.
    *
-   * @param disease the disease with which the agent is asymptomatic
+   * @param condition the condition with which the agent is asymptomatic
    * @param symptoms whether or not the agent is showing symptoms
    * @param cur_day the simulation day
    */
-  void modify_develops_symptoms(int disease_id, bool symptoms, int cur_day);
+  void modify_develops_symptoms(int condition_id, bool symptoms, int cur_day);
 
 
   // CHRONIC CONDITIONS
@@ -404,7 +404,7 @@ public:
 
   /**
    * @return <code>true</code> if agent has COPD (Chronic Obstructive Pulmonary
-   * disease), <code>false</code> otherwise
+   * condition), <code>false</code> otherwise
    */
   bool has_COPD() {
     return has_chronic_condition(Chronic_condition_index::COPD);
@@ -412,7 +412,7 @@ public:
 
   /**
    * Sets whether or not the agent has COPD (Chronic Obstructive Pulmonary
-   * disease)
+   * condition)
    * @param has_cond whether or not the agent has COPD
    */
   void set_has_COPD(bool has_cond) {
@@ -420,18 +420,18 @@ public:
   }
 
   /**
-   * @return <code>true</code> if agent has chronic renal disease, <code>false</code> otherwise
+   * @return <code>true</code> if agent has chronic renal condition, <code>false</code> otherwise
    */
-  bool has_chronic_renal_disease() {
-    return has_chronic_condition(Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+  bool has_chronic_renal_condition() {
+    return has_chronic_condition(Chronic_condition_index::CHRONIC_RENAL_CONDITION);
   }
 
   /**
-   * Sets whether or not the agent has chronic renal disease
-   * @param has_cond whether or not the agent has chronic renal disease
+   * Sets whether or not the agent has chronic renal condition
+   * @param has_cond whether or not the agent has chronic renal condition
    */
-  void set_has_chronic_renal_disease(bool has_cond) {
-    set_has_chronic_condition(Chronic_condition_index::CHRONIC_RENAL_DISEASE,
+  void set_has_chronic_renal_condition(bool has_cond) {
+    set_has_chronic_condition(Chronic_condition_index::CHRONIC_RENAL_CONDITION,
 			      has_cond);
   }
 
@@ -451,18 +451,18 @@ public:
   }
 
   /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
+   * @return <code>true</code> if agent has heart condition, <code>false</code> otherwise
    */
-  bool has_heart_disease() {
-    return has_chronic_condition(Chronic_condition_index::HEART_DISEASE);
+  bool has_heart_condition() {
+    return has_chronic_condition(Chronic_condition_index::HEART_CONDITION);
   }
 
   /**
-   * Sets whether or not the agent has heart disease
-   * @param has_cond whether or not the agent has heart disease
+   * Sets whether or not the agent has heart condition
+   * @param has_cond whether or not the agent has heart condition
    */
-  void set_has_heart_disease(bool has_cond) {
-    set_has_chronic_condition(Chronic_condition_index::HEART_DISEASE, has_cond);
+  void set_has_heart_condition(bool has_cond) {
+    set_has_chronic_condition(Chronic_condition_index::HEART_CONDITION, has_cond);
   }
     
   /**
@@ -562,12 +562,12 @@ public:
       return "Asthma";
     case Chronic_condition_index::COPD:
       return "COPD";
-    case Chronic_condition_index::CHRONIC_RENAL_DISEASE:
-      return "Chronic Renal Disease";
+    case Chronic_condition_index::CHRONIC_RENAL_CONDITION:
+      return "Chronic Renal Condition";
     case Chronic_condition_index::DIABETES:
       return "Diabetes";
-    case Chronic_condition_index::HEART_DISEASE:
-      return "Heart Disease";
+    case Chronic_condition_index::HEART_CONDITION:
+      return "Heart Condition";
     case Chronic_condition_index::HYPERTENSION:
       return "Hypertension";
     case Chronic_condition_index::HYPERCHOLESTROLEMIA:
@@ -642,35 +642,35 @@ public:
 
   static bool Enable_hh_income_based_susc_mod;
 
-  void set_fatal_infection(int disease_id) {
-    assert(this->infection[disease_id] != NULL);
-    this->infection[disease_id]->set_fatal_infection();
+  void set_fatal_infection(int condition_id) {
+    assert(this->infection[condition_id] != NULL);
+    this->infection[condition_id]->set_fatal_infection();
   }
 
-  int get_health_state(int disease_id) {
-    return this->health_condition[disease_id].state;
+  int get_health_state(int condition_id) {
+    return this->health_condition[condition_id].state;
   }
 
-  void set_health_state(int disease_id, int s, int day) {
-    this->health_condition[disease_id].state = s;
-    this->health_condition[disease_id].last_transition_day = day;
+  void set_health_state(int condition_id, int s, int day) {
+    this->health_condition[condition_id].state = s;
+    this->health_condition[condition_id].last_transition_day = day;
   }
 
-  int get_last_transition_day(int disease_id) {
-    return this->health_condition[disease_id].last_transition_day;
+  int get_last_transition_day(int condition_id) {
+    return this->health_condition[condition_id].last_transition_day;
   }
 
-  int get_next_health_state(int disease_id) {
-    return this->health_condition[disease_id].next_state;
+  int get_next_health_state(int condition_id) {
+    return this->health_condition[condition_id].next_state;
   }
 
-  void set_next_health_state(int disease_id, int s, int day) {
-    this->health_condition[disease_id].next_state = s;
-    this->health_condition[disease_id].next_transition_day = day;
+  void set_next_health_state(int condition_id, int s, int day) {
+    this->health_condition[condition_id].next_state = s;
+    this->health_condition[condition_id].next_transition_day = day;
   }
 
-  int get_next_transition_day(int disease_id) {
-    return this->health_condition[disease_id].next_transition_day;
+  int get_next_transition_day(int condition_id) {
+    return this->health_condition[condition_id].next_transition_day;
   }
 
   void update_health_conditions(int day);
@@ -693,23 +693,23 @@ private:
   int* exposure_date;
   int* infector_id;
   Mixing_Group** infected_in_mixing_group;
-  int days_symptomatic; 			// over all diseases
+  int days_symptomatic; 			// over all conditions
 
   // living or not?
   bool alive;
 
   // bitset removes need to check each infection in above array to
   // find out if any are not NULL
-  fred::disease_bitset immunity;
-  fred::disease_bitset at_risk; // Agent is/isn't at risk for severe complications
+  fred::condition_bitset immunity;
+  fred::condition_bitset at_risk; // Agent is/isn't at risk for severe complications
 
-  // Per-disease health status flags
-  fred::disease_bitset susceptible;
-  fred::disease_bitset infectious;
-  fred::disease_bitset symptomatic;
-  fred::disease_bitset recovered_today;
-  fred::disease_bitset recovered;
-  fred::disease_bitset case_fatality;
+  // Per-condition health status flags
+  fred::condition_bitset susceptible;
+  fred::condition_bitset infectious;
+  fred::condition_bitset symptomatic;
+  fred::condition_bitset recovered_today;
+  fred::condition_bitset recovered;
+  fred::condition_bitset case_fatality;
 
   // Define a bitset type to hold health flags
   // Enumeration corresponding to positions in health
@@ -757,25 +757,25 @@ private:
   static bool is_initialized;
   static Age_Map* asthma_prob;
   static Age_Map* COPD_prob;
-  static Age_Map* chronic_renal_disease_prob;
+  static Age_Map* chronic_renal_condition_prob;
   static Age_Map* diabetes_prob;
-  static Age_Map* heart_disease_prob;
+  static Age_Map* heart_condition_prob;
   static Age_Map* hypertension_prob;
   static Age_Map* hypercholestrolemia_prob;
     
   static Age_Map* asthma_hospitalization_prob_mult;
   static Age_Map* COPD_hospitalization_prob_mult;
-  static Age_Map* chronic_renal_disease_hospitalization_prob_mult;
+  static Age_Map* chronic_renal_condition_hospitalization_prob_mult;
   static Age_Map* diabetes_hospitalization_prob_mult;
-  static Age_Map* heart_disease_hospitalization_prob_mult;
+  static Age_Map* heart_condition_hospitalization_prob_mult;
   static Age_Map* hypertension_hospitalization_prob_mult;
   static Age_Map* hypercholestrolemia_hospitalization_prob_mult;
 
   static Age_Map* asthma_case_fatality_prob_mult;
   static Age_Map* COPD_case_fatality_prob_mult;
-  static Age_Map* chronic_renal_disease_case_fatality_prob_mult;
+  static Age_Map* chronic_renal_condition_case_fatality_prob_mult;
   static Age_Map* diabetes_case_fatality_prob_mult;
-  static Age_Map* heart_disease_case_fatality_prob_mult;
+  static Age_Map* heart_condition_case_fatality_prob_mult;
   static Age_Map* hypertension_case_fatality_prob_mult;
   static Age_Map* hypercholestrolemia_case_fatality_prob_mult;
 

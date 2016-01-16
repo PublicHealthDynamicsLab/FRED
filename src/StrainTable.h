@@ -24,11 +24,11 @@
 #include "Strain.h"
 
 class Strain;
-class Disease;
+class Condition;
 
 using namespace std;
 
-class Disease;
+class Condition;
 class Strain;
 
 class StrainTable {
@@ -36,7 +36,7 @@ public:
   StrainTable();
   ~StrainTable();
 
-  void setup(Disease * d); // Initial strains
+  void setup(Condition * d); // Initial strains
   void reset();
 
   void add_root_strain(int num_elements);
@@ -66,7 +66,7 @@ public:
 
 private:
   fred::Spin_Mutex mutex;
-  Disease * disease;
+  Condition * condition;
   std::vector<Strain *> strains;
   std::map<std::string, int> strain_genotype_map;
 };

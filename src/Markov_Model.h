@@ -25,8 +25,8 @@ public:
 
   ~Markov_Model();
 
-  void setup(char* disease_name) {
-    strcpy(name, disease_name);
+  void setup(char* condition_name) {
+    strcpy(name, condition_name);
   }
 
   void get_parameters();

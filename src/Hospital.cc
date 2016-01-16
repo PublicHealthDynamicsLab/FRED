@@ -18,8 +18,8 @@
 #include <string>
 #include <sstream>
 
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Hospital.h"
 #include "Params.h"
@@ -194,7 +194,7 @@ void Hospital::get_parameters() {
   }
 }
 
-int Hospital::get_group(int disease, Person* per) {
+int Hospital::get_group(int condition, Person* per) {
   // 0 - Healthcare worker
   // 1 - Patient
   // 2 - Visitor
@@ -210,11 +210,11 @@ int Hospital::get_group(int disease, Person* per) {
   }
 }
 
-double Hospital::get_transmission_prob(int disease, Person* i, Person* s) {
+double Hospital::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Hospital::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
@@ -251,7 +251,7 @@ int Hospital::get_daily_patient_capacity(int sim_day) {
   }
 }
 
-double Hospital::get_contacts_per_day(int disease) {
+double Hospital::get_contacts_per_day(int condition) {
   return Hospital::contacts_per_day;
 }
 
@@ -280,7 +280,7 @@ bool Hospital::should_be_open(int sim_day) {
   return is_open(sim_day);
 }
 
-bool Hospital::should_be_open(int sim_day, int disease) {
+bool Hospital::should_be_open(int sim_day, int condition) {
 
   if(Global::Enable_HAZEL) {
     return this->should_be_open(sim_day);

@@ -22,7 +22,7 @@
 
 using namespace std;
 
-#include "Disease_List.h"
+#include "Condition_List.h"
 #include "Epidemic.h"
 #include "Global.h"
 #include "Person_Network_Link.h"
@@ -495,7 +495,7 @@ public:
     this->grade = n;
   }
 
-  int get_visiting_health_status(Place* place, int sim_day, int disease_id);
+  int get_visiting_health_status(Place* place, int sim_day, int condition_id);
 
   void set_return_from_travel_sim_day(int sim_day) {
     this->return_from_travel_sim_day = sim_day;

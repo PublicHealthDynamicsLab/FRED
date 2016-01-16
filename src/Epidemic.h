@@ -32,7 +32,7 @@ using namespace std;
 #define SEED_INFECTIOUS 'I'
 
 
-class Disease;
+class Condition;
 class Events;
 class Person;
 class Place;
@@ -41,7 +41,7 @@ struct Time_Step_Map {
   int sim_day_start;
   int sim_day_end;
   int num_seeding_attempts;
-  int disease_id;
+  int condition_id;
   double seeding_attempt_prob;
   int min_num_successful;
   double lat;
@@ -53,7 +53,7 @@ struct Time_Step_Map {
     ss << " sim_day_start " << sim_day_start;
     ss << " sim_day_end " << sim_day_end;
     ss << " num_seeding_attempts " << num_seeding_attempts;
-    ss << " disease_id " << disease_id;
+    ss << " condition_id " << condition_id;
     ss << " seeding_attempt_prob " << seeding_attempt_prob;
     ss << " min_num_successful " << min_num_successful;
     ss << " lat " << lat;
@@ -64,7 +64,7 @@ struct Time_Step_Map {
   }
 };
 
-struct Disease_Count_Info {
+struct Condition_Count_Info {
   int tot_ppl_evr_inf;
   int tot_ppl_evr_sympt;
   int tot_chldrn_evr_inf;
@@ -76,7 +76,7 @@ struct Disease_Count_Info {
 
   const std::string to_string() const {
     std::stringstream ss;
-    ss << "Disease Count Info ";
+    ss << "Condition Count Info ";
     ss << " tot_ppl_evr_inf " << tot_ppl_evr_inf;
     ss << " tot_ppl_evr_sympt " << tot_ppl_evr_sympt;
     ss << " tot_chldrn_evr_inf " << tot_chldrn_evr_inf;
@@ -101,9 +101,9 @@ public:
    * @param a string containing the requested Epidemic model type
    * @return a pointer to a Epidemic model
    */
-  static Epidemic* get_epidemic(Disease* disease);
+  static Epidemic* get_epidemic(Condition* condition);
 
-  Epidemic(Disease* disease);
+  Epidemic(Condition* condition);
   virtual ~Epidemic();
  
   virtual void setup();
@@ -124,7 +124,7 @@ public:
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);
   void report_group_quarters_incidence(int day);
-  virtual void report_disease_specific_stats(int day) {}
+  virtual void report_condition_specific_stats(int day) {}
   void read_time_step_map();
   void track_value(int day, char* key, int value);
   void track_value(int day, char* key, double value);
@@ -251,7 +251,7 @@ public:
   virtual void terminate_person(Person* person, int day);
 
 protected:
-  Disease* disease;
+  Condition* condition;
   int id;
   int N;          // current population size
   int N_init;     // initial population size
@@ -308,14 +308,14 @@ protected:
   int vaccinated_people;
 
   int people_becoming_infected_today;
-  struct Disease_Count_Info population_infection_counts;
+  struct Condition_Count_Info population_infection_counts;
 
   //Values for household income based stratification
-  std::map<int, struct Disease_Count_Info> household_income_infection_counts_map;
-  std::map<int, struct Disease_Count_Info> census_tract_infection_counts_map;
+  std::map<int, struct Condition_Count_Info> household_income_infection_counts_map;
+  std::map<int, struct Condition_Count_Info> census_tract_infection_counts_map;
 
   //Values for school income based stratification
-  std::map<int, struct Disease_Count_Info> school_income_infection_counts_map;
+  std::map<int, struct Condition_Count_Info> school_income_infection_counts_map;
 
   int people_becoming_symptomatic_today;
   int people_with_current_symptoms;

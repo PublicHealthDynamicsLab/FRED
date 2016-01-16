@@ -11,7 +11,7 @@
 
 
 #include "FixedIntraHost.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "IntraHost.h"
 #include "Params.h"
 #include "Trajectory.h"
@@ -19,26 +19,26 @@
 
 using namespace std;
 
-void FixedIntraHost::setup(Disease *disease) {
-  IntraHost::setup(disease);
+void FixedIntraHost::setup(Condition *condition) {
+  IntraHost::setup(condition);
 
   char s[80];
-  char disease_name[80];
+  char condition_name[80];
   int numProfiles;
-  strcpy(disease_name, disease->get_disease_name());
+  strcpy(condition_name, condition->get_condition_name());
 
-  sprintf(s, "%s_infectivity_profile_probabilities", disease_name);
+  sprintf(s, "%s_infectivity_profile_probabilities", condition_name);
   Params::get_param(s, &numProfiles);
   Params::get_param_vector(s, probabilities);
 
   for(int i = 0; i < numProfiles; i++) {
     vector<double> infProfile;
-    sprintf(s, "%s_fixed_infectivity_profile[%d]", disease_name, i);
+    sprintf(s, "%s_fixed_infectivity_profile[%d]", condition_name, i);
     Params::get_param_vector(s, infProfile);
     infLibrary.push_back(infProfile);
 
     vector<double> sympProfile;
-    sprintf(s, "%s_fixed_symptomaticity_profile[%d]", disease_name, i);
+    sprintf(s, "%s_fixed_symptomaticity_profile[%d]", condition_name, i);
     Params::get_param_vector(s, sympProfile);
     sympLibrary.push_back(sympProfile);
   }

@@ -13,14 +13,14 @@
 
 #include "HIV_Epidemic.h"
 #include "HIV_Natural_History.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Person.h"
 #include "Place.h"
 #include "Utils.h"
 
-HIV_Epidemic::HIV_Epidemic(Disease* _disease) :
-  Epidemic(_disease) {
+HIV_Epidemic::HIV_Epidemic(Condition* _condition) :
+  Epidemic(_condition) {
 }
 
 
@@ -42,7 +42,7 @@ void HIV_Epidemic::update(int day) {
 }
 
 
-void HIV_Epidemic::report_disease_specific_stats(int day) {
+void HIV_Epidemic::report_condition_specific_stats(int day) {
 
   // put values that should appear in outfile here:
 

@@ -44,40 +44,40 @@ public:
   static void get_parameters();
 
   /**
-   * @see Place::get_group(int disease, Person* per)
+   * @see Place::get_group(int condition, Person* per)
    */
-  int get_group(int disease, Person* per);
+  int get_group(int condition, Person* per);
 
-  double get_transmission_probability(int disease, Person* i, Person* s);
+  double get_transmission_probability(int condition, Person* i, Person* s);
 
   /**
-   * @see Place::get_transmission_prob(int disease, Person* i, Person* s)
+   * @see Place::get_transmission_prob(int condition, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Neighborhood::Neighborhood_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Neighborhood_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>neighborhood_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person* i, Person* s);
+  double get_transmission_prob(int condition, Person* i, Person* s);
 
   /**
-   * @see Place::get_contacts_per_day(int disease)
+   * @see Place::get_contacts_per_day(int condition)
    *
    * This method returns the value from the static array <code>Neighborhood::Neighborhood_contacts_per_day</code>
-   * that corresponds to a particular disease.<br />
+   * that corresponds to a particular condition.<br />
    * The static array <code>Neighborhood_contacts_per_day</code> will be filled with values from the parameter
    * file for the key <code>neighborhood_contacts[]</code>.
    */
-  double get_contacts_per_day(int disease);
+  double get_contacts_per_day(int condition);
 
   /**
-   * Determine if the neighborhood should be open. It is dependent on the disease and simulation day.
+   * Determine if the neighborhood should be open. It is dependent on the condition and simulation day.
    *
    * @param day the simulation day
-   * @param disease an integer representation of the disease
-   * @return whether or not the neighborhood is open on the given day for the given disease
+   * @param condition an integer representation of the condition
+   * @return whether or not the neighborhood is open on the given day for the given condition
    */
-  bool should_be_open(int day, int disease) {
+  bool should_be_open(int day, int condition) {
     return true;
   }
 
@@ -86,7 +86,7 @@ public:
    *
    * @return the rate by which to increase neighborhood contacts on weekends
    */
-  static double get_weekend_contact_rate(int disease) {
+  static double get_weekend_contact_rate(int condition) {
     return Neighborhood::weekend_contact_rate;
   }
 

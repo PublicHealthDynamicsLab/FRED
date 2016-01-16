@@ -12,7 +12,7 @@
 // File Infection.cc
 
 
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "HIV_Infection.h"
 #include "Markov_Infection.h"
@@ -47,8 +47,8 @@
 //
 
 // if primary infection, infector and place are null.
-Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) {
-  this->disease = _disease;
+Infection::Infection(Condition* _condition, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) {
+  this->condition = _condition;
   this->infector = _infector;
   this->host = _host;
   this->mixing_group = _mixing_group;
@@ -65,27 +65,27 @@ Infection::Infection(Disease* _disease, Person* _infector, Person* _host, Mixing
 /**
  * This static factory method is used to get an instance of a specific
  * Infection that tracks patient-specific data that depends on the
- * natural history model associated with the disease.
+ * natural history model associated with the condition.
  *
- * @param a pointer to the disease causing this infection.
+ * @param a pointer to the condition causing this infection.
  * @return a pointer to a specific Infection object of a possible derived class
  */
 
-Infection* Infection::get_new_infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day) {
-  if(strcmp(disease->get_natural_history_model(), "basic") == 0) {
-    return new Infection(disease, infector, host, mixing_group, day);
+Infection* Infection::get_new_infection(Condition* condition, Person* infector, Person* host, Mixing_Group* mixing_group, int day) {
+  if(strcmp(condition->get_natural_history_model(), "basic") == 0) {
+    return new Infection(condition, infector, host, mixing_group, day);
   }
   
-  if(strcmp(disease->get_natural_history_model(), "markov") == 0) {
-    return new Markov_Infection(disease, infector, host, mixing_group, day);
+  if(strcmp(condition->get_natural_history_model(), "markov") == 0) {
+    return new Markov_Infection(condition, infector, host, mixing_group, day);
   }
   
-  if(strcmp(disease->get_natural_history_model(), "hiv") == 0) {
-    return new HIV_Infection(disease, infector, host, mixing_group, day);
+  if(strcmp(condition->get_natural_history_model(), "hiv") == 0) {
+    return new HIV_Infection(condition, infector, host, mixing_group, day);
   }
   
   Utils::fred_abort("Infection::get_new_infection -- unknown natural history model: %s",
-		    disease->get_natural_history_model());
+		    condition->get_natural_history_model());
   return NULL;
 }
 
@@ -101,11 +101,11 @@ void Infection::setup() {
   FRED_VERBOSE(1, "infection::setup entered\n");
 
   // decide if this host will develop symptoms
-  double prob_symptoms = this->disease->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
+  double prob_symptoms = this->condition->get_natural_history()->get_probability_of_symptoms(this->host->get_age());
   this->will_develop_symptoms = (Random::draw_random() < prob_symptoms);
 
   // set transition date for becoming susceptible after this infection
-  int my_duration_of_immunity = this->disease->get_natural_history()->get_duration_of_immunity(this->host);
+  int my_duration_of_immunity = this->condition->get_natural_history()->get_duration_of_immunity(this->host);
   // my_duration_of_immunity <= 0 means "immune forever"
   if(my_duration_of_immunity > 0) {
     this->immunity_end_date = this->exposure_date + my_duration_of_immunity;
@@ -117,21 +117,21 @@ void Infection::setup() {
   double symptoms_duration = 0.0;
 
   // determine dates for symptoms
-  int symptoms_distribution_type = this->disease->get_natural_history()->get_symptoms_distribution_type();
+  int symptoms_distribution_type = this->condition->get_natural_history()->get_symptoms_distribution_type();
   if(symptoms_distribution_type == Natural_History::LOGNORMAL) {
-    incubation_period = this->disease->get_natural_history()->get_real_incubation_period(this->host);
-    symptoms_duration = this->disease->get_natural_history()->get_symptoms_duration(this->host);
+    incubation_period = this->condition->get_natural_history()->get_real_incubation_period(this->host);
+    symptoms_duration = this->condition->get_natural_history()->get_symptoms_duration(this->host);
 
     // find symptoms dates (assuming symptoms will occur)
     this->symptoms_start_date = this->exposure_date + round(incubation_period);
     this->symptoms_end_date = this->exposure_date + round(incubation_period + symptoms_duration);
   } else {
     // distribution type == CDF
-    int my_incubation_period = this->disease->get_natural_history()->get_incubation_period(this->host);
+    int my_incubation_period = this->condition->get_natural_history()->get_incubation_period(this->host);
     assert(my_incubation_period > 0); // FRED needs at least one day to become symptomatic
     this->symptoms_start_date = this->exposure_date + my_incubation_period;
       
-    int my_duration_of_symptoms = this->disease->get_natural_history()->get_duration_of_symptoms(this->host);
+    int my_duration_of_symptoms = this->condition->get_natural_history()->get_duration_of_symptoms(this->host);
     // duration_of_symptoms <= 0 would mean "symptomatic forever"
     if(my_duration_of_symptoms > 0) {
       this->symptoms_end_date = this->symptoms_start_date + my_duration_of_symptoms;
@@ -141,12 +141,12 @@ void Infection::setup() {
   }
 
   // determine dates for infectiousness
-  int infectious_distribution_type = this->disease->get_natural_history()->get_infectious_distribution_type();
+  int infectious_distribution_type = this->condition->get_natural_history()->get_infectious_distribution_type();
   if(infectious_distribution_type == Natural_History::OFFSET_FROM_START_OF_SYMPTOMS ||
      infectious_distribution_type == Natural_History::OFFSET_FROM_SYMPTOMS) {
     // set infectious dates based on offset
-    double infectious_start_offset = this->disease->get_natural_history()->get_infectious_start_offset(this->host);
-    double infectious_end_offset = this->disease->get_natural_history()->get_infectious_end_offset(this->host);
+    double infectious_start_offset = this->condition->get_natural_history()->get_infectious_start_offset(this->host);
+    double infectious_end_offset = this->condition->get_natural_history()->get_infectious_end_offset(this->host);
 
     // apply the offset
     this->infectious_start_date = this->symptoms_start_date + round(infectious_start_offset);
@@ -156,13 +156,13 @@ void Infection::setup() {
       this->infectious_end_date = this->symptoms_end_date + round(infectious_end_offset);
     }
   } else if(infectious_distribution_type == Natural_History::LOGNORMAL) {
-    double latent_period = this->disease->get_natural_history()->get_real_latent_period(this->host);
-    double infectious_duration = this->disease->get_natural_history()->get_infectious_duration(this->host);
+    double latent_period = this->condition->get_natural_history()->get_real_latent_period(this->host);
+    double infectious_duration = this->condition->get_natural_history()->get_infectious_duration(this->host);
     this->infectious_start_date = this->exposure_date + round(latent_period);
     this->infectious_end_date = this->exposure_date + round(latent_period + infectious_duration);
   } else {
     // distribution type == CDF
-    int my_latent_period = this->disease->get_natural_history()->get_latent_period(this->host);
+    int my_latent_period = this->condition->get_natural_history()->get_latent_period(this->host);
     if(my_latent_period < 0) {
       this->infectious_start_date = Natural_History::NEVER;
       this->infectious_end_date = Natural_History::NEVER;
@@ -170,7 +170,7 @@ void Infection::setup() {
       assert(my_latent_period > 0); // FRED needs at least one day to become infectious
       this->infectious_start_date = this->exposure_date + my_latent_period;
       
-      int my_duration_of_infectiousness = this->disease->get_natural_history()->get_duration_of_infectiousness(this->host);
+      int my_duration_of_infectiousness = this->condition->get_natural_history()->get_duration_of_infectiousness(this->host);
       // my_duration_of_infectiousness <= 0 means "infectious forever"
       if(my_duration_of_infectiousness > 0) {
 	      this->infectious_end_date = this->infectious_start_date + my_duration_of_infectiousness;
@@ -185,8 +185,8 @@ void Infection::setup() {
     for(int i = 0; i <= 1000; ++i) {
       double dur = (this->infectious_end_date - this->infectious_start_date + 1);
       double t = 0.001 * i * dur;
-      double start_full = this->disease->get_natural_history()->get_full_infectivity_start();
-      double end_full = this->disease->get_natural_history()->get_full_infectivity_end();
+      double start_full = this->condition->get_natural_history()->get_full_infectivity_start();
+      double end_full = this->condition->get_natural_history()->get_full_infectivity_end();
       double x = t / dur;
       double result;
       if(x < start_full) {
@@ -226,10 +226,10 @@ void Infection::setup() {
 }
 
 void Infection::print() {
-  printf("INF: Infection of disease type: %d in person %d "
+  printf("INF: Infection of condition type: %d in person %d "
 	       "dates: exposed: %d, infectious_start: %d, infectious_end: %d "
 	       "symptoms_start: %d, symptoms_end: %d\n",
-	       this->disease->get_id(), this->host->get_id(),
+	       this->condition->get_id(), this->host->get_id(),
 	       this->exposure_date, this->infectious_start_date, this->infectious_end_date,
 	       this->symptoms_start_date, this->symptoms_end_date);
   fflush(stdout);
@@ -263,13 +263,13 @@ void Infection::report_infection(int day) {
   int mixing_group_size = (this->mixing_group == NULL ? -1 : this->mixing_group->get_container_size());
   std::stringstream infStrS;
   infStrS.precision(3);
-  infStrS << fixed << "day " << day << " dis " << this->disease->get_disease_name() << " host " << this->host->get_id()
+  infStrS << fixed << "day " << day << " dis " << this->condition->get_condition_name() << " host " << this->host->get_id()
 	        << " age " << this->host->get_real_age()
 	        << " | DATES exp " << this->exposure_date
 	        << " inf " << get_infectious_start_date() << " " << get_infectious_end_date()
 	        << " symp " << get_symptoms_start_date() << " " << get_symptoms_end_date()
 	        << " rec " << get_infectious_end_date() << " sus " << get_immunity_end_date()
-	        << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(this->disease->get_id()))
+	        << " infector_exp_date " << (this->infector == NULL ? -1 : this->infector->get_exposure_date(this->condition->get_id()))
 	        << " | ";
 
   if(Global::Track_infection_events > 1) {
@@ -357,14 +357,14 @@ void Infection::report_infection(int day) {
 void Infection::update(int today) {
   // if host is symptomatic, determine if infection is fatal today.
   // if so, set flag and terminate infection update.
-  if(this->disease->is_case_fatality_enabled() && is_symptomatic(today)) {
+  if(this->condition->is_case_fatality_enabled() && is_symptomatic(today)) {
     int days_symptomatic = today - this->symptoms_start_date;
     if(Global::Enable_Chronic_Condition) {
-      if(this->disease->is_fatal(this->host, get_symptoms(today), days_symptomatic)) {
+      if(this->condition->is_fatal(this->host, get_symptoms(today), days_symptomatic)) {
 	      set_fatal_infection();
       }
     } else {
-      if(this->disease->is_fatal(this->host->get_real_age(), get_symptoms(today), days_symptomatic)) {
+      if(this->condition->is_fatal(this->host->get_real_age(), get_symptoms(today), days_symptomatic)) {
 	      set_fatal_infection();
       }
     }
@@ -379,8 +379,8 @@ double Infection::get_infectivity(int day) {
   }
 
   // day is during infectious period
-  double start_full = this->disease->get_natural_history()->get_full_infectivity_start();
-  double end_full = this->disease->get_natural_history()->get_full_infectivity_end();
+  double start_full = this->condition->get_natural_history()->get_full_infectivity_start();
+  double end_full = this->condition->get_natural_history()->get_full_infectivity_end();
 
   // assumes total duration of infectiousness starts one day before infectious_start_date:
   int total_duration = this->infectious_end_date - this->infectious_start_date + 1;
@@ -398,7 +398,7 @@ double Infection::get_infectivity(int day) {
 	       day, days_infectious, total_duration, fraction, start_full, end_full, result);
 
   if(this->will_develop_symptoms == false) {
-    result *= this->disease->get_natural_history()->get_asymptomatic_infectivity();
+    result *= this->condition->get_natural_history()->get_asymptomatic_infectivity();
   }
   return result;
 }
@@ -409,8 +409,8 @@ double Infection::get_symptoms(int day) {
   }
 
   // day is during symptoms period
-  double start_full = this->disease->get_natural_history()->get_full_symptoms_start();
-  double end_full = this->disease->get_natural_history()->get_full_symptoms_end();
+  double start_full = this->condition->get_natural_history()->get_full_symptoms_start();
+  double end_full = this->condition->get_natural_history()->get_full_symptoms_end();
 
   // assumes total duration of symptoms starts one day before symptoms_start_date:
   int total_duration = this->symptoms_end_date - this->symptoms_start_date + 1;
@@ -429,5 +429,5 @@ double Infection::get_symptoms(int day) {
 }
 
 void Infection::terminate(int day) {
-  this->disease->terminate_person(host, day);
+  this->condition->terminate_person(host, day);
 }

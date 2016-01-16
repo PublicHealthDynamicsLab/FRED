@@ -24,7 +24,7 @@
 using namespace std;
 
 #include "Date.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Epidemic.h"
 #include "Events.h"
 #include "Geo.h"
@@ -59,20 +59,20 @@ using namespace std;
  * @return a pointer to a Epidemic model
  */
 
-Epidemic* Epidemic::get_epidemic(Disease* disease) {
-  if(strcmp(disease->get_disease_name(), "drug_use") == 0) {
-    return new Markov_Epidemic(disease);
+Epidemic* Epidemic::get_epidemic(Condition* condition) {
+  if(strcmp(condition->get_condition_name(), "drug_use") == 0) {
+    return new Markov_Epidemic(condition);
   }
-  else if(strcmp(disease->get_disease_name(), "hiv") == 0) {
-    return new HIV_Epidemic(disease);
+  else if(strcmp(condition->get_condition_name(), "hiv") == 0) {
+    return new HIV_Epidemic(condition);
   } else {
-    return new Epidemic(disease);
+    return new Epidemic(condition);
   }
 }
 
-Epidemic::Epidemic(Disease* dis) {
-  this->disease = dis;
-  this->id = disease->get_id();
+Epidemic::Epidemic(Condition* dis) {
+  this->condition = dis;
+  this->id = condition->get_id();
   this->daily_cohort_size = new int[Global::Days];
   this->number_infected_by_cohort = new int[Global::Days];
   for(int i = 0; i < Global::Days; ++i) {
@@ -292,7 +292,7 @@ void Epidemic::setup() {
       int n = sscanf(cstr,
 		     "%d %d %d %d %lf %d %lf %lf %lf",
 		     &tmap->sim_day_start, &tmap->sim_day_end, &tmap->num_seeding_attempts,
-		     &tmap->disease_id, &tmap->seeding_attempt_prob, &tmap->min_num_successful,
+		     &tmap->condition_id, &tmap->seeding_attempt_prob, &tmap->min_num_successful,
 		     &tmap->lat, &tmap->lon, &tmap->radius);
       if(n < 3) {
 	Utils::fred_abort("Need to specify at least SimulationDayStart, SimulationDayEnd and NumSeedingAttempts for Time_Step_Map. ");
@@ -309,7 +309,7 @@ void Epidemic::setup() {
         tmap->seeding_attempt_prob = 1;
       }
       if(n < 4) {
-        tmap->disease_id = 0;
+        tmap->condition_id = 0;
       }
       this->imported_cases_map.push_back(tmap);
     }
@@ -367,7 +367,7 @@ void Epidemic::become_exposed(Person* person, int day) {
 
   // update next event list
   int infectious_start_date = -1;
-  if(this->disease->get_transmissibility() > 0.0) {
+  if(this->condition->get_transmissibility() > 0.0) {
     infectious_start_date = person->get_infectious_start_date(this->id);
     if(0 <= infectious_start_date && infectious_start_date <= day) {
       FRED_VERBOSE(0, "TIME WARP day %d inf %d\n", day, infectious_start_date);
@@ -375,12 +375,12 @@ void Epidemic::become_exposed(Person* person, int day) {
     }
     this->infectious_start_event_queue->add_event(infectious_start_date, person);
   } else {
-    // This disease is not transmissible, therefore, no one ever becomes
+    // This condition is not transmissible, therefore, no one ever becomes
     // infectious.  Consequently, spread_infection is never called. So
-    // no transmission model is even generated (see Disease::setup()).
+    // no transmission model is even generated (see Condition::setup()).
 
-    // This is how FRED supports non-communicable disease. Just use the parameter:
-    // <disease_name>_transmissibility = 0
+    // This is how FRED supports non-communicable condition. Just use the parameter:
+    // <condition_name>_transmissibility = 0
     //
   }
 
@@ -443,7 +443,7 @@ void Epidemic::become_exposed(Person* person, int day) {
 
 
 void Epidemic::print_stats(int day) {
-  FRED_VERBOSE(1, "epidemic print stats for disease %d day %d\n", id, day);
+  FRED_VERBOSE(1, "epidemic print stats for condition %d day %d\n", id, day);
 
   // set population size, and remember original pop size
   if(day == 0) {
@@ -497,7 +497,7 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"I", this->infectious_people);
   track_value(day, (char*)"Is", this->people_with_current_symptoms);
   track_value(day, (char*)"R", this->removed_people);
-  if(this->disease->get_natural_history()->is_case_fatality_enabled()) {
+  if(this->condition->get_natural_history()->is_case_fatality_enabled()) {
     track_value(day, (char*)"CF", this->daily_case_fatality_count);
     track_value(day, (char*)"TCF", this->total_case_fatality_count);
     track_value(day, (char*)"CFR", case_fatality_rate);
@@ -573,8 +573,8 @@ void Epidemic::print_stats(int day) {
     report_group_quarters_incidence(day);
   }
 
-  FRED_VERBOSE(0, "report disease specific stats\n");
-  report_disease_specific_stats(day);
+  FRED_VERBOSE(0, "report condition specific stats\n");
+  report_condition_specific_stats(day);
 
   if(Global::Verbose) {
     fprintf(Global::Statusfp, "\n");
@@ -1569,7 +1569,7 @@ void Epidemic::get_imported_infections(int day) {
 
 void Epidemic::advance_seed_infection(Person* person) {
   // if advanced_seeding is infectious or random
-  int d = this->disease->get_id();
+  int d = this->condition->get_id();
   int advance = 0;
   int duration = person->get_infectious_end_date(d) - person->get_exposure_date(d);
   assert(duration > 0);
@@ -1606,7 +1606,7 @@ void Epidemic::process_infectious_start_events(int day) {
     this->exposed_people--;
 
     // update person's health chart
-    person->become_infectious(this->disease);
+    person->become_infectious(this->condition);
   }
   this->infectious_start_event_queue->clear_events(day);
 }
@@ -1618,7 +1618,7 @@ void Epidemic::process_infectious_end_events(int day) {
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
     // update person's health chart
-    person->become_noninfectious(this->disease);
+    person->become_noninfectious(this->condition);
 
     // check to see if person has fully recovered:
     int symptoms_end_date = person->get_symptoms_end_date(this->id);
@@ -1638,7 +1638,7 @@ void Epidemic::recover(Person* person, int day) {
   this->removed_people++;
   
   // update person's health chart
-  person->recover(day, this->disease);
+  person->recover(day, this->condition);
 }
 
 void Epidemic::process_symptoms_start_events(int day) {
@@ -1699,7 +1699,7 @@ void Epidemic::process_symptoms_start_events(int day) {
     }
 
     // update person's health chart
-    person->become_symptomatic(this->disease);
+    person->become_symptomatic(this->condition);
 
   }
   this->symptoms_start_event_queue->clear_events(day);
@@ -1716,7 +1716,7 @@ void Epidemic::process_symptoms_end_events(int day) {
     this->people_with_current_symptoms--;
 
     // update person's health chart
-    person->resolve_symptoms(this->disease);
+    person->resolve_symptoms(this->condition);
         
     // check to see if person has fully recovered:
     int infectious_end_date = person->get_infectious_end_date(this->id);
@@ -1764,7 +1764,7 @@ void Epidemic::process_immunity_end_events(int day) {
 
 void Epidemic::update(int day) {
 
-  FRED_VERBOSE(0, "epidemic update for disease %d day %d\n", id, day);
+  FRED_VERBOSE(0, "epidemic update for condition %d day %d\n", id, day);
   Utils::fred_start_epidemic_timer();
 
   // import infections from unknown sources
@@ -1839,7 +1839,7 @@ void Epidemic::update(int day) {
   for(int i = 0; i < this->infectious_people; ++i) {
     Person* person = this->actually_infectious_people[i];
 
-    if(strcmp("sexual", this->disease->get_transmission_mode()) == 0) {
+    if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
       FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d\n", person->get_id());
       // this will insert the infectious person onto the infectious list in sexual partner network
       Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
@@ -1852,9 +1852,9 @@ void Epidemic::update(int day) {
   }
   Utils::fred_print_epidemic_timer("scheduled updated");
 
-  if(strcmp("sexual", this->disease->get_transmission_mode()) == 0) {
+  if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
     Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
-    this->disease->get_transmission()->spread_infection(day, this->id, st_network);
+    this->condition->get_transmission()->spread_infection(day, this->id, st_network);
     st_network->clear_infectious_people(this->id);
   } else {
     // spread infection in places attended by actually infectious people
@@ -1867,7 +1867,7 @@ void Epidemic::update(int day) {
     }
   }
 
-  FRED_VERBOSE(0, "epidemic update finished for disease %d day %d\n", id, day);
+  FRED_VERBOSE(0, "epidemic update finished for condition %d day %d\n", id, day);
   return;
 }
 
@@ -1912,7 +1912,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
   }
   
   // vector transmission mode (for dengue and chikungunya)
-  if(strcmp("vector",this->disease->get_transmission_mode()) == 0) {
+  if(strcmp("vector",this->condition->get_transmission_mode()) == 0) {
 
     // add all places that have any infectious vectors
     int size = 0;
@@ -1965,7 +1965,7 @@ void Epidemic::spread_infection_in_active_places(int day) {
   FRED_VERBOSE(0, "spread_infection__active_places day %d\n", day);
   for(int i = 0; i < this->active_place_vec.size(); ++i) {
     Place* place = this->active_place_vec[i];
-    this->disease->get_transmission()->spread_infection(day, this->id, place);
+    this->condition->get_transmission()->spread_infection(day, this->id, place);
     place->clear_infectious_people(this->id);
   }
   return;

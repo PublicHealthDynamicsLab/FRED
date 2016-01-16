@@ -15,7 +15,7 @@
 #include "Age_Map.h"
 #include "Markov_Natural_History.h"
 #include "HIV_Natural_History.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Evolution.h"
 #include "EvolutionFactory.h"
 #include "Params.h"
@@ -76,9 +76,9 @@ Natural_History * Natural_History::get_new_natural_history(char* natural_history
  * For other models, define a derived class.
  */
 
-void Natural_History::setup(Disease * _disease) {
+void Natural_History::setup(Condition * _condition) {
   FRED_VERBOSE(0, "Natural_History::setup\n");
-  this->disease = _disease;
+  this->condition = _condition;
 
   // set defaults 
   this->probability_of_symptoms = 0;
@@ -130,30 +130,30 @@ void Natural_History::setup(Disease * _disease) {
 void Natural_History::get_parameters() {
 
   FRED_VERBOSE(0, "Natural_History::get_parameters\n");
-  // read in the disease-specific parameters
+  // read in the condition-specific parameters
   char paramstr[256];
-  char disease_name[20];
+  char condition_name[20];
   int n;
 
-  strcpy(disease_name, disease->get_disease_name());
+  strcpy(condition_name, condition->get_condition_name());
 
   FRED_VERBOSE(0, "Natural_History::get_parameters\n");
 
   // get required natural history parameters
 
-  Params::get_indexed_param(disease_name,"symptoms_distributions", (this->symptoms_distributions));
+  Params::get_indexed_param(condition_name,"symptoms_distributions", (this->symptoms_distributions));
 
   if (strcmp(this->symptoms_distributions, "lognormal")==0) {
-    Params::get_indexed_param(disease_name, "incubation_period_median", &(this->incubation_period_median));
-    Params::get_indexed_param(disease_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
-    Params::get_indexed_param(disease_name, "symptoms_duration_median", &(this->symptoms_duration_median));
-    Params::get_indexed_param(disease_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
+    Params::get_indexed_param(condition_name, "incubation_period_median", &(this->incubation_period_median));
+    Params::get_indexed_param(condition_name, "incubation_period_dispersion", &(this->incubation_period_dispersion));
+    Params::get_indexed_param(condition_name, "symptoms_duration_median", &(this->symptoms_duration_median));
+    Params::get_indexed_param(condition_name, "symptoms_duration_dispersion", &(this->symptoms_duration_dispersion));
 
     // set optional lognormal parameters
     Params::disable_abort_on_failure();
 
-    Params::get_indexed_param(disease_name, "incubation_period_upper_bound", &(this->incubation_period_upper_bound));
-    Params::get_indexed_param(disease_name, "symptoms_duration_upper_bound", &(this->symptoms_duration_upper_bound));
+    Params::get_indexed_param(condition_name, "incubation_period_upper_bound", &(this->incubation_period_upper_bound));
+    Params::get_indexed_param(condition_name, "symptoms_duration_upper_bound", &(this->symptoms_duration_upper_bound));
     
     // restore requiring parameters
     Params::set_abort_on_failure();
@@ -161,44 +161,44 @@ void Natural_History::get_parameters() {
     this->symptoms_distribution_type = LOGNORMAL;
   }
   else if (strcmp(this->symptoms_distributions, "cdf")==0) {
-    Params::get_indexed_param(disease_name,"days_incubating",&n);
+    Params::get_indexed_param(condition_name,"days_incubating",&n);
     this->days_incubating = new double [n];
-    this->max_days_incubating = Params::get_indexed_param_vector(disease_name, "days_incubating", this->days_incubating) -1;
+    this->max_days_incubating = Params::get_indexed_param_vector(condition_name, "days_incubating", this->days_incubating) -1;
     
-    Params::get_indexed_param(disease_name,"days_symptomatic",&n);
+    Params::get_indexed_param(condition_name,"days_symptomatic",&n);
     this->days_symptomatic = new double [n];
-    this->max_days_symptomatic = Params::get_indexed_param_vector(disease_name, "days_symptomatic", this->days_symptomatic) -1;
+    this->max_days_symptomatic = Params::get_indexed_param_vector(condition_name, "days_symptomatic", this->days_symptomatic) -1;
     this->symptoms_distribution_type = CDF;
   }
   else {
     Utils::fred_abort("Natural_History: unrecognized symptoms_distributions type: %s\n", this->symptoms_distributions);
   }
 
-  if (this->disease->get_transmissibility() > 0.0) {
+  if (this->condition->get_transmissibility() > 0.0) {
 
-    Params::get_indexed_param(disease_name,"infectious_distributions", (this->infectious_distributions));
+    Params::get_indexed_param(condition_name,"infectious_distributions", (this->infectious_distributions));
 
     if (strcmp(this->infectious_distributions, "offset_from_symptoms")==0) {
-      Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
-      Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+      Params::get_indexed_param(condition_name, "infectious_start_offset", &(this->infectious_start_offset));
+      Params::get_indexed_param(condition_name, "infectious_end_offset", &(this->infectious_end_offset));
       this->infectious_distribution_type = OFFSET_FROM_SYMPTOMS;
     }
     else if (strcmp(this->infectious_distributions, "offset_from_start_of_symptoms")==0) {
-      Params::get_indexed_param(disease_name, "infectious_start_offset", &(this->infectious_start_offset));
-      Params::get_indexed_param(disease_name, "infectious_end_offset", &(this->infectious_end_offset));
+      Params::get_indexed_param(condition_name, "infectious_start_offset", &(this->infectious_start_offset));
+      Params::get_indexed_param(condition_name, "infectious_end_offset", &(this->infectious_end_offset));
       this->infectious_distribution_type = OFFSET_FROM_START_OF_SYMPTOMS;
     }
     else if (strcmp(this->infectious_distributions, "lognormal")==0) {
-      Params::get_indexed_param(disease_name, "latent_period_median", &(this->latent_period_median));
-      Params::get_indexed_param(disease_name, "latent_period_dispersion", &(this->latent_period_dispersion));
-      Params::get_indexed_param(disease_name, "infectious_duration_median", &(this->infectious_duration_median));
-      Params::get_indexed_param(disease_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
+      Params::get_indexed_param(condition_name, "latent_period_median", &(this->latent_period_median));
+      Params::get_indexed_param(condition_name, "latent_period_dispersion", &(this->latent_period_dispersion));
+      Params::get_indexed_param(condition_name, "infectious_duration_median", &(this->infectious_duration_median));
+      Params::get_indexed_param(condition_name, "infectious_duration_dispersion", &(this->infectious_duration_dispersion));
 
       // set optional lognormal parameters
       Params::disable_abort_on_failure();
 
-      Params::get_indexed_param(disease_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
-      Params::get_indexed_param(disease_name, "infectious_duration_upper_bound", &(this->infectious_duration_upper_bound));
+      Params::get_indexed_param(condition_name, "latent_period_upper_bound", &(this->latent_period_upper_bound));
+      Params::get_indexed_param(condition_name, "infectious_duration_upper_bound", &(this->infectious_duration_upper_bound));
     
       // restore requiring parameters
       Params::set_abort_on_failure();
@@ -206,61 +206,61 @@ void Natural_History::get_parameters() {
       this->infectious_distribution_type = LOGNORMAL;
     }
     else if (strcmp(this->infectious_distributions, "cdf")==0) {
-      Params::get_indexed_param(disease_name,"days_latent",&n);
+      Params::get_indexed_param(condition_name,"days_latent",&n);
       this->days_latent = new double [n];
-      this->max_days_latent = Params::get_indexed_param_vector(disease_name, "days_latent", this->days_latent) -1;
+      this->max_days_latent = Params::get_indexed_param_vector(condition_name, "days_latent", this->days_latent) -1;
     
-      Params::get_indexed_param(disease_name,"days_infectious",&n);
+      Params::get_indexed_param(condition_name,"days_infectious",&n);
       this->days_infectious = new double [n];
-      this->max_days_infectious = Params::get_indexed_param_vector(disease_name, "days_infectious", this->days_infectious) -1;
+      this->max_days_infectious = Params::get_indexed_param_vector(condition_name, "days_infectious", this->days_infectious) -1;
       this->infectious_distribution_type = CDF;
     }
     else {
       Utils::fred_abort("Natural_History: unrecognized infectious_distributions type: %s\n", this->infectious_distributions);
     }
-    Params::get_indexed_param(disease_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
+    Params::get_indexed_param(condition_name,"asymp_infectivity",&(this->asymptomatic_infectivity));
   }
 
   // set required parameters
-  Params::get_indexed_param(disease_name,"probability_of_symptoms",&(this->probability_of_symptoms));
+  Params::get_indexed_param(condition_name,"probability_of_symptoms",&(this->probability_of_symptoms));
   
   // set optional parameters: if not found, we use the values set in setup()
 
   Params::disable_abort_on_failure();
 
   // get fractions corresponding to full symptoms or infectivity
-  Params::get_indexed_param(disease_name, "full_symptoms_start", &(this->full_symptoms_start));
-  Params::get_indexed_param(disease_name, "full_symptoms_end", &(this->full_symptoms_end));
-  Params::get_indexed_param(disease_name, "full_infectivity_start", &(this->full_infectivity_start));
-  Params::get_indexed_param(disease_name, "full_infectivity_end", &(this->full_infectivity_end));
-  Params::get_indexed_param(disease_name, "immunity_loss_rate",&(this->immunity_loss_rate));
-  Params::get_indexed_param(disease_name, "infectivity_threshold", &(this->infectivity_threshold));
-  Params::get_indexed_param(disease_name, "symptomaticity_threshold", &(this->symptomaticity_threshold));
+  Params::get_indexed_param(condition_name, "full_symptoms_start", &(this->full_symptoms_start));
+  Params::get_indexed_param(condition_name, "full_symptoms_end", &(this->full_symptoms_end));
+  Params::get_indexed_param(condition_name, "full_infectivity_start", &(this->full_infectivity_start));
+  Params::get_indexed_param(condition_name, "full_infectivity_end", &(this->full_infectivity_end));
+  Params::get_indexed_param(condition_name, "immunity_loss_rate",&(this->immunity_loss_rate));
+  Params::get_indexed_param(condition_name, "infectivity_threshold", &(this->infectivity_threshold));
+  Params::get_indexed_param(condition_name, "symptomaticity_threshold", &(this->symptomaticity_threshold));
 
   // age specific probablility of symptoms
   this->age_specific_prob_symptoms = new Age_Map("Symptoms");
-  sprintf(paramstr, "%s_prob_symptoms", disease_name);
+  sprintf(paramstr, "%s_prob_symptoms", condition_name);
   this->age_specific_prob_symptoms->read_from_input(paramstr);
 
   // probability of developing an immune response by past infections
   this->age_specific_prob_infection_immunity = new Age_Map("Infection Immunity");
-  sprintf(paramstr, "%s_infection_immunity", disease_name);
+  sprintf(paramstr, "%s_infection_immunity", condition_name);
   this->age_specific_prob_infection_immunity->read_from_input(paramstr);
 
   //case fatality parameters
-  Params::get_indexed_param(disease_name, "enable_case_fatality",
+  Params::get_indexed_param(condition_name, "enable_case_fatality",
 			    &(this->enable_case_fatality));
   if(this->enable_case_fatality) {
-    Params::get_indexed_param(disease_name, "min_symptoms_for_case_fatality",
+    Params::get_indexed_param(condition_name, "min_symptoms_for_case_fatality",
 			      &(this->min_symptoms_for_case_fatality));
     this->age_specific_prob_case_fatality = new Age_Map("Case Fatality");
-    sprintf(paramstr, "%s_case_fatality", disease_name);
+    sprintf(paramstr, "%s_case_fatality", condition_name);
     this->age_specific_prob_case_fatality->read_from_input(paramstr);
-    Params::get_indexed_param(disease_name, "case_fatality_prob_by_day",
+    Params::get_indexed_param(condition_name, "case_fatality_prob_by_day",
 			      &(this->max_days_case_fatality_prob));
     this->case_fatality_prob_by_day =
       new double[this->max_days_case_fatality_prob];
-    Params::get_indexed_param_vector(disease_name, "case_fatality_prob_by_day", 
+    Params::get_indexed_param_vector(condition_name, "case_fatality_prob_by_day", 
 				     this->case_fatality_prob_by_day);
   }
 
@@ -269,9 +269,9 @@ void Natural_History::get_parameters() {
 
   if (Global::Enable_Viral_Evolution) {
     int evolType;
-    Params::get_indexed_param(disease_name, "evolution", &evolType);
+    Params::get_indexed_param(condition_name, "evolution", &evolType);
     this->evol = EvolutionFactory::newEvolution(evolType);
-    this->evol->setup(this->disease);
+    this->evol->setup(this->condition);
   }
 
   FRED_VERBOSE(0, "Natural_History::get_parameters finished\n");
@@ -335,7 +335,7 @@ void Natural_History::initialize_evolution_reporting_grid(Regional_Layer* grid) 
 }
 
 void Natural_History::init_prior_immunity() {
-  this->evol->init_prior_immunity(this->disease);
+  this->evol->init_prior_immunity(this->condition);
 }
 
 bool Natural_History::is_fatal(double real_age, double symptoms, int days_symptomatic) {
@@ -358,14 +358,14 @@ bool Natural_History::is_fatal(Person* per, double symptoms, int days_symptomati
       if(per->has_COPD()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::COPD);
       }
-      if(per->has_chronic_renal_disease()) {
-        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::CHRONIC_RENAL_DISEASE);
+      if(per->has_chronic_renal_condition()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::CHRONIC_RENAL_CONDITION);
       }
       if(per->is_diabetic()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::DIABETES);
       }
-      if(per->has_heart_disease()) {
-        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HEART_DISEASE);
+      if(per->has_heart_condition()) {
+        age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HEART_CONDITION);
       }
       if(per->has_hypertension()) {
         age_prob *= Health::get_chronic_condition_case_fatality_prob_mult(per->get_age(), Chronic_condition_index::HYPERTENSION);

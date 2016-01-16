@@ -9,7 +9,7 @@
   more information.
 */
 
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Markov_Natural_History.h"
 #include "Markov_Model.h"
@@ -27,10 +27,10 @@ Markov_Natural_History::~Markov_Natural_History() {
 }
 
 
-void Markov_Natural_History::setup(Disease * _disease) {
-  Natural_History::setup(_disease);
+void Markov_Natural_History::setup(Condition * _condition) {
+  Natural_History::setup(_condition);
   this->markov_model = new Markov_Model;
-  markov_model->setup(this->disease->get_disease_name());
+  markov_model->setup(this->condition->get_condition_name());
 }
 
 

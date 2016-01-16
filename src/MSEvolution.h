@@ -15,7 +15,7 @@
 #include "Evolution.h"
 
 class Age_Map;
-class Disease;
+class Condition;
 class Person;
 class Piecewise_Linear;
 
@@ -24,7 +24,7 @@ class MSEvolution : public Evolution {
 public:
   MSEvolution();
   virtual ~MSEvolution();
-  virtual void setup(Disease* disease);
+  virtual void setup(Condition* condition);
   virtual double antigenic_distance(int strain1, int strain2);
 
 protected:

@@ -42,16 +42,16 @@ public:
   void initialize();
   void create_data_directories(char* vis_top_dir);
   void print_visualization_data(int day);
-  void print_vector_data(char* dir, int disease_id, int day);
-  void print_population_data(char* dir, int disease_id, int day);
+  void print_vector_data(char* dir, int condition_id, int day);
+  void print_population_data(char* dir, int condition_id, int day);
   void add_household(Place* h) {
     this->households.push_back(h);
   }
 
-  void print_household_data(char* dir, int disease_id, int day);
-  // void print_household_data(char* dir, int disease_id, int output_code, char* output_str, int day);
-  void print_output_data(char* dir, int disease_id, int output_code, char* output_str, int day);
-  void print_census_tract_data(char* dir, int disease_id, int output_code, char* output_str, int day);
+  void print_household_data(char* dir, int condition_id, int day);
+  // void print_household_data(char* dir, int condition_id, int output_code, char* output_str, int day);
+  void print_output_data(char* dir, int condition_id, int output_code, char* output_str, int day);
+  void print_census_tract_data(char* dir, int condition_id, int output_code, char* output_str, int day);
   void initialize_household_data(fred::geo latitude, fred::geo longitude, int count);
   void update_data(fred::geo latitude, fred::geo longitude, int count, int popsize);
   void update_data(double x, double y, int count, int popsize);

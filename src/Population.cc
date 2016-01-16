@@ -22,8 +22,8 @@
 #include "Behavior.h"
 #include "Date.h"
 #include "Demographics.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Evolution.h"
 #include "Geo.h"
 #include "Global.h"
@@ -183,7 +183,7 @@ void Population::setup() {
   initialize_activities();
 
   if(Global::Verbose > 0) {
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+    for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
       int count = 0;
       for(int p = 0; p < this->get_index_size(); ++p) {
 	      Person* person = get_person_by_index(p);
@@ -193,7 +193,7 @@ void Population::setup() {
 	        }
 	      }
       }
-      FRED_STATUS(0, "number of residually immune people for disease %d = %d\n", d, count);
+      FRED_STATUS(0, "number of residually immune people for condition %d = %d\n", d, count);
     }
   }
   this->av_manager->reset();
@@ -570,8 +570,8 @@ void Population::report(int day) {
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
 
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    Global::Diseases.get_disease(d)->print_stats(day);
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+    Global::Conditions.get_condition(d)->print_stats(day);
   }
 
   // Write out the population if the output_population parameter is set.
@@ -664,9 +664,9 @@ void Population::quality_control() {
 
     // Print out At Risk distribution
     if (Global::Enable_Vaccination) {
-      for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-	if(Global::Diseases.get_disease(d)->get_at_risk()->is_empty() == false) {
-	  Disease* dis = Global::Diseases.get_disease(d);
+      for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+	if(Global::Conditions.get_condition(d)->get_at_risk()->is_empty() == false) {
+	  Condition* dis = Global::Conditions.get_condition(d);
 	  int rcount[20];
 	  for(int c = 0; c < 20; ++c) {
 	    rcount[c] = 0;
@@ -686,7 +686,7 @@ void Population::quality_control() {
 	      }
 	    }
 	  }
-	  fprintf(Global::Statusfp, "\n Age Distribution of At Risk for Disease %d: %d people\n", d,
+	  fprintf(Global::Statusfp, "\n Age Distribution of At Risk for Condition %d: %d people\n", d,
 		  total);
 	  for(int c = 0; c < 10; ++c) {
 	    fprintf(Global::Statusfp, "age %2d to %2d: %6d (%.2f%%)\n", 10 * c, 10 * (c + 1) - 1,

@@ -53,30 +53,30 @@ public:
 
   /**
    * @param person a pointer to a person object
-   * @param disease the disease
+   * @param condition the condition
    * @param current_day the simulation day
    *
    * @return
    */
-  virtual int choose(Person* person, int disease, int current_day);
+  virtual int choose(Person* person, int condition, int current_day);
 
   /**
    * @param person a pointer to a person object
-   * @param disease the disease
+   * @param condition the condition
    * @param current_day the simulation day
    *
    * @return
    */
-  virtual bool choose_first_positive(Person* person, int disease, int current_day);
+  virtual bool choose_first_positive(Person* person, int condition, int current_day);
 
   /**
    * @param person a pointer to a person object
-   * @param disease the disease
+   * @param condition the condition
    * @param current_day the simulation day
    *
    * @return
    */
-  virtual bool choose_first_negative(Person* person, int disease, int current_day);
+  virtual bool choose_first_negative(Person* person, int condition, int current_day);
   // decision will return -1 if the decision is no
   // or the integer result of the policies in the decision   
   

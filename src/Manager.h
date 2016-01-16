@@ -59,12 +59,12 @@ public:
    * Member to allow someone to see if they fit the current policy
    *
    * @param p a pointer to a Person object
-   * @param disease the disease to poll for
+   * @param condition the condition to poll for
    * @param day the simulation day
    *
    * @return the manager's decision
    */
-  virtual int poll_manager(Person* p, int disease, int day); //member to allow someone to see if they fit the current policy
+  virtual int poll_manager(Person* p, int condition, int day); //member to allow someone to see if they fit the current policy
   
   // Parameters
   /**

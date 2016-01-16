@@ -12,14 +12,14 @@
 #ifndef _FRED_EVOLUTION_H
 #define _FRED_EVOLUTION_H
 
-class Disease;
+class Condition;
 class Person;
 class Regional_Layer;
 
 
 class Evolution {
 public:
-  virtual void setup( Disease * disease );
+  virtual void setup( Condition * condition );
   virtual double residual_immunity(Person *person, int challenge_strain, int day);
   virtual void print();
   virtual void update( int day ) { }
@@ -30,12 +30,12 @@ public:
   virtual double antigenic_diversity(Person *p1, Person *p2);
   virtual void terminate_person(Person *p) {} 
   virtual void initialize_reporting_grid( Regional_Layer * grid ) { };
-  virtual void init_prior_immunity( Disease * disease ) { };
-  Disease * get_disease() { return disease; }
+  virtual void init_prior_immunity( Condition * condition ) { };
+  Condition * get_condition() { return condition; }
 
 
 protected:
-  Disease *disease;
+  Condition *condition;
 };
 
 #endif

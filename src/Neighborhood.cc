@@ -19,8 +19,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 
 //Private static variables that will be set by parameter lookups
 double Neighborhood::contacts_per_day = 0.0;
@@ -96,7 +96,7 @@ void Neighborhood::get_parameters() {
   }
 }
 
-int Neighborhood::get_group(int disease, Person* per) {
+int Neighborhood::get_group(int condition, Person* per) {
   int age = per->get_age();
   if(age < Global::ADULT_AGE) {
     return 0;
@@ -105,7 +105,7 @@ int Neighborhood::get_group(int disease, Person* per) {
   }
 }
 
-double Neighborhood::get_transmission_probability(int disease, Person* i, Person* s) {
+double Neighborhood::get_transmission_probability(int condition, Person* i, Person* s) {
   double age_i = i->get_real_age();
   double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
@@ -113,16 +113,16 @@ double Neighborhood::get_transmission_probability(int disease, Person* i, Person
   return prob;
 }
 
-double Neighborhood::get_transmission_prob(int disease, Person* i, Person* s) {
+double Neighborhood::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Neighborhood::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Neighborhood::get_contacts_per_day(int disease) {
+double Neighborhood::get_contacts_per_day(int condition) {
   return Neighborhood::contacts_per_day;
 }
 

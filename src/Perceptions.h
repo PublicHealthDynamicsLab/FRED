@@ -27,20 +27,20 @@ public:
   Perceptions(Person * self);
   void get_parameters();
   void update(int day);
-  double get_perceived_severity(int disease_id) {
-    return this->perceived_severity[disease_id];
+  double get_perceived_severity(int condition_id) {
+    return this->perceived_severity[condition_id];
   };
 
-  double get_perceived_susceptibility(int disease_id) {
-    return this->perceived_susceptibility[disease_id];
+  double get_perceived_susceptibility(int condition_id) {
+    return this->perceived_susceptibility[condition_id];
   };
 
-  double get_perceived_benefits(int behavior_id, int disease_id) {
-    return this->perceived_benefits[behavior_id][disease_id];
+  double get_perceived_benefits(int behavior_id, int condition_id) {
+    return this->perceived_benefits[behavior_id][condition_id];
   };
 
-  double get_perceived_barriers(int behavior_id, int disease_id) {
-    return this->perceived_barriers[behavior_id][disease_id];
+  double get_perceived_barriers(int behavior_id, int condition_id) {
+    return this->perceived_barriers[behavior_id][condition_id];
   };
 
   // Memory
@@ -52,10 +52,10 @@ private:
   Epidemic * epidemic;
 
   // Perceptions
-  double * perceived_susceptibility;		// per disease
-  double * perceived_severity;			// per disease
-  double * perceived_benefits[Behavior_index::NUM_BEHAVIORS];	// per behavior, per disease
-  double * perceived_barriers[Behavior_index::NUM_BEHAVIORS];	// per behavior. per disease
+  double * perceived_susceptibility;		// per condition
+  double * perceived_severity;			// per condition
+  double * perceived_benefits[Behavior_index::NUM_BEHAVIORS];	// per behavior, per condition
+  double * perceived_barriers[Behavior_index::NUM_BEHAVIORS];	// per behavior. per condition
   double memory_decay;
 
   // update methods

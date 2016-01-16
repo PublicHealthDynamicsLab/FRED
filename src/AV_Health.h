@@ -62,9 +62,9 @@ public:
   virtual Health * get_health()          const {return health;}
 
   /**
-   * @return the disease
+   * @return the condition
    */
-  virtual int get_disease()              const {return disease;}
+  virtual int get_condition()              const {return condition;}
 
   /**
    * @return a pointer to the AV
@@ -109,7 +109,7 @@ private:
   int av_day;           // Day on which the AV treatment starts
   int av_end_day;       // Day on which the AV treatment ends
   Health* health;       // Pointer to the health class for agent
-  int disease;           // Disease for this AV
+  int condition;           // Condition for this AV
   Antiviral* AV;        // Pointer to the AV the person took
 };
 

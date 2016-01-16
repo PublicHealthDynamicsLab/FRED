@@ -18,7 +18,7 @@
 #include "Params.h"
 #include "Demographics.h"
 #include "Population.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 #include "Place_List.h"
 
 // global simulation variables
@@ -131,7 +131,7 @@ bool Global::Report_Immunity = false;
 
 // global singleton objects
 Population Global::Pop;
-Disease_List Global::Diseases;
+Condition_List Global::Conditions;
 Place_List Global::Places;
 Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;

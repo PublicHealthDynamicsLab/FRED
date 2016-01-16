@@ -23,7 +23,7 @@
 
 #include "Global.h"
 
-class Disease;
+class Condition;
 class Person;
 
 using namespace std;

@@ -20,7 +20,7 @@
 #include "Global.h"
 #include "Params.h"
 #include "Person.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 #include "Utils.h"
 #include "Random.h"
 #include "Regional_Layer.h"
@@ -131,7 +131,7 @@ void Household::get_parameters() {
   Params::get_param_from_string("cat_VI_max_income", &Household::Cat_VI_Max_Income);
 }
 
-int Household::get_group(int disease, Person* per) {
+int Household::get_group(int condition, Person* per) {
   int age = per->get_age();
   if(age < Global::ADULT_AGE) {
     return 0;
@@ -140,7 +140,7 @@ int Household::get_group(int disease, Person* per) {
   }
 }
 
-double Household::get_transmission_probability(int disease, Person* i, Person* s) {
+double Household::get_transmission_probability(int condition, Person* i, Person* s) {
   double age_i = i->get_real_age();
   double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
@@ -148,16 +148,16 @@ double Household::get_transmission_probability(int disease, Person* i, Person* s
   return prob;
 }
 
-double Household::get_transmission_prob(int disease, Person* i, Person* s) {
+double Household::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Household::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Household::get_contacts_per_day(int disease) {
+double Household::get_contacts_per_day(int condition) {
   return Household::contacts_per_day;
 }
 

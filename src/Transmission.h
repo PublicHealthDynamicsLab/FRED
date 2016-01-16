@@ -17,7 +17,7 @@
 #ifndef _FRED_TRANSMISSION_H
 #define _FRED_TRANSMISSION_H
 
-class Disease;
+class Condition;
 class Mixing_Group;
 
 class Transmission {
@@ -36,8 +36,8 @@ public:
 
   static Transmission* get_new_transmission(char* transmission_mode);
   static void get_parameters();
-  virtual void setup(Disease* disease) = 0;
-  virtual void spread_infection(int day, int disease_id, Mixing_Group* mixing_group) = 0;
+  virtual void setup(Condition* condition) = 0;
+  virtual void spread_infection(int day, int condition_id, Mixing_Group* mixing_group) = 0;
 
 protected:
 

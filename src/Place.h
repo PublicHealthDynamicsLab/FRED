@@ -63,12 +63,12 @@ public:
    */
   Place(const char* lab, fred::geo lon, fred::geo lat);
   virtual ~Place() {
-    if(this->vector_disease_data != NULL) {
-      delete this->vector_disease_data;
+    if(this->vector_condition_data != NULL) {
+      delete this->vector_condition_data;
     }
   }
 
-  virtual void print(int disease_id);
+  virtual void print(int condition_id);
 
   virtual void prepare();
 
@@ -81,28 +81,28 @@ public:
   }
 
   /**
-   * Get the transmission probability for a given disease between two Person objects.
+   * Get the transmission probability for a given condition between two Person objects.
    *
-   * @see Mixing_Group::get_transmission_probability(int disease_id, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_probability(int condition_id, Person* i, Person* s)
    */
-  virtual double get_transmission_probability(int disease_id, Person* i, Person* s) {
+  virtual double get_transmission_probability(int condition_id, Person* i, Person* s) {
     return 1.0;
   }
 
-  virtual double get_contacts_per_day(int disease_id) = 0; // access functions
+  virtual double get_contacts_per_day(int condition_id) = 0; // access functions
 
-  double get_contact_rate(int day, int disease_id);
+  double get_contact_rate(int day, int condition_id);
 
-  int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate);
+  int get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate);
 
   /**
-   * Determine if the place should be open. It is dependent on the disease_id and simulation day.
+   * Determine if the place should be open. It is dependent on the condition_id and simulation day.
    *
    * @param day the simulation day
-   * @param disease_id an integer representation of the disease
+   * @param condition_id an integer representation of the condition
    * @return <code>true</code> if the place should be open; <code>false</code> if not
    */
-  virtual bool should_be_open(int sim_day, int disease_id) = 0;
+  virtual bool should_be_open(int sim_day, int condition_id) = 0;
 
   // test place types
   bool is_household() {
@@ -278,7 +278,7 @@ public:
     this->patch = p;
   }
   
-  int get_visualization_counter(int day, int disease_id, int output_code);
+  int get_visualization_counter(int day, int condition_id, int output_code);
 
   void turn_workers_into_teachers(Place* school);
   void reassign_workers(Place* place);
@@ -353,30 +353,30 @@ public:
   }
 
   int get_vector_population_size() {
-    return this->vector_disease_data->N_vectors;
+    return this->vector_condition_data->N_vectors;
   }
 
   int get_susceptible_vectors() {
-    return this->vector_disease_data->S_vectors;
+    return this->vector_condition_data->S_vectors;
   }
 
-  int get_infected_vectors(int disease_id) {
-    return this->vector_disease_data->E_vectors[disease_id] +
-      this->vector_disease_data->I_vectors[disease_id];
+  int get_infected_vectors(int condition_id) {
+    return this->vector_condition_data->E_vectors[condition_id] +
+      this->vector_condition_data->I_vectors[condition_id];
   }
 
-  int get_infectious_vectors(int disease_id) {
-    return this->vector_disease_data->I_vectors[disease_id];
+  int get_infectious_vectors(int condition_id) {
+    return this->vector_condition_data->I_vectors[condition_id];
   }
 
-  void expose_vectors(int disease_id, int exposed_vectors) {
-    this->vector_disease_data->E_vectors[disease_id] += exposed_vectors;
-    this->vector_disease_data->S_vectors -= exposed_vectors;
+  void expose_vectors(int condition_id, int exposed_vectors) {
+    this->vector_condition_data->E_vectors[condition_id] += exposed_vectors;
+    this->vector_condition_data->S_vectors -= exposed_vectors;
   }
 
-  vector_disease_data_t get_vector_disease_data () {
-    assert(this->vector_disease_data != NULL);
-    return (*this->vector_disease_data);
+  vector_condition_data_t get_vector_condition_data () {
+    assert(this->vector_condition_data != NULL);
+    return (*this->vector_condition_data);
   }
 
   void update_vector_population(int sim_day);
@@ -409,7 +409,7 @@ protected:
   Neighborhood_Patch* patch;       // geo patch for this place
 
   // optional data for vector transmission model
-  vector_disease_data_t* vector_disease_data;
+  vector_condition_data_t* vector_condition_data;
   bool vectors_have_been_infected_today;
   bool vector_control_status;
 

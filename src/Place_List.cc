@@ -23,7 +23,7 @@
 #include <typeinfo>
 #include <unistd.h>
 #include "Classroom.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Hospital.h"
@@ -2296,22 +2296,22 @@ void Place_List::get_initial_visualization_data_from_households() {
   }
 }
 
-void Place_List::get_visualization_data_from_households(int day, int disease_id, int output_code) {
+void Place_List::get_visualization_data_from_households(int day, int condition_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
     Household* h = this->get_household_ptr(i);
-    int count = h->get_visualization_counter(day, disease_id, output_code);
+    int count = h->get_visualization_counter(day, condition_id, output_code);
     int popsize = h->get_size();
     // update appropriate visualization patch
     Global::Visualization->update_data(h->get_latitude(), h->get_longitude(), count, popsize);
   }
 }
 
-void Place_List::get_census_tract_data_from_households(int day, int disease_id, int output_code) {
+void Place_List::get_census_tract_data_from_households(int day, int condition_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
     Household* h = this->get_household_ptr(i);
-    int count = h->get_visualization_counter(day, disease_id, output_code);
+    int count = h->get_visualization_counter(day, condition_id, output_code);
     int popsize = h->get_size();
     int census_tract_index = h->get_census_tract_index();
     long int census_tract = this->get_census_tract_with_index(census_tract_index);

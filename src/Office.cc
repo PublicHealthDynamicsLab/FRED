@@ -19,8 +19,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Workplace.h"
 
 //Private static variables that will be set by parameter lookups
@@ -92,15 +92,15 @@ int Office::get_container_size() {
   return this->workplace->get_size();
 }
 
-double Office::get_transmission_prob(int disease, Person* i, Person* s) {
+double Office::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Office::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Office::get_contacts_per_day(int disease) {
+double Office::get_contacts_per_day(int condition) {
   return Office::contacts_per_day;
 }

@@ -339,7 +339,7 @@ void Vaccine_Manager::vaccinate(int day) {
     // printf("person = %d age = %.1f vacc_app = %d\n", current_person->get_id(), current_person->get_real_age(), vacc_app);
     if(vacc_app > -1) {
       bool accept_vaccine = false;
-      // STB need to refactor to work with multiple diseases
+      // STB need to refactor to work with multiple conditions
       if((this->vaccinate_symptomatics == false)
 	 && (current_person->get_health()->get_symptoms_start_date(0) != -1)
 	 && (day >= current_person->get_health()->get_symptoms_start_date(0))) {

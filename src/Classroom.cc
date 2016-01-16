@@ -14,8 +14,8 @@
 // File: Classroom.cc
 //
 #include "Classroom.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Mixing_Group.h"
 #include "Params.h"
@@ -95,20 +95,20 @@ void Classroom::get_parameters() {
   // end normalization
 }
 
-double Classroom::get_contacts_per_day(int disease) {
+double Classroom::get_contacts_per_day(int condition) {
   return Classroom::contacts_per_day;
 }
 
-int Classroom::get_group(int disease, Person* per) {
-  return this->school->get_group(disease, per);
+int Classroom::get_group(int condition, Person* per) {
+  return this->school->get_group(condition, per);
 }
 
-double Classroom::get_transmission_prob(int disease, Person* i, Person* s) {
+double Classroom::get_transmission_prob(int condition, Person* i, Person* s) {
 
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Classroom::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
@@ -121,8 +121,8 @@ bool Classroom::is_open(int day) {
   return open;
 }
 
-bool Classroom::should_be_open(int day, int disease) {
-  return this->school->should_be_open(day, disease);
+bool Classroom::should_be_open(int day, int condition) {
+  return this->school->should_be_open(day, condition);
 }
 
 int Classroom::get_container_size() {

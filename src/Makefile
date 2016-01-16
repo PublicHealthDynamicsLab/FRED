@@ -128,10 +128,10 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
 	Behavior.o Intention.o Perceptions.o Travel.o Population.o Person_Network_Link.o
 
-DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
+CONDITION_MODULE = Condition.o Epidemic.o Infection.o \
 	Natural_History.o Transmission.o \
 	Respiratory_Transmission.o Sexual_Transmission.o Vector_Transmission.o \
-	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
+	Past_Infection.o Strain.o StrainTable.o Trajectory.o Condition_List.o \
 	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
 	Markov_Epidemic.o Markov_Infection.o Markov_Natural_History.o
 
@@ -145,7 +145,7 @@ INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 
 VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
 
-OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
+OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(CONDITION_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 

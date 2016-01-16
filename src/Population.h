@@ -34,7 +34,7 @@
 using namespace std;
 
 class Person;
-class Disease;
+class Condition;
 class Antivirals;
 class AV_Manager;
 class Vaccine_Manager;
@@ -76,7 +76,7 @@ public:
   void end_of_run();
 
   /**
-   * Report the disease statistics for a given day
+   * Report the condition statistics for a given day
    * @param day the simulation day
    */
   void report(int day);

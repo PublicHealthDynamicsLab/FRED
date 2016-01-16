@@ -86,11 +86,11 @@ void Network::get_parameters() {
   // end normalization
 }
 
-double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
+double Network::get_transmission_prob(int condition_id, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease_id, i);
-  int col = get_group(disease_id, s);
+  int row = get_group(condition_id, i);
+  int col = get_group(condition_id, s);
   double tr_pr = Network::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
@@ -101,22 +101,22 @@ double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
 //
 /////////////////////////////////////////
 
-double Network::get_contacts_per_day(int disease_id) {
+double Network::get_contacts_per_day(int condition_id) {
   return Network::contacts_per_day;
 }
 
-double Network::get_contact_rate(int sim_day, int disease_id) {
+double Network::get_contact_rate(int sim_day, int condition_id) {
 
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
   // expected number of susceptible contacts for each infectious person
-  double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
+  double contacts = get_contacts_per_day(condition_id) * condition->get_transmissibility();
 
   return contacts;
 }
 
-int Network::get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) {
+int Network::get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate) {
   // reduce number of infective contacts by infector's infectivity
-  double infectivity = infector->get_infectivity(disease_id, sim_day);
+  double infectivity = infector->get_infectivity(condition_id, sim_day);
   double infector_contacts = contact_rate * infectivity;
 
   FRED_VERBOSE(1, "infectivity = %f, so ", infectivity);

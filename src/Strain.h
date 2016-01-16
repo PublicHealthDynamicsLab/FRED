@@ -26,7 +26,7 @@
 using namespace std;
 
 class Person;
-class Disease;
+class Condition;
 class Age_Map;
 
 
@@ -89,7 +89,7 @@ public:
   ~Strain();
 
   void reset();
-  void setup( int strain, Disease * disease, double trans, Strain * parent );
+  void setup( int strain, Condition * condition, double trans, Strain * parent );
   void print();
   void print_alternate( stringstream & out );
 
@@ -108,7 +108,7 @@ private:
   Strain * parent;
   int id;
   double transmissibility;
-  Disease * disease;
+  Condition * condition;
   Strain_Data strain_data;
 
 };

@@ -18,8 +18,8 @@
 #include "Behavior.h"
 #include "Date.h"
 #include "Demographics.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Evolution.h"
 #include "Epidemic.h"
 #include "Fred.h"
@@ -101,8 +101,8 @@ void fred_setup(int argc, char* argv[]) {
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
 
-  // create diseases and read parameters
-  Global::Diseases.get_parameters();
+  // create conditions and read parameters
+  Global::Conditions.get_parameters();
   Transmission::get_parameters();
 
   Global::Pop.get_parameters();
@@ -174,9 +174,9 @@ void fred_setup(int argc, char* argv[]) {
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
 
-  // finished setting up Diseases
-  Global::Diseases.setup();
-  Utils::fred_print_lap_time("Diseases.setup");
+  // finished setting up Conditions
+  Global::Conditions.setup();
+  Utils::fred_print_lap_time("Conditions.setup");
 
   // read in the population and have each person enroll
   // in each daily activity location identified in the population file
@@ -326,14 +326,14 @@ void fred_setup(int argc, char* argv[]) {
   // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
-  // prepare diseases after population is all set up
-  FRED_VERBOSE(0, "prepare diseases\n");
-  Global::Diseases.prepare_diseases();
-  Utils::fred_print_lap_time("prepare_diseases");
+  // prepare conditions after population is all set up
+  FRED_VERBOSE(0, "prepare conditions\n");
+  Global::Conditions.prepare_conditions();
+  Utils::fred_print_lap_time("prepare_conditions");
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+    for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
@@ -429,22 +429,22 @@ void fred_step(int day) {
   // needed -- see below)
   Activities::update(day);
 
-  // shuffle the order of diseases to reduce systematic bias
+  // shuffle the order of conditions to reduce systematic bias
   vector<int> order;
   order.clear();
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
     order.push_back(d);
   }
-  if(Global::Diseases.get_number_of_diseases() > 1) {
+  if(Global::Conditions.get_number_of_conditions() > 1) {
     FYShuffle<int>(order);
   }
 
-  // transmit each disease in turn
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    int disease_id = order[d];
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    disease->update(day);
-    Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
+  // transmit each condition in turn
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+    int condition_id = order[d];
+    Condition* condition = Global::Conditions.get_condition(condition_id);
+    condition->update(day);
+    Utils::fred_print_lap_time("day %d update epidemic for condition %d", day, condition_id);
   }
 
   // print daily report
@@ -517,7 +517,7 @@ void fred_finish() {
 
   Global::Pop.end_of_run();
   Global::Places.end_of_run();
-  Global::Diseases.end_of_run();
+  Global::Conditions.end_of_run();
 
   if(Global::Enable_Transmission_Network) {
     // Global::Transmission_Network->print();

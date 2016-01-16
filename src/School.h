@@ -43,14 +43,14 @@ public:
 
   void prepare();
   static void get_parameters();
-  int get_group(int disease_id, Person* per);
-  double get_transmission_prob(int disease_id, Person* i, Person* s);
+  int get_group(int condition_id, Person* per);
+  double get_transmission_prob(int condition_id, Person* i, Person* s);
   void close(int day, int day_to_close, int duration);
   bool is_open(int day);
-  bool should_be_open(int day, int disease_id);
-  void apply_global_school_closure_policy(int day, int disease_id);
-  void apply_individual_school_closure_policy(int day, int disease_id);
-  double get_contacts_per_day(int disease_id);
+  bool should_be_open(int day, int condition_id);
+  void apply_global_school_closure_policy(int day, int condition_id);
+  void apply_individual_school_closure_policy(int day, int condition_id);
+  double get_contacts_per_day(int condition_id);
   int enroll(Person* per);
   void unenroll(int pos);
   int get_max_grade() {
@@ -79,7 +79,7 @@ public:
   }
 
   void print_size_distribution();
-  void print(int disease);
+  void print(int condition);
   int get_number_of_rooms();
   // int get_number_of_classrooms() { return (int) classrooms.size(); }
   void setup_classrooms(Allocator<Classroom> &classroom_allocator);
@@ -166,7 +166,7 @@ public:
   }
 
   //for access from Classroom:
-  static double get_school_contacts_per_day(int disease_id) {
+  static double get_school_contacts_per_day(int condition_id) {
     return School::contacts_per_day;
   }
 

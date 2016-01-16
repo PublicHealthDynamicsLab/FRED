@@ -20,8 +20,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Place_List.h"
 #include "Population.h"
 #include "Office.h"
@@ -140,16 +140,16 @@ void Workplace::prepare() {
   Place::prepare();
 }
 
-double Workplace::get_transmission_prob(int disease, Person* i, Person* s) {
+double Workplace::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Workplace::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Workplace::get_contacts_per_day(int disease) {
+double Workplace::get_contacts_per_day(int condition) {
   return Workplace::contacts_per_day;
 }
 

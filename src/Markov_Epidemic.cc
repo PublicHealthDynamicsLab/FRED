@@ -13,7 +13,7 @@
 
 #include "Events.h"
 #include "Date.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Health.h"
 #include "Markov_Epidemic.h"
@@ -25,8 +25,8 @@
 #include "Random.h"
 #include "Utils.h"
 
-Markov_Epidemic::Markov_Epidemic(Disease* _disease) :
-  Epidemic(_disease) {
+Markov_Epidemic::Markov_Epidemic(Condition* _condition) :
+  Epidemic(_condition) {
 }
 
 
@@ -36,8 +36,8 @@ void Markov_Epidemic::setup() {
 
   // initialize Markov specific-variables here:
 
-  this->markov_model = static_cast<Markov_Natural_History*>(this->disease->get_natural_history())->get_markov_model();
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup\n", this->disease->get_disease_name());
+  this->markov_model = static_cast<Markov_Natural_History*>(this->condition->get_natural_history())->get_markov_model();
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup\n", this->condition->get_condition_name());
   this->number_of_states = this->markov_model->get_number_of_states();
   FRED_VERBOSE(0, "Markov_Epidemic::setup states = %d\n", this->number_of_states);
 
@@ -49,13 +49,13 @@ void Markov_Epidemic::setup() {
     this->transition_to_state_event_queue[i] = new Events;
   }
 
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup finished\n", this->disease->get_disease_name());
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup finished\n", this->condition->get_condition_name());
 }
 
 
 void Markov_Epidemic::prepare() {
 
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare\n", this->disease->get_disease_name());
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare\n", this->condition->get_condition_name());
 
   for (int i = 0; i < this->number_of_states; i++) {
     // this->people_in_state[i].reserve(Global::Pop.get_pop_size());
@@ -76,18 +76,18 @@ void Markov_Epidemic::prepare() {
     transition_person(person, day, state);
   }
 
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->condition->get_condition_name());
   for (int i = 0; i < this->number_of_states; i++) {
     FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->count[i]);
   }
   FRED_VERBOSE(0, "\n");
 
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare finished\n", this->disease->get_disease_name());
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare finished\n", this->condition->get_condition_name());
 }
 
 
 void Markov_Epidemic::markov_updates(int day) {
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->disease->get_disease_name(), day);
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->condition->get_condition_name(), day);
 
   // handle scheduled transitions to each state
   for (int state = 0; state < this->number_of_states; state++) {
@@ -102,7 +102,7 @@ void Markov_Epidemic::markov_updates(int day) {
 
     this->transition_to_state_event_queue[state]->clear_events(day);
   }
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::markov_update finished for day %d\n", this->disease->get_disease_name(), day);
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::markov_update finished for day %d\n", this->condition->get_condition_name(), day);
   return;
 }
 
@@ -181,16 +181,16 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     Epidemic::become_exposed(person, day);
   }
   
-  if (this->disease->get_natural_history()->get_symptoms(state) > 0.0 && person->is_symptomatic(this->id)==false) {
+  if (this->condition->get_natural_history()->get_symptoms(state) > 0.0 && person->is_symptomatic(this->id)==false) {
     // update epidemic counters
     this->people_with_current_symptoms++;
     this->people_becoming_symptomatic_today++;
 
     // update person's health chart
-    person->become_symptomatic(this->disease);
+    person->become_symptomatic(this->condition);
   }
 
-  if (this->disease->get_natural_history()->get_infectivity(state) > 0.0 && person->is_infectious(this->id)==false) {
+  if (this->condition->get_natural_history()->get_infectivity(state) > 0.0 && person->is_infectious(this->id)==false) {
     // add to active people list
     this->potentially_infectious_people.insert(person);
 
@@ -198,20 +198,20 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     this->exposed_people--;
 
     // update person's health chart
-    person->become_infectious(this->disease);
+    person->become_infectious(this->condition);
   }
 
-  if (this->disease->get_natural_history()->get_symptoms(state) == 0.0 && person->is_symptomatic(this->id)) {
+  if (this->condition->get_natural_history()->get_symptoms(state) == 0.0 && person->is_symptomatic(this->id)) {
     // update epidemic counters
     this->people_with_current_symptoms--;
 
     // update person's health chart
-    person->resolve_symptoms(this->disease);
+    person->resolve_symptoms(this->condition);
   }
 
-  if (this->disease->get_natural_history()->get_infectivity(state) == 0.0 && person->is_infectious(this->id)) {
+  if (this->condition->get_natural_history()->get_infectivity(state) == 0.0 && person->is_infectious(this->id)) {
     // update person's health chart
-    person->become_noninfectious(this->disease);
+    person->become_noninfectious(this->condition);
   }
 
   if (old_state > 0 && state == 0) {
@@ -219,15 +219,15 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     recover(person, day);
   }
 
-  if (this->disease->get_natural_history()->is_fatal(state)) {
+  if (this->condition->get_natural_history()->is_fatal(state)) {
     // update person's health chart
-    person->become_case_fatality(day, this->disease);
+    person->become_case_fatality(day, this->condition);
   }
 }
 
 
-void Markov_Epidemic::report_disease_specific_stats(int day) {
-  FRED_VERBOSE(0, "Markov Epidemic %s report day %d \n",this->disease->get_disease_name(),day);
+void Markov_Epidemic::report_condition_specific_stats(int day) {
+  FRED_VERBOSE(0, "Markov Epidemic %s report day %d \n",this->condition->get_condition_name(),day);
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->markov_model->get_state_name(i).c_str());

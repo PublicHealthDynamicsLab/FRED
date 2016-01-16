@@ -36,25 +36,25 @@ Policy::Policy(Manager* mgr){
   manager = mgr;
 }
 
-bool Policy::choose_first_positive(Person* person, int disease, int current_day){
+bool Policy::choose_first_positive(Person* person, int condition, int current_day){
   for(unsigned int i=0; i < decision_list.size(); i++){    
-    if(decision_list[i]->evaluate(person,disease,current_day) == 1) return true;
+    if(decision_list[i]->evaluate(person,condition,current_day) == 1) return true;
   }
   return false;
 }   
 
-bool Policy::choose_first_negative(Person* person, int disease, int current_day){
+bool Policy::choose_first_negative(Person* person, int condition, int current_day){
   for(unsigned int i=0; i < decision_list.size(); i++){    
-    if(decision_list[i]->evaluate(person,disease,current_day) == -1) return false;
+    if(decision_list[i]->evaluate(person,condition,current_day) == -1) return false;
   }
   return true;
 }
 
 // Haven't used this yet, don't know if it is exactly right
-int Policy::choose(Person* person, int disease, int current_day){
+int Policy::choose(Person* person, int condition, int current_day){
   int result=-1;
   for(unsigned int i=0; i < decision_list.size(); i++){    
-    int new_result = decision_list[i]->evaluate(person,disease,current_day);
+    int new_result = decision_list[i]->evaluate(person,condition,current_day);
     if(new_result == -1) return -1;
     else if(new_result > result) result = new_result;
     //  cout <<"\nResult for decision "<<i<< " is "<< result;

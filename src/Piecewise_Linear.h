@@ -23,9 +23,9 @@
 
 #include "Global.h"
 #include "Params.h"
-#include "Disease.h"
+#include "Condition.h"
 
-class Disease;
+class Condition;
 
 using namespace std;
 
@@ -34,7 +34,7 @@ class Piecewise_Linear {
 public:
 
   Piecewise_Linear();
-  void setup(string _name, Disease *_disease);
+  void setup(string _name, Condition *_condition);
   double get_prob( double distance );
 
 private:
@@ -42,7 +42,7 @@ private:
   bool quality_control();
 
   string name;
-  Disease *disease;
+  Condition *condition;
   vector < double > ag_distances;     // Antigenic distances
   vector < double > probabilities;    // Corresponding values of the function
 };

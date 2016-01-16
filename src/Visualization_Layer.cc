@@ -26,7 +26,7 @@ using namespace std;
 #include "Vector_Layer.h"
 #include "Visualization_Layer.h"
 #include "Visualization_Patch.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 
 typedef std::map<unsigned long long, unsigned long> census_tract_t;
 census_tract_t census_tract;
@@ -204,8 +204,8 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
   sprintf(vis_run_dir, "%s/run%d", vis_top_dir, Global::Simulation_run_number);
   Utils::fred_make_directory(vis_run_dir);
   
-  // create sub directories for diseases and output vars
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+  // create sub directories for conditions and output vars
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
     sprintf(vis_dis_dir, "%s/dis%d", vis_run_dir, d);
     Utils::fred_make_directory(vis_dis_dir);
     
@@ -272,17 +272,17 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
 
 void Visualization_Layer::print_visualization_data(int day) {
   if(this->census_tract_mode) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+    for(int condition_id = 0; condition_id < Global::Conditions.get_number_of_conditions(); ++condition_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/VIS/run%d", Global::Simulation_directory, Global::Simulation_run_number);
-      print_census_tract_data(dir, disease_id, Global::OUTPUT_I, (char*)"I", day);
-      print_census_tract_data(dir, disease_id, Global::OUTPUT_Is, (char*)"Is", day);
-      print_census_tract_data(dir, disease_id, Global::OUTPUT_C, (char*)"C", day);
-      print_census_tract_data(dir, disease_id, Global::OUTPUT_Cs, (char*)"Cs", day);
-      print_census_tract_data(dir, disease_id, Global::OUTPUT_P, (char*)"P", day);
-      if (Global::Diseases.get_disease(disease_id)->is_case_fatality_enabled()) {
-	print_census_tract_data(dir, disease_id, Global::OUTPUT_CF, (char*)"CF", day);
-	print_census_tract_data(dir, disease_id, Global::OUTPUT_TCF, (char*)"TCF", day);
+      print_census_tract_data(dir, condition_id, Global::OUTPUT_I, (char*)"I", day);
+      print_census_tract_data(dir, condition_id, Global::OUTPUT_Is, (char*)"Is", day);
+      print_census_tract_data(dir, condition_id, Global::OUTPUT_C, (char*)"C", day);
+      print_census_tract_data(dir, condition_id, Global::OUTPUT_Cs, (char*)"Cs", day);
+      print_census_tract_data(dir, condition_id, Global::OUTPUT_P, (char*)"P", day);
+      if (Global::Conditions.get_condition(condition_id)->is_case_fatality_enabled()) {
+	print_census_tract_data(dir, condition_id, Global::OUTPUT_CF, (char*)"CF", day);
+	print_census_tract_data(dir, condition_id, Global::OUTPUT_TCF, (char*)"TCF", day);
       }
     }
 
@@ -293,104 +293,104 @@ void Visualization_Layer::print_visualization_data(int day) {
   }
 
   if(this->household_mode) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+    for(int condition_id = 0; condition_id < Global::Conditions.get_number_of_conditions(); ++condition_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/VIS/run%d", Global::Simulation_directory, Global::Simulation_run_number);
-      print_household_data(dir, disease_id, day);
+      print_household_data(dir, condition_id, day);
     }
   }
 
   if(this->gaia_mode) {
-    for(int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); ++disease_id) {
+    for(int condition_id = 0; condition_id < Global::Conditions.get_number_of_conditions(); ++condition_id) {
       char dir[FRED_STRING_SIZE];
       sprintf(dir, "%s/GAIA/run%d", Global::Simulation_directory, Global::Simulation_run_number);
-      print_output_data(dir, disease_id, Global::OUTPUT_I, (char*) "I", day);
-      print_output_data(dir, disease_id, Global::OUTPUT_Is, (char*)"Is", day);
-      print_output_data(dir, disease_id, Global::OUTPUT_C, (char*)"C", day);
-      print_output_data(dir, disease_id, Global::OUTPUT_Cs, (char*)"Cs", day);
-      print_output_data(dir, disease_id, Global::OUTPUT_P, (char*)"P", day);
-      print_population_data(dir, disease_id, day);
+      print_output_data(dir, condition_id, Global::OUTPUT_I, (char*) "I", day);
+      print_output_data(dir, condition_id, Global::OUTPUT_Is, (char*)"Is", day);
+      print_output_data(dir, condition_id, Global::OUTPUT_C, (char*)"C", day);
+      print_output_data(dir, condition_id, Global::OUTPUT_Cs, (char*)"Cs", day);
+      print_output_data(dir, condition_id, Global::OUTPUT_P, (char*)"P", day);
+      print_population_data(dir, condition_id, day);
       if(Global::Enable_Vector_Layer) {
-	      print_vector_data(dir, disease_id, day);
+	      print_vector_data(dir, condition_id, day);
       }
     }
   }
 }
 
-void Visualization_Layer::print_household_data(char* dir, int disease_id, int day) {
+void Visualization_Layer::print_household_data(char* dir, int condition_id, int day) {
 
   // household with new cases
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/C/households-%d.txt", dir, disease_id, day);
+  sprintf(filename, "%s/dis%d/C/households-%d.txt", dir, condition_id, day);
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   int size = this->households.size();
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
-    if(house->get_new_infections(day, disease_id) > 0) {
+    if(house->get_new_infections(day, condition_id) > 0) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
   fclose(fp);
 
   // household with active infections
-  sprintf(filename, "%s/dis%d/P/households-%d.txt", dir, disease_id, day);
+  sprintf(filename, "%s/dis%d/P/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
     //  just consider human infectious, not mosquito neither infectious places visited
-    if(house->get_current_infections(day, disease_id) > 0) {
+    if(house->get_current_infections(day, condition_id) > 0) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
   fclose(fp);
 
   // household with infectious cases
-  sprintf(filename, "%s/dis%d/I/households-%d.txt", dir, disease_id, day);
+  sprintf(filename, "%s/dis%d/I/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
     //  just consider human infectious, not mosquito neither infectious places visited
-    if(house->is_human_infectious(disease_id)) {
+    if(house->is_human_infectious(condition_id)) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
   fclose(fp);
 
   // household with recovered cases
-  sprintf(filename, "%s/dis%d/R/households-%d.txt", dir, disease_id, day);
+  sprintf(filename, "%s/dis%d/R/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
     Place* house = this->households[i];
-    if(house->is_recovered(disease_id)) {
+    if(house->is_recovered(condition_id)) {
       fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
     }
   }
   fclose(fp);
 
-  if (Global::Diseases.get_disease(disease_id)->is_case_fatality_enabled()) {
+  if (Global::Conditions.get_condition(condition_id)->is_case_fatality_enabled()) {
     // household with current case fatalities
-    sprintf(filename, "%s/dis%d/CF/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/CF/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
       Place* house = this->households[i];
-      if(house->get_current_case_fatalities(day, disease_id) > 0) {
+      if(house->get_current_case_fatalities(day, condition_id) > 0) {
 	fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
       }
     }
     fclose(fp);
 
     // households with any case_fatalities
-    sprintf(filename, "%s/dis%d/TCF/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/TCF/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
       Place* house = this->households[i];
-      if(house->get_total_case_fatalities(disease_id) > 0) {
+      if(house->get_total_case_fatalities(condition_id) > 0) {
 	fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
       }
     }
@@ -402,7 +402,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   if(Global::Enable_HAZEL) {
 
     //!is_primary_healthcare_available
-    sprintf(filename, "%s/dis%d/HH_primary_hc_unav/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/HH_primary_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     assert(fp != NULL);
     fprintf(fp, "lat long\n");
@@ -415,7 +415,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
     fclose(fp);
 
     //!is_other_healthcare_location_that_accepts_insurance_available
-    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_unav/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -427,7 +427,7 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
     fclose(fp);
 
     //!is_healthcare_available
-    sprintf(filename, "%s/dis%d/HH_hc_unav/households-%d.txt", dir, disease_id, day);
+    sprintf(filename, "%s/dis%d/HH_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -441,14 +441,14 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
 }
 
 /*
-  void Visualization_Layer::print_household_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
+  void Visualization_Layer::print_household_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/households-%d.txt", dir, disease_id, output_str, day);
+  sprintf(filename, "%s/dis%d/%s/households-%d.txt", dir, condition_id, output_str, day);
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   this->infected_households.clear();
   // get the counts for this output_code
-  Global::Places.get_visualization_data_from_households(disease_id, output_code);
+  Global::Places.get_visualization_data_from_households(condition_id, output_code);
   // print out the lat long of all infected households
   int houses = (int)(this->infected_households.size());
   for(int i = 0; i < houses; ++i) {
@@ -461,14 +461,14 @@ void Visualization_Layer::print_household_data(char* dir, int disease_id, int da
   }
 */
 
-void Visualization_Layer::print_output_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
+void Visualization_Layer::print_output_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/day-%d.txt", dir, disease_id, output_str, day);
+  sprintf(filename, "%s/dis%d/%s/day-%d.txt", dir, condition_id, output_str, day);
   FILE* fp = fopen(filename, "w");
   // printf("print_output_data to file %s\n", filename);
 
   // get the counts for this output_code
-  Global::Places.get_visualization_data_from_households(day, disease_id, output_code);
+  Global::Places.get_visualization_data_from_households(day, condition_id, output_code);
 
   // print out the non-zero patches
   for(int i = 0; i < this->rows; ++i) {
@@ -486,12 +486,12 @@ void Visualization_Layer::print_output_data(char* dir, int disease_id, int outpu
   fclose(fp);
 }
 
-void Visualization_Layer::print_census_tract_data(char* dir, int disease_id, int output_code, char* output_str, int day) {
+void Visualization_Layer::print_census_tract_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/census_tracts-%d.txt", dir, disease_id, output_str, day);
+  sprintf(filename, "%s/dis%d/%s/census_tracts-%d.txt", dir, condition_id, output_str, day);
 
   // get the counts for this output_code
-  Global::Places.get_census_tract_data_from_households(day, disease_id, output_code);
+  Global::Places.get_census_tract_data_from_households(day, condition_id, output_code);
 
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "Census_tract\tCount\tPopsize\n");
@@ -510,15 +510,15 @@ void Visualization_Layer::print_census_tract_data(char* dir, int disease_id, int
   }
 }
 
-void Visualization_Layer::print_population_data(char* dir, int disease_id, int day) {
+void Visualization_Layer::print_population_data(char* dir, int condition_id, int day) {
   char filename[FRED_STRING_SIZE];
   // printf("Printing population size for GAIA\n");
-  sprintf(filename,"%s/dis%d/N/day-%d.txt",dir,disease_id,day);
+  sprintf(filename,"%s/dis%d/N/day-%d.txt",dir,condition_id,day);
   FILE* fp = fopen(filename, "w");
 
   // get the counts for an arbitrary output code;
   // we only care about the popsize here.
-  Global::Places.get_visualization_data_from_households(day, disease_id, Global::OUTPUT_C);
+  Global::Places.get_visualization_data_from_households(day, condition_id, Global::OUTPUT_C);
   for(int i = 0; i < this->rows; ++i) {
     for(int j = 0; j < this->cols; ++j) {
       Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];
@@ -533,13 +533,13 @@ void Visualization_Layer::print_population_data(char* dir, int disease_id, int d
   fclose(fp);
 }
 
-void Visualization_Layer::print_vector_data(char* dir, int disease_id, int day) {
+void Visualization_Layer::print_vector_data(char* dir, int condition_id, int day) {
   char filename[FRED_STRING_SIZE];
   // printf("Printing population size for GAIA\n");
-  sprintf(filename,"%s/dis%d/Vec/day-%d.txt",dir,disease_id,day);
+  sprintf(filename,"%s/dis%d/Vec/day-%d.txt",dir,condition_id,day);
   FILE* fp = fopen(filename, "w");
 
-  Global::Vectors->update_visualization_data(disease_id, day);
+  Global::Vectors->update_visualization_data(condition_id, day);
   for(int i = 0; i < this->rows; ++i) {
     for(int j = 0; j < this->cols; ++j) {
       Visualization_Patch* patch = (Visualization_Patch*) &grid[i][j];

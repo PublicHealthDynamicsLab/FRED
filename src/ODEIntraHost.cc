@@ -19,8 +19,8 @@
 
 using namespace std;
 
-void ODEIntraHost::setup(Disease *disease) {
-  IntraHost::setup(disease);
+void ODEIntraHost::setup(Condition *condition) {
+  IntraHost::setup(condition);
   get_param((char *) "viral_titer_scaling", & viral_titer_scaling);
   get_param((char *) "viral_titer_latent_threshold", & viral_titer_latent_threshold);
   get_param((char *) "interferon_scaling", & interferon_scaling);

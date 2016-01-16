@@ -121,12 +121,12 @@ void AV_Manager::disseminate(int day) {
         Person * current_person = this->pop->get_person_by_index(ip);
 	if (current_person != NULL) {
 	  // Should the person get an av
-	  //int yeah_or_ney = p->choose(current_person,av->get_disease(),day);
+	  //int yeah_or_ney = p->choose(current_person,av->get_condition(),day);
 	  //if(yeah_or_ney == 0){
 
-	  if(p->choose_first_negative(current_person, av->get_disease(), day) == true) {
+	  if(p->choose_first_negative(current_person, av->get_condition(), day) == true) {
 	    if(Global::Debug > 3)
-	      cout << "Giving Antiviral for disease " << av->get_disease() << " to " << ip << "\n";
+	      cout << "Giving Antiviral for condition " << av->get_condition() << " to " << ip << "\n";
 	    av->remove_stock(1);
 	    current_person->get_health()->take(av, day);
 	    num_avs++;

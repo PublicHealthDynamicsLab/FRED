@@ -19,8 +19,8 @@
 #include "Place.h"
 
 #include "Date.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Household.h"
 #include "Infection.h"
@@ -79,18 +79,18 @@ Place::Place() : Mixing_Group("BLANK") {
   this->longitude = undefined;
   this->latitude = undefined;
 
-  int diseases = Global::Diseases.get_number_of_diseases();
-  this->infectious_people = new std::vector<Person*>[diseases];
+  int conditions = Global::Conditions.get_number_of_conditions();
+  this->infectious_people = new std::vector<Person*>[conditions];
 
-  this->new_infections = new int[diseases];
-  this->current_infections = new int[diseases];
-  this->total_infections = new int[diseases];
-  this->new_symptomatic_infections = new int[diseases];
-  this->current_symptomatic_infections = new int[diseases];
-  this->total_symptomatic_infections = new int[diseases];
+  this->new_infections = new int[conditions];
+  this->current_infections = new int[conditions];
+  this->total_infections = new int[conditions];
+  this->new_symptomatic_infections = new int[conditions];
+  this->current_symptomatic_infections = new int[conditions];
+  this->total_symptomatic_infections = new int[conditions];
 
-  // zero out all disease-specific counts
-  for(int d = 0; d < diseases; ++d) {
+  // zero out all condition-specific counts
+  for(int d = 0; d < conditions; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->total_infections[d] = 0;
@@ -99,7 +99,7 @@ Place::Place() : Mixing_Group("BLANK") {
     this->infectious_people[d].clear();
   }
 
-  this->vector_disease_data = NULL;
+  this->vector_condition_data = NULL;
   this->vectors_have_been_infected_today = false;
   this->vector_control_status = false;
 }
@@ -125,18 +125,18 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->intimacy = 0.0;
   this->patch = NULL;
 
-  int diseases = Global::Diseases.get_number_of_diseases();
-  this->infectious_people = new std::vector<Person*>[diseases];
+  int conditions = Global::Conditions.get_number_of_conditions();
+  this->infectious_people = new std::vector<Person*>[conditions];
 
-  this->new_infections = new int[diseases];
-  this->current_infections = new int[diseases];
-  this->total_infections = new int[diseases];
-  this->new_symptomatic_infections = new int[diseases];
-  this->current_symptomatic_infections = new int[diseases];
-  this->total_symptomatic_infections = new int[diseases];
+  this->new_infections = new int[conditions];
+  this->current_infections = new int[conditions];
+  this->total_infections = new int[conditions];
+  this->new_symptomatic_infections = new int[conditions];
+  this->current_symptomatic_infections = new int[conditions];
+  this->total_symptomatic_infections = new int[conditions];
 
-  // zero out all disease-specific counts
-  for(int d = 0; d < diseases; ++d) {
+  // zero out all condition-specific counts
+  for(int d = 0; d < conditions; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->total_infections[d] = 0;
@@ -145,14 +145,14 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
     this->infectious_people[d].clear();
   }
 
-  this->vector_disease_data = NULL;
+  this->vector_condition_data = NULL;
   this->vectors_have_been_infected_today = false;
   this->vector_control_status = false;
 }
 
 void Place::prepare() {
   this->N_orig = this->enrollees.size();
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->new_symptomatic_infections[d] = 0;
@@ -176,7 +176,7 @@ void Place::update(int sim_day) {
   // stub for future use.
 }
 
-void Place::print(int disease_id) {
+void Place::print(int condition_id) {
   FRED_STATUS(0, "Place %d label %s type %c\n", this->get_id(), this->get_label(), this->get_type());
   fflush(stdout);
 }
@@ -222,25 +222,25 @@ void Place::reassign_workers(Place* new_place) {
 	       this->get_label(), new_place->get_label());
 }
 
-int Place::get_visualization_counter(int day, int disease_id, int output_code) {
+int Place::get_visualization_counter(int day, int condition_id, int output_code) {
   switch(output_code) {
     case Global::OUTPUT_I:
-      return this->get_number_of_infectious_people(disease_id);
+      return this->get_number_of_infectious_people(condition_id);
       break;
     case Global::OUTPUT_Is:
-      return this->get_current_symptomatic_infections(day, disease_id);
+      return this->get_current_symptomatic_infections(day, condition_id);
       break;
     case Global::OUTPUT_C:
-      return this->get_new_infections(day, disease_id);
+      return this->get_new_infections(day, condition_id);
       break;
     case Global::OUTPUT_Cs:
-      return this->get_new_symptomatic_infections(day, disease_id);
+      return this->get_new_symptomatic_infections(day, condition_id);
       break;
     case Global::OUTPUT_P:
-      return this->get_current_infections(day, disease_id);
+      return this->get_current_infections(day, condition_id);
       break;
     case Global::OUTPUT_R:
-      return this->get_recovereds(disease_id);
+      return this->get_recovereds(condition_id);
       break;
     case Global::OUTPUT_N:
       return this->get_size();
@@ -263,14 +263,14 @@ int Place::get_visualization_counter(int day, int disease_id, int output_code) {
 //
 /////////////////////////////////////////
 
-double Place::get_contact_rate(int sim_day, int disease_id) {
+double Place::get_contact_rate(int sim_day, int condition_id) {
 
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
   // expected number of susceptible contacts for each infectious person
-  double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
+  double contacts = get_contacts_per_day(condition_id) * condition->get_transmissibility();
   if(Global::Enable_Seasonality) {
 
-    double m = Global::Clim->get_seasonality_multiplier_by_lat_lon(this->latitude, this->longitude, disease_id);
+    double m = Global::Clim->get_seasonality_multiplier_by_lat_lon(this->latitude, this->longitude, condition_id);
     //cout << "SEASONALITY: " << day << " " << m << endl;
     contacts *= m;
   }
@@ -279,16 +279,16 @@ double Place::get_contact_rate(int sim_day, int disease_id) {
   if(this->is_neighborhood()) {
     int day_of_week = Date::get_day_of_week();
     if(day_of_week == 0 || day_of_week == 6) {
-      contacts = Neighborhood::get_weekend_contact_rate(disease_id) * contacts;
+      contacts = Neighborhood::get_weekend_contact_rate(condition_id) * contacts;
     }
   }
-  // FRED_VERBOSE(1,"Disease %d, expected contacts = %f\n", disease_id, contacts);
+  // FRED_VERBOSE(1,"Condition %d, expected contacts = %f\n", condition_id, contacts);
   return contacts;
 }
 
-int Place::get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) {
+int Place::get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate) {
   // reduce number of infective contacts by infector's infectivity
-  double infectivity = infector->get_infectivity(disease_id, sim_day);
+  double infectivity = infector->get_infectivity(condition_id, sim_day);
   double infector_contacts = contact_rate * infectivity;
 
   FRED_VERBOSE(1, "infectivity = %f, so ", infectivity);
@@ -315,54 +315,54 @@ int Place::get_contact_count(Person* infector, int disease_id, int sim_day, doub
 
 void Place::setup_vector_model() {
 
-  this->vector_disease_data = new vector_disease_data_t;
+  this->vector_condition_data = new vector_condition_data_t;
 
   // initial vector counts
   if(this->is_neighborhood()) {
     // no vectors in neighborhoods (outdoors)
-    this->vector_disease_data->vectors_per_host = 0.0;
+    this->vector_condition_data->vectors_per_host = 0.0;
   }
   else {
-    this->vector_disease_data->vectors_per_host = 0.0;
-    this->vector_disease_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
+    this->vector_condition_data->vectors_per_host = 0.0;
+    this->vector_condition_data->vectors_per_host = Global::Vectors->get_vectors_per_host(this);
   }
-  this->vector_disease_data->N_vectors = this->N_orig * this->vector_disease_data->vectors_per_host;
-  this->vector_disease_data->S_vectors = this->vector_disease_data->N_vectors;
+  this->vector_condition_data->N_vectors = this->N_orig * this->vector_condition_data->vectors_per_host;
+  this->vector_condition_data->S_vectors = this->vector_condition_data->N_vectors;
   for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
-    this->vector_disease_data->E_vectors[i] = 0;
-    this->vector_disease_data->I_vectors[i] = 0;
+    this->vector_condition_data->E_vectors[i] = 0;
+    this->vector_condition_data->I_vectors[i] = 0;
   }
 
   // initial vector seed counts
   for(int i = 0; i < VECTOR_DISEASE_TYPES; ++i) {
     if (this->is_neighborhood()) {
       // no vectors in neighborhoods (outdoors)
-      this->vector_disease_data->place_seeds[i] = 0;
-      this->vector_disease_data->day_start_seed[i] = 0;
-      this->vector_disease_data->day_end_seed[i] = 1;
+      this->vector_condition_data->place_seeds[i] = 0;
+      this->vector_condition_data->day_start_seed[i] = 0;
+      this->vector_condition_data->day_end_seed[i] = 1;
     }
     else {
-      this->vector_disease_data->place_seeds[i] = Global::Vectors->get_seeds(this,i);
-      this->vector_disease_data->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
-      this->vector_disease_data->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
+      this->vector_condition_data->place_seeds[i] = Global::Vectors->get_seeds(this,i);
+      this->vector_condition_data->day_start_seed[i] = Global::Vectors->get_day_start_seed(this,i);
+      this->vector_condition_data->day_end_seed[i] = Global::Vectors->get_day_end_seed(this,i);
     }
   }
   FRED_VERBOSE(1, "setup_vector_model: place %s vectors_per_host %f N_vectors %d N_orig %d\n",
-         this->get_label(), this->vector_disease_data->vectors_per_host,
-         this->vector_disease_data->N_vectors, this->N_orig);
+         this->get_label(), this->vector_condition_data->vectors_per_host,
+         this->vector_condition_data->N_vectors, this->N_orig);
 }
 
 double Place::get_seeds(int dis, int sim_day) {
-  if((sim_day) || (sim_day > this->vector_disease_data->day_end_seed[dis])){
+  if((sim_day) || (sim_day > this->vector_condition_data->day_end_seed[dis])){
     return 0.0;
   } else {
-    return this->vector_disease_data->place_seeds[dis];
+    return this->vector_condition_data->place_seeds[dis];
   }
 }
 
 void Place::update_vector_population(int day) {
   if(this->is_neighborhood() == false) {
-    *(this->vector_disease_data) = Global::Vectors->update_vector_population(day, this);
+    *(this->vector_condition_data) = Global::Vectors->update_vector_population(day, this);
   }
 }
 

@@ -22,7 +22,7 @@ using namespace std;
 // TODO: find the proper place for this:
 typedef std::map<int, double> Loads;
 
-class Disease;
+class Condition;
 class Person;
 class Mixing_Group;
 
@@ -31,20 +31,20 @@ class Infection {
 public:
 
   // if primary infection, infector and place are null.
-  Infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
+  Infection(Condition* condition, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
   virtual ~Infection() {}
 
   /**
    * This static factory method is used to get an instance of a specific
    * Infection that tracks patient-specific data that depends on the
-   * natural history model associated with the disease.
+   * natural history model associated with the condition.
    *
-   * @param a pointer to the disease causing this infection.
+   * @param a pointer to the condition causing this infection.
    * @return a pointer to a specific Infection object of a possible derived class
    */
   
-  static Infection* get_new_infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
+  static Infection* get_new_infection(Condition* condition, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
 
   /*
@@ -81,8 +81,8 @@ public:
   virtual void modify_asymptomatic_period(double multp, int cur_day) {}
   virtual void modify_develops_symptoms(bool symptoms, int cur_day) {}
 
-  Disease* get_disease() {
-    return this->disease;
+  Condition* get_condition() {
+    return this->condition;
   }
 
   Person* get_host() {
@@ -156,8 +156,8 @@ public:
 
 protected:
 
-  // associated disease
-  Disease* disease;
+  // associated condition
+  Condition* condition;
 
   // people involved
   Person* infector;

@@ -31,7 +31,7 @@ class Timestep_Map {
   
   // A Timestep_Map is to be specified in a seperate file
   // If a Timestep_Map is specified with [] on the end, it is assumed to
-  // be disease specific 
+  // be condition specific 
   
   // This structure is designed so that if there is a specification in the 
   // input that specifies "none" as the keyword, the structure is empty.
