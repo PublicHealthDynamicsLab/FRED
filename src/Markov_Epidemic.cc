@@ -41,9 +41,10 @@ void Markov_Epidemic::setup() {
   this->number_of_states = this->markov_model->get_number_of_states();
   FRED_VERBOSE(0, "Markov_Epidemic::setup states = %d\n", this->number_of_states);
 
-  this->people_in_state = new person_vector_t [this->number_of_states];
-
+  // this->people_in_state = new person_vector_t [this->number_of_states];
+  this->count = new int [this->number_of_states];
   this->transition_to_state_event_queue = new Events* [this->number_of_states];
+
   for (int i = 0; i < this->number_of_states; i++) {
     this->transition_to_state_event_queue[i] = new Events;
   }
@@ -57,8 +58,9 @@ void Markov_Epidemic::prepare() {
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare\n", this->disease->get_disease_name());
 
   for (int i = 0; i < this->number_of_states; i++) {
-    this->people_in_state[i].reserve(Global::Pop.get_pop_size());
-    this->people_in_state[i].clear();
+    // this->people_in_state[i].reserve(Global::Pop.get_pop_size());
+    // this->people_in_state[i].clear();
+    this->count[i] = 0;
   }
 
   // initialize the population
@@ -76,7 +78,7 @@ void Markov_Epidemic::prepare() {
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->disease->get_disease_name());
   for (int i = 0; i < this->number_of_states; i++) {
-    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->people_in_state[i].size());
+    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->count[i]);
   }
   FRED_VERBOSE(0, "\n");
 
@@ -133,16 +135,20 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   if (old_state != state) {
     if (0 <= old_state) {
       // delete from old list
+      count[old_state]--;
+      /*
       for (int j = 0; j < people_in_state[old_state].size(); j++) {
 	if (people_in_state[old_state][j] == person) {
 	  people_in_state[old_state][j] = people_in_state[old_state].back();
 	  people_in_state[old_state].pop_back();
 	}
       }
+      */
     }
     if (0 <= state) {
       // add to active people list
-      people_in_state[state].push_back(person);
+      count[state]++;
+      // people_in_state[state].push_back(person);
     }
   }
 
@@ -225,7 +231,7 @@ void Markov_Epidemic::report_disease_specific_stats(int day) {
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->markov_model->get_state_name(i).c_str());
-    Utils::track_value(day, str, (int)(people_in_state[i].size()));
+    Utils::track_value(day, str, count[i]);
   }
 }
 
@@ -245,13 +251,16 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
   // delete from state list
   int state = person->get_health_state(this->id);
   if (0 <= state) {
+    count[state]--;
+    /*
     for (int j = 0; j < people_in_state[state].size(); j++) {
       if (people_in_state[state][j] == person) {
 	people_in_state[state][j] = people_in_state[state].back();
 	people_in_state[state].pop_back();
       }
     }
-    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from list for state %d\n",
+    */
+    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
 		 person->get_id(), day, Date::get_date_string().c_str(), state);
   }
 

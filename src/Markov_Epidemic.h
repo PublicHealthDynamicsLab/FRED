@@ -50,7 +50,8 @@ public:
 private:
   Markov_Model* markov_model;
   int number_of_states;
-  person_vector_t * people_in_state;
+  int* count;
+  // person_vector_t* people_in_state;
 
   // event queues
   Events** transition_to_state_event_queue;
