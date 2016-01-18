@@ -487,6 +487,84 @@ void Place_List::quality_control() {
     fclose(fp);
   }
 
+  printf("HOUSEHOLD_TYPE DISTRIBUTION\n");
+  if(Global::Quality_control > 1) {
+    // household type
+    int type[10];
+    int hnum = 0;
+    for (int i = 0; i < 10; i++) { type[i] = 0; }
+    for(int p = 0; p < number_places; ++p) {
+      Person* per = NULL;
+      if(this->places[p]->is_household()) {
+	hnum++;
+        Household* h = static_cast<Household*>(this->places[p]);
+	int count[15];
+	int total = 0;
+	// age distribution of heads of households
+	for(int c = 0; c < 15; ++c) {
+	  count[c] = 0;
+	}
+	int hsize = 0;
+	int single_age = 0;
+	int pair_age_diff = 0;
+	int min_age = 1000;
+	int max_age = -1;
+        for(int i = 0; i < h->get_size(); ++i) {
+	  per = h->get_enrollee(i);
+	  if(per != NULL) {
+	    hsize++;
+	    total++;
+	    int a = per->get_age()/5;
+	    if (a > 14) {
+	      a = 14;
+	    }
+	    count[a]++;
+	    if (a < min_age) { min_age = a; }
+	    if (a > max_age) { max_age = a; }
+	    if (hsize == 1) {
+	      single_age = a;
+	    }
+	    if (hsize == 2) {
+	      pair_age_diff = abs(single_age - a);
+	    }
+	  }
+	}
+	int t = 0;
+	if (hsize == 1 && min_age > 3) {
+	  t = 1;
+	}
+	if (hsize == 2 && min_age > 2 && max_age <= min_age+1) {
+	  t = 2;
+	}
+	if (min_age <= 4 && max_age > min_age+2 && max_age <= min_age + 7) {
+	  t = 3;
+	}
+	if (hsize == 2 && min_age > 2 && min_age < 13 && max_age == 14) {
+	  t = 4;
+	}
+	/*
+	if (hsize == 2 && min_age > 2 && max_age == min_age+2 && max_age < 14) {
+	  t = 5;
+	}
+	if (hsize > 2 && min_age > 3 && max_age <= min_age+1) {
+	  t = 6;
+	}
+	*/
+	type[t]++;
+	printf("HOUSEHOLD_TYPE: %d %d ", total, t);
+	for(int c = 0; c < 15; ++c) {
+	  printf("%d ",count[c]);
+	}
+	printf("\n");
+      }
+    }
+    printf("HOUSEHOLD TYPE DIST: ");
+    for(int t = 0; t < 10; ++t) {
+      printf("%d %.1f  ", type[t], (100.0*type[t])/hnum);
+    }
+    printf("\n");
+  }
+
   if(Global::Verbose) {
     int count[20];
     int total = 0;
