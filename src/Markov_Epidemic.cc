@@ -164,15 +164,18 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   // update person's next state
   person->set_next_health_state(this->id, next_state, transition_day);
 
-  FRED_VERBOSE(0,"MARKOV TRANSITION day %d %s person %d age %.0f from old_state %d to state %d, next_state %d on day %d\n",
-	       day, Date::get_date_string().c_str(), person->get_id(), age, old_state, state, next_state, transition_day);
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+	       "HEALTH RECORD: %s day %d person %d age %.1f %s CONDITION CHANGES from %s (%d) to %s (%d), next_state %s (%d) scheduled %d days from now (%d)\n",
+	       Date::get_date_string().c_str(), day,
+	       person->get_id(), age, this->condition->get_condition_name(),
+			  old_state > -1? this->markov_model->get_state_name(old_state).c_str(): "Unset", old_state, 
+	       this->markov_model->get_state_name(state).c_str(), state, 
+	       this->markov_model->get_state_name(next_state).c_str(), next_state, 
+	       transition_day-day, transition_day);
 
-  // update epidemic counters and person's health chart
+  // update epidemic counters and person's health record
 
   if (old_state <= 0 && state != 0) {
-
-    FRED_VERBOSE(0,"MARKOV TRANSITION day %d %s person %d age %.0f from old_state %d to state %d => become_exposed\n",
-		 day, Date::get_date_string().c_str(), person->get_id(), age, old_state, state);
 
     // infect the person
     person->become_exposed(this->id, NULL, NULL, day);
@@ -186,7 +189,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     this->people_with_current_symptoms++;
     this->people_becoming_symptomatic_today++;
 
-    // update person's health chart
+    // update person's health record
     person->become_symptomatic(this->condition);
   }
 
@@ -197,7 +200,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     // update epidemic counters
     this->exposed_people--;
 
-    // update person's health chart
+    // update person's health record
     person->become_infectious(this->condition);
   }
 
@@ -205,12 +208,12 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     // update epidemic counters
     this->people_with_current_symptoms--;
 
-    // update person's health chart
+    // update person's health record
     person->resolve_symptoms(this->condition);
   }
 
   if (this->condition->get_natural_history()->get_infectivity(state) == 0.0 && person->is_infectious(this->id)) {
-    // update person's health chart
+    // update person's health record
     person->become_noninfectious(this->condition);
   }
 
@@ -220,7 +223,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   if (this->condition->get_natural_history()->is_fatal(state)) {
-    // update person's health chart
+    // update person's health record
     person->become_case_fatality(day, this->condition);
   }
 }

@@ -405,10 +405,11 @@ Health::~Health() {
 
 void Health::become_susceptible(int condition_id) {
   if(this->susceptible.test(condition_id)) {
-    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			    "HEALTH CHART: %s person %d is already SUSCEPTIBLE for condition %d\n",
+    FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			    "HEALTH RECORD: %s person %d is already SUSCEPTIBLE for %s\n",
 			    Date::get_date_string().c_str(),
-			    myself->get_id(), condition_id);
+			    myself->get_id(),
+			    Global::Conditions.get_condition_name(condition_id).c_str());
     return;
   }
   assert(this->infection[condition_id] == NULL);
@@ -416,10 +417,11 @@ void Health::become_susceptible(int condition_id) {
   this->susceptible.set(condition_id);
   assert(is_susceptible(condition_id));
   this->recovered.reset(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is SUSCEPTIBLE for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is SUSCEPTIBLE for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::become_susceptible_by_vaccine_waning(int condition_id) {
@@ -430,15 +432,17 @@ void Health::become_susceptible_by_vaccine_waning(int condition_id) {
     // not already infected
     this->susceptibility_multp[condition_id] = 1.0;
     this->susceptible.set(condition_id);
-    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			    "HEALTH CHART: %s person %d is SUSCEPTIBLE for condition %d\n",
+    FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			    "HEALTH RECORD: %s person %d is SUSCEPTIBLE for %s\n",
 			    Date::get_date_string().c_str(),
-			    myself->get_id(), condition_id);
+			    myself->get_id(),
+			    Global::Conditions.get_condition_name(condition_id).c_str());
   } else {
-    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			    "HEALTH CHART: %s person %d had no vaccine waning because was already infected with condition %d\n",
+    FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			    "HEALTH RECORD: %s person %d had no vaccine waning because was already infected with %s\n",
 			    Date::get_date_string().c_str(),
-			    myself->get_id(), condition_id);
+			    myself->get_id(),
+			    Global::Conditions.get_condition_name(condition_id).c_str());
   }
 }
 
@@ -453,15 +457,17 @@ void Health::become_exposed(int condition_id, Person* infector, Mixing_Group* mi
 
   if(Global::Verbose > 0) {
     if(mixing_group == NULL) {
-      FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			      "HEALTH CHART: %s person %d is an IMPORTED EXPOSURE to condition %d\n",
+      FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			      "HEALTH RECORD: %s person %d is an IMPORTED EXPOSURE to %s\n",
 			      Date::get_date_string().c_str(),
-			      myself->get_id(), condition_id);
+			      myself->get_id(),
+			      Global::Conditions.get_condition_name(condition_id).c_str());
     } else {
-      FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			      "HEALTH CHART: %s person %d is EXPOSED to condition %d\n",
+      FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			      "HEALTH RECORD: %s person %d is EXPOSED to %s\n",
 			      Date::get_date_string().c_str(),
-			      myself->get_id(), condition_id);
+			      myself->get_id(),
+			      Global::Conditions.get_condition_name(condition_id).c_str());
     }
   }
 
@@ -523,10 +529,11 @@ void Health::become_exposed(int condition_id, Person* infector, Mixing_Group* mi
 
 void Health::become_unsusceptible(int condition_id) {
   this->susceptible.reset(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is UNSUSCEPTIBLE for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is UNSUSCEPTIBLE for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::become_unsusceptible(Condition* condition) {
@@ -542,20 +549,22 @@ void Health::become_infectious(Condition* condition) {
   Household* h = Global::Places.get_household_ptr(household_index);
   assert(h != NULL);
   h->set_human_infectious(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is INFECTIOUS for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is INFECTIOUS for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::become_noninfectious(Condition* condition) {
   int condition_id = condition->get_id();
   assert(this->infection[condition_id] != NULL);
   this->infectious.reset(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is NONINFECTIOUS for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is NONINFECTIOUS for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::become_symptomatic(Condition* condition) {
@@ -565,17 +574,19 @@ void Health::become_symptomatic(Condition* condition) {
   }
   assert(this->infection[condition_id] != NULL);
   if(this->symptomatic.test(condition_id)) {
-    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			    "HEALTH CHART: %s person %d is ALREADY SYMPTOMATIC for condition %d\n",
+    FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			    "HEALTH RECORD: %s person %d is ALREADY SYMPTOMATIC for %s\n",
 			    Date::get_date_string().c_str(),
-			    myself->get_id(), condition_id);
+			    myself->get_id(),
+			    Global::Conditions.get_condition_name(condition_id).c_str());
     return;
   }
   this->symptomatic.set(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is SYMPTOMATIC for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is SYMPTOMATIC for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::resolve_symptoms(Condition* condition) {
@@ -584,20 +595,22 @@ void Health::resolve_symptoms(Condition* condition) {
   if(this->symptomatic.test(condition_id)) {
     this->symptomatic.reset(condition_id);
   }
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d RESOLVES SYMPTOMS for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d RESOLVES SYMPTOMS for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 
 void Health::recover(Condition* condition, int day) {
   int condition_id = condition->get_id();
   // assert(this->infection[condition_id] != NULL);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			   "HEALTH CHART: %s person %d is RECOVERED from condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			   "HEALTH RECORD: %s person %d is RECOVERED from %s\n",
 			   Date::get_date_string().c_str(),
-			   myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
   this->recovered.set(condition_id);
   int household_index = myself->get_exposed_household_index();
   Household* h = Global::Places.get_household_ptr(household_index);
@@ -617,10 +630,11 @@ void Health::become_removed(int condition_id, int day) {
   this->susceptible.reset(condition_id);
   this->infectious.reset(condition_id);
   this->symptomatic.reset(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			   "HEALTH CHART: %s person %d is REMOVED for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			   "HEALTH RECORD: %s person %d is REMOVED for %s\n",
 			   Date::get_date_string().c_str(),
-			   myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 void Health::become_immune(Condition* condition) {
@@ -631,20 +645,22 @@ void Health::become_immune(Condition* condition) {
   this->susceptible.reset(condition_id);
   this->infectious.reset(condition_id);
   this->symptomatic.reset(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			  "HEALTH CHART: %s person %d is IMMUNE for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			  "HEALTH RECORD: %s person %d is IMMUNE for %s\n",
 			  Date::get_date_string().c_str(),
-			  myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
 }
 
 
 void Health::become_case_fatality(int condition_id, int day) {
   FRED_VERBOSE(0, "CONDITION %d is FATAL: day %d person %d\n", condition_id, day, myself->get_id());
   this->case_fatality.set(condition_id);
-  FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			   "HEALTH CHART: %s person %d is CASE_FATALITY for condition %d\n",
+  FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
+			   "HEALTH RECORD: %s person %d is CASE_FATALITY for %s\n",
 			   Date::get_date_string().c_str(),
-			   myself->get_id(), condition_id);
+			  myself->get_id(),
+			  Global::Conditions.get_condition_name(condition_id).c_str());
   become_removed(condition_id, day);
 
   // update household counts

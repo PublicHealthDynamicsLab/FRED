@@ -1605,7 +1605,7 @@ void Epidemic::process_infectious_start_events(int day) {
     // update epidemic counters
     this->exposed_people--;
 
-    // update person's health chart
+    // update person's health record
     person->become_infectious(this->condition);
   }
   this->infectious_start_event_queue->clear_events(day);
@@ -1617,7 +1617,7 @@ void Epidemic::process_infectious_end_events(int day) {
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
-    // update person's health chart
+    // update person's health record
     person->become_noninfectious(this->condition);
 
     // check to see if person has fully recovered:
@@ -1637,7 +1637,7 @@ void Epidemic::recover(Person* person, int day) {
   
   this->removed_people++;
   
-  // update person's health chart
+  // update person's health record
   person->recover(day, this->condition);
 }
 
@@ -1698,7 +1698,7 @@ void Epidemic::process_symptoms_start_events(int day) {
       }
     }
 
-    // update person's health chart
+    // update person's health record
     person->become_symptomatic(this->condition);
 
   }
@@ -1715,7 +1715,7 @@ void Epidemic::process_symptoms_end_events(int day) {
     // update epidemic counters
     this->people_with_current_symptoms--;
 
-    // update person's health chart
+    // update person's health record
     person->resolve_symptoms(this->condition);
         
     // check to see if person has fully recovered:
@@ -1737,7 +1737,7 @@ void Epidemic::process_immunity_start_events(int day) {
     // update epidemic counters
     this->immune_people++;
 
-    // update person's health chart
+    // update person's health record
     // person->become_immune(this->id);
   }
   this->immunity_start_event_queue->clear_events(day);
@@ -1756,7 +1756,7 @@ void Epidemic::process_immunity_end_events(int day) {
     // update epidemic counters
     this->removed_people++;
     
-    // update person's health chart
+    // update person's health record
     person->become_susceptible(this->id);
   }
   this->immunity_end_event_queue->clear_events(day);

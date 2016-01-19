@@ -37,13 +37,17 @@ public:
   void setup();
 
   Condition* get_condition(int condition_id) {
-    return conditions[condition_id];
+    return this->conditions[condition_id];
   }
 
   Condition* get_condition(char* condition_name);
 
+  string get_condition_name(int condition_id) {
+    return this->condition_name[condition_id];
+  }
+
   int get_number_of_conditions() { 
-    return number_of_conditions;
+    return this->number_of_conditions;
   }
 
   void prepare_conditions();

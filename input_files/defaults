@@ -88,7 +88,7 @@ output_population_date_match = 01-01-*
 
 # if set, out each person health status changes to logfile
 # with tag "HEALTH CHART:"
-enable_health_charts = 0
+enable_health_records = 0
 
 ##########################################################
 #
