@@ -875,11 +875,11 @@ void Epidemic::report_incidence_by_county(int day) {
       this->county_incidence[i] = 0;
     }
   }
-  FRED_VERBOSE(0, "county incidence day %d\n", day);
+  // FRED_VERBOSE(0, "county incidence day %d\n", day);
   int infected = this->people_becoming_infected_today;
   for(int i = 0; i < infected; ++i) {
     Person* infectee = this->daily_infections_list[i];
-    FRED_VERBOSE(0, "person %d is %d out of %d\n", infectee->get_id(), i, infected);
+    // FRED_VERBOSE(0, "person %d is %d out of %d\n", infectee->get_id(), i, infected);
     Household* hh = static_cast<Household*>(infectee->get_household());
     if(hh == NULL) {
       if(Global::Enable_Hospitals && infectee->is_hospitalized() && infectee->get_permanent_household() != NULL) {
@@ -890,7 +890,7 @@ void Epidemic::report_incidence_by_county(int day) {
     int c = hh->get_county_index();
     assert(0 <= c && c < this->counties);
     this->county_incidence[c]++;
-    FRED_VERBOSE(0, "county %d incidence %d %d out of %d person %d \n", c, this->county_incidence[c], i, infected, infectee->get_id());
+    // FRED_VERBOSE(0, "county %d incidence %d %d out of %d person %d \n", c, this->county_incidence[c], i, infected, infectee->get_id());
   }
   FRED_VERBOSE(1, "county incidence day %d\n", day);
   for(int c = 0; c < this->counties; ++c) {

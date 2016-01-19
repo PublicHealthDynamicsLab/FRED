@@ -37,7 +37,7 @@ void Markov_Epidemic::setup() {
   // initialize Markov specific-variables here:
 
   this->markov_model = static_cast<Markov_Natural_History*>(this->condition->get_natural_history())->get_markov_model();
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup\n", this->condition->get_condition_name());
+  // FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup\n", this->condition->get_condition_name());
   this->number_of_states = this->markov_model->get_number_of_states();
   FRED_VERBOSE(0, "Markov_Epidemic::setup states = %d\n", this->number_of_states);
 
@@ -87,13 +87,13 @@ void Markov_Epidemic::prepare() {
 
 
 void Markov_Epidemic::markov_updates(int day) {
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->condition->get_condition_name(), day);
+  FRED_VERBOSE(1, "Markov_Epidemic(%s)::update for day %d\n", this->condition->get_condition_name(), day);
 
   // handle scheduled transitions to each state
   for (int state = 0; state < this->number_of_states; state++) {
 
     int size = this->transition_to_state_event_queue[state]->get_size(day);
-    FRED_VERBOSE(0, "MARKOV_TRANSITION_TO_STATE %d day %d %s size %d\n", state, day, Date::get_date_string().c_str(), size);
+    FRED_VERBOSE(1, "MARKOV_TRANSITION_TO_STATE %d day %d %s size %d\n", state, day, Date::get_date_string().c_str(), size);
     
     for(int i = 0; i < size; ++i) {
       Person* person = this->transition_to_state_event_queue[state]->get_event(day, i);
@@ -102,7 +102,7 @@ void Markov_Epidemic::markov_updates(int day) {
 
     this->transition_to_state_event_queue[state]->clear_events(day);
   }
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::markov_update finished for day %d\n", this->condition->get_condition_name(), day);
+  FRED_VERBOSE(1, "Markov_Epidemic(%s)::markov_update finished for day %d\n", this->condition->get_condition_name(), day);
   return;
 }
 
@@ -248,7 +248,7 @@ void Markov_Epidemic::end_of_run() {
 
 
 void Markov_Epidemic::terminate_person(Person* person, int day) {
-  FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s\n",
+  FRED_VERBOSE(1, "MARKOV EPIDEMIC TERMINATE person %d day %d %s\n",
 	       person->get_id(), day, Date::get_date_string().c_str());
 
   // delete from state list
@@ -263,7 +263,7 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
       }
     }
     */
-    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
+    FRED_VERBOSE(1, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
 		 person->get_id(), day, Date::get_date_string().c_str(), state);
   }
 
@@ -271,7 +271,7 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
   int next_state = person->get_next_health_state(this->id);
   int transition_day = person->get_next_health_transition_day(this->id);
   if (0 <= next_state && day <= transition_day) {
-    printf("person %d delete_event for state %d transition_day %d\n", person->get_id(), next_state, transition_day);
+    // printf("person %d delete_event for state %d transition_day %d\n", person->get_id(), next_state, transition_day);
     this->transition_to_state_event_queue[next_state]->delete_event(transition_day, person);
   }
 
@@ -280,7 +280,7 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
   // notify Epidemic
   Epidemic::terminate_person(person, day);
 
-  FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE finished\n");
+  FRED_VERBOSE(1, "MARKOV EPIDEMIC TERMINATE finished\n");
 }
 
 
