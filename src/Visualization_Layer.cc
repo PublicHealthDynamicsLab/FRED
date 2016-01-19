@@ -194,7 +194,7 @@ void Visualization_Layer::initialize() {
 
 void Visualization_Layer::create_data_directories(char* vis_top_dir) {
   char vis_run_dir[FRED_STRING_SIZE];
-  char vis_dis_dir[FRED_STRING_SIZE];
+  char vis_cond_dir[FRED_STRING_SIZE];
   char vis_var_dir[FRED_STRING_SIZE];
 
   // make top level data directory
@@ -206,13 +206,13 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
   
   // create sub directories for conditions and output vars
   for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
-    sprintf(vis_dis_dir, "%s/dis%d", vis_run_dir, d);
-    Utils::fred_make_directory(vis_dis_dir);
+    sprintf(vis_cond_dir, "%s/cond%d", vis_run_dir, d);
+    Utils::fred_make_directory(vis_cond_dir);
     
     if(d == 0) {
       // print out household locations
       char filename[256];
-      sprintf(filename, "%s/households.txt", vis_dis_dir);
+      sprintf(filename, "%s/households.txt", vis_cond_dir);
       FILE* fp = fopen(filename, "w");
       int num_households = this->households.size();
       for(int i = 0; i < num_households; ++i) {
@@ -223,47 +223,47 @@ void Visualization_Layer::create_data_directories(char* vis_top_dir) {
     } else {
       // create symbolic links
       char cmd[FRED_STRING_SIZE];
-      sprintf(cmd, "ln -s %s/dis0/households.txt %s/households.txt", vis_run_dir, vis_dis_dir);
+      sprintf(cmd, "ln -s %s/cond0/households.txt %s/households.txt", vis_run_dir, vis_cond_dir);
       if(system(cmd) != 0) {
         Utils::fred_abort("Error using system command \"%s\"\n", cmd);
       }
     }
 
     // create directories for specific output variables
-    sprintf(vis_var_dir, "%s/I", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/I", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/Is", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/Is", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/C", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/C", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/Cs", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/Cs", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/P", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/P", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/N", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/N", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/R", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/R", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/Vec", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/Vec", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/D", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/D", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/CF", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/CF", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
-    sprintf(vis_var_dir, "%s/TCF", vis_dis_dir);
+    sprintf(vis_var_dir, "%s/TCF", vis_cond_dir);
     Utils::fred_make_directory(vis_var_dir);
 
     if(this->household_mode && Global::Enable_HAZEL) {
-      sprintf(vis_var_dir, "%s/HH_primary_hc_unav", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_primary_hc_unav", vis_cond_dir);
       Utils::fred_make_directory(vis_var_dir);
-      sprintf(vis_var_dir, "%s/HH_accept_insr_hc_unav", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_accept_insr_hc_unav", vis_cond_dir);
       Utils::fred_make_directory(vis_var_dir);
-      sprintf(vis_var_dir, "%s/HH_hc_unav", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HH_hc_unav", vis_cond_dir);
       Utils::fred_make_directory(vis_var_dir);
     }
 
     if(this->census_tract_mode && Global::Enable_HAZEL) {
-      sprintf(vis_var_dir, "%s/HC_DEFICIT", vis_dis_dir);
+      sprintf(vis_var_dir, "%s/HC_DEFICIT", vis_cond_dir);
       Utils::fred_make_directory(vis_var_dir);
     }
   }
@@ -321,7 +321,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
 
   // household with new cases
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/C/households-%d.txt", dir, condition_id, day);
+  sprintf(filename, "%s/cond%d/C/households-%d.txt", dir, condition_id, day);
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   int size = this->households.size();
@@ -334,7 +334,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
   fclose(fp);
 
   // household with active infections
-  sprintf(filename, "%s/dis%d/P/households-%d.txt", dir, condition_id, day);
+  sprintf(filename, "%s/cond%d/P/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
@@ -347,7 +347,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
   fclose(fp);
 
   // household with infectious cases
-  sprintf(filename, "%s/dis%d/I/households-%d.txt", dir, condition_id, day);
+  sprintf(filename, "%s/cond%d/I/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
@@ -360,7 +360,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
   fclose(fp);
 
   // household with recovered cases
-  sprintf(filename, "%s/dis%d/R/households-%d.txt", dir, condition_id, day);
+  sprintf(filename, "%s/cond%d/R/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   for(int i = 0; i < size; ++i) {
@@ -373,7 +373,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
 
   if (Global::Conditions.get_condition(condition_id)->is_case_fatality_enabled()) {
     // household with current case fatalities
-    sprintf(filename, "%s/dis%d/CF/households-%d.txt", dir, condition_id, day);
+    sprintf(filename, "%s/cond%d/CF/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -385,7 +385,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
     fclose(fp);
 
     // households with any case_fatalities
-    sprintf(filename, "%s/dis%d/TCF/households-%d.txt", dir, condition_id, day);
+    sprintf(filename, "%s/cond%d/TCF/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -402,7 +402,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
   if(Global::Enable_HAZEL) {
 
     //!is_primary_healthcare_available
-    sprintf(filename, "%s/dis%d/HH_primary_hc_unav/households-%d.txt", dir, condition_id, day);
+    sprintf(filename, "%s/cond%d/HH_primary_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     assert(fp != NULL);
     fprintf(fp, "lat long\n");
@@ -415,7 +415,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
     fclose(fp);
 
     //!is_other_healthcare_location_that_accepts_insurance_available
-    sprintf(filename, "%s/dis%d/HH_accept_insr_hc_unav/households-%d.txt", dir, condition_id, day);
+    sprintf(filename, "%s/cond%d/HH_accept_insr_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -427,7 +427,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
     fclose(fp);
 
     //!is_healthcare_available
-    sprintf(filename, "%s/dis%d/HH_hc_unav/households-%d.txt", dir, condition_id, day);
+    sprintf(filename, "%s/cond%d/HH_hc_unav/households-%d.txt", dir, condition_id, day);
     fp = fopen(filename, "w");
     fprintf(fp, "lat long\n");
     for(int i = 0; i < size; ++i) {
@@ -443,7 +443,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
 /*
   void Visualization_Layer::print_household_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/households-%d.txt", dir, condition_id, output_str, day);
+  sprintf(filename, "%s/cond%d/%s/households-%d.txt", dir, condition_id, output_str, day);
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "lat long\n");
   this->infected_households.clear();
@@ -463,7 +463,7 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
 
 void Visualization_Layer::print_output_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/day-%d.txt", dir, condition_id, output_str, day);
+  sprintf(filename, "%s/cond%d/%s/day-%d.txt", dir, condition_id, output_str, day);
   FILE* fp = fopen(filename, "w");
   // printf("print_output_data to file %s\n", filename);
 
@@ -488,7 +488,7 @@ void Visualization_Layer::print_output_data(char* dir, int condition_id, int out
 
 void Visualization_Layer::print_census_tract_data(char* dir, int condition_id, int output_code, char* output_str, int day) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/dis%d/%s/census_tracts-%d.txt", dir, condition_id, output_str, day);
+  sprintf(filename, "%s/cond%d/%s/census_tracts-%d.txt", dir, condition_id, output_str, day);
 
   // get the counts for this output_code
   Global::Places.get_census_tract_data_from_households(day, condition_id, output_code);
@@ -513,7 +513,7 @@ void Visualization_Layer::print_census_tract_data(char* dir, int condition_id, i
 void Visualization_Layer::print_population_data(char* dir, int condition_id, int day) {
   char filename[FRED_STRING_SIZE];
   // printf("Printing population size for GAIA\n");
-  sprintf(filename,"%s/dis%d/N/day-%d.txt",dir,condition_id,day);
+  sprintf(filename,"%s/cond%d/N/day-%d.txt",dir,condition_id,day);
   FILE* fp = fopen(filename, "w");
 
   // get the counts for an arbitrary output code;
@@ -536,7 +536,7 @@ void Visualization_Layer::print_population_data(char* dir, int condition_id, int
 void Visualization_Layer::print_vector_data(char* dir, int condition_id, int day) {
   char filename[FRED_STRING_SIZE];
   // printf("Printing population size for GAIA\n");
-  sprintf(filename,"%s/dis%d/Vec/day-%d.txt",dir,condition_id,day);
+  sprintf(filename,"%s/cond%d/Vec/day-%d.txt",dir,condition_id,day);
   FILE* fp = fopen(filename, "w");
 
   Global::Vectors->update_visualization_data(condition_id, day);

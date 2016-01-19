@@ -274,11 +274,11 @@ title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
 
 if (terminal eq "png") {
   set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,-2 font "Arial, 16"
+  set title title_string offset 0,-1 font "Arial, 16"
 }
 if (terminal eq "pdf") {
   set term pdf enhanced font "Helvetica,18" size 8.888,8.888
-  set title title_string offset 0,-2 font "Helvetica,24"
+  set title title_string offset 0,-1 font "Helvetica,24"
 }
 
 # set the ranges for the axes

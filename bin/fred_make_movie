@@ -11,7 +11,7 @@ $api_key = "none" if not $api_key;
 
 my $census_tracts = 0;
 my $country = "usa";
-my $disease_id = 0;
+my $condition_id = 0;
 my $play = 0;
 my $filled = 0;
 my $help = 0;
@@ -59,8 +59,8 @@ my $opt_result = GetOptions(
 			    "cf=i" => \$case_fatalities,
 			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
-			    "disease=i" => \$disease_id,
-			    "d=i" => \$disease_id,
+			    "disease=i" => \$condition_id,
+			    "d=i" => \$condition_id,
 			    "display=i" => \$play,
 			    "play=i" => \$play,
 			    "p=i" => \$play,
@@ -162,12 +162,21 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities";
 
 # print "$command\n"; exit;
-
 system $command;
-chdir "VIS/run$run/dis$disease_id/MAPS";
+
+my $vis = "VIS/run$run/cond$condition_id/MAPS";
+if (not -d $vis) {
+  $vis = "VIS/run$run/cond$condition_id/MAPS";
+}
+if (not -d $vis) {
+  $vis = "VIS/run$run/cond$condition_id/MAPS";
+  die "$0: can't find MPAS directory: $vis\n";
+}
+
+chdir $vis;
 # system "pwd";
 # system "ls -l map*";
 # exit;

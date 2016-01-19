@@ -12,7 +12,7 @@ $api_key = "none" if not $api_key;
 
 my $census_tracts = 0;
 my $country = "usa";
-my $disease_id = 0;
+my $condition_id = 0;
 my $filled = 0;
 my $help = 0;
 my $key = "";
@@ -57,7 +57,7 @@ my $opt_result = GetOptions(
 			    "cf=i" => \$case_fatalities,
 			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
-			    "disease=i" => \$disease_id,
+			    "disease=i" => \$condition_id,
 			    "filled=i" => \$filled,
 			    "finish=i" => \$finish,
 			    "h" => \$help,
@@ -156,7 +156,10 @@ $days = $finish if (0 < $finish and $finish < $days);
 $parallelism = $days if ($days < $parallelism);
 # print "days = $days\n";
 
-my $vis = "$outdir/VIS/run$run/dis$disease_id";
+my $vis = "$outdir/VIS/run$run/cond$condition_id";
+if (not -d $vis) {
+  $vis = "$outdir/VIS/run$run/dis$condition_id";
+}
 chdir $vis or die "Can't chdir to $vis\n";
 # print "CWD = $vis\n";
 
@@ -247,7 +250,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   push @wait, $mapname;
   $index++;
   # print "make_map $mapname\n";
-  my $loadfile = "load-run=$run-dis=$disease_id-day=$day.plt";
+  my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
   open LD, ">$loadfile";
   print LD "my_title = \"$title\"\n";
   print LD "my_subtitle = \"$subtitle\"\n";
@@ -278,8 +281,8 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "hc_unav_households = '$vis/HH_hc_unav/households-$day.txt'\n";
   print LD "hc_deficit_data = '$vis/HC_DEFICIT/census_tracts-$day.txt'\n";
   print LD "fipsfile = '$vis/MAPS/FIPS'\n";
-  print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
-  print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
+  print LD "rawfile = '$vis/MAPS/RAW-$condition_id.$day'\n";
+  print LD "pctfile = '$vis/MAPS/PCT-$condition_id.$day'\n";
   print LD "use_shapefile = $use_shapefile\n";
   print LD "shapefile_dir = '$shapefiledir'\n";
   print LD "linewidth = $linewidth\n";
@@ -346,22 +349,22 @@ sub make_county_map_data {
       my $val = shift @a;
       if ($key =~ /^County_/) {
 	my $code = "";
-	my $dis = 0;
+	my $cond = 0;
 	if ($key =~ /^County_(\d+)_(\d+)/) {
-	  ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
+	  ($code, $cond) = $key =~ /^County_(\d+)_(\d+)/;
 	}
 	else {
 	  ($code) = $key =~ /^County_(\d+)/;
-	  $dis = 0;
+	  $cond = 0;
 	}
-	if ($dis == 0 and $day == 0) {
+	if ($cond == 0 and $day == 0) {
 	  $code = sprintf("%05d", $code);
 	  push @fips, $code;
 	}
-	push @values_0, $val if $dis == 0;
-	push @values_1, $val if $dis == 1;
-	push @values_2, $val if $dis == 2;
-	push @values_3, $val if $dis == 3;
+	push @values_0, $val if $cond == 0;
+	push @values_1, $val if $cond == 1;
+	push @values_2, $val if $cond == 2;
+	push @values_3, $val if $cond == 3;
       }
     }
     exit if not @fips;
@@ -387,10 +390,10 @@ sub make_county_map_data {
 }
 
 sub write_values_to_file {
-  my ($dis,$day, @values) = @_;
+  my ($cond,$day, @values) = @_;
   return if not @values;
-  my $rawfile = "RAW-$dis.$day";
-  my $pctfile = "PCT-$dis.$day";
+  my $rawfile = "RAW-$cond.$day";
+  my $pctfile = "PCT-$cond.$day";
   open RAW,">MAPS/$rawfile";
   open PCT,">MAPS/$pctfile";
   for my $i (0..$#values) {
@@ -422,8 +425,8 @@ sub make_census_tract_map_data {
     }
     die "$0: ERROR file $file not found\n" if not -e $file;
     open CT,$file or die "$0: ERROR reading file $file\n";
-    my $rawfile = "RAW-$disease_id.$day";
-    my $pctfile = "PCT-$disease_id.$day";
+    my $rawfile = "RAW-$condition_id.$day";
+    my $pctfile = "PCT-$condition_id.$day";
     if ($filled) {
       open RAW,">MAPS/$rawfile";
       open PCT,">MAPS/$pctfile";
@@ -478,12 +481,12 @@ sub make_hazel_map_data {
       my $key = shift @a;
       my $val = shift @a;
 	  my $code = "36081";
-	  my $dis = 0;
-	  if ($dis == 0 and $day == 0) {
+	  my $cond = 0;
+	  if ($cond == 0 and $day == 0) {
 	    $code = sprintf("%05d", $code);
 	    push @fips, $code;
 	  }
-	  push @values_0, $val if $dis == 0;
+	  push @values_0, $val if $cond == 0;
      }
      exit if not @fips;
      if ($first) {
