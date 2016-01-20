@@ -573,7 +573,7 @@ void Epidemic::print_stats(int day) {
     report_group_quarters_incidence(day);
   }
 
-  FRED_VERBOSE(0, "report condition specific stats\n");
+  FRED_VERBOSE(1, "report condition specific stats\n");
   report_condition_specific_stats(day);
 
   if(Global::Verbose) {

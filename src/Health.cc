@@ -1086,9 +1086,6 @@ void Health::update_mixing_group_counts(int day, int condition_id, Mixing_Group*
 }
 
 void Health::terminate_infection(int condition_id, int day) {
-  if(this->health_condition[condition_id].state > -1) {
-    Global::Conditions.get_condition(condition_id)->terminate_person(myself, day);
-  }
   if(this->infection[condition_id] != NULL) {
     // delete the infection object
     delete this->infection[condition_id];
@@ -1101,7 +1098,7 @@ void Health::terminate(int day) {
     if(this->infection[condition_id] != NULL) {
       become_removed(condition_id, day);
     }
-    if(this->health_condition[condition_id].state == 0) {
+    if(this->health_condition[condition_id].state >-1) {
       Global::Conditions.get_condition(condition_id)->terminate_person(myself, day);;
     }
   }

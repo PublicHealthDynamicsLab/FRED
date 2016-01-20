@@ -230,7 +230,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
 
 
 void Markov_Epidemic::report_condition_specific_stats(int day) {
-  FRED_VERBOSE(0, "Markov Epidemic %s report day %d \n",this->condition->get_condition_name(),day);
+  FRED_VERBOSE(1, "Markov Epidemic %s report day %d \n",this->condition->get_condition_name(),day);
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
     strcpy(str,this->markov_chain->get_state_name(i).c_str());
@@ -263,7 +263,7 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
       }
     }
     */
-    FRED_VERBOSE(1, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
+    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
 		 person->get_id(), day, Date::get_date_string().c_str(), state);
   }
 

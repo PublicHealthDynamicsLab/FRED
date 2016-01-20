@@ -61,7 +61,7 @@ private:
   int age_groups;
   double** state_initial_percent;
   double*** transition_matrix;
-  int period_in_transition_probabilities;
+  double period_in_transition_probabilities;
 };
 
 #endif

@@ -76,6 +76,17 @@ void Markov_Chain::get_parameters() {
       this->transition_matrix[group][i] = new double [this->number_of_states];
     }
 
+    for (int i = 0; i < this->number_of_states; i++) {
+      for (int j = 0; j < this->number_of_states; j++) {
+	if (i == j) {
+	  this->transition_matrix[group][i][j] = 1.0;
+	}
+	else {
+	  this->transition_matrix[group][i][j] = 0.0;
+	}
+      }
+    }
+
     // read optional parameters
     Params::disable_abort_on_failure();
 
@@ -168,17 +179,16 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
 
   // draw a random number from 0 to the sum of all outgoing state transition probabilites
   double r = Random::draw_random(0, lambda);
-  double sum = 0.0;
 
-  // find transition correspoing to this draw
+  // find transition corresponding to this draw
+  double sum = 0.0;
   for (int j = 0; j < this->number_of_states; j++) {
-    if (j == state) {
-      continue;
-    }
-    sum += this->transition_matrix[group][state][j];
-    if (r < sum) {
-      *next_state = j;
-      return;
+    if (j != state) {
+      sum += this->transition_matrix[group][state][j];
+      if (r < sum) {
+	*next_state = j;
+	return;
+      }
     }
   }
 
