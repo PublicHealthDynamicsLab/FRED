@@ -65,9 +65,6 @@ void Markov_Chain::get_parameters() {
     assert(this->state_initial_percent[group][0] >= 0.0);
   }
 
-  // get time period for transition probabilities
-  Params::get_indexed_param(this->name, "period_in_transition_probabilities", &(this->period_in_transition_probabilities));
-
   // initialize transition matrices, one for each age group
   this->transition_matrix = new double** [this->age_groups];
   for (int group = 0; group < this->age_groups; group++) {
@@ -89,6 +86,10 @@ void Markov_Chain::get_parameters() {
 
     // read optional parameters
     Params::disable_abort_on_failure();
+
+    // get time period for transition probabilities (default: daily)
+    this->transition_time_period = 1;
+    Params::get_indexed_param(this->name, "transition_time_period", &(this->transition_time_period));
 
     for (int i = 0; i < this->number_of_states; i++) {
       for (int j = 0; j < this->number_of_states; j++) {
@@ -169,7 +170,7 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
 
   // find time of next transition
 
-  *transition_day = day + round(Random::draw_exponential(lambda) * this->period_in_transition_probabilities);
+  *transition_day = day + round(Random::draw_exponential(lambda) * this->transition_time_period);
   // transition must be in the future
   if (*transition_day == day) {
     *transition_day = day+1;
