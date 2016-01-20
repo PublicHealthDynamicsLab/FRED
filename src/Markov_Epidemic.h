@@ -17,7 +17,7 @@
 using namespace std;
 
 #include "Epidemic.h"
-class Markov_Model;
+class Markov_Chain;
 
 typedef std::vector<Person*> person_vector_t;
 
@@ -48,7 +48,7 @@ public:
   void terminate_person(Person* person, int day);
 
 private:
-  Markov_Model* markov_model;
+  Markov_Chain* markov_chain;
   int number_of_states;
   int* count;
   // person_vector_t* people_in_state;

@@ -18,7 +18,7 @@
 #include "Health.h"
 #include "Markov_Epidemic.h"
 #include "Markov_Natural_History.h"
-#include "Markov_Model.h"
+#include "Markov_Chain.h"
 #include "Person.h"
 #include "Population.h"
 #include "Place.h"
@@ -36,9 +36,9 @@ void Markov_Epidemic::setup() {
 
   // initialize Markov specific-variables here:
 
-  this->markov_model = static_cast<Markov_Natural_History*>(this->condition->get_natural_history())->get_markov_model();
+  this->markov_chain = static_cast<Markov_Natural_History*>(this->condition->get_natural_history())->get_markov_chain();
   // FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup\n", this->condition->get_condition_name());
-  this->number_of_states = this->markov_model->get_number_of_states();
+  this->number_of_states = this->markov_chain->get_number_of_states();
   FRED_VERBOSE(0, "Markov_Epidemic::setup states = %d\n", this->number_of_states);
 
   // this->people_in_state = new person_vector_t [this->number_of_states];
@@ -72,13 +72,13 @@ void Markov_Epidemic::prepare() {
       continue;
     }
     double age = person->get_real_age();
-    int state = this->markov_model->get_initial_state(age);
+    int state = this->markov_chain->get_initial_state(age);
     transition_person(person, day, state);
   }
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->condition->get_condition_name());
   for (int i = 0; i < this->number_of_states; i++) {
-    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_model->get_state_name(i).c_str(), this->count[i]);
+    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_chain->get_state_name(i).c_str(), this->count[i]);
   }
   FRED_VERBOSE(0, "\n");
 
@@ -119,7 +119,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   double age = person->get_real_age();
 
   if (state == old_state && 1 <= age &&
-      this->markov_model->get_age_group(age) == this->markov_model->get_age_group(age-1)) { 
+      this->markov_chain->get_age_group(age) == this->markov_chain->get_age_group(age-1)) { 
     // this is a birthday check-in and no age group change has occurred.
     return;
   }
@@ -158,7 +158,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   // update next event list
-  this->markov_model->get_next_state_and_time(day, age, state, &next_state, &transition_day);
+  this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day);
   this->transition_to_state_event_queue[next_state]->add_event(transition_day, person);
     
   // update person's next state
@@ -168,9 +168,9 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
 	       "HEALTH RECORD: %s day %d person %d age %.1f %s CONDITION CHANGES from %s (%d) to %s (%d), next_state %s (%d) scheduled %d days from now (%d)\n",
 	       Date::get_date_string().c_str(), day,
 	       person->get_id(), age, this->condition->get_condition_name(),
-			  old_state > -1? this->markov_model->get_state_name(old_state).c_str(): "Unset", old_state, 
-	       this->markov_model->get_state_name(state).c_str(), state, 
-	       this->markov_model->get_state_name(next_state).c_str(), next_state, 
+			  old_state > -1? this->markov_chain->get_state_name(old_state).c_str(): "Unset", old_state, 
+	       this->markov_chain->get_state_name(state).c_str(), state, 
+	       this->markov_chain->get_state_name(next_state).c_str(), next_state, 
 	       transition_day-day, transition_day);
 
   // update epidemic counters and person's health record
@@ -233,7 +233,7 @@ void Markov_Epidemic::report_condition_specific_stats(int day) {
   FRED_VERBOSE(0, "Markov Epidemic %s report day %d \n",this->condition->get_condition_name(),day);
   for (int i = 0; i < this->number_of_states; i++) {
     char str[80];
-    strcpy(str,this->markov_model->get_state_name(i).c_str());
+    strcpy(str,this->markov_chain->get_state_name(i).c_str());
     Utils::track_value(day, str, count[i]);
   }
 }

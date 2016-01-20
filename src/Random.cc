@@ -56,6 +56,7 @@ int RNG::draw_from_distribution(int n, double* dist) {
 }
 
 double RNG::exponential(double lambda) {
+  assert(lambda > 0.0);
   double u = random();
   return (-log(u) / lambda);
 }

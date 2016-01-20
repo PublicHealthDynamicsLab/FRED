@@ -116,7 +116,7 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 	$(CPP) $(CPPFLAGS) $(FRED_CLANG_FLAGS) -c $< $(INCLUDES)
 
 CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o \
-	Random.o Markov_Model.o $(SNAPPY_OBJ)
+	Random.o Markov_Chain.o $(SNAPPY_OBJ)
 
 ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 	Neighborhood_Layer.o Neighborhood_Patch.o \

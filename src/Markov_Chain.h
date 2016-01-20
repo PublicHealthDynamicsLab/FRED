@@ -9,8 +9,8 @@
   more information.
 */
 
-#ifndef _FRED_MARKOV_MODEL_H
-#define _FRED_MARKOV_MODEL_H
+#ifndef _FRED_MARKOV_CHAIN_H
+#define _FRED_MARKOV_CHAIN_H
 
 #include <string>
 using namespace std;
@@ -18,12 +18,12 @@ using namespace std;
 class Age_Map;
 
 
-class Markov_Model {
+class Markov_Chain {
 
 public:
-  Markov_Model();
+  Markov_Chain();
 
-  ~Markov_Model();
+  ~Markov_Chain();
 
   void setup(char* condition_name) {
     strcpy(name, condition_name);
@@ -47,7 +47,7 @@ public:
 
   int get_initial_state(double age);
 
-  void get_next_state_and_time(int day, double age, int old_state, int* new_state, int* transition_day);
+  void get_next_state(int day, double age, int state, int* next_state, int* transition_day);
 
   int get_age_group(double age);
 

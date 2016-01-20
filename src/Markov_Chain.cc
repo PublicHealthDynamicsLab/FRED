@@ -10,20 +10,20 @@
 */
 
 #include "Age_Map.h"
-#include "Markov_Model.h"
+#include "Markov_Chain.h"
 #include "Params.h"
 #include "Random.h"
+#include "Utils.h"
 
-
-Markov_Model::Markov_Model() {
+Markov_Chain::Markov_Chain() {
 }
 
-Markov_Model::~Markov_Model() {
+Markov_Chain::~Markov_Chain() {
 }
 
-void Markov_Model::get_parameters() {
+void Markov_Chain::get_parameters() {
 
-  FRED_VERBOSE(0, "Markov_Model(%s)::get_parameters\n", this->name);
+  FRED_VERBOSE(0, "Markov_Chain(%s)::get_parameters\n", this->name);
 
   char model_file[256];
   char paramstr[256];
@@ -106,7 +106,7 @@ void Markov_Model::get_parameters() {
 }
 
 
-void Markov_Model::print() {
+void Markov_Chain::print() {
   for (int i = 0; i < this->number_of_states; i++) {
     printf("MARKOV MODEL %s[%d].name = %s\n",
 	   this->name, i, this->state_name[i].c_str());
@@ -128,7 +128,7 @@ void Markov_Model::print() {
 }
 
 
-int Markov_Model::get_initial_state(double age) {
+int Markov_Chain::get_initial_state(double age) {
   int group = this->age_map->find_value(age);
   double r = 100.0 * Random::draw_random();
   double sum = 0.0;
@@ -143,27 +143,52 @@ int Markov_Model::get_initial_state(double age) {
 }
 
 
-void Markov_Model::get_next_state_and_time(int day, double age, int old_state, int* new_state, int* transition_day) {
+void Markov_Chain::get_next_state(int day, double age, int state, int* next_state, int* transition_day) {
   *transition_day = -1;
-  *new_state = old_state;
+  *next_state = state;
   int group = this->age_map->find_value(age);
+
+  // lambda is the rate at which we leave current state
+  double lambda = 1.0 - this->transition_matrix[group][state][state];
+
+  if (lambda == 0.0) {
+    // current state is absorbing
+    return;
+  }
+
+  // find time of next transition
+
+  *transition_day = day + round(Random::draw_exponential(lambda) * this->period_in_transition_probabilities);
+  // transition must be in the future
+  if (*transition_day == day) {
+    *transition_day = day+1;
+  }
+
+  // find the next state
+
+  // draw a random number from 0 to the sum of all outgoing state transition probabilites
+  double r = Random::draw_random(0, lambda);
+  double sum = 0.0;
+
+  // find transition correspoing to this draw
   for (int j = 0; j < this->number_of_states; j++) {
-    if (j == old_state) {
+    if (j == state) {
       continue;
     }
-    double lambda = this->transition_matrix[group][old_state][j];
-    if (lambda == 0.0) {
-      continue;
-    }
-    int t = day + 1 + round(Random::draw_exponential(lambda) * this->period_in_transition_probabilities);
-    if (*transition_day < 0 || t < *transition_day) {
-      *transition_day = t;
-      *new_state = j;
+    sum += this->transition_matrix[group][state][j];
+    if (r < sum) {
+      *next_state = j;
+      return;
     }
   }
+
+  // should never reach this point
+  Utils::fred_abort("Markov_Chain::get_next_state: Help! Bad result: state = %d next_state = %d\n",
+		  state, *next_state);
+  return;
 }
 
 
-int Markov_Model::get_age_group(double age) {
+int Markov_Chain::get_age_group(double age) {
   return (int) this->age_map->find_value(age);
 }
