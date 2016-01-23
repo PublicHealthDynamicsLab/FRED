@@ -25,9 +25,10 @@ my $title = "FRED Simulation";
 my $subtitle = " ";
 my $lightness = 0;
 my $show_all_households = 0;
+my $show_current_symptoms = 0;
 my $show_incidence = 0;
-my $show_infectious = 1;
-my $show_recovered = 1;
+my $show_infectious = 0;
+my $show_recovered = 0;
 my $show_hc_unav = 0;
 my $show_hc_deficit = 0;
 my $show_primary_hc_unav = 0;
@@ -86,6 +87,7 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "cs=i" => \$show_current_symptoms,
 			    "hc_unav=i" => \$show_hc_unav,
 			    "hc_deficit=i"=>\$show_hc_deficit,
 			    "primary_hc_unav=i" => \$show_primary_hc_unav,
@@ -162,7 +164,7 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities --cs $show_current_symptoms";
 
 # print "$command\n"; exit;
 system $command;

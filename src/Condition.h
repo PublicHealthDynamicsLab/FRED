@@ -193,6 +193,10 @@ public:
     return this->make_all_susceptible;
   }
 
+  bool causes_infection() {
+    return this->generates_infection;
+  }
+
   void end_of_run();
 
 private:
@@ -205,6 +209,9 @@ private:
   char natural_history_model[20];
   Natural_History* natural_history;
   bool make_all_susceptible;
+
+  // whether to generate an Infection object
+  bool generates_infection;
 
   // how the condition spreads
   char transmission_mode[20];

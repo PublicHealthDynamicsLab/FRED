@@ -173,6 +173,11 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
 	       this->markov_chain->get_state_name(next_state).c_str(), next_state, 
 	       transition_day-day, transition_day);
 
+  // the remainder of this method only applies to conditions that cause infection
+  if (this->causes_infection == false) {
+    return;
+  }
+
   // update epidemic counters and person's health record
 
   if (old_state <= 0 && state != 0) {

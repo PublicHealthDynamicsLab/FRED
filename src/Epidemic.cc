@@ -73,31 +73,52 @@ Epidemic* Epidemic::get_epidemic(Condition* condition) {
 Epidemic::Epidemic(Condition* dis) {
   this->condition = dis;
   this->id = condition->get_id();
+  this->causes_infection = condition->causes_infection();
+  this->susceptible_people = 0;
+  this->exposed_people = 0;
+  this->people_becoming_infected_today = 0;
+  this->infectious_people = 0;
+  this->people_becoming_symptomatic_today = 0;
+  this->people_with_current_symptoms = 0;
+  this->removed_people = 0;
+  this->immune_people = 0;
+  this->vaccinated_people = 0;
+  this->report_generation_time = false;
+  this->report_transmission_by_age = false;
+  this->population_infection_counts.tot_ppl_evr_inf = 0;
+  this->population_infection_counts.tot_ppl_evr_sympt = 0;
+  this->attack_rate = 0.0;
+  this->symptomatic_attack_rate = 0.0;
+  this->total_serial_interval = 0.0;
+  this->total_secondary_cases = 0;
+  this->N_init = 0;
+  this->N = 0;
+  this->prevalence_count = 0;
+  this->incidence = 0;
+  this->symptomatic_incidence = 0;
+  this->prevalence = 0.0;
+  this->RR = 0.0;
+  this->daily_case_fatality_count = 0;
+  this->total_case_fatality_count = 0;
+  this->case_fatality_incidence = 0;
+  this->counties = 0;
+  this->county_incidence = NULL;
+  this->census_tract_incidence = NULL;
+  this->census_tract_symp_incidence = NULL;
+  this->census_tracts = 0;
+  this->fraction_seeds_infectious = 0.0;
+
+  if (this->causes_infection == false) {
+    //no need for remaining data
+    return;
+  }
+
   this->daily_cohort_size = new int[Global::Days];
   this->number_infected_by_cohort = new int[Global::Days];
   for(int i = 0; i < Global::Days; ++i) {
     this->daily_cohort_size[i] = 0;
     this->number_infected_by_cohort[i] = 0;
   }
-  this->susceptible_people = 0;
-
-  this->exposed_people = 0;
-  this->people_becoming_infected_today = 0;
-
-  this->infectious_people = 0;
-
-  this->people_becoming_symptomatic_today = 0;
-  this->people_with_current_symptoms = 0;
-  this->removed_people = 0;
-
-  this->immune_people = 0;
-  this->vaccinated_people = 0;
-
-  this->report_generation_time = false;
-  this->report_transmission_by_age = false;
-
-  this->population_infection_counts.tot_ppl_evr_inf = 0;
-  this->population_infection_counts.tot_ppl_evr_sympt = 0;
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     //Values for household income based stratification
@@ -131,36 +152,11 @@ Epidemic::Epidemic(Condition* dis) {
     //    }
   }
 
-  this->attack_rate = 0.0;
-  this->symptomatic_attack_rate = 0.0;
-
-  this->total_serial_interval = 0.0;
-  this->total_secondary_cases = 0;
-
-  this->N_init = 0;
-  this->N = 0;
-  this->prevalence_count = 0;
-  this->incidence = 0;
-  this->symptomatic_incidence = 0;
-  this->prevalence = 0.0;
-  this->RR = 0.0;
-
-  this->daily_case_fatality_count = 0;
-  this->total_case_fatality_count = 0;
-
   this->daily_infections_list.reserve(Global::Pop.get_pop_size());
   this->daily_infections_list.clear();
 
   this->daily_symptomatic_list.reserve(Global::Pop.get_pop_size());
   this->daily_symptomatic_list.clear();
-
-  this->case_fatality_incidence = 0;
-  this->counties = 0;
-  this->county_incidence = NULL;
-  this->census_tract_incidence = NULL;
-  this->census_tract_symp_incidence = NULL;
-  this->census_tracts = 0;
-  this->fraction_seeds_infectious = 0.0;
 
   this->imported_cases_map.clear();
   this->import_by_age = false;
@@ -452,6 +448,14 @@ void Epidemic::print_stats(int day) {
     this->N = Global::Pop.get_pop_size();
   }
 
+  FRED_VERBOSE(1, "report condition specific stats\n");
+  report_condition_specific_stats(day);
+
+  if (this->causes_infection == false) {
+    // nothing else to report to output file
+    return;
+  }
+
   // get reproductive rate for the cohort exposed RR_delay days ago
   // unless RR_delay == 0
   this->daily_cohort_size[day] = this->people_becoming_infected_today;
@@ -572,9 +576,6 @@ void Epidemic::print_stats(int day) {
   if (Global::Enable_Group_Quarters) {
     report_group_quarters_incidence(day);
   }
-
-  FRED_VERBOSE(1, "report condition specific stats\n");
-  report_condition_specific_stats(day);
 
   if(Global::Verbose) {
     fprintf(Global::Statusfp, "\n");
@@ -1767,12 +1768,19 @@ void Epidemic::update(int day) {
   FRED_VERBOSE(0, "epidemic update for condition %d day %d\n", id, day);
   Utils::fred_start_epidemic_timer();
 
-  // import infections from unknown sources
-  get_imported_infections(day);
-  // Utils::fred_print_epidemic_timer("imported infections");
+  if (this->causes_infection) {
+    // import infections from unknown sources
+    get_imported_infections(day);
+    // Utils::fred_print_epidemic_timer("imported infections");
+  }
 
   // update markov transitions
   markov_updates(day);
+
+  if (this->causes_infection == false) {
+    FRED_VERBOSE(0, "epidemic update finished for condition %d day %d\n", id, day);
+    return;
+  }
 
   // transition to infectious
   process_infectious_start_events(day);

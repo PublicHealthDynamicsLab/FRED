@@ -69,12 +69,17 @@ Condition::Condition() {
 }
 
 Condition::~Condition() {
+
+  delete this->natural_history;
   delete this->epidemic;
-  delete this->residual_immunity;
+
+  if (this->residual_immunity != NULL) {
+    delete this->residual_immunity;
+  }
+
   if (this->at_risk != NULL) {
     delete this->at_risk;
   }
-  delete this->natural_history;
 
   if(this->hospitalization_prob != NULL) {
     delete this->hospitalization_prob;
@@ -116,6 +121,12 @@ void Condition::get_parameters(int condition_id, string name) {
   int n = 1;
   Params::get_indexed_param(this->condition_name, "make_all_susceptible", &n);
   this->make_all_susceptible = n ? true : false;
+
+  // default is to generate an infection for the condition
+  n = 1;
+  Params::get_indexed_param(this->condition_name, "generates_infection", &n);
+  this->generates_infection = n ? true : false;
+
   Params::set_abort_on_failure();
 
 

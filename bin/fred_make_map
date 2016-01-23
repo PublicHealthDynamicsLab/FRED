@@ -30,13 +30,16 @@ if (!exists("show_all_households")) {
   show_all_households = 0
 }
 if (!exists("show_incidence")) {
-  show_incidence = 1
+  show_incidence = 0
+}
+if (!exists("show_current_symptoms")) {
+  show_current_symptoms = 0
 }
 if (!exists("show_infectious")) {
-  show_infectious = 1
+  show_infectious = 0
 }
 if (!exists("show_recovered")) {
-  show_recovered = 1
+  show_recovered = 0
 }
 if (!exists("show_case_fatalities")) {
   show_case_fatalities = 0
@@ -82,6 +85,9 @@ if (!exists("force_ymax")) {
 
 if (!exists("household_locations")) {
   household_locations = "households.txt"
+}
+if (!exists("household_with_current_symptoms")) {
+  household_locations = "households_with_current_symptoms.txt"
 }
 if (!exists("household_incidence")) {
   household_incidence = "household_incidence.txt"
@@ -367,21 +373,12 @@ if (show_recovered) {
   }
 }
 
-if (show_case_fatalities) {
+if (show_incidence) {
   if (point_size > 0) {
-   replot case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
+   replot household_incidence u 2:1 t '' wi po ls 7 pt 5 ps point_size
   }
   else {
-   replot case_fatalities_households u 2:1 t '' wi dots ls 9
-  }
-}
-
-if (show_total_case_fatalities) {
-  if (point_size > 0) {
-   replot total_case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
-  }
-  else {
-   replot total_case_fatalities_households u 2:1 t '' wi dots ls 9
+   replot household_incidence u 2:1 t '' wi dots ls 7
   }
 }
 
@@ -394,14 +391,33 @@ if (show_infectious) {
   }
 }
 
-if (show_incidence) {
+if (show_current_symptoms) {
   if (point_size > 0) {
-   replot household_incidence u 2:1 t '' wi po ls 9 pt 5 ps (2*point_size)
+   replot household_with_current_symptoms u 2:1 t '' wi po ls 14 pt 5 ps point_size
   }
   else {
-   replot household_incidence u 2:1 t '' wi dots ls 9
+   replot household_with_current_symptoms u 2:1 t '' wi dots ls 14
   }
 }
+
+if (show_case_fatalities) {
+  if (point_size > 0) {
+   replot case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps (5*point_size)
+  }
+  else {
+   replot case_fatalities_households u 2:1 t '' wi dots ls 9
+  }
+}
+
+if (show_total_case_fatalities) {
+  if (point_size > 0) {
+   replot total_case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps (5*point_size)
+  }
+  else {
+   replot total_case_fatalities_households u 2:1 t '' wi dots ls 9
+  }
+}
+
 if (show_hc_unav) {
   if (point_size > 0) {
    replot hc_unav_households u 2:1 t '' wi po ls 1 pt 5 ps 0.1

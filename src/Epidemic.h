@@ -256,6 +256,7 @@ protected:
   int N;          // current population size
   int N_init;     // initial population size
   
+  bool causes_infection;
   bool report_generation_time;
   bool report_transmission_by_age;
 

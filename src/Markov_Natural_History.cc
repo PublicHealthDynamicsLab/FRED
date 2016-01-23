@@ -35,12 +35,13 @@ void Markov_Natural_History::setup(Condition * _condition) {
 
 
 void Markov_Natural_History::get_parameters() {
+  char paramstr[256];
 
   FRED_VERBOSE(0, "Markov_Natural_History::get_parameters\n");
 
-  // skip get_parameters() in base class:
-  // Natural_History::get_parameters();
+  // Note: we skip get_parameters() in base class.
 
+  // get the state definitions and transition probabilities
   markov_chain->get_parameters();
 
   this->state_infectivity.reserve(get_number_of_states());
@@ -51,7 +52,6 @@ void Markov_Natural_History::get_parameters() {
   this->state_symptoms.clear();
   this->state_fatality.clear();
     
-  char paramstr[256];
   int fatal;
   double inf, symp;
   for (int i = 0; i < get_number_of_states(); i++) {

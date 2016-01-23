@@ -24,9 +24,10 @@ my $term = "png";
 my $title = "FRED Simulation";
 my $subtitle = " ";
 my $show_all_households = 0;
+my $show_current_symptoms = 0;
 my $show_incidence = 0;
-my $show_infectious = 1;
-my $show_recovered = 1;
+my $show_infectious = 0;
+my $show_recovered = 0;
 my $show_hc_unav = 0;
 my $show_primary_hc_unav = 0;
 my $show_hc_deficit = 0;
@@ -78,6 +79,7 @@ my $opt_result = GetOptions(
 			    "incidence=i" => \$show_incidence,
 			    "infectious=i" => \$show_infectious,
 			    "recovered=i" => \$show_recovered,
+			    "cs=i" => \$show_current_symptoms,
 			    "hc_unav=i" => \$show_hc_unav,
 			    "hc_deficit=i" =>\$show_hc_deficit,
 				"primary_hc_unav=i" => \$show_primary_hc_unav,
@@ -262,6 +264,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "show_incidence = $show_incidence\n";
   print LD "show_infectious = $show_infectious\n";
   print LD "show_recovered = $show_recovered\n";
+  print LD "show_current_symptoms = $show_current_symptoms\n";
   print LD "show_case_fatalities = $case_fatalities\n";
   print LD "show_total_case_fatalities = $total_case_fatalities\n";
   print LD "show_hc_unav = $show_hc_unav\n"; 
@@ -272,6 +275,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   print LD "max = $max_ar\n";
   print LD "household_locations = '$vis/households.txt'\n";
   print LD "household_incidence = '$vis/C/households-$day.txt'\n";
+  print LD "household_with_current_symptoms = '$vis/Cs/households-$day.txt'\n";
   print LD "infectious_households = '$vis/I/households-$day.txt'\n";
   print LD "recovered_households = '$vis/R/households-$day.txt'\n";
   print LD "case_fatalities_households = '$vis/CF/households-$day.txt'\n";

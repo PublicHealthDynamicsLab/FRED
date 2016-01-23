@@ -346,6 +346,19 @@ void Visualization_Layer::print_household_data(char* dir, int condition_id, int 
   }
   fclose(fp);
 
+  // household with current symptomatic infections
+  sprintf(filename, "%s/cond%d/Cs/households-%d.txt", dir, condition_id, day);
+  fp = fopen(filename, "w");
+  fprintf(fp, "lat long\n");
+  for(int i = 0; i < size; ++i) {
+    Place* house = this->households[i];
+    //  just consider human infectious, not mosquito neither infectious places visited
+    if(house->get_current_symptomatic_infections(day, condition_id) > 0) {
+      fprintf(fp, "%f %f\n", house->get_latitude(), house->get_longitude());
+    }
+  }
+  fclose(fp);
+
   // household with infectious cases
   sprintf(filename, "%s/cond%d/I/households-%d.txt", dir, condition_id, day);
   fp = fopen(filename, "w");
