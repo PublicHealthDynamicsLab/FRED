@@ -44,6 +44,10 @@ void Markov_Natural_History::get_parameters() {
   // get the state definitions and transition probabilities
   markov_chain->get_parameters();
 
+  if (this->condition->causes_infection() == false) {
+    return;
+  }
+
   this->state_infectivity.reserve(get_number_of_states());
   this->state_symptoms.reserve(get_number_of_states());
   this->state_fatality.reserve(get_number_of_states());
