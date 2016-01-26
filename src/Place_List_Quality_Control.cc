@@ -487,82 +487,269 @@ void Place_List::quality_control() {
     fclose(fp);
   }
 
-  printf("HOUSEHOLD_TYPE DISTRIBUTION\n");
+ printf("HOUSEHOLD_TYPE DISTRIBUTION\n");
   if(Global::Quality_control > 1) {
     // household type
-    int type[10];
+    int htypes = 16;
+    enum htype_t {
+      SINGLE_FEMALE,
+      SINGLE_MALE,
+      OPP_SEX_SIM_AGE_PAIR,
+      OPP_SEX_DIF_AGE_PAIR,
+      OPP_SEX_TWO_PARENTS,
+      SINGLE_PARENT,
+      MULTI_GEN_FAMILY,
+      UNATTENDED_KIDS,
+      OTHER_FAMILY,
+      YOUNG_ROOMIES,
+      OLDER_ROOMIES,
+      MIXED_ROOMIES,
+      SAME_SEX_SIM_AGE_PAIR,
+      SAME_SEX_DIF_AGE_PAIR,
+      SAME_SEX_TWO_PARENTS,
+      UNKNOWN,
+    };
+
+    string htype[16] = {
+      "single female",
+      "single male",
+      "opp-sex sim-age-pair",
+      "opp-sex dif-age-pair",
+      "opp-sex two-parent family",
+      "single-parent family",
+      "multi-generational family",
+      "unattended minors",
+      "other family",
+      "young roomies",
+      "older roomies",
+      "mixed roomies",
+      "same-sex sim-age-pair",
+      "same-sex dif-age-pair",
+      "same-sex two-parent family",
+      "unknown",
+    };
+
+    int type[htypes];
+    int ttotal[htypes];
     int hnum = 0;
-    for (int i = 0; i < 10; i++) { type[i] = 0; }
+    for (int i = 0; i < htypes; i++) { type[i] = 0; ttotal[i] = 0;}
     for(int p = 0; p < number_places; ++p) {
       Person* per = NULL;
       if(this->places[p]->is_household()) {
 	hnum++;
         Household* h = static_cast<Household*>(this->places[p]);
-	int count[15];
-	int total = 0;
-	// age distribution of heads of households
-	for(int c = 0; c < 15; ++c) {
-	  count[c] = 0;
-	}
+	int count[76];
+	for (int i = 0; i < 76; i++) { count[i] = 0;}
 	int hsize = 0;
-	int single_age = 0;
-	int pair_age_diff = 0;
-	int min_age = 1000;
-	int max_age = -1;
+	int male_adult = 0;
+	int female_adult = 0;
+	int male_minor = 0;
+	int female_minor = 0;
+	int max_minor_age = -1;
+	int max_adult_age = -1;
+	int min_minor_age = 100;
+	int min_adult_age = 100;
         for(int i = 0; i < h->get_size(); ++i) {
 	  per = h->get_enrollee(i);
 	  if(per != NULL) {
 	    hsize++;
-	    total++;
-	    int a = per->get_age()/5;
-	    if (a > 14) {
-	      a = 14;
+	    int a = per->get_age()/1;
+	    if (a > 75) {
+	      a = 75;
 	    }
 	    count[a]++;
-	    if (a < min_age) { min_age = a; }
-	    if (a > max_age) { max_age = a; }
-	    if (hsize == 1) {
-	      single_age = a;
+	    if (a >= 18 && a < min_adult_age) { min_adult_age = a; }
+	    if (a >= 18 && a > max_adult_age) { max_adult_age = a; }
+	    if (a < 18 && a < min_minor_age) { min_minor_age = a; }
+	    if (a < 18 && a > max_minor_age) { max_minor_age = a; }
+	    if (a >= 18) {
+	      if (per->get_sex() == 'F') {
+		female_adult++;
+	      }
+	      else {
+		male_adult++;
+	      }
 	    }
-	    if (hsize == 2) {
-	      pair_age_diff = abs(single_age - a);
+	    else {
+	      if (per->get_sex() == 'F') {
+		female_minor++;
+	      }
+	      else {
+		male_minor++;
+	      }
 	    }
 	  }
 	}
-	int t = 0;
-	if (hsize == 1 && min_age > 3) {
-	  t = 1;
-	}
-	if (hsize == 2 && min_age > 2 && max_age <= min_age+1) {
-	  t = 2;
-	}
-	if (min_age <= 4 && max_age > min_age+2 && max_age <= min_age + 7) {
-	  t = 3;
-	}
-	if (hsize == 2 && min_age > 2 && min_age < 13 && max_age == 14) {
-	  t = 4;
-	}
-	/*
-	if (hsize == 2 && min_age > 2 && max_age == min_age+2 && max_age < 14) {
-	  t = 5;
-	}
-	if (hsize > 2 && min_age > 3 && max_age <= min_age+1) {
-	  t = 6;
-	}
-	*/
+	htype_t t = UNKNOWN;
+
+	if (max_minor_age > -1) {
+	// households with minors:
+
+	  // more than two adults
+	  if (male_adult+female_adult>2) {
+	    // check for adult children in household
+	    int males = 0;
+	    int females = 0;
+	    int max_child_age = -1;
+	    int max_par_age = -1;
+	    int min_par_age = 100;
+	    for(int i = 0; i < hsize; ++i) {
+	      per = h->get_enrollee(i);
+	      int age = per->get_age();
+	      // find age of oldest "child"
+	      if (age < 30 && age > max_child_age) {
+		max_child_age = age;
+	      }
+	      // count people over 30
+	      if (age >= 30) {
+		if (age > max_par_age) { max_par_age = age; }
+		if (age < min_par_age) { min_par_age = age; }
+		if (per->get_sex() == 'F') {
+		  females++;
+		}
+		else {
+		  males++;
+		}
+	      }
+	    }
+	    if (males+females <= 2 && max_adult_age >= max_child_age+15 && max_par_age < min_par_age+15) {
+	      // we have at least one potential biological parent
+	      if (males==1 && females==1) {
+		t = OPP_SEX_TWO_PARENTS;
+	      }
+	      else if (males==2 || females==2) {
+		t = SAME_SEX_TWO_PARENTS;
+	      }
+	      else if (males+females==1) {
+		t = SINGLE_PARENT;
+	      }
+	    }
+	    else if (max_par_age >= min_par_age + 15) {
+	      t = MULTI_GEN_FAMILY;
+	    }
+	    else {
+	      t = OTHER_FAMILY;
+	    }
+	  } // end more than 2 adults
+
+	  // two adult
+	  if (male_adult+female_adult == 2) {
+	    if (max_adult_age < min_adult_age + 15) {
+	      if (male_adult==1 && female_adult==1) {
+		t = OPP_SEX_TWO_PARENTS;
+	      }
+	      else {
+		t = SAME_SEX_TWO_PARENTS;
+	      }
+	    }
+	    else if (min_adult_age < 30) {
+	      t = SINGLE_PARENT;
+	    }
+	    else {
+	      t = MULTI_GEN_FAMILY;
+	    }
+	  } // end two adults
+
+
+	  // one adult
+	  if (male_adult+female_adult == 1) {
+	    t = SINGLE_PARENT;
+	  } // end one adult
+
+	  // no adults
+	  if (male_adult+female_adult==0) {
+	    if (hsize==2 && max_minor_age >= 15 && min_minor_age <= max_minor_age-14) {
+	      t = SINGLE_PARENT;
+	    } 
+	    else if (count[15]+count[16]+count[17]==2 && min_minor_age <= max_minor_age-14) {
+	      t = OPP_SEX_TWO_PARENTS;
+	    } 
+	    else if (hsize==2 && count[15]+count[16]+count[17]==2) {
+	      if (female_minor && male_minor) {
+		t = OPP_SEX_SIM_AGE_PAIR;
+	      }
+	      else {
+		t = SAME_SEX_SIM_AGE_PAIR;
+	      }
+	    } 
+	    else if (hsize == 1 && max_minor_age > 14) {
+	      if (female_minor) {
+		t = SINGLE_FEMALE;
+	      }
+	      else {
+		t = SINGLE_MALE;
+	      }
+	    }
+	    else if (hsize > 2 && count[17]==hsize) {
+	      t = YOUNG_ROOMIES;
+	    }
+	    else {
+	      t = UNATTENDED_KIDS;
+	    }
+	  }
+	} // end households with minors
+
+	else {
+
+	  // single adults
+	  if (hsize == 1) {
+	    if (female_adult || female_minor) {
+	      t = SINGLE_FEMALE;
+	    }
+	    else {
+	      t = SINGLE_MALE;
+	    }
+	  }
+
+	  // pairs of adults
+	  if (hsize == 2) {
+	    if (max_adult_age < min_adult_age+15) {
+	      if (male_adult && female_adult) {
+		t = OPP_SEX_SIM_AGE_PAIR;
+	      }
+	      else {
+		t = SAME_SEX_SIM_AGE_PAIR;
+	      }
+	    }
+	    else {
+	      if (male_adult && female_adult) {
+		t = OPP_SEX_DIF_AGE_PAIR;
+	      }
+	      else {
+		t = SAME_SEX_DIF_AGE_PAIR;
+	      }
+	    }
+	  } // end adults pairs
+
+	  // more than 2 adults
+	  if (hsize > 2) {
+	    if (max_adult_age < 30) {
+	      t = YOUNG_ROOMIES;
+	    }
+	    else if (min_adult_age >= 30) {
+	      t = OLDER_ROOMIES;
+	    }
+	    else {
+	      t = MIXED_ROOMIES;
+	    }
+	  }
+	} // end adult-only households
+
 	type[t]++;
-	printf("HOUSEHOLD_TYPE: %d %d ", total, t);
-	for(int c = 0; c < 15; ++c) {
-	  printf("%d ",count[c]);
+	ttotal[t] += h->get_size();
+	printf("HOUSEHOLD_TYPE: %s size = %d ", htype[t].c_str(), hsize);
+	for(int c = 0; c < 76; ++c) {
+	  if (count[c]) {
+	    printf("%d=%d ",c, count[c]);
+	  }
 	}
 	printf("\n");
       }
     }
-    printf("HOUSEHOLD TYPE DIST: ");
-    for(int t = 0; t < 10; ++t) {
-      printf("%d %.1f  ", type[t], (100.0*type[t])/hnum);
+    for(int t = 0; t < htypes; ++t) {
+      printf("HOUSEHOLD TYPE DIST: ");
+      printf("%26s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_pop_size()));
     }
-    printf("\n");
   }
 
   if(Global::Verbose) {
