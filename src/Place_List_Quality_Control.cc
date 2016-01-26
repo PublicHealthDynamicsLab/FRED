@@ -490,7 +490,7 @@ void Place_List::quality_control() {
  printf("HOUSEHOLD_TYPE DISTRIBUTION\n");
   if(Global::Quality_control > 1) {
     // household type
-    int htypes = 16;
+    int htypes = 17;
     enum htype_t {
       SINGLE_FEMALE,
       SINGLE_MALE,
@@ -498,7 +498,8 @@ void Place_List::quality_control() {
       OPP_SEX_DIF_AGE_PAIR,
       OPP_SEX_TWO_PARENTS,
       SINGLE_PARENT,
-      MULTI_GEN_FAMILY,
+      SINGLE_PAR_MULTI_GEN_FAMILY,
+      TWO_PAR_MULTI_GEN_FAMILY,
       UNATTENDED_KIDS,
       OTHER_FAMILY,
       YOUNG_ROOMIES,
@@ -510,14 +511,15 @@ void Place_List::quality_control() {
       UNKNOWN,
     };
 
-    string htype[16] = {
+    string htype[17] = {
       "single female",
       "single male",
       "opp-sex sim-age-pair",
       "opp-sex dif-age-pair",
       "opp-sex two-parent family",
       "single-parent family",
-      "multi-generational family",
+      "single-parent multi-gen family",
+      "two-parent multi-gen family",
       "unattended minors",
       "other family",
       "young roomies",
@@ -588,20 +590,25 @@ void Place_List::quality_control() {
 	  // more than two adults
 	  if (male_adult+female_adult>2) {
 	    // check for adult children in household
+	    int max_child_age = -1;
+	    for(int i = 0; i < hsize; ++i) {
+	      per = h->get_enrollee(i);
+	      int age = per->get_age();
+	      // find age of oldest "child"
+	      if (age < 30 && age < max_minor_age+15 && age > max_child_age) {
+		max_child_age = age;
+	      }
+	    }
+	    // count potential parents
 	    int males = 0;
 	    int females = 0;
-	    int max_child_age = -1;
 	    int max_par_age = -1;
 	    int min_par_age = 100;
 	    for(int i = 0; i < hsize; ++i) {
 	      per = h->get_enrollee(i);
 	      int age = per->get_age();
-	      // find age of oldest "child"
-	      if (age < 30 && age > max_child_age) {
-		max_child_age = age;
-	      }
-	      // count people over 30
-	      if (age >= 30) {
+	      // count potential parents
+	      if (age >= max_child_age+15) {
 		if (age > max_par_age) { max_par_age = age; }
 		if (age < min_par_age) { min_par_age = age; }
 		if (per->get_sex() == 'F') {
@@ -612,12 +619,12 @@ void Place_List::quality_control() {
 		}
 	      }
 	    }
-	    if (males+females <= 2 && max_adult_age >= max_child_age+15 && max_par_age < min_par_age+15) {
+	    if (0 < males+females && males+females <= 2 && max_par_age < min_par_age+15) {
 	      // we have at least one potential biological parent
 	      if (males==1 && females==1) {
 		t = OPP_SEX_TWO_PARENTS;
 	      }
-	      else if (males==2 || females==2) {
+	      else if (males+females==2) {
 		t = SAME_SEX_TWO_PARENTS;
 	      }
 	      else if (males+females==1) {
@@ -625,7 +632,31 @@ void Place_List::quality_control() {
 	      }
 	    }
 	    else if (max_par_age >= min_par_age + 15) {
-	      t = MULTI_GEN_FAMILY;
+	      // multi-gen family:
+	      // delete the older generation
+	      int ma = males;
+	      int fa = females;
+	      for(int i = 0; i < hsize; ++i) {
+		per = h->get_enrollee(i);
+		int age = per->get_age();
+		if (age >= min_par_age+15) {
+		  if (per->get_sex() == 'F') {
+		    fa--;
+		  }
+		  else {
+		    ma--;
+		  }
+		}
+	      }
+	      if (ma+fa==1) {
+		t = SINGLE_PAR_MULTI_GEN_FAMILY;
+	      }
+	      else if (ma+fa==2) {
+		t = TWO_PAR_MULTI_GEN_FAMILY;
+	      }
+	      else {
+		t = OTHER_FAMILY;
+	      }
 	    }
 	    else {
 	      t = OTHER_FAMILY;
@@ -642,11 +673,8 @@ void Place_List::quality_control() {
 		t = SAME_SEX_TWO_PARENTS;
 	      }
 	    }
-	    else if (min_adult_age < 30) {
-	      t = SINGLE_PARENT;
-	    }
 	    else {
-	      t = MULTI_GEN_FAMILY;
+	      t = SINGLE_PAR_MULTI_GEN_FAMILY;
 	    }
 	  } // end two adults
 
@@ -748,7 +776,7 @@ void Place_List::quality_control() {
     }
     for(int t = 0; t < htypes; ++t) {
       printf("HOUSEHOLD TYPE DIST: ");
-      printf("%26s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_pop_size()));
+      printf("%30s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_pop_size()));
     }
   }
 
