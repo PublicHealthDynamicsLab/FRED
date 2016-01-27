@@ -10,6 +10,10 @@ my $api_key = $ENV{FRED_API_KEY};
 $api_key = "none" if not $api_key;
 # print "api_key = '$api_key'\n";
 
+my $vars = "none";
+my $ls_list = "1";
+my $ps_list = "1";
+my $color_list = "blue";
 my $census_tracts = 0;
 my $country = "usa";
 my $condition_id = 0;
@@ -50,6 +54,10 @@ my $case_fatalities = 0;
 my $total_case_fatalities = 0;
 
 my $opt_result = GetOptions(
+			    "vars=s" => \$vars,
+			    "ps_list=s" => \$ps_list,
+			    "ls_list=s" => \$ls_list,
+			    "color_list=s" => \$color_list,
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
 			    "start=i" => \$start,
@@ -192,20 +200,20 @@ my @ar = ();
 
 if ($country eq "usa" and $census_tracts eq 1) {
   make_census_tract_map_data();
-  }
-  elsif ( $hazel eq 1) {
-	#print "make hazel map\n";
-	make_hazel_map_data();
-	}
-	#}
-	else {
-	#print "make county map\n";
-  	make_county_map_data($run);
-	}
-	$max_ar = $max if $max;
-	# print "max_ar = $max_ar\n";
-	chdir "MAPS";
-	system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
+}
+elsif ( $hazel eq 1) {
+  #print "make hazel map\n";
+  make_hazel_map_data();
+}
+#}
+else {
+  #print "make county map\n";
+  make_county_map_data($run);
+}
+$max_ar = $max if $max;
+# print "max_ar = $max_ar\n";
+chdir "MAPS";
+system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
 if ((scalar @fips eq 1) and $google) {
   # print "using existing county image\n";
   # use background image if it already exists
@@ -239,6 +247,26 @@ if ($country eq "usa" and $census_tracts eq 1) {
   }
 }
 
+my %ls = ( 
+	  "blue", 1,
+	  "skyblue", 2,
+	  "sea-green", 3,
+	  "green", 4,
+	  "greenyellow", 5,
+	  "yellow", 6,
+	  "orange", 7,
+	  "orange-red", 8,
+	  "red", 9,
+	  "beige", 10,
+	  "light-goldenrod", 11,
+	  "medium-blue", 12,
+	  "dark-green", 13,
+	  "gray", 14,
+	  "gray10", 15,
+	  "black", 16,
+	  "white", 17
+	 );
+
 ##
 ## MAIN LOOP
 ##
@@ -248,10 +276,97 @@ my @cmds = ();
 my @wait = ();
 my $index = 0;
 for (my $day = $start; $day <= $days; $day += $interval) {
+
   my $mapname = sprintf("map%04d.$term",$index);
   push @wait, $mapname;
   $index++;
+
   # print "make_map $mapname\n";
+  if ($vars eq "none") {
+    make_one_map($day, $mapname);
+  }
+  else {
+    $ls_list = get_ls_list($color_list);
+    # print "ls_list = |$ls_list|\n"; exit;
+    make_map($day, $mapname, $vars);
+  }
+  # print "$mapname\n";
+
+  print ".";
+
+  $started++;
+  if (($day eq $start) or ($started eq $parallelism)) {
+    for my $file (@wait) {
+      while (not -s $file) {
+	if (-e "FAILED") {
+	  system "mv FIPS FIPS.failed";
+	  die "$0: fred_make_map failed\n";
+	}
+	sleep 1;
+      }
+    }
+    $started = 0;
+  }
+}
+for my $file (@wait) {
+  while (not -s $file) { sleep 1; }
+}
+# system "ls -l map*";
+# system "rm -rf PCT* RAW* SHAPES load* .done* $shapefile.*";
+print " done\n";
+exit;
+
+
+sub get_ls_list {
+  my $color_list = shift;
+  my $ls_list = "";
+  my @x = split " ", $color_list;
+  for my $c (@x) {
+    #  print "c = |$c|\n";
+    $ls_list .= "$ls{$c} " if exists $ls{$c};
+    $ls_list .= "1 " if not exists $ls{$c};
+  }
+  return $ls_list;
+}
+
+##################################################
+
+sub make_map {
+  my ($day, $mapname, $vars) = @_;
+  my @x = split " ", $vars;
+  my $var = shift @x;
+  my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
+  open LD, ">$loadfile";
+  print LD "my_title = \"$title\"\n";
+  print LD "my_subtitle = \"$subtitle\"\n";
+  print LD "day = $day\n";
+  print LD "google = $google\n";
+  print LD "terminal = '$term'\n";
+  print LD "mapname = '$mapname'\n";
+  print LD "fipsfile = '$vis/MAPS/FIPS'\n";
+  print LD "use_shapefile = $use_shapefile\n";
+  print LD "shapefile_dir = '$shapefiledir'\n";
+  print LD "linewidth = $linewidth\n";
+  print LD "force_xmin = $xmin\n";
+  print LD "force_xmax = $xmax\n";
+  print LD "force_ymin = $ymin\n";
+  print LD "force_ymax = $ymax\n";
+  print LD "show_grid = $grid\n";
+  print LD "show_border = $border\n";
+  print LD "api_key = '$api_key'\n";
+  print LD "lightness =  $lightness\n";
+  print LD "filenames = '$vis/$var/households-$day.txt'\n";
+  print LD "ls_list = '$ls_list'\n";
+  print LD "ps_list = '$ps_list'\n";
+  close LD;
+  my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_map 2\>\> fred_make_maps.log"; 
+  system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";
+  system("($cmd; touch .done.$day)&");
+  
+}
+
+sub make_one_map {
+  my ($day, $mapname) = @_;
   my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
   open LD, ">$loadfile";
   print LD "my_title = \"$title\"\n";
@@ -304,30 +419,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
   system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";
   system("($cmd; touch .done.$day)&");
-  # print "$mapname\n";
-  print ".";
-  $started++;
-  if (($day eq $start) or ($started eq $parallelism)) {
-    for my $file (@wait) {
-      while (not -s $file) {
-	if (-e "FAILED") {
-	  system "mv FIPS FIPS.failed";
-	  die "$0: fred_make_map failed\n";
-	}
-	sleep 1;
-      }
-    }
-    $started = 0;
-  }
 }
-for my $file (@wait) {
-  while (not -s $file) { sleep 1; }
-}
-# system "ls -l map*";
-# system "rm -rf PCT* RAW* SHAPES load* .done* $shapefile.*";
-print " done\n";
-exit;
-
 
 ##################################################
 

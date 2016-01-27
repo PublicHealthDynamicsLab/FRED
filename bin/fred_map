@@ -1,0 +1,290 @@
+#!/usr/local/bin/gnuplot
+
+# File: fred_map
+
+# default parameters
+
+if (!exists("google")) {
+   google = 0
+}
+if (!exists("api_key")) {
+   api_key = "none"
+}
+if (!exists("lightness")) {
+   lightness = 0
+}
+if (!exists("my_title")) {
+   my_title = "FRED Simulation"
+}
+if (!exists("my_subtitle")) {
+   my_subtitle = " "
+}
+if (!exists("day")) {
+   day = 1
+}
+if (!exists("terminal")) {
+  terminal = "png"
+}
+if (!exists("mapname")) {
+  mapname = "map" . terminal
+}
+if (!exists("linewidth")) {
+  linewidth = 1.0
+}
+if (!exists("force_xmin")) {
+  force_xmin = 0
+}
+if (!exists("force_xmax")) {
+  force_xmax = 0
+}
+if (!exists("force_ymin")) {
+  force_ymin = 0
+}
+if (!exists("force_ymax")) {
+  force_ymax = 0
+}
+if (!exists("fipsfile")) {
+  fipsfile = "FIPS"
+}
+if (!exists("use_shapefile")) {
+  use_shapefile = 1
+}
+if (!exists("shapefile_dir")) {
+  shapefile_dir = "SHAPES"
+}
+
+# print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
+if (!exists("show_grid")) {
+   show_grid = 0
+}
+if (!exists("show_border")) {
+   show_border = 0
+}
+
+if (!exists("filenames")) {
+  filenames = "map.data"
+}
+if (!exists("ls_list")) {
+   ls_list = ""
+}
+print sprintf("ls_list = |%s|", ls_list)
+
+if (!exists("ps_list")) {
+  ps_list = ""
+}
+print sprintf("ps_list = |%s|", ps_list)
+
+default_ls_list = "1 5 6 7 9 16 2 3 4 8 12 13 14 10"
+
+# define styles for each color
+set style line 1 lc rgb "blue" lt 1 lw 0.2
+set style line 2 lc rgb "skyblue" lt 1 lw 0.2
+set style line 3 lc rgb "sea-green" lt 1 lw 0.2
+set style line 4 lc rgb "green" lt 1 lw 0.2
+set style line 5 lc rgb "greenyellow" lt 1 lw 0.2
+set style line 6 lc rgb "yellow" lt 1 lw 0.2
+set style line 7 lc rgb "orange" lt 1 lw 0.2
+set style line 8 lc rgb "orange-red" lt 1 lw 0.2
+set style line 9 lc rgb "red" lt 1 lw 0.2
+set style line 10 lc rgb "beige" lt 1 lw 0.2
+set style line 11 lc rgb 'light-goldenrod' lt 1 lw 0.2
+set style line 12 lc rgb "medium-blue" lt 1 lw 0.2
+set style line 13 lc rgb "dark-green" lt 1 lw 0.2
+set style line 14 lc rgb "gray" lt 1 lw 1
+set style line 15 lc rgb "gray10" lt 1 lw 1
+set style line 16 lc rgb "black" lt 1 lw 1
+set style line 17 lc rgb "white" lt 1 lw 1
+
+unset key; unset tics;
+
+# read in a list of FIPS codes
+fips = system("cat " . fipsfile)
+# print "fips = " . fips
+
+# associate a region with each FIPS code
+region(n) = word(fips,n)
+
+# name of the file containing boundaries for the region
+shapefile(n) = sprintf("%s/%s.txt", shapefile_dir, region(n))
+
+# read BBOX file if it exists
+bbox = system("perl -e 'if(-e \"BBOX\"){print \"1\"}else{print \"0\"}' ")
+print "bbox = " . bbox
+if (bbox) {
+ # read in previously computed values for bounding box: xmin, xmax, ymin and ymax
+ load 'BBOX'
+}
+else {
+
+ # create a fake plot in order to gather the x and y bbox
+ set term unknown
+ plot for [n=1:words(fips)] shapefile(n) u ($2):($1) ls 99 w filledcurve notitle
+ 
+ # initialize the new x and y boundaries
+ xmin = GPVAL_DATA_X_MIN
+ xmax = GPVAL_DATA_X_MAX
+ ymin = GPVAL_DATA_Y_MIN
+ ymax = GPVAL_DATA_Y_MAX
+ # print xmin, xmax, ymin, ymax
+ 
+ # find the x and y bbox in the data
+ xrng = xmax - xmin
+ yrng = ymax - ymin
+ 
+ # add some space on each side
+ xmin = xmin - 0.075*xrng
+ xmax = xmax + 0.075*xrng
+ ymin = ymin - 0.025*yrng
+ ymax = ymax + 0.025*yrng
+ print xmin, xmax, ymin, ymax
+ 
+ if (force_xmin) { xmin = force_xmin }
+ if (force_xmax) { xmax = force_xmax }
+ if (force_ymin) { ymin = force_ymin }
+ if (force_ymax) { ymax = force_ymax }
+ # print xmin, xmax, ymin, ymax
+
+ # earth geometry
+ km_per_deg_lat = 111.325
+ mean_lat = (ymax + ymin) / 2.0
+ km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
+ lat_lon_ratio = 0.9 * km_per_deg_lon / km_per_deg_lat
+ 
+ # print sprintf("mean latitude = %0.5f", mean_lat)
+ # print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
+ # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
+ # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
+ 
+ do for [i=1:5] {
+   # find the x and y bbox
+   xrng = xmax - xmin
+   yrng = ymax - ymin
+   
+   # adjust the x range if too small
+   xtarg = yrng / lat_lon_ratio
+   xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
+   xmin = xmin - xxtra
+   xmax = xmax + xxtra
+   
+   # adjust the y range if too small
+   ytarg = lat_lon_ratio * xrng
+   yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
+   ymin = ymin - yxtra
+   ymax = ymax + yxtra
+   # print xmin, xmax, ymin, ymax
+ }
+ 
+ # save the bbox to a file
+ print "writing bbox to  BBOX"
+ print xmin, xmax, ymin, ymax
+ set print "BBOX"
+ print sprintf("ymin = %f",ymin)
+ print sprintf("xmin = %f",xmin)
+ print sprintf("ymax = %f",ymax)
+ print sprintf("xmax = %f",xmax)
+ set print
+}
+ 
+if (google) {
+  # check if googlemap already exists
+  ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
+  if (ok == 0) {
+    cmd = sprintf("fred_get_googlemap %s %d", api_key, lightness)
+    print cmd
+    system(cmd)
+    # make sure googlemap.png exists
+    ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
+    if (ok == 0) {
+      system("echo 1 > FAILED");    
+      print "FAILED TO CREATE googlemap.png"
+      exit;
+    }
+  }
+}
+
+# ready for the actual plot:
+
+# set the title
+title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
+# day_string = sprintf("Day %d", day)
+
+if (terminal eq "png") {
+  set term pngcairo enhanced font "arial,12" size 640,640
+  set title title_string offset 0,-1 font "Arial, 16"
+}
+if (terminal eq "pdf") {
+  set term pdf enhanced font "Helvetica,18" size 8.888,8.888
+  set title title_string offset 0,-1 font "Helvetica,24"
+}
+
+# set the ranges for the axes
+set xrange [ xmin:xmax ]
+set yrange [ ymin:ymax ]
+
+# get the center of the map
+xcenter = (xmin+xmax)/2.0
+ycenter = (ymin+ymax)/2.0
+xsize = xmax-xmin
+ysize = ymax-ymin
+
+# set plot margins
+set lmargin 0
+set rmargin 0
+set tmargin 6
+set bmargin 2
+
+unset xlabel
+unset ylabel
+unset xtics
+unset ytics
+unset grid
+unset border
+
+if (show_border) {
+   set xlabel "Longitude\n" offset 0,0
+   set ylabel "\nLatitude" offset 1.5,0
+   set xtics font "arial,10"
+   set ytics font "arial,10"
+   if (show_grid) {
+    set grid back
+   }
+   else {
+    unset grid
+   }
+}
+
+get_ls(n) = n <= words(ls_list) ? word(ls_list,n) : default_ls(n)
+get_ps(n) = n <= words(ps_list) ? word(ps_list,n) : 0.1
+
+set output mapname
+set multiplot
+
+# plot the background map
+if (google) {
+  plot 'googlemap.png' binary filetype=png center=(xcenter,ycenter) dx=xsize/640 dy=ysize/498 with rgbimage notitle
+}
+else{
+  plot for [n=1:words(fips)] shapefile(n) u 2:1 t '' ls 10 w filledcurve
+}
+unset title
+
+do for [n=1:words(filenames)] {
+   filename = word(filenames,n)
+   my_ls = get_ls(n)
+   my_ps = get_ps(n)
+   if (my_ps > 0) {
+    replot filename u 2:1 t '' wi po ls my_ls pt 5 ps my_ps
+   }
+   else {
+    replot filename u 2:1 t '' wi dots ls my_ls
+   }
+}
+
+if (use_shapefile) {
+  # draw outlines
+  replot for [n=1:words(fips)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth
+}
+
+unset multiplot
+# system("open " . outfile)
+exit
