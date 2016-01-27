@@ -334,6 +334,10 @@ sub get_ls_list {
 sub make_map {
   my ($day, $mapname, $vars) = @_;
   my @x = split " ", $vars;
+  my $filenames = "";
+  for my $v (@x) {
+    $filenames .= "$vis/$v/households-$day.txt ";
+  }
   my $var = shift @x;
   my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
   open LD, ">$loadfile";
@@ -355,7 +359,7 @@ sub make_map {
   print LD "show_border = $border\n";
   print LD "api_key = '$api_key'\n";
   print LD "lightness =  $lightness\n";
-  print LD "filenames = '$vis/$var/households-$day.txt'\n";
+  print LD "filenames = '$filenames'\n";
   print LD "ls_list = '$ls_list'\n";
   print LD "ps_list = '$ps_list'\n";
   close LD;

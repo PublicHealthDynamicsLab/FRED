@@ -64,6 +64,8 @@ if (!exists("show_border")) {
 if (!exists("filenames")) {
   filenames = "map.data"
 }
+print sprintf("filenames = |%s|", filenames)
+
 if (!exists("ls_list")) {
    ls_list = ""
 }
@@ -268,17 +270,22 @@ else{
 }
 unset title
 
+
 do for [n=1:words(filenames)] {
    filename = word(filenames,n)
-   my_ls = get_ls(n)
-   my_ps = get_ps(n)
+   my_ls = get_ls(n) + 0
+   my_ps = get_ps(n) + 0.0
+   print sprintf("file = |%s| my_ls = |%d| my_ps = |%f|", filename, my_ls, my_ps)
    if (my_ps > 0) {
-    replot filename u 2:1 t '' wi po ls my_ls pt 5 ps my_ps
+    plot filename u 2:1 t '' wi po ls my_ls pt 5 ps my_ps
    }
    else {
-    replot filename u 2:1 t '' wi dots ls my_ls
+    plot filename u 2:1 t '' wi dots ls my_ls
    }
 }
+
+# replot for [n=2:2]  word(filenames,n) u 2:1 t '' wi po ls get_ls(n) pt 5 ps get_ps(n)
+# replot for [n=1:1]  word(filenames,n) u 2:1 t '' wi po ls get_ls(n) pt 5 ps get_ps(n)
 
 if (use_shapefile) {
   # draw outlines
