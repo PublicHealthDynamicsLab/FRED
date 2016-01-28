@@ -54,8 +54,7 @@ int Activities::day_of_week = 0;
 // run-time parameters
 bool Activities::Enable_default_sick_behavior = false;
 double Activities::Default_sick_day_prob = 0.0;
-//double Activities::SLA_mean_sick_days_absent = 0.0;
-//double Activities::SLU_mean_sick_days_absent = 0.0;
+
 double Activities::SLA_absent_prob = 0.0;
 double Activities::SLU_absent_prob = 0.0;
 double Activities::Flu_days = 0.0;
@@ -149,36 +148,13 @@ void Activities::initialize_static_variables() {
     Params::get_param_from_string("HAZEL_seek_hc_ramp_up_mult", &Activities::HAZEL_seek_hc_ramp_up_mult);
   }
 
-  if(Global::Report_Childhood_Presenteeism) {
-
-    Params::get_param_from_string("standard_sicktime_allocated_per_child", &Activities::Standard_sicktime_allocated_per_child);
-
-    int count_has_school_age = 0;
-    int count_has_school_age_and_unemployed_adult = 0;
-
-    //Households with school-age children and at least one unemployed adult
-    int number_places = Global::Places.get_number_of_households();
-    for(int p = 0; p < number_places; ++p) {
-      Person* per = NULL;
-      Household* h = Global::Places.get_household_ptr(p);
-      if(h->get_children() == 0) {
-	      continue;
-      }
-      if(h->has_school_aged_child()) {
-	      count_has_school_age++;
-      }
-      if(h->has_school_aged_child_and_unemployed_adult()) {
-	      count_has_school_age_and_unemployed_adult++;
-      }
-    }
-    Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
-  }
   Activities::is_initialized = true;
 }
 
 Activities::Activities() {
   this->myself = NULL;
   this->sick_leave_available = false;
+  this->sick_days_remaining = 0.0;
   this->my_sick_days_absent = -1;
   this->my_sick_days_present = -1;
   this->my_unpaid_sick_days_absent = -1;
@@ -324,18 +300,18 @@ void Activities::before_run() {
       if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
         for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
           if(i == 0) {
-            FRED_STATUS(0, "Employees in Workplace[0 - %d] with sick leave: %d\n",
+            FRED_STATUS(0, "Report_Presenteeism: Employees in Workplace[0 - %d] with sick leave: %d\n",
                         Workplace::get_workplace_size_max_by_group_id(i),
                         Activities::Tracking_data.employees_with_sick_leave[i]);
-            FRED_STATUS(0, "Employees in Workplace[0 - %d] without sick leave: %d\n",
+            FRED_STATUS(0, "Report_Presenteeism: Employees in Workplace[0 - %d] without sick leave: %d\n",
                         Workplace::get_workplace_size_max_by_group_id(i),
                         Activities::Tracking_data.employees_without_sick_leave[i]);
           } else {
-            FRED_STATUS(0, "Employees in Workplace[%d - %d] with sick leave: %d\n",
+            FRED_STATUS(0, "Report_Presenteeism: Employees in Workplace[%d - %d] with sick leave: %d\n",
                         Workplace::get_workplace_size_max_by_group_id(i - 1) + 1,
                         Workplace::get_workplace_size_max_by_group_id(i),
                         Activities::Tracking_data.employees_with_sick_leave[i]);
-            FRED_STATUS(0, "Employees in Workplace[%d - %d] without sick leave: %d\n",
+            FRED_STATUS(0, "Report_Presenteeism: Employees in Workplace[%d - %d] without sick leave: %d\n",
                         Workplace::get_workplace_size_max_by_group_id(i - 1) + 1,
                         Workplace::get_workplace_size_max_by_group_id(i),
                         Activities::Tracking_data.employees_without_sick_leave[i]);
@@ -347,6 +323,29 @@ void Activities::before_run() {
 
   if(Global::Report_Childhood_Presenteeism) {
     Global::Places.setup_household_income_quartile_sick_days();
+
+    Params::get_param_from_string("standard_sicktime_allocated_per_child", &Activities::Standard_sicktime_allocated_per_child);
+
+    int count_has_school_age = 0;
+    int count_has_school_age_and_unemployed_adult = 0;
+
+    //Households with school-age children and at least one unemployed adult
+    int number_places = Global::Places.get_number_of_households();
+    for(int p = 0; p < number_places; ++p) {
+      Person* per = NULL;
+      Household* h = Global::Places.get_household_ptr(p);
+      if(h->get_children() == 0) {
+        continue;
+      }
+      if(h->has_school_aged_child()) {
+        count_has_school_age++;
+      }
+      if(h->has_school_aged_child_and_unemployed_adult()) {
+        count_has_school_age_and_unemployed_adult++;
+      }
+    }
+    Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
+    FRED_STATUS(0, "Report_Presenteeism: Activities::Sim_based_prob_stay_home_not_needed = %.2f\n", Activities::Sim_based_prob_stay_home_not_needed);    
   }
 }
 
@@ -664,7 +663,6 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
         if(this->my_sick_leave_decision_has_been_made) {
           if(this->is_sick_leave_available() && this->sick_days_remaining > 0.0) {
             if(this->sick_days_remaining < 1.0) { //I have sick leave, but my days are about to run out
-              this->sick_days_remaining = (this->sick_days_remaining < 0.0 ? 0.0 : this->sick_days_remaining);
               if(Random::draw_random() < this->sick_days_remaining) {
                 stay_home = this->my_sick_leave_decision;
                 //Want to make sure that tomorrow I roll against the SLU_absent_prob
@@ -808,7 +806,7 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
           }
         }
       } else {
-        // it is a not work day
+        // it is not a work day
         stay_home = (Random::draw_random() < Activities::Default_sick_day_prob);
       }
     }
@@ -840,6 +838,8 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
           //First find an adult in the house
           if(my_hh->get_adults() > 0) {
             std::vector<Person*> inhab_vec = my_hh->get_inhabitants();
+            //shuffle the vector
+            std::random_shuffle(inhab_vec.begin(), inhab_vec.end());
             for(std::vector<Person*>::iterator itr = inhab_vec.begin(); itr != inhab_vec.end(); ++itr) {
               if((*itr)->is_child()) {
                 continue;
@@ -1760,7 +1760,7 @@ void Activities::start_traveling(Person* visited) {
   if(Global::Report_Childhood_Presenteeism) {
     Household* my_hh = static_cast<Household*>(this->myself->get_household());
     if(my_hh != NULL) {
-      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_chng(true);
+      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_is_set(false);
     }
   }
 
@@ -1790,7 +1790,7 @@ void Activities::stop_traveling() {
   if(Global::Report_Childhood_Presenteeism) {
     Household* my_hh = static_cast<Household*>(this->myself->get_household());
     if(my_hh != NULL) {
-      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_chng(true);
+      my_hh->set_hh_schl_aged_chld_unemplyd_adlt_is_set(false);
     }
   }
   FRED_STATUS(1, "stop traveling: id = %d\n", this->myself->get_id());

@@ -361,8 +361,8 @@ public:
     return this->hh_sympt_child;
   }
 
-  void set_hh_schl_aged_chld_unemplyd_adlt_chng(bool _hh_status_changed) {
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = _hh_status_changed;
+  void set_hh_schl_aged_chld_unemplyd_adlt_is_set(bool _hh_status_changed) {
+    this->hh_schl_aged_chld_unemplyd_adlt_is_set = _hh_status_changed;
   }
 
   void set_working_adult_using_sick_leave(bool _is_using_sl) {
@@ -463,7 +463,7 @@ private:
   int count_primary_hc_unav;
   int count_hc_accept_ins_unav;
 
-  bool hh_schl_aged_chld_unemplyd_adlt_chng;
+  bool hh_schl_aged_chld_unemplyd_adlt_is_set;
   bool hh_schl_aged_chld;
   bool hh_schl_aged_chld_unemplyd_adlt;
   bool hh_sympt_child;
@@ -522,7 +522,6 @@ private:
   }
 
 };
-
 
 /**
  * This is a helper class that is used to store information about the children in the household

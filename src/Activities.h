@@ -593,10 +593,6 @@ private:
   // run-time parameters
   static bool Enable_default_sick_behavior;
   static double Default_sick_day_prob;
-//  // mean number of sick days taken if sick leave is available
-//  static double SLA_mean_sick_days_absent;
-//  // mean number of sick days taken if sick leave is unavailable
-//  static double SLU_mean_sick_days_absent;
   // prob of staying home if sick leave is available
   static double SLA_absent_prob;
   // prob of staying home if sick leave is unavailable

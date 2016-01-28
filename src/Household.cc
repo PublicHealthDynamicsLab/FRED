@@ -57,7 +57,7 @@ Household::Household() : Place() {
   this->set_type(Place::TYPE_HOUSEHOLD);
   this->set_subtype(Place::SUBTYPE_NONE);
   this->sheltering = false;
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   this->hh_schl_aged_chld = false;
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
@@ -83,7 +83,7 @@ Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo la
   this->set_type(Place::TYPE_HOUSEHOLD);
   this->set_subtype(_subtype);
   this->sheltering = false;
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   this->hh_schl_aged_chld = false;
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
@@ -162,7 +162,7 @@ double Household::get_contacts_per_day(int condition) {
 }
 
 void Household::set_household_has_hospitalized_member(bool does_have) {
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = true;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   if(does_have) {
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
   } else {
@@ -187,7 +187,7 @@ bool Household::has_school_aged_child() {
   //Household has been loaded
   assert(Global::Pop.is_load_completed());
   //If the household status hasn't changed, just return the flag
-  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+  if(this->hh_schl_aged_chld_unemplyd_adlt_is_set) {
     return this->hh_schl_aged_chld;
   } else {
     bool ret_val = false;
@@ -199,7 +199,6 @@ bool Household::has_school_aged_child() {
       }
     }
     this->hh_schl_aged_chld = ret_val;
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
     return ret_val;
   }
 }
@@ -208,7 +207,7 @@ bool Household::has_school_aged_child_and_unemployed_adult() {
   //Household has been loaded
   assert(Global::Pop.is_load_completed());
   //If the household status hasn't changed, just return the flag
-  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+  if(this->hh_schl_aged_chld_unemplyd_adlt_is_set) {
     return this->hh_schl_aged_chld_unemplyd_adlt;
   } else {
     bool ret_val = false;
@@ -244,7 +243,7 @@ bool Household::has_school_aged_child_and_unemployed_adult() {
       }
     }
     this->hh_schl_aged_chld_unemplyd_adlt = ret_val;
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+    this->hh_schl_aged_chld_unemplyd_adlt_is_set = true;
     return ret_val;
   }
 }
