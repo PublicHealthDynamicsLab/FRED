@@ -284,12 +284,9 @@ do for [n=1:words(filenames)] {
    }
 }
 
-# replot for [n=2:2]  word(filenames,n) u 2:1 t '' wi po ls get_ls(n) pt 5 ps get_ps(n)
-# replot for [n=1:1]  word(filenames,n) u 2:1 t '' wi po ls get_ls(n) pt 5 ps get_ps(n)
-
 if (use_shapefile) {
   # draw outlines
-  replot for [n=1:words(fips)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth
+  plot for [n=1:words(fips)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth
 }
 
 unset multiplot
