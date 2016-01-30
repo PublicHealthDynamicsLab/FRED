@@ -310,8 +310,8 @@ vector<double> Condition::get_residual_immunity_values_by_FIPS(int FIPS_int) {
   return residual_immunity_by_FIPS[FIPS_int];
 }
 
-void Condition::report(int day) {
-  this->epidemic->report(day);
+void Condition::print_stats(int day) {
+  this->epidemic->print_stats(day);
 }
 
 

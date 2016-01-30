@@ -55,8 +55,6 @@ void Markov_Epidemic::setup() {
 
 void Markov_Epidemic::prepare() {
 
-  Epidemic::prepare();
-
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare\n", this->condition->get_condition_name());
 
   for (int i = 0; i < this->number_of_states; i++) {

@@ -90,7 +90,11 @@ public:
     return this->at_risk;
   }
 
-  void report(int day);
+  /**
+   * @param day the simulation day
+   * @see Epidemic::print_stats(day);
+   */
+  void print_stats(int day);
 
   /**
    * @return the epidemic with which this Condition is associated

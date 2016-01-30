@@ -174,9 +174,6 @@ void fred_setup(int argc, char* argv[]) {
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
 
-  // setup visualuzation data directories
-  Global::Visualization->setup();
-
   // finished setting up Conditions
   Global::Conditions.setup();
   Utils::fred_print_lap_time("Conditions.setup");
@@ -272,13 +269,13 @@ void fred_setup(int argc, char* argv[]) {
     Utils::fred_print_lap_time("quality control");
   }
 
-  /*
-    if(Global::Track_age_distribution) {
-    Global::Pop.print_age_distribution(Global::Simulation_directory,
-    (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
-    Global::Simulation_run_number);
-    }
-  */
+  if(Global::Track_age_distribution) {
+    /*
+      Global::Pop.print_age_distribution(Global::Simulation_directory,
+      (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
+      Global::Simulation_run_number);
+    */
+  }
 
   if(Global::Enable_Seasonality) {
     Global::Clim->print_summary();
@@ -340,6 +337,11 @@ void fred_setup(int argc, char* argv[]) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
+  }
+
+  // initialize visualization data if desired
+  if(Global::Enable_Visualization_Layer) {
+    Global::Visualization->initialize();
   }
 
   // initialize generic activities
@@ -445,12 +447,7 @@ void fred_step(int day) {
     Utils::fred_print_lap_time("day %d update epidemic for condition %d", day, condition_id);
   }
 
-  // print daily reports and visualization data
-  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
-    Global::Conditions.get_condition(d)->report(day);
-  }
-  Utils::fred_print_lap_time("day %d report conditions", day);
-
+  // print daily report
   Global::Pop.report(day);
   Utils::fred_print_lap_time("day %d report population", day);
 

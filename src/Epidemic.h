@@ -107,13 +107,8 @@ public:
   virtual ~Epidemic();
  
   virtual void setup();
-  virtual void prepare();
-  void create_visualization_data_directories();
-  void report(int day);
+  virtual void prepare() {}
   void print_stats(int day);
-  void print_visualization_data_for_active_infections(int day);
-  void print_visualization_data_for_recovered(int day, Person* person);
-  void print_visualization_data_for_case_fatality(int day, Person* person);
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
   void report_transmission_by_age_group(int day);
@@ -357,9 +352,6 @@ protected:
   int census_tracts;
   int* census_tract_incidence;
   int* census_tract_symp_incidence;
-
-  // directory for visualization data
-  char visualization_directory[FRED_STRING_SIZE];
 
 };
 

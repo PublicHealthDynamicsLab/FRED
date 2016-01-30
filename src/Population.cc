@@ -570,6 +570,10 @@ void Population::report(int day) {
   // give out anti-virals (after today's infections)
   this->av_manager->disseminate(day);
 
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+    Global::Conditions.get_condition(d)->print_stats(day);
+  }
+
   // Write out the population if the output_population parameter is set.
   // Will write only on the first day of the simulation, on days
   // matching the date pattern in the parameter file, and the on

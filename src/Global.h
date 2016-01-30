@@ -176,7 +176,6 @@ public:
 
   // global simulation variables
   static char Simulation_directory[FRED_STRING_SIZE];
-  static char Visualization_directory[FRED_STRING_SIZE];
   static int Simulation_run_number;
   static unsigned long Simulation_seed;
   static high_resolution_clock::time_point Simulation_start_time;
