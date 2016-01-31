@@ -363,7 +363,9 @@ void Epidemic::become_exposed(Person* person, int day) {
 
 void Epidemic::report(int day) {
   print_stats(day);
-  print_visualization_data_for_active_infections(day);
+  if (Global::Enable_Visualization_Layer) {
+    print_visualization_data_for_active_infections(day);
+  }
 }
 
 
