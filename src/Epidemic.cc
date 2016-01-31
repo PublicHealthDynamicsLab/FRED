@@ -1569,8 +1569,10 @@ void Epidemic::recover(Person* person, int day) {
   
   this->removed_people++;
   
-  // record vidualization data
-  print_visualization_data_for_recovered(day, person);
+  if (Global::Enable_Visualization_Layer) {
+    // record vidualization data
+    print_visualization_data_for_recovered(day, person);
+  }
 
   // update person's health record
   person->recover(day, this->condition);
@@ -1749,7 +1751,9 @@ void Epidemic::update(int day) {
       this->total_case_fatality_count++;
       // record removed person
       this->removed_people++;
-      print_visualization_data_for_case_fatality(day, person);
+      if (Global::Enable_Visualization_Layer) {
+	print_visualization_data_for_case_fatality(day, person);
+      }
     }
 
     // note: case fatalities will be uninfected at this point
