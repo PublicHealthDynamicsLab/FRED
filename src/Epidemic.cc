@@ -178,86 +178,7 @@ Epidemic::Epidemic(Condition* dis) {
   this->actually_infectious_people.clear();
 }
 
-
-void Epidemic::track_value(int day, char* key, int value) {
-  char key_str[80];
-  if(this->id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, this->id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-
-void Epidemic::track_value(int day, char* key, double value) {
-  char key_str[80];
-  if(this->id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, this->id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-
-void Epidemic::track_value(int day, char* key, string value) {
-  char key_str[80];
-  if(this->id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, this->id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-
-
-void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
-  if(!susceptible) {
-    this->removed_people++;
-  }
-  if(symptomatic) {
-    this->people_with_current_symptoms--;
-  }
-  this->immune_people++;
-}
-
-void Epidemic::terminate_person(Person* person, int day) {
-  FRED_VERBOSE(1, "EPIDEMIC TERMINATE person %d day %d\n",
-	       person->get_id(), day);
-
-  // cancel any events for this person
-  int date = person->get_symptoms_start_date(this->id);
-  if(date > day) {
-    FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_start_date %d %d\n", date, day);
-    cancel_symptoms_start(date, person);
-  }
-  else if (date > -1) {
-    date = person->get_symptoms_end_date(this->id);
-    if(date > day) {
-      FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_end_date %d %d\n", date, day);
-      cancel_symptoms_end(date, person);
-    }
-  }
-
-  date = person->get_infectious_start_date(this->id);
-  if(date > day) {
-    FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_start_date %d %d\n", date, day);
-    cancel_infectious_start(date, person);
-  }
-  else if (date > -1) {
-    date = person->get_infectious_end_date(this->id);
-    if(date > day) {
-      FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_end_date %d %d\n", date, day);
-      cancel_infectious_end(date, person);
-    }
-  }
-
-  date = person->get_immunity_end_date(this->id);
-  if(date > day) {
-    FRED_VERBOSE(0, "EPIDEMIC CANCEL immunity_end_date %d %d\n", date, day);
-    cancel_immunity_end(date, person);
-  }
-
-  FRED_VERBOSE(1, "EPIDEMIC TERMINATE finished\n");
+Epidemic::~Epidemic() {
 }
 
 
@@ -354,8 +275,10 @@ void Epidemic::setup() {
   }
 }
 
-Epidemic::~Epidemic() {
+void Epidemic::prepare() {
+  create_visualization_data_directories();
 }
+
 
 void Epidemic::become_exposed(Person* person, int day) {
 
@@ -435,6 +358,12 @@ void Epidemic::become_exposed(Person* person, int day) {
   }
 
   this->daily_infections_list.push_back(person);
+}
+
+
+void Epidemic::report(int day) {
+  print_stats(day);
+  print_visualization_data_for_active_infections(day);
 }
 
 
@@ -1638,6 +1567,9 @@ void Epidemic::recover(Person* person, int day) {
   
   this->removed_people++;
   
+  // record vidualization data
+  print_visualization_data_for_recovered(day, person);
+
   // update person's health record
   person->recover(day, this->condition);
 }
@@ -1815,6 +1747,7 @@ void Epidemic::update(int day) {
       this->total_case_fatality_count++;
       // record removed person
       this->removed_people++;
+      print_visualization_data_for_case_fatality(day, person);
     }
 
     // note: case fatalities will be uninfected at this point
@@ -2002,4 +1935,244 @@ void Epidemic::cancel_immunity_start(int day, Person* person) {
 void Epidemic::cancel_immunity_end(int day, Person* person) {
   this->immunity_end_event_queue->delete_event(day, person);
 }
+
+void Epidemic::track_value(int day, char* key, int value) {
+  char key_str[80];
+  if(this->id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+
+void Epidemic::track_value(int day, char* key, double value) {
+  char key_str[80];
+  if(this->id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+
+void Epidemic::track_value(int day, char* key, string value) {
+  char key_str[80];
+  if(this->id == 0) {
+    sprintf(key_str, "%s", key);
+  } else {
+    sprintf(key_str, "%s_%d", key, this->id);
+  }
+  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
+}
+
+
+void Epidemic::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
+  if(!susceptible) {
+    this->removed_people++;
+  }
+  if(symptomatic) {
+    this->people_with_current_symptoms--;
+  }
+  this->immune_people++;
+}
+
+void Epidemic::terminate_person(Person* person, int day) {
+  FRED_VERBOSE(1, "EPIDEMIC TERMINATE person %d day %d\n",
+	       person->get_id(), day);
+
+  // cancel any events for this person
+  int date = person->get_symptoms_start_date(this->id);
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_start_date %d %d\n", date, day);
+    cancel_symptoms_start(date, person);
+  }
+  else if (date > -1) {
+    date = person->get_symptoms_end_date(this->id);
+    if(date > day) {
+      FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_end_date %d %d\n", date, day);
+      cancel_symptoms_end(date, person);
+    }
+  }
+
+  date = person->get_infectious_start_date(this->id);
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_start_date %d %d\n", date, day);
+    cancel_infectious_start(date, person);
+  }
+  else if (date > -1) {
+    date = person->get_infectious_end_date(this->id);
+    if(date > day) {
+      FRED_VERBOSE(0, "EPIDEMIC CANCEL infectious_end_date %d %d\n", date, day);
+      cancel_infectious_end(date, person);
+    }
+  }
+
+  date = person->get_immunity_end_date(this->id);
+  if(date > day) {
+    FRED_VERBOSE(0, "EPIDEMIC CANCEL immunity_end_date %d %d\n", date, day);
+    cancel_immunity_end(date, person);
+  }
+
+  FRED_VERBOSE(1, "EPIDEMIC TERMINATE finished\n");
+}
+
+
+void Epidemic::create_visualization_data_directories() {
+  char vis_var_dir[FRED_STRING_SIZE];
+
+  // create sub directory for this condition
+  sprintf(this->visualization_directory, "%s/cond%d", Global::Visualization_directory, this->id);
+  Utils::fred_make_directory(this->visualization_directory);
+    
+  // create directories for specific output variables
+  sprintf(vis_var_dir, "%s/I", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Ia", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Is", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/C", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Ca", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Cs", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/P", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Pa", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Ps", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/N", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/R", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/Vec", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/D", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/CF", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/TCF", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+
+  if(Global::Enable_HAZEL) {
+    sprintf(vis_var_dir, "%s/HH_primary_hc_unav", this->visualization_directory);
+    Utils::fred_make_directory(vis_var_dir);
+    sprintf(vis_var_dir, "%s/HH_accept_insr_hc_unav", this->visualization_directory);
+    Utils::fred_make_directory(vis_var_dir);
+    sprintf(vis_var_dir, "%s/HH_hc_unav", this->visualization_directory);
+    Utils::fred_make_directory(vis_var_dir);
+    sprintf(vis_var_dir, "%s/HC_DEFICIT", this->visualization_directory);
+    Utils::fred_make_directory(vis_var_dir);
+  }
+}
+
+
+void Epidemic::print_visualization_data_for_active_infections(int day) {
+  char filename[FRED_STRING_SIZE];
+
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "C", day);
+  FILE* C_fp = fopen(filename, "w");
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Cs", day);
+  FILE* Cs_fp = fopen(filename, "w");
+
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "I", day);
+  FILE* I_fp = fopen(filename, "w");
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Ia", day);
+  FILE* Ia_fp = fopen(filename, "w");
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Is", day);
+  FILE* Is_fp = fopen(filename, "w");
+
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "P", day);
+  FILE* P_fp = fopen(filename, "w");
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Pa", day);
+  FILE* Pa_fp = fopen(filename, "w");
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Ps", day);
+  FILE* Ps_fp = fopen(filename, "w");
+
+  sprintf(filename, "%s/%s/person-%d.txt", this->visualization_directory, "P", day);
+  FILE* Person_fp = fopen(filename, "w");
+
+  for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ++it) {
+    Person* person = (*it);
+    if (person->is_infected(this->id)) {
+      fprintf(Person_fp, "%d %d %d\n", person->get_id(), person->get_age(), person->get_exposure_date(this->id));
+      Place* household = person->get_household();
+      if(household != NULL) {
+	Household* hh = static_cast<Household*>(household);
+
+	// person is currently infected
+	fprintf(P_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+
+	if (person->is_symptomatic(this->id)) {
+	  // current symptomatic
+	  fprintf(Ps_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	}
+	else {
+	  // current asymptomatic
+	  fprintf(Pa_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	}
+
+	if (person->is_infectious(this->id)==day) {
+	  // infectious
+	  fprintf(I_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  if (person->is_symptomatic(this->id)) {
+	    // infectious and symptomatic
+	    fprintf(Is_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  }
+	  else {
+	    // infectious and asymptomatic
+	    fprintf(Ia_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  }
+	}
+
+	if (person->get_exposure_date(this->id)==day) {
+	  // new infection
+	  fprintf(C_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	}
+
+	if (person->get_symptoms_start_date(this->id)==day) {
+	  // new symptomatic
+	  fprintf(Cs_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	}
+
+      }
+    }
+  }
+
+  fclose(C_fp);
+  fclose(Cs_fp);
+  fclose(I_fp);
+  fclose(Ia_fp);
+  fclose(Is_fp);
+  fclose(P_fp);
+  fclose(Pa_fp);
+  fclose(Ps_fp);
+  fclose(Person_fp);
+}
+
+
+void Epidemic::print_visualization_data_for_recovered(int day, Person* person) {
+  char filename[FRED_STRING_SIZE];
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "R", day);
+  FILE* R_fp = fopen(filename, "a");
+  Place* household = person->get_household();
+  Household* hh = static_cast<Household*>(household);
+  fprintf(R_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+  fclose(R_fp);
+}
+
+void Epidemic::print_visualization_data_for_case_fatality(int day, Person* person) {
+  char filename[FRED_STRING_SIZE];
+  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "CF", day);
+  FILE* CF_fp = fopen(filename, "a");
+  Place* household = person->get_household();
+  Household* hh = static_cast<Household*>(household);
+  fprintf(CF_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+  fclose(CF_fp);
+}
+
+
 

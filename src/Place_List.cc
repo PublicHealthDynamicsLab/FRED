@@ -1232,6 +1232,28 @@ void Place_List::prepare() {
   if (Global::Verbose > 0) {
     print_status_of_schools(0);
   }
+
+  // add household list to visualization layer if needed
+  /*
+  int num_households = this->households.size();
+  if(Global::Enable_Visualization_Layer) {
+    for(int i = 0; i < num_households; ++i) {
+      Household* h = this->get_household_ptr(i);
+      // Global::Visualization->add_household(h);
+    }
+  }
+
+  // print out household locations to visualization directory
+  char filename[256];
+  sprintf(filename, "%s/households.txt", Global::Visualization_directory);
+  FILE* fp = fopen(filename, "w");
+  for(int i = 0; i < num_households; ++i) {
+    Household* h = get_household_ptr(i);
+    fprintf(fp, "%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
+  }
+  fclose(fp);
+  */
+
 }
 
 void Place_List::print_status_of_schools(int day) {
@@ -1620,14 +1642,6 @@ void Place_List::setup_households() {
     select_households_for_shelter();
   } else if(Global::Enable_HAZEL) {
     select_households_for_evacuation();
-  }
-
-  // add household list to visualization layer if needed
-  if(Global::Enable_Visualization_Layer) {
-    for(int i = 0; i < num_households; ++i) {
-      Household* h = this->get_household_ptr(i);
-      Global::Visualization->add_household(h);
-    }
   }
 
   FRED_STATUS(0, "setup households finished\n", "");

@@ -23,6 +23,7 @@
 
 // global simulation variables
 char Global::Simulation_directory[FRED_STRING_SIZE];
+char Global::Visualization_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
 unsigned long Global::Simulation_seed = 1;
 high_resolution_clock::time_point Global::Simulation_start_time = high_resolution_clock::now();

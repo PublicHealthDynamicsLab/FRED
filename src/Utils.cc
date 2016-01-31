@@ -19,6 +19,8 @@
 #include <chrono>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
 
 using namespace std;
 using namespace std::chrono;
@@ -202,6 +204,19 @@ void Utils::fred_open_output_files(){
 }
 
 void Utils::fred_make_directory(char* directory) {
+  struct stat info;
+  if( stat( directory, &info ) == 0 ) {
+    // file already exists. verify that it is a directory
+    if( info.st_mode & S_IFDIR )  {
+      printf( "fred_make_directory: %s already exists\n", directory );
+      return;
+    }
+    else {
+      Utils::fred_abort("fred_make_directory: %s exists but is not a directory\n", directory );
+      return;
+    }    
+  }
+  // try to create the directory:
   mode_t mask;        // the user's current umask
   mode_t mode = 0777; // as a start
   mask = umask(0); // get the current mask, which reads and sets...
