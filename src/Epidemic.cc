@@ -173,6 +173,10 @@ Epidemic::Epidemic(Condition* dis) {
 
   this->infected_people.clear();
   this->potentially_infectious_people.clear();
+  this->new_infected_people.clear();
+  this->new_symptomatic_people.clear();
+  this->new_infectious_people.clear();
+  this->recovered_people.clear();
 
   this->actually_infectious_people.reserve(Global::Pop.get_pop_size());
   this->actually_infectious_people.clear();
@@ -283,6 +287,9 @@ void Epidemic::prepare() {
 void Epidemic::become_exposed(Person* person, int day) {
 
   this->infected_people.insert(person);
+  if (Global::Enable_Visualization_Layer) {
+    this->new_infected_people.insert(person);
+  }
 
   // update next event list
   int infectious_start_date = -1;
@@ -409,7 +416,8 @@ void Epidemic::print_stats(int day) {
   // preserve these quantities for use during the next day
   this->incidence = this->people_becoming_infected_today;
   this->symptomatic_incidence = this->people_becoming_symptomatic_today;
-  this->prevalence_count = this->exposed_people + this->infectious_people;
+  // this->prevalence_count = this->exposed_people + this->infectious_people;
+  this->prevalence_count = this->infected_people.size();
   this->prevalence = static_cast<double>(this->prevalence_count) / static_cast<double>(this->N);
   this->case_fatality_incidence = this->daily_case_fatality_count;
   double case_fatality_rate = 0.0;
@@ -432,11 +440,8 @@ void Epidemic::print_stats(int day) {
   track_value(day, (char*)"I", this->infectious_people);
   track_value(day, (char*)"Is", this->people_with_current_symptoms);
   track_value(day, (char*)"R", this->removed_people);
-  if(this->condition->get_natural_history()->is_case_fatality_enabled()) {
-    track_value(day, (char*)"CF", this->daily_case_fatality_count);
-    track_value(day, (char*)"TCF", this->total_case_fatality_count);
-    track_value(day, (char*)"CFR", case_fatality_rate);
-  }
+  track_value(day, (char*)"CF", this->daily_case_fatality_count);
+  track_value(day, (char*)"CFR", case_fatality_rate);
   track_value(day, (char*)"M", this->immune_people);
   track_value(day, (char*)"P",this->prevalence_count);
   track_value(day, (char*)"C", this->incidence);
@@ -1533,6 +1538,9 @@ void Epidemic::process_infectious_start_events(int day) {
 
     // add to active people list
     this->potentially_infectious_people.insert(person);
+    if (Global::Enable_Visualization_Layer) {
+      this->new_infectious_people.insert(person);
+    }
 
     // update epidemic counters
     this->exposed_people--;
@@ -1553,8 +1561,9 @@ void Epidemic::process_infectious_end_events(int day) {
     person->become_noninfectious(this->condition);
 
     // check to see if person has fully recovered:
+    int symptoms_start_date = person->get_symptoms_start_date(this->id);
     int symptoms_end_date = person->get_symptoms_end_date(this->id);
-    if(-1 < symptoms_end_date && symptoms_end_date < day) {
+    if((symptoms_start_date == -1) || (-1 < symptoms_end_date && symptoms_end_date < day)) {
       recover(person, day);
     }
   }
@@ -1568,10 +1577,9 @@ void Epidemic::recover(Person* person, int day) {
   this->potentially_infectious_people.erase(person);
   
   this->removed_people++;
-  
+
   if (Global::Enable_Visualization_Layer) {
-    // record vidualization data
-    print_visualization_data_for_recovered(day, person);
+    this->recovered_people.insert(person);
   }
 
   // update person's health record
@@ -1592,6 +1600,9 @@ void Epidemic::process_symptoms_start_events(int day) {
     // update epidemic counters
     this->people_with_current_symptoms++;
     this->people_becoming_symptomatic_today++;
+    if (Global::Enable_Visualization_Layer) {
+      this->new_symptomatic_people.insert(person);
+    }
 
     if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
       if(person->get_household() != NULL) {
@@ -1656,8 +1667,9 @@ void Epidemic::process_symptoms_end_events(int day) {
     person->resolve_symptoms(this->condition);
         
     // check to see if person has fully recovered:
+    int infectious_start_date = person->get_infectious_start_date(this->id);
     int infectious_end_date = person->get_infectious_end_date(this->id);
-    if (-1 < infectious_end_date && infectious_end_date <= day) {
+    if ((infectious_start_date == -1) || (-1 < infectious_end_date && infectious_end_date <= day)) {
       recover(person, day);
     }
   }
@@ -1691,7 +1703,7 @@ void Epidemic::process_immunity_end_events(int day) {
     this->immune_people--;
     
     // update epidemic counters
-    this->removed_people++;
+    this->removed_people--;
     
     // update person's health record
     person->become_susceptible(this->id);
@@ -1703,6 +1715,13 @@ void Epidemic::update(int day) {
 
   FRED_VERBOSE(0, "epidemic update for condition %d day %d\n", id, day);
   Utils::fred_start_epidemic_timer();
+
+  if (Global::Enable_Visualization_Layer) {
+    this->new_infected_people.clear();
+    this->new_symptomatic_people.clear();
+    this->new_infectious_people.clear();
+    this->recovered_people.clear();
+  }
 
   if (this->causes_infection) {
     // import infections from unknown sources
@@ -1776,7 +1795,7 @@ void Epidemic::update(int day) {
     Person* person = (*it);
     if(person->is_infectious(this->id)) {
       this->actually_infectious_people.push_back(person);
-      FRED_VERBOSE(1, "ACTUALLY INF person %d\n", person->get_id());
+      FRED_VERBOSE(1, "ACTUALLY INF day %d person %d\n", day, person->get_id());
     }
   }
   this->infectious_people = this->actually_infectious_people.size();
@@ -2040,9 +2059,11 @@ void Epidemic::create_visualization_data_directories() {
   Utils::fred_make_directory(vis_var_dir);
   sprintf(vis_var_dir, "%s/C", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
-  sprintf(vis_var_dir, "%s/Ca", this->visualization_directory);
+  sprintf(vis_var_dir, "%s/Ci", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
   sprintf(vis_var_dir, "%s/Cs", this->visualization_directory);
+  Utils::fred_make_directory(vis_var_dir);
+  sprintf(vis_var_dir, "%s/CF", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
   sprintf(vis_var_dir, "%s/P", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
@@ -2055,12 +2076,6 @@ void Epidemic::create_visualization_data_directories() {
   sprintf(vis_var_dir, "%s/R", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
   sprintf(vis_var_dir, "%s/Vec", this->visualization_directory);
-  Utils::fred_make_directory(vis_var_dir);
-  sprintf(vis_var_dir, "%s/D", this->visualization_directory);
-  Utils::fred_make_directory(vis_var_dir);
-  sprintf(vis_var_dir, "%s/CF", this->visualization_directory);
-  Utils::fred_make_directory(vis_var_dir);
-  sprintf(vis_var_dir, "%s/TCF", this->visualization_directory);
   Utils::fred_make_directory(vis_var_dir);
 
   if(Global::Enable_HAZEL) {
@@ -2078,11 +2093,66 @@ void Epidemic::create_visualization_data_directories() {
 
 void Epidemic::print_visualization_data_for_active_infections(int day) {
   char filename[FRED_STRING_SIZE];
+  FILE* fp;
 
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "C", day);
-  FILE* C_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Cs", day);
-  FILE* Cs_fp = fopen(filename, "w");
+  sprintf(filename, "%s/C/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->new_infected_people.begin(); it != this->new_infected_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+
+  sprintf(filename, "%s/Cs/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->new_symptomatic_people.begin(); it != this->new_symptomatic_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+
+  sprintf(filename, "%s/Ci/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->new_infectious_people.begin(); it != this->new_infectious_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+
+  sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->new_infectious_people.begin(); it != this->new_infectious_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+
+  sprintf(filename, "%s/R/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->recovered_people.begin(); it != this->recovered_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+
+  /*
+  sprintf(filename, "%s/P/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "w");
+  for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ++it) {
+    Person* person = (*it);
+    Place* household = person->get_household();
+    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  }
+  fclose(fp);
+  // printf("VIS_INF day %d infected_people.size() = %d  inf = %d expo = %d exposed = %d \n", day, (int) this->infected_people.size(), inf, expo, this->exposed_people); fflush(stdout);
+
+  return;
+  */
 
   sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "I", day);
   FILE* I_fp = fopen(filename, "w");
@@ -2090,14 +2160,12 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   FILE* Ia_fp = fopen(filename, "w");
   sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Is", day);
   FILE* Is_fp = fopen(filename, "w");
-
   sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "P", day);
   FILE* P_fp = fopen(filename, "w");
   sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Pa", day);
   FILE* Pa_fp = fopen(filename, "w");
   sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Ps", day);
   FILE* Ps_fp = fopen(filename, "w");
-
   sprintf(filename, "%s/%s/person-%d.txt", this->visualization_directory, "P", day);
   FILE* Person_fp = fopen(filename, "w");
 
@@ -2105,51 +2173,34 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
     Person* person = (*it);
     if (person->is_infected(this->id)) {
       fprintf(Person_fp, "%d %d %d\n", person->get_id(), person->get_age(), person->get_exposure_date(this->id));
-      Place* household = person->get_household();
-      if(household != NULL) {
-	Household* hh = static_cast<Household*>(household);
+      Place* hh = person->get_household();
 
-	// person is currently infected
-	fprintf(P_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+      // person is currently infected
+      fprintf(P_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
 
+      if (person->is_symptomatic(this->id)) {
+	// current symptomatic
+	fprintf(Ps_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+      }
+      else {
+	// current asymptomatic
+	fprintf(Pa_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+      }
+
+      if (person->is_infectious(this->id)==day) {
+	// infectious
+	fprintf(I_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
 	if (person->is_symptomatic(this->id)) {
-	  // current symptomatic
-	  fprintf(Ps_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  // infectious and symptomatic
+	  fprintf(Is_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
 	}
 	else {
-	  // current asymptomatic
-	  fprintf(Pa_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  // infectious and asymptomatic
+	  fprintf(Ia_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
 	}
-
-	if (person->is_infectious(this->id)==day) {
-	  // infectious
-	  fprintf(I_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-	  if (person->is_symptomatic(this->id)) {
-	    // infectious and symptomatic
-	    fprintf(Is_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-	  }
-	  else {
-	    // infectious and asymptomatic
-	    fprintf(Ia_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-	  }
-	}
-
-	if (person->get_exposure_date(this->id)==day) {
-	  // new infection
-	  fprintf(C_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-	}
-
-	if (person->get_symptoms_start_date(this->id)==day) {
-	  // new symptomatic
-	  fprintf(Cs_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-	}
-
       }
     }
   }
-
-  fclose(C_fp);
-  fclose(Cs_fp);
   fclose(I_fp);
   fclose(Ia_fp);
   fclose(Is_fp);
@@ -2160,24 +2211,13 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
 }
 
 
-void Epidemic::print_visualization_data_for_recovered(int day, Person* person) {
-  char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "R", day);
-  FILE* R_fp = fopen(filename, "a");
-  Place* household = person->get_household();
-  Household* hh = static_cast<Household*>(household);
-  fprintf(R_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-  fclose(R_fp);
-}
-
 void Epidemic::print_visualization_data_for_case_fatality(int day, Person* person) {
   char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "CF", day);
-  FILE* CF_fp = fopen(filename, "a");
+  sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
+  FILE* fp = fopen(filename, "a");
   Place* household = person->get_household();
-  Household* hh = static_cast<Household*>(household);
-  fprintf(CF_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
-  fclose(CF_fp);
+  fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  fclose(fp);
 }
 
 

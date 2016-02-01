@@ -112,7 +112,6 @@ public:
   void report(int day);
   void print_stats(int day);
   void print_visualization_data_for_active_infections(int day);
-  void print_visualization_data_for_recovered(int day, Person* person);
   void print_visualization_data_for_case_fatality(int day, Person* person);
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
@@ -280,6 +279,12 @@ protected:
   std::set<Place*> active_places;
   std::vector<Place*> active_place_vec;
 
+  // set used for visualization
+  std::set<Person*> new_infected_people;
+  std::set<Person*> new_symptomatic_people;
+  std::set<Person*> new_infectious_people;
+  std::set<Person*> recovered_people;
+
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;
   bool import_by_age;
@@ -360,6 +365,9 @@ protected:
 
   // directory for visualization data
   char visualization_directory[FRED_STRING_SIZE];
+
+  // location data for recovered people
+  
 
 };
 
