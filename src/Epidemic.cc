@@ -2122,15 +2122,6 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   }
   fclose(fp);
 
-  sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
-  fp = fopen(filename, "w");
-  for(std::set<Person*>::iterator it = this->new_infectious_people.begin(); it != this->new_infectious_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
-  }
-  fclose(fp);
-
   sprintf(filename, "%s/R/households-%d.txt", this->visualization_directory, day);
   fp = fopen(filename, "w");
   for(std::set<Person*>::iterator it = this->recovered_people.begin(); it != this->recovered_people.end(); ++it) {
@@ -2140,38 +2131,25 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   }
   fclose(fp);
 
-  /*
-  sprintf(filename, "%s/P/households-%d.txt", this->visualization_directory, day);
-  fp = fopen(filename, "w");
-  for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
-  }
-  fclose(fp);
-  // printf("VIS_INF day %d infected_people.size() = %d  inf = %d expo = %d exposed = %d \n", day, (int) this->infected_people.size(), inf, expo, this->exposed_people); fflush(stdout);
-
-  return;
-  */
-
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "I", day);
+  sprintf(filename, "%s/I/households-%d.txt", this->visualization_directory, day);
   FILE* I_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Ia", day);
+  sprintf(filename, "%s/Ia/households-%d.txt", this->visualization_directory, day);
   FILE* Ia_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Is", day);
+  sprintf(filename, "%s/Is/households-%d.txt", this->visualization_directory, day);
   FILE* Is_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "P", day);
+  sprintf(filename, "%s/P/households-%d.txt", this->visualization_directory, day);
   FILE* P_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Pa", day);
+  sprintf(filename, "%s/Pa/households-%d.txt", this->visualization_directory, day);
   FILE* Pa_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/households-%d.txt", this->visualization_directory, "Ps", day);
+  sprintf(filename, "%s/Ps/households-%d.txt", this->visualization_directory, day);
   FILE* Ps_fp = fopen(filename, "w");
-  sprintf(filename, "%s/%s/person-%d.txt", this->visualization_directory, "P", day);
+  sprintf(filename, "%s/N/person-%d.txt", this->visualization_directory, day);
   FILE* Person_fp = fopen(filename, "w");
 
   for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ++it) {
     Person* person = (*it);
     if (person->is_infected(this->id)) {
+
       fprintf(Person_fp, "%d %d %d\n", person->get_id(), person->get_age(), person->get_exposure_date(this->id));
       Place* hh = person->get_household();
 
