@@ -1254,6 +1254,22 @@ void Place_List::prepare() {
   fclose(fp);
   */
 
+  // add list of counties to visualization data directory
+  char filename[256];
+  sprintf(filename, "%s/VIS/COUNTIES", Global::Simulation_directory);
+  FILE* fp = fopen(filename, "w");
+  for(int i = 0; i < this->counties.size(); ++i) {
+    fprintf(fp, "%d\n", this->counties[i]->get_fips());
+  }
+  fclose(fp);
+
+  // add list of counties to visualization data directory
+  sprintf(filename, "%s/VIS/CENSUS_TRACTS", Global::Simulation_directory);
+  fp = fopen(filename, "w");
+  for(int i = 0; i < this->census_tracts.size(); ++i) {
+    fprintf(fp, "%ld\n", this->census_tracts[i]);
+  }
+  fclose(fp);
 }
 
 void Place_List::print_status_of_schools(int day) {

@@ -229,6 +229,32 @@ if ((scalar @fips eq 1) and $google) {
   }
 }
 
+my $shapefiles = "";
+if ($google) {
+  # check if googlemap already exists
+  if (not -e "googlemap.png") {
+    my $fipsfile = "$outdir/VIS/COUNTIES";
+    my @fips_list = ();
+    open FIPS, $fipsfile;
+    @fips_list = <FIPS>;
+    close FIPS;
+    for my $fips (@fips_list) {
+      chomp $fips;
+      $shapefiles .= "$shapefiledir/$fips.txt ";
+    }
+    print "$shapefiles\n";
+    my $cmd = "gnuplot -e \'shapefiles=\"$shapefiles\" \' $bindir/fred_make_bbox";
+    system $cmd;
+    `fred_get_googlemap $api_key $lightness`;
+    # make sure googlemap.png exists
+    if (not -e "googlemap.png") {
+      `date > FAILED`;
+      print "FAILED TO CREATE googlemap.png";
+      exit;
+    }
+  }
+}
+
 # get census tract shapefiles if needed
 if ($country eq "usa" and $census_tracts eq 1) {
   my $shapedir = "$FRED/SHAPEFILES/2010";
@@ -267,6 +293,21 @@ my %ls = (
 	  "white", 17
 	 );
 
+# prepare for cumulative CFs if needed
+my @v = split " ", $vars;
+if (grep(/TCF/,@v)) {
+  my $dir = "$vis/CF";
+  for (my $day = 0; $day <= $days; $day++) {
+    if ($day==0) {
+      system "cp $dir/households-0.txt $dir/total-0.txt";
+    }
+    else {
+      my $prev = $day-1;
+      system "cat $dir/total-$prev.txt $dir/households-$day.txt > $dir/total-$day.txt";
+    }
+  }  
+}
+
 ##
 ## MAIN LOOP
 ##
@@ -299,7 +340,7 @@ for (my $day = $start; $day <= $days; $day += $interval) {
     for my $file (@wait) {
       while (not -s $file) {
 	if (-e "FAILED") {
-	  system "mv FIPS FIPS.failed";
+	  # system "mv FIPS FIPS.failed";
 	  die "$0: fred_make_map failed\n";
 	}
 	sleep 1;
@@ -344,22 +385,15 @@ sub make_map {
   print LD "my_title = \"$title\"\n";
   print LD "my_subtitle = \"$subtitle\"\n";
   print LD "day = $day\n";
-  print LD "google = $google\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";
-  print LD "fipsfile = '$vis/MAPS/FIPS'\n";
+  print LD "background_image = 'googlemap.png'\n";
   print LD "use_shapefile = $use_shapefile\n";
-  print LD "shapefile_dir = '$shapefiledir'\n";
   print LD "linewidth = $linewidth\n";
-  print LD "force_xmin = $xmin\n";
-  print LD "force_xmax = $xmax\n";
-  print LD "force_ymin = $ymin\n";
-  print LD "force_ymax = $ymax\n";
   print LD "show_grid = $grid\n";
   print LD "show_border = $border\n";
-  print LD "api_key = '$api_key'\n";
-  print LD "lightness =  $lightness\n";
   print LD "filenames = '$filenames'\n";
+  print LD "shapefiles = '$shapefiles'\n";
   print LD "ls_list = '$ls_list'\n";
   print LD "ps_list = '$ps_list'\n";
   close LD;

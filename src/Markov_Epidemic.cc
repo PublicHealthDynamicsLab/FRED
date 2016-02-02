@@ -270,7 +270,7 @@ void Markov_Epidemic::terminate_person(Person* person, int day) {
       }
     }
     */
-    FRED_VERBOSE(0, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
+    FRED_VERBOSE(1, "MARKOV EPIDEMIC TERMINATE person %d day %d %s removed from state %d\n",
 		 person->get_id(), day, Date::get_date_string().c_str(), state);
   }
 
