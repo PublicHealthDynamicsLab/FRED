@@ -181,8 +181,41 @@ else {
    # print "MAPS already exists\n";
 }
 
-# get the population for each fips code
+chdir "MAPS";
+system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
+
+# get the fips codes
+system "cp $outdir/VIS/COUNTIES FIPS";
 my @fips = ();
+my $fipsfile = "FIPS";
+open FIPS, $fipsfile;
+@fips = <FIPS>;
+close FIPS;
+
+my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
+my $shapefiles = "";
+if ($google) {
+  # check if googlemap already exists
+  if (not -e "googlemap.png") {
+    for my $f (@fips) {
+      chomp $f;
+      $shapefiles .= "$shapefiledir/$f.txt ";
+    }
+    print "$shapefiles\n";
+    my $cmd = "gnuplot -e \'shapefiles=\"$shapefiles\" \' $bindir/fred_make_bbox";
+    print "$cmd\n";
+    system $cmd;
+    `fred_get_googlemap $api_key $lightness`;
+    # make sure googlemap.png exists
+    if (not -e "googlemap.png") {
+      `date > FAILED`;
+      print "FAILED TO CREATE googlemap.png";
+      exit;
+    }
+  }
+}
+
+# get the population for each fips code
 my %pop = ();
 my $fipspopfile ="$FRED/input_files/countries/$country/fips_pop.txt";
 open IN,$fipspopfile or die "ERROR: no file $fipspopfile\n";
@@ -194,7 +227,6 @@ while (<IN>) {
 }
 close IN;
 
-my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
 my $max_ar = 0.0;
 my @ar = ();
 
@@ -208,12 +240,11 @@ elsif ( $hazel eq 1) {
 #}
 else {
   #print "make county map\n";
-  make_county_map_data($run);
+  # make_county_map_data($run);
 }
 $max_ar = $max if $max;
 # print "max_ar = $max_ar\n";
-chdir "MAPS";
-system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
+
 if ((scalar @fips eq 1) and $google) {
   # print "using existing county image\n";
   # use background image if it already exists
@@ -226,32 +257,6 @@ if ((scalar @fips eq 1) and $google) {
     system "cp $background_map googlemap.png";
     system "cp $mapsdir/$loc.bbox BBOX";
     $use_shapefile = 0;
-  }
-}
-
-my $shapefiles = "";
-if ($google) {
-  # check if googlemap already exists
-  if (not -e "googlemap.png") {
-    my $fipsfile = "$outdir/VIS/COUNTIES";
-    my @fips_list = ();
-    open FIPS, $fipsfile;
-    @fips_list = <FIPS>;
-    close FIPS;
-    for my $fips (@fips_list) {
-      chomp $fips;
-      $shapefiles .= "$shapefiledir/$fips.txt ";
-    }
-    print "$shapefiles\n";
-    my $cmd = "gnuplot -e \'shapefiles=\"$shapefiles\" \' $bindir/fred_make_bbox";
-    system $cmd;
-    `fred_get_googlemap $api_key $lightness`;
-    # make sure googlemap.png exists
-    if (not -e "googlemap.png") {
-      `date > FAILED`;
-      print "FAILED TO CREATE googlemap.png";
-      exit;
-    }
   }
 }
 
