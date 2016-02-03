@@ -12,11 +12,11 @@ $api_key = "none" if not $api_key;
 my $vars = "none";
 my $ls_list = "1";
 my $ps_list = "1";
-my $color_list = "blue";
+my $colors = "blue";
 my $census_tracts = 0;
 my $country = "usa";
 my $condition_id = 0;
-my $play = 0;
+my $play = "";
 my $filled = 0;
 my $help = 0;
 my $grid = 0;
@@ -59,7 +59,7 @@ my $opt_result = GetOptions(
 			    "vars=s" => \$vars,
 			    "ps_list=s" => \$ps_list,
 			    "ls_list=s" => \$ls_list,
-			    "color_list=s" => \$color_list,
+			    "colors=s" => \$colors,
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
 			    "start=i" => \$start,
@@ -70,9 +70,9 @@ my $opt_result = GetOptions(
 			    "country=s" => \$country,
 			    "disease=i" => \$condition_id,
 			    "d=i" => \$condition_id,
-			    "display=i" => \$play,
-			    "play=i" => \$play,
-			    "p=i" => \$play,
+			    "display" => \$play,
+			    "play" => \$play,
+			    "p" => \$play,
 			    "filled=i" => \$filled,
 			    "finish=i" => \$finish,
 			    "google=i" => \$google,
@@ -172,7 +172,13 @@ die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities --cs $show_current_symptoms --vars '$vars' --ls_list '$ls_list' --ps_list '$ps_list' --color_list '$color_list'";
+my $command;
+if ($vars eq "none") {
+  $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities --cs $show_current_symptoms --vars '$vars' --ls_list '$ls_list' --ps_list '$ps_list' --colors '$colors'";
+}
+else {
+  $command = "fred_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --key $key --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --finish $finish --vars '$vars' --ls_list '$ls_list' --ps_list '$ps_list' --color '$colors'";
+}
 
 # print "$command\n"; exit;
 system $command;
@@ -192,7 +198,7 @@ chdir $vis;
 # exit;
 $moviefile = "$key" if $moviefile eq "";
 $moviefile = "$cwd/$moviefile.$movie_format";
-if (-s "FIPS") {
+if (not -e "FAILED") {
   # print "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet\n";
   system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
   # system "ffmpeg -r 3 -i map\%04d.pdf -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y";
@@ -203,6 +209,8 @@ if (-s "FIPS") {
   system "open $moviefile" if $play;
 }
 else {
-  die "$0: map data not found\n";
+  print "map maker FAILED:\n";
+  system "cat FAILED";
+  die "$0 quitting\n";
 }
 

@@ -1,0 +1,370 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+$| = 1;
+
+# use default api_key if it exists
+my $api_key = $ENV{FRED_API_KEY};
+$api_key = "none" if not $api_key;
+# print "api_key = '$api_key'\n";
+
+my $vars = "none";
+my $ls_list = "1";
+my $ps_list = "1";
+my $colors = "blue";
+my $census_tracts = 0;
+my $country = "usa";
+my $condition_id = 0;
+my $filled = 0;
+my $help = 0;
+my $key = "";
+my $lightness = 0;
+my $max = 0;
+my $parallelism = 10;
+my $run = 1;
+my $term = "png";
+my $title = "FRED Simulation";
+my $subtitle = " ";
+my $show_all_households = 0;
+my $linewidth = 2;
+my $xmin = 0;
+my $xmax = 0;
+my $ymin = 0;
+my $ymax = 0;
+my $grid = 0;
+my $border = 0;
+my $start = 0;
+my $finish = 0;
+my $interval = 1;
+my $google = 1;
+my $use_shapefile = 1;
+
+my $opt_result = GetOptions(
+			    "vars=s" => \$vars,
+			    "ps_list=s" => \$ps_list,
+			    "ls_list=s" => \$ls_list,
+			    "colors=s" => \$colors,
+			    "api_key=s" => \$api_key,
+			    "border=i" => \$border,
+			    "start=i" => \$start,
+			    "interval=i" => \$interval,
+			    "census_tracts=i" => \$census_tracts,
+			    "country=s" => \$country,
+			    "disease=i" => \$condition_id,
+			    "filled=i" => \$filled,
+			    "finish=i" => \$finish,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "google=i" => \$google,
+			    "grid=i" => \$grid,
+			    "g=i" => \$grid,
+			    "key=s" => \$key,
+			    "lightness=i" => \$lightness,
+			    "parallelism=i" => \$parallelism,
+			    "run=i" => \$run,
+			    "term=s" => \$term,
+			    "title=s" => \$title,
+			    "subtitle=s" => \$subtitle,
+			    "households=i" => \$show_all_households,
+			    "shapefile=i" => \$use_shapefile,
+			    "lw=f" => \$linewidth,
+			    "x=f" => \$xmin,
+			    "X=f" => \$xmax,
+			    "y=f" => \$ymin,
+			    "Y=f" => \$ymax,
+			   );
+
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+  --api_key <key>: if set, use this api_key to obtain Google maps ["none"]
+  --border 0/1: if set, display border around map with lat-lon labels [0]
+  --census_tracts 0/1: plot census tracts [0]
+  --cf 0/1: plot daily case_fatalities [0]
+  --country <name> : plot the named country [usa]
+  --disease <id> : plot results for the disease id [0]
+  --display <0/1> : if set, play the movie after it is made [0]
+  --filled <0/1>:  if set, plot filled curves [0]
+  --google : if set, use a google map as a background image [1]
+  --grid <0/1>: if set, show grid. [0]
+  --help: print this help message
+  --households <0/1> : plot all households [0]
+  --incidence <0/1> : if set and dots is set, plot households with incidence [0]
+  --infectious <0/1> : if set and dots is set, plot households with infectious members [1]
+  --interval <n> : movie include every nth day [1] 
+  --key <id> : plot the job with given id [none - must be specified]
+  --lw <n> : use linewidth n to outline counties [2]
+  --max <val> : use the given value as the maximum for color plots [10]
+  --movie_format <str> : use the specified movie format [mp4]
+  --parallelism <n> : plot n maps in parallel [10]
+  --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
+  --hc_unav <0/1> : plot all households with health care unavailable[0]
+  --primary_hc_unav <0/1> : plot all households with primary health care unavailable [0]
+  --accept_insr_hc_unav <0/1> : plot all households with health care accepting their insurance unavailable [0]
+  --hc_deficit <0/1> : plot households whose primary healthcare is unavailable by census tract
+  --run <n> : plot results of run n [1]
+  --shapefile <0/1> : if set, draw the shapefile for each fips code
+  --start day: start movie on specified day [0]
+  --subtitle <str> : subtitle for each map [" "]
+  --term <type> : plot using the specified terminal type [png]
+  --tcf 0/1: plot total case_fatalities [0]
+  --title <str> : title for each map ["FRED Simulation"]
+  -x <xmin> : min value for x axis 
+  -X <xmax> : max value for x axis 
+  -y <ymin> : min value for y axis
+  -Y <xmax> : max value for x axis
+EOH
+
+die $usage if $help;
+die $usage if not $key;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $bindir = "$FRED/bin";
+my $id = `$bindir/fred_id $key`;
+chomp $id;
+die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
+
+my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+chdir $outdir or die "Can't chdir to $outdir\n";
+# print "CWD = $outdir\n";
+
+# determine days from outfile
+my $days = `wc -l out1.txt`;
+chomp $days;
+$days--;
+$days = $finish if (0 < $finish and $finish < $days);
+# print "days = $days\n";
+
+# limit parallelism to number of days
+$parallelism = $days if ($days < $parallelism);
+
+# find visualization dir
+my $vis = "$outdir/VIS/run$run/cond$condition_id";
+if (not -d $vis) {
+  $vis = "$outdir/VIS/run$run/dis$condition_id";
+}
+chdir $vis or die "Can't chdir to $vis\n";
+# print "CWD = $vis\n";
+
+# make MAPS if needed
+if (not -d "MAPS") {
+  system "mkdir -p MAPS";
+  die "Can't mkdir MAPS\n" if not -d "MAPS";
+} 
+else {
+   # print "MAPS already exists\n";
+}
+
+# clear out old data
+chdir "MAPS";
+system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
+
+# get the fips codes
+system "cp $outdir/VIS/COUNTIES FIPS";
+my @fips = ();
+my $fipsfile = "FIPS";
+open FIPS, $fipsfile;
+@fips = <FIPS>;
+close FIPS;
+
+# get shapefiles
+my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
+my $shapefiles = "";
+for my $f (@fips) {
+  chomp $f;
+  $shapefiles .= "$shapefiledir/$f.txt ";
+}
+print "shapefiles = $shapefiles\n";
+
+if ($google) {
+  # make googlemap if needed
+  if (not -e "googlemap.png") {
+    my $opts = " shapefiles=\"$shapefiles\"";
+    if ($xmin) {
+      $opts .= "; force_xmin=$xmin";
+    }
+    if ($xmax) {
+      $opts .= "; force_xmax=$xmax ";
+    }
+    if ($ymin) {
+      $opts .= "; force_ymin=$ymin ";
+    }
+    if ($ymax) {
+      $opts .= "; force_ymax=$ymax ";
+    }
+    my $cmd = "gnuplot -e \' $opts \' $bindir/fred_make_bbox";
+    print "$cmd\n";
+    system $cmd;
+    `fred_get_googlemap $api_key $lightness`;
+    # make sure googlemap.png exists
+    if (not -e "googlemap.png") {
+      `date > FAILED`;
+      print "FAILED TO CREATE googlemap.png";
+      exit;
+    }
+  }
+}
+
+# get census tract shapefiles if needed
+if ($country eq "usa" and $census_tracts eq 1) {
+  my $shapedir = "$FRED/SHAPEFILES/2010";
+  my $zipfile = "x";
+  $shapefiledir ="SHAPES";
+  if (not -d "SHAPES") {
+    system "mkdir -p SHAPES";
+    for my $county (@fips) {
+      chomp $county;
+      $zipfile = "tl_2010_$county\_tract10";
+      system "unzip $shapedir/$zipfile >> fred_make_maps.log ";
+      system "$bindir/fred_read_shapefile $zipfile SHAPES >> fred_make_maps.log";
+    }
+  }
+
+  # get the census tract fips codes
+  system "cp $outdir/VIS/COUNTIES FIPS";
+  my @tracts = ();
+  open TRACTS, "$outdir/VIS/CENSUS_TRACTS";;
+  @tracts = <TRACTS>;
+  close TRACTS;
+  $shapefiles = "";
+  # add to the shapefile list
+  for my $tract (@tracts) {
+    chomp $tract;
+    $shapefiles .= "SHAPES/$tract.txt ";
+  }
+}
+
+my %ls = ( 
+	  "blue" => 1,
+	  "skyblue" => 2,
+	  "sea-green" => 3,
+	  "green" => 4,
+	  "greenyellow" => 5,
+	  "yellow" => 6,
+	  "orange" => 7,
+	  "orange-red" => 8,
+	  "red" => 9,
+	  "beige" => 10,
+	  "light-goldenrod" => 11,
+	  "medium-blue" => 12,
+	  "dark-green" => 13,
+	  "gray" => 14,
+	  "gray10" => 15,
+	  "black" => 16,
+	  "white" => 17
+	 );
+
+# prepare for cumulative CFs if needed
+my @v = split " ", $vars;
+if (grep(/TCF/,@v)) {
+  my $dir = "$vis/CF";
+  for (my $day = 0; $day <= $days; $day++) {
+    if ($day==0) {
+      system "cp $dir/households-0.txt $dir/total-0.txt";
+    }
+    else {
+      my $prev = $day-1;
+      system "cat $dir/total-$prev.txt $dir/households-$day.txt > $dir/total-$day.txt";
+    }
+  }  
+}
+
+##
+## MAIN LOOP
+##
+print "making maps ";
+my $started = 0;
+my @cmds = ();
+my @wait = ();
+my $index = 0;
+for (my $day = $start; $day <= $days; $day += $interval) {
+
+  my $mapname = sprintf("map%04d.$term",$index);
+  push @wait, $mapname;
+  $index++;
+
+  # print "make_map $mapname\n";
+  $ls_list = get_ls_list($colors);
+  # print "ls_list = |$ls_list|\n"; exit;
+  make_map($day, $mapname, $vars);
+
+  # print "$mapname\n";
+  print ".";
+
+  $started++;
+  if (($day eq $start) or ($started eq $parallelism)) {
+    for my $file (@wait) {
+      while (not -s $file) {
+	if (-e "FAILED") {
+	  die "$0: fred_make_map failed\n";
+	}
+	sleep 1;
+      }
+    }
+    $started = 0;
+  }
+}
+for my $file (@wait) {
+  while (not -s $file) { sleep 1; }
+}
+# system "ls -l map*";
+# system "rm -rf PCT* RAW* SHAPES load* .done* $shapefile.*";
+print " done\n";
+exit;
+
+
+#############################################
+
+sub get_ls_list {
+  my $colors = shift;
+  my $ls_list = "";
+  my @x = split " ", $colors;
+  for my $c (@x) {
+    #  print "c = |$c|\n";
+    $ls_list .= "$ls{$c} " if exists $ls{$c};
+    $ls_list .= "1 " if not exists $ls{$c};
+  }
+  return $ls_list;
+}
+
+##################################################
+
+sub make_map {
+  my ($day, $mapname, $vars) = @_;
+  my @x = split " ", $vars;
+  my $filenames = "";
+  for my $v (@x) {
+    $filenames .= "$vis/$v/households-$day.txt ";
+  }
+  my $var = shift @x;
+  my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
+  open LD, ">$loadfile";
+  print LD "my_title = \"$title\"\n";
+  print LD "my_subtitle = \"$subtitle\"\n";
+  print LD "day = $day\n";
+  print LD "terminal = '$term'\n";
+  print LD "mapname = '$mapname'\n";
+  print LD "background_image = 'googlemap.png'\n";
+  print LD "use_shapefile = $use_shapefile\n";
+  print LD "linewidth = $linewidth\n";
+  print LD "show_grid = $grid\n";
+  print LD "show_border = $border\n";
+  print LD "filenames = '$filenames'\n";
+  print LD "shapefiles = '$shapefiles'\n";
+  print LD "ls_list = '$ls_list'\n";
+  print LD "ps_list = '$ps_list'\n";
+  close LD;
+  my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_map 2\>\> fred_make_maps.log"; 
+  system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";
+  system("($cmd; touch .done.$day)&");
+  
+}
+
+##################################################
+
