@@ -180,7 +180,7 @@ for my $f (@fips) {
   chomp $f;
   $shapefiles .= "$shapefiledir/$f.txt ";
 }
-print "shapefiles = $shapefiles\n";
+# print "shapefiles = $shapefiles\n";
 
 if ($google) {
   # make googlemap if needed
@@ -198,10 +198,10 @@ if ($google) {
     if ($ymax) {
       $opts .= "; force_ymax=$ymax ";
     }
-    my $cmd = "gnuplot -e \' $opts \' $bindir/fred_make_bbox";
-    print "$cmd\n";
+    my $cmd = "gnuplot -e \' $opts \' $bindir/fred_make_bbox 2> fred_make_bbox.log";
+    # print "$cmd\n";
     system $cmd;
-    `fred_get_googlemap $api_key $lightness`;
+    `fred_get_googlemap $api_key $lightness 2> fred_get_googlemap.log`;
     # make sure googlemap.png exists
     if (not -e "googlemap.png") {
       `date > FAILED`;
