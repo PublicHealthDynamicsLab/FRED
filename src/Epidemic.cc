@@ -2094,40 +2094,57 @@ void Epidemic::create_visualization_data_directories() {
 void Epidemic::print_visualization_data_for_active_infections(int day) {
   char filename[FRED_STRING_SIZE];
   FILE* fp;
+  Person* person;
+  Place* household;
+  long int tract;
+  double lat, lon;
+  char location[FRED_STRING_SIZE];
 
   sprintf(filename, "%s/C/households-%d.txt", this->visualization_directory, day);
   fp = fopen(filename, "w");
   for(std::set<Person*>::iterator it = this->new_infected_people.begin(); it != this->new_infected_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+    person = (*it);
+    household = person->get_household();
+    tract = Global::Places.get_census_tract_for_place(household);
+    lat = household->get_latitude();
+    lon = household->get_longitude();
+    fprintf(fp, "%f %f %ld\n", lat, lon, tract);
   }
   fclose(fp);
 
   sprintf(filename, "%s/Cs/households-%d.txt", this->visualization_directory, day);
   fp = fopen(filename, "w");
   for(std::set<Person*>::iterator it = this->new_symptomatic_people.begin(); it != this->new_symptomatic_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+    person = (*it);
+    household = person->get_household();
+    tract = Global::Places.get_census_tract_for_place(household);
+    lat = household->get_latitude();
+    lon = household->get_longitude();
+    fprintf(fp, "%f %f %ld\n", lat, lon, tract);
   }
   fclose(fp);
 
   sprintf(filename, "%s/Ci/households-%d.txt", this->visualization_directory, day);
   fp = fopen(filename, "w");
   for(std::set<Person*>::iterator it = this->new_infectious_people.begin(); it != this->new_infectious_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+    person = (*it);
+    household = person->get_household();
+    tract = Global::Places.get_census_tract_for_place(household);
+    lat = household->get_latitude();
+    lon = household->get_longitude();
+    fprintf(fp, "%f %f %ld\n", lat, lon, tract);
   }
   fclose(fp);
 
   sprintf(filename, "%s/R/households-%d.txt", this->visualization_directory, day);
   fp = fopen(filename, "w");
   for(std::set<Person*>::iterator it = this->recovered_people.begin(); it != this->recovered_people.end(); ++it) {
-    Person* person = (*it);
-    Place* household = person->get_household();
-    fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+    person = (*it);
+    household = person->get_household();
+    tract = Global::Places.get_census_tract_for_place(household);
+    lat = household->get_latitude();
+    lon = household->get_longitude();
+    fprintf(fp, "%f %f %ld\n", lat, lon, tract);
   }
   fclose(fp);
 
@@ -2143,38 +2160,39 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   FILE* Pa_fp = fopen(filename, "w");
   sprintf(filename, "%s/Ps/households-%d.txt", this->visualization_directory, day);
   FILE* Ps_fp = fopen(filename, "w");
-  sprintf(filename, "%s/N/person-%d.txt", this->visualization_directory, day);
-  FILE* Person_fp = fopen(filename, "w");
 
   for(std::set<Person*>::iterator it = this->infected_people.begin(); it != this->infected_people.end(); ++it) {
-    Person* person = (*it);
+    person = (*it);
     if (person->is_infected(this->id)) {
-
-      fprintf(Person_fp, "%d %d %d\n", person->get_id(), person->get_age(), person->get_exposure_date(this->id));
-      Place* hh = person->get_household();
+      household = person->get_household();
+      tract = Global::Places.get_census_tract_for_place(household);
+      lat = household->get_latitude();
+      lon = household->get_longitude();
+      sprintf(location,  "%f %f %ld\n", lat, lon, tract);
 
       // person is currently infected
-      fprintf(P_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+      fputs(location, P_fp);
 
       if (person->is_symptomatic(this->id)) {
 	// current symptomatic
-	fprintf(Ps_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	fputs(location, Ps_fp);
       }
       else {
 	// current asymptomatic
-	fprintf(Pa_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	fputs(location, Pa_fp);
       }
-
+      
       if (person->is_infectious(this->id)==day) {
 	// infectious
-	fprintf(I_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	fputs(location, I_fp);
+
 	if (person->is_symptomatic(this->id)) {
 	  // infectious and symptomatic
-	  fprintf(Is_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  fputs(location, Is_fp);
 	}
 	else {
 	  // infectious and asymptomatic
-	  fprintf(Ia_fp, "%f %f\n", hh->get_latitude(), hh->get_longitude());
+	  fputs(location, Ia_fp);
 	}
       }
     }
@@ -2185,7 +2203,6 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   fclose(P_fp);
   fclose(Pa_fp);
   fclose(Ps_fp);
-  fclose(Person_fp);
 }
 
 
@@ -2194,7 +2211,7 @@ void Epidemic::print_visualization_data_for_case_fatality(int day, Person* perso
   sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
   FILE* fp = fopen(filename, "a");
   Place* household = person->get_household();
-  fprintf(fp, "%f %f\n", household->get_latitude(), household->get_longitude());
+  fprintf(fp, "%f %f %ld\n", household->get_latitude(), household->get_longitude(), Global::Places.get_census_tract_for_place(household));
   fclose(fp);
 }
 
