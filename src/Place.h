@@ -331,6 +331,8 @@ public:
     return this->census_tract_index;
   }
   
+  // long int get_census_tract();
+  
   static char* get_place_label(Place* p);
 
   double get_seeds(int dis, int sim_day);

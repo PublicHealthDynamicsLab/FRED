@@ -471,10 +471,9 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
   if(fp != NULL) {
     fclose(fp);
     if(this->enable_copy_files) {
-      sprintf(cmd, "cp %s %s", population_file, temp_file);
-      printf("COPY_FILE: %s\n", cmd);
-      fflush(stdout);
-      system(cmd);
+      std::ifstream  src(population_file, std::ios::binary);
+      std::ofstream  dst(temp_file,   std::ios::binary);
+      dst << src.rdbuf();
       pop_file = temp_file;
     } else {
       pop_file = population_file;
@@ -511,13 +510,9 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
   }
   fclose(fp);
   if(this->enable_copy_files) {
-    sprintf(cmd, "cp %s %s", population_file, temp_file);
-    printf("COPY_FILE: %s\n", cmd);
-    fflush(stdout);
-    if(system(cmd) != 0) {
-      Utils::fred_abort("Error using system command \"%s\"\n", cmd);
-    }
-    // printf("copy finished\n"); fflush(stdout);
+    std::ifstream  src(population_file, std::ios::binary);
+    std::ofstream  dst(temp_file,   std::ios::binary);
+    dst << src.rdbuf();
     pop_file = temp_file;
   } else {
     pop_file = population_file;

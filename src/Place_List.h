@@ -232,6 +232,10 @@ public:
     return this->census_tracts[index];
   }
 
+  long int get_census_tract_for_place(Place* place) {
+    return this->census_tracts[place->get_census_tract_index()];
+  }
+
   bool is_load_completed() {
     return this->load_completed;
   }

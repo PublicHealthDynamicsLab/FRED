@@ -753,13 +753,9 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // read household locations
   sprintf(location_file, "%s/%s/%s_synth_households.txt", pop_dir, pop_id, pop_id);
   if(Place_List::Enable_copy_files) {
-    char cmd[80];
-    sprintf(cmd, "cp %s %s", location_file, temp_file);
-    printf("COPY_FILE: %s\n", cmd);
-    fflush(stdout);
-    if(system(cmd) != 0) {
-      Utils::fred_abort("Error using system command \"%s\"\n", cmd);
-    }
+    std::ifstream  src(location_file, std::ios::binary);
+    std::ofstream  dst(temp_file,   std::ios::binary);
+    dst << src.rdbuf();
     strcpy(location_file, temp_file);
   }
   read_household_file(deme_id, location_file, pids);
@@ -1270,6 +1266,7 @@ void Place_List::prepare() {
     fprintf(fp, "%ld\n", this->census_tracts[i]);
   }
   fclose(fp);
+
 }
 
 void Place_List::print_status_of_schools(int day) {
