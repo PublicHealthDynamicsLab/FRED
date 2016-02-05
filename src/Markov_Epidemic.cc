@@ -26,10 +26,6 @@
 #include "Random.h"
 #include "Utils.h"
 
-int county[9] = {42003, 42005,  42007,  42019,  42051,  42059,  42073,  42125,  42129};
-double adj[9] = {  0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.2, 0.1, 0.5};
-
-
 Markov_Epidemic::Markov_Epidemic(Condition* _condition) :
   Epidemic(_condition) {
 }
@@ -165,16 +161,30 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   // update next event list
-  if (0) {
-    // use county specific adjustments
+  if (1) {
+    // use distance from suppliers
     int adjustment_state = 2;
     double adjustment = 1.0;
-    int fips = Global::Places.get_county_for_place(person->get_household());
-    for (int j = 0; j < 9; j++) {
-      if (county[j] == fips) {
-	adjustment = adj[j];
-	break;
+
+    double my_lat = person->get_household()->get_latitude();
+    double my_lon = person->get_household()->get_longitude();
+
+    // find min distance to a supplier
+    double min_dist = 99999999999.0;
+    for (int s = 0; s < 4; s++) {
+      Person* sup = Global::Pop.get_person_by_index(s*50000);
+      double sup_lat = sup->get_household()->get_latitude();
+      double sup_lon = sup->get_household()->get_longitude();
+      double dist = Geo::xy_distance(my_lat, my_lon, sup_lat, sup_lon);
+      if (dist < min_dist) {
+	min_dist = dist;
       }
+    }
+    if (min_dist < 10.0) {
+      adjustment = 1.0;
+    }
+    else {
+      adjustment = 0.0;
     }
     this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day, adjustment_state, adjustment);
   }
