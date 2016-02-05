@@ -160,16 +160,16 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   *next_state = state;
   int group = this->age_map->find_value(age);
 
-  // lambda is the rate at which we leave current state
-  double lambda = 1.0 - this->transition_matrix[group][state][state];
-
-  if (lambda == 0.0) {
+  if (this->transition_matrix[group][state][state] == 1.0) {
     // current state is absorbing
     return;
   }
 
-  // find time of next transition
+  // lambda is the rate at which we leave current state
+  double lambda = -log(this->transition_matrix[group][state][state]);
+  // double lambda = 1.0 - this->transition_matrix[group][state][state];
 
+  // find time of next transition
   *transition_day = day + round(Random::draw_exponential(lambda) * this->transition_time_period);
   // transition must be in the future
   if (*transition_day == day) {
@@ -179,7 +179,7 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   // find the next state
 
   // draw a random number from 0 to the sum of all outgoing state transition probabilites
-  double r = Random::draw_random(0, lambda);
+  double r = Random::draw_random(0, 1.0-this->transition_matrix[group][state][state]);
 
   // find transition corresponding to this draw
   double sum = 0.0;
