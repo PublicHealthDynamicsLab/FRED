@@ -45,9 +45,9 @@ public:
     return this->state_name[i];
   }
 
-  int get_initial_state(double age);
+  int get_initial_state(double age, int adjustment_state = 0, double adjustment = 1.0);
 
-  void get_next_state(int day, double age, int state, int* next_state, int* transition_day);
+  void get_next_state(int day, double age, int state, int* next_state, int* transition_day, int adjustment_state = -1, double adjustment = 1.0);
 
   int get_age_group(double age);
 

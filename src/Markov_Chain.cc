@@ -140,12 +140,17 @@ void Markov_Chain::print() {
 }
 
 
-int Markov_Chain::get_initial_state(double age) {
+int Markov_Chain::get_initial_state(double age, int adjustment_state, double adjustment) {
   int group = this->age_map->find_value(age);
-  double r = 100.0 * Random::draw_random();
+  double total = 100.0 - (1.0-adjustment)*this->state_initial_percent[group][adjustment_state];
+  double r = total * Random::draw_random();
   double sum = 0.0;
   for (int i = 0; i < this->number_of_states; i++) {
-    sum += this->state_initial_percent[group][i];
+    double next_pct = this->state_initial_percent[group][i];
+    if (i==adjustment_state) {
+      next_pct *= adjustment;
+    }
+    sum += next_pct;
     if (r < sum) {
       return i;
     }
@@ -155,19 +160,23 @@ int Markov_Chain::get_initial_state(double age) {
 }
 
 
-void Markov_Chain::get_next_state(int day, double age, int state, int* next_state, int* transition_day) {
+void Markov_Chain::get_next_state(int day, double age, int state, int* next_state, int* transition_day, int adjustment_state, double adjustment) {
   *transition_day = -1;
   *next_state = state;
   int group = this->age_map->find_value(age);
 
-  if (this->transition_matrix[group][state][state] == 1.0) {
+  double stay = this->transition_matrix[group][state][state];
+  if (adjustment_state == state) {
+    stay *= adjustment;
+  }
+
+  if (stay == 1.0) {
     // current state is absorbing
     return;
   }
 
   // lambda is the rate at which we leave current state
-  double lambda = -log(this->transition_matrix[group][state][state]);
-  // double lambda = 1.0 - this->transition_matrix[group][state][state];
+  double lambda = -log(stay);
 
   // find time of next transition
   *transition_day = day + round(Random::draw_exponential(lambda) * this->transition_time_period);
@@ -178,18 +187,33 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
 
   // find the next state
 
+  // form a prob dist over outgoing states
+  double p[this->number_of_states];
+  double total = 0.0;
+  for (int j = 0; j < this->number_of_states; j++) {
+    if (j == state) {
+      p[j] = 0.0;
+    }
+    else {
+      p[j] = this->transition_matrix[group][state][j];
+      if (adjustment_state == j) {
+	p[j] *= adjustment;
+      }
+    }
+    total += p[j];
+  }
+
+
   // draw a random number from 0 to the sum of all outgoing state transition probabilites
-  double r = Random::draw_random(0, 1.0-this->transition_matrix[group][state][state]);
+  double r = Random::draw_random(0, total);
 
   // find transition corresponding to this draw
   double sum = 0.0;
   for (int j = 0; j < this->number_of_states; j++) {
-    if (j != state) {
-      sum += this->transition_matrix[group][state][j];
-      if (r < sum) {
-	*next_state = j;
-	return;
-      }
+    sum += p[j];
+    if (r < sum) {
+      *next_state = j;
+      return;
     }
   }
 

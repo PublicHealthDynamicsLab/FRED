@@ -22,8 +22,13 @@
 #include "Person.h"
 #include "Population.h"
 #include "Place.h"
+#include "Place_List.h"
 #include "Random.h"
 #include "Utils.h"
+
+int county[9] = {42003, 42005,  42007,  42019,  42051,  42059,  42073,  42125,  42129};
+double adj[9] = {  0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.2, 0.1, 0.5};
+
 
 Markov_Epidemic::Markov_Epidemic(Condition* _condition) :
   Epidemic(_condition) {
@@ -160,7 +165,23 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   // update next event list
-  this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day);
+  if (0) {
+    // use county specific adjustments
+    int adjustment_state = 2;
+    double adjustment = 1.0;
+    int fips = Global::Places.get_county_for_place(person->get_household());
+    for (int j = 0; j < 9; j++) {
+      if (county[j] == fips) {
+	adjustment = adj[j];
+	break;
+      }
+    }
+    this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day, adjustment_state, adjustment);
+  }
+  else {
+    this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day);
+  }
+
   this->transition_to_state_event_queue[next_state]->add_event(transition_day, person);
     
   // update person's next state

@@ -236,6 +236,10 @@ public:
     return this->census_tracts[place->get_census_tract_index()];
   }
 
+  int get_county_for_place(Place* place) {
+    return get_fips_of_county_with_index(place->get_county_index());
+  }
+
   bool is_load_completed() {
     return this->load_completed;
   }
