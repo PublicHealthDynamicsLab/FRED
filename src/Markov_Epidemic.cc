@@ -26,6 +26,9 @@
 #include "Random.h"
 #include "Utils.h"
 
+double sup_lat[2] = { 40.30, 39.811};
+double sup_lon[2] = { -79.5, -80.187}; 
+
 Markov_Epidemic::Markov_Epidemic(Condition* _condition) :
   Epidemic(_condition) {
 }
@@ -171,17 +174,17 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
 
     // find min distance to a supplier
     double min_dist = 99999999999.0;
-    for (int s = 0; s < 4; s++) {
-      Person* sup = Global::Pop.get_person_by_index(s*50000);
-      double sup_lat = sup->get_household()->get_latitude();
-      double sup_lon = sup->get_household()->get_longitude();
-      double dist = Geo::xy_distance(my_lat, my_lon, sup_lat, sup_lon);
+    for (int s = 0; s < 2; s++) {
+      // Person* sup = Global::Pop.get_person_by_index(s*50000);
+      // double sup_lat = sup->get_household()->get_latitude();
+      // double sup_lon = sup->get_household()->get_longitude();
+      double dist = Geo::xy_distance(my_lat, my_lon, sup_lat[s], sup_lon[s]);
       if (dist < min_dist) {
 	min_dist = dist;
       }
     }
-    if (min_dist < 10.0) {
-      adjustment = 1.0;
+    if (min_dist < 50.0) {
+      adjustment = 1.0-min_dist*min_dist/2500.0;
     }
     else {
       adjustment = 0.0;
