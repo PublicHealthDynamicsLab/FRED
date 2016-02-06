@@ -55,6 +55,11 @@ private:
 
   // event queues
   Events** transition_to_state_event_queue;
+
+  // optional target locations
+  int target_locations;
+  double * coordinates;
+
 };
 
 #endif // _FRED_MARKOV_EPIDEMIC_H

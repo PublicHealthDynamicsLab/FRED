@@ -19,6 +19,7 @@
 #include "Markov_Epidemic.h"
 #include "Markov_Natural_History.h"
 #include "Markov_Chain.h"
+#include "Params.h"
 #include "Person.h"
 #include "Population.h"
 #include "Place.h"
@@ -26,8 +27,6 @@
 #include "Random.h"
 #include "Utils.h"
 
-double sup_lat[2] = { 40.30, 39.811};
-double sup_lon[2] = { -79.5, -80.187}; 
 
 Markov_Epidemic::Markov_Epidemic(Condition* _condition) :
   Epidemic(_condition) {
@@ -52,6 +51,19 @@ void Markov_Epidemic::setup() {
   for (int i = 0; i < this->number_of_states; i++) {
     this->transition_to_state_event_queue[i] = new Events;
   }
+
+  // optional parameters
+  this->target_locations = 0;
+  Params::disable_abort_on_failure();
+  int n = 0;
+  Params::get_indexed_param(this->condition->get_condition_name(),"target_locations",&n);
+  if (n > 0) {
+    this->coordinates = new double [n];
+    Params::get_indexed_param_vector(this->condition->get_condition_name(), "target_locations", this->coordinates);
+    // the number of location is half the number of coordinates
+    this->target_locations = n/2;
+  }
+  Params::set_abort_on_failure();
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup finished\n", this->condition->get_condition_name());
 }
@@ -164,7 +176,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   }
 
   // update next event list
-  if (1) {
+  if (this->target_locations > 0) {
     // use distance from suppliers
     int adjustment_state = 2;
     double adjustment = 1.0;
@@ -172,23 +184,18 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     double my_lat = person->get_household()->get_latitude();
     double my_lon = person->get_household()->get_longitude();
 
-    // find min distance to a supplier
+    // find min distance to a target location
     double min_dist = 99999999999.0;
-    for (int s = 0; s < 2; s++) {
-      // Person* sup = Global::Pop.get_person_by_index(s*50000);
-      // double sup_lat = sup->get_household()->get_latitude();
-      // double sup_lon = sup->get_household()->get_longitude();
-      double dist = Geo::xy_distance(my_lat, my_lon, sup_lat[s], sup_lon[s]);
+    for (int loc = 0; loc  < this->target_locations; loc++) {
+      double target_lat = this->coordinates[2*loc];
+      double target_lon = this->coordinates[2*loc+1];
+      double dist = Geo::xy_distance(my_lat, my_lon, target_lat, target_lon);
       if (dist < min_dist) {
 	min_dist = dist;
       }
     }
-    if (min_dist < 50.0) {
-      adjustment = 1.0-min_dist*min_dist/2500.0;
-    }
-    else {
-      adjustment = 0.0;
-    }
+    // adjustment = 0.5 when min_dist = 30km
+    adjustment = 900.0/(900.0+min_dist*min_dist);
     this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day, adjustment_state, adjustment);
   }
   else {
