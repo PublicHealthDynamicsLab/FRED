@@ -60,6 +60,7 @@ bool Global::Report_Mean_Household_Income_Per_School = false;
 bool Global::Report_Mean_Household_Size_Per_School = false;
 bool Global::Report_Mean_Household_Distance_From_School = false;
 bool Global::Report_Mean_Household_Stats_Per_Income_Category = false;
+bool Global::Report_Epidemic_Data_By_County = false;
 bool Global::Report_Epidemic_Data_By_Census_Tract = false;
 int Global::Popsize_by_age[Demographics::MAX_AGE+1];
 
@@ -219,6 +220,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Stats_Per_Income_Category = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_epidemic_data_by_census_tract", &temp_int);
   Global::Report_Epidemic_Data_By_Census_Tract = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_epidemic_data_by_county", &temp_int);
+  Global::Report_Epidemic_Data_By_County = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_hospitals", &temp_int);
   Global::Enable_Hospitals = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_health_insurance", &temp_int);

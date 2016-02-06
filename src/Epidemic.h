@@ -65,6 +65,8 @@ struct Time_Step_Map {
 };
 
 struct Condition_Count_Info {
+  int current_infected;
+  int current_symptomatic;
   int tot_ppl_evr_inf;
   int tot_ppl_evr_sympt;
   int tot_chldrn_evr_inf;
@@ -113,6 +115,7 @@ public:
   void print_stats(int day);
   void print_visualization_data_for_active_infections(int day);
   void print_visualization_data_for_case_fatality(int day, Person* person);
+  void report_by_county(int day);
   void report_age_of_infection(int day);
   void report_distance_of_infection(int day);
   void report_transmission_by_age_group(int day);
@@ -324,6 +327,7 @@ protected:
   //Values for household income based stratification
   std::map<int, struct Condition_Count_Info> household_income_infection_counts_map;
   std::map<int, struct Condition_Count_Info> census_tract_infection_counts_map;
+  std::map<long int, struct Condition_Count_Info> county_infection_counts_map;
 
   //Values for school income based stratification
   std::map<int, struct Condition_Count_Info> school_income_infection_counts_map;

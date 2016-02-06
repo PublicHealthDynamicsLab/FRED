@@ -216,6 +216,7 @@ public:
   static bool Report_Mean_Household_Distance_From_School;
   static bool Report_Mean_Household_Stats_Per_Income_Category;
   static bool Report_Epidemic_Data_By_Census_Tract;
+  static bool Report_Epidemic_Data_By_County;
   static int Verbose;
   static int Debug;
   static int Test;

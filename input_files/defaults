@@ -244,6 +244,7 @@ cat_IV_max_income = 35001
 cat_V_max_income = 50001
 cat_VI_max_income = 100001
 report_epidemic_data_by_census_tract = 0
+report_epidemic_data_by_county = 0
 
 ##########################################################
 #

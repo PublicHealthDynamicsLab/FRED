@@ -130,10 +130,21 @@ Epidemic::Epidemic(Condition* dis) {
     }
   }
 
+  if(Global::Report_Epidemic_Data_By_County) {
+    int n = Global::Places.get_number_of_counties();
+    for (int i = 0; i < n; i++) {
+      int fips = Global::Places.get_fips_of_county_with_index(i);
+      this->county_infection_counts_map[fips].current_infected = 0;
+      this->county_infection_counts_map[fips].current_symptomatic = 0;
+    }
+  }
+
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     //Values for household census_tract based stratification
     for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
 	      census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
+      this->census_tract_infection_counts_map[*census_tract_itr].current_infected = 0;
+      this->census_tract_infection_counts_map[*census_tract_itr].current_symptomatic = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
       this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
@@ -332,6 +343,11 @@ void Epidemic::become_exposed(Person* person, int day) {
     }
   }
 
+  if(Global::Report_Epidemic_Data_By_County) {
+    int fips = Global::Places.get_county_for_place(person->get_household());
+    this->county_infection_counts_map[fips].current_infected++;
+  }
+
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
@@ -482,6 +498,11 @@ void Epidemic::print_stats(int day) {
   if(Global::Report_Incidence_By_County) {
     FRED_VERBOSE(0, "report incidence by county\n");
     report_incidence_by_county(day);
+  }
+
+  if(Global::Report_Epidemic_Data_By_County) {
+    FRED_VERBOSE(0, "report epidemic by county\n");
+    report_by_county(day);
   }
 
   if(Global::Report_Incidence_By_Census_Tract) {
@@ -677,6 +698,19 @@ void Epidemic::report_age_of_infection(int day) {
     break;
   }
   Utils::fred_log("\n");
+}
+
+void Epidemic::report_by_county(int day) {
+  char str[FRED_STRING_SIZE];
+  int n = Global::Places.get_number_of_counties();
+  for (int i = 0; i < n; i++) {
+    int fips = Global::Places.get_fips_of_county_with_index(i);
+    sprintf(str, "P:%d", fips);
+    track_value(day, str, this->county_infection_counts_map[fips].current_infected);
+
+    sprintf(str, "Ps:%d", fips);
+    track_value(day, str, this->county_infection_counts_map[fips].current_symptomatic);
+  }
 }
 
 void Epidemic::report_serial_interval(int day) {
@@ -1578,6 +1612,11 @@ void Epidemic::recover(Person* person, int day) {
   
   this->removed_people++;
 
+  if(Global::Report_Epidemic_Data_By_County) {
+    int fips = Global::Places.get_county_for_place(person->get_household());
+    this->county_infection_counts_map[fips].current_infected--;
+  }
+
   if (Global::Enable_Visualization_Layer) {
     this->recovered_people.insert(person);
   }
@@ -1649,6 +1688,11 @@ void Epidemic::process_symptoms_start_events(int day) {
     // update person's health record
     person->become_symptomatic(this->condition);
 
+    if(Global::Report_Epidemic_Data_By_County) {
+      int fips = Global::Places.get_county_for_place(person->get_household());
+      this->county_infection_counts_map[fips].current_symptomatic++;
+    }
+
   }
   this->symptoms_start_event_queue->clear_events(day);
 }
@@ -1666,6 +1710,11 @@ void Epidemic::process_symptoms_end_events(int day) {
     // update person's health record
     person->resolve_symptoms(this->condition);
         
+    if(Global::Report_Epidemic_Data_By_County) {
+      int fips = Global::Places.get_county_for_place(person->get_household());
+      this->county_infection_counts_map[fips].current_symptomatic--;
+    }
+
     // check to see if person has fully recovered:
     int infectious_start_date = person->get_infectious_start_date(this->id);
     int infectious_end_date = person->get_infectious_end_date(this->id);
@@ -1772,6 +1821,10 @@ void Epidemic::update(int day) {
       this->removed_people++;
       if (Global::Enable_Visualization_Layer) {
 	print_visualization_data_for_case_fatality(day, person);
+      }
+      if(Global::Report_Epidemic_Data_By_County) {
+	int fips = Global::Places.get_county_for_place(person->get_household());
+	this->county_infection_counts_map[fips].current_infected--;
       }
     }
 
@@ -2017,6 +2070,10 @@ void Epidemic::terminate_person(Person* person, int day) {
     if(date > day) {
       FRED_VERBOSE(0, "EPIDEMIC CANCEL symptoms_end_date %d %d\n", date, day);
       cancel_symptoms_end(date, person);
+      if(Global::Report_Epidemic_Data_By_County) {
+	int fips = Global::Places.get_county_for_place(person->get_household());
+	this->county_infection_counts_map[fips].current_symptomatic--;
+      }
     }
   }
 
@@ -2037,6 +2094,11 @@ void Epidemic::terminate_person(Person* person, int day) {
   if(date > day) {
     FRED_VERBOSE(0, "EPIDEMIC CANCEL immunity_end_date %d %d\n", date, day);
     cancel_immunity_end(date, person);
+  }
+
+  if(Global::Report_Epidemic_Data_By_County) {
+    int fips = Global::Places.get_county_for_place(person->get_household());
+    this->county_infection_counts_map[fips].current_infected--;
   }
 
   FRED_VERBOSE(1, "EPIDEMIC TERMINATE finished\n");
