@@ -139,6 +139,10 @@ public:
 
   virtual void get_imported_infections(int day);
   void become_exposed(Person* person, int day);
+  void become_infectious(Person* person, int day);
+  void become_noninfectious(Person* person, int day);
+  void become_symptomatic(Person* person, int day);
+  void become_asymptomatic(Person* person, int day);
 
   virtual void update(int day);
   virtual void markov_updates(int day) {}
@@ -244,6 +248,8 @@ public:
   void process_infectious_start_events(int day);
   void process_infectious_end_events(int day);
   void recover(Person* person, int day);
+  void add_symptoms_start_events(int day, Person* person);
+  void add_symptoms_end_events(int day, Person* person);
   void process_symptoms_start_events(int day);
   void process_symptoms_end_events(int day);
   void process_immunity_start_events(int day);
