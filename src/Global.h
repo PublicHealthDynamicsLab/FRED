@@ -132,7 +132,7 @@ public:
   static const int HOUSEMATE = 9;
   static const int PARTNER = 10;
   static const int FOSTER_CHILD = 11;
-  static const int OTHER_NON_RELATIVE = 13;
+  static const int OTHER_NON_RELATIVE = 12;
   static const int INSTITUTIONALIZED_GROUP_QUARTERS_POP = 13;
   static const int NONINSTITUTIONALIZED_GROUP_QUARTERS_POP = 14;
 
