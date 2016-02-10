@@ -1434,6 +1434,9 @@ void Epidemic::report_by_county(int day) {
 
     sprintf(str, "Ps:%d", fips);
     track_value(day, str, this->county_infection_counts_map[fips].current_symptomatic);
+
+    sprintf(str, "N:%d", fips);
+    track_value(day, str, Global::Places.get_population_of_county_with_index(i));
   }
 }
 

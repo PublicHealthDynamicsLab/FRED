@@ -38,7 +38,7 @@ public:
     return this->fips;
   }
 
-  int get_tot_current_popsize() {
+  int get_current_popsize() {
     return this->tot_current_popsize;
   }
 

@@ -166,7 +166,7 @@ public:
       return 0;
     }
     assert(index < this->counties.size());
-    return this->counties[index]->get_tot_current_popsize();
+    return this->counties[index]->get_current_popsize();
   }
 
   int get_population_of_county_with_index(int index, int age) {

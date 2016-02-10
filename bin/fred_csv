@@ -140,8 +140,18 @@ else {
 }
 
 # Add Pop column
-$datafile = "$dir/${weekly}N.txt";
-$datafile = "$dir/${weekly}N-$run.txt" if $run > 0;
+my $popsizefile = "N";
+
+# get population of sub-region associated with the requested variable
+if (scalar @vars == 1) {
+  if ($var =~ /:/) {
+    my ($fips) = $var =~ /:(\d+)/;
+    $popsizefile = "N:$fips";
+  }
+}
+
+$datafile = "$dir/${weekly}$popsizefile.txt";
+$datafile = "$dir/${weekly}$popsizefile-$run.txt" if $run > 0;
 die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
 open FH, $datafile or die "$0: ERROR READING $datafile\n";
 $i = 0;
