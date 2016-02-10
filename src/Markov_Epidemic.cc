@@ -94,11 +94,13 @@ void Markov_Epidemic::prepare() {
     transition_person(person, day, state);
   }
 
-  FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare: state/size: \n", this->condition->get_condition_name());
-  for (int i = 0; i < this->number_of_states; i++) {
-    FRED_VERBOSE(0, " | %d %s = %d", i, this->markov_chain->get_state_name(i).c_str(), this->count[i]);
+  if (Global::Verbose > 0) {
+    printf("Markov Chain states: \n");
+    for (int i = 0; i < this->number_of_states; i++) {
+      printf(" | %d %s = %d", i, this->markov_chain->get_state_name(i).c_str(), this->count[i]);
+    }
+    printf("\n");
   }
-  FRED_VERBOSE(0, "\n");
 
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare finished\n", this->condition->get_condition_name());
 }

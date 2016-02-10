@@ -825,7 +825,7 @@ void Neighborhood_Layer::register_place(Place *place) {
     //    place->set_patch(patch);  
   }
   else {
-    FRED_VERBOSE(0, "register place:can't find patch for place %s county = %d\n",
+    FRED_VERBOSE(1, "register place:can't find patch for place %s county = %d\n",
 		 place->get_label(), place->get_county_index());
   }
 }

@@ -316,12 +316,15 @@ double Neighborhood_Patch::distance_to_patch(Neighborhood_Patch* p2) {
 
 void Neighborhood_Patch::register_place(Place* place) {
   if(place->is_school()) {
+    FRED_VERBOSE(1, "register place: added school %s\n", place->get_label());
     this->schools.push_back(place);
   }
   if(place->is_workplace()) {
+    FRED_VERBOSE(1, "register place: added workplace %s\n", place->get_label());
     this->workplaces.push_back(place);
   }
   if(place->is_hospital()) {
+    FRED_VERBOSE(1, "register place: added hospital %s\n", place->get_label());
     this->hospitals.push_back(place);
   }
 }
