@@ -105,7 +105,7 @@ void Markov_Epidemic::prepare() {
 
 
 void Markov_Epidemic::markov_updates(int day) {
-  FRED_VERBOSE(1, "Markov_Epidemic(%s)::update for day %d\n", this->condition->get_condition_name(), day);
+  FRED_VERBOSE(0, "Markov_Epidemic(%s)::update for day %d\n", this->condition->get_condition_name(), day);
 
   // handle scheduled transitions to each state
   for (int state = 0; state < this->number_of_states; state++) {
@@ -136,9 +136,14 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   int old_state = person->get_health_state(this->id);
   double age = person->get_real_age();
 
+  FRED_VERBOSE(1, "TRANSITION_PERSON day %d id %d age %0.2f old_state %d state %d age group %d old_age_group %d\n", 
+	       day, person->get_id(), age, old_state, state, 
+	       this->markov_chain->get_age_group(age), this->markov_chain->get_age_group(age-1)); 
+
   if (state == old_state && 1 <= age &&
       this->markov_chain->get_age_group(age) == this->markov_chain->get_age_group(age-1)) { 
     // this is a birthday check-in and no age group change has occurred.
+    // FRED_VERBOSE(0, "birthday check-in -- no age group change\n");
     return;
   }
 
@@ -201,6 +206,9 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   else {
     this->markov_chain->get_next_state(day, age, state, &next_state, &transition_day);
   }
+
+  FRED_VERBOSE(1, "TRANSITION_PERSON %d get_next_state = %d trans_day %d\n",
+	       person->get_id(), next_state, transition_day);
 
   this->transition_to_state_event_queue[next_state]->add_event(transition_day, person);
     
@@ -286,6 +294,7 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
     // update person's health record
     person->become_case_fatality(day, this->condition);
   }
+  // FRED_VERBOSE(0, "transition_person %d day %d to state %d finished\n", person->get_id(), day, state);
 }
 
 

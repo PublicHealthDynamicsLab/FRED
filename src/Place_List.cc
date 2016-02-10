@@ -1543,7 +1543,7 @@ void Place_List::setup_group_quarters() {
     if(house->is_group_quarters()) {
       int gq_size = house->get_size();
       int gq_units = house->get_group_quarters_units();
-      FRED_VERBOSE(0, "GQ_setup: house %d label %s subtype %c initial size %d units %d\n", p, house->get_label(),
+      FRED_VERBOSE(1, "GQ_setup: house %d label %s subtype %c initial size %d units %d\n", p, house->get_label(),
           house->get_subtype(), gq_size, gq_units);
       if(gq_units > 1) {
 	      vector<Person*> housemates;

@@ -143,6 +143,8 @@ public:
   void become_noninfectious(Person* person, int day);
   void become_symptomatic(Person* person, int day);
   void become_asymptomatic(Person* person, int day);
+  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
+  void recover(Person* person, int day);
 
   virtual void update(int day);
   virtual void markov_updates(int day) {}
@@ -236,8 +238,6 @@ public:
     ++(this->number_infected_by_cohort[cohort_day]);
   }
 
-  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
-
   int get_id() {
     return this->id;
   }
@@ -247,9 +247,6 @@ public:
   // events processing
   void process_infectious_start_events(int day);
   void process_infectious_end_events(int day);
-  void recover(Person* person, int day);
-  void add_symptoms_start_events(int day, Person* person);
-  void add_symptoms_end_events(int day, Person* person);
   void process_symptoms_start_events(int day);
   void process_symptoms_end_events(int day);
   void process_immunity_start_events(int day);

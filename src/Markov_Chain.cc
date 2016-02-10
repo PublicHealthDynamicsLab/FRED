@@ -73,15 +73,12 @@ void Markov_Chain::get_parameters() {
       this->transition_matrix[group][i] = new double [this->number_of_states];
     }
 
+    // identity matrix
     for (int i = 0; i < this->number_of_states; i++) {
       for (int j = 0; j < this->number_of_states; j++) {
-	if (i == j) {
-	  this->transition_matrix[group][i][j] = 1.0;
-	}
-	else {
-	  this->transition_matrix[group][i][j] = 0.0;
-	}
+	this->transition_matrix[group][i][j] = 0.0;
       }
+      this->transition_matrix[group][i][i] = 1.0;
     }
 
     // read optional parameters
@@ -115,6 +112,7 @@ void Markov_Chain::get_parameters() {
       this->transition_matrix[group][i][i] = 1.0 - sum;
     }
   }
+  print();
 }
 
 
@@ -123,6 +121,8 @@ void Markov_Chain::print() {
     printf("MARKOV MODEL %s[%d].name = %s\n",
 	   this->name, i, this->state_name[i].c_str());
   }
+
+  this->age_map->print();
 
   for (int g = 0; g < this->age_groups; g++) {
     for (int i = 0; i < this->number_of_states; i++) {

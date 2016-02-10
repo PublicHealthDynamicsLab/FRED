@@ -605,7 +605,7 @@ void Health::resolve_symptoms(Condition* condition) {
 
 void Health::recover(Condition* condition, int day) {
   int condition_id = condition->get_id();
-  // assert(this->infection[condition_id] != NULL);
+  assert(this->infection[condition_id] != NULL);
   FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
 			   "HEALTH RECORD: %s person %d is RECOVERED from %s\n",
 			   Date::get_date_string().c_str(),

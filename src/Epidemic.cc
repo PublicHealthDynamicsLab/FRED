@@ -685,18 +685,9 @@ void Epidemic::spread_infection_in_active_places(int day) {
 //
 
 
-void Epidemic::add_symptoms_start_events(int day, Person* person) {
-  int symptoms_start_date = person->get_symptoms_start_date(this->id);
-  if(0 <= symptoms_start_date && symptoms_start_date <= day) {
-    FRED_VERBOSE(0, "TIME WARP day %d symp %d\n", day, symptoms_start_date);
-    symptoms_start_date = day + 1;
-  }
-  this->symptoms_start_event_queue->add_event(symptoms_start_date, person);
-}
-
 void Epidemic::process_symptoms_start_events(int day) {
   int size = this->symptoms_start_event_queue->get_size(day);
-  FRED_VERBOSE(0, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
+  FRED_VERBOSE(1, "SYMP_START_EVENT_QUEUE day %d size %d\n", day, size);
 
   for(int i = 0; i < size; ++i) {
     Person* person =  this->symptoms_start_event_queue->get_event(day, i);
@@ -717,6 +708,13 @@ void Epidemic::process_symptoms_end_events(int day) {
   for(int i = 0; i < size; ++i) {
     Person* person = this->symptoms_end_event_queue->get_event(day, i);
     become_asymptomatic(person, day);
+
+    // check to see if person has fully recovered:
+    int infectious_start_date = person->get_infectious_start_date(this->id);
+    int infectious_end_date = person->get_infectious_end_date(this->id);
+    if ((infectious_start_date == -1) || (-1 < infectious_end_date && infectious_end_date <= day)) {
+      recover(person, day);
+    }
   }
   this->symptoms_end_event_queue->clear_events(day);
 }
@@ -789,6 +787,8 @@ void Epidemic::cancel_immunity_end(int day, Person* person) {
 //
 
 void Epidemic::become_exposed(Person* person, int day) {
+
+  // FRED_VERBOSE(0, "become exposed day %d person %d\n", day, person->get_id());
 
   this->infected_people.insert(person);
   if (Global::Enable_Visualization_Layer) {
@@ -880,6 +880,8 @@ void Epidemic::become_exposed(Person* person, int day) {
 
 void Epidemic::become_infectious(Person* person, int day) {
 
+  // FRED_VERBOSE(0, "become infectious day %d person %d\n", day, person->get_id());
+
   // add to active people list
   this->potentially_infectious_people.insert(person);
   if (Global::Enable_Visualization_Layer) {
@@ -896,20 +898,17 @@ void Epidemic::become_infectious(Person* person, int day) {
 
 void Epidemic::become_noninfectious(Person* person, int day) {
 
+  // FRED_VERBOSE(0, "become noninfectious day %d person %d\n", day, person->get_id());
+
   // update person's health record
   person->become_noninfectious(this->condition);
   
-  // check to see if person has fully recovered:
-  int symptoms_start_date = person->get_symptoms_start_date(this->id);
-  int symptoms_end_date = person->get_symptoms_end_date(this->id);
-  if((symptoms_start_date == -1) || (-1 < symptoms_end_date && symptoms_end_date < day)) {
-    recover(person, day);
-  }
-
 }
 
 
 void Epidemic::become_symptomatic(Person* person, int day) {
+
+  // FRED_VERBOSE(0, "become symptomatic day %d person %d\n", day, person->get_id());
 
   // update epidemic counters
   this->people_with_current_symptoms++;
@@ -918,13 +917,11 @@ void Epidemic::become_symptomatic(Person* person, int day) {
     this->new_symptomatic_people.insert(person);
   }
 
-  FRED_VERBOSE(0, "SYMP_START_EVENT day %d person %d\n", day, person->get_id());
-
   if(Global::Report_Epidemic_Data_By_County) {
     int fips = Global::Places.get_county_for_place(person->get_household());
     this->county_infection_counts_map[fips].current_symptomatic++;
-    FRED_VERBOSE(0, "SYMP_START_EVENT day %d person %d  fips %d count %d\n",
-		 day, person->get_id(), fips, this->county_infection_counts_map[fips].current_symptomatic);
+    // FRED_VERBOSE(0, "SYMP_START_EVENT day %d person %d  fips %d count %d\n",
+    // day, person->get_id(), fips, this->county_infection_counts_map[fips].current_symptomatic);
   }
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
@@ -975,6 +972,8 @@ void Epidemic::become_symptomatic(Person* person, int day) {
 
 void Epidemic::become_asymptomatic(Person* person, int day) {
 
+  // FRED_VERBOSE(0, "become asymptomatic day %d person %d\n", day, person->get_id());
+
   // update epidemic counters
   this->people_with_current_symptoms--;
 
@@ -986,12 +985,6 @@ void Epidemic::become_asymptomatic(Person* person, int day) {
     this->county_infection_counts_map[fips].current_symptomatic--;
   }
 
-  // check to see if person has fully recovered:
-  int infectious_start_date = person->get_infectious_start_date(this->id);
-  int infectious_end_date = person->get_infectious_end_date(this->id);
-  if ((infectious_start_date == -1) || (-1 < infectious_end_date && infectious_end_date <= day)) {
-    recover(person, day);
-  }
 }
 
 void Epidemic::process_infectious_start_events(int day) {
@@ -1022,13 +1015,22 @@ void Epidemic::process_infectious_end_events(int day) {
     Person* person =  this->infectious_end_event_queue->get_event(day, i);
 
     become_noninfectious(person, day);
+
+    // check to see if person has fully recovered:
+    int symptoms_start_date = person->get_symptoms_start_date(this->id);
+    int symptoms_end_date = person->get_symptoms_end_date(this->id);
+    if((symptoms_start_date == -1) || (-1 < symptoms_end_date && symptoms_end_date < day)) {
+      recover(person, day);
+    }
+
   }
   this->infectious_end_event_queue->clear_events(day);
 }
 
 void Epidemic::recover(Person* person, int day) {
-  FRED_VERBOSE(1, "infectious_end_event day %d person %d\n", day, person->get_id());
-  
+
+  // FRED_VERBOSE(0, "recover day %d person %d\n", day, person->get_id());
+
   // remove from active list
   this->potentially_infectious_people.erase(person);
   
@@ -1049,7 +1051,8 @@ void Epidemic::recover(Person* person, int day) {
 
 
 void Epidemic::terminate_person(Person* person, int day) {
-  FRED_VERBOSE(1, "EPIDEMIC TERMINATE person %d day %d\n",
+
+  FRED_VERBOSE(0, "EPIDEMIC TERMINATE person %d day %d\n",
 	       person->get_id(), day);
 
   // cancel any events for this person
