@@ -63,9 +63,345 @@ void Markov_Epidemic::setup() {
     // the number of location is half the number of coordinates
     this->target_locations = n/2;
   }
+
+  this->use_bayesian_init = 0;
+  char bayesian_initfile[FRED_STRING_SIZE];
+  sprintf(bayesian_initfile, "none");
+  Params::get_indexed_param(this->condition->get_condition_name(),"bayesian_initfile", bayesian_initfile);
+  if (strcmp(bayesian_initfile, "none") != 0) {
+    this->use_bayesian_init = 1;
+    int age,sex,race,county;
+    double nonuser, asymp, problem, death_asymp, death_problem;
+    FILE* fp;
+    fp = Utils::fred_open_file(bayesian_initfile);
+    fscanf(fp, "%*s ");
+    while (fscanf(fp, "%d %d %d %d %lf %lf %lf %lf %lf ",
+		  &age,&sex,&race,&county,
+		  &nonuser, &asymp,
+		  &problem,
+		  &death_asymp,
+		  &death_problem) == 9) {
+      pnon[age][sex][race][county] = nonuser;
+      pasymp[age][sex][race][county] = asymp;
+      pproblem[age][sex][race][county] = problem;
+      dasymp[age][sex][race][county] = death_asymp;
+      dproblem[age][sex][race][county] = death_problem;
+    }
+    fclose(fp);
+  }
+
   Params::set_abort_on_failure();
 
+  FRED_VERBOSE(0, "%.9f %.9f %.9f %.9f %.9f\n",
+	       pnon[13][2][3][65],
+	       pasymp[13][2][3][65],
+	       pproblem[13][2][3][65],
+	       dasymp[13][2][3][65],
+	       dproblem[13][2][3][65]);
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::setup finished\n", this->condition->get_condition_name());
+}
+
+
+int Markov_Epidemic::get_age_code(int age) {
+  if (age < 1) {
+    return 1;
+  }
+  if (85 <= age) {
+    return 13;
+  }
+  if (age < 25) {
+    return 2 + age/5;
+  }
+  return 7 + (age-25)/10;
+}
+
+int Markov_Epidemic::get_sex_code(char sex) {
+  return (sex == 'F') ? 1 : 2; 
+}
+
+int Markov_Epidemic::get_race_code(int race) {
+  if (race == Global::WHITE) {
+    return 3;
+  }
+  if (race == Global::AFRICAN_AMERICAN) {
+    return 1;
+  }
+  return 2;
+}
+
+int Markov_Epidemic:: get_county_code(int fips) {
+  switch (fips) {
+  case 42001:
+    return 1;
+    break;
+
+  case 42003:
+    return 2;
+    break;
+
+  case 42005:
+    return 3;
+    break;
+
+  case 42007:
+    return 4;
+    break;
+
+  case 42009:
+    return 5;
+    break;
+
+  case 42011:
+    return 6;
+    break;
+
+  case 42013:
+    return 7;
+    break;
+
+  case 42015:
+    return 8;
+    break;
+
+  case 42017:
+    return 9;
+    break;
+
+  case 42019:
+    return 10;
+    break;
+
+  case 42021:
+    return 11;
+    break;
+
+  case 42023:
+    return 12;
+    break;
+
+  case 42025:
+    return 13;
+    break;
+
+  case 42027:
+    return 14;
+    break;
+
+  case 42029:
+    return 15;
+    break;
+
+  case 42031:
+    return 16;
+    break;
+
+  case 42033:
+    return 17;
+    break;
+
+  case 42035:
+    return 18;
+    break;
+
+  case 42037:
+    return 19;
+    break;
+
+  case 42039:
+    return 20;
+    break;
+
+  case 42041:
+    return 21;
+    break;
+
+  case 42043:
+    return 22;
+    break;
+
+  case 42045:
+    return 23;
+    break;
+
+  case 42047:
+    return 24;
+    break;
+
+  case 42049:
+    return 25;
+    break;
+
+  case 42051:
+    return 26;
+    break;
+
+  case 42053:
+    return 27;
+    break;
+
+  case 42055:
+    return 28;
+    break;
+
+  case 42057:
+    return 29;
+    break;
+
+  case 42059:
+    return 30;
+    break;
+
+  case 42061:
+    return 31;
+    break;
+
+  case 42063:
+    return 32;
+    break;
+
+  case 42065:
+    return 33;
+    break;
+
+  case 42067:
+    return 34;
+    break;
+
+  case 42069:
+    return 35;
+    break;
+
+  case 42071:
+    return 36;
+    break;
+
+  case 42073:
+    return 37;
+    break;
+
+  case 42075:
+    return 38;
+    break;
+
+  case 42077:
+    return 39;
+    break;
+
+  case 42079:
+    return 40;
+    break;
+
+  case 42081:
+    return 41;
+    break;
+
+  case 42083:
+    return 42;
+    break;
+
+  case 42085:
+    return 43;
+    break;
+
+  case 42087:
+    return 44;
+    break;
+
+  case 42089:
+    return 45;
+    break;
+
+  case 42091:
+    return 46;
+    break;
+
+  case 42093:
+    return 47;
+    break;
+
+  case 42095:
+    return 48;
+    break;
+
+  case 42097:
+    return 49;
+    break;
+
+  case 42099:
+    return 50;
+    break;
+
+  case 42101:
+    return 51;
+    break;
+
+  case 42103:
+    return 52;
+    break;
+
+  case 42105:
+    return 53;
+    break;
+
+  case 42107:
+    return 54;
+    break;
+
+  case 42109:
+    return 55;
+    break;
+
+  case 42111:
+    return 56;
+    break;
+
+  case 42113:
+    return 57;
+    break;
+
+  case 42115:
+    return 58;
+    break;
+
+  case 42117:
+    return 59;
+    break;
+
+  case 42119:
+    return 60;
+    break;
+
+  case 42121:
+    return 61;
+    break;
+
+  case 42123:
+    return 62;
+    break;
+
+  case 42125:
+    return 63;
+    break;
+
+  case 42127:
+    return 64;
+    break;
+
+  case 42129:
+    return 65;
+    break;
+
+  case 42131:
+    return 66;
+    break;
+
+  case 42133:
+    return 67;
+    break;
+
+  }
+
+  return -1;
 }
 
 
@@ -82,15 +418,43 @@ void Markov_Epidemic::prepare() {
   }
 
   // initialize the population
+  double prob[3];
   int day = 0;
   int popsize = Global::Pop.get_pop_size();
   for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
     Person* person = Global::Pop.get_person_by_index(p);
+    int state = -1;
     if(person == NULL) {
       continue;
     }
-    double age = person->get_real_age();
-    int state = this->markov_chain->get_initial_state(age);
+    if (this->use_bayesian_init) {
+      int age = get_age_code(person->get_age());
+      int sex = get_sex_code(person->get_sex());
+      int race = get_race_code(person->get_race());
+      int county = get_county_code(person->get_household()->get_household_fips());
+      prob[0] = pnon[age][sex][race][county];
+      prob[1] = pasymp[age][sex][race][county];
+      prob[2] = pproblem[age][sex][race][county];
+      prob[2] = 1.0 - prob[0] - prob[1];
+      double r = Random::draw_random();
+      double sum = 0.0;
+      for (int i = 0; i <= 2; i++) {
+	sum += prob[i];
+	if (r < sum) {
+	  state = i;
+	  break;
+	}
+      }
+      printf("BAYESIAN INIT: person %d age %d sex %d race %d county %d state %d %f %f %f r = %.9f sum = %.9f\n", person->get_id(),age,sex,race,county,state,prob[0],prob[1],prob[2],r, sum); 
+      if (this->target_locations > 0 && state == 2) {
+	state = 1;
+      }
+    }
+    else {
+      double age = person->get_real_age();
+      state = this->markov_chain->get_initial_state(age);
+    }
+    assert(state > -1);
     transition_person(person, day, state);
   }
 

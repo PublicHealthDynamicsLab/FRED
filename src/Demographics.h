@@ -217,6 +217,7 @@ public:
   static void report(int day); 
   static void report_ages_by_county();
   static void migration();
+  static void add_immigrant(int age, char sex);
   static int find_fips_code(int n);
 
 private:

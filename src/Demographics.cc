@@ -512,9 +512,10 @@ void Demographics::update(int day) {
   }
   Demographics::mortality_queue->clear_events(day);
 
-
   if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-    migration();
+    if (Global::Test) {
+      migration();
+    }
     report_ages_by_county();
   }
 
@@ -522,8 +523,49 @@ void Demographics::update(int day) {
 }
 
 void Demographics::migration() {
+  // get the current year
+  int year = Date::get_year();
 
+  if (2010 <= year && year <= 2040 && year % 5 == 0) {
+    int i = (year-2010)/5;
+    for (int j = 0; j < 18; j++) {
+      int lower_age = 5*j;
+      int males = male_migrants[i][j];
+      int females = female_migrants[i][j];
+      if (males > 0) {
+	// add these migrants to the population
+	for (int k = 0; k < males; k++) {
+	  char sex = 'M';
+	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
+	  add_immigrant(my_age, sex);
+	}
+      }
+      if (females > 0) {
+	// add these migrants to the population
+	for (int k = 0; k < females; k++) {
+	  char sex = 'F';
+	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
+	  add_immigrant(my_age, sex);
+	}
+      }
+    }
+  }
 }
+
+void Demographics::add_immigrant(int age, char sex) {
+  int race = 0;
+  int rel = 0;
+  Place* school = NULL;
+  Place* work = NULL;
+  int day = Global::Simulation_Day;
+
+  // pick a random household
+  int hnum = Random::draw_random_int(0, Global::Places.get_number_of_households()-1);
+  Place* house = Global::Places.get_household(hnum);
+
+  Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
+}
+
 
 void Demographics::add_to_birthday_list(Person* person) {
   int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
@@ -631,7 +673,12 @@ void Demographics::report_ages_by_county() {
       }
       int females = Global::Places.get_population_of_county_with_index(i, lower, upper, 'F');
       int males = Global::Places.get_population_of_county_with_index(i, lower, upper, 'M');
-      fprintf(fp, "%d %d %d\n", lower, males, females);
+      if (lower < 85) {
+	fprintf(fp, "%d-%d %d %d\n", lower, upper, males, females);
+      }
+      else {
+	fprintf(fp, "%d+ %d %d\n", lower, males, females);
+      }
     }
     fclose(fp);
   }

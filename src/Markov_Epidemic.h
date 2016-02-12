@@ -47,6 +47,11 @@ public:
 
   void terminate_person(Person* person, int day);
 
+  int get_age_code(int age);
+  int get_sex_code(char sex);
+  int get_race_code(int race);
+  int get_county_code(int fips);
+
 private:
   Markov_Chain* markov_chain;
   int number_of_states;
@@ -59,6 +64,14 @@ private:
   // optional target locations
   int target_locations;
   double * coordinates;
+
+  // bayesian initialization
+  int use_bayesian_init;
+  double pnon[13][3][4][68];
+  double pasymp[13][3][4][68];
+  double pproblem[13][3][4][68];
+  double dasymp[13][3][4][68];
+  double dproblem[13][3][4][68];
 
 };
 
