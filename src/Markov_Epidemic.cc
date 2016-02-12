@@ -446,8 +446,10 @@ void Markov_Epidemic::prepare() {
 	}
       }
       printf("BAYESIAN INIT: person %d age %d sex %d race %d county %d state %d %f %f %f r = %.9f sum = %.9f\n", person->get_id(),age,sex,race,county,state,prob[0],prob[1],prob[2],r, sum); 
+
+      // ignore state 2 if target_locations
       if (this->target_locations > 0 && state == 2) {
-	state = 1;
+	state = 0;
       }
     }
     else {

@@ -141,6 +141,9 @@ get_ps(n) = n <= words(ps_list) ? word(ps_list,n) : 0.1
 # name of the file containing boundaries
 shapefile(n) = word(shapefiles,n)
 
+# set label "Red Dot = Problem User" at graph 0.1, character 1 left tc ls 9
+# set label "Blue Dot = Asymp User" at graph 0.9, character 1 right tc ls 1
+
 set output mapname
 set multiplot
 
