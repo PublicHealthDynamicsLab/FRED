@@ -134,6 +134,16 @@ my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
 chdir $outdir or die "Can't chdir to $outdir\n";
 # print "CWD = $outdir\n";
 
+# get dates
+my @dates  = ();
+my $datefile = "$FREDRESULTS/JOB/$id/DATA/TABLES/Date.txt";
+if (-e $datefile) {
+  open FH, $datefile;
+  @dates = <FH>;
+  close FH;
+  shift @dates;
+}
+
 # determine days from outfile
 my $days = `wc -l out1.txt`;
 chomp $days;
@@ -344,9 +354,15 @@ sub make_map {
   }
   my $var = shift @x;
   my $loadfile = "load-run=$run-cond=$condition_id-day=$day.plt";
+  my $my_date = "none";
+  if (@dates) {
+    $my_date = $dates[$day];
+    chomp $my_date;
+  }
   open LD, ">$loadfile";
   print LD "my_title = \"$title\"\n";
   print LD "my_subtitle = \"$subtitle\"\n";
+  print LD "my_date = \"$my_date\"\n";
   print LD "day = $day\n";
   print LD "terminal = '$term'\n";
   print LD "mapname = '$mapname'\n";

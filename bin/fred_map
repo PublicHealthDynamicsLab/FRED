@@ -4,15 +4,24 @@
 
 # default parameters
 
+
 if (!exists("my_title")) {
    my_title = "FRED Simulation"
 }
+
 if (!exists("my_subtitle")) {
-   my_subtitle = " "
+   my_subtitle = ""
 }
 if (!exists("day")) {
    day = 1
 }
+if (!exists("my_date")) {
+   my_date = ""
+}
+
+title_string = sprintf("%s\n%s\n{/Arial=12 %s}\n{/Arial=12 Day %d}\n", my_title, my_subtitle, my_date, day)
+print sprintf("title_string = |%s|n",title_string)
+
 if (!exists("terminal")) {
   terminal = "png"
 }
@@ -87,17 +96,13 @@ unset key; unset tics;
 # read in previously computed values for bounding box: xmin, xmax, ymin and ymax
 load 'BBOX'
 
-# set the title
-title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
-# day_string = sprintf("Day %d", day)
-
 if (terminal eq "png") {
   set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,-1 font "Arial, 16"
+  set title title_string offset 0,-2 font "Arial, 16"
 }
 if (terminal eq "pdf") {
   set term pdf enhanced font "Helvetica,18" size 8.888,8.888
-  set title title_string offset 0,-1 font "Helvetica,24"
+  set title title_string offset 0,-2 font "Helvetica,24"
 }
 
 # set the ranges for the axes
@@ -141,8 +146,8 @@ get_ps(n) = n <= words(ps_list) ? word(ps_list,n) : 0.1
 # name of the file containing boundaries
 shapefile(n) = word(shapefiles,n)
 
-# set label "Red Dot = Problem User" at graph 0.1, character 1 left tc ls 9
-# set label "Blue Dot = Asymp User" at graph 0.9, character 1 right tc ls 1
+set label "Blue Dot = Asymp User" at graph 0.1, character 1 left tc ls 1
+set label  "Red Dot = Problem User" at graph 0.9, character 1 right tc ls 9
 
 set output mapname
 set multiplot

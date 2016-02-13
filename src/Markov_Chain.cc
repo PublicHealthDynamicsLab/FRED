@@ -168,6 +168,9 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   double stay = this->transition_matrix[group][state][state];
   if (adjustment_state == state) {
     stay *= adjustment;
+    if (stay > 1.0) {
+      stay = 1.0;
+    }
   }
 
   if (stay == 1.0) {

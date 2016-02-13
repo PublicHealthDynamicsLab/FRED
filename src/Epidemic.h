@@ -242,7 +242,7 @@ public:
     return this->id;
   }
 
-  virtual void transition_person(Person* person, int day, int state) {}
+  virtual void transition_person(Person* person, int day, int state);
 
   // events processing
   void process_infectious_start_events(int day);

@@ -451,6 +451,9 @@ void Epidemic::update(int day) {
 
 
 void Epidemic::get_imported_infections(int day) {
+
+  FRED_VERBOSE(0, "GET_IMPORTED_INFECTIONS %d map_size %d\n",  day, this->imported_cases_map.size());
+
   this->N = Global::Pop.get_pop_size();
 
   for(int i = 0; i < this->imported_cases_map.size(); ++i) {
@@ -517,13 +520,8 @@ void Epidemic::get_imported_infections(int day) {
 	          people.pop_back();
 
 	          // infect the candidate
-	          FRED_VERBOSE(0, "infecting candidate %d id %d\n", n, infectee->get_id());
-	          infectee->become_exposed(this->id, NULL, NULL, day);
-	          FRED_VERBOSE(0, "exposed candidate %d id %d\n", n, infectee->get_id());
-	          if(this->seeding_type != SEED_EXPOSED) {
-	            advance_seed_infection(infectee);
-	          }
-	          become_exposed(infectee, day);
+	          FRED_VERBOSE(0, "IMPORT infecting candidate %d id %d\n", n, infectee->get_id());
+		  transition_person(infectee, day, 1);
 	          imported_cases++;
 	        }
 	        FRED_VERBOSE(0, "IMPORT SUCCESS: %d imported cases\n", imported_cases);
@@ -2371,3 +2369,10 @@ void Epidemic::print_visualization_data_for_case_fatality(int day, Person* perso
 }
 
 
+void Epidemic::transition_person(Person* person, int day, int state) {
+  person->become_exposed(this->id, NULL, NULL, day);
+  if(this->seeding_type != SEED_EXPOSED) {
+    advance_seed_infection(person);
+  }
+  become_exposed(person, day);
+}

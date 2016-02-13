@@ -33,7 +33,7 @@ public:
 
   void prepare();
 
-  void get_imported_infections(int day) {}
+  // void get_imported_infections(int day) {}
 
   void update(int day);
 
@@ -64,6 +64,9 @@ private:
   // optional target locations
   int target_locations;
   double * coordinates;
+
+  // use a ramp to adjust state 1
+  double ramp;
 
   // bayesian initialization
   int use_bayesian_init;

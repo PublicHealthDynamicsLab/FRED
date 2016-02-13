@@ -11,6 +11,7 @@
 
 // File Markov_Epidemic.cc
 
+#include <math.h>
 #include "Events.h"
 #include "Date.h"
 #include "Condition.h"
@@ -89,6 +90,9 @@ void Markov_Epidemic::setup() {
     }
     fclose(fp);
   }
+
+  this->ramp = 0.0;
+  Params::get_indexed_param(this->condition->get_condition_name(),"ramp", &this->ramp);
 
   Params::set_abort_on_failure();
 
@@ -507,6 +511,15 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   FRED_VERBOSE(1, "TRANSITION_PERSON day %d id %d age %0.2f old_state %d state %d age group %d old_age_group %d\n", 
 	       day, person->get_id(), age, old_state, state, 
 	       this->markov_chain->get_age_group(age), this->markov_chain->get_age_group(age-1)); 
+
+  if (this->ramp > 0.0) {
+    if (state > 0 && day < 365*5) {
+      double prob = 1.0 - 0.5*(365*5.0-day)/(5.0*365.0);
+      if (Random::draw_random() < prob) {
+	state = 0;
+      }
+    }
+  }
 
   if (state == old_state && 1 <= age &&
       this->markov_chain->get_age_group(age) == this->markov_chain->get_age_group(age-1)) { 
