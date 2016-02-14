@@ -142,6 +142,7 @@ Epidemic::Epidemic(Condition* dis) {
       int fips = Global::Places.get_fips_of_county_with_index(i);
       this->county_infection_counts_map[fips].current_infected = 0;
       this->county_infection_counts_map[fips].current_symptomatic = 0;
+      this->county_infection_counts_map[fips].current_case_fatalities = 0;
     }
   }
 
@@ -384,6 +385,7 @@ void Epidemic::update(int day) {
       if(Global::Report_Epidemic_Data_By_County) {
 	int fips = Global::Places.get_county_for_place(person->get_household());
 	this->county_infection_counts_map[fips].current_infected--;
+	this->county_infection_counts_map[fips].current_case_fatalities++;
       }
     }
 
@@ -1429,8 +1431,16 @@ void Epidemic::report_by_county(int day) {
     sprintf(str, "Ps:%d", fips);
     track_value(day, str, this->county_infection_counts_map[fips].current_symptomatic);
 
+    sprintf(str, "Pa:%d", fips);
+    track_value(day, str, this->county_infection_counts_map[fips].current_infected - this->county_infection_counts_map[fips].current_symptomatic);
+
     sprintf(str, "N:%d", fips);
     track_value(day, str, Global::Places.get_population_of_county_with_index(i));
+
+    sprintf(str, "CF:%d", fips);
+    track_value(day, str, this->county_infection_counts_map[fips].current_case_fatalities);
+
+    this->county_infection_counts_map[fips].current_case_fatalities = 0;
   }
 }
 

@@ -67,6 +67,7 @@ struct Time_Step_Map {
 struct Condition_Count_Info {
   int current_infected;
   int current_symptomatic;
+  int current_case_fatalities;
   int tot_ppl_evr_inf;
   int tot_ppl_evr_sympt;
   int tot_chldrn_evr_inf;
