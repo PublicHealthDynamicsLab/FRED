@@ -178,8 +178,14 @@ do for [n=1:words(filenames)] {
    my_ps = get_ps(n) + 0.0
    my_pt = get_pt(n) + 0
    if (my_ps > 0) {
-    print sprintf("plot '%s' wi po ps %f ls %d pt %d ps %f", filename, my_ls, my_pt, my_ps)
-    plot filename u 2:1 t '' wi po ls my_ls pt my_pt ps my_ps
+     if (my_pt < 99) {
+       print sprintf("plot '%s' wi po ps %f ls %d pt %d ps %f", filename, my_ls, my_pt, my_ps)
+       plot filename u 2:1 t '' wi po ls my_ls pt my_pt ps my_ps
+     }
+     else {
+       set style circle radius graph my_ps
+       plot filename u 2:1 t '' wi circles ls my_ls fs solid
+     }
    }
    else {
     print sprintf("plot '%s' wi dots ls %d", filename, my_ls)
