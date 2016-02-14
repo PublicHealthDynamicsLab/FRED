@@ -205,9 +205,9 @@ string Person::to_string() {
 
 void Person::terminate(int day) {
   FRED_VERBOSE(1, "terminating person %d\n", id);
+  this->health.terminate(day);
   this->behavior.terminate(this);
   this->activities.terminate();
-  this->health.terminate(day);
   this->demographics.terminate(this);
 }
 

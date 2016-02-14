@@ -530,11 +530,7 @@ void Epidemic::get_imported_infections(int day) {
 	        // infect all the candidates
 	        for(int n = 0; n < people.size(); ++n) {
 	          Person* infectee = people[n];
-	          infectee->become_exposed(this->id, NULL, NULL, day);
-	          if(this->seeding_type != SEED_EXPOSED) {
-	            advance_seed_infection(infectee);
-	          }
-	          become_exposed(infectee, day);
+		  transition_person(infectee, day, 1);
 	          imported_cases++;
 	        }
 	      }
@@ -1050,8 +1046,8 @@ void Epidemic::recover(Person* person, int day) {
 
 void Epidemic::terminate_person(Person* person, int day) {
 
-  FRED_VERBOSE(0, "EPIDEMIC TERMINATE person %d day %d\n",
-	       person->get_id(), day);
+  FRED_VERBOSE(0, "EPIDEMIC TERMINATE person %d day %d  symptoms %d inf %d\n",
+	       person->get_id(), day, person->get_symptoms_start_date(this->id), person->get_infectious_start_date(this->id));
 
   // cancel any events for this person
   int date = person->get_symptoms_start_date(this->id);
@@ -1095,7 +1091,7 @@ void Epidemic::terminate_person(Person* person, int day) {
     this->county_infection_counts_map[fips].current_infected--;
   }
 
-  FRED_VERBOSE(1, "EPIDEMIC TERMINATE finished\n");
+  FRED_VERBOSE(0, "EPIDEMIC TERMINATE finished\n");
 }
 
 

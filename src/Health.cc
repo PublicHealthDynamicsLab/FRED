@@ -569,6 +569,7 @@ void Health::become_noninfectious(Condition* condition) {
 
 void Health::become_symptomatic(Condition* condition) {
   int condition_id = condition->get_id();
+  FRED_VERBOSE(1, "BECOME_SYMPTOMATIC person %d  condition_id %d\n", myself->get_id(), condition_id);
   if(this->infection[condition_id] == NULL) {
     FRED_STATUS(1, "Help: becoming symptomatic with no infection: person %d, condition_id %d\n", myself->get_id(), condition_id);
   }

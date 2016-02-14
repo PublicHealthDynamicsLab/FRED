@@ -613,62 +613,30 @@ void Markov_Epidemic::transition_person(Person* person, int day, int state) {
   // update epidemic counters and person's health record
 
   if (old_state <= 0 && state != 0) {
-
     // infect the person
     person->become_exposed(this->id, NULL, NULL, day);
-
     // notify the epidemic
     Epidemic::become_exposed(person, day);
   }
   
   if (this->condition->get_natural_history()->get_symptoms(state) > 0.0 && person->is_symptomatic(this->id)==false) {
-    // update epidemic counters
-    this->people_with_current_symptoms++;
-    this->people_becoming_symptomatic_today++;
-
-    // update person's health record
-    person->become_symptomatic(this->condition);
-
-    // notify the epidemic
     Epidemic::become_symptomatic(person, day);
   }
 
   if (this->condition->get_natural_history()->get_infectivity(state) > 0.0 && person->is_infectious(this->id)==false) {
-    // add to active people list
-    this->potentially_infectious_people.insert(person);
-
-    // update epidemic counters
-    this->exposed_people--;
-
-    // update person's health record
-    person->become_infectious(this->condition);
-
-    // notify the epidemic
     Epidemic::become_infectious(person, day);
   }
 
   if (this->condition->get_natural_history()->get_symptoms(state) == 0.0 && person->is_symptomatic(this->id)) {
-    // update epidemic counters
-    this->people_with_current_symptoms--;
-
-    // update person's health record
-    person->resolve_symptoms(this->condition);
-
-    // notify the epidemic
     Epidemic::become_asymptomatic(person, day);
   }
 
   if (this->condition->get_natural_history()->get_infectivity(state) == 0.0 && person->is_infectious(this->id)) {
-    // update person's health record
-    person->become_noninfectious(this->condition);
-
-    // notify the epidemic
     Epidemic::become_noninfectious(person, day);
   }
 
   if (old_state > 0 && state == 0) {
-    // notify the epidemic
-    recover(person, day);
+    Epidemic::recover(person, day);
   }
 
   if (this->condition->get_natural_history()->is_fatal(state)) {
