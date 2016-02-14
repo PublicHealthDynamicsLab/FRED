@@ -10,8 +10,9 @@ $api_key = "none" if not $api_key;
 # print "api_key = '$api_key'\n";
 
 my $vars = "none";
-my $ls_list = "1";
-my $ps_list = "1";
+my $ls = "1";
+my $ps = "1";
+my $pt = "5";
 my $colors = "blue";
 my $census_tracts = 0;
 my $country = "usa";
@@ -57,8 +58,9 @@ my $total_case_fatalities = 0;
 
 my $opt_result = GetOptions(
 			    "vars=s" => \$vars,
-			    "ps_list=s" => \$ps_list,
-			    "ls_list=s" => \$ls_list,
+			    "ps=s" => \$ps,
+			    "pt=s" => \$pt,
+			    "ls=s" => \$ls,
 			    "colors=s" => \$colors,
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
@@ -174,10 +176,10 @@ chdir $outdir;
 
 my $command;
 if ($vars eq "none") {
-  $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities --cs $show_current_symptoms --vars '$vars' --ls_list '$ls_list' --ps_list '$ps_list' --colors '$colors'";
+  $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities --cs $show_current_symptoms --vars '$vars' --ls '$ls' --ps '$ps' --colors '$colors'";
 }
 else {
-  $command = "fred_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --key $key --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --finish $finish --vars '$vars' --ls_list '$ls_list' --ps_list '$ps_list' --color '$colors'";
+  $command = "fred_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $condition_id --key $key --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --finish $finish --vars '$vars' --ls '$ls' --ps '$ps' --pt '$pt' --color '$colors'";
 }
 
 # print "$command\n"; exit;

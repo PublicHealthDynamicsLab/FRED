@@ -70,6 +70,11 @@ if (!exists("ps_list")) {
 }
 # print sprintf("ps_list = |%s|", ps_list)
 
+if (!exists("pt_list")) {
+  pt_list = ""
+}
+# print sprintf("pt_list = |%s|", pt_list)
+
 default_ls_list = "1 5 6 7 9 16 2 3 4 8 12 13 14 10"
 
 # define styles for each color
@@ -143,6 +148,8 @@ if (show_border) {
 
 get_ls(n) = n <= words(ls_list) ? word(ls_list,n) : default_ls(n)
 get_ps(n) = n <= words(ps_list) ? word(ps_list,n) : 0.1
+get_pt(n) = n <= words(pt_list) ? word(pt_list,n) : 5
+
 # name of the file containing boundaries
 shapefile(n) = word(shapefiles,n)
 
@@ -169,9 +176,10 @@ do for [n=1:words(filenames)] {
    filename = word(filenames,n)
    my_ls = get_ls(n) + 0
    my_ps = get_ps(n) + 0.0
+   my_pt = get_pt(n) + 0
    if (my_ps > 0) {
-    print sprintf("plot '%s' wi po ps %f ls %d pt 5 ps %f", filename, my_ls, my_ps)
-    plot filename u 2:1 t '' wi po ls my_ls pt 5 ps my_ps
+    print sprintf("plot '%s' wi po ps %f ls %d pt %d ps %f", filename, my_ls, my_pt, my_ps)
+    plot filename u 2:1 t '' wi po ls my_ls pt my_pt ps my_ps
    }
    else {
     print sprintf("plot '%s' wi dots ls %d", filename, my_ls)

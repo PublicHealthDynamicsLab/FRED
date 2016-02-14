@@ -11,8 +11,9 @@ $api_key = "none" if not $api_key;
 # print "api_key = '$api_key'\n";
 
 my $vars = "none";
-my $ls_list = "1";
-my $ps_list = "1";
+my $ls = "1";
+my $ps = "1";
+my $pt = "5";
 my $colors = "blue";
 my $census_tracts = 0;
 my $country = "usa";
@@ -43,8 +44,9 @@ my $use_shapefile = 1;
 
 my $opt_result = GetOptions(
 			    "vars=s" => \$vars,
-			    "ps_list=s" => \$ps_list,
-			    "ls_list=s" => \$ls_list,
+			    "ps=s" => \$ps,
+			    "pt=s" => \$pt,
+			    "ls=s" => \$ls,
 			    "colors=s" => \$colors,
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
@@ -300,8 +302,8 @@ for (my $day = $start; $day <= $days; $day += $interval) {
   $index++;
 
   # print "make_map $mapname\n";
-  $ls_list = get_ls_list($colors);
-  # print "ls_list = |$ls_list|\n"; exit;
+  $ls = get_ls($colors);
+  # print "ls = |$ls|\n"; exit;
   make_map($day, $mapname, $vars);
 
   # print "$mapname\n";
@@ -331,16 +333,16 @@ exit;
 
 #############################################
 
-sub get_ls_list {
+sub get_ls {
   my $colors = shift;
-  my $ls_list = "";
+  my $ls = "";
   my @x = split " ", $colors;
   for my $c (@x) {
     #  print "c = |$c|\n";
-    $ls_list .= "$ls{$c} " if exists $ls{$c};
-    $ls_list .= "1 " if not exists $ls{$c};
+    $ls .= "$ls{$c} " if exists $ls{$c};
+    $ls .= "1 " if not exists $ls{$c};
   }
-  return $ls_list;
+  return $ls;
 }
 
 ##################################################
@@ -373,8 +375,9 @@ sub make_map {
   print LD "show_border = $border\n";
   print LD "filenames = '$filenames'\n";
   print LD "shapefiles = '$shapefiles'\n";
-  print LD "ls_list = '$ls_list'\n";
-  print LD "ps_list = '$ps_list'\n";
+  print LD "ls_list = '$ls'\n";
+  print LD "ps_list = '$ps'\n";
+  print LD "pt_list = '$pt'\n";
   close LD;
   my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_map 2\>\> fred_make_maps.log"; 
   system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";

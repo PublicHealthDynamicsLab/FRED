@@ -2297,6 +2297,16 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   }
   fclose(fp);
 
+  // make sure visualization file for CF exists
+  sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
+  fp = fopen(filename, "r");
+  if (fp == NULL) {
+    fclose(fp);
+    // create an empty file
+    fp = fopen(filename, "w");
+  }
+  fclose(fp);
+
   sprintf(filename, "%s/I/households-%d.txt", this->visualization_directory, day);
   FILE* I_fp = fopen(filename, "w");
   sprintf(filename, "%s/Ia/households-%d.txt", this->visualization_directory, day);
@@ -2356,12 +2366,14 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
 
 
 void Epidemic::print_visualization_data_for_case_fatality(int day, Person* person) {
-  char filename[FRED_STRING_SIZE];
-  sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, day);
-  FILE* fp = fopen(filename, "a");
   Place* household = person->get_household();
-  fprintf(fp, "%f %f %ld\n", household->get_latitude(), household->get_longitude(), Global::Places.get_census_tract_for_place(household));
-  fclose(fp);
+  char filename[FRED_STRING_SIZE];
+  for (int d = day; d < day+15; d++) {
+    sprintf(filename, "%s/CF/households-%d.txt", this->visualization_directory, d);
+    FILE* fp = fopen(filename, "a");
+    fprintf(fp, "%f %f %ld\n", household->get_latitude(), household->get_longitude(), Global::Places.get_census_tract_for_place(household));
+    fclose(fp);
+  }
 }
 
 
