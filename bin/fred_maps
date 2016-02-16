@@ -139,6 +139,9 @@ chdir $outdir or die "Can't chdir to $outdir\n";
 # get dates
 my @dates  = ();
 my $datefile = "$FREDRESULTS/JOB/$id/DATA/TABLES/Date.txt";
+if (not -e $datefile) {
+  $datefile = "$FREDRESULTS/JOB/$id/DATA/OUT/VIS/Date.txt";
+}
 if (-e $datefile) {
   open FH, $datefile;
   @dates = <FH>;

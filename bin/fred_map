@@ -103,7 +103,7 @@ load 'BBOX'
 
 if (terminal eq "png") {
   set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,-2 font "Arial, 16"
+  set title title_string offset 0,-1 font "Arial, 16"
 }
 if (terminal eq "pdf") {
   set term pdf enhanced font "Helvetica,18" size 8.888,8.888
@@ -155,6 +155,7 @@ shapefile(n) = word(shapefiles,n)
 
 set label "Blue Dot = Asymp User" at graph 0.1, character 1 left tc ls 1
 set label  "Red Dot = Problem User" at graph 0.9, character 1 right tc ls 9
+# set label  "Red Dot = Location of Overdose Death" at graph 0.9, character 1 right tc ls 9
 
 set output mapname
 set multiplot
