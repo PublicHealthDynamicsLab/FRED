@@ -156,7 +156,7 @@ County::County(int _fips) {
   }
 
   char migration_file[FRED_STRING_SIZE];
-  sprintf(migration_file, "/Users/gref/FRED/input_files/migration-%d.txt", this->fips);
+  Params::get_param_from_string("migration_file", migration_file);
   fp = Utils::fred_open_file(migration_file);
 
   if(fp != NULL) {
@@ -1213,7 +1213,7 @@ void County::report_age_distribution() {
   // get the current year
   int year = Date::get_year();
 
-  if (year % 5 != 0) {
+  if ((year % 5) > 0) {
     return;
   }
 
