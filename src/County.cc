@@ -140,6 +140,69 @@ County::County(int _fips) {
     this->adjusted_female_mortality_rate[i] = this->female_mortality_rate[i];
     this->adjusted_male_mortality_rate[i] = this->male_mortality_rate[i];
   }
+
+  // read in the migration file
+  this->male_migrants = new int* [7];
+  this->female_migrants = new int* [7];
+  for (int i = 0; i < 7; i++) {
+    this->male_migrants[i] = new int [18];
+    this->female_migrants[i] = new int [18];
+  }
+  for (int i = 0; i < 7; i++) {
+    for (int col = 0; col < 18; col++ ) {
+      this->male_migrants[i][col] = 0;
+      this->female_migrants[i][col] = 0;
+    }
+  }
+
+  char migration_file[FRED_STRING_SIZE];
+  sprintf(migration_file, "/Users/gref/FRED/input_files/migration-%d.txt", this->fips);
+  fp = Utils::fred_open_file(migration_file);
+
+  if(fp != NULL) {
+    for (int row = 0; row < 7; row++) {
+      int y;
+      fscanf(fp, "%d ", &y);
+      assert(y==2010+row*5);
+      for (int col = 0; col < 18; col++ ) {
+	int count;
+	fscanf(fp, "%d ", &count);
+	this->male_migrants[row][col] = count;
+      }
+    }
+    printf("male migrants");fflush(stdout);
+    for (int i = 0; i < 7; i++) {
+      printf("%d ", 2010+i*5);
+      for (int j = 0; j < 18; j++) {
+	printf("%d ", this->male_migrants[i][j]);
+      }
+      printf("\n");
+    }
+
+    for (int row = 0; row < 7; row++) {
+      int y;
+      fscanf(fp, "%d ", &y);
+      assert(y==2010+row*5);
+      for (int col = 0; col < 18; col++ ) {
+	int count;
+	fscanf(fp, "%d", &count);
+	this->female_migrants[row][col] = count;
+      }
+    }
+    printf("female migrants");fflush(stdout);
+    for (int i = 0; i < 7; i++) {
+      printf("%d ", 2010+i*5);
+      for (int j = 0; j < 18; j++) {
+	printf("%d ", this->female_migrants[i][j]);
+      }
+      printf("\n");
+    }
+    fflush(stdout);
+    fclose(fp);
+  }
+  else {
+    printf("no migration file found for fips %d\n", this->fips);
+  }
 }
 
 bool County::increment_popsize(Person* person) {
@@ -1093,3 +1156,105 @@ void County::report_county_population() {
     Utils::fred_report("County_Demographic_Information\n");
   }
 }
+
+void County::migration() {
+  // get the current year
+  int year = Date::get_year();
+
+  if (Global::Test==0) {
+    return;
+  }
+
+  if (2010 <= year && year <= 2040 && year % 5 == 0) {
+    int i = (year-2010)/5;
+    for (int j = 0; j < 18; j++) {
+      int lower_age = 5*j;
+      int males = this->male_migrants[i][j];
+      int females = this->female_migrants[i][j];
+      if (males > 0) {
+	// add these migrants to the population
+	for (int k = 0; k < males; k++) {
+	  char sex = 'M';
+	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
+	  add_immigrant(my_age, sex);
+	}
+      }
+      if (females > 0) {
+	// add these migrants to the population
+	for (int k = 0; k < females; k++) {
+	  char sex = 'F';
+	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
+	  add_immigrant(my_age, sex);
+	}
+      }
+    }
+  }
+}
+
+void County::add_immigrant(int age, char sex) {
+  int race = 0;
+  int rel = 0;
+  Place* school = NULL;
+  Place* work = NULL;
+  int day = Global::Simulation_Day;
+
+  // pick a random household
+  int hnum = Random::draw_random_int(0, this->households.size()-1);
+  Place* house = Global::Places.get_household(hnum);
+
+  Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
+}
+
+
+void County::report_age_distribution() {
+  char filename[FRED_STRING_SIZE];
+  FILE* fp = NULL;
+  
+  // get the current year
+  int year = Date::get_year();
+
+  if (year % 5 != 0) {
+    return;
+  }
+
+  sprintf(filename, "%s/ages-%d-%d.txt", Global::Simulation_directory, fips, year);
+  fp = fopen(filename, "w");
+  for (int lower = 0; lower <= 85; lower += 5) {
+    int upper = lower+4;
+    if (lower == 85) {
+      upper = 120;
+    }
+    int females = get_current_popsize(lower, upper, 'F');
+    int males = get_current_popsize(lower, upper, 'M');
+    if (lower < 85) {
+      fprintf(fp, "%d-%d %d %d\n", lower, upper, males, females);
+    }
+    else {
+      fprintf(fp, "%d+ %d %d\n", lower, males, females);
+    }
+  }
+  fclose(fp);
+}
+
+int County::get_current_popsize(int age_min, int age_max, char sex) {
+  if(age_min < 0) {
+    age_min = 0;
+  }
+  if(age_max > Demographics::MAX_AGE) {
+    age_max = Demographics::MAX_AGE;
+  }
+  if(age_min > age_max) {
+    age_min = 0;
+  }
+  if(age_min >= 0 && age_max >= 0 && age_min <= age_max) {
+    if(sex == 'F' || sex == 'M') {
+      int temp_count = 0;
+      for(int i = age_min; i <= age_max; ++i) {
+	temp_count += (sex == 'F' ? this->female_popsize[i] : this->male_popsize[i]);
+      }
+      return temp_count;
+    }
+  }
+  return -1;
+}
+

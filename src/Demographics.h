@@ -215,9 +215,6 @@ public:
   static void add_mortality_event(int day, Person* person);
   static void delete_mortality_event(int day, Person* person);
   static void report(int day); 
-  static void report_ages_by_county();
-  static void migration();
-  static void add_immigrant(int age, char sex);
   static int find_fips_code(int n);
 
 private:
@@ -252,9 +249,6 @@ private:
   static std::map<Person*, int> birthday_map;
 
   static std::vector<int> fips_codes;
-  static int** male_migrants;
-  static int** female_migrants;
-
 protected:
 
   friend class Person;

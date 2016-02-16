@@ -44,8 +44,6 @@ std::vector<Person*> Demographics::birthday_vecs[367]; //0 won't be used | day 1
 std::map<Person*, int> Demographics::birthday_map;
 
 std::vector<int> Demographics::fips_codes;
-int ** Demographics::male_migrants = NULL;
-int ** Demographics::female_migrants = NULL;
 
 Events* Demographics::conception_queue = new Events;
 Events* Demographics::maternity_queue = new Events;
@@ -59,63 +57,6 @@ void Demographics::initialize_static_variables() {
     Demographics::birthday_vecs[i].reserve(100);
     Demographics::birthday_vecs[i].clear();
   }
-
-  if(!Global::Enable_Population_Dynamics) {
-    return;
-  }
-
-  Demographics::male_migrants = new int* [7];
-  Demographics::female_migrants = new int* [7];
-  for (int i = 0; i < 7; i++) {
-    male_migrants[i] = new int [18];
-    female_migrants[i] = new int [18];
-  }
-
-  char migration_file[FRED_STRING_SIZE];
-  sprintf(migration_file, "/Users/gref/FRED/input_files/migration-42003.txt");
-  FILE* fp = Utils::fred_open_file(migration_file);
-
-  if(fp == NULL) {
-    Utils::fred_abort("migration_file %s not found\n", migration_file);
-  }
-
-  for (int row = 0; row < 7; row++) {
-    int y;
-    fscanf(fp, "%d ", &y);
-    assert(y==2010+row*5);
-    for (int col = 0; col < 18; col++ ) {
-      int count;
-      fscanf(fp, "%d ", &count);
-      male_migrants[row][col] = count;
-    }
-  }
-  for (int i = 0; i < 7; i++) {
-    printf("%d ", 2010+i*5);
-    for (int j = 0; j < 18; j++) {
-      printf("%d ", male_migrants[i][j]);
-    }
-    printf("\n");
-  }
-
-  for (int row = 0; row < 7; row++) {
-    int y;
-    fscanf(fp, "%d ", &y);
-    assert(y==2010+row*5);
-    for (int col = 0; col < 18; col++ ) {
-      int count;
-      fscanf(fp, "%d", &count);
-      female_migrants[row][col] = count;
-    }
-  }
-  for (int i = 0; i < 7; i++) {
-    printf("%d ", 2010+i*5);
-    for (int j = 0; j < 18; j++) {
-      printf("%d ", female_migrants[i][j]);
-    }
-    printf("\n");
-  }
-
-  fclose(fp);
 }
 
 
@@ -513,59 +454,15 @@ void Demographics::update(int day) {
   Demographics::mortality_queue->clear_events(day);
 
   if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-    if (Global::Test) {
-      migration();
+    int n = Global::Places.get_number_of_counties();
+    for (int i = 0; i < n; i++) {
+      Global::Places.get_county_with_index(i)->migration();
+      Global::Places.get_county_with_index(i)->report_age_distribution();
     }
-    report_ages_by_county();
   }
 
   return;
 }
-
-void Demographics::migration() {
-  // get the current year
-  int year = Date::get_year();
-
-  if (2010 <= year && year <= 2040 && year % 5 == 0) {
-    int i = (year-2010)/5;
-    for (int j = 0; j < 18; j++) {
-      int lower_age = 5*j;
-      int males = male_migrants[i][j];
-      int females = female_migrants[i][j];
-      if (males > 0) {
-	// add these migrants to the population
-	for (int k = 0; k < males; k++) {
-	  char sex = 'M';
-	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
-	  add_immigrant(my_age, sex);
-	}
-      }
-      if (females > 0) {
-	// add these migrants to the population
-	for (int k = 0; k < females; k++) {
-	  char sex = 'F';
-	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
-	  add_immigrant(my_age, sex);
-	}
-      }
-    }
-  }
-}
-
-void Demographics::add_immigrant(int age, char sex) {
-  int race = 0;
-  int rel = 0;
-  Place* school = NULL;
-  Place* work = NULL;
-  int day = Global::Simulation_Day;
-
-  // pick a random household
-  int hnum = Random::draw_random_int(0, Global::Places.get_number_of_households()-1);
-  Place* house = Global::Places.get_household(hnum);
-
-  Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
-}
-
 
 void Demographics::add_to_birthday_list(Person* person) {
   int day_of_year = person->get_demographics()->get_day_of_year_for_birthday_in_nonleap_year();
@@ -652,38 +549,6 @@ void Demographics::update_people_on_birthday_list(int day) {
 	       day, size);
   
 }
-
-void Demographics::report_ages_by_county() {
-  char filename[FRED_STRING_SIZE];
-  FILE* fp = NULL;
-  
-  // get the current year
-  int year = Date::get_year();
-
-  // print age distribution for each county
-  int n = Global::Places.get_number_of_counties();
-  for (int i = 0; i < n; i++) {
-    int fips = Global::Places.get_fips_of_county_with_index(i);
-    sprintf(filename, "%s/ages-%d-%d.txt", Global::Simulation_directory, fips, year);
-    fp = fopen(filename, "w");
-    for (int lower = 0; lower <= 85; lower += 5) {
-      int upper = lower+4;
-      if (lower == 85) {
-	upper = 120;
-      }
-      int females = Global::Places.get_population_of_county_with_index(i, lower, upper, 'F');
-      int males = Global::Places.get_population_of_county_with_index(i, lower, upper, 'M');
-      if (lower < 85) {
-	fprintf(fp, "%d-%d %d %d\n", lower, upper, males, females);
-      }
-      else {
-	fprintf(fp, "%d+ %d %d\n", lower, males, females);
-      }
-    }
-    fclose(fp);
-  }
-}
-
 
 void Demographics::report(int day) {
   char filename[FRED_STRING_SIZE];

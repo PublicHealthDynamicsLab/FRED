@@ -74,27 +74,7 @@ public:
     return -1;
   }
 
-  int get_current_popsize(int age_min, int age_max, char sex) {
-    if(age_min < 0) {
-      age_min = 0;
-    }
-    if(age_max > Demographics::MAX_AGE) {
-      age_max = Demographics::MAX_AGE;
-    }
-    if(age_min > age_max) {
-      age_min = 0;
-    }
-    if(age_min >= 0 && age_max >= 0 && age_min <= age_max) {
-      if(sex == 'F' || sex == 'M') {
-        int temp_count = 0;
-        for(int i = age_min; i <= age_max; ++i) {
-          temp_count += (sex == 'F' ? this->female_popsize[i] : this->male_popsize[i]);
-        }
-        return temp_count;
-      }
-    }
-    return -1;
-  }
+  int get_current_popsize(int age_min, int age_max, char sex);
 
   bool increment_popsize(Person* person);
 
@@ -147,6 +127,9 @@ public:
       }
     }
   } 
+  void migration();
+  void add_immigrant(int age, char sex);
+  void report_age_distribution();
 
 private:
   int fips;
@@ -181,6 +164,10 @@ private:
   // pointers to households
   std::vector<Household*> households;
   int houses;
+
+  // migration arrays
+  int** male_migrants;
+  int** female_migrants;
 
 };
 
