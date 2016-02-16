@@ -1160,6 +1160,7 @@ void County::report_county_population() {
 void County::migration() {
   // get the current year
   int year = Date::get_year();
+  int day = Global::Simulation_Day;
 
   if (Global::Test==0) {
     return;
@@ -1169,16 +1170,60 @@ void County::migration() {
     int i = (year-2010)/5;
     for (int j = 0; j < 18; j++) {
       int lower_age = 5*j;
+      int upper_age = lower_age+4;
       int males = this->male_migrants[i][j];
       int females = this->female_migrants[i][j];
       if (males > 0) {
 	// add these migrants to the population
 	for (int k = 0; k < males; k++) {
 	  char sex = 'M';
-	  int my_age = Random::draw_random_int(lower_age, lower_age+4);
+	  int my_age = Random::draw_random_int(lower_age, upper_age);
 	  add_immigrant(my_age, sex);
 	}
       }
+      else {
+	// delete members of the population
+	males = -males;
+	// set up a random shuffle
+	std::vector<int>shuff;
+	int size = this->households.size();
+	shuff.reserve(size);
+	for (int i = 0; i < size; i++) {
+	  shuff[i]=i;
+	}
+	std::random_shuffle(shuff.begin(), shuff.end());
+	int n = 0;
+	int rounds = 0;
+	for (int k = 0; k < males; k++) {
+	  int found = 0;
+	  while (!found) {
+	    int hnum = shuff[n++];
+	    if (size <= n) {
+	      rounds++;
+	      if (rounds < 2) {
+		n = 0;
+		hnum = shuff[n++];
+	      }
+	      else {
+		Utils::fred_abort("Can't find person with age %d to %d to emigrate!",
+				  lower_age, upper_age);
+	      }
+	    }
+	    Place* house = Global::Places.get_household(hnum);
+	    int hsize = house->get_size();
+	    for(int j = 0; j < hsize; ++j) {
+	      Person* person = house->get_enrollee(j);
+	      int age = person->get_age();
+	      if (lower_age <= age && age <= upper_age) {
+		// prepare to remove person
+		// Global::Pop.remove_dead_person_from_population(day, person);
+		found = 1;
+	      }
+	    }
+	  }
+	}	
+      }
+
       if (females > 0) {
 	// add these migrants to the population
 	for (int k = 0; k < females; k++) {
