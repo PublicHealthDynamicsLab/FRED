@@ -105,6 +105,10 @@ public:
     return this->deceased;
   }
 
+  void set_deceased() {
+    this->deceased = true;
+  }
+
   /**
    * Print out information about this object
    */

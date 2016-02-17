@@ -675,7 +675,6 @@ void Health::become_case_fatality(int condition_id, int day) {
     hh->increment_case_fatalities(day, condition_id);
   }
 
-
   // queue removal from population
   Global::Pop.prepare_to_die(day, myself);
 }

@@ -2795,6 +2795,10 @@ Place* Place_List::select_school(int county_index, int grade) {
 }
 
 void Place_List::update_population_dynamics(int day) {
+  if (!Global::Enable_Population_Dynamics) {
+    return;
+  }
+
   int number_counties = this->counties.size();
   for(int i = 0; i < number_counties; ++i) {
     this->counties[i]->update(day);

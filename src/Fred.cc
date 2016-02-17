@@ -385,24 +385,23 @@ void fred_step(int day) {
   Global::Places.update(day);
   Utils::fred_print_lap_time("day %d update places", day);
 
-  // optional: update population dynamics 
-  if(Global::Enable_Population_Dynamics) {
-    Demographics::update(day);
-    Utils::fred_print_lap_time("day %d update demographics", day);
-    Global::Places.update_population_dynamics(day);
-    Utils::fred_print_lap_time("day %d update population dynamics", day);
-  }
-
-  // update everyone's health intervention status
-  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
-    Global::Pop.update_health_interventions(day);
-  }
+  // update population demographics
+  Demographics::update(day);
+  Utils::fred_print_lap_time("day %d update demographics", day);
 
   // remove dead from population
   Global::Pop.remove_dead_from_population(day);
 
-  // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1) {
+  // update population mobility
+  Global::Places.update_population_dynamics(day);
+  Utils::fred_print_lap_time("day %d update population dynamics", day);
+
+  // remove migrants from population
+  Global::Pop.remove_migrants_from_population(day);
+
+  // update everyone's health intervention status
+  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
+    Global::Pop.update_health_interventions(day);
   }
 
   // Update vector dynamics

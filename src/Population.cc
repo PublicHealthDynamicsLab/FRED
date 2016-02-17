@@ -63,6 +63,7 @@ Population::Population() {
 
   // reserve memory for lists
   this->death_list.reserve(1000);
+  this->migrant_list.reserve(1000);
 
 }
 
@@ -134,9 +135,21 @@ Person* Population::add_person(int age, char sex, int race, int rel,
 
 
 void Population::prepare_to_die(int day, Person* person) {
-  // add person to daily death_list
-  fred::Scoped_Lock lock(this->mutex);
-  this->death_list.push_back(person);
+  if (person->is_deceased() == false) {
+    // add person to daily death_list
+    fred::Scoped_Lock lock(this->mutex);
+    this->death_list.push_back(person);
+    person->set_deceased();
+  }
+}
+
+void Population::prepare_to_migrate(int day, Person* person) {
+  if (person->is_eligible_to_migrate()) {
+    // add person to daily migrant_list
+    fred::Scoped_Lock lock(this->mutex);
+    this->migrant_list.push_back(person);
+    person->clear_eligible_to_migrate();
+  }
 }
 
 void Population::setup() {
@@ -161,6 +174,7 @@ void Population::setup() {
 
   this->pop_size = 0;
   this->death_list.clear();
+  this->migrant_list.clear();
   read_all_populations();
 
   if(Global::Enable_Behaviors) {
@@ -529,35 +543,43 @@ void Population::remove_dead_from_population(int day) {
   size_t deaths = this->death_list.size();
   for(size_t i = 0; i < deaths; ++i) {
     Person* person = this->death_list[i];
-    remove_dead_person_from_population(day, person);
+    delete_person_from_population(day, person);
   }
   // clear the death list
   this->death_list.clear();
 }
 
-void Population::remove_dead_person_from_population(int day, Person* person) {
+void Population::remove_migrants_from_population(int day) {
+  size_t migrants = this->migrant_list.size();
+  for(size_t i = 0; i < migrants; ++i) {
+    Person* person = this->migrant_list[i];
+    delete_person_from_population(day, person);
+  }
+  // clear the migrant list
+  this->migrant_list.clear();
+}
+
+void Population::delete_person_from_population(int day, Person* person) {
+  FRED_VERBOSE(1, "DELETING PERSON: %d ...\n", person->get_id());
+
   // remove from vaccine queues
   if(this->vacc_manager->do_vaccination()) {
     FRED_DEBUG(1, "Removing %d from Vaccine Queue\n", person->get_id());
     this->vacc_manager->remove_from_queue(person);
   }
 
-  FRED_VERBOSE(1, "DELETING PERSON: %d ...\n", person->get_id());
   person->terminate(day);
-  FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
 
-  if(Global::Enable_Travel) {
-    Travel::terminate_person(person);
-  }
-
+  // delete from population data structure
   int idx = person->get_pop_index();
   assert(get_person_by_index(idx) == person);
   // call Person's destructor directly!!!
   get_person_by_index(idx)->~Person();
   this->blq.mark_invalid_by_index(person->get_pop_index());
-
   this->pop_size--;
   assert((unsigned)this->pop_size == this->blq.size());
+
+  FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
 }
 
 void Population::report(int day) {

@@ -121,7 +121,11 @@ public:
 
   void remove_dead_from_population(int day);
 
-  void remove_dead_person_from_population(int day, Person *person);
+  void prepare_to_migrate(int day, Person* person);
+
+  void remove_migrants_from_population(int day);
+
+  void delete_person_from_population(int day, Person *person);
 
   /**
    * @param index the index of the Person
@@ -299,6 +303,7 @@ private:
 
   bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
   vector<Person*> death_list;		  // list of agents to die today
+  vector<Person*> migrant_list;		  // list of agents to out migrate today
   int pop_size;
 
   int enable_copy_files;

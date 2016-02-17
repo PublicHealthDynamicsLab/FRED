@@ -280,6 +280,18 @@ public:
     return this->demographics.is_deceased();
   }
 
+  void set_deceased() {
+    this->demographics.set_deceased();
+  }
+
+  bool is_eligible_to_migrate() {
+    return this->eligible_to_migrate;
+  }
+
+  void clear_eligible_to_migrate() {
+    this->eligible_to_migrate = false;
+  }
+
   /**
    * @return <code>true</code> if this agent is an adult, <code>false</code> otherwise
    */
@@ -981,6 +993,7 @@ private:
   Demographics demographics;
   Activities activities;
   Behavior behavior;
+  bool eligible_to_migrate;
 
 protected:
 

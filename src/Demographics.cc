@@ -389,8 +389,6 @@ void Demographics::terminate(Person* self) {
 	    day, self->get_id(), self->get_age());
     fflush(Global::Deathfp);
   }
-  // self->die();
-  this->deceased = true;
 }
 
 
@@ -419,6 +417,10 @@ void Demographics::update(int day) {
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
 
+  if (!Global::Enable_Population_Dynamics) {
+    return;
+  }
+
   Demographics::update_people_on_birthday_list(day);
 
   // initiate pregnancies
@@ -439,10 +441,10 @@ void Demographics::update(int day) {
   }
   Demographics::maternity_queue->clear_events(day);
 
-  // remove dead from population
   // FRED_VERBOSE(0, "mortality queue\n");
   size = Demographics::mortality_queue->get_size(day);
   for(int i = 0; i < size; ++i) {
+    // add dying to the population death_list
     Person * person = Demographics::mortality_queue->get_event(day, i);
     FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Records,
 			     "HEALTH RECORD: %s person %d age %d DIES FROM UNKNOWN CAUSE.\n",
@@ -452,14 +454,6 @@ void Demographics::update(int day) {
     Global::Pop.prepare_to_die(day, person);
   }
   Demographics::mortality_queue->clear_events(day);
-
-  if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-    int n = Global::Places.get_number_of_counties();
-    for (int i = 0; i < n; i++) {
-      Global::Places.get_county_with_index(i)->migration();
-      Global::Places.get_county_with_index(i)->report_age_distribution();
-    }
-  }
 
   return;
 }

@@ -129,6 +129,7 @@ public:
   } 
   void migration();
   void add_immigrant(int age, char sex);
+  void select_migrants(int day, int migrants, int lower_age, int upper_age, char sex);
   void report_age_distribution();
 
 private:

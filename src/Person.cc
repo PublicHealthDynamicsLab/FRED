@@ -37,6 +37,7 @@ Person::Person() {
   this->id = -1;
   this->index = -1;
   this->exposed_household_index = -1;
+  this->eligible_to_migrate = true;
 }
 
 Person::~Person() {
