@@ -65,14 +65,13 @@ County::County(int _fips) {
 
   char mortality_rate_file[FRED_STRING_SIZE];
   char birth_rate_file[FRED_STRING_SIZE];
+  char migration_file[FRED_STRING_SIZE];
   double birth_rate_multiplier;
   double mortality_rate_multiplier;
 
   Params::get_param_from_string("population_growth_rate", &(this->population_growth_rate));
-  Params::get_param_from_string("birth_rate_file", birth_rate_file);
-  Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
   Params::get_param_from_string("mortality_rate_multiplier", &mortality_rate_multiplier);
-  Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
+  Params::get_param_from_string("birth_rate_multiplier", &birth_rate_multiplier);
   Params::get_param_from_string("mortality_rate_adjustment_weight", &(this->mortality_rate_adjustment_weight));
   Params::get_param_from_string("college_departure_rate", &(this->college_departure_rate));
   Params::get_param_from_string("military_departure_rate", &(this->military_departure_rate));
@@ -80,6 +79,35 @@ County::County(int _fips) {
   Params::get_param_from_string("youth_home_departure_rate", &(this->youth_home_departure_rate));
   Params::get_param_from_string("adult_home_departure_rate", &(this->adult_home_departure_rate));
   
+  // birth, mortality and migration files.
+  // look first for a file that is specific to this county, but fall back to
+  // default file if the county file is not found.
+  char paramstr[FRED_STRING_SIZE];
+  Params::disable_abort_on_failure();
+
+  sprintf(paramstr, "birth_rate_file_%d", fips);
+  strcpy(birth_rate_file, "");
+  Params::get_param_from_string(paramstr, birth_rate_file);
+  if (strcmp(birth_rate_file,"") == 0) {
+    Params::get_param_from_string("birth_rate_file", birth_rate_file);
+  }
+
+  sprintf(paramstr, "mortality_rate_file_%d", fips);
+  strcpy(mortality_rate_file, "");
+  Params::get_param_from_string(paramstr, mortality_rate_file);
+  if (strcmp(mortality_rate_file,"") == 0) {
+    Params::get_param_from_string("mortality_rate_file", mortality_rate_file);
+  }
+
+  sprintf(paramstr, "migration_file_%d", fips);
+  strcpy(migration_file, "");
+  Params::get_param_from_string(paramstr, migration_file);
+  if (strcmp(migration_file,"") == 0) {
+    Params::get_param_from_string("migration_file", migration_file);
+  }
+
+  Params::set_abort_on_failure();
+
   // initialize the birth rate array
   for(int j = 0; j <= Demographics::MAX_AGE; ++j) {
     this->birth_rate[j] = 0.0;
@@ -155,8 +183,6 @@ County::County(int _fips) {
     }
   }
 
-  char migration_file[FRED_STRING_SIZE];
-  Params::get_param_from_string("migration_file", migration_file);
   fp = Utils::fred_open_file(migration_file);
 
   if(fp != NULL) {
@@ -170,7 +196,7 @@ County::County(int _fips) {
 	this->male_migrants[row][col] = count;
       }
     }
-    printf("male migrants");fflush(stdout);
+    printf("male migrants:\n");fflush(stdout);
     for (int i = 0; i < 7; i++) {
       printf("%d ", 2010+i*5);
       for (int j = 0; j < 18; j++) {
@@ -189,7 +215,7 @@ County::County(int _fips) {
 	this->female_migrants[row][col] = count;
       }
     }
-    printf("female migrants");fflush(stdout);
+    printf("female migrants:\n");fflush(stdout);
     for (int i = 0; i < 7; i++) {
       printf("%d ", 2010+i*5);
       for (int j = 0; j < 18; j++) {
@@ -1279,7 +1305,8 @@ void County::add_immigrant(int age, char sex) {
   int hnum = Random::draw_random_int(0, this->households.size()-1);
   Place* house = Global::Places.get_household(hnum);
 
-  Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
+  Person* person = Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
+  person->get_demographics()->initialize_demographic_dynamics(person);
 }
 
 

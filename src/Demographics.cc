@@ -119,7 +119,7 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
 
   FRED_VERBOSE(1, "demographic dynamics: id = %d age = %d\n", self->get_id(), this->age);
 
-  int day = 0;
+  int day = Global::Simulation_Day;;
 
   // add self to birthday list
   Demographics::add_to_birthday_list(self);

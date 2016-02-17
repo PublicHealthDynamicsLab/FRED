@@ -856,6 +856,8 @@ mortality_rate_adjustment_weight = 0
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
 
+migration_file = $FRED_HOME/input_files/migration-42003.txt
+
 # this the percent per year population growth, e.g. 1 => 1% growth each year
 population_growth_rate = 0
 
