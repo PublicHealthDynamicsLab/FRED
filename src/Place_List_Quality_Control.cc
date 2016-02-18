@@ -512,22 +512,22 @@ void Place_List::quality_control() {
     };
 
     string htype[17] = {
-      "single female",
-      "single male",
-      "opp-sex sim-age-pair",
-      "opp-sex dif-age-pair",
-      "opp-sex two-parent family",
-      "single-parent family",
-      "single-parent multi-gen family",
-      "two-parent multi-gen family",
-      "unattended minors",
-      "other family",
-      "young roomies",
-      "older roomies",
-      "mixed roomies",
-      "same-sex sim-age-pair",
-      "same-sex dif-age-pair",
-      "same-sex two-parent family",
+      "single-female",
+      "single-male",
+      "opp-sex-sim-age-pair",
+      "opp-sex-dif-age-pair",
+      "opp-sex-two-parent-family",
+      "single-parent-family",
+      "single-parent-multigen-family",
+      "two-parent-multigen-family",
+      "unattended_minors",
+      "other-family",
+      "young-roomies",
+      "older-roomies",
+      "mixed-roomies",
+      "same-sex-sim-age-pair",
+      "same-sex-dif-age-pair",
+      "same-sex-two-parent-family",
       "unknown",
     };
 
@@ -763,6 +763,7 @@ void Place_List::quality_control() {
 	  }
 	} // end adult-only households
 
+	h->set_subtype((char) t);
 	type[t]++;
 	ttotal[t] += h->get_size();
 	printf("HOUSEHOLD_TYPE: %s size = %d ", htype[t].c_str(), hsize);
@@ -778,6 +779,26 @@ void Place_List::quality_control() {
       printf("HOUSEHOLD TYPE DIST: ");
       printf("%30s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_pop_size()));
     }
+
+    FILE* hfp = fopen("households.txt", "w");
+    FILE* pfp = fopen("people.txt", "w");
+    int hi = 0;
+    int pi = 0;
+    for(int p = 0; p < number_places; ++p) {
+      if(this->places[p]->is_household()) {
+	Place* house = this->places[p];
+	int ht = (int) (house->get_subtype());
+	fprintf(hfp, "hid %d size %d htype %d %s\n", hi, house->get_size(), ht, htype[ht].c_str());
+	int hsize = house->get_size();
+	for(int j = 0; j < hsize; ++j) {
+	  Person* person = house->get_enrollee(j);
+	  fprintf(pfp, "pid %d age %d sex %c hid %d htype %d %s\n", pi++, person->get_age(), person->get_sex(), hi, ht, htype[ht].c_str());
+	}
+	hi++;
+      }
+    }
+    fclose(hfp);
+    fclose(pfp);
   }
 
   if(Global::Verbose) {
