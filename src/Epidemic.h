@@ -70,6 +70,9 @@ struct Condition_Count_Info {
   int current_case_fatalities;
   int tot_ppl_evr_inf;
   int tot_ppl_evr_sympt;
+  int tot_days_sympt;
+  int tot_ppl_w_sl_evr_inf;
+  int tot_ppl_w_sl_evr_sympt;
   int tot_chldrn_evr_inf;
   int tot_chldrn_evr_sympt;
   int tot_sch_age_chldrn_evr_inf;
@@ -80,8 +83,14 @@ struct Condition_Count_Info {
   const std::string to_string() const {
     std::stringstream ss;
     ss << "Condition Count Info ";
+    ss << " current_infected " << current_infected;
+    ss << " current_symptomatic " << current_symptomatic;
+    ss << " current_case_fatalities " << current_case_fatalities;
     ss << " tot_ppl_evr_inf " << tot_ppl_evr_inf;
     ss << " tot_ppl_evr_sympt " << tot_ppl_evr_sympt;
+    ss << " tot_days_sympt " << tot_days_sympt;
+    ss << " tot_ppl_w_sl_evr_inf " << tot_ppl_w_sl_evr_inf;
+    ss << " tot_ppl_w_sl_evr_sympt " << tot_ppl_w_sl_evr_sympt;
     ss << " tot_chldrn_evr_inf " << tot_chldrn_evr_inf;
     ss << " tot_chldrn_evr_sympt " << tot_chldrn_evr_sympt;
     ss << " tot_sch_age_chldrn_evr_inf " << tot_sch_age_chldrn_evr_inf;
@@ -335,6 +344,9 @@ protected:
 
   //Values for school income based stratification
   std::map<int, struct Condition_Count_Info> school_income_infection_counts_map;
+     
+  //Values for workplace-size based stratification
+  std::map<int, struct Condition_Count_Info> workplace_size_infection_counts_map;
 
   int people_becoming_symptomatic_today;
   int people_with_current_symptoms;
@@ -355,7 +367,7 @@ protected:
   double total_serial_interval;
   int total_secondary_cases;
 
-  // used for maintining quantities from previous day;
+  // used for maintaining quantities from previous day;
   int incidence;
   int symptomatic_incidence;
   int prevalence_count;

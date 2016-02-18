@@ -73,6 +73,18 @@ class Place;
 #define PRIVATE_UNAV "Private_unav"
 #define UNINSURED_UNAV "Uninsured_unav"
 
+#define SICK_DAYS_PRESENT "sick_days_pres"
+#define SICK_DAYS_ABSENT "sick_days_abs"
+#define SCHL_SICK_DAYS_PRESENT "schl_sick_days_pres"
+#define SCHL_SICK_DAYS_ABSENT "schl_sick_days_abs"
+
+#define TOT_EMP_DAYS_USED_FOR_CHILD "tot_emp_days_used_for_child"
+#define TOT_EMP_DAYS_USED "tot_emp_days_used"
+#define TOT_EMP_MISS_WORK "tot_emp_miss_work"
+#define TOT_EMP_SICK_DAYS_USED "tot_emp_sl_days_used"
+#define TOT_EMP_USING_SICK_LEAVE "tot_emp_using_sl"
+#define TOT_EMP_SICK_DAYS_PRES "tot_emp_sl_days_pres"
+
 namespace Activity_index {
   enum e {
     HOUSEHOLD_ACTIVITY,
@@ -427,17 +439,10 @@ public:
     return this->sick_leave_available;
   }
 
-  int get_sick_days_absent() {
-    return this->my_sick_days_absent;
-  }
-
-  int get_sick_days_present() {
-    return this->my_sick_days_present;
-  }
-
   static void update(int day);
   static void end_of_run();
   static void before_run();
+  static void report(int day);
 
   void set_profile(char _profile) {
     this->profile = _profile;
@@ -577,11 +582,6 @@ private:
   // Only matters if have sick_leave_available
   float sick_days_remaining;
 
-  // individual sick day variables
-  short int my_sick_days_absent;
-  short int my_sick_days_present;
-  short int my_unpaid_sick_days_absent;
-
   bool my_sick_leave_decision_has_been_made;
   bool my_sick_leave_decision;
 
@@ -656,17 +656,13 @@ protected:
 };
 
 struct Activities_Tracking_Data {
-  // Daily totals (reset each day)
-  int daily_sick_days_present;
-  int daily_sick_days_absent;
-  int daily_school_sick_days_present;
-  int daily_school_sick_days_absent;
   // Run-wide totals (cumulative)
   int total_employees_days_used;
-  int total_employees_taking_day_off;
+  int total_employees_missing_work;
   int total_employees_sick_leave_days_used;
   int total_employees_taking_sick_leave;
   int total_employees_sick_days_present;
+  double total_employees_days_used_for_child;
 
   int entered_school;
   int left_school;
@@ -680,17 +676,15 @@ struct Activities_Tracking_Data {
   vector<int> employees_sick_leave_days_used;
   vector<int> employees_taking_sick_leave_day_off;
   vector<int> employees_sick_days_present;
+  vector<double> employees_days_used_for_child;
 
   Activities_Tracking_Data() {
-    this->daily_sick_days_present = 0;
-    this->daily_sick_days_absent = 0;
-    this->daily_school_sick_days_present = 0;
-    this->daily_school_sick_days_absent = 0;
     this->total_employees_days_used = 0;
-    this->total_employees_taking_day_off = 0;
-    this->total_employees_taking_sick_leave = 0;
+    this->total_employees_missing_work = 0;
     this->total_employees_sick_leave_days_used = 0;
+    this->total_employees_taking_sick_leave = 0;
     this->total_employees_sick_days_present = 0;
+    this->total_employees_days_used_for_child = 0.0;
 
     this->entered_school = 0;
     this->left_school = 0;
@@ -701,6 +695,7 @@ struct Activities_Tracking_Data {
     this->employees_sick_leave_days_used.clear();
     this->employees_taking_sick_leave_day_off.clear();
     this->employees_sick_days_present.clear();
+    this->employees_days_used_for_child.clear();
   }
 };
 

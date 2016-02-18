@@ -44,7 +44,7 @@
 class Activities_Tracking_Data;
 
 const char* get_label_for_place(Place* place) {
-  return place ? place->get_label() : "NULL";
+  return (place != NULL ? place->get_label() : "NULL");
 }
 
 bool Activities::is_initialized = false;
@@ -118,6 +118,7 @@ void Activities::initialize_static_variables() {
         Activities::Tracking_data.employees_sick_leave_days_used.push_back(0);
         Activities::Tracking_data.employees_taking_sick_leave_day_off.push_back(0);
         Activities::Tracking_data.employees_sick_days_present.push_back(0);
+        Activities::Tracking_data.employees_days_used_for_child.push_back(0.0);
       }
     } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
       Params::get_param_vector((char*)"hh_income_qtile_sl_prob_vec", Activities::HH_income_qtile_sl_prob_vec);
@@ -130,6 +131,7 @@ void Activities::initialize_static_variables() {
         Activities::Tracking_data.employees_sick_leave_days_used.push_back(0);
         Activities::Tracking_data.employees_taking_sick_leave_day_off.push_back(0);
         Activities::Tracking_data.employees_sick_days_present.push_back(0);
+        Activities::Tracking_data.employees_days_used_for_child.push_back(0.0);
       }
     } else {
       Utils::fred_abort("Invalid sick_leave_dist_method: %d", Activities::Sick_leave_dist_method);
@@ -155,9 +157,6 @@ Activities::Activities() {
   this->myself = NULL;
   this->sick_leave_available = false;
   this->sick_days_remaining = 0.0;
-  this->my_sick_days_absent = -1;
-  this->my_sick_days_present = -1;
-  this->my_unpaid_sick_days_absent = -1;
   this->my_sick_leave_decision_has_been_made = false;
   this->my_sick_leave_decision = false;
   this->home_neighborhood = NULL;
@@ -216,8 +215,6 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   this->is_traveling_outside = false;
 
   // sick leave variables
-  this->my_sick_days_absent = 0;
-  this->my_sick_days_present = 0;
   this->my_sick_leave_decision_has_been_made = false;
   this->my_sick_leave_decision = false;
   this->sick_days_remaining = 0.0;
@@ -248,50 +245,52 @@ void Activities::prepare() {
 
 void Activities::initialize_sick_leave() {
   FRED_VERBOSE(1, "Activities::initialize_sick_leave entered\n");
-  this->my_sick_days_absent = 0;
-  this->my_sick_days_present = 0;
-  this->my_sick_leave_decision_has_been_made = false;
-  this->my_sick_leave_decision = false;
-  this->sick_days_remaining = 0.0;
-  this->sick_leave_available = false;
 
-  if(!Activities::Enable_default_sick_behavior) {
-    int index = Activities::get_index_of_sick_leave_dist(this->myself);
-    assert(index > 0);
-    if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
-      this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[index]);
-      if(this->sick_leave_available) {
-        Activities::Tracking_data.employees_with_sick_leave[index]++;
-        // compute sick days available
-        // compute sick days available
-        int workplace_size = 0;
-        if(get_workplace() != NULL) {
-          workplace_size = get_workplace()->get_size();
-        } else {
-          if(is_teacher()) {
-            if(get_school() != NULL) {
-              workplace_size = get_school()->get_staff_size();
+  //Only initalize for those who are working
+  if(get_workplace() != NULL || (is_teacher() && get_school() != NULL)) {
+    this->my_sick_leave_decision_has_been_made = false;
+    this->my_sick_leave_decision = false;
+    this->sick_days_remaining = 0.0;
+    this->sick_leave_available = false;
+
+    if(!Activities::Enable_default_sick_behavior) {
+      int index = Activities::get_index_of_sick_leave_dist(this->myself);
+      assert(index >= 0);
+      if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
+        this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[index]);
+        if(this->sick_leave_available) {
+          Activities::Tracking_data.employees_with_sick_leave[index]++;
+          // compute sick days available
+          // compute sick days available
+          int workplace_size = 0;
+          if(get_workplace() != NULL) {
+            workplace_size = get_workplace()->get_size();
+          } else {
+            if(is_teacher()) {
+              if(get_school() != NULL) {
+                workplace_size = get_school()->get_staff_size();
+              }
             }
           }
-        }
-        if(workplace_size <= Activities::WP_size_cutoff_sl_exception) {
-          this->sick_days_remaining = Activities::WP_small_mean_sl_days_available + Activities::Flu_days;
+          if(workplace_size <= Activities::WP_size_cutoff_sl_exception) {
+            this->sick_days_remaining = Activities::WP_small_mean_sl_days_available + Activities::Flu_days;
+          } else {
+            this->sick_days_remaining = Activities::WP_large_mean_sl_days_available + Activities::Flu_days;
+          }
         } else {
-          this->sick_days_remaining = Activities::WP_large_mean_sl_days_available + Activities::Flu_days;
+          Activities::Tracking_data.employees_without_sick_leave[index]++;
         }
-      } else {
-        Activities::Tracking_data.employees_without_sick_leave[index]++;
+      } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
+        this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[index]);
+        // compute sick days available
+        this->sick_days_remaining = Activities::HH_income_qtile_mean_sl_days_available + Activities::Flu_days;
       }
-    } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
-      this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[index]);
-      // compute sick days available
-      this->sick_days_remaining = Activities::HH_income_qtile_mean_sl_days_available + Activities::Flu_days;
-    }
 
-    FRED_VERBOSE(1, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
-		             (this->sick_leave_available ? 1 : 0));
+      FRED_VERBOSE(1, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
+                   (this->sick_leave_available ? 1 : 0));
+    }
+    FRED_VERBOSE(1, "Activities::initialize_sick_leave sick_days_remaining = %d\n", this->sick_days_remaining);
   }
-  FRED_VERBOSE(1, "Activities::initialize_sick_leave sick_days_remaining = %d\n", this->sick_days_remaining);
 }
 
 void Activities::before_run() {
@@ -347,6 +346,77 @@ void Activities::before_run() {
     Activities::Sim_based_prob_stay_home_not_needed = static_cast<double>(count_has_school_age_and_unemployed_adult) / static_cast<double>(count_has_school_age);
     FRED_STATUS(0, "Report_Presenteeism: Activities::Sim_based_prob_stay_home_not_needed = %.2f\n", Activities::Sim_based_prob_stay_home_not_needed);    
   }
+}
+
+void Activities::report(int day) {
+  if(Global::Report_Presenteeism) {
+    //Store for daily output file
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_DAYS_USED, Activities::Tracking_data.total_employees_days_used);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_MISS_WORK, Activities::Tracking_data.total_employees_missing_work);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SICK_DAYS_USED, Activities::Tracking_data.total_employees_sick_leave_days_used);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_USING_SICK_LEAVE, Activities::Tracking_data.total_employees_taking_sick_leave);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SICK_DAYS_PRES, Activities::Tracking_data.total_employees_sick_days_present);
+
+    for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+      char wp_emp_days_used[50];
+      char wp_emp_taking_day_off[50];
+      char wp_emp_sl_days_used[50];
+      char wp_emp_taking_sl_day_off[50];
+      char wp_emp_sick_days_pres[50];
+      if(i == 0 || (i + 1 < Workplace::get_workplace_size_group_count())) {
+        int min = (i > 0 ? (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1) : 0);
+        int max = Workplace::get_workplace_size_max_by_group_id(i);
+
+        sprintf(wp_emp_days_used, "wp_%d_%d_emp_days_used", min, max);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used, Activities::Tracking_data.employees_days_used[i]);
+        sprintf(wp_emp_taking_day_off, "wp_%d_%d_emp_taking_day_off", min, max);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_taking_day_off, Activities::Tracking_data.employees_taking_day_off[i]);
+        sprintf(wp_emp_sl_days_used, "wp_%d_%d_emp_sl_days_used", min, max);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sl_days_used, Activities::Tracking_data.employees_sick_leave_days_used[i]);
+        sprintf(wp_emp_taking_sl_day_off, "wp_%d_%d_emp_taking_sl_day_off", min, max);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_taking_sl_day_off, Activities::Tracking_data.employees_taking_sick_leave_day_off[i]);
+        sprintf(wp_emp_sick_days_pres, "wp_%d_%d_emp_sick_days_pres", min, max);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sick_days_pres, Activities::Tracking_data.employees_sick_days_present[i]);
+      } else {
+        int min = (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1);
+
+        sprintf(wp_emp_days_used, "wp_%d_up_emp_days_used", min);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used, Activities::Tracking_data.employees_days_used[i]);
+        sprintf(wp_emp_taking_day_off, "wp_%d_up_emp_taking_day_off", min);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_taking_day_off, Activities::Tracking_data.employees_taking_day_off[i]);
+        sprintf(wp_emp_sl_days_used, "wp_%d_up_emp_sl_days_used", min);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sl_days_used, Activities::Tracking_data.employees_sick_leave_days_used[i]);
+        sprintf(wp_emp_taking_sl_day_off, "wp_%d_up_emp_taking_sl_day_off", min);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_taking_sl_day_off, Activities::Tracking_data.employees_taking_sick_leave_day_off[i]);
+        sprintf(wp_emp_sick_days_pres, "wp_%d_up_emp_sick_days_pres", min);
+        Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sick_days_pres, Activities::Tracking_data.employees_sick_days_present[i]);
+      }
+    }
+  }
+
+  if(Global::Report_Childhood_Presenteeism) {
+     //Store for daily output file
+     Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_DAYS_USED_FOR_CHILD, Activities::Tracking_data.total_employees_days_used_for_child);
+     for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+       char wp_emp_days_used_for_child[50];
+
+       if(i == 0 || (i + 1 < Workplace::get_workplace_size_group_count())) {
+         int min = (i > 0 ? (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1) : 0);
+         int max = Workplace::get_workplace_size_max_by_group_id(i);
+
+         sprintf(wp_emp_days_used_for_child, "wp_%d_%d_up_emp_days_used_for_child", min, max);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used_for_child, Activities::Tracking_data.employees_days_used_for_child[i]);
+
+       } else {
+         int min = (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1);
+
+         sprintf(wp_emp_days_used_for_child, "wp_%d_up_emp_days_used_for_child", min);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used_for_child, Activities::Tracking_data.employees_days_used_for_child[i]);
+       }
+     }
+   }
+
+
 }
 
 void Activities::assign_initial_profile() {
@@ -409,21 +479,13 @@ void Activities::update(int sim_day) {
     Global::Daily_Tracker->increment_index_key_pair(sim_day, UNINSURED_UNAV, 1);
   }
 
-  // print out absenteeism/presenteeism counts
-  FRED_CONDITIONAL_VERBOSE(1, sim_day > 0,
-			   "DAY %d ABSENTEEISM: work absent %d present %d %0.2f  school absent %d present %d %0.2f\n",
-			   sim_day - 1, Activities::Tracking_data.daily_sick_days_absent, Activities::Tracking_data.daily_sick_days_present,
-			   static_cast<double>(Activities::Tracking_data.daily_sick_days_absent) / static_cast<double>(1 + Activities::Tracking_data.daily_sick_days_absent +
-														 Activities::Tracking_data.daily_sick_days_present),
-			   Activities::Tracking_data.daily_school_sick_days_absent, Activities::Tracking_data.daily_school_sick_days_present,
-			   static_cast<double>(Activities::Tracking_data.daily_school_sick_days_absent) /
-			   static_cast<double>(1 + Activities::Tracking_data.daily_school_sick_days_absent + Activities::Tracking_data.daily_school_sick_days_present));
-
   // keep track of global activity counts
-  Activities::Tracking_data.daily_sick_days_present = 0;
-  Activities::Tracking_data.daily_sick_days_absent = 0;
-  Activities::Tracking_data.daily_school_sick_days_present = 0;
-  Activities::Tracking_data.daily_school_sick_days_absent = 0;
+  if(Global::Report_Presenteeism) {
+    Global::Daily_Tracker->set_index_key_pair(sim_day, SICK_DAYS_PRESENT, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, SICK_DAYS_ABSENT, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, SCHL_SICK_DAYS_PRESENT, 0);
+    Global::Daily_Tracker->set_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 0);
+  }
 
   // print school change activities
   if(Activities::Tracking_data.entered_school + Activities::Tracking_data.left_school > 0) {
@@ -659,8 +721,8 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
     } else {
       if(it_is_a_workday) {
         int index = Activities::get_index_of_sick_leave_dist(this->myself);
-        assert(index > 0);
-        if(this->my_sick_leave_decision_has_been_made) {
+        assert(index >= 0);
+        if(this->my_sick_leave_decision_has_been_made) { //Don't update the totals for employee counts, just their day counts
           if(this->is_sick_leave_available() && this->sick_days_remaining > 0.0) {
             if(this->sick_days_remaining < 1.0) { //I have sick leave, but my days are about to run out
               if(Random::draw_random() < this->sick_days_remaining) {
@@ -668,22 +730,16 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
                 //Want to make sure that tomorrow I roll against the SLU_absent_prob
                 this->my_sick_leave_decision_has_been_made = false;
                 if(stay_home) {
-                  this->my_sick_days_absent++;
                   Activities::Tracking_data.employees_days_used[index]++;
                   Activities::Tracking_data.employees_sick_leave_days_used[index]++;
                 } else {
-                  this->my_sick_days_present++;
                   Activities::Tracking_data.employees_sick_days_present[index]++;
                 }
               } else {
                 stay_home = (Random::draw_random() < Activities::SLU_absent_prob);
                 if(stay_home) {
-                  this->my_unpaid_sick_days_absent++;
                   Activities::Tracking_data.employees_days_used[index]++;
                 } else {
-                  this->my_sick_days_present++;
-                  Activities::Tracking_data.daily_sick_days_present++;
-                  Activities::Tracking_data.total_employees_sick_days_present++;
                   Activities::Tracking_data.employees_sick_days_present[index]++;
                 }
               }
@@ -692,16 +748,10 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
             } else {
               stay_home = this->my_sick_leave_decision;
               if(stay_home) {
-                this->my_sick_days_absent++;
-                Activities::Tracking_data.daily_sick_days_absent++;
-                Activities::Tracking_data.total_employees_days_used++;
                 Activities::Tracking_data.total_employees_sick_leave_days_used++;
                 Activities::Tracking_data.employees_days_used[index]++;
                 Activities::Tracking_data.employees_sick_leave_days_used[index]++;
               } else {
-                this->my_sick_days_present++;
-                Activities::Tracking_data.daily_sick_days_present++;
-                Activities::Tracking_data.total_employees_sick_days_present++;
                 Activities::Tracking_data.employees_sick_days_present[index]++;
               }
               this->sick_days_remaining -= 1.0;
@@ -709,14 +759,8 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
           } else { //Sick leave decision has been made, but I don't get paid sick days
             stay_home = this->my_sick_leave_decision;
             if(stay_home) {
-              this->my_unpaid_sick_days_absent++;
-              Activities::Tracking_data.daily_sick_days_absent++;
-              Activities::Tracking_data.total_employees_days_used++;
               Activities::Tracking_data.employees_days_used[index]++;
             } else {
-              this->my_sick_days_present++;
-              Activities::Tracking_data.daily_sick_days_present++;
-              Activities::Tracking_data.total_employees_sick_days_present++;
               Activities::Tracking_data.employees_sick_days_present[index]++;
             }
           }
@@ -729,10 +773,7 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
                 if(stay_home) {
                   //Want to make sure that tomorrow I roll against the SLU_absent_prob
                   this->my_sick_leave_decision_has_been_made = false;
-                  this->my_sick_days_absent++;
-                  Activities::Tracking_data.daily_sick_days_absent++;
-                  Activities::Tracking_data.total_employees_days_used++;
-                  Activities::Tracking_data.total_employees_taking_day_off++;
+                  Activities::Tracking_data.total_employees_missing_work++;
                   Activities::Tracking_data.total_employees_sick_leave_days_used++;
                   Activities::Tracking_data.total_employees_taking_sick_leave++;
                   Activities::Tracking_data.employees_days_used[index]++;
@@ -741,24 +782,16 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
                   Activities::Tracking_data.employees_taking_sick_leave_day_off[index]++;
                 } else {
                   this->my_sick_leave_decision_has_been_made = true;
-                  this->my_sick_days_present++;
-                  Activities::Tracking_data.daily_sick_days_present++;
-                  Activities::Tracking_data.total_employees_sick_days_present++;
                   Activities::Tracking_data.employees_sick_days_present[index]++;
                 }
               } else {
                 stay_home = (Random::draw_random() < Activities::SLU_absent_prob);
                 this->my_sick_leave_decision_has_been_made = true;
                 if(stay_home) {
-                  this->my_unpaid_sick_days_absent++;
-                  Activities::Tracking_data.total_employees_days_used++;
-                  Activities::Tracking_data.total_employees_taking_day_off++;
+                  Activities::Tracking_data.total_employees_missing_work++;
                   Activities::Tracking_data.employees_days_used[index]++;
                   Activities::Tracking_data.employees_taking_day_off[index]++;
                 } else {
-                  this->my_sick_days_present++;
-                  Activities::Tracking_data.daily_sick_days_present++;
-                  Activities::Tracking_data.total_employees_sick_days_present++;
                   Activities::Tracking_data.employees_sick_days_present[index]++;
                 }
               }
@@ -769,20 +802,13 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
               this->my_sick_leave_decision = stay_home;
               this->my_sick_leave_decision_has_been_made = true;
               if(stay_home) {
-                this->my_sick_days_absent++;
-                Activities::Tracking_data.daily_sick_days_absent++;
-                Activities::Tracking_data.total_employees_days_used++;
-                Activities::Tracking_data.total_employees_taking_day_off++;
-                Activities::Tracking_data.total_employees_sick_leave_days_used++;
+                Activities::Tracking_data.total_employees_missing_work++;
                 Activities::Tracking_data.total_employees_taking_sick_leave++;
                 Activities::Tracking_data.employees_days_used[index]++;
                 Activities::Tracking_data.employees_taking_day_off[index]++;
                 Activities::Tracking_data.employees_sick_leave_days_used[index]++;
                 Activities::Tracking_data.employees_taking_sick_leave_day_off[index]++;
               } else {
-                this->my_sick_days_present++;
-                Activities::Tracking_data.daily_sick_days_present++;
-                Activities::Tracking_data.total_employees_sick_days_present++;
                 Activities::Tracking_data.employees_sick_days_present[index]++;
               }
               this->sick_days_remaining -= 1.0;
@@ -792,15 +818,10 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
             this->my_sick_leave_decision = stay_home;
             this->my_sick_leave_decision_has_been_made = true;
             if(stay_home) {
-              this->my_unpaid_sick_days_absent++;
-              Activities::Tracking_data.total_employees_days_used++;
-              Activities::Tracking_data.total_employees_taking_day_off++;
+              Activities::Tracking_data.total_employees_missing_work++;
               Activities::Tracking_data.employees_days_used[index]++;
               Activities::Tracking_data.employees_taking_day_off[index]++;
             } else {
-              this->my_sick_days_present++;
-              Activities::Tracking_data.daily_sick_days_present++;
-              Activities::Tracking_data.total_employees_sick_days_present++;
               Activities::Tracking_data.employees_sick_days_present[index]++;
             }
           }
@@ -853,7 +874,10 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
               //Person is an adult, but isn't at home
               if(my_hh->have_working_adult_use_sickleave_for_child((*itr), this->myself)) {
                 stay_home = true;
+                int index = Activities::get_index_of_sick_leave_dist((*itr));
                 (*itr)->get_activities()->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
+                Activities::Tracking_data.total_employees_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
+                Activities::Tracking_data.employees_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
                 my_hh->set_working_adult_using_sick_leave(true);
                 break;
               }
@@ -879,25 +903,22 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
   //Update the counters for how many sick days used
 
   // record work absent/present decision if it is a workday
-  if(it_is_a_workday) {
-    Activities::Tracking_data.total_employees_days_used++;
+  if(Global::Report_Presenteeism && it_is_a_workday) {
     if(stay_home) {
-      Activities::Tracking_data.daily_sick_days_absent++;
-      this->my_sick_days_absent++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
+      Activities::Tracking_data.total_employees_days_used++;
     } else {
-      Activities::Tracking_data.daily_sick_days_present++;
-      this->my_sick_days_present++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_PRESENT, 1);
+      Activities::Tracking_data.total_employees_sick_days_present++;
     }
   }
 
   // record school absent/present decision if it is a school day
-  if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+  if(Global::Report_Childhood_Presenteeism && !is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
     if(stay_home) {
-      Activities::Tracking_data.daily_school_sick_days_absent++;
-      this->my_sick_days_absent++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 1);
     } else {
-      Activities::Tracking_data.daily_school_sick_days_present++;
-      this->my_sick_days_present++;
+      Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_PRESENT, 1);
     }
   }
 
@@ -1119,14 +1140,12 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
 
               // record work absent/present decision if it is a work day
               if(is_a_workday) {
-                Activities::Tracking_data.daily_sick_days_absent++;
-                this->my_sick_days_absent++;
+                Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
               }
 
               // record school absent/present decision if it is a school day
               if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-                Activities::Tracking_data.daily_school_sick_days_absent++;
-                this->my_sick_days_absent++;
+                Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 1);
               }
             }
           } else {
@@ -1149,14 +1168,12 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
 
             // record work absent/present decision if it is a work day
             if(is_a_workday) {
-              Activities::Tracking_data.daily_sick_days_absent++;
-              this->my_sick_days_absent++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
             }
 
             // record school absent/present decision if it is a school day
             if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-              Activities::Tracking_data.daily_school_sick_days_absent++;
-              this->my_sick_days_absent++;
+              Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 1);
             }
           }
         } else { //Not HAZEL so don't need to track deficits
@@ -1177,14 +1194,12 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
 
           // record work absent/present decision if it is a workday
           if(is_a_workday) {
-            Activities::Tracking_data.daily_sick_days_absent++;
-            this->my_sick_days_absent++;
+            Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
           }
 
           // record school absent/present decision if it is a school day
           if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
-            Activities::Tracking_data.daily_school_sick_days_absent++;
-            this->my_sick_days_absent++;
+            Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 1);
           }
         }
       }

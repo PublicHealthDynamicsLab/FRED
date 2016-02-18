@@ -305,7 +305,7 @@ bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person
   std::map<Person*, HH_Adult_Sickleave_Data>::iterator itr;
   itr = this->adult_childcare_sickleave_map.find(adult);
   if(itr != this->adult_childcare_sickleave_map.end()) {
-    if(!itr->second.stay_home_with_child(adult)) { //didn't already stayed home with this child
+    if(!itr->second.stay_home_with_child(adult)) { //didn't already stay home with this child
       return itr->second.stay_home_with_child(child);
     }
   }

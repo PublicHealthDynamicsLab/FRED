@@ -1343,6 +1343,18 @@ void Place_List::update(int day) {
   FRED_STATUS(1, "update places finished\n", "");
 }
 
+void Place_List::setup_household_childcare() {
+  assert(this->is_load_completed());
+  assert(Global::Pop.is_load_completed());
+  if(Global::Report_Childhood_Presenteeism) {
+    int number_places = this->households.size();
+    for(int p = 0; p < number_places; ++p) {
+      Household* hh = get_household_ptr(p);
+      hh->prepare_person_childcare_sickleave_map();
+    }
+  }
+}
+
 void Place_List::setup_school_income_quartile_pop_sizes() {
   assert(this->is_load_completed());
   assert(Global::Pop.is_load_completed());
@@ -2795,7 +2807,7 @@ Place* Place_List::select_school(int county_index, int grade) {
 }
 
 void Place_List::update_population_dynamics(int day) {
-  if (!Global::Enable_Population_Dynamics) {
+  if(!Global::Enable_Population_Dynamics) {
     return;
   }
 

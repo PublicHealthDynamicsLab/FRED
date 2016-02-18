@@ -92,6 +92,7 @@ public:
   void setup_classrooms();
   void setup_offices();
   void setup_HAZEL_mobile_vans();
+  void setup_household_childcare();
   void setup_school_income_quartile_pop_sizes();
   void setup_household_income_quartile_sick_days();
   int get_min_household_income_by_percentile(int percentile);

@@ -299,7 +299,7 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Report_Childhood_Presenteeism) {
     Global::Pop.set_school_income_levels();
     Global::Places.setup_school_income_quartile_pop_sizes();
-    //Global::Places.setup_household_income_quartile_sick_days();
+    Global::Places.setup_household_childcare();
   }
 
   if(Global::Enable_hh_income_based_susc_mod) {
@@ -454,8 +454,11 @@ void fred_step(int day) {
   Utils::fred_print_lap_time("day %d report population", day);
 
   if(Global::Enable_HAZEL) {
-    //Activities::print_stats(day);
     Global::Places.print_stats(day);
+  }
+
+  if(Global::Report_Presenteeism || Global::Report_Childhood_Presenteeism) {
+    Activities::report(day);
   }
 
   // print visualization data if desired
