@@ -1198,16 +1198,21 @@ void County::migration() {
     return;
   }
 
-  if (2010 <= year && year <= 2040 && year % 5 == 0) {
+  if (2010 <= year && year <= 2040) {
     int i = (year-2010)/5;
+    if (year % 5 > 0) {
+      i++;
+    }
     for (int j = 0; j < 18; j++) {
       int lower_age = 5*j;
       int upper_age = lower_age+4;
       int males = this->male_migrants[i][j];
       int females = this->female_migrants[i][j];
+      FRED_VERBOSE(0, "MIGRATE age %d, %d males, %d females on day %d year %d\n", lower_age, males, females, day, year);
 
       if (males > 0) {
 	// add these migrants to the population
+	FRED_VERBOSE(0, "MIGRATE ADD age %d %d males on day %d year %d\n", lower_age, males, day, year);
 	for (int k = 0; k < males; k++) {
 	  char sex = 'M';
 	  int my_age = Random::draw_random_int(lower_age, upper_age);
@@ -1221,7 +1226,8 @@ void County::migration() {
 
       if (females > 0) {
 	// add these migrants to the population
-	for (int k = 0; k < males; k++) {
+	FRED_VERBOSE(0, "MIGRATE ADD age %d ADD %d females on day %d year %d\n", lower_age, females, day, year);
+	for (int k = 0; k < females; k++) {
 	  char sex = 'F';
 	  int my_age = Random::draw_random_int(lower_age, upper_age);
 	  add_immigrant(my_age, sex);
@@ -1237,8 +1243,8 @@ void County::migration() {
 
 void County::select_migrants(int day, int migrants, int lower_age, int upper_age, char sex) {
 
-  FRED_VERBOSE(0, "MIGRATE OUT day %d n %d ages %d %d sex %c\n",
-	       day, migrants, lower_age, upper_age, sex);
+  FRED_VERBOSE(0, "MIGRATE DEL  %d ages %d %d sex %c day %d\n",
+	       migrants, lower_age, upper_age, sex, day);
 
   // set up a random shuffle of households
   std::vector<int>shuff;
@@ -1331,10 +1337,10 @@ void County::report_age_distribution() {
     int females = get_current_popsize(lower, upper, 'F');
     int males = get_current_popsize(lower, upper, 'M');
     if (lower < 85) {
-      fprintf(fp, "%d-%d %d %d\n", lower, upper, males, females);
+      fprintf(fp, "%d-%d %d %d %d\n", lower, upper, lower, males, females);
     }
     else {
-      fprintf(fp, "%d+ %d %d\n", lower, males, females);
+      fprintf(fp, "%d+ %d %d %d\n", lower, lower, males, females);
     }
   }
   fclose(fp);

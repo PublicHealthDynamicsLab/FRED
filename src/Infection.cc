@@ -181,7 +181,7 @@ void Infection::setup() {
   }
 
   // code for testing ramps
-  if(Global::Test > 1) {
+  if(Global::Test > 9) {
     for(int i = 0; i <= 1000; ++i) {
       double dur = (this->infectious_end_date - this->infectious_start_date + 1);
       double t = 0.001 * i * dur;
