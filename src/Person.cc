@@ -161,7 +161,7 @@ Person* Person::give_birth(int day) {
   Place* school = NULL;
   Place* work = NULL;
   bool today_is_birthday = true;
-  Person* baby = Global::Pop.add_person(age, sex, race, rel,
+  Person* baby = Global::Pop.add_person_to_population(age, sex, race, rel,
 					house, school, work, day, today_is_birthday);
 
   if(Global::Enable_Population_Dynamics) {

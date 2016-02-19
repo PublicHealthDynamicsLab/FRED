@@ -26,23 +26,20 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include "Bloque.h"
 #include "Demographics.h"
 #include "Global.h"
 #include "Utils.h"
 
 using namespace std;
 
-class Person;
-class Condition;
 class Antivirals;
 class AV_Manager;
-class Vaccine_Manager;
-class Place;
-
-
-
+class Condition;
+class Person;
 class Person_Init_Data;
+class Place;
+class Vaccine_Manager;
+
 
 class Population {
 
@@ -84,7 +81,7 @@ public:
   /**
    * @return the pop_size
    */
-  int get_pop_size() {
+  int get_population_size() {
     return this->pop_size;
   }
 
@@ -109,7 +106,7 @@ public:
    *
    * @return pointer to the person created and added
    */
-  Person* add_person(int age, char sex, int race, int rel, Place* house,
+  Person* add_person_to_population(int age, char sex, int race, int rel, Place* house,
 		     Place* school, Place* work, int day, bool today_is_birthday);
 
   /**
@@ -131,10 +128,13 @@ public:
    * @param index the index of the Person
    * Return a pointer to the Person object at this index
    */
-  Person* get_person_by_index(int index);
-
-  size_t get_index_size() {
-    return this->blq.get_index_size();
+  Person* get_person(int p) {
+    if (p < this->pop_size) {
+      return this->people[p];
+    }
+    else {
+      return NULL;
+    }
   }
 
   /**
@@ -188,11 +188,6 @@ public:
   void report_mean_hh_stats_per_census_tract();
   void report_mean_hh_stats_per_income_category_per_census_tract();
 
-  int size() {
-    assert(this->blq.size() == this->pop_size);
-    return this->blq.size();
-  }
-
   void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
 
   const std::vector<Utils::Tokens> &get_demes() {
@@ -220,6 +215,8 @@ public:
   void update_health_interventions(int day);
 
 private:
+
+  std::vector<Person*> people;
 
   bool load_completed;
 
@@ -300,8 +297,6 @@ private:
 					bool is_group_quarters_population,
 					bool is_2010_ver1_format);
 
-
-  bloque<Person, fred::Pop_Masks> blq;   // all Persons in the population
   vector<Person*> death_list;		  // list of agents to die today
   vector<Person*> migrant_list;		  // list of agents to out migrate today
   int pop_size;
@@ -328,8 +323,8 @@ private:
   };
 
   fred::Mutex mutex;
-  fred::Mutex add_person_mutex;
-  fred::Mutex batch_add_person_mutex;
+  fred::Mutex add_person_to_population_mutex;
+  fred::Mutex batch_add_person_to_population_mutex;
 
 };
 

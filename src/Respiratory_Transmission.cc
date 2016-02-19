@@ -19,6 +19,7 @@
 #include "Date.h"
 #include "Condition.h"
 #include "Condition_List.h"
+#include "Epidemic.h"
 #include "Global.h"
 #include "Household.h"
 #include "Params.h"

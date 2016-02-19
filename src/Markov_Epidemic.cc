@@ -416,7 +416,7 @@ void Markov_Epidemic::prepare() {
   FRED_VERBOSE(0, "Markov_Epidemic(%s)::prepare\n", this->condition->get_condition_name());
 
   for (int i = 0; i < this->number_of_states; i++) {
-    // this->people_in_state[i].reserve(Global::Pop.get_pop_size());
+    // this->people_in_state[i].reserve(Global::Pop.get_population_size());
     // this->people_in_state[i].clear();
     this->count[i] = 0;
   }
@@ -424,13 +424,10 @@ void Markov_Epidemic::prepare() {
   // initialize the population
   double prob[3];
   int day = 0;
-  int popsize = Global::Pop.get_pop_size();
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
+  int popsize = Global::Pop.get_population_size();
+  for(int p = 0; p < popsize; ++p) {
+    Person* person = Global::Pop.get_person(p);
     int state = -1;
-    if(person == NULL) {
-      continue;
-    }
     if (this->use_bayesian_init) {
       int age = get_age_code(person->get_age());
       int sex = get_sex_code(person->get_sex());

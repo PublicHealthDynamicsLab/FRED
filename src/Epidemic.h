@@ -34,8 +34,21 @@ using namespace std;
 
 class Condition;
 class Events;
-class Person;
-class Place;
+#include "Person.h"
+#include "Place.h"
+
+struct person_id_compare {
+  bool operator()(const Person* x, const Person* y) const {
+    return x->get_id() < y->get_id();
+  }
+};
+
+
+struct place_id_compare {
+  bool operator()(const Place* x, const Place* y) const {
+    return x->get_id() < y->get_id();
+  }
+};
 
 struct Time_Step_Map {
   int sim_day_start;
@@ -289,17 +302,17 @@ protected:
   Events* immunity_end_event_queue;
 
   // active sets
-  std::set<Person*> infected_people;
-  std::set<Person*> potentially_infectious_people;
+  std::set<Person*, person_id_compare> infected_people;
+  std::set<Person*, person_id_compare> potentially_infectious_people;
+  std::set<Place*, place_id_compare> active_places;
   std::vector<Person*> actually_infectious_people;
-  std::set<Place*> active_places;
   std::vector<Place*> active_place_vec;
 
   // set used for visualization
-  std::set<Person*> new_infected_people;
-  std::set<Person*> new_symptomatic_people;
-  std::set<Person*> new_infectious_people;
-  std::set<Person*> recovered_people;
+  std::set<Person*, person_id_compare> new_infected_people;
+  std::set<Person*, person_id_compare> new_symptomatic_people;
+  std::set<Person*, person_id_compare> new_infectious_people;
+  std::set<Person*, person_id_compare> recovered_people;
 
   // seeding imported cases
   std::vector<Time_Step_Map*> imported_cases_map;

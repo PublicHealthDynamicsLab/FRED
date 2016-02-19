@@ -1911,7 +1911,7 @@ void Place_List::prepare_primary_care_assignment() {
   }
 
   if(Global::Enable_Hospitals && this->is_load_completed() && Global::Pop.is_load_completed()) {
-    int tot_pop_size = Global::Pop.get_pop_size();
+    int tot_pop_size = Global::Pop.get_population_size();
     assert(Place_List::Hospital_overall_panel_size > 0);
     //Determine the distribution of population that should be assigned to each hospital location
     for(int i = 0; i < this->hospitals.size(); ++i) {

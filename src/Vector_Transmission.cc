@@ -18,6 +18,7 @@
 #include "Date.h"
 #include "Condition.h"
 #include "Condition_List.h"
+#include "Epidemic.h"
 #include "Global.h"
 #include "Mixing_Group.h"
 #include "Params.h"

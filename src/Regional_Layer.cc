@@ -197,21 +197,19 @@ void Regional_Layer::quality_control() {
 // Specific to Regional_Patch Regional_Layer:
 
 void Regional_Layer::set_population_size() {
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person != NULL) {
-      Place* hh = person->get_household();
-      if(hh == NULL) {
-        if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-          hh = person->get_permanent_household();
-        }
+  for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
+    Person* person = Global::Pop.get_person(p);
+    Place* hh = person->get_household();
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
+	hh = person->get_permanent_household();
       }
-      assert(hh != NULL);
-      int row = get_row(hh->get_latitude());
-      int col = get_col(hh->get_longitude());
-      Regional_Patch* patch = get_patch(row, col);
-      patch->add_person(person);
     }
+    assert(hh != NULL);
+    int row = get_row(hh->get_latitude());
+    int col = get_col(hh->get_longitude());
+    Regional_Patch* patch = get_patch(row, col);
+    patch->add_person_to_patch(person);
   }
 }
 

@@ -23,6 +23,7 @@
 #include "Date.h"
 #include "Condition.h"
 #include "Condition_List.h"
+#include "Epidemic.h"
 #include "Evolution.h"
 #include "Infection.h"
 #include "Health.h"

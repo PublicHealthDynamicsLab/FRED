@@ -41,7 +41,7 @@ public:
   void setup(Regional_Layer* grd, int i, int j);
   void quality_control();
   double distance_to_patch(Regional_Patch* patch2);
-  void add_person(Person* p) {
+  void add_person_to_patch(Person* p) {
     // <-------------------------------------------------------------- Mutex
     fred::Scoped_Lock lock(this->mutex);
     this->person.push_back(p);

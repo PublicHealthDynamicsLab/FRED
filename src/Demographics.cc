@@ -566,12 +566,8 @@ void Demographics::report(int day) {
   for(int c = 0; c < 20; ++c) {
     count[c] = 0;
   }
-  int current_popsize = Global::Pop.get_pop_size();
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
+    Person* person = Global::Pop.get_person(p);
     int a = person->get_age();
     if(a < 5) {
       n0++;

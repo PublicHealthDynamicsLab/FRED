@@ -23,7 +23,6 @@
 using namespace std;
 
 #include "Condition_List.h"
-#include "Epidemic.h"
 #include "Global.h"
 #include "Person_Network_Link.h"
 #include "Person_Place_Link.h"

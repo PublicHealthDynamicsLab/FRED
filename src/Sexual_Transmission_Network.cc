@@ -37,17 +37,15 @@ void Sexual_Transmission_Network::get_parameters() {
 void Sexual_Transmission_Network::setup() {
 
   // initialize MSM network
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person != NULL) {
-      int age = person->get_age();
-      char sex = person->get_sex();
-      person->become_unsusceptible(0);
-      if (18 <= age && age < 60 && sex == 'M') {
-	if (Random::draw_random() < 0.01) {
-	  person->join_network(Global::Sexual_Partner_Network);
-	  person->become_susceptible(0);
-	}
+  for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
+    Person* person = Global::Pop.get_person(p);
+    int age = person->get_age();
+    char sex = person->get_sex();
+    person->become_unsusceptible(0);
+    if (18 <= age && age < 60 && sex == 'M') {
+      if (Random::draw_random() < 0.01) {
+	person->join_network(Global::Sexual_Partner_Network);
+	person->become_susceptible(0);
       }
     }
   }

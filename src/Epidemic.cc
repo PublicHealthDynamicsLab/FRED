@@ -171,10 +171,10 @@ Epidemic::Epidemic(Condition* dis) {
     //    }
   }
 
-  this->daily_infections_list.reserve(Global::Pop.get_pop_size());
+  this->daily_infections_list.reserve(Global::Pop.get_population_size());
   this->daily_infections_list.clear();
 
-  this->daily_symptomatic_list.reserve(Global::Pop.get_pop_size());
+  this->daily_symptomatic_list.reserve(Global::Pop.get_population_size());
   this->daily_symptomatic_list.clear();
 
   this->imported_cases_map.clear();
@@ -197,7 +197,7 @@ Epidemic::Epidemic(Condition* dis) {
   this->new_infectious_people.clear();
   this->recovered_people.clear();
 
-  this->actually_infectious_people.reserve(Global::Pop.get_pop_size());
+  this->actually_infectious_people.reserve(Global::Pop.get_population_size());
   this->actually_infectious_people.clear();
 }
 
@@ -456,7 +456,7 @@ void Epidemic::get_imported_infections(int day) {
 
   FRED_VERBOSE(0, "GET_IMPORTED_INFECTIONS %d map_size %d\n",  day, this->imported_cases_map.size());
 
-  this->N = Global::Pop.get_pop_size();
+  this->N = Global::Pop.get_population_size();
 
   for(int i = 0; i < this->imported_cases_map.size(); ++i) {
     Time_Step_Map* tmap = this->imported_cases_map[i];
@@ -1122,9 +1122,9 @@ void Epidemic::print_stats(int day) {
 
   // set population size, and remember original pop size
   if(day == 0) {
-    this->N_init = this->N = Global::Pop.get_pop_size();
+    this->N_init = this->N = Global::Pop.get_population_size();
   } else {
-    this->N = Global::Pop.get_pop_size();
+    this->N = Global::Pop.get_population_size();
   }
 
   FRED_VERBOSE(1, "report condition specific stats\n");

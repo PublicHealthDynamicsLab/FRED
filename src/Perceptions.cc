@@ -13,14 +13,16 @@
 //
 // File: Perceptions.cc
 //
-#include "Global.h"
-#include "Params.h"
-#include "Perceptions.h"
-#include "Random.h"
-#include "Person.h"
+
 #include "Condition.h"
 #include "Condition_List.h"
+#include "Epidemic.h"
+#include "Global.h"
 #include "Household.h"
+#include "Params.h"
+#include "Perceptions.h"
+#include "Person.h"
+#include "Random.h"
 
 //Private static variables that will be set by parameter lookups
 double Perceptions::memory_decay_distr[2] = { 0.0, 0.0 };

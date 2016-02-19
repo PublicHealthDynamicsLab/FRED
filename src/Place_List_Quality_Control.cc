@@ -777,7 +777,7 @@ void Place_List::quality_control() {
     }
     for(int t = 0; t < htypes; ++t) {
       printf("HOUSEHOLD TYPE DIST: ");
-      printf("%30s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_pop_size()));
+      printf("%30s: %8d households (%5.1f%%) with %8d residents (%5.1f%%)\n", htype[t].c_str(), type[t], (100.0*type[t])/hnum, ttotal[t], (100.0*ttotal[t]/Global::Pop.get_population_size()));
     }
 
     FILE* hfp = fopen("households.txt", "w");

@@ -64,16 +64,8 @@ Population::Population() {
   // reserve memory for lists
   this->death_list.reserve(1000);
   this->migrant_list.reserve(1000);
+  this->people.clear();
 
-}
-
-// index and id are not the same thing!
-Person* Population::get_person_by_index(int _index) {
-  if(this->blq.is_valid_index(_index)) {
-    return this->blq.get_item_pointer_by_index(_index);
-  } else {
-    return NULL;
-  }
 }
 
 Population::~Population() {
@@ -103,33 +95,18 @@ void Population::get_parameters() {
 }
 
 /*
- * All Persons in the population must have been created using add_person
+ * All Persons in the population must have been created using add_person_to_population
  */
-Person* Population::add_person(int age, char sex, int race, int rel,
+Person* Population::add_person_to_population(int age, char sex, int race, int rel,
 			       Place* house, Place* school, Place* work,
 			       int day, bool today_is_birthday) {
 
-  fred::Scoped_Lock lock(this->add_person_mutex);
-
+  Person* person = new Person;
   int id = Population::next_id++;
-  int idx = this->blq.get_free_index();
-
-  Person* person = this->blq.get_free_pointer(idx);
-
-  // mark valid before adding person so that mask operations will be
-  // available in the constructor (of Person and all ancillary objects)
-  this->blq.mark_valid_by_index(idx);
-
-  new (person) Person();
-
+  int idx = this->people.size();
   person->setup(idx, id, age, sex, race, rel, house, school, work, day, today_is_birthday);
-
-  //assert( id_to_index.find( id ) == id_to_index.end() );
-  //id_to_index[ id ] = idx;
-
-  assert((unsigned)this->pop_size == blq.size() - 1);
-  this->pop_size = this->blq.size();
-
+  this->people.push_back(person);
+  this->pop_size = this->people.size();
   return person;
 }
 
@@ -199,13 +176,11 @@ void Population::setup() {
   if(Global::Verbose > 0) {
     for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
       int count = 0;
-      for(int p = 0; p < this->get_index_size(); ++p) {
-	      Person* person = get_person_by_index(p);
-	      if(person != NULL) {
-	        if(person->is_immune(d)) {
-	          count++;
-	        }
-	      }
+      for(int p = 0; p < this->get_population_size(); ++p) {
+	Person* person = get_person(p);
+	if(person->is_immune(d)) {
+	  count++;
+	}
       }
       FRED_STATUS(0, "number of residually immune people for condition %d = %d\n", d, count);
     }
@@ -217,15 +192,13 @@ void Population::setup() {
   for(int age = 0; age <= Demographics::MAX_AGE; ++age) {
     Global::Popsize_by_age[age] = 0;
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      int age = person->get_age();
-      if(age > Demographics::MAX_AGE) {
-	      age = Demographics::MAX_AGE;
-      }
-      Global::Popsize_by_age[age]++;
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    int age = person->get_age();
+    if(age > Demographics::MAX_AGE) {
+      age = Demographics::MAX_AGE;
     }
+    Global::Popsize_by_age[age]++;
   }
 
   FRED_STATUS(0, "population setup finished\n", "");
@@ -353,14 +326,14 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
   // add to population bloque.  More efficient to do this in batches; also
   // preserves the (fine-grained) order in the population file.  Protect
   // with mutex so that we do this sequentially and avoid thrashing the 
-  // scoped mutex in add_person.
-  fred::Scoped_Lock lock(this->batch_add_person_mutex);
+  // scoped mutex in add_person_to_population.
+  fred::Scoped_Lock lock(this->batch_add_person_to_population_mutex);
   std::vector<Person_Init_Data>::iterator it = pidv.begin();
   for(; it != pidv.end(); ++it) {
     Person_Init_Data &pid = *it;
     // here the person is actually created and added to the population
     // The person's unique id is automatically assigned
-    add_person(pid.age, pid.sex, pid.race, pid.relationship, pid.house, pid.school, pid.work,
+    add_person_to_population(pid.age, pid.sex, pid.race, pid.relationship, pid.house, pid.school, pid.work,
 	       pid.day, pid.today_is_birthday);
   }
 }
@@ -511,7 +484,7 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
     if(this->enable_copy_files) {
       unlink(temp_file);
     }
-    FRED_VERBOSE(0, "finished reading compressed population, pop_size = %d\n", pop_size);
+    FRED_VERBOSE(0, "finished reading compressed population, pop_size = %d\n", this->pop_size);
     return;
   }
 #endif
@@ -536,7 +509,7 @@ void Population::read_population(const char* pop_dir, const char* pop_id, const 
   if(this->enable_copy_files) {
     unlink(temp_file);
   }
-  FRED_VERBOSE(0, "finished reading uncompressed population, pop_size = %d\n", pop_size);
+  FRED_VERBOSE(0, "finished reading uncompressed population, pop_size = %d\n", this->pop_size);
 }
 
 void Population::remove_dead_from_population(int day) {
@@ -569,17 +542,27 @@ void Population::delete_person_from_population(int day, Person* person) {
   }
 
   person->terminate(day);
+  FRED_VERBOSE(1, "DELETING PERSON: %d\n", person->get_id());
 
   // delete from population data structure
   int idx = person->get_pop_index();
-  assert(get_person_by_index(idx) == person);
-  // call Person's destructor directly!!!
-  get_person_by_index(idx)->~Person();
-  this->blq.mark_invalid_by_index(person->get_pop_index());
-  this->pop_size--;
-  assert((unsigned)this->pop_size == this->blq.size());
 
-  FRED_VERBOSE(1, "DELETED PERSON: %d\n", person->get_id());
+  if (this->pop_size > 1) {
+    // move last person in vector to this person's position
+    this->people[idx] = this->people[this->pop_size-1];
+
+    // inform the move person of its new index
+    this->people[idx]->set_pop_index(idx);
+  }
+
+  // remove last element in vector
+  this->people.pop_back();
+
+  // record new population_size
+  this->pop_size = this->people.size();
+
+  // call Person's destructor directly!!!
+  person->~Person();
 }
 
 void Population::report(int day) {
@@ -619,12 +602,8 @@ void Population::quality_control() {
   }
 
   // check population
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_household() == NULL) {
       fprintf(Global::Statusfp, "Help! Person %d has no home.\n", person->get_id());
       person->print(Global::Statusfp, 0);
@@ -640,11 +619,8 @@ void Population::quality_control() {
     for(int c = 0; c < 20; ++c) {
       count[c] = 0;
     }
-    for(int p = 0; p < this->get_index_size(); ++p) {
-      Person* person = get_person_by_index(p);
-      if(person == NULL) {
-        continue;
-      }
+    for(int p = 0; p < this->get_population_size(); ++p) {
+      Person* person = get_person(p);
       int a = person->get_age();
 
       if(a < 5) {
@@ -684,11 +660,8 @@ void Population::quality_control() {
 	  for(int c = 0; c < 20; ++c) {
 	    rcount[c] = 0;
 	  }
-	  for(int p = 0; p < this->get_index_size(); ++p) {
-	    Person* person = get_person_by_index(p);
-	    if(person == NULL) {
-	      continue;
-	    }
+	  for(int p = 0; p < this->get_population_size(); ++p) {
+	    Person* person = get_person(p);
 	    int a = person->get_age();
 	    int n = a / 10;
 	    if(person->get_health()->is_at_risk(d) == true) {
@@ -718,11 +691,8 @@ void Population::assign_classrooms() {
     fprintf(Global::Statusfp, "assign classrooms entered\n");
     fflush(Global::Statusfp);
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_school() != NULL) {
       person->assign_classroom();
     }
@@ -735,11 +705,8 @@ void Population::assign_offices() {
     fprintf(Global::Statusfp, "assign offices entered\n");
     fflush(Global::Statusfp);
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_workplace() != NULL) {
       person->assign_office();
     }
@@ -754,11 +721,8 @@ void Population::assign_primary_healthcare_facilities() {
     fprintf(Global::Statusfp, "assign primary healthcare entered\n");
     fflush(Global::Statusfp);
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     person->assign_primary_healthcare_facility();
 
   }
@@ -774,11 +738,8 @@ void Population::get_network_stats(char* directory) {
   sprintf(filename, "%s/degree.csv", directory);
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "id,age,deg,h,n,s,c,w,o\n");
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     fprintf(fp, "%d,%d,%d,%d,%d,%d,%d,%d,%d\n", person->get_id(), person->get_age(), person->get_degree(),
 	    person->get_household_size(), person->get_neighborhood_size(), person->get_school_size(),
 	    person->get_classroom_size(), person->get_workplace_size(), person->get_office_size());
@@ -801,9 +762,8 @@ void Population::set_school_income_levels() {
   SchoolMapT* school_hh_income_map = new SchoolMapT();
   SchoolMultiMapT* school_income_hh_mm = new SchoolMultiMapT();
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) continue;
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_school() == NULL) {
       continue;
     } else {
@@ -897,12 +857,8 @@ void Population::report_mean_hh_income_per_school() {
   SchoolMapT* school_enrollment_map = new SchoolMapT();
   SchoolMapT* school_hh_income_map = new SchoolMapT();
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_school() == NULL) {
       continue;
     } else {
@@ -959,12 +915,8 @@ void Population::report_mean_hh_size_per_school() {
   SchoolMapT* school_enrollment_map = new SchoolMapT();
   SchoolMapT* school_hh_size_map = new SchoolMapT();
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_school() == NULL) {
       continue;
     } else {
@@ -1023,12 +975,8 @@ void Population::report_mean_hh_distance_from_school() {
   SchoolMapT* school_enrollment_map = new SchoolMapT();
   SchoolMapDist* school_hh_distance_map = new SchoolMapDist();
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_school() == NULL) {
       continue;
     } else {
@@ -1090,12 +1038,8 @@ void Population::report_mean_hh_stats_per_income_category() {
   //First sort households into sets based on their income level
   std::set<Household*> household_sets[Household_income_level_code::UNCLASSIFIED + 1];
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
         int income_level = static_cast<Household*>(person->get_permanent_household())->get_household_income_code();
@@ -1197,12 +1141,8 @@ void Population::report_mean_hh_stats_per_census_tract() {
   //First sort households into sets based on their census tract and income category
   map<int, std::set<Household*> > household_sets;
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
-
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     long int census_tract;
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
@@ -1305,11 +1245,8 @@ void Population::report_mean_hh_stats_per_income_category_per_census_tract() {
   //First sort households into sets based on their census tract and income category
   map<int, map<int, std::set<Household*> > > household_sets;
 
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     long int census_tract;
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
@@ -1542,11 +1479,8 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
   for(int i = 0; i < 21; ++i) {
     count[i] = 0;
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     int age = person->get_age();
     if(0 <= age && age <= Demographics::MAX_AGE) {
       count[age]++;
@@ -1566,11 +1500,8 @@ void Population::print_age_distribution(char* dir, char* date_string, int run) {
 }
 
 Person* Population::select_random_person() {
-  int i = Random::draw_random_int(0, get_index_size() - 1);
-  while(get_person_by_index(i) == NULL) {
-    i = Random::draw_random_int(0, get_index_size() - 1);
-  }
-  return get_person_by_index(i);
+  int i = Random::draw_random_int(0, get_population_size() - 1);
+  return get_person(i);
 }
 
 Person* Population::select_random_person_by_age(int min_age, int max_age) {
@@ -1603,13 +1534,9 @@ void Population::write_population_output_file(int day) {
     Utils::fred_abort("Help! population_output_file %s not found\n", population_output_file);
   }
 
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      fprintf(fp, "%s\n", person->to_string().c_str());
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    fprintf(fp, "%s\n", person->to_string().c_str());
   }
   fflush(fp);
   fclose(fp);
@@ -1620,11 +1547,8 @@ void Population::get_age_distribution(int* count_males_by_age, int* count_female
     count_males_by_age[i] = 0;
     count_females_by_age[i] = 0;
   }
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
     int age = person->get_age();
     if(age > Demographics::MAX_AGE) {
       age = Demographics::MAX_AGE;
@@ -1638,57 +1562,37 @@ void Population::get_age_distribution(int* count_males_by_age, int* count_female
 }
 
 void Population::initialize_population_behavior() {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      person->setup_behavior();
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    person->setup_behavior();
   }
 }
 
 void Population::initialize_activities() {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      person->prepare_activities();
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    person->prepare_activities();
   }
 }
 
 void Population::initialize_demographic_dynamics() {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      person->get_demographics()->initialize_demographic_dynamics(person);
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    person->get_demographics()->initialize_demographic_dynamics(person);
   }
 }
 
 void Population::update_health_interventions(int day) {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      person->update_health_interventions(day);
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    person->update_health_interventions(day);
   }
 }
 
 void Population::initialize_health_insurance() {
-  // NOTE: use this idiom to loop through pop.
-  // Note that pop_size is the number of valid indexes, NOT the size of blq.
-  for(int p = 0; p < this->get_index_size(); ++p) {
-    Person* person = get_person_by_index(p);
-    if(person != NULL) {
-      set_health_insurance(person);
-    }
+  for(int p = 0; p < this->get_population_size(); ++p) {
+    Person* person = get_person(p);
+    set_health_insurance(person);
   }
 }
 

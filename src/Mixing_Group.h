@@ -37,7 +37,7 @@ public:
    * Get the id.
    * @return the id
    */
-  int get_id() {
+  int get_id() const {
     return this->id;
   }
 

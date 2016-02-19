@@ -151,15 +151,13 @@ void Vaccine_Manager::fill_queues() {
     return;
   }
   // We need to loop over the entire population that the Manager oversees to put them in a queue.
-  for(int ip = 0; ip < pop->get_index_size(); ip++) {
-    Person * current_person = this->pop->get_person_by_index(ip);
-    if (current_person != NULL) {
-      if(this->policies[current_policy]->choose_first_positive(current_person, 0, 0) == true) {
-	priority_queue.push_back(current_person);
-      } else {
-	if(this->vaccine_priority_only == false)
-	  this->queue.push_back(current_person);
-      }
+  for(int ip = 0; ip < pop->get_population_size(); ip++) {
+    Person * current_person = this->pop->get_person(ip);
+    if(this->policies[current_policy]->choose_first_positive(current_person, 0, 0) == true) {
+      priority_queue.push_back(current_person);
+    } else {
+      if(this->vaccine_priority_only == false)
+	this->queue.push_back(current_person);
     }
   }
 

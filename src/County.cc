@@ -1311,7 +1311,7 @@ void County::add_immigrant(int age, char sex) {
   int hnum = Random::draw_random_int(0, this->households.size()-1);
   Place* house = Global::Places.get_household(hnum);
 
-  Person* person = Global::Pop.add_person(age, sex, race, rel, house, school, work, day, false);
+  Person* person = Global::Pop.add_person_to_population(age, sex, race, rel, house, school, work, day, false);
   person->get_demographics()->initialize_demographic_dynamics(person);
 }
 

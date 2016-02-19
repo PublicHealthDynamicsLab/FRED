@@ -27,7 +27,7 @@
 #include "Random.h"
 #include "Household.h"
 #include "School.h"
-class Person;
+
 
 void insert_if_unique(place_vector* vec, Place* p) {
   for (place_vector::iterator itr = vec->begin(); itr != vec->end(); ++itr) {
@@ -85,7 +85,7 @@ void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neigh
   fred::geo lon = Geo::get_longitude(this->center_x);
 
   this->neighborhood = new (neighborhood_allocator.get_free())
-  Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
+    Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
 }
 
 void Neighborhood_Patch::add_household(Household* p) {
@@ -132,13 +132,13 @@ void Neighborhood_Patch::record_daily_activity_locations() {
       }
       s = static_cast<School *>(per->get_activities()->get_school());
       if(s != NULL) {
-	      insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
-	      for(int age = 0; age < Global::ADULT_AGE; ++age) {
-	        if(s->get_students_in_grade(age) > 0) {
-	          // school_by_age[age].push_back(s);
-	          insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
+	insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
+	for(int age = 0; age < Global::ADULT_AGE; ++age) {
+	  if(s->get_students_in_grade(age) > 0) {
+	    // school_by_age[age].push_back(s);
+	    insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
           }
-	      }
+	}
       }
     }
     // fprintf(fp, "\n");
@@ -282,7 +282,6 @@ Place* Neighborhood_Patch::select_workplace_in_neighborhood() {
 
 
 void Neighborhood_Patch::quality_control() {
-  return;
   if(this->person.size() > 0) {
     fprintf(Global::Statusfp,
 	    "PATCH row = %d col = %d  pop = %d  houses = %d work = %d schools = %d by_age ",
@@ -293,12 +292,12 @@ void Neighborhood_Patch::quality_control() {
     fprintf(Global::Statusfp, "\n");
     if(Global::Verbose > 0) {
       for(int i = 0; i < this->schools_attended_by_neighborhood_residents.size(); ++i) {
-	      School* s = static_cast<School*>(this->schools_attended_by_neighborhood_residents[i]);
-	      fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
-	      for(int a = 0; a < 19; ++a) {
-	        fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
-	      }
-	      fprintf(Global::Statusfp, "\n");
+	School* s = static_cast<School*>(this->schools_attended_by_neighborhood_residents[i]);
+	fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
+	for(int a = 0; a < 19; ++a) {
+	  fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
+	}
+	fprintf(Global::Statusfp, "\n");
       }
       fflush(Global::Statusfp);
     }
