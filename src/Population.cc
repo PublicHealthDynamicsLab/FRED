@@ -1,7 +1,7 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
+  Copyright (c) 2010-2016, University of Pittsburgh, John Grefenstette,
   Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
   Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
@@ -271,10 +271,6 @@ Person_Init_Data Population::get_person_init_data(char* line,
 
 void Population::parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop) {
 
-  // vector used for batch add of new persons
-  std::vector<Person_Init_Data> pidv;
-  pidv.reserve(2000000);
-
   // flag for 2010_ver1 format
   bool is_2010_ver1_format = false;
 
@@ -310,7 +306,8 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
 
     if(pid.house != NULL) {
       // create a Person_Init_Data object
-      pidv.push_back(pid);
+      add_person_to_population(pid.age, pid.sex, pid.race, pid.relationship, pid.house, pid.school, pid.work,
+			       pid.day, pid.today_is_birthday);
     } else {
       // we need at least a household (homeless people not yet supported), so
       // skip this person
@@ -321,22 +318,9 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
     n++;
   } // <----- end while loop over stream
   FRED_VERBOSE(0, "end of stream, persons = %d\n", n);
-
-  // Iterate through vector of already parsed initialization data and
-  // add to population bloque.  More efficient to do this in batches; also
-  // preserves the (fine-grained) order in the population file.  Protect
-  // with mutex so that we do this sequentially and avoid thrashing the 
-  // scoped mutex in add_person_to_population.
-  fred::Scoped_Lock lock(this->batch_add_person_to_population_mutex);
-  std::vector<Person_Init_Data>::iterator it = pidv.begin();
-  for(; it != pidv.end(); ++it) {
-    Person_Init_Data &pid = *it;
-    // here the person is actually created and added to the population
-    // The person's unique id is automatically assigned
-    add_person_to_population(pid.age, pid.sex, pid.race, pid.relationship, pid.house, pid.school, pid.work,
-	       pid.day, pid.today_is_birthday);
-  }
+  return;
 }
+
 
 void Population::split_synthetic_populations_by_deme() {
   using namespace std;
