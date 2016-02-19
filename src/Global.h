@@ -207,6 +207,7 @@ public:
   static char ErrorLogbase[];
   static bool Enable_Behaviors;
   static int Track_infection_events;
+  static bool Track_JSON_infection_events;
   static bool Track_age_distribution;
   static bool Track_household_distribution;
   static bool Track_network_stats;
@@ -303,6 +304,7 @@ public:
   static FILE* Outfp;
   static FILE* Tracefp;
   static FILE* Infectionfp;
+  static FILE* InfectionJSONfp;
   static FILE* VaccineTracefp;
   static FILE* Birthfp;
   static FILE* Deathfp;
@@ -338,10 +340,8 @@ namespace fred {
 
     tiny_bitset() {
       if(n_bits > sizeof(BitType) * 8) {
-        fprintf(stderr,
-		"This specialized bitset is limited to %zu bytes.%s\n",
-		sizeof(BitType),
-		"If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
+        fprintf(stderr, "This specialized bitset is limited to %zu bytes.%s\n", sizeof(BitType),
+		            "If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
       }
       assert(n_bits <= sizeof(BitType) * 8);
       reset();

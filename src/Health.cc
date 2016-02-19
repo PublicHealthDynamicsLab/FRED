@@ -479,6 +479,9 @@ void Health::become_exposed(int condition_id, Person* infector, Mixing_Group* mi
   FRED_VERBOSE(1, "setup infection: person %d dis_id %d day %d\n", myself->get_id(), condition_id, day);
   this->infection[condition_id]->setup();
   this->infection[condition_id]->report_infection(day);
+  if(Global::Track_JSON_infection_events) {
+    this->infection[condition_id]->report_infection_JSON(day);
+  }
   become_unsusceptible(condition);
   this->immunity_end_date[condition_id] = -1;
   if(myself->get_household() != NULL) {
@@ -985,7 +988,7 @@ void Health::take_vaccine(Vaccine* vaccine, int day, Vaccine_Manager* vm) {
   // Compliance will be somewhere else
   double real_age = myself->get_real_age();
   // Is this our first dose?
-  Vaccine_Health * vaccine_health_for_dose = NULL;
+  Vaccine_Health* vaccine_health_for_dose = NULL;
 
   if(this->vaccine_health == NULL) {
     this->vaccine_health = new vaccine_health_type();

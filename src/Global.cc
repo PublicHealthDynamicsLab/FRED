@@ -52,6 +52,7 @@ char Global::MSA_code[FRED_STRING_SIZE];
 
 char Global::ErrorLogbase[FRED_STRING_SIZE];
 bool Global::Enable_Behaviors = false;
+bool Global::Track_JSON_infection_events = false;
 bool Global::Track_age_distribution = false;
 bool Global::Track_household_distribution = false;
 bool Global::Track_network_stats = false;
@@ -152,6 +153,7 @@ FILE* Global::Statusfp = NULL;
 FILE* Global::Outfp = NULL;
 FILE* Global::Tracefp = NULL;
 FILE* Global::Infectionfp = NULL;
+FILE* Global::InfectionJSONfp = NULL;
 FILE* Global::VaccineTracefp = NULL;
 FILE* Global::Birthfp = NULL;
 FILE* Global::Deathfp = NULL;
@@ -192,6 +194,8 @@ void Global::get_global_parameters() {
 
   Params::get_param_from_string("enable_behaviors", &temp_int);
   Global::Enable_Behaviors = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("track_JSON_infection_events", &temp_int);
+  Global::Track_JSON_infection_events = (temp_int == 0 ? false : true);
   Params::get_param_from_string("track_age_distribution", &temp_int);
   Global::Track_age_distribution = (temp_int == 0 ? false : true);
   Params::get_param_from_string("track_household_distribution", &temp_int);

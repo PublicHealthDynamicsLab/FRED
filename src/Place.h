@@ -19,7 +19,6 @@
 
 #include <vector>
 
-
 #include "Geo.h"
 #include "Global.h"
 #include "Mixing_Group.h"
@@ -71,6 +70,21 @@ public:
   virtual void print(int condition_id);
 
   virtual void prepare();
+
+  /**
+   * Will print out a Place i
+   * @return a string representation of this Place object
+   */
+  virtual string to_string();
+
+  /**
+   * Will print out a Place in JSON format or will default to the to_string() above
+   * @param is_JSON whether or not the output should be in JSON format
+   * @param is_inline whether or not the output should start on its own line or not
+   * @param indent_level how many times to indent each line (2 space indent)
+   * @return a JSON string representation of this Place object
+   */
+  string to_string(bool is_JSON, bool is_inline, int indent_level);
 
   // daily update
   virtual void update(int sim_day);
@@ -387,10 +401,10 @@ public:
     return this->vector_control_status;
   }
   void set_vector_control(){
-    vector_control_status = true;
+    this->vector_control_status = true;
   }
   void stop_vector_control(){
-      vector_control_status = false;
+    this->vector_control_status = false;
   }
 
 protected:

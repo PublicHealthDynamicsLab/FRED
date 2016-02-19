@@ -203,12 +203,21 @@ public:
   }
 
   /**
-   * Will print out a person in a format similar to that read from population file
+   * Will print out a Person in a format similar to that read from population file
    * (with additional run-time values inserted (denoted by *)):<br />
    * (i.e Label *ID* Age Sex Married Occupation Household School *Classroom* Workplace *Office*)
    * @return a string representation of this Person object
    */
   string to_string();
+
+  /**
+   * Will print out a Person in JSON format or will default to the to_string() above
+   * @param is_JSON whether or not the output should be in JSON format
+   * @param is_inline whether or not the output should start on its own line or not
+   * @param indent_level how many times to indent each line (2 space indent)
+   * @return a JSON string representation of this Person object
+   */
+  string to_string(bool is_JSON, bool is_inline, int indent_level);
 
   // access functions:
   /**

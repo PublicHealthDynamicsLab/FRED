@@ -17,6 +17,7 @@
 #include "Utils.h"
 #include "Global.h"
 #include <chrono>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -140,6 +141,20 @@ void Utils::fred_open_output_files(){
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
+  Global::InfectionJSONfp = NULL;
+  if(Global::Track_JSON_infection_events) {
+    sprintf(filename, "%s/infections%d.json", directory, run);
+    Global::InfectionJSONfp = fopen(filename, "w");
+    if(Global::InfectionJSONfp == NULL) {
+      Utils::fred_abort("Can't open %s\n", filename);
+    } else {
+      //Print initial line to file
+      fprintf(Global::InfectionJSONfp,"{\n");
+      fprintf(Global::InfectionJSONfp,"  \"infections\":[\n");
+      fflush(Global::InfectionJSONfp);
+    }
+  }
+
   Global::VaccineTracefp = NULL;
   if(strcmp(Global::VaccineTracefilebase, "none") != 0) {
     sprintf(filename, "%s/vacctr%d.txt", directory, run);
@@ -238,6 +253,14 @@ void Utils::fred_end(void){
   }
   if(Global::Infectionfp != NULL) {
     fclose(Global::Infectionfp);
+  }
+  if(Global::InfectionJSONfp != NULL) {
+    //Print final line to file
+    //Print initial line to file
+    fprintf(Global::InfectionJSONfp,"  ]\n");
+    fprintf(Global::InfectionJSONfp,"}");
+    fflush(Global::InfectionJSONfp);
+    fclose(Global::InfectionJSONfp);
   }
   if(Global::VaccineTracefp != NULL) {
     fclose(Global::VaccineTracefp);
@@ -584,6 +607,20 @@ void Utils::normalize_white_space(char* s) {
       started = 1;
       // printf("new_s = |%s|\n", new_s); fflush(stdout);
     }
+  }
+}
+
+string Utils::indent(int indent_level) {
+  stringstream tmp_string_stream;
+  if(indent_level <= 0) {
+    tmp_string_stream << "";
+    return tmp_string_stream.str();
+  } else {
+    const char* indent = "  ";
+    for(int i = 0; i < indent_level; ++i) {
+      tmp_string_stream << indent;
+    }
+    return tmp_string_stream.str();
   }
 }
 

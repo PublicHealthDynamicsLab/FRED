@@ -189,19 +189,90 @@ string Person::to_string() {
 
   stringstream tmp_string_stream;
   // (i.e *ID* Age Sex Race Household School Classroom Workplace Office Neighborhood Hospital Ad_Hoc Relationship)
-  tmp_string_stream << this->id << " " << get_age() << " " <<  get_sex() << " " ;
-  tmp_string_stream << get_race() << " " ;
-  tmp_string_stream << Place::get_place_label(get_household()) << " ";
-  tmp_string_stream << Place::get_place_label(get_school()) << " ";
-  tmp_string_stream << Place::get_place_label(get_classroom()) << " ";
-  tmp_string_stream << Place::get_place_label(get_workplace()) << " ";
-  tmp_string_stream << Place::get_place_label(get_office()) << " ";
-  tmp_string_stream << Place::get_place_label(get_neighborhood()) << " ";
-  tmp_string_stream << Place::get_place_label(get_hospital()) << " ";
-  tmp_string_stream << Place::get_place_label(get_ad_hoc()) << " ";
-  tmp_string_stream << get_relationship();
+  tmp_string_stream << this->id << " " << this->get_age() << " " <<  this->get_sex() << " " ;
+  tmp_string_stream << this->get_race() << " " ;
+  tmp_string_stream << Place::get_place_label(this->get_household()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_school()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_classroom()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_workplace()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_office()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_neighborhood()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_hospital()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_ad_hoc()) << " ";
+  tmp_string_stream << this->get_relationship();
 
   return tmp_string_stream.str();
+}
+
+string Person::to_string(bool is_JSON, bool is_inline, int indent_level) {
+
+  if(is_JSON) {
+    stringstream tmp_string_stream;
+    const char* indent = "  ";
+
+    tmp_string_stream << (is_inline ? "" : Utils::indent(indent_level)) << "{\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"id\":" << this->id << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"age\":" << this->get_age() << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"real_age\":" << this->get_real_age() << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"sex\":\"" << this->get_sex() << "\",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"race\":" << this->get_race() << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"relationship\":" << this->get_relationship() << ",\n";
+    if(this->get_household() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"household\":";
+      tmp_string_stream << this->get_household()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"household\":null,\n";
+    }
+    if(this->get_school() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"school\":";
+      tmp_string_stream << this->get_school()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"school\":null,\n";
+    }
+    if(this->get_classroom() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"classroom\":";
+      tmp_string_stream << this->get_classroom()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"classroom\":null,\n";
+    }
+    if(this->get_workplace() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"workplace\":";
+      tmp_string_stream << this->get_workplace()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"workplace\":null,\n";
+    }
+    if(this->get_office() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"office\":";
+      tmp_string_stream << this->get_office()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"office\":null,\n";
+    }
+    if(this->get_neighborhood() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"neighborhood\":";
+      tmp_string_stream << this->get_neighborhood()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"neighborhood\":null,\n";
+    }
+    if(this->get_hospital() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"hospital\":";
+      tmp_string_stream << this->get_hospital()->to_string(true, true, indent_level + 1) << ",\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"hospital\":null,\n";
+    }
+    if(this->get_ad_hoc() != NULL) {
+      tmp_string_stream << Utils::indent(indent_level) << "\"ad_hoc\":";
+      tmp_string_stream << this->get_ad_hoc()->to_string(true, true, indent_level + 1) << "\n";
+    } else {
+      tmp_string_stream << Utils::indent(indent_level) << "\"ad_hoc\":null\n";
+    }
+    tmp_string_stream << Utils::indent(indent_level - 1) << "}";
+
+    return tmp_string_stream.str();
+  } else {
+    return this->to_string();
+  }
+
+
 }
 
 void Person::terminate(int day) {

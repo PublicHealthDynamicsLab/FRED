@@ -64,6 +64,8 @@ public:
 
   virtual void report_infection(int day);
 
+  virtual void report_infection_JSON(int day);
+
   // methods for antivirals
   virtual bool provides_immunity() {
     return true;

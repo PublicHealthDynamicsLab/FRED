@@ -338,9 +338,9 @@ void Infection::report_infection(int day) {
     }
     infStrS << " | ";
   }
-  if(Global::Track_infection_events > 3){
+  if(Global::Track_infection_events > 3) {
     Neighborhood_Patch* pt = this->host->get_household()->get_patch();
-    if(pt != NULL){
+    if(pt != NULL) {
       double patch_lat = Geo::get_latitude(pt->get_center_y());
       double patch_lon = Geo::get_longitude(pt->get_center_x());
       int patch_pop = pt->get_popsize();
@@ -352,6 +352,59 @@ void Infection::report_infection(int day) {
   }
   infStrS << "\n";
   fprintf(Global::Infectionfp, "%s", infStrS.str().c_str());
+}
+
+void Infection::report_infection_JSON(int day) {
+  if(Global::InfectionJSONfp == NULL) {
+    return;
+  }
+  int indent_level = 2;
+  char mixing_group_type = (this->mixing_group == NULL ? 'X' : this->mixing_group->get_type());
+  std::stringstream infStrS;
+
+  infStrS << Utils::indent(indent_level) << "{\n";
+  infStrS << Utils::indent(indent_level + 1) << "\"day\":" << day << ",\n";
+  infStrS << Utils::indent(indent_level + 1) << "\"disease\":{\n";
+  infStrS << Utils::indent(indent_level + 2) << "\"name\":\"" << this->condition->get_condition_name() << "\",\n";
+  infStrS << Utils::indent(indent_level + 2) << "\"exposure_date\":" << this->exposure_date << ",\n";
+  infStrS << Utils::indent(indent_level + 2) << "\"infectious_period\":{\n";
+  infStrS << Utils::indent(indent_level + 3) << "\"start_date\":" << get_infectious_start_date() << ",\n";
+  infStrS << Utils::indent(indent_level + 3) << "\"end_date\":" << get_infectious_start_date() << "\n";
+  infStrS << Utils::indent(indent_level + 2) << "},\n";
+  infStrS << Utils::indent(indent_level + 2) << "\"symptomatic_period\":{\n";
+  infStrS << Utils::indent(indent_level + 3) << "\"start_date\":" << get_symptoms_start_date() << ",\n";
+  infStrS << Utils::indent(indent_level + 3) << "\"end_date\":" << get_symptoms_end_date() << "\n";
+  infStrS << Utils::indent(indent_level + 2) << "}\n";
+  infStrS << Utils::indent(indent_level + 1) << "},\n";
+  infStrS << Utils::indent(indent_level + 1) << "\"infector_exposure_date\":" << (this->infector == NULL ? -1 : this->infector->get_exposure_date(this->condition->get_id())) << ",\n";
+  infStrS << Utils::indent(indent_level + 1) << "\"host\":" << this->host->to_string(true, true, indent_level + 2) << ",\n";
+  infStrS << Utils::indent(indent_level + 1) << "\"host_is_teacher\":" << (this->host->is_teacher() ? "true" : "false") << ",\n";
+  if(this->infector != NULL) {
+    infStrS << Utils::indent(indent_level + 1) << "\"infector\":" << this->infector->to_string(true, true, indent_level + 2) << ",\n";
+  } else {
+    infStrS << Utils::indent(indent_level + 1) << "\"infector\":null,\n";
+  }
+  if(this->infector != NULL) {
+    infStrS << Utils::indent(indent_level + 1) << "\"infector_is_teacher\":" << (this->infector->is_teacher() ? "true" : "false") << ",\n";
+  } else {
+    infStrS << Utils::indent(indent_level + 1) << "\"infector_is_teacher\":false,\n";
+  }
+  if(this->infector != NULL) {
+    infStrS << Utils::indent(indent_level + 1) << "\"infector_is_symptomatic\":false,\n";
+  }
+  infStrS << Utils::indent(indent_level + 1) << "\"host_has_sick_leave\":" << (this->host->is_sick_leave_available() ? "true" : "false") << ",\n";
+  if(dynamic_cast<Place*>(this->mixing_group) != NULL) {
+    Place* place = dynamic_cast<Place*>(this->mixing_group);
+    if(mixing_group_type != 'X') {
+      infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":" << place->to_string(true, true, indent_level + 2) << ",\n";
+    } else {
+      infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":null\n";
+    }
+  } else {
+    infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":null\n";
+  }
+  infStrS << Utils::indent(indent_level) << "},\n";
+  fprintf(Global::InfectionJSONfp, "%s", infStrS.str().c_str());
 }
 
 void Infection::update(int today) {

@@ -15,6 +15,7 @@
 //
 #include <algorithm>
 #include <climits>
+#include <sstream>
 
 #include "Place.h"
 
@@ -169,7 +170,33 @@ void Place::prepare() {
 
   Global::Neighborhoods->register_place(this);
 
-  FRED_VERBOSE(2, "Prepare place %d label %s type %c\n", this->get_id(), this->get_label(), this->get_type());
+  FRED_VERBOSE(2, "Prepare %s\n", this->to_string().c_str());
+}
+
+string Place::to_string() {
+  stringstream tmp_string_stream;
+  tmp_string_stream << "Place " << this->get_id()  << " label ";
+  tmp_string_stream << " label " << this->get_label();
+  tmp_string_stream << " type " << this->get_type();
+
+  return tmp_string_stream.str();
+}
+
+string Place::to_string(bool is_JSON, bool is_inline, int indent_level) {
+  if(is_JSON) {
+    stringstream tmp_string_stream;
+    tmp_string_stream << (is_inline ? "" : Utils::indent(indent_level)) << "{\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"id\":" << this->get_id() << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"label\":\"" << this->get_label() << "\",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"type\":\"" << this->get_type() << "\",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"subtype\":\"" << this->get_subtype() << "\",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"lat\":" << this->get_latitude() << ",\n";
+    tmp_string_stream << Utils::indent(indent_level) << "\"lon\":" << this->get_longitude() << "\n";
+    tmp_string_stream << Utils::indent(indent_level - 1) << "}";
+    return tmp_string_stream.str();
+  } else {
+    return this->to_string();
+  }
 }
 
 void Place::update(int sim_day) {
@@ -177,7 +204,7 @@ void Place::update(int sim_day) {
 }
 
 void Place::print(int condition_id) {
-  FRED_STATUS(0, "Place %d label %s type %c\n", this->get_id(), this->get_label(), this->get_type());
+  FRED_STATUS(0, "%s\n", this->to_string().c_str());
   fflush(stdout);
 }
 
