@@ -135,7 +135,7 @@ CONDITION_MODULE = Condition.o Epidemic.o Infection.o \
 	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
 	Markov_Epidemic.o Markov_Infection.o Markov_Natural_History.o
 
-PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
+MIXING_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
 	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
@@ -145,7 +145,7 @@ INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 
 VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
 
-OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(CONDITION_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
+OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(CONDITION_MODULE) $(MIXING_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 

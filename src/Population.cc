@@ -45,15 +45,12 @@
 #include "Compression.h"
 #endif
 
-char Population::pop_outfile[FRED_STRING_SIZE];
-char Population::output_population_date_match[FRED_STRING_SIZE];
-int Population::output_population = 0;
-bool Population::is_initialized = false;
-int Population::next_id = 0;
 
 Population::Population() {
 
+  this->is_initialized = false;
   this->load_completed = false;
+  this->next_id = 0;
 
   // clear_static_arrays();
   this->pop_size = 0;
@@ -82,15 +79,15 @@ Population::~Population() {
 void Population::get_parameters() {
 
   // Only do this one time
-  if(!Population::is_initialized) {
+  if(!this->is_initialized) {
     Params::get_param_from_string("enable_copy_files", &this->enable_copy_files);
-    Params::get_param_from_string("output_population", &Population::output_population);
-    if(Population::output_population > 0) {
-      Params::get_param_from_string("pop_outfile", Population::pop_outfile);
+    Params::get_param_from_string("output_population", &this->output_population);
+    if(this->output_population > 0) {
+      Params::get_param_from_string("pop_outfile", this->pop_outfile);
       Params::get_param_from_string("output_population_date_match",
-				    Population::output_population_date_match);
+				    this->output_population_date_match);
     }
-    Population::is_initialized = true;
+    this->is_initialized = true;
   }
 }
 
@@ -102,7 +99,7 @@ Person* Population::add_person_to_population(int age, char sex, int race, int re
 			       int day, bool today_is_birthday) {
 
   Person* person = new Person;
-  int id = Population::next_id++;
+  int id = this->next_id++;
   int idx = this->people.size();
   person->setup(idx, id, age, sex, race, rel, house, school, work, day, today_is_birthday);
   this->people.push_back(person);
@@ -589,10 +586,10 @@ void Population::report(int day) {
   // Will write only on the first day of the simulation, on days
   // matching the date pattern in the parameter file, and the on
   // the last day of the simulation
-  if(Population::output_population > 0) {
+  if(this->output_population > 0) {
     int month;
     int day_of_month;
-    sscanf(Population::output_population_date_match,"%d-%d", &month, &day_of_month);
+    sscanf(this->output_population_date_match,"%d-%d", &month, &day_of_month);
     if((day == 0)
        || (month == Date::get_month() && day_of_month == Date::get_day_of_month())) {
       this->write_population_output_file(day);
@@ -605,7 +602,7 @@ void Population::end_of_run() {
   // Will write only on the first day of the simulation, days matching
   // the date pattern in the parameter file, and the last day of the
   // simulation
-  if(Population::output_population > 0) {
+  if(this->output_population > 0) {
     this->write_population_output_file(Global::Days);
   }
 }
@@ -730,8 +727,8 @@ void Population::assign_offices() {
 }
 
 void Population::assign_primary_healthcare_facilities() {
-  assert(this->is_load_completed());
   assert(Global::Places.is_load_completed());
+  assert(Global::Pop.is_load_completed());
   if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "assign primary healthcare entered\n");
     fflush(Global::Statusfp);
@@ -1542,7 +1539,7 @@ void Population::write_population_output_file(int day) {
 
   //Loop over the whole population and write the output of each Person's to_string to the file
   char population_output_file[FRED_STRING_SIZE];
-  sprintf(population_output_file, "%s/%s_%s.txt", Global::Output_directory, Population::pop_outfile,
+  sprintf(population_output_file, "%s/%s_%s.txt", Global::Output_directory, this->pop_outfile,
 	  Date::get_date_string().c_str());
   FILE* fp = fopen(population_output_file, "w");
   if(fp == NULL) {
