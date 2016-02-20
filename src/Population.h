@@ -208,38 +208,32 @@ public:
 
   void set_health_insurance(Person* p);
 
-  //Mitigation Managers
-  AV_Manager* av_manager;
-  Vaccine_Manager* vacc_manager;
-
   void update_health_interventions(int day);
 
 private:
-  char pop_outfile[FRED_STRING_SIZE];
-  char output_population_date_match[FRED_STRING_SIZE];
-  int output_population;
-  bool is_initialized;
-  int next_id;
-
   std::vector<Person*> people;
   std::vector<Person*> death_list;		  // list of agents to die today
   std::vector<Person*> migrant_list;		  // list of agents to out migrate today
   int pop_size;
+  int next_id;
 
+  // used during input
+  bool is_initialized;
+  bool load_completed;
+  int enable_copy_files;
   std::vector<Utils::Tokens> demes;
   fred::Mutex mutex;
-  int enable_copy_files;
-  bool load_completed;
-    
-  void mother_gives_birth(int day, Person* mother);
   void parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop);
-
-  /**
-   * Write out the population in a format similar to the population input files (with additional runtime information)
-   * @param day the simulation day
-   */
+    
+  // output data
+  int output_population;
+  char pop_outfile[FRED_STRING_SIZE];
+  char output_population_date_match[FRED_STRING_SIZE];
   void write_population_output_file(int day);
 
+  // mitigation managers
+  AV_Manager* av_manager;
+  Vaccine_Manager* vacc_manager;
 };
 
 #endif // _FRED_POPULATION_H

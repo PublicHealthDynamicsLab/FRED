@@ -417,10 +417,10 @@ void fred_step(int day) {
   }
 
   // distribute vaccines
-  Global::Pop.vacc_manager->update(day);
+  Global::Pop.get_vaccine_manager()->update(day);
 
   // distribute AVs
-  Global::Pop.av_manager->update(day);
+  Global::Pop.get_av_manager()->update(day);
 
   // update generic activities (individual activities updated only if
   // needed -- see below)
