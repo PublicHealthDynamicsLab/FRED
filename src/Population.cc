@@ -204,70 +204,125 @@ void Population::setup() {
   FRED_STATUS(0, "population setup finished\n", "");
 }
 
-Person_Init_Data Population::get_person_init_data(char* line,
-						  bool is_group_quarters_population,
-						  bool is_2010_ver1_format) {
-  char newline[1024];
+void Population::get_person_data(char* line, bool gq) {
+
+  int day = 0;
+
+  // person data
+  char label[FRED_STRING_SIZE];
+  Place* house = NULL;
+  Place* work = NULL;
+  Place* school = NULL;
+  int age = -1;
+  int race = -1;
+  int relationship = -1;
+  int sex = -1;
+  bool today_is_birthday = false;
+
+  // place labels
+  char house_label[FRED_STRING_SIZE];
+  char school_label[FRED_STRING_SIZE];
+  char work_label[FRED_STRING_SIZE];
+
+  strcpy(label, "-1");
+  strcpy(house_label, "-1");
+  strcpy(school_label, "-1");
+  strcpy(work_label, "-1");
+
+  // clean up data format
+  char newline[FRED_STRING_SIZE];
   Utils::replace_csv_missing_data(newline, line, "-1");
   Utils::Tokens tokens = Utils::split_by_delim(newline, ',', false);
-  const PopFileColIndex &col = get_pop_file_col_index(is_group_quarters_population, is_2010_ver1_format);
-  assert(int(tokens.size()) == col.number_of_columns);
-  // initialized with default values
-  Person_Init_Data pid = Person_Init_Data();
-  strcpy(pid.label, tokens[col.p_id]);
-  // add type indicator to label for places
-  if(is_group_quarters_population) {
-    pid.in_grp_qrtrs = true;
-    sscanf(tokens[col.gq_type], "%c", &pid.gq_type);
-    // columns present in group quarters population
-    if(strcmp(tokens[col.home_id], "-1")) {
-      sprintf(pid.house_label, "H%s", tokens[col.home_id]);
-    }
-    if(strcmp(tokens[col.workplace_id], "-1")) {
-      sprintf(pid.work_label, "W%s", tokens[col.workplace_id]);
-    }
-    // printf("GQ person %s house %s work %s\n", pid.label, pid.house_label, pid.work_label);
-  } else {
-    // columns not present in group quarters population
-    sscanf(tokens[col.relate], "%d", &pid.relationship);
-    sscanf(tokens[col.race_str], "%d", &pid.race);
-    // schools only defined for synth_people
-    if(strcmp(tokens[col.school_id], "-1")) {
-      sprintf(pid.school_label, "S%s", tokens[col.school_id]);
-    }
-    // standard formatting for house and workplace labels
-    if(strcmp(tokens[col.home_id], "-1")) {
-      sprintf(pid.house_label, "H%s", tokens[col.home_id]);
-    }
-    if(strcmp(tokens[col.workplace_id], "-1")) {
-      sprintf(pid.work_label, "W%s", tokens[col.workplace_id]);
-    }
-  }
-  // age, sex same for synth_people and synth_gq_people
-  sscanf(tokens[col.age_str], "%d", &pid.age);
-  pid.sex = strcmp(tokens[col.sex_str], "1") == 0 ? 'M' : 'F';
-  // set pointer to primary places in init data object
-  pid.house = Global::Places.get_place_from_label(pid.house_label);
-  pid.work =  Global::Places.get_place_from_label(pid.work_label);
-  pid.school = Global::Places.get_place_from_label(pid.school_label);
-  // warn if we can't find workplace
-  if(strcmp(pid.work_label, "-1") != 0 && pid.work == NULL) {
-    FRED_VERBOSE(2, "WARNING: person %s -- no workplace found for label = %s\n", pid.label,
-		 pid.work_label);
-    if(Global::Enable_Local_Workplace_Assignment) {
-      pid.work = Global::Places.get_random_workplace();
-      FRED_CONDITIONAL_VERBOSE(0, pid.work != NULL, "WARNING: person %s assigned to workplace %s\n",
-			       pid.label, pid.work->get_label());
-      FRED_CONDITIONAL_VERBOSE(0, pid.work == NULL,
-			       "WARNING: no workplace available for person %s\n", pid.label);
-    }
-  }
-  // warn if we can't find school.  No school for gq_people
-  FRED_CONDITIONAL_VERBOSE(0, (strcmp(pid.school_label,"-1") != 0 && pid.school == NULL),
-			   "WARNING: person %s -- no school found for label = %s\n", pid.label, pid.school_label);
 
-  return pid;
+  // input format
+  int pid_col = 0;
+  int house_col = 1;
+  int age_col = 4;
+  int sex_col = 5;
+  int race_col = 6;
+  int rel_col = 8;
+  int school_col = 9;
+  int work_col = 10;
+
+  if (gq) {
+    age_col = 3;
+    sex_col = 4;
+    work_col = house_col;
+  }
+
+  // person label
+  sscanf(tokens[pid_col], "%s", label);
+
+  if (strcmp(label,"sp_id")==0) {
+    // header line
+    return;
+  } 
+
+  // age
+  sscanf(tokens[age_col], "%d", &age);
+
+  // sex
+  sex = strcmp(tokens[sex_col], "1") == 0 ? 'M' : 'F';
+
+  // house
+  if(strcmp(tokens[house_col], "-1")) {
+    sprintf(house_label, "H%s", tokens[house_col]);
+  }
+  
+  // workplace
+  if(strcmp(tokens[work_col], "-1")) {
+    sprintf(work_label, "W%s", tokens[work_col]);
+  }
+  
+  if (gq == false) {
+
+    // race
+    sscanf(tokens[race_col], "%d", &race);
+
+    // relationship to householder
+    sscanf(tokens[rel_col], "%d", &relationship);
+
+    // schools 
+    if(strcmp(tokens[school_col], "-1")) {
+      sprintf(school_label, "S%s", tokens[school_col]);
+    }
+    
+  }
+
+  // set pointer to primary places in init data object
+  house = Global::Places.get_place_from_label(house_label);
+  work =  Global::Places.get_place_from_label(work_label);
+  school = Global::Places.get_place_from_label(school_label);
+
+  if(house == NULL) {
+    // we need at least a household (homeless people not yet supported), so
+    // skip this person
+    FRED_VERBOSE(0, "WARNING: skipping person %s -- %s %s\n", label,
+		 "no household found for label =", house_label);
+  }
+  FRED_VERBOSE(1, "person %s -- house_label %s\n", label, house_label);
+
+  // warn if we can't find workplace
+  if(strcmp(work_label, "-1") != 0 && work == NULL) {
+    FRED_VERBOSE(2, "WARNING: person %s -- no workplace found for label = %s\n", label,
+		 work_label);
+    if(Global::Enable_Local_Workplace_Assignment) {
+      work = Global::Places.get_random_workplace();
+      FRED_CONDITIONAL_VERBOSE(0, work != NULL, "WARNING: person %s assigned to workplace %s\n",
+			       label, work->get_label());
+      FRED_CONDITIONAL_VERBOSE(0, work == NULL,
+			       "WARNING: no workplace available for person %s\n", label);
+    }
+  }
+
+  // warn if we can't find school.
+  FRED_CONDITIONAL_VERBOSE(0, (strcmp(school_label,"-1") != 0 && school == NULL),
+			   "WARNING: person %s -- no school found for label = %s\n", label, school_label);
+
+  add_person_to_population(age, sex, race, relationship, house,
+			   school, work, day, today_is_birthday);
 }
+
 
 void Population::parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop) {
 
@@ -290,31 +345,7 @@ void Population::parse_lines_from_stream(std::istream &stream, bool is_group_qua
       continue;
     }
 
-    const Person_Init_Data &pid = get_person_init_data(line,
-						       is_group_quarters_pop,
-						       is_2010_ver1_format);
-
-    // verbose printing of all person initialization data
-    if(Global::Verbose > 1) {
-      FRED_VERBOSE(1, "%s\n", pid.to_string().c_str());
-    }
-
-    //skip header line
-    if(strcmp(pid.label, "p_id") == 0) {
-      continue;
-    }
-
-    if(pid.house != NULL) {
-      // create a Person_Init_Data object
-      add_person_to_population(pid.age, pid.sex, pid.race, pid.relationship, pid.house, pid.school, pid.work,
-			       pid.day, pid.today_is_birthday);
-    } else {
-      // we need at least a household (homeless people not yet supported), so
-      // skip this person
-      FRED_VERBOSE(0, "WARNING: skipping person %s -- %s %s\n", pid.label,
-		   "no household found for label =", pid.house_label);
-    }
-    FRED_VERBOSE(1, "person %d = %s -- house_label %s\n", n, pid.label, pid.house_label);
+    get_person_data(line, is_group_quarters_pop);
     n++;
   } // <----- end while loop over stream
   FRED_VERBOSE(0, "end of stream, persons = %d\n", n);

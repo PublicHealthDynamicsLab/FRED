@@ -36,7 +36,7 @@ class Antivirals;
 class AV_Manager;
 class Condition;
 class Person;
-class Person_Init_Data;
+// class Person_Init_Data;
 class Place;
 class Vaccine_Manager;
 
@@ -99,6 +99,8 @@ public:
   Vaccine_Manager* get_vaccine_manager() {
     return this->vacc_manager;
   }
+
+  void get_person_data(char* line, bool gq);
 
   /**
    * @param args passes to Person ctor; all persons added to the
@@ -222,6 +224,7 @@ private:
 
   void mother_gives_birth(int day, Person* mother);
 
+  /*
   struct PopFileColIndex {
     // all populations
     static const int p_id = 0;
@@ -288,14 +291,17 @@ private:
       return this->hh_pop_file_col_index;
     }
   }
+  */
 
   std::vector<Utils::Tokens> demes;
 
   void parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop);
 
+  /*
   Person_Init_Data get_person_init_data(char* line,
 					bool is_group_quarters_population,
 					bool is_2010_ver1_format);
+  */
 
   vector<Person*> death_list;		  // list of agents to die today
   vector<Person*> migrant_list;		  // list of agents to out migrate today
@@ -328,6 +334,7 @@ private:
 
 };
 
+/*
 struct Person_Init_Data {
 
   char house_label[32], school_label[32], work_label[32];
@@ -395,5 +402,6 @@ struct Person_Init_Data {
   }
 
 };
+*/
 
 #endif // _FRED_POPULATION_H
