@@ -282,7 +282,7 @@ Place* Neighborhood_Patch::select_workplace_in_neighborhood() {
 
 
 void Neighborhood_Patch::quality_control() {
-  if(this->person.size() > 0) {
+  if(Global::Quality_control > 1 && this->person.size() > 0) {
     fprintf(Global::Statusfp,
 	    "PATCH row = %d col = %d  pop = %d  houses = %d work = %d schools = %d by_age ",
 	    this->row, this->col, static_cast<int>(this->person.size()), static_cast<int>(this->households.size()), static_cast<int>(this->workplaces.size()), static_cast<int>(this->schools.size()));
