@@ -16,6 +16,8 @@ my $var = "";
 my $run = -1;
 my $dir = "";
 my $weekly = "";
+my $monthly = "";
+my $annually = "";
 my $total = 0;
 my $opt_result = GetOptions(
 			    "help" => \$help,
@@ -31,6 +33,8 @@ my $opt_result = GetOptions(
 			    "total" => \$total,
 			    "t" => \$total,
 			    "weekly" => \$weekly,
+			    "monthly" => \$monthly,
+			    "annually" => \$annually,
 			    "w" => \$weekly,
 );
 
@@ -70,9 +74,11 @@ else {
 my @line = ();
 my $datafile;
 my $i = 0;
+my $period = "";
 
 if ($weekly) {
   $weekly = "Weekly_";
+  $period = $weekly;
 
   # Add Week column in format YYYY-WK DAYS
   $datafile = "$dir/Weekly-1.txt";
@@ -83,6 +89,36 @@ if ($weekly) {
     chomp; 
     my ($wk,$yr,$days) = split " ";
     $line[$i++] = "$yr.$wk $days";
+  }
+}
+elsif ($monthly) {
+  $monthly = "Monthly_";
+  $period = $monthly;
+
+  # Add Month column in format YYYY-MM DAYS
+  $datafile = "$dir/Monthly-1.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  my $i = 0;
+  while (<FH>) {
+    chomp; 
+    my ($mo,$days) = split " ";
+    $line[$i++] = "$mo $days";
+  }
+}
+elsif ($annually) {
+  $annually = "Yearly_";
+  $period = $annually;
+
+  # Add Year column in format YYYY DAYS
+  $datafile = "$dir/Yearly-1.txt";
+  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
+  open FH, $datafile or die "$0: ERROR READING $datafile\n";
+  my $i = 0;
+  while (<FH>) {
+    chomp; 
+    my ($yr,$days) = split " ";
+    $line[$i++] = "$yr $days";
   }
 }
 else {
@@ -150,8 +186,8 @@ if (scalar @vars == 1) {
   }
 }
 
-$datafile = "$dir/${weekly}$popsizefile.txt";
-$datafile = "$dir/${weekly}$popsizefile-$run.txt" if $run > 0;
+$datafile = "$dir/${period}$popsizefile.txt";
+$datafile = "$dir/${period}$popsizefile-$run.txt" if $run > 0;
 die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
 open FH, $datafile or die "$0: ERROR READING $datafile\n";
 $i = 0;
@@ -177,12 +213,12 @@ for my $v (@vars) {
   next if $v eq "Day" or $v eq "Date" or $v eq "Week" or $v eq "Year" or $v eq "WkDay";
   # print "v = |$v|\n";
   if ($run > 0) {
-    $datafile = "$dir/$weekly$v-$run.txt";
-    $datafile = "$dir/$weekly$v\_0-$run.txt" if not -e $datafile;
+    $datafile = "$dir/$period$v-$run.txt";
+    $datafile = "$dir/$period$v\_0-$run.txt" if not -e $datafile;
   }
   else {
-    $datafile = "$dir/$weekly$v.txt";
-    $datafile = "$dir/$weekly$v\_0.txt" if not -e $datafile;
+    $datafile = "$dir/$period$v.txt";
+    $datafile = "$dir/$period$v\_0.txt" if not -e $datafile;
   }
 
   # Add data column

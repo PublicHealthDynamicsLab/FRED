@@ -26,21 +26,27 @@ open VAR,">$tables/VARS";
 print VAR "$_\n" for sort @varname;
 close VAR;
 
+my @week = ();
+get_weeks();
 for my $var (@varname) {
+  next if ($var eq "Day" or $var eq "Date" or $var eq "Week" or $var eq "Year" or $var eq "WkDay");
   get_weekly_tables($tables,$var);
+  get_monthly_tables($tables,$var);
+  get_yearly_tables($tables,$var);
 }
 
 for my $var (@varname) {
   get_stats($tables,$var);
   next if ($var eq "Day" or $var eq "Date" or $var eq "Week" or $var eq "Year" or $var eq "WkDay");
   get_stats($tables,"Weekly_$var");
+  get_stats($tables,"Monthly_$var");
+  get_stats($tables,"Yearly_$var");
 }
 
 ###################################
 
 sub get_tables {
   my ($out, $tables) = @_;
-
   # get the outfiles
   opendir DIR, $out or die "ERROR OPENING DIRECTORY $out\n";
   my @outfiles = ();
@@ -98,40 +104,36 @@ sub extract_from_outfile {
 
 ###############################################
 
-my %sum_up = (
-	      C => 1,
-	      College => 1,
-	      Cs => 1,
-	      GQ => 1,
-	      Military => 1,
-	      Nursing_Home => 1,
-	      Prison => 1,
-	      ScCl => 1
-);
+
+sub get_weeks {
+  open WK, "$tables/Week-1.txt";
+  open YR, "$tables/Year-1.txt";
+  open MO, "$tables/Date-1.txt";
+  <WK>;
+  <YR>;
+  <MO>;
+  while (my $wk = <WK>) {
+    chomp $wk;
+    my $yr = <YR>;
+    chomp $yr;
+    my $mo = <MO>;
+    chomp $mo;
+    $mo =~ s/\-\d\d$//;
+    push @week, "$wk $yr $mo";
+  }
+  close WK;
+  close YR;
+  close MO;
+}
 
 sub get_weekly_tables {
   my ($tables,$var) = @_;
-  if ($var eq "Day" or $var eq "Date" or $var eq "Week" or $var eq "Year" or $var eq "WkDay") {
-    return;
-  }
-  my $print_sum = exists $sum_up{$var};
   my $ls = `ls $tables/$var-*.txt`;
   chomp $ls;
   my @files = split " ", $ls;
   for my $file (@files) {
     $file =~ s/$tables\///;
     my ($run) = $file =~ /\-(\d+).txt/;
-    my @week = ();
-    open FH, "$tables/Week-$run.txt";
-    open YR, "$tables/Year-$run.txt";
-    <FH>;
-    <YR>;
-    while (my $wk = <FH>) {
-      chomp $wk;
-      my $yr = <YR>;
-      push @week, "$wk $yr";
-    }
-    close FH;
 
     my $outfile = "$tables/Weekly_$file";
     my $weekfile = "$tables/Weekly-$run.txt";
@@ -153,12 +155,7 @@ sub get_weekly_tables {
       my ($w, $y) = split " ", $week[$i];
       if ($w ne $wk) {
 	print WEEK "$wk $yr $days\n";
-	if ($print_sum) {
-	  print OUT "$sum\n";
-	}
-	else {
-	  print OUT (1.0*$sum)/(1.0*$days), "\n";
-	}
+	print OUT "$sum\n";
 	$wk = $w;
 	$yr = $y;
 	$sum = $x;
@@ -170,14 +167,104 @@ sub get_weekly_tables {
       $i++;
     }
     print WEEK "$wk $yr $days\n";
-    if ($print_sum) {
-      print OUT "$sum\n";
-    }
-    else {
-      print OUT (1.0*$sum)/(1.0*$days), "\n";
-    }
+    print OUT "$sum\n";
     close FH;
     close WEEK;
+    close OUT;
+  }
+}
+
+sub get_monthly_tables {
+  my ($tables,$var) = @_;
+  my $ls = `ls $tables/$var-*.txt`;
+  chomp $ls;
+  my @files = split " ", $ls;
+  for my $file (@files) {
+    $file =~ s/$tables\///;
+    my ($run) = $file =~ /\-(\d+).txt/;
+
+    my $outfile = "$tables/Monthly_$file";
+    my $month_run_file = "$tables/Monthly-$run.txt";
+    open MONTH,">$month_run_file" or die "$0: ERROR OPENING $month_run_file\n";
+    open OUT,">$outfile" or die "$0: ERROR OPENING $outfile\n";
+
+    my @data = ();
+    open FH,"$tables/$file";
+    my $head = <FH>;
+    chomp $head;
+    print MONTH "Month Days\n";
+    print OUT "$head\n";
+    my $i = 0;
+    my ($wk, $yr, $mo) = split " ", $week[0];
+    my $sum = 0;
+    my $days = 0;
+    while (my $x = <FH>) {
+      chomp $x;
+      my ($w, $y, $m) = split " ", $week[$i];
+      if ($m ne $mo) {
+	print MONTH "$mo $days\n";
+	print OUT "$sum\n";
+	$mo = $m;
+	$sum = $x;
+	$days = 1;
+      } else {
+	$sum += $x;
+	$days++;
+      }
+      $i++;
+    }
+    print MONTH "$mo $days\n";
+    print OUT "$sum\n";
+
+    close FH;
+    close MONTH;
+    close OUT;
+  }
+}
+
+sub get_yearly_tables {
+  my ($tables,$var) = @_;
+  my $ls = `ls $tables/$var-*.txt`;
+  chomp $ls;
+  my @files = split " ", $ls;
+  for my $file (@files) {
+    $file =~ s/$tables\///;
+    my ($run) = $file =~ /\-(\d+).txt/;
+
+    my $outfile = "$tables/Yearly_$file";
+    my $year_run_file = "$tables/Yearly-$run.txt";
+    open YEAR,">$year_run_file" or die "$0: ERROR OPENING $year_run_file\n";
+    open OUT,">$outfile" or die "$0: ERROR OPENING $outfile\n";
+
+    my @data = ();
+    open FH,"$tables/$file";
+    my $head = <FH>;
+    chomp $head;
+    print YEAR "Year Days\n";
+    print OUT "$head\n";
+    my $i = 0;
+    my ($wk, $yr) = split " ", $week[0];
+    my $sum = 0;
+    my $days = 0;
+    while (my $x = <FH>) {
+      chomp $x;
+      my ($w, $y) = split " ", $week[$i];
+      if ($y ne $yr) {
+	print YEAR "$yr $days\n";
+	print OUT "$sum\n";
+	$yr = $y;
+	$sum = $x;
+	$days = 1;
+      } else {
+	$sum += $x;
+	$days++;
+      }
+      $i++;
+    }
+    print YEAR "$yr $days\n";
+    print OUT "$sum\n";
+    close FH;
+    close YEAR;
     close OUT;
   }
 }

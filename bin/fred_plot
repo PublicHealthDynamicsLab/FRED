@@ -51,7 +51,9 @@ my $ymax = "*";
 my $display = 1;
 my $errorbars;
 my $title = "FRED Simulation";
-my $weekly;
+my $weekly = 0;
+my $monthly = 0;
+my $annually = 0;
 my $all;
 my $font = "Helvetica";
 my $fontsize = "12";
@@ -111,6 +113,8 @@ my $opt_result = GetOptions(
 			    "var=s" => \@varlist,
 			    "w" => \$weekly,
 			    "weekly" => \$weekly,
+			    "monthly" => \$monthly,
+			    "annually" => \$annually,
 			    "xmin=i" => \$xmin,
 			    "xmax=i" => \$xmax,
 			    "Xmax=i" => \$xmax,
@@ -148,6 +152,8 @@ usage: fred_plot -k key -v var [ options ], where options include:
        -X xmax: max value for x-axis.
        -y ymin: min value for y-axis.
        -Y ymax: max value for y-axis.
+       --annually: plot annual values
+       --monthly: plot monthly values
        --xtics <n>: put xtics every <n> units.
        --xlabel <s>: label the x axis with "s".
        --ylabel <s>: label the y axis with "s".
@@ -161,11 +167,13 @@ die $usage if not @varlist;
 
 # resolve conflicting options
 
-# if attack rates are requested, disable smoothing and weekly sums
+# if attack rates are requested, disable smoothing and sums over time periods
 for my $v (@varlist) {
  if ($v =~ /AR/) {  
    $smooth = 0;
    $weekly = 0;
+   $monthly = 0;
+   $annually = 0;
    $legend = "top right";
  }
 }
@@ -286,6 +294,8 @@ for my $v (@varlist) {
  }
 }
 
+$xlabel = "Year" if $annually;
+$xlabel = "Month" if $monthly;
 $xlabel = "Week" if $weekly;
 
 print FH "set xrange [$xmin:$xmax]\n";
@@ -293,7 +303,8 @@ print FH "set yrange [$ymin:$ymax]\n";
 print FH "set datafile separator ','\n";
 print FH "set xlabel \"$xlabel\" offset 0,0.5\n";
 print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
-print FH "set xtics rotate by 270\n" if $weekly;
+print FH "set xtics rotate by 315\n" if ($monthly);
+print FH "set xtics rotate by 270\n" if ($weekly);
 print FH "set key $legend\n" if $legend;
 print FH "set bars 2.0 front\n";
 
@@ -309,6 +320,14 @@ if ($boxes) {
   print FH "set style fill solid 1.0 border 0\n";
   print FH "get_shift(n) = dx*(n-0.5*nplots-0.5)\n";
   # print FH "set xtics offset graph (-1.0*get_shift(1)), 0\n";
+  print FH "\n";
+}
+
+if ($monthly) {
+  $xtics = 1 if not $xtics;
+  # print FH "get_xlabel(k,s) = ((k\%$xtics)==0)?sprintf('\%s',s):''\n";
+  print FH "get_xlabel(s) = sprintf('\%s',s)\n";
+  print FH "unset grid\n" if $xtics > 1;
   print FH "\n";
 }
 
@@ -357,10 +376,10 @@ exit;
 sub get_data {
   my ($key, $var, $run) = @_;
   my $tmpfile = ".tmpfile";
-  my $week = "";
-  $week = "--weekly" if $weekly;
   my $options = "-k $key -v $var";
   $options .= " --weekly" if $weekly;
+  $options .= " --monthly" if $monthly;
+  $options .= " --annually" if $annually;
   $options .= " -r $run" if $run > 0;
   $options .= " --total" if $total;
   system "fred_csv $options > $tmpfile";
@@ -383,11 +402,11 @@ sub get_data {
 
 sub plot_command {
   my ($ptitle,$n,$run) = @_;
-  $smooth = 0 if $weekly;
+  $smooth = 0 if ($weekly or $monthly or $annually);
 
   # x-axis value
   my $x = "(\$1):";
-  $x = "(\$0):" if $weekly;
+  $x = "(\$0):" if ($weekly or $monthly);
   $x = "(\$0+get_shift($n)):" if $boxes;
 
   # y-axis value
@@ -397,29 +416,30 @@ sub plot_command {
     $y = $run ? "\$9" : "\$11";
   }
 
-  if ($weekly) {
-    $y = $run ? "\$5" :"\$6";
+  if ($weekly or $monthly or $annually) {
+    $y = $run ? "(\$5)" :"(\$6)";
     if ($total) {
-      $y = $run ? "(7*\$6)" : "(7*\$8)";
+      $y = $run ? "(\$6)" : "(\$8)";
     }
   }
 
   # errorbars
   my $e = "";
   if ($errorbars and $run == 0) {
-    $e = $weekly? "\$7" : "\$10";
+    $e = ($weekly or $monthly or $annually)? "\$7" : "\$10";
   }
 
   # divide by pop size to normalize
   if ($normalize) {
-    my $mult = $weekly ? "(1.0*$scale/\$4)" : "(1.0*$scale/\$7)";
+    my $mult = ($weekly or $monthly or $annually) ? "(1.0*$scale/\$4)" : "(1.0*$scale/\$7)";
     $y = "$y*$mult";
     $e = "$e*$mult";
   }
 
   # xtics
   my $xtic = "";
-  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if $weekly and $n == 1;
+  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if ($monthly) and $n == 1;
+  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if ($weekly) and $n == 1;
 
   # title
   my $title = "title '$ptitle'";
