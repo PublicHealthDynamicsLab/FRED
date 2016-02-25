@@ -154,75 +154,56 @@ public:
     return this->counties[index];
   }
 
-  int get_fips_of_county_with_index(int index) {
-    if(index < 0) {
-      return 99999;
+  int get_fips_of_county_with_index(int index);
+  int get_population_of_county_with_index(int index);
+  int get_population_of_county_with_index(int index, int age);
+  int get_population_of_county_with_index(int index, int age, char sex);
+  int get_population_of_county_with_index(int index, int age_min, int age_max, char sex);
+  void increment_population_of_county_with_index(int index, Person* person);
+  void decrement_population_of_county_with_index(int index, Person* person);
+  int get_index_of_county_with_fips(int fips) {
+    int index = -1;
+    try {
+      index = this->fips_to_county_map.at(fips);
     }
-    assert(index < this->counties.size());
-    return this->counties[index]->get_fips();
+    catch (const std::out_of_range& oor) {
+      Utils::fred_abort("No county found for fips code %d\n", fips);
+    }
+    return index;
   }
 
-  int get_population_of_county_with_index(int index) {
-    if(index < 0) {
-      return 0;
-    }
-    assert(index < this->counties.size());
-    return this->counties[index]->get_current_popsize();
+
+  int get_population_of_county(int fips) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index);
   }
 
-  int get_population_of_county_with_index(int index, int age) {
-    if(index < 0) {
-      return 0;
-    }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age);
-    return (retval < 0 ? 0 : retval);
+  int get_population_of_county(int fips, int age) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age);
   }
 
-  int get_population_of_county_with_index(int index, int age, char sex) {
-    if(index < 0) {
-      return 0;
-    }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age, sex);
-    return (retval < 0 ? 0 : retval);
+  int get_population_of_county(int fips, int age, char sex) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age, sex);
   }
 
-  int get_population_of_county_with_index(int index, int age_min, int age_max, char sex) {
-    if(index < 0) {
-      return 0;
-    }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age_min, age_max, sex);
-    return (retval < 0 ? 0 : retval);
+  int get_population_of_county(int fips, int age_min, int age_max, char sex) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age_min, age_max, sex);
   }
 
-  void increment_population_of_county_with_index(int index, Person* person) {
-    if(index < 0) {
-      return;
-    }
-    assert(index < this->counties.size());
-    int fips = this->counties[index]->get_fips();
-    bool test = this->counties[index]->increment_popsize(person);
-    assert(test);
-    return;
+  void increment_population_of_county(int fips, Person* person) {
+    int index = get_index_of_county_with_fips(fips);
+    increment_population_of_county_with_index(index, person);
   }
 
-  void decrement_population_of_county_with_index(int index, Person* person) {
-    if(index < 0) {
-      return;
-    }
-    assert(index < this->counties.size());
-    bool test = this->counties[index]->decrement_popsize(person);
-    assert(test);
-    return;
+  void decrement_population_of_county(int fips, Person* person) {
+    int index = get_index_of_county_with_fips(fips);
+    decrement_population_of_county_with_index(index, person);
   }
 
-  void report_county_populations() {
-   for(int index = 0; index < this->counties.size(); ++index) {
-     this->counties[index]->report_county_population();
-   }
-  }
+  void report_county_populations();
 
   int get_number_of_census_tracts() {
     return (int)this->census_tracts.size();
@@ -356,6 +337,8 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
+  void read_migration_parameters();
+
 private:
 
   // lists of places by type
@@ -396,8 +379,14 @@ private:
   // list of counties
   std::vector<County*> counties;
 
+  // map from fips code to county
+  std::map<int,int> fips_to_county_map;
+
   // list of census_tracts
   std::vector<long int> census_tracts;
+
+  // map from fips code to census tract
+  std::map<long int,int> fips_to_census_tract_map;
 
   // mean size of "household" associated with group quarters
   static double College_dorm_mean_size;

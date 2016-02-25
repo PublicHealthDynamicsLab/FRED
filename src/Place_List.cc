@@ -153,6 +153,10 @@ void Place_List::get_parameters() {
   Params::get_param_from_string("fips", Global::FIPS_code);
   Params::get_param_from_string("msa", Global::MSA_code);
 
+  if(Global::Enable_Population_Dynamics) {
+    read_migration_parameters();
+  }
+
   if(Global::Enable_Group_Quarters) {
     // group quarter parameters
     Params::get_param_from_string("college_dorm_mean_size", &Place_List::College_dorm_mean_size);
@@ -515,6 +519,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   this->hospitals.clear();
   this->counties.clear();
   this->census_tracts.clear();
+  this->fips_to_county_map.clear();
+  this->fips_to_census_tract_map.clear();
 
   // store the number of demes as member variable
   set_number_of_demes(Demes.size());
@@ -855,29 +861,31 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       }
       sscanf(census_tract_str, "%ld", &census_tract);
 
-      // find the index for this census tract
-      int n_census_tracts = this->census_tracts.size();
-      for(tract_index = 0; tract_index < n_census_tracts; ++tract_index) {
-        if(this->census_tracts[tract_index] == census_tract) {
-          break;
-        }
-      }
-      if(tract_index == n_census_tracts) {
+      // find the index for this census tract, or create one
+      std::map<long int,int>::iterator tract_itr;
+      tract_itr = this->fips_to_census_tract_map.find(census_tract);
+      if (tract_itr == this->fips_to_census_tract_map.end()) {
         this->census_tracts.push_back(census_tract);
+	tract_index = this->census_tracts.size() - 1;
+	this->fips_to_census_tract_map[census_tract] = tract_index;
+      }
+      else {
+	tract_index = tract_itr->second;
       }
 
-      // find the county index for this fips code
-      int n_counties = this->counties.size();
-      for(county = 0; county < n_counties; county++) {
-        if(this->counties[county]->get_fips() == fips) {
-          break;
-        }
-      }
-      if(county == n_counties) {
+      // if this is a new fips code, create a County object
+      std::map<int,int>::iterator itr;
+      itr = this->fips_to_county_map.find(fips);
+      if (itr == this->fips_to_county_map.end()) {
         County* new_county = new County(fips);
         this->counties.push_back(new_county);
+	county = this->counties.size() - 1;
+	this->fips_to_county_map[fips] = county;
       }
-
+      else {
+	county = itr->second;
+      }
+      
       SetInsertResultT result = pids.insert(
           Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, county,
               tract_index, tokens[hh_income]));
@@ -1017,16 +1025,15 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
         sscanf(fipstr, "%d", &fips);
 
         // find the county index for this fips code
-        int n_counties = counties.size();
-        for(county = 0; county < n_counties; ++county) {
-          if(counties[county]->get_fips() == fips) {
-            break;
-          }
-        }
-        if(county == n_counties) {
+	std::map<int,int>::iterator itr;
+	itr = this->fips_to_county_map.find(fips);
+	if (itr == this->fips_to_county_map.end()) {
           // this school is outside the simulation region
-          county = -1;
-        }
+	  county = -1;
+	}
+	else {
+	  county = itr->second;
+	}
       }
 
       sprintf(s, "%c%s", place_type, tokens[school_id]);
@@ -1115,16 +1122,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       }
 
       // find the county index for this fips code
-      int n_counties = counties.size();
-      for(county = 0; county < n_counties; county++) {
-        if(counties[county]->get_fips() == fips) {
-          break;
-        }
-      }
-      if(county == n_counties) {
-        County* new_county = new County(fips);
-        this->counties.push_back(new_county);
-      }
+      county = get_index_of_county_with_fips(fips);
 
       // set number of units and subtype for this group quarters
       int number_of_units = 0;
@@ -2906,3 +2904,79 @@ void Place_List::print_stats(int day) {
     Global::Daily_Tracker->set_index_key_pair(day, "Tot_res_evac", tot_res_evac);
   }
 }
+
+///////////////////// County Methods 
+
+void Place_List::read_migration_parameters() {
+}
+
+int Place_List::get_fips_of_county_with_index(int index) {
+  if(index < 0) {
+    return 99999;
+  }
+  assert(index < this->counties.size());
+  return this->counties[index]->get_fips();
+}
+
+int Place_List::get_population_of_county_with_index(int index) {
+  if(index < 0) {
+    return 0;
+  }
+  assert(index < this->counties.size());
+  return this->counties[index]->get_current_popsize();
+}
+
+int Place_List::get_population_of_county_with_index(int index, int age) {
+  if(index < 0) {
+    return 0;
+  }
+  assert(index < this->counties.size());
+  int retval = this->counties[index]->get_current_popsize(age);
+  return (retval < 0 ? 0 : retval);
+}
+
+int Place_List::get_population_of_county_with_index(int index, int age, char sex) {
+  if(index < 0) {
+    return 0;
+  }
+  assert(index < this->counties.size());
+  int retval = this->counties[index]->get_current_popsize(age, sex);
+  return (retval < 0 ? 0 : retval);
+}
+
+int Place_List::get_population_of_county_with_index(int index, int age_min, int age_max, char sex) {
+  if(index < 0) {
+    return 0;
+  }
+  assert(index < this->counties.size());
+  int retval = this->counties[index]->get_current_popsize(age_min, age_max, sex);
+  return (retval < 0 ? 0 : retval);
+}
+
+void Place_List::increment_population_of_county_with_index(int index, Person* person) {
+  if(index < 0) {
+    return;
+  }
+  assert(index < this->counties.size());
+  int fips = this->counties[index]->get_fips();
+  bool test = this->counties[index]->increment_popsize(person);
+  assert(test);
+  return;
+}
+
+void Place_List::decrement_population_of_county_with_index(int index, Person* person) {
+  if(index < 0) {
+    return;
+  }
+  assert(index < this->counties.size());
+  bool test = this->counties[index]->decrement_popsize(person);
+  assert(test);
+  return;
+}
+
+void Place_List::report_county_populations() {
+  for(int index = 0; index < this->counties.size(); ++index) {
+    this->counties[index]->report_county_population();
+  }
+}
+
