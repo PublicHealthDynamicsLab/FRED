@@ -394,7 +394,7 @@ void Infection::report_infection_JSON(int day) {
   if(dynamic_cast<Place*>(this->mixing_group) != NULL) {
     Place* place = dynamic_cast<Place*>(this->mixing_group);
     if(mixing_group_type != 'X') {
-      infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":" << place->to_string(true, true, indent_level + 2) << ",\n";
+      infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":" << place->to_string(true, true, indent_level + 2) << "\n";
     } else {
       infStrS << Utils::indent(indent_level + 1) << "\"place_of_infection\":null\n";
     }
