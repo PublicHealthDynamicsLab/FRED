@@ -173,8 +173,14 @@ public:
   }
 
   County* get_county(int fips) {
-    int index = get_index_of_county_with_fips(fips);
-    return get_county_with_index(index);
+    std::map<int,int>::iterator itr;
+    itr = this->fips_to_county_map.find(fips);
+    if (itr == fips_to_county_map.end()) {
+      return NULL;
+    }
+    else {
+      return this->counties[itr->second];
+    }
   }
 
   int get_population_of_county(int fips) {

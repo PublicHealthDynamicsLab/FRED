@@ -29,8 +29,8 @@
 
 class Global;
 
-std::vector<int> County::county_fips;
-int***** County::migration_count = NULL;
+std::vector<int> County::migration_fips;
+double**** County::migration_rate = NULL;
 int County::migration_parameters_read = 0;
 
 County::~County() {
@@ -1267,17 +1267,19 @@ void County::out_migration() {
     return;
   }
 
-  int num_counties = Global::Places.get_number_of_counties();
+  int num_counties = County::migration_fips.size();
   for (int c = 0; c < num_counties; c++) {
-    int dest = Global::Places.get_fips_of_county_with_index(c);
+    int dest = County::migration_fips[c];
     if (dest == this->fips) {
       continue;
     }
     for (int a = 0; a < 18; a++) {
       int lower_age = 5*a;
       int upper_age = lower_age+4;
-      int males = get_migration_count(year, 0, a, this->fips, dest);
-      int females = get_migration_count(year, 1, a, this->fips, dest);
+      int current_males = get_current_popsize(lower_age, upper_age, 'M');
+      int current_females = get_current_popsize(lower_age, upper_age, 'F');
+      int males = current_males * get_migration_rate(0, a, this->fips, dest);
+      int females = current_females * get_migration_rate(1, a, this->fips, dest);
       FRED_VERBOSE(0, "MIGRATE OUT to county %d age %d, %d males, %d females on day %d year %d\n",
 		   dest, lower_age, males, females, day, year);
       if (males > 0) {
@@ -1321,7 +1323,13 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
 	  char s = person->get_sex();
 	  if (lower_age <= age && age <= upper_age && s == sex) {
 	    // move the person
-	    target->add_immigrant(person);
+	    if (target != NULL) {
+	      target->add_immigrant(person);
+	    }
+	    else {
+	      // prepare to remove person
+	      Global::Pop.prepare_to_migrate(day, person);
+	    }
 	    found = 1;
 	  }
 	}
@@ -1507,42 +1515,38 @@ void County::read_migration_parameters() {
   FILE* fp = Utils::fred_open_file(county_migration_file);
 
   // read list of fips code for county in the state
+  // end list with -1
   fscanf(fp, "counties: ");
   int fips = 0;
   while (fips > -1) {
     fscanf(fp, "%d ", &fips);
     if (fips > -1) {
-      County::county_fips.push_back(fips);
+      County::migration_fips.push_back(fips);
     }
   }
 
   // create a migration matrix with format
-  // migration_count[year][sex][age][source][dest]
-  County::migration_count = new int**** [7];
-  for (int y = 0; y < 7; y++) {
-    County::migration_count[y] = new int*** [2];
-    for (int sex = 0; sex < 2; sex++) {
-      County::migration_count[y][sex] = new int** [18];
-      for (int age = 0; age < 18; age++) {
-	County::migration_count[y][sex][age] = new int* [County::county_fips.size()];
-	for (int source = 0; source < 18; source++) {
-	  County::migration_count[y][sex][age][source] = new int [County::county_fips.size()];
-	  for (int dest = 0; dest < 18; dest++) {
-	    County::migration_count[y][sex][age][source][dest] = 0;
-	  }
+  // migration_rate[sex][age][source][dest]
+  County::migration_rate = new double*** [2];
+  for (int sex = 0; sex < 2; sex++) {
+    County::migration_rate[sex] = new double** [18];
+    for (int age = 0; age < 18; age++) {
+      County::migration_rate[sex][age] = new double* [County::migration_fips.size()];
+      for (int source = 0; source < 18; source++) {
+	County::migration_rate[sex][age][source] = new double [County::migration_fips.size()];
+	for (int dest = 0; dest < 18; dest++) {
+	  County::migration_rate[sex][age][source][dest] = 0;
 	}
       }
     }
   }
 
-  // read a migration matrix
-  for (int year = 0; year < 7; year++) {
-    for (int sex = 0; sex < 2; sex++) {
-      for (int age = 0; age < 18; age++) {
-	for (int source = 0; source < 18; source++) {
-	  for (int dest = 0; dest < 18; dest++) {
-	    fscanf(fp, "%d ", &(County::migration_count[year][sex][age][source][dest]));
-	  }
+  // read migration_rate matrix
+  for (int sex = 0; sex < 2; sex++) {
+    for (int age = 0; age < 18; age++) {
+      for (int source = 0; source < 18; source++) {
+	for (int dest = 0; dest < 18; dest++) {
+	  fscanf(fp, "%lf ", &(County::migration_rate[sex][age][source][dest]));
 	}
       }
     }
@@ -1550,29 +1554,23 @@ void County::read_migration_parameters() {
   fclose(fp);
 }
 
-int County::get_migration_count(int year, int sex, int age, int src, int dst) {
-  if (County::county_fips.size() == 0) {
+double County::get_migration_rate(int sex, int age, int src, int dst) {
+  if (County::migration_fips.size() == 0) {
     return 0;
   }
   
   // age is code for age group: 0 => 0-4, 1=> 5-9, ..., 17=>85+
-  if (year < 2010 || 2040 < year || sex < 0 || 1 < sex || age < 0 || 17 < age) {
+  if (sex < 0 || 1 < sex || age < 0 || 17 < age) {
     return 0;
   }
 
-  // map 2010 to 0, 2011-2015 to 1, etc
-  if (year % 5) {
-    year += 5;
-  }
-  year = (year-2010)/5;
-
   int source = -1;
   int dest = -1;
-  for (int i = 0; i < County::county_fips.size(); i++) {
-    if (src == County::county_fips[i]) {
+  for (int i = 0; i < County::migration_fips.size(); i++) {
+    if (src == County::migration_fips[i]) {
       source = i;
     }
-    if (dst == County::county_fips[i]) {
+    if (dst == County::migration_fips[i]) {
       dest = i;
     }
     if (source > -1 && dest > -1) {
@@ -1580,7 +1578,7 @@ int County::get_migration_count(int year, int sex, int age, int src, int dst) {
     }
   }
   if (source > -1 && dest > -1) {
-    return County::migration_count[year][sex][age][source][dest];
+    return County::migration_rate[sex][age][source][dest];
   }
   else {
     return 0;

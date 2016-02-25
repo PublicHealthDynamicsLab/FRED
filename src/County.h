@@ -136,7 +136,7 @@ public:
   void report_age_distribution();
 
   void read_migration_parameters();
-  int get_migration_count(int year, int sex, int age, int src, int dst);
+  double get_migration_rate(int sex, int age, int src, int dst);
 
 private:
   int fips;
@@ -177,8 +177,8 @@ private:
   int** female_migrants;
 
   // static vars
-  static std::vector<int> county_fips;
-  static int***** migration_count;
+  static std::vector<int> migration_fips;
+  static double**** migration_rate;
   static int migration_parameters_read;
 
 };
