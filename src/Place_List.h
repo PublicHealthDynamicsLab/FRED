@@ -341,9 +341,6 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
-  void read_migration_parameters();
-  int get_migration_count(int year, int sex, int age, int src, int dst);
-
 private:
 
   // lists of places by type

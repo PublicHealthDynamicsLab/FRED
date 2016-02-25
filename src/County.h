@@ -135,6 +135,9 @@ public:
   void add_immigrant(int age, char sex);
   void report_age_distribution();
 
+  void read_migration_parameters();
+  int get_migration_count(int year, int sex, int age, int src, int dst);
+
 private:
   int fips;
   int tot_current_popsize;
@@ -172,6 +175,11 @@ private:
   // migration arrays
   int** male_migrants;
   int** female_migrants;
+
+  // static vars
+  static std::vector<int> county_fips;
+  static int***** migration_count;
+  static int migration_parameters_read;
 
 };
 
