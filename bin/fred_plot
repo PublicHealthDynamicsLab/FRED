@@ -49,6 +49,7 @@ my $xmax = "*";
 my $ymin = "0";
 my $ymax = "*";
 my $display = 1;
+my $ave = 0;
 my $errorbars;
 my $title = "FRED Simulation";
 my $weekly = 0;
@@ -76,6 +77,7 @@ my $make_png = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
+			    "ave" => \$ave,
 			    "b" => \$boxes,
 			    "bars" => \$boxes,
 			    "boxes" => \$boxes,
@@ -325,8 +327,6 @@ if ($boxes) {
 
 if ($monthly) {
   $xtics = 1 if not $xtics;
-  # print FH "get_xlabel(k,s) = ((k\%$xtics)==0)?sprintf('\%s',s):''\n";
-  print FH "get_xlabel(s) = sprintf('\%s',s)\n";
   print FH "unset grid\n" if $xtics > 1;
   print FH "\n";
 }
@@ -335,7 +335,7 @@ if ($weekly) {
   $xtics = 1 if not $xtics;
   my $xlab_start = 6;
   $xlab_start = 0 if $show_year;
-  print FH "get_xlabel(s) = (((s[6:*]+0)\%$xtics)==0)?sprintf('\%s',s[$xlab_start:*]):''\n";
+  print FH "get_xlabel(s) = (((s[6:*]+0)\%$xtics)==1 \&\& (s[6:*]+0 != 53))?sprintf('\%s',s[$xlab_start:*]):''\n";
   print FH "unset grid\n" if $xtics > 1;
   print FH "\n";
 }
@@ -417,16 +417,29 @@ sub plot_command {
   }
 
   if ($weekly or $monthly or $annually) {
-    $y = $run ? "(\$5)" :"(\$6)";
-    if ($total) {
-      $y = $run ? "(\$6)" : "(\$8)";
+    if ($ave) {
+      $y = $run ? "(\$5/\$2)" :"(\$6/\$2)";
+      if ($total) {
+	$y = $run ? "(\$6/\$2)" : "(\$8/\$2)";
+      }
+    }
+    else {
+      $y = $run ? "(\$5)" :"(\$6)";
+      if ($total) {
+	$y = $run ? "(\$6)" : "(\$8)";
+      }
     }
   }
 
   # errorbars
   my $e = "";
   if ($errorbars and $run == 0) {
-    $e = ($weekly or $monthly or $annually)? "\$7" : "\$10";
+    if ($ave) {
+      $e = ($weekly or $monthly or $annually)? "\$7/\$2" : "\$10";
+    }
+    else {
+      $e = ($weekly or $monthly or $annually)? "\$7" : "\$10";
+    }
   }
 
   # divide by pop size to normalize
@@ -438,8 +451,9 @@ sub plot_command {
 
   # xtics
   my $xtic = "";
-  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if ($monthly) and $n == 1;
-  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if ($weekly) and $n == 1;
+  $xtic = ":xtic(\$0>0?strcol(1):'')" if ($monthly or $weekly) and $n == 1;
+  $xtic = ":xtic((\$0>0&&(int(\$0)\%$xtics==1))?strcol(1):'')" if ($monthly and $xtics > 1) and $n == 1;
+  $xtic = ":xtic(\$0>0?get_xlabel(strcol(1)):'')" if ($weekly and $xtics>1) and $n == 1;
 
   # title
   my $title = "title '$ptitle'";
