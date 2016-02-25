@@ -1542,8 +1542,29 @@ void County::read_migration_parameters() {
   }
 
   // read migration_rate matrix
-  for (int sex = 0; sex < 2; sex++) {
-    for (int age = 0; age < 18; age++) {
+  for (int age = 0; age < 18; age++) {
+    for (int sex = 0; sex < 2; sex++) {
+      int low, high;
+      if (sex==0) {
+	if (age < 17) {
+	  fscanf(fp, "males ages %d to %d: ",&low,&high);
+	}
+	else {
+	  fscanf(fp, "males ages %d+: ",&low);
+	}
+      }
+      else {
+	if (age < 17) {
+	  fscanf(fp, "females ages %d to %d: ",&low,&high);
+	}
+	else {
+	  fscanf(fp, "females ages %d+: ",&low);
+	}
+      }
+      assert(low==5*age);
+      if (low < 85) {
+	assert(high==5*age+4);
+      }
       for (int source = 0; source < 18; source++) {
 	for (int dest = 0; dest < 18; dest++) {
 	  fscanf(fp, "%lf ", &(County::migration_rate[sex][age][source][dest]));
