@@ -172,6 +172,10 @@ public:
     return index;
   }
 
+  County* get_county(int fips) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_county_with_index(index);
+  }
 
   int get_population_of_county(int fips) {
     int index = get_index_of_county_with_fips(fips);
@@ -338,6 +342,7 @@ public:
   }
 
   void read_migration_parameters();
+  int get_migration_count(int year, int sex, int age, int src, int dst);
 
 private:
 

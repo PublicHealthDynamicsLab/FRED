@@ -278,6 +278,7 @@ bool County::decrement_popsize(Person* person) {
 void County::update(int day) {
 
   if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
+    out_migration();
     migration();
     report_age_distribution();
   }
@@ -1190,55 +1191,153 @@ void County::report_county_population() {
 }
 
 void County::migration() {
-  // get the current year
-  int year = Date::get_year();
-  int day = Global::Simulation_Day;
 
   if (Global::Test==0) {
     return;
   }
 
-  if (2010 <= year && year <= 2040) {
-    int i = (year-2010)/5;
-    if (year % 5 > 0) {
-      i++;
+  // get the current year
+  int year = Date::get_year();
+  int day = Global::Simulation_Day;
+
+
+  if (year < 2010 || 2040 < year) {
+    return;
+  }
+
+  int i = (year-2010)/5;
+  if (year % 5 > 0) {
+    i++;
+  }
+  for (int j = 0; j < 18; j++) {
+    int lower_age = 5*j;
+    int upper_age = lower_age+4;
+    int males = this->male_migrants[i][j];
+    int females = this->female_migrants[i][j];
+    FRED_VERBOSE(0, "MIGRATE age %d, %d males, %d females on day %d year %d\n", lower_age, males, females, day, year);
+
+    if (males > 0) {
+      // add these migrants to the population
+      FRED_VERBOSE(0, "MIGRATE ADD age %d %d males on day %d year %d\n", lower_age, males, day, year);
+      for (int k = 0; k < males; k++) {
+	char sex = 'M';
+	int my_age = Random::draw_random_int(lower_age, upper_age);
+	add_immigrant(my_age, sex);
+      }
     }
-    for (int j = 0; j < 18; j++) {
-      int lower_age = 5*j;
+    else {
+      // find outgoing migrants
+      select_migrants(day, -males, lower_age, upper_age, 'M');
+    }
+
+    if (females > 0) {
+      // add these migrants to the population
+      FRED_VERBOSE(0, "MIGRATE ADD age %d ADD %d females on day %d year %d\n", lower_age, females, day, year);
+      for (int k = 0; k < females; k++) {
+	char sex = 'F';
+	int my_age = Random::draw_random_int(lower_age, upper_age);
+	add_immigrant(my_age, sex);
+      }
+    }
+    else {
+      // find outgoing migrants
+      select_migrants(day, -females, lower_age, upper_age, 'F');
+    }
+  }
+}
+
+void County::out_migration() {
+
+  if (Global::Test==0) {
+    return;
+  }
+
+  // get the current year
+  int year = Date::get_year();
+  int day = Global::Simulation_Day;
+
+  if (year < 2010 || 2040 < year) {
+    return;
+  }
+
+  int num_counties = Global::Places.get_number_of_counties();
+  for (int c = 0; c < num_counties; c++) {
+    int dest = Global::Places.get_fips_of_county_with_index(c);
+    if (dest == this->fips) {
+      continue;
+    }
+    for (int a = 0; a < 18; a++) {
+      int lower_age = 5*a;
       int upper_age = lower_age+4;
-      int males = this->male_migrants[i][j];
-      int females = this->female_migrants[i][j];
-      FRED_VERBOSE(0, "MIGRATE age %d, %d males, %d females on day %d year %d\n", lower_age, males, females, day, year);
-
+      int males = Global::Places.get_migration_count(year, 0, a, this->fips, dest);
+      int females = Global::Places.get_migration_count(year, 1, a, this->fips, dest);
+      FRED_VERBOSE(0, "MIGRATE OUT to county %d age %d, %d males, %d females on day %d year %d\n",
+		   dest, lower_age, males, females, day, year);
       if (males > 0) {
-	// add these migrants to the population
-	FRED_VERBOSE(0, "MIGRATE ADD age %d %d males on day %d year %d\n", lower_age, males, day, year);
-	for (int k = 0; k < males; k++) {
-	  char sex = 'M';
-	  int my_age = Random::draw_random_int(lower_age, upper_age);
-	  add_immigrant(my_age, sex);
-	}
+	select_migrants(day, males, lower_age, upper_age, 'M', dest);
       }
-      else {
-	// find outgoing migrants
-	select_migrants(day, -males, lower_age, upper_age, 'M');
-      }
-
       if (females > 0) {
-	// add these migrants to the population
-	FRED_VERBOSE(0, "MIGRATE ADD age %d ADD %d females on day %d year %d\n", lower_age, females, day, year);
-	for (int k = 0; k < females; k++) {
-	  char sex = 'F';
-	  int my_age = Random::draw_random_int(lower_age, upper_age);
-	  add_immigrant(my_age, sex);
-	}
-      }
-      else {
-	// find outgoing migrants
-	select_migrants(day, -females, lower_age, upper_age, 'F');
+	select_migrants(day, -females, lower_age, upper_age, 'F', dest);
       }
     }
   }
+}
+
+void County::select_migrants(int day, int migrants, int lower_age, int upper_age, char sex, int dest) {
+  FRED_VERBOSE(0, "MIGRATE OUT %d with ages %d %d sex %c day %d to county %d\n",
+	       migrants, lower_age, upper_age, sex, day, dest);
+
+  County* target = Global::Places.get_county(dest);
+
+  // set up a random shuffle of households
+  std::vector<int>shuff;
+  int size = this->households.size();
+  shuff.reserve(size);
+  for (int i = 0; i < size; i++) {
+    shuff[i]=i;
+  }
+  std::random_shuffle(shuff.begin(), shuff.end());
+
+  int rounds = 0;
+  int n = 0;
+  int hnum = shuff[n++];
+  for (int k = 0; k < migrants; k++) {
+    int found = 0;
+    while (!found) {
+      // see if this household has an eligible person to migrate
+      Place* house = Global::Places.get_household(hnum);
+      int hsize = house->get_size();
+      for(int j = 0; j < hsize; ++j) {
+	Person* person = house->get_enrollee(j);
+	if (person->is_eligible_to_migrate()) {
+	  int age = person->get_age();
+	  char s = person->get_sex();
+	  if (lower_age <= age && age <= upper_age && s == sex) {
+	    // move the person
+	    target->add_immigrant(person);
+	    found = 1;
+	  }
+	}
+      }
+      if (found == 0) {
+	// advance to next household
+	if (n < size) {
+	  hnum = shuff[n++];
+	}
+	else {
+	  rounds++;
+	  if (rounds < 2) {
+	    n = 0;
+	    hnum = shuff[n++];
+	  }
+	  else {
+	    Utils::fred_abort("Can't find person with age %d to %d sex %c to emigrate!",
+			      lower_age, upper_age, sex);
+	  }
+	}
+      }
+    } // end while loop
+  } // end for loop
 }
 
 void County::select_migrants(int day, int migrants, int lower_age, int upper_age, char sex) {
@@ -1313,6 +1412,14 @@ void County::add_immigrant(int age, char sex) {
 
   Person* person = Global::Pop.add_person_to_population(age, sex, race, rel, house, school, work, day, false);
   person->get_demographics()->initialize_demographic_dynamics(person);
+}
+
+
+void County::add_immigrant(Person* person) {
+  // pick a random household
+  int hnum = Random::draw_random_int(0, this->households.size()-1);
+  Place* house = Global::Places.get_household(hnum);
+  person->move_to_new_house(house);
 }
 
 
