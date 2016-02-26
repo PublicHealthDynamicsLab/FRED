@@ -321,32 +321,18 @@ public:
     this->staff_size = _staff_size;
   }
 
-  int get_household_fips() {
-    return this->household_fips;
+  int get_county_fips() {
+    return (int) (this->fips/1000000);
   }
 
-  void set_household_fips(int input_fips) {
-    this->household_fips = input_fips;
-  }
-  
-  void set_county_index(int _county_index) {
-    this->county_index = _county_index;
+  long int get_census_tract_fips() {
+    return this->fips;
   }
 
-  int get_county_index() {
-    return this->county_index;
+  void set_census_tract_fips(long int fips_code) {
+    this->fips = fips_code;
   }
 
-  void set_census_tract_index(int _census_tract_index) {
-    this->census_tract_index = _census_tract_index;
-  }
-
-  int get_census_tract_index() {
-    return this->census_tract_index;
-  }
-  
-  // long int get_census_tract();
-  
   static char* get_place_label(Place* p);
 
   double get_seeds(int dis, int sim_day);
@@ -412,15 +398,14 @@ protected:
 
   fred::geo latitude;     // geo location
   fred::geo longitude;    // geo location
+  long int fips;			       // census_tract fips code
+
   int close_date;         // this place will be closed during:
   int open_date;          //   [close_date, open_date)
   double intimacy;	      // prob of intimate contact
   int index;		          // index for households
   int staff_size;			    // outside workers in this place
 
-  int household_fips;
-  int county_index;
-  int census_tract_index;
   
   Neighborhood_Patch* patch;       // geo patch for this place
 

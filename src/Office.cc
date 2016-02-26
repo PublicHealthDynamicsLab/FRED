@@ -104,3 +104,9 @@ double Office::get_transmission_prob(int condition, Person* i, Person* s) {
 double Office::get_contacts_per_day(int condition) {
   return Office::contacts_per_day;
 }
+
+void Office::set_workplace(Workplace* _workplace) {
+  this->workplace = _workplace;
+  set_census_tract_fips(this->workplace->get_census_tract_fips());
+}
+

@@ -83,9 +83,7 @@ public:
     return this->age_level;
   }
 
-  void set_school(School* _school) {
-    this->school = _school;
-  }
+  void set_school(School* _school);
 
   School* get_school() {
     return this->school;

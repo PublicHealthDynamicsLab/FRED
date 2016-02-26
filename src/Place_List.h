@@ -143,7 +143,7 @@ public:
   void swap_houses(int house_index1, int house_index2);
   void combine_households(int house_index1, int house_index2);
 
-  Place* select_school(int county_index, int grade);
+  Place* select_school(int county_fips, int grade);
 
   int get_number_of_counties() {
     return (int) this->counties.size();
@@ -168,6 +168,17 @@ public:
     }
     catch (const std::out_of_range& oor) {
       Utils::fred_abort("No county found for fips code %d\n", fips);
+    }
+    return index;
+  }
+
+  int get_index_of_census_tract_with_fips(long int fips) {
+    int index = -1;
+    try {
+      index = this->fips_to_census_tract_map.at(fips);
+    }
+    catch (const std::out_of_range& oor) {
+      Utils::fred_abort("No census_tract found for fips code %ld\n", fips);
     }
     return index;
   }
@@ -225,11 +236,11 @@ public:
   }
 
   long int get_census_tract_for_place(Place* place) {
-    return this->census_tracts[place->get_census_tract_index()];
+    return place->get_census_tract_fips();
   }
 
   int get_county_for_place(Place* place) {
-    return get_fips_of_county_with_index(place->get_county_index());
+    return place->get_county_fips();
   }
 
   bool is_load_completed() {
@@ -526,24 +537,22 @@ struct Place_Init_Data {
   int income;
   unsigned char deme_id;
   fred::geo lat, lon;
+  long int fips;
   bool is_group_quarters;
-  int county;
-  int census_tract_index;
   int num_workers_assigned;
   int group_quarters_units;
   char gq_type[8];
   char gq_workplace[32];
 
   void setup(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-      unsigned char _deme_id, int _county, int _census_tract_index, const char* _income, bool _is_group_quarters,
-      int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
+	     unsigned char _deme_id, long int _fips, const char* _income, bool _is_group_quarters,
+	     int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
     place_type = _place_type;
     place_subtype = _place_subtype;
     strcpy(s, _s);
     sscanf(_lat, "%f", &lat);
     sscanf(_lon, "%f", &lon);
-    county = _county;
-    census_tract_index = _census_tract_index;
+    fips = _fips;
     sscanf(_income, "%d", &income);
 
     if(!(lat >= -90 && lat <= 90) || !(lon >= -180 && lon <= 180)) {
@@ -561,11 +570,11 @@ struct Place_Init_Data {
   }
 
   Place_Init_Data(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-      unsigned char _deme_id, int _county = -1, int _census_tract = -1, const char* _income = "0",
-      bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
-      const char* gq_type = "X", const char* gq_workplace = "") {
-    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _county, _census_tract, _income, _is_group_quarters,
-        _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
+		  unsigned char _deme_id, long int _fips = 0, const char* _income = "0",
+		  bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
+		  const char* gq_type = "X", const char* gq_workplace = "") {
+    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _fips, _income, _is_group_quarters,
+	  _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
   }
 
   bool operator<(const Place_Init_Data & other) const {
@@ -585,7 +594,7 @@ struct Place_Init_Data {
     ss << place_type << " ";
     ss << lat << " ";
     ss << lon << " ";
-    ss << census_tract_index << " ";
+    ss << fips << " ";
     ss << s << " ";
     ss << int(deme_id) << " ";
     ss << num_workers_assigned << std::endl;

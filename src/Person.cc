@@ -58,7 +58,7 @@ void Person::setup(int _index, int _id, int age, char sex,
 
   // behavior setup called externally, after entire population is available
 
-  myFIPS = house->get_household_fips();
+  myFIPS = house->get_county_fips();
   if(today_is_birthday) {
     FRED_VERBOSE(1, "Baby index %d id %d age %d born on day %d household = %s  new_size %d orig_size %d\n",
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());

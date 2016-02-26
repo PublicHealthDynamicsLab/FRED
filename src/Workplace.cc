@@ -216,3 +216,4 @@ Place* Workplace::assign_office(Person* per) {
   }
   return this->offices[i];
 }
+

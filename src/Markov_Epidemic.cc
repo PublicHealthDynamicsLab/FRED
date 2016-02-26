@@ -432,7 +432,8 @@ void Markov_Epidemic::prepare() {
       int age = get_age_code(person->get_age());
       int sex = get_sex_code(person->get_sex());
       int race = get_race_code(person->get_race());
-      int county = get_county_code(person->get_household()->get_household_fips());
+      int fips = person->get_household()->get_county_fips();
+      int county = get_county_code(fips);
       prob[0] = pnon[age][sex][race][county];
       prob[1] = pasymp[age][sex][race][county];
       prob[2] = pproblem[age][sex][race][county];

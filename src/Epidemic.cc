@@ -843,7 +843,7 @@ void Epidemic::become_exposed(Person* person, int day) {
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
-      long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
+      long int census_tract = hh->get_census_tract_fips();
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
         this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_inf++;
         if(person->is_child()) {
@@ -939,7 +939,7 @@ void Epidemic::become_symptomatic(Person* person, int day) {
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
       Household* hh = static_cast<Household*>(person->get_household());
-      long int census_tract = Global::Places.get_census_tract_with_index(hh->get_census_tract_index());
+      long int census_tract = hh->get_census_tract_fips();
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
 	      this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
 	      if(person->is_child()) {
@@ -1594,7 +1594,8 @@ void Epidemic::report_incidence_by_county(int day) {
       }
     }
 
-    int c = hh->get_county_index();
+    int fips = hh->get_county_fips();
+    int c = Global::Places.get_index_of_county_with_fips(fips);
     assert(0 <= c && c < this->counties);
     this->county_incidence[c]++;
     // FRED_VERBOSE(0, "county %d incidence %d %d out of %d person %d \n", c, this->county_incidence[c], i, infected, infectee->get_id());
@@ -1625,7 +1626,7 @@ void Epidemic::report_symptomatic_incidence_by_census_tract(int day) {
   for(int i = 0; i < this->people_becoming_symptomatic_today; i++) {
     Person * infectee = this->daily_symptomatic_list[i];
     Household * h = (Household *) infectee->get_household();
-    int t = h->get_census_tract_index();
+    int t = Global::Places.get_index_of_census_tract_with_fips(h->get_census_tract_fips());
     assert(0 <= t && t < this->census_tracts);
     this->census_tract_symp_incidence[t]++;
   }
@@ -1635,6 +1636,7 @@ void Epidemic::report_symptomatic_incidence_by_census_tract(int day) {
     track_value(day,name,  this->census_tract_symp_incidence[t]);
   }
 }
+
 int Epidemic::get_symptomatic_incidence_by_tract_index(int index_){
   this->census_tracts = Global::Places.get_number_of_census_tracts();
   if(index_ >= 0 && index_ < this->census_tracts){
@@ -1662,7 +1664,7 @@ void Epidemic::report_incidence_by_census_tract(int day) {
         hh = static_cast<Household*>(infectee->get_permanent_household());;
       }
     }
-    int t = hh->get_census_tract_index();
+    int t = Global::Places.get_index_of_census_tract_with_fips(hh->get_census_tract_fips());
     assert(0 <= t && t < this->census_tracts);
     this->census_tract_incidence[t]++;
   }

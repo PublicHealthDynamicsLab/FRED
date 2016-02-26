@@ -322,8 +322,7 @@ void Infection::report_infection(int day) {
           hh = static_cast<Household*>(this->infector->get_permanent_household());
         }
       }
-      int census_tract_index = (hh == NULL ? -1 : hh->get_census_tract_index());
-      long int census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
+      long int census_tract = (hh == NULL ? -1 : hh->get_census_tract_fips());
       infStrS << " infctr_census_tract " << census_tract;
 
       hh = static_cast<Household*>(this->host->get_household());
@@ -332,8 +331,7 @@ void Infection::report_infection(int day) {
           hh = static_cast<Household*>(this->host->get_permanent_household());
         }
       }
-      census_tract_index = (hh == NULL ? -1 : hh->get_census_tract_index());
-      census_tract = (census_tract_index == -1 ? -1 : Global::Places.get_census_tract_with_index(census_tract_index));
+      census_tract = (hh == NULL ? -1 : hh->get_census_tract_fips());
       infStrS << " host_census_tract " << census_tract;
     }
     infStrS << " | ";

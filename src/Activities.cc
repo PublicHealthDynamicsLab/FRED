@@ -194,8 +194,8 @@ void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
   FRED_VERBOSE(1, "set workplace %s ok\n", get_label_for_place(work));
 
   // increase the population in county of residence
-  int index = get_household()->get_county_index();
-  Global::Places.increment_population_of_county_with_index(index, this->myself);
+  int fips = get_household()->get_county_fips();
+  Global::Places.increment_population_of_county(fips, this->myself);
 
   // get the neighborhood from the household
   set_neighborhood(get_household()->get_patch()->get_neighborhood());
@@ -1353,7 +1353,7 @@ void Activities::assign_school() {
     }
   }
   assert(hh != NULL);
-  Place* school = Global::Places.select_school(hh->get_county_index(), grade);
+  Place* school = Global::Places.select_school(hh->get_county_fips(), grade);
   assert(school != NULL);
   FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
 	       school->get_label(), this->myself->get_id(), this->myself->get_age());
@@ -1942,8 +1942,8 @@ void Activities::terminate() {
   }
 
   // decrease the population in county of residence
-  int index = get_household()->get_county_index();
-  Global::Places.decrement_population_of_county_with_index(index, this->myself);
+  int fips = get_household()->get_county_fips();
+  Global::Places.decrement_population_of_county(fips, this->myself);
 
   // withdraw from society
   unenroll_from_daily_activity_locations();

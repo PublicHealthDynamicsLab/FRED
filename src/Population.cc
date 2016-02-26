@@ -1158,8 +1158,7 @@ void Population::report_mean_hh_stats_per_census_tract() {
     long int census_tract;
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-        int census_tract_index = static_cast<Household*>(person->get_permanent_household())->get_census_tract_index();
-        census_tract = Global::Places.get_census_tract_with_index(census_tract_index);
+        census_tract = static_cast<Household*>(person->get_permanent_household())->get_census_tract_fips();
         Global::Tract_Tracker->add_index(census_tract);
         household_sets[census_tract].insert(static_cast<Household*>(person->get_permanent_household()));
         Household::census_tract_set.insert(census_tract);
@@ -1167,8 +1166,7 @@ void Population::report_mean_hh_stats_per_census_tract() {
         continue;
       }
     } else {
-      int census_tract_index = static_cast<Household*>(person->get_household())->get_census_tract_index();
-      census_tract = Global::Places.get_census_tract_with_index(census_tract_index);
+      census_tract = static_cast<Household*>(person->get_household())->get_census_tract_fips();
       Global::Tract_Tracker->add_index(census_tract);
       household_sets[census_tract].insert(static_cast<Household*>(person->get_household()));
       Household::census_tract_set.insert(census_tract);
@@ -1262,8 +1260,7 @@ void Population::report_mean_hh_stats_per_income_category_per_census_tract() {
     long int census_tract;
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-        int census_tract_index = ((Household*)person->get_permanent_household())->get_census_tract_index();
-        census_tract = Global::Places.get_census_tract_with_index(census_tract_index);
+        census_tract = ((Household*)person->get_permanent_household())->get_census_tract_fips();
         Global::Tract_Tracker->add_index(census_tract);
         int income_level = ((Household*)person->get_permanent_household())->get_household_income_code();
         Global::Income_Category_Tracker->add_index(income_level);
@@ -1273,8 +1270,7 @@ void Population::report_mean_hh_stats_per_income_category_per_census_tract() {
         continue;
       }
     } else {
-      int census_tract_index = ((Household*)person->get_household())->get_census_tract_index();
-      census_tract = Global::Places.get_census_tract_with_index(census_tract_index);
+      census_tract = ((Household*)person->get_household())->get_census_tract_fips();
       Global::Tract_Tracker->add_index(census_tract);
       int income_level = ((Household*)person->get_household())->get_household_income_code();
       Global::Income_Category_Tracker->add_index(income_level);

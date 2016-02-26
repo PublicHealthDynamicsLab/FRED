@@ -162,3 +162,8 @@ void Classroom::unenroll(int pos) {
   Mixing_Group::unenroll(pos);
 }
 
+void Classroom::set_school(School* _school) {
+  this->school = _school;
+  set_census_tract_fips(this->school->get_census_tract_fips());
+}
+

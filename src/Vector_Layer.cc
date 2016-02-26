@@ -212,7 +212,13 @@ void Vector_Layer::add_infectious_patch(Place * p, int day){
     FRED_VERBOSE(1,"add_infectious_patch neighborhood is NULL\n");
     return;
   }
-  int tract_index_ = n_->get_census_tract_index();
+  int tract = n_->get_census_tract_fips();
+  int tract_index_ = -1;
+  for (int i = 0; i < census_tract_set.size(); i++) {
+    if (tract == census_tract_set[i].ind) {
+      tract_index_ = i;
+    }
+  }
   if(tract_index_ < 0){
     FRED_VERBOSE(1,"add_infectious_patch tract_index is < 0\n");
     return;
@@ -428,8 +434,14 @@ void Vector_Layer::setup_vector_control_by_census_tract(){
       int pop_size = neighborhood_temp->get_popsize();
       if(pop_size > 0){
 	Household * h = (Household *) neighborhood_temp->select_random_household();
-	int t = h->get_census_tract_index();
-	neighborhood_temp->get_neighborhood()->set_census_tract_index(t);
+	int tract = h->get_census_tract_fips();
+	neighborhood_temp->get_neighborhood()->set_census_tract_fips(tract);
+	int t = -1;
+	for (int i = 0; i < census_tract_set.size(); i++) {
+	  if (tract == census_tract_set[i].ind) {
+	    t = i;
+	  }
+	}
 	census_tract_set[t].popsize +=pop_size;
 	if(census_tract_set[t].eligible_for_vector_control == true){
 	  census_tract_set[t].total_neighborhoods++;
@@ -733,8 +745,7 @@ void Vector_Layer::get_county_ids(){
   for(int i = 0; i < num_households; ++i) {
     int household_county = -1;
     Household* h = Global::Places.get_household_ptr(i);
-    int c = h->get_county_index();
-    int h_county = Global::Places.get_fips_of_county_with_index(c);
+    int h_county = h->get_county_fips();
     for (int j = 0;j<county_set.size();j++){
       if(h_county == county_set[j].id){
 	household_county = j;

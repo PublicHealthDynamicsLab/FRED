@@ -86,9 +86,7 @@ public:
     return true;
   }
 
-  void set_workplace(Workplace* _workplace) {
-    this->workplace = _workplace;
-  }
+  void set_workplace(Workplace* _workplace);
 
   Workplace* get_workplace() {
     return this->workplace;

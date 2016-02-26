@@ -63,7 +63,6 @@ Place::Place() : Mixing_Group("BLANK") {
   this->set_subtype(Place::SUBTYPE_NONE);
   this->index = -1;
   this->staff_size = 0;
-  this->household_fips = -1;
   this->open_date = 0;
   this->close_date = INT_MAX;
   this->intimacy = 0.0;
@@ -71,14 +70,13 @@ Place::Place() : Mixing_Group("BLANK") {
   this->enrollees.clear();
   this->first_day_infectious = -1;
   this->last_day_infectious = -2;
-  this->county_index = -1;
-  this->census_tract_index = -1;
   this->intimacy = 0.0;
   this->patch = NULL;
 
   fred::geo undefined = -1.0;
   this->longitude = undefined;
   this->latitude = undefined;
+  this->fips = 0;
 
   int conditions = Global::Conditions.get_number_of_conditions();
   this->infectious_people = new std::vector<Person*>[conditions];
@@ -111,7 +109,6 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->set_subtype(Place::SUBTYPE_NONE);
   this->index = -1;
   this->staff_size = 0;
-  this->household_fips = -1;
   this->longitude = lon;
   this->latitude = lat;
   this->open_date = 0;
@@ -121,8 +118,6 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->enrollees.clear();
   this->first_day_infectious = -1;
   this->last_day_infectious = -2;
-  this->county_index = -1;
-  this->census_tract_index = -1;
   this->intimacy = 0.0;
   this->patch = NULL;
 
