@@ -1917,7 +1917,11 @@ void Activities::move_to_new_house(Place* house) {
     FRED_VERBOSE(1, "MOVE STARTED GROUP QUARTERS: person %d profile %c oldhouse %s newhouse %s\n",
                  this->myself->get_id(), this->myself->get_profile(), get_household()->get_label(), house->get_label());
   }
-  // re-assign school and work activities
+  // update household
+  int old_fips = get_household()->get_county_fips();
+  Global::Places.decrement_population_of_county(old_fips, this->myself);
+  int new_fips = house->get_county_fips();
+  Global::Places.increment_population_of_county(new_fips, this->myself);
   change_household(house);
 
   if(is_former_group_quarters_resident || house->is_group_quarters()) {

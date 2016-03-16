@@ -284,9 +284,18 @@ bool County::decrement_popsize(Person* person) {
 
 void County::update(int day) {
 
+  this->houses = this->households.size();
+
+  // set param test=1 for testing
+  if (Global::Test==0) {
+    return;
+  }
+
   if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-    out_migration();
-    migration();
+    report_age_distribution();
+    county_to_county_migration();
+    report_age_distribution();
+    external_migration();
     report_age_distribution();
   }
 
@@ -418,7 +427,6 @@ int County::fill_vacancies(int day) {
 
 void County::update_housing(int day) {
 
-  this->houses = this->households.size();
   FRED_VERBOSE(0, "houses = %d\n", houses);
 
   if(day == 0) {
@@ -566,12 +574,12 @@ void County::move_college_students_into_dorms(int day) {
   // pick the top of the list to move into dorms
   for(int i = 0; i < dorm_vacancies &&this->ready_to_move.size() > 0; ++i) {
     int newhouse = dorm_rooms[i];
-    Place* houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = this->households[newhouse];
 //      printf("VACANT DORM %s ORIG %d SIZE %d\n", houseptr->get_label(),
 //      houseptr->get_orig_size(),houseptr->get_size());
     Person* person = this->ready_to_move.back().first;
     int oldhouse = this->ready_to_move.back().second;
-    Place* ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = this->households[oldhouse];
     this->ready_to_move.pop_back();
     // move person to new home
 //      printf("APPLICANT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
@@ -665,12 +673,12 @@ void County::move_military_personnel_into_barracks(int day) {
   // pick the top of the list to move into dorms
   for(int i = 0; i < barracks_vacancies && ready_to_move.size() > 0; ++i) {
     int newhouse = barracks_units[i];
-    Place* houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = this->households[newhouse];
     // printf("UNFILLED BARRACKS %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
     Person* person = this->ready_to_move.back().first;
     int oldhouse = this->ready_to_move.back().second;
-    Place* ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = this->households[oldhouse];
     this->ready_to_move.pop_back();
     // move person to new home
     // printf("RECRUIT %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
@@ -764,12 +772,12 @@ void County::move_inmates_into_prisons(int day) {
   // pick the top of the list to move into dorms
   for(int i = 0; i < jail_cell_vacancies && this->ready_to_move.size() > 0; ++i) {
     int newhouse = jail_cell_units[i];
-    Place* houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = this->households[newhouse];
     // printf("UNFILLED JAIL_CELL %s ORIG %d SIZE %d\n", houseptr->get_label(),
     // houseptr->get_orig_size(),houseptr->get_size());
     Person* person = this->ready_to_move.back().first;
     int oldhouse = this->ready_to_move.back().second;
-    Place* ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = this->households[oldhouse];
     this->ready_to_move.pop_back();
     // move person to new home
     // printf("INMATE %d SEX %c AGE %d HOUSE %s SIZE %d ORIG %d PROFILE %c\n",
@@ -834,11 +842,11 @@ void County::move_patients_into_nursing_homes(int day) {
   // pick the top of the list to move into nursing_home
   for(int i = 0; i < nursing_home_vacancies && this->ready_to_move.size() > 0; ++i) {
     int newhouse = nursing_home_units[i];
-    Place* houseptr = Global::Places.get_household(newhouse);
+    Place* houseptr = this->households[newhouse];
     // printf("UNFILLED NURSING_HOME UNIT %s ORIG %d SIZE %d\n", houseptr->get_label(),houseptr->get_orig_size(),houseptr->get_size());
     Person* person = this->ready_to_move.back().first;
     int oldhouse = this->ready_to_move.back().second;
-    Place* ohouseptr = Global::Places.get_household(oldhouse);
+    Place* ohouseptr = this->households[oldhouse];
     this->ready_to_move.pop_back();
     // move person to new home
     /*
@@ -941,7 +949,7 @@ void County::swap_houses(int day) {
   }
   for(int i = 0; i < this->houses; ++i) {
     // skip group quarters
-    if(Global::Places.get_household(i)->is_group_quarters()) {
+    if(this->households[i]->is_group_quarters()) {
       continue;
     }
     int b = this->beds[i];
@@ -1197,11 +1205,7 @@ void County::report_county_population() {
   }
 }
 
-void County::migration() {
-
-  if (Global::Test==0) {
-    return;
-  }
+void County::external_migration() {
 
   // get the current year
   int year = Date::get_year();
@@ -1216,16 +1220,20 @@ void County::migration() {
   if (year % 5 > 0) {
     i++;
   }
+  FRED_VERBOSE(0, "EXTRENAL MIGRATION entered for year %d\n", year);
   for (int j = 0; j < 18; j++) {
     int lower_age = 5*j;
     int upper_age = lower_age+4;
+    if (lower_age == 85) {
+      upper_age = 100;
+    }
     int males = this->male_migrants[i][j];
     int females = this->female_migrants[i][j];
-    FRED_VERBOSE(0, "MIGRATE age %d, %d males, %d females on day %d year %d\n", lower_age, males, females, day, year);
+    FRED_VERBOSE(0, "EXTERNAL MIGRATION age %d, %d males, %d females on day %d year %d\n", lower_age, males, females, day, year);
 
     if (males > 0) {
       // add these migrants to the population
-      FRED_VERBOSE(0, "MIGRATE ADD age %d %d males on day %d year %d\n", lower_age, males, day, year);
+      FRED_VERBOSE(0, "EXTERNAL MIGRATION ADD age %d %d males on day %d year %d\n", lower_age, males, day, year);
       for (int k = 0; k < males; k++) {
 	char sex = 'M';
 	int my_age = Random::draw_random_int(lower_age, upper_age);
@@ -1239,7 +1247,7 @@ void County::migration() {
 
     if (females > 0) {
       // add these migrants to the population
-      FRED_VERBOSE(0, "MIGRATE ADD age %d ADD %d females on day %d year %d\n", lower_age, females, day, year);
+      FRED_VERBOSE(0, "EXTERNAL MIGRATION ADD age %d ADD %d females on day %d year %d\n", lower_age, females, day, year);
       for (int k = 0; k < females; k++) {
 	char sex = 'F';
 	int my_age = Random::draw_random_int(lower_age, upper_age);
@@ -1251,13 +1259,10 @@ void County::migration() {
       select_migrants(day, -females, lower_age, upper_age, 'F');
     }
   }
+  FRED_VERBOSE(0, "EXTRENAL MIGRATION finished for year %d\n", year);
 }
 
-void County::out_migration() {
-
-  if (Global::Test==0) {
-    return;
-  }
+void County::county_to_county_migration() {
 
   // get the current year
   int year = Date::get_year();
@@ -1267,42 +1272,150 @@ void County::out_migration() {
     return;
   }
 
+  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION entered year %d\n", year);
+
   int num_counties = County::migration_fips.size();
   for (int c = 0; c < num_counties; c++) {
     int dest = County::migration_fips[c];
     if (dest == this->fips) {
       continue;
     }
+   FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION from %d to %d\n", this->fips, dest);
+    int males[18];
+    int females[18];
     for (int a = 0; a < 18; a++) {
       int lower_age = 5*a;
       int upper_age = lower_age+4;
+      if (lower_age == 85) {
+	upper_age = 120;
+      }
       int current_males = get_current_popsize(lower_age, upper_age, 'M');
       int current_females = get_current_popsize(lower_age, upper_age, 'F');
-      int males = current_males * get_migration_rate(0, a, this->fips, dest);
-      int females = current_females * get_migration_rate(1, a, this->fips, dest);
-      FRED_VERBOSE(0, "MIGRATE OUT to county %d age %d, %d males, %d females on day %d year %d\n",
-		   dest, lower_age, males, females, day, year);
-      if (males > 0) {
-	select_migrants(day, males, lower_age, upper_age, 'M', dest);
+      males[a] = current_males * get_migration_rate(0, a, this->fips, dest);
+      females[a] = current_females * get_migration_rate(1, a, this->fips, dest);
+      FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION to county %d age %d, %d males, %d females on day %d year %d\n",
+		   dest, lower_age, males[a], females[a], day, year);
+    }
+
+    // select households that match the out migration targets
+
+    // set up a random shuffle of households
+    std::vector<int>shuff;
+    FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION shuffle %d households\n", this->houses);
+    shuff.reserve(this->houses);
+    shuff.clear();
+    for (int i = 0; i < this->houses; i++) {
+      shuff[i]=i;
+    }
+    std::random_shuffle(shuff.begin(), shuff.end());
+
+    for (int i = 0; i < this->houses; i++) {
+      int hnum = shuff[i];
+      // see if this household is eligible to migrate
+      Place* house = this->households[hnum];
+      int hsize = house->get_size();
+      if (hsize==0) {
+	continue;
       }
-      if (females > 0) {
-	select_migrants(day, -females, lower_age, upper_age, 'F', dest);
+      FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION checking household %d %d size %d\n", hnum, house->get_id(), hsize);
+      bool ok = true;
+      for(int j = 0; ok && (j < hsize); ++j) {
+	Person* person = house->get_enrollee(j);
+	int age = person->get_age();
+	char s = person->get_sex();
+	int a = age/5;
+	if (a > 17) { a = 17; }
+	ok = (s=='M' ? males[a]>0 : females[a]>0);
+	FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION checking person %d age %d age group %d ok %d\n",
+		     person->get_id(), person->get_age(), a, ok?1:0);
+      }
+      if (ok) {
+	// migrate this household
+	FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD %d size %d\n", house->get_id(), hsize);
+    	for(int j = 0; j < hsize; ++j) {
+	  Person* person = house->get_enrollee(j);
+	  int age = person->get_age();
+	  char s = person->get_sex();
+	  int a = age/5;
+	  if (a > 17) { a = 17; }
+	  if (s=='M') {
+	    males[a]--;
+	  }
+	  else {
+	    females[a]--;
+	  }
+	}
+	migrate_household_to_county(house, dest);
+      }
+      else {
+	FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD %d not ok\n", house->get_id());
+      }
+    }
+
+    // select random migrants
+    for (int a = 0; a < 18; a++) {
+      int lower_age = a*5;
+      int upper_age = lower_age+4;
+      if (lower_age == 85) {
+	upper_age = 120;
+      }
+      if (males[a] > 0) {
+	select_migrants(day, males[a], lower_age, upper_age, 'M', dest);
+      }
+      if (females[a] > 0) {
+	select_migrants(day, females[a], lower_age, upper_age, 'F', dest);
+      }
+    }
+  } // end for loop over other counties
+  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION finished for year %d\n", year);
+}
+
+void County::migrate_household_to_county(Place* house, int dest) {
+  int day = Global::Simulation_Day;
+  County* dest_county = Global::Places.get_county(dest);
+  int hsize = house->get_size();
+  if (dest_county != NULL) {
+    Place* newhouse = dest_county->select_new_house_for_immigrants(hsize);
+    for(int j = 0; j < hsize; ++j) {
+      Person* person = house->get_enrollee(j);
+      if (person->is_eligible_to_migrate()) {
+	person->move_to_new_house(newhouse);
+	FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION household %d RELOCATE person %d age %d to house %d\n",
+		     house->get_id(), person->get_id(), person->get_age(), newhouse->get_id());
+      }
+    }
+  }
+  else {
+    for(int j = 0; j < hsize; ++j) {
+      Person* person = house->get_enrollee(j);
+      if (person->is_eligible_to_migrate()) {
+	// prepare to remove person
+	Global::Pop.prepare_to_migrate(day, person);
+	FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION household %d REMOVED person %d age %d\n",
+		     house->get_id(), person->get_id(), person->get_age());
       }
     }
   }
 }
 
+
+Place* County::select_new_house_for_immigrants(int hsize) {
+  int hnum = Random::draw_random_int(0, this->households.size()-1);
+  Place* house = this->households[hnum];
+  return house;
+}
+
+
 void County::select_migrants(int day, int migrants, int lower_age, int upper_age, char sex, int dest) {
-  FRED_VERBOSE(0, "MIGRATE OUT %d with ages %d %d sex %c day %d to county %d\n",
+  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION %d with ages %d %d sex %c day %d to county %d\n",
 	       migrants, lower_age, upper_age, sex, day, dest);
 
   County* target = Global::Places.get_county(dest);
 
   // set up a random shuffle of households
   std::vector<int>shuff;
-  int size = this->households.size();
-  shuff.reserve(size);
-  for (int i = 0; i < size; i++) {
+  shuff.reserve(this->houses);
+  for (int i = 0; i < this->houses; i++) {
     shuff[i]=i;
   }
   std::random_shuffle(shuff.begin(), shuff.end());
@@ -1314,7 +1427,7 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
     int found = 0;
     while (!found) {
       // see if this household has an eligible person to migrate
-      Place* house = Global::Places.get_household(hnum);
+      Place* house = this->households[hnum];
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
 	Person* person = house->get_enrollee(j);
@@ -1336,7 +1449,7 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
       }
       if (found == 0) {
 	// advance to next household
-	if (n < size) {
+	if (n < this->houses) {
 	  hnum = shuff[n++];
 	}
 	else {
@@ -1357,14 +1470,13 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
 
 void County::select_migrants(int day, int migrants, int lower_age, int upper_age, char sex) {
 
-  FRED_VERBOSE(0, "MIGRATE DEL  %d ages %d %d sex %c day %d\n",
+  FRED_VERBOSE(0, "EXTERNAL MIGRATION DELETE %d with ages %d %d sex %c day %d\n",
 	       migrants, lower_age, upper_age, sex, day);
 
   // set up a random shuffle of households
   std::vector<int>shuff;
-  int size = this->households.size();
-  shuff.reserve(size);
-  for (int i = 0; i < size; i++) {
+  shuff.reserve(this->houses);
+  for (int i = 0; i < this->houses; i++) {
     shuff[i]=i;
   }
   std::random_shuffle(shuff.begin(), shuff.end());
@@ -1376,7 +1488,7 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
     int found = 0;
     while (!found) {
       // see if this household has an eligible person to migrate
-      Place* house = Global::Places.get_household(hnum);
+      Place* house = this->households[hnum];
       int hsize = house->get_size();
       for(int j = 0; j < hsize; ++j) {
 	Person* person = house->get_enrollee(j);
@@ -1392,7 +1504,7 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
       }
       if (found == 0) {
 	// advance to next household
-	if (n < size) {
+	if (n < this->houses) {
 	  hnum = shuff[n++];
 	}
 	else {
@@ -1422,8 +1534,8 @@ void County::add_immigrant(int age, char sex) {
   int day = Global::Simulation_Day;
 
   // pick a random household
-  int hnum = Random::draw_random_int(0, this->households.size()-1);
-  Place* house = Global::Places.get_household(hnum);
+  int hnum = Random::draw_random_int(0, this->houses-1);
+  Place* house = this->households[hnum];
 
   Person* person = Global::Pop.add_person_to_population(age, sex, race, rel, house, school, work, day, false);
   person->get_demographics()->initialize_demographic_dynamics(person);
@@ -1432,8 +1544,8 @@ void County::add_immigrant(int age, char sex) {
 
 void County::add_immigrant(Person* person) {
   // pick a random household
-  int hnum = Random::draw_random_int(0, this->households.size()-1);
-  Place* house = Global::Places.get_household(hnum);
+  int hnum = Random::draw_random_int(0, this->houses-1);
+  Place* house = this->households[hnum];
   person->move_to_new_house(house);
 }
 
@@ -1445,9 +1557,7 @@ void County::report_age_distribution() {
   // get the current year
   int year = Date::get_year();
 
-  if ((year % 5) > 0) {
-    return;
-  }
+  fprintf(stdout, "Age distribution for county %d year %d\n", fips,year);
 
   sprintf(filename, "%s/ages-%d-%d.txt", Global::Simulation_directory, fips, year);
   fp = fopen(filename, "w");
@@ -1460,9 +1570,11 @@ void County::report_age_distribution() {
     int males = get_current_popsize(lower, upper, 'M');
     if (lower < 85) {
       fprintf(fp, "%d-%d %d %d %d\n", lower, upper, lower, males, females);
+      fprintf(stdout, "%d-%d %d %d %d\n", lower, upper, lower, males, females);
     }
     else {
       fprintf(fp, "%d+ %d %d %d\n", lower, lower, males, females);
+      fprintf(stdout, "%d+ %d %d %d\n", lower, lower, males, females);
     }
   }
   fclose(fp);
@@ -1501,6 +1613,8 @@ void County::read_migration_parameters() {
     County::migration_parameters_read = 1;
   }
 
+  FRED_VERBOSE(0, "read_migration_parameters\n");
+
   char county_migration_file[FRED_STRING_SIZE];
   strcpy(county_migration_file, "none");
 
@@ -1522,19 +1636,21 @@ void County::read_migration_parameters() {
     fscanf(fp, "%d ", &fips);
     if (fips > -1) {
       County::migration_fips.push_back(fips);
+      FRED_VERBOSE(0, "read_migration_parameters: fips = %d\n", fips);
     }
   }
 
   // create a migration matrix with format
   // migration_rate[sex][age][source][dest]
+  int fips_size = County::migration_fips.size();
   County::migration_rate = new double*** [2];
   for (int sex = 0; sex < 2; sex++) {
     County::migration_rate[sex] = new double** [18];
     for (int age = 0; age < 18; age++) {
-      County::migration_rate[sex][age] = new double* [County::migration_fips.size()];
-      for (int source = 0; source < 18; source++) {
-	County::migration_rate[sex][age][source] = new double [County::migration_fips.size()];
-	for (int dest = 0; dest < 18; dest++) {
+      County::migration_rate[sex][age] = new double* [fips_size];
+      for (int source = 0; source < fips_size; source++) {
+	County::migration_rate[sex][age][source] = new double [fips_size];
+	for (int dest = 0; dest < fips_size; dest++) {
 	  County::migration_rate[sex][age][source][dest] = 0;
 	}
       }
@@ -1573,6 +1689,7 @@ void County::read_migration_parameters() {
     }
   }
   fclose(fp);
+  FRED_VERBOSE(0, "read_migration_file finished\n");
 }
 
 double County::get_migration_rate(int sex, int age, int src, int dst) {

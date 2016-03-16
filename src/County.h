@@ -127,8 +127,10 @@ public:
       }
     }
   } 
-  void migration();
-  void out_migration();
+  void external_migration();
+  void county_to_county_migration();
+  void migrate_household_to_county(Place* house, int dest);
+  Place* select_new_house_for_immigrants(int hszie);
   void select_migrants(int day, int migrants, int lower_age, int upper_age, char sex, int dest);
   void select_migrants(int day, int migrants, int lower_age, int upper_age, char sex);
   void add_immigrant(Person* person);

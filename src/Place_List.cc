@@ -507,6 +507,10 @@ void Place_List::get_parameters() {
 
 void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
+  for (int i = 0; i < Demes.size(); i++) {
+    FRED_VERBOSE(0, "read_all_places: Demes[%d][0] = %s\n", i, Demes[i][0]);
+  }
+
   // clear the vectors
   this->households.clear();
   this->neighborhoods.clear();
@@ -547,13 +551,19 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   // and each deme must contain at least one synthetic population id
   for(int d = 0; d < Demes.size(); ++d) {
-    FRED_STATUS(0, "Reading Places for Deme %d:\n", d);
+    for (int j = 0; j < Demes.size(); j++) {
+      FRED_VERBOSE(0, "before read_places: Demes[%d][0] = %s\n", j, Demes[j][0]);
+    }
+    FRED_STATUS(0, "Reading Places for Deme %d  pop_id = %s:\n", d, Demes[d][0]);
     assert(Demes[d].size() > 0);
     for(int i = 0; i < Demes[d].size(); ++i) {
       // o---------------------------------------- Call read_places to actually
       // |                                         read the population files
       // V
       read_places(pop_dir, Demes[d][i], d, pids);
+    }
+    for (int j = 0; j < Demes.size(); j++) {
+      FRED_VERBOSE(0, "after read_places: Demes[%d][0] = %s\n", j, Demes[j][0]);
     }
   }
 
@@ -762,6 +772,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   read_household_file(deme_id, location_file, pids);
   Utils::fred_print_lap_time("Places.read_household_file");
 
+
   // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
   for(int i = 0; i < this->counties.size(); ++i) {
@@ -818,10 +829,10 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
   };
 
   FILE* fp = Utils::fred_open_file(location_file);
-  char line_str[1024];
+  char line_str[10240];
   Utils::Tokens tokens;
 
-  for(char* line = line_str; fgets(line, 1024, fp); line = line_str) {
+  for(char* line = line_str; fgets(line, 10240, fp); line = line_str) {
     tokens = Utils::split_by_delim(line, ',', tokens, false);
 
     // skip header line
@@ -982,10 +993,10 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
   };
 
   FILE* fp = Utils::fred_open_file(location_file);
-  char line_str[1024];
+  char line_str[10240];
   Utils::Tokens tokens;
 
-  for(char* line = line_str; fgets(line, 1024, fp); line = line_str) {
+  for(char* line = line_str; fgets(line, 10240, fp); line = line_str) {
     if(strstr(line_str, "\"\"") != NULL) {
       Utils::delete_char(line_str, '"', FRED_STRING_SIZE);
     }
@@ -1036,7 +1047,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
   };
 
   FILE* fp = Utils::fred_open_file(location_file);
-  char line_str[1024];
+  char line_str[10240];
   Utils::Tokens tokens;
 
   char census_tract_str[12];
@@ -1044,7 +1055,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
   int capacity = 0;
   bool format_2010_ver1 = false;
 
-  for(char* line = line_str; fgets(line, 1024, fp); line = line_str) {
+  for(char* line = line_str; fgets(line, 10240, fp); line = line_str) {
     tokens = Utils::split_by_delim(line, ',', tokens, false);
 
     // check for 2010_ver1 format
