@@ -33,7 +33,7 @@ public:
   Network(const char* lab);
   ~Network() {}
 
-  static void get_parameters();
+  void get_parameters();
 
   /**
    * Get the transmission probability for a given condition between two Person objects.
@@ -71,9 +71,10 @@ public:
   void create_random_network(double mean_degree);
   void infect_random_nodes(double pct, Condition* condition);
 
-private:
-  static double contacts_per_day;
-  static double** prob_transmission_per_contact;
+protected:
+  int id;
+  double contacts_per_day;
+  double** prob_transmission_per_contact;
 };
 
 #endif // _FRED_NETWORK_H

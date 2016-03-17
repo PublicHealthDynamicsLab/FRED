@@ -241,7 +241,7 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Enable_Sexual_Partner_Network) {
     Global::Sexual_Partner_Network = new Sexual_Transmission_Network("Sexual_Partner_Network");
-    Sexual_Transmission_Network::get_parameters();
+    Global::Sexual_Partner_Network->get_parameters();
     //Global::Sexual_Partner_Network->test();
   }
 

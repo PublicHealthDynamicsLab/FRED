@@ -22,35 +22,76 @@
 #include "Population.h"
 
 //Private static variables that will be set by parameter lookups
-double Sexual_Transmission_Network::sexual_contacts_per_day = 0.0;
-double Sexual_Transmission_Network::sexual_transmission_per_contact = 0.0;
-
 Sexual_Transmission_Network::Sexual_Transmission_Network(const char* lab) : Network(lab) {
   this->set_subtype(Network::SUBTYPE_SEXUAL_PARTNER);
+  this->sexual_contacts_per_day = 0.0;
+  this->probability_of_transmission_per_contact = 0.0;
+  this->id = 0;
 }
 
 void Sexual_Transmission_Network::get_parameters() {
-  Params::get_param_from_string("sexual_partner_contacts", &Sexual_Transmission_Network::sexual_contacts_per_day);
-  Params::get_param_from_string("sexual_trans_per_contact", &Sexual_Transmission_Network::sexual_transmission_per_contact);
+  Params::get_param_from_string("sexual_partner_contacts", &(this->sexual_contacts_per_day));
+  Params::get_param_from_string("sexual_trans_per_contact", &(this->probability_of_transmission_per_contact));
 }
 
 void Sexual_Transmission_Network::setup() {
 
-  // initialize MSM network
-  for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
-    Person* person = Global::Pop.get_person(p);
-    int age = person->get_age();
-    char sex = person->get_sex();
-    person->become_unsusceptible(0);
-    if (18 <= age && age < 60 && sex == 'M') {
-      if (Random::draw_random() < 0.01) {
-	person->join_network(Global::Sexual_Partner_Network);
-	person->become_susceptible(0);
+  // set optional parameters
+  Params::disable_abort_on_failure();
+  char sexual_partner_file[FRED_STRING_SIZE];
+  strcpy(sexual_partner_file, "");
+
+  Params::get_param_from_string("sexual_partner_file", sexual_partner_file);
+
+  // restore requiring parameters
+  Params::set_abort_on_failure();
+
+  if (strcmp(sexual_partner_file,"") != 0) {
+    read_sexual_partner_file(sexual_partner_file);
+  }
+  else {
+
+    // initialize MSM network
+    for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
+      Person* person = Global::Pop.get_person(p);
+      int age = person->get_age();
+      char sex = person->get_sex();
+      person->become_unsusceptible(this->id);
+      if (18 <= age && age < 60 && sex == 'M') {
+	if (Random::draw_random() < 0.01) {
+	  person->join_network(Global::Sexual_Partner_Network);
+	  person->become_susceptible(this->id);
+	}
       }
     }
+    
+    // create random sexual partnerships
+    Global::Sexual_Partner_Network->create_random_network(2.0);
   }
-
-  // create random sexual partnerships
-  Global::Sexual_Partner_Network->create_random_network(2.0);
 }
 
+void Sexual_Transmission_Network::read_sexual_partner_file(char* sexual_partner_file) {
+  int id1, id2;
+  FILE* fp = Utils::fred_open_file(sexual_partner_file);
+  while(fscanf(fp, "%d %d", &id1, &id2) == 2) {
+    Person* partner1 = Global::Pop.get_person(id1);
+    Person* partner2 = Global::Pop.get_person(id2);
+    if (partner1->is_enrolled_in_network(this)==false) {
+      partner1->join_network(Global::Sexual_Partner_Network);
+      partner1->clear_network(this);
+      partner1->become_susceptible(this->id);
+    }
+    if (partner2->is_enrolled_in_network(this)==false) {
+      partner2->join_network(Global::Sexual_Partner_Network);
+      partner2->clear_network(this);
+      partner2->become_susceptible(this->id);
+    }
+    if(partner1->is_connected_to(partner2, this) == false) {
+      partner1->create_network_link_to(partner2, this);
+    }
+    if(partner2->is_connected_to(partner1, this) == false) {
+      partner2->create_network_link_to(partner1, this);
+    }
+  }
+  fclose(fp);
+}

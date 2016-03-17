@@ -898,6 +898,10 @@ public:
 
   // convenience methods for Networks
 
+  bool is_enrolled_in_network(Network* network) {
+    return this->activities.is_enrolled_in_network(network);
+  }
+
   void create_network_link_to(Person* person, Network* network) {
     this->activities.create_network_link_to(person, network);
   }
