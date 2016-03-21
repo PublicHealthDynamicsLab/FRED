@@ -36,6 +36,7 @@
 #include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
+#include "Sexual_Transmission_Network.h"
 #include "Utils.h"
 #include "Vaccine.h"
 #include "Vaccine_Dose.h"
@@ -497,6 +498,10 @@ void Health::become_exposed(int condition_id, Person* infector, Mixing_Group* mi
   if(Global::Enable_Transmission_Network) {
     FRED_VERBOSE(1, "Joining transmission network: %d\n", myself->get_id());
     myself->join_network(Global::Transmission_Network);
+  }
+
+  if(strcmp("sexual", condition->get_transmission_mode()) == 0) {
+    Global::Sexual_Partner_Network->add_person_to_sexual_partner_network(myself);
   }
 
   if(Global::Enable_Vector_Transmission && Global::Conditions.get_number_of_conditions() > 1) {

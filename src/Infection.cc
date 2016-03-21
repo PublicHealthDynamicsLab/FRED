@@ -241,8 +241,9 @@ void Infection::report_infection(int day) {
   }
 
   int mixing_group_id = (this->mixing_group == NULL ? -1 : this->mixing_group->get_id());
+  FRED_VERBOSE(0, "report_infection: day %d mixing group %d\n", mixing_group_id);
   char mixing_group_type = (this->mixing_group == NULL ? 'X' : this->mixing_group->get_type());
-  char mixing_group_subtype = 'X';
+  char mixing_group_subtype = (this->mixing_group == NULL ? 'X' : this->mixing_group->get_subtype());
   if(this->mixing_group != NULL && dynamic_cast<Place*>(this->mixing_group) != NULL) {
     Place* place = dynamic_cast<Place*>(this->mixing_group);
     if(place->is_group_quarters()) {

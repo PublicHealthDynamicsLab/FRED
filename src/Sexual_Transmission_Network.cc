@@ -17,16 +17,19 @@
 #include "Sexual_Transmission_Network.h"
 #include "Global.h"
 #include "Params.h"
+#include "Place_List.h"
 #include "Random.h"
 #include "Person.h"
 #include "Population.h"
 
 //Private static variables that will be set by parameter lookups
 Sexual_Transmission_Network::Sexual_Transmission_Network(const char* lab) : Network(lab) {
+  this->set_type(Network::TYPE_NETWORK);
   this->set_subtype(Network::SUBTYPE_SEXUAL_PARTNER);
+  this->set_id(Global::Places.get_new_place_id());
+  printf("STN: type %c subtype %c id %d\n", get_type(), get_subtype(), get_id());
   this->sexual_contacts_per_day = 0.0;
   this->probability_of_transmission_per_contact = 0.0;
-  this->id = 0;
 }
 
 void Sexual_Transmission_Network::get_parameters() {
@@ -59,8 +62,7 @@ void Sexual_Transmission_Network::setup() {
       person->become_unsusceptible(this->id);
       if (18 <= age && age < 60 && sex == 'M') {
 	if (Random::draw_random() < 0.01) {
-	  person->join_network(Global::Sexual_Partner_Network);
-	  person->become_susceptible(this->id);
+	  add_person_to_sexual_partner_network(person);
 	}
       }
     }
@@ -68,6 +70,7 @@ void Sexual_Transmission_Network::setup() {
     // create random sexual partnerships
     Global::Sexual_Partner_Network->create_random_network(2.0);
   }
+  print();
 }
 
 void Sexual_Transmission_Network::read_sexual_partner_file(char* sexual_partner_file) {
@@ -75,23 +78,28 @@ void Sexual_Transmission_Network::read_sexual_partner_file(char* sexual_partner_
   FILE* fp = Utils::fred_open_file(sexual_partner_file);
   while(fscanf(fp, "%d %d", &id1, &id2) == 2) {
     Person* partner1 = Global::Pop.get_person(id1);
+    add_person_to_sexual_partner_network(partner1);
+
     Person* partner2 = Global::Pop.get_person(id2);
-    if (partner1->is_enrolled_in_network(this)==false) {
-      partner1->join_network(Global::Sexual_Partner_Network);
-      partner1->clear_network(this);
-      partner1->become_susceptible(this->id);
-    }
-    if (partner2->is_enrolled_in_network(this)==false) {
-      partner2->join_network(Global::Sexual_Partner_Network);
-      partner2->clear_network(this);
-      partner2->become_susceptible(this->id);
-    }
+    add_person_to_sexual_partner_network(partner2);
+
     if(partner1->is_connected_to(partner2, this) == false) {
       partner1->create_network_link_to(partner2, this);
     }
+
     if(partner2->is_connected_to(partner1, this) == false) {
       partner2->create_network_link_to(partner1, this);
     }
   }
   fclose(fp);
 }
+
+
+void Sexual_Transmission_Network::add_person_to_sexual_partner_network(Person* person) {
+  if (person->is_enrolled_in_network(this)==false) {
+    person->join_network(Global::Sexual_Partner_Network);
+    person->clear_network(this);
+  }
+}
+
+

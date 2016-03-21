@@ -413,6 +413,7 @@ void Epidemic::update(int day) {
     }
   }
   this->infectious_people = this->actually_infectious_people.size();
+  FRED_VERBOSE(1, "ACTUALLY INF SIZE day %d size %d\n", day, this->infectious_people);
   // Utils::fred_print_epidemic_timer("identifying actually infections people");
 
   // update the daily activities of infectious people
@@ -420,7 +421,7 @@ void Epidemic::update(int day) {
     Person* person = this->actually_infectious_people[i];
 
     if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
-      FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d\n", person->get_id());
+      FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d to ST_Network\n", person->get_id());
       // this will insert the infectious person onto the infectious list in sexual partner network
       Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
       st_network->add_infectious_person(this->id, person);
@@ -434,6 +435,7 @@ void Epidemic::update(int day) {
 
   if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
     Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
+    // st_network->print();
     this->condition->get_transmission()->spread_infection(day, this->id, st_network);
     st_network->clear_infectious_people(this->id);
   } else {
@@ -607,7 +609,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
     }
     FRED_VERBOSE(1, "find_active_places_of_type %d person %d place %s\n", place_type, person->get_id(), place? place->get_label() : "NULL");
     if(place != NULL && person->is_present(day, place) && person->is_infectious(this->id)) {
-      FRED_VERBOSE(1, "add_infection_person %d place %s\n", person->get_id(), place->get_label());
+      FRED_VERBOSE(1, "ADD_INFECTIOUS_PERSON %d place %s\n", person->get_id(), place->get_label());
       place->add_infectious_person(this->id, person);
       this->active_places.insert(place);
     }

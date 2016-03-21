@@ -143,10 +143,11 @@ int Network::get_contact_count(Person* infector, int condition_id, int sim_day, 
 }
 
 void Network::print() {
+  int day = Global::Simulation_Day;
   char filename[64];
-  sprintf(filename, "%s/%s.txt", Global::Simulation_directory, get_label());
+  sprintf(filename, "%s/%s-%d.txt", Global::Simulation_directory, get_label(), day);
   FILE* link_fileptr = fopen(filename,"w");
-  sprintf(filename, "%s/%s-people.txt", Global::Simulation_directory, get_label());
+  sprintf(filename, "%s/%s-people-%d.txt", Global::Simulation_directory, get_label(), day);
   FILE* people_fileptr = fopen(filename,"w");
   int size = this->get_size();
   for(int i = 0; i < size; ++i) {

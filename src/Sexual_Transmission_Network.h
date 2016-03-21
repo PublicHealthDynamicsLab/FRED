@@ -39,8 +39,9 @@ public:
 
   void read_sexual_partner_file(char* sexual_partner_file);
 
+  void add_person_to_sexual_partner_network(Person* person);
+
 private:
-  int id;
   double sexual_contacts_per_day;
   double probability_of_transmission_per_contact;
 };

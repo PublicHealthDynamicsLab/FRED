@@ -72,7 +72,6 @@ public:
   void infect_random_nodes(double pct, Condition* condition);
 
 protected:
-  int id;
   double contacts_per_day;
   double** prob_transmission_per_contact;
 };

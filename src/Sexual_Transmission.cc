@@ -127,7 +127,7 @@ bool Sexual_Transmission::attempt_transmission(Person* infector, Person* infecte
   double r = Random::draw_random();
   if(r < infection_prob) {
     // successful transmission; create a new infection in infectee
-    infector->infect(infectee, condition_id, NULL, day);
+    infector->infect(infectee, condition_id, sexual_trans_network, day);
 
     FRED_VERBOSE(0, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
 

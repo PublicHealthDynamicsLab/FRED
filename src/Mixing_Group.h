@@ -374,6 +374,12 @@ public:
   }
 
 protected:
+  int id; // id
+  char label[32]; // external id
+  char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
+  char subtype;
+  int last_update;
+
   int N_orig;             // orig number of enrollees
 
   // lists of people
@@ -401,13 +407,6 @@ protected:
   fred::condition_bitset human_infectious_bitset;
   fred::condition_bitset recovered_bitset;
   fred::condition_bitset exposed_bitset;
-
-private:
-  int id; // id
-  char label[32]; // external id
-  char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
-  char subtype;
-  int last_update;
 };
 
 #endif /* _FRED_MIXING_GROUP_H_ */
