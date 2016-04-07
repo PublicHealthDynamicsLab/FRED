@@ -569,10 +569,10 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   for(int i = 0; i < this->counties.size(); ++i) {
     int fips = this->counties[i]->get_fips();
-    FRED_VERBOSE(0, "COUNTIES[%d] = %d\n", i, fips);
+    FRED_VERBOSE(0, "COUNTIES[%d] = %05d\n", i, fips);
   }
   for(int i = 0; i < this->census_tracts.size(); ++i) {
-    FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %ld\n", i, this->census_tracts[i]);
+    FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %011ld\n", i, this->census_tracts[i]);
   }
   // HOUSEHOLD in-place allocator
   Place::Allocator<Household> household_allocator;
@@ -776,7 +776,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
   }
 
   // read workplace locations
@@ -790,7 +790,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
   for(int i = 0; i < this->counties.size(); i++) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
   }
 
   // read hospital locations
@@ -810,7 +810,7 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING GQ\n");
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(Global::Statusfp, "COUNTIES[%d] = %d\n", i, this->counties[i]->get_fips());
+    fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
   }
 }
 
@@ -1220,7 +1220,7 @@ void Place_List::prepare() {
   sprintf(filename, "%s/VIS/COUNTIES", Global::Simulation_directory);
   FILE* fp = fopen(filename, "w");
   for(int i = 0; i < this->counties.size(); ++i) {
-    fprintf(fp, "%d\n", this->counties[i]->get_fips());
+    fprintf(fp, "%05d\n", this->counties[i]->get_fips());
   }
   fclose(fp);
 
@@ -1228,7 +1228,7 @@ void Place_List::prepare() {
   sprintf(filename, "%s/VIS/CENSUS_TRACTS", Global::Simulation_directory);
   fp = fopen(filename, "w");
   for(int i = 0; i < this->census_tracts.size(); ++i) {
-    fprintf(fp, "%ld\n", this->census_tracts[i]);
+    fprintf(fp, "%011ld\n", this->census_tracts[i]);
   }
   fclose(fp);
 
