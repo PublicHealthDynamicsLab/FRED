@@ -623,10 +623,10 @@ void Population::quality_control() {
   }
 
   if(Global::Verbose > 0) {
-    int n0, n5, n18, n65;
+    int n0, n5, n18, n50, n65;
     int count[20];
     int total = 0;
-    n0 = n5 = n18 = n65 = 0;
+    n0 = n5 = n18 = n50 = n65 = 0;
     // age distribution
     for(int c = 0; c < 20; ++c) {
       count[c] = 0;
@@ -639,9 +639,11 @@ void Population::quality_control() {
         n0++;
       } else if(a < 18) {
         n5++;
-      } else if(a < 65) {
+      } else if(a < 50) {
         n18++;
-      } else {
+      } else if(a < 65) {
+        n50++;
+      }else {
         n65++;
       }
       int n = a / 5;
@@ -659,7 +661,8 @@ void Population::quality_control() {
     }
     fprintf(Global::Statusfp, "AGE 0-4: %d %.2f%%\n", n0, (100.0 * n0) / total);
     fprintf(Global::Statusfp, "AGE 5-17: %d %.2f%%\n", n5, (100.0 * n5) / total);
-    fprintf(Global::Statusfp, "AGE 18-64: %d %.2f%%\n", n18, (100.0 * n18) / total);
+    fprintf(Global::Statusfp, "AGE 18-49: %d %.2f%%\n", n18, (100.0 * n18) / total);
+    fprintf(Global::Statusfp, "AGE 50-64: %d %.2f%%\n", n50, (100.0 * n50) / total);
     fprintf(Global::Statusfp, "AGE 65-100: %d %.2f%%\n", n65, (100.0 * n65) / total);
     fprintf(Global::Statusfp, "\n");
 

@@ -21,6 +21,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 using namespace std;

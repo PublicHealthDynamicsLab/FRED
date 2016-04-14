@@ -78,11 +78,14 @@ class Place;
 #define SCHL_SICK_DAYS_ABSENT "schl_sick_days_abs"
 
 #define TOT_EMP_DAYS_USED_FOR_CHILD "tot_emp_days_used_for_child"
+#define TOT_EMP_SL_DAYS_USED_FOR_CHILD "tot_emp_sl_days_used_for_child"
 #define TOT_EMP_DAYS_USED "tot_emp_days_used"
 #define TOT_EMP_MISS_WORK "tot_emp_miss_work"
 #define TOT_EMP_SICK_DAYS_USED "tot_emp_sl_days_used"
 #define TOT_EMP_USING_SICK_LEAVE "tot_emp_using_sl"
 #define TOT_EMP_SICK_DAYS_PRES "tot_emp_sl_days_pres"
+#define TOT_EMP_SYMP_WORKDAYS "tot_emp_symp_workdays"
+#define TOT_EMP_SYMP_NONWORKDAYS "tot_emp_symp_nonworkdays"
 
 namespace Activity_index {
   enum e {
@@ -543,6 +546,8 @@ public:
   
   Person* get_end_of_link(int n, Network* network);
 
+  static int get_index_of_sick_leave_dist(Person* per);
+
 private:
 
   // pointer to owner
@@ -615,10 +620,8 @@ private:
   static const int HH_INCOME_QTILE_DIST = 2;
   static int Sick_leave_dist_method;
   static std::vector<double> WP_size_sl_prob_vec;
+  static std::vector<double> WP_size_sl_days_vec;
   static std::vector<double> HH_income_qtile_sl_prob_vec;
-  static double WP_small_mean_sl_days_available;
-  static double WP_large_mean_sl_days_available;
-  static int WP_size_cutoff_sl_exception;
   static double HH_income_qtile_mean_sl_days_available;
 
   // Statistics for childhood presenteeism study
@@ -641,8 +644,6 @@ private:
   const char* get_daily_activity_location_label(int i);
   bool is_present(int sim_day, Place* place);
 
-  static int get_index_of_sick_leave_dist(Person* per);
-
 protected:
 
   /**
@@ -661,7 +662,10 @@ struct Activities_Tracking_Data {
   int total_employees_sick_leave_days_used;
   int total_employees_taking_sick_leave;
   int total_employees_sick_days_present;
+  int total_employees_symptomatic_workdays;
+  int total_employees_symptomatic_nonworkdays;
   double total_employees_days_used_for_child;
+  double total_employees_sl_days_used_for_child;
 
   int entered_school;
   int left_school;
@@ -676,6 +680,8 @@ struct Activities_Tracking_Data {
   vector<int> employees_taking_sick_leave_day_off;
   vector<int> employees_sick_days_present;
   vector<double> employees_days_used_for_child;
+  vector<double> employees_sl_days_used_for_child;
+  vector<int> employees_days_at_work_with_symp_child_at_home;
 
   Activities_Tracking_Data() {
     this->total_employees_days_used = 0;
@@ -683,7 +689,10 @@ struct Activities_Tracking_Data {
     this->total_employees_sick_leave_days_used = 0;
     this->total_employees_taking_sick_leave = 0;
     this->total_employees_sick_days_present = 0;
+    this->total_employees_symptomatic_workdays = 0;
+    this->total_employees_symptomatic_nonworkdays = 0;
     this->total_employees_days_used_for_child = 0.0;
+    this->total_employees_sl_days_used_for_child = 0.0;
 
     this->entered_school = 0;
     this->left_school = 0;
@@ -695,6 +704,8 @@ struct Activities_Tracking_Data {
     this->employees_taking_sick_leave_day_off.clear();
     this->employees_sick_days_present.clear();
     this->employees_days_used_for_child.clear();
+    this->employees_sl_days_used_for_child.clear();
+    this->employees_days_at_work_with_symp_child_at_home.clear();
   }
 };
 
