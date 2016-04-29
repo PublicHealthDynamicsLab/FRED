@@ -51,6 +51,7 @@ void Person::setup(int _index, int _id, int age, char sex,
   int myFIPS;
   this->index = _index;
   this->id = _id;
+  this->migrant = false;
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
