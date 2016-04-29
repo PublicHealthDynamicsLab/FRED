@@ -89,7 +89,7 @@ struct Condition_Count_Info {
   int tot_chldrn_evr_inf;
   int tot_chldrn_evr_sympt;
   int tot_sch_age_chldrn_evr_inf;
-  int tot_sch_age_chldrn_ever_sympt;
+  int tot_sch_age_chldrn_evr_sympt;
   int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
   int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
 
@@ -107,7 +107,7 @@ struct Condition_Count_Info {
     ss << " tot_chldrn_evr_inf " << tot_chldrn_evr_inf;
     ss << " tot_chldrn_evr_sympt " << tot_chldrn_evr_sympt;
     ss << " tot_sch_age_chldrn_evr_inf " << tot_sch_age_chldrn_evr_inf;
-    ss << " tot_sch_age_chldrn_ever_sympt " << tot_sch_age_chldrn_ever_sympt;
+    ss << " tot_sch_age_chldrn_evr_sympt " << tot_sch_age_chldrn_evr_sympt;
     ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
     ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
     ss << std::endl;
@@ -149,7 +149,6 @@ public:
   void report_place_of_infection(int day);
   void report_presenteeism(int day);
   void report_school_attack_rates_by_income_level(int day);
-  void report_infections_by_workplace_size(int day);
   void report_serial_interval(int day);
   void report_household_income_stratified_results(int day);
   void report_census_tract_stratified_results(int day);

@@ -160,15 +160,23 @@ Epidemic::Epidemic(Condition* dis) {
     }
   }
 
+  if(Global::Report_Presenteeism) {
+    //Values for childhood school income-based stratification
+    for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
+      this->workplace_size_infection_counts_map[i].tot_ppl_evr_sympt = 0;
+    }
+  }
+
   if(Global::Report_Childhood_Presenteeism) {
-    //    //Values for household census_tract based stratification
-    //    for(std::set<long int>::iterator census_tract_itr = Household::census_tract_set.begin();
-    //          census_tract_itr != Household::census_tract_set.end(); ++census_tract_itr) {
-    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_inf = 0;
-    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_ppl_evr_sympt = 0;
-    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_inf = 0;
-    //      this->census_tract_infection_counts_map[*census_tract_itr].tot_chldrn_evr_sympt = 0;
-    //    }
+    //Values for childhood school income-based stratification
+    for(int i = 0; i < 4; ++i) {
+      this->school_income_infection_counts_map[i].tot_chldrn_evr_inf = 0;
+      this->school_income_infection_counts_map[i].tot_sch_age_chldrn_evr_inf = 0;
+      this->school_income_infection_counts_map[i].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf = 0;
+      this->school_income_infection_counts_map[i].tot_chldrn_evr_sympt = 0;
+      this->school_income_infection_counts_map[i].tot_sch_age_chldrn_evr_sympt = 0;
+      this->school_income_infection_counts_map[i].tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt = 0;
+    }
   }
 
   this->daily_infections_list.reserve(Global::Pop.get_population_size());
@@ -413,7 +421,6 @@ void Epidemic::update(int day) {
     }
   }
   this->infectious_people = this->actually_infectious_people.size();
-  FRED_VERBOSE(1, "ACTUALLY INF SIZE day %d size %d\n", day, this->infectious_people);
   // Utils::fred_print_epidemic_timer("identifying actually infections people");
 
   // update the daily activities of infectious people
@@ -421,7 +428,7 @@ void Epidemic::update(int day) {
     Person* person = this->actually_infectious_people[i];
 
     if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
-      FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d to ST_Network\n", person->get_id());
+      FRED_VERBOSE(1, "ADDING_ACTUALLY INF person %d\n", person->get_id());
       // this will insert the infectious person onto the infectious list in sexual partner network
       Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
       st_network->add_infectious_person(this->id, person);
@@ -435,7 +442,6 @@ void Epidemic::update(int day) {
 
   if(strcmp("sexual", this->condition->get_transmission_mode()) == 0) {
     Sexual_Transmission_Network* st_network = Global::Sexual_Partner_Network;
-    // st_network->print();
     this->condition->get_transmission()->spread_infection(day, this->id, st_network);
     st_network->clear_infectious_people(this->id);
   } else {
@@ -609,7 +615,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
     }
     FRED_VERBOSE(1, "find_active_places_of_type %d person %d place %s\n", place_type, person->get_id(), place? place->get_label() : "NULL");
     if(place != NULL && person->is_present(day, place) && person->is_infectious(this->id)) {
-      FRED_VERBOSE(1, "ADD_INFECTIOUS_PERSON %d place %s\n", person->get_id(), place->get_label());
+      FRED_VERBOSE(1, "add_infection_person %d place %s\n", person->get_id(), place->get_label());
       place->add_infectious_person(this->id, person);
       this->active_places.insert(place);
     }
@@ -951,6 +957,15 @@ void Epidemic::become_symptomatic(Person* person, int day) {
     }
   }
 
+  if(Global::Report_Presenteeism) {
+    char wp_symp[30];
+    Workplace* wp = static_cast<Workplace*>(person->get_workplace());
+    int index = Activities::get_index_of_sick_leave_dist(person);
+    if(wp != NULL && index != -1) {
+      this->workplace_size_infection_counts_map[index].tot_ppl_evr_sympt++;
+    }
+  }
+
   if(Global::Report_Childhood_Presenteeism) {
     if(person->get_household() != NULL &&
        person->is_student() &&
@@ -960,7 +975,7 @@ void Epidemic::become_symptomatic(Person* person, int day) {
       int income_quartile = schl->get_income_quartile();
       if(person->is_child()) { //Already know person is student
         this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
-        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_ever_sympt++;
+        this->school_income_infection_counts_map[income_quartile].tot_sch_age_chldrn_evr_sympt++;
       }
 
       if(hh->has_school_aged_child_and_unemployed_adult()) {
@@ -1414,12 +1429,12 @@ void Epidemic::report_age_of_infection(int day) {
     }
     if(Global::Age_Of_Infection_Log_Level >= Global::LOG_LEVEL_MED) {
       for(int i = 0; i <= 20; ++i) {
-	char temp_str[10];
-	//Write to log file
-	sprintf(temp_str, "A%d", i * 5);
-	//Store for daily output file
-	track_value(day, temp_str, age_count[i]);
-	Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
+	      char temp_str[10];
+	      //Write to log file
+	      sprintf(temp_str, "A%d", i * 5);
+	      //Store for daily output file
+	      track_value(day, temp_str, age_count[i]);
+	      Utils::fred_log(" A%d_%d %d", i * 5, age_count[i], this->id);
       }
     }
     break;
@@ -1458,7 +1473,7 @@ void Epidemic::report_serial_interval(int day) {
     Person* infector = infectee->get_infector(id);
     if(infector != NULL) {
       int serial_interval = infectee->get_exposure_date(this->id)
-	- infector->get_exposure_date(this->id);
+	                           - infector->get_exposure_date(this->id);
       this->total_serial_interval += static_cast<double>(serial_interval);
       this->total_secondary_cases++;
     }
@@ -1826,15 +1841,6 @@ void Epidemic::report_distance_of_infection(int day) {
   track_value(day, (char*)"Dist", 1000 * ave_dist);
 }
 
-void Epidemic::report_infections_by_workplace_size(int day) {
-
-  //  //Workplace Size Delimiters (1-4, 5-9, 10-19, 20-49, 50-99, 100-499, >=500 workers).
-  //
-  //  // daily totals
-  // STUB for now
-}
-
-
 void Epidemic::report_presenteeism(int day) {
   // daily totals
   int infections_in_pop = 0;
@@ -1842,6 +1848,10 @@ void Epidemic::report_presenteeism(int day) {
   vector<int> presenteeism;
   vector<int> presenteeism_with_sl;
   int infections_at_work = 0;
+
+  infections.clear();
+  presenteeism.clear();
+  presenteeism_with_sl.clear();
 
   for(int i = 0; i <= Workplace::get_workplace_size_group_count(); ++i) {
     infections.push_back(0);
@@ -1899,6 +1909,7 @@ void Epidemic::report_presenteeism(int day) {
   //Store for daily output file
   for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
     char wp_inf[30];
+    char wp_symp[30];
     char wp_pres[30];
     char wp_pres_sl[30];
     char wp_n[30];
@@ -1914,6 +1925,8 @@ void Epidemic::report_presenteeism(int day) {
       Global::Daily_Tracker->set_index_key_pair(day, wp_pres_sl, presenteeism_with_sl[i]);
       sprintf(wp_n, "wp_%d_%d_n", min, max);
       Global::Daily_Tracker->set_index_key_pair(day, wp_n, Workplace::get_count_workers_by_workplace_size(i));
+      sprintf(wp_symp, "wp_%d_%d_tot_symp", min, max);
+      Global::Daily_Tracker->set_index_key_pair(day, wp_symp, this->workplace_size_infection_counts_map[i].tot_ppl_evr_sympt);
     } else {
       int min = (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1);
 
@@ -1925,6 +1938,8 @@ void Epidemic::report_presenteeism(int day) {
       Global::Daily_Tracker->set_index_key_pair(day, wp_pres_sl, presenteeism_with_sl[i]);
       sprintf(wp_n, "wp_%d_up_n", min);
       Global::Daily_Tracker->set_index_key_pair(day, wp_n, Workplace::get_count_workers_by_workplace_size(i));
+      sprintf(wp_symp, "wp_%d_up_tot_symp", min);
+      Global::Daily_Tracker->set_index_key_pair(day, wp_symp, this->workplace_size_infection_counts_map[i].tot_ppl_evr_sympt);
     }
   }
   Global::Daily_Tracker->set_index_key_pair(day, "presenteeism_tot", presenteeism_tot);

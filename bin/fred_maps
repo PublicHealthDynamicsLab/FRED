@@ -216,12 +216,37 @@ if ($google) {
     my $cmd = "gnuplot -e \' $opts \' $bindir/fred_make_bbox 2> fred_make_bbox.log";
     # print "$cmd\n";
     system $cmd;
-    `fred_get_googlemap $api_key $lightness 2> fred_get_googlemap.log`;
+    # fetch existing googlemap if possible
+    if (scalar @fips == 1 and ($xmin == 0) and ($xmax == 0) and ($ymin == 0) and ($ymax == 0)) {
+      my $mapname = "$fips[0].png";
+      chomp $mapname;
+      my $state = substr($mapname,0,2);
+      my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
+      my $statemapsdir = "$mapsdir/$state";
+      my $oldmap = "$statemapsdir/$mapname";
+      if (-e "$oldmap") {
+        system "echo cp $statemapsdir/$mapname googlemap.png > fred_get_googlemap.log";
+	system "cp $statemapsdir/$mapname googlemap.png";
+      } else {
+	`fred_get_googlemap $api_key $lightness 2> fred_get_googlemap.log`;
+      }
+    }
     # make sure googlemap.png exists
     if (not -e "googlemap.png") {
       `date > FAILED`;
       print "FAILED TO CREATE googlemap.png";
       exit;
+    }
+    # store this googlemap for future use
+    if (scalar @fips == 1) {
+      my $mapname = "$fips[0].png";
+      chomp $mapname;
+      my $state = substr($mapname,0,2);
+      my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
+      system "mkdir -p $mapsdir";
+      my $statemapsdir = "$mapsdir/$state";
+      system "mkdir -p $statemapsdir";
+      system "cp googlemap.png $statemapsdir/$mapname" if not -e "$statemapsdir/$mapname";
     }
   }
 }

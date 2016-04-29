@@ -124,10 +124,6 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
   // add self to birthday list
   Demographics::add_to_birthday_list(self);
 
-  if (Global::Test == 2) {
-    return;
-  }
-
   // will this person die in the next year?
   double age_specific_probability_of_death = 0.0;
   if(Demographics::MAX_AGE <= this->age) {

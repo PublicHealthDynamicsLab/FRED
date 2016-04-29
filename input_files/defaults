@@ -981,11 +981,8 @@ sick_day_prob = 0.5
 sick_leave_dist_method = 1
 
 wp_size_sl_prob_vec = 0
+wp_size_sl_days_vec = 0
 hh_income_qtile_sl_prob_vec = 0
-
-wp_small_mean_sl_days_available = 0.0
-wp_large_mean_sl_days_available = 0.0
-wp_size_cutoff_sl_exception = 0
 
 ## behavior if sick leave is available (SLA)
 SLA_absent_prob = 0.72

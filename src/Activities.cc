@@ -76,10 +76,8 @@ double Activities::Standard_sicktime_allocated_per_child = 0.0;
 
 int Activities::Sick_leave_dist_method = 0;
 std::vector<double> Activities::WP_size_sl_prob_vec;
+std::vector<double> Activities::WP_size_sl_days_vec;
 std::vector<double> Activities::HH_income_qtile_sl_prob_vec;
-double Activities::WP_small_mean_sl_days_available = 0.0;
-double Activities::WP_large_mean_sl_days_available = 0.0;
-int Activities::WP_size_cutoff_sl_exception = 0;
 double Activities::HH_income_qtile_mean_sl_days_available = 0.0;
 
 /// static method called in main (Fred.cc)
@@ -97,9 +95,6 @@ void Activities::initialize_static_variables() {
   Params::get_param_from_string("sick_day_prob", &Activities::Default_sick_day_prob);
   Params::get_param_from_string("SLA_absent_prob", &Activities::SLA_absent_prob);
   Params::get_param_from_string("SLU_absent_prob", &Activities::SLU_absent_prob);
-  Params::get_param_from_string("wp_small_mean_sl_days_available", &Activities::WP_small_mean_sl_days_available);
-  Params::get_param_from_string("wp_large_mean_sl_days_available", &Activities::WP_large_mean_sl_days_available);
-  Params::get_param_from_string("wp_size_cutoff_sl_exception", &Activities::WP_size_cutoff_sl_exception);
 
   Params::get_param_from_string("flu_days", &Activities::Flu_days);
   Params::get_param_from_string("prob_of_visiting_hospitalized_housemate", &Activities::Hospitalization_visit_housemate_prob);
@@ -110,6 +105,8 @@ void Activities::initialize_static_variables() {
     if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
       Params::get_param_vector((char*)"wp_size_sl_prob_vec", Activities::WP_size_sl_prob_vec);
       assert(static_cast<int>(Activities::WP_size_sl_prob_vec.size()) == Workplace::get_workplace_size_group_count());
+      Params::get_param_vector((char*)"wp_size_sl_days_vec", Activities::WP_size_sl_days_vec);
+      assert(static_cast<int>(Activities::WP_size_sl_days_vec.size()) == Workplace::get_workplace_size_group_count());
       for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
         Activities::Tracking_data.employees_with_sick_leave.push_back(0);
         Activities::Tracking_data.employees_without_sick_leave.push_back(0);
@@ -119,6 +116,8 @@ void Activities::initialize_static_variables() {
         Activities::Tracking_data.employees_taking_sick_leave_day_off.push_back(0);
         Activities::Tracking_data.employees_sick_days_present.push_back(0);
         Activities::Tracking_data.employees_days_used_for_child.push_back(0.0);
+        Activities::Tracking_data.employees_sl_days_used_for_child.push_back(0.0);
+        Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home.push_back(0);
       }
     } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
       Params::get_param_vector((char*)"hh_income_qtile_sl_prob_vec", Activities::HH_income_qtile_sl_prob_vec);
@@ -132,10 +131,15 @@ void Activities::initialize_static_variables() {
         Activities::Tracking_data.employees_taking_sick_leave_day_off.push_back(0);
         Activities::Tracking_data.employees_sick_days_present.push_back(0);
         Activities::Tracking_data.employees_days_used_for_child.push_back(0.0);
+        Activities::Tracking_data.employees_sl_days_used_for_child.push_back(0.0);
+        Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home.push_back(0);
       }
     } else {
       Utils::fred_abort("Invalid sick_leave_dist_method: %d", Activities::Sick_leave_dist_method);
     }
+  } else if(Activities::Enable_default_sick_behavior && Global::Report_Presenteeism) {
+    //Need to have something other than Default sick-leave behvavior for Presenteeism to work
+    Utils::fred_abort("Help! Can't have report presenteeism when default sick behavior is enabled\n");
   }
 
   if(Global::Enable_Hospitals) {
@@ -272,11 +276,7 @@ void Activities::initialize_sick_leave() {
               }
             }
           }
-          if(workplace_size <= Activities::WP_size_cutoff_sl_exception) {
-            this->sick_days_remaining = Activities::WP_small_mean_sl_days_available + Activities::Flu_days;
-          } else {
-            this->sick_days_remaining = Activities::WP_large_mean_sl_days_available + Activities::Flu_days;
-          }
+          this->sick_days_remaining = Activities::WP_size_sl_days_vec[index] + Activities::Flu_days;
         } else {
           Activities::Tracking_data.employees_without_sick_leave[index]++;
         }
@@ -356,6 +356,8 @@ void Activities::report(int day) {
     Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SICK_DAYS_USED, Activities::Tracking_data.total_employees_sick_leave_days_used);
     Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_USING_SICK_LEAVE, Activities::Tracking_data.total_employees_taking_sick_leave);
     Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SICK_DAYS_PRES, Activities::Tracking_data.total_employees_sick_days_present);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SYMP_WORKDAYS, Activities::Tracking_data.total_employees_symptomatic_workdays);
+    Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SYMP_NONWORKDAYS, Activities::Tracking_data.total_employees_symptomatic_nonworkdays);
 
     for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
       char wp_emp_days_used[50];
@@ -397,26 +399,34 @@ void Activities::report(int day) {
   if(Global::Report_Childhood_Presenteeism) {
      //Store for daily output file
      Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_DAYS_USED_FOR_CHILD, Activities::Tracking_data.total_employees_days_used_for_child);
+     Global::Daily_Tracker->set_index_key_pair(day, TOT_EMP_SL_DAYS_USED_FOR_CHILD, Activities::Tracking_data.total_employees_sl_days_used_for_child);
      for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
        char wp_emp_days_used_for_child[50];
+       char wp_emp_sl_days_used_for_child[50];
+       char wp_emp_days_at_work_with_symp_child_at_home[50];
 
        if(i == 0 || (i + 1 < Workplace::get_workplace_size_group_count())) {
          int min = (i > 0 ? (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1) : 0);
          int max = Workplace::get_workplace_size_max_by_group_id(i);
 
-         sprintf(wp_emp_days_used_for_child, "wp_%d_%d_up_emp_days_used_for_child", min, max);
+         sprintf(wp_emp_days_used_for_child, "wp_%d_%d_emp_days_used_for_child", min, max);
          Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used_for_child, Activities::Tracking_data.employees_days_used_for_child[i]);
-
+         sprintf(wp_emp_sl_days_used_for_child, "wp_%d_%d_emp_sl_days_used_for_child", min, max);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sl_days_used_for_child, Activities::Tracking_data.employees_sl_days_used_for_child[i]);
+         sprintf(wp_emp_days_at_work_with_symp_child_at_home, "wp_%d_%d_emp_days_at_work_with_symp_child_at_home", min, max);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_at_work_with_symp_child_at_home, Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home[i]);
        } else {
          int min = (Workplace::get_workplace_size_max_by_group_id(i - 1) + 1);
 
          sprintf(wp_emp_days_used_for_child, "wp_%d_up_emp_days_used_for_child", min);
          Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_used_for_child, Activities::Tracking_data.employees_days_used_for_child[i]);
+         sprintf(wp_emp_sl_days_used_for_child, "wp_%d_up_emp_sl_days_used_for_child", min);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_sl_days_used_for_child, Activities::Tracking_data.employees_sl_days_used_for_child[i]);
+         sprintf(wp_emp_days_at_work_with_symp_child_at_home, "wp_%d_up_emp_days_at_work_with_symp_child_at_home", min);
+         Global::Daily_Tracker->set_index_key_pair(day, wp_emp_days_at_work_with_symp_child_at_home, Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home[i]);
        }
      }
    }
-
-
 }
 
 void Activities::assign_initial_profile() {
@@ -611,6 +621,20 @@ void Activities::update_schedule(int sim_day) {
       }
       if(get_workplace() != NULL) {
         this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = true;
+        // Determine if I have any children at home who are sick
+        if(Global::Report_Childhood_Presenteeism) {
+          Household* hh = static_cast<Household*>(this->get_household());
+          if(this->myself->is_adult() && !this->myself->is_student() && hh != NULL) {
+            vector<Person*> people = hh->get_inhabitants();
+            for(int i = 0; i < static_cast<int>(people.size()); ++i) {
+              if(people[i]->is_child() && people[i]->is_symptomatic()) {
+                int index = Activities::get_index_of_sick_leave_dist(this->myself);
+                Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home[index]++;
+                break;
+              }
+            }
+          }
+        }
       }
       if(get_office() != NULL) {
         this->on_schedule[Activity_index::OFFICE_ACTIVITY] = true;
@@ -619,6 +643,20 @@ void Activities::update_schedule(int sim_day) {
       if(this->profile == WEEKEND_WORKER_PROFILE || this->profile == STUDENT_PROFILE) {
         if(get_workplace() != NULL) {
           this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = true;
+          // Determine if I have any children at home who are sick
+          if(Global::Report_Childhood_Presenteeism) {
+            Household* hh = static_cast<Household*>(this->get_household());
+            if(this->myself->is_adult() && !this->myself->is_student() && hh != NULL) {
+              vector<Person*> people = hh->get_inhabitants();
+              for(int i = 0; i < static_cast<int>(people.size()); ++i) {
+                if(people[i]->is_child() && people[i]->is_symptomatic()) {
+                  int index = Activities::get_index_of_sick_leave_dist(this->myself);
+                  Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home[index]++;
+                  break;
+                }
+              }
+            }
+          }
         }
         if(get_office() != NULL) {
           this->on_schedule[Activity_index::OFFICE_ACTIVITY] = true;
@@ -627,6 +665,20 @@ void Activities::update_schedule(int sim_day) {
         if(Random::draw_random() < 0.4) {
           if(get_workplace() != NULL) {
             this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] = true;
+            // Determine if I have any children at home who are sick
+            if(Global::Report_Childhood_Presenteeism) {
+              Household* hh = static_cast<Household*>(this->get_household());
+              if(this->myself->is_adult() && !this->myself->is_student() && hh != NULL) {
+                vector<Person*> people = hh->get_inhabitants();
+                for(int i = 0; i < static_cast<int>(people.size()); ++i) {
+                  if(people[i]->is_child() && people[i]->is_symptomatic()) {
+                    int index = Activities::get_index_of_sick_leave_dist(this->myself);
+                    Activities::Tracking_data.employees_days_at_work_with_symp_child_at_home[index]++;
+                    break;
+                  }
+                }
+              }
+            }
           }
           if(get_office() != NULL) {
             this->on_schedule[Activity_index::OFFICE_ACTIVITY] = true;
@@ -705,6 +757,18 @@ void Activities::update_schedule(int sim_day) {
       }
     }
   }
+
+  //Get the count of workers symptomatic days that they are and aren't supposed to be at work
+  if(Global::Report_Childhood_Presenteeism) {
+    if(get_workplace() != NULL && this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] &&
+       this->myself->is_adult() && !this->myself->is_student() && this->myself->is_symptomatic()) {
+      Activities::Tracking_data.total_employees_symptomatic_workdays++;
+    } else if(get_workplace() != NULL && !this->on_schedule[Activity_index::WORKPLACE_ACTIVITY] &&
+        this->myself->is_adult() && !this->myself->is_student() && this->myself->is_symptomatic()) {
+      Activities::Tracking_data.total_employees_symptomatic_nonworkdays++;
+    }
+  }
+
   FRED_STATUS(1, "update_schedule on day %d\n%s\n", sim_day, schedule_to_string(sim_day).c_str());
 }
 
@@ -730,8 +794,9 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
                 //Want to make sure that tomorrow I roll against the SLU_absent_prob
                 this->my_sick_leave_decision_has_been_made = false;
                 if(stay_home) {
-                  Activities::Tracking_data.employees_days_used[index]++;
+                  Activities::Tracking_data.total_employees_sick_leave_days_used++;
                   Activities::Tracking_data.employees_sick_leave_days_used[index]++;
+                  Activities::Tracking_data.employees_days_used[index]++;
                 } else {
                   Activities::Tracking_data.employees_sick_days_present[index]++;
                 }
@@ -749,8 +814,8 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
               stay_home = this->my_sick_leave_decision;
               if(stay_home) {
                 Activities::Tracking_data.total_employees_sick_leave_days_used++;
-                Activities::Tracking_data.employees_days_used[index]++;
                 Activities::Tracking_data.employees_sick_leave_days_used[index]++;
+                Activities::Tracking_data.employees_days_used[index]++;
               } else {
                 Activities::Tracking_data.employees_sick_days_present[index]++;
               }
@@ -875,9 +940,24 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
               if(my_hh->have_working_adult_use_sickleave_for_child((*itr), this->myself)) {
                 stay_home = true;
                 int index = Activities::get_index_of_sick_leave_dist((*itr));
-                (*itr)->get_activities()->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
-                Activities::Tracking_data.total_employees_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
-                Activities::Tracking_data.employees_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
+                if((*itr)->get_activities()->sick_leave_available) {
+                  if((*itr)->get_activities()->sick_days_remaining >= Activities::Standard_sicktime_allocated_per_child) {
+                    (*itr)->get_activities()->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.total_employees_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.employees_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.total_employees_sl_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.employees_sl_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
+                  } else {
+                    Activities::Tracking_data.total_employees_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.employees_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
+                    Activities::Tracking_data.total_employees_sl_days_used_for_child += (*itr)->get_activities()->sick_leave_available;
+                    Activities::Tracking_data.employees_sl_days_used_for_child[index] += (*itr)->get_activities()->sick_leave_available;
+                  }
+                } else {
+                  (*itr)->get_activities()->sick_days_remaining -= Activities::Standard_sicktime_allocated_per_child;
+                  Activities::Tracking_data.total_employees_days_used_for_child += Activities::Standard_sicktime_allocated_per_child;
+                  Activities::Tracking_data.employees_days_used_for_child[index] += Activities::Standard_sicktime_allocated_per_child;
+                }
                 my_hh->set_working_adult_using_sick_leave(true);
                 break;
               }
@@ -902,12 +982,12 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
 
   //Update the counters for how many sick days used
 
-  // record work absent/present decision if it is a workday
+  // record work absent/present decision if it is a work day
   if(Global::Report_Presenteeism && it_is_a_workday) {
-    if(stay_home) {
+    if(stay_home && this->myself->is_adult() && !this->myself->is_student()) {
       Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
       Activities::Tracking_data.total_employees_days_used++;
-    } else {
+    } else if(!stay_home && this->myself->is_adult() && !this->myself->is_student()) {
       Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_PRESENT, 1);
       Activities::Tracking_data.total_employees_sick_days_present++;
     }
