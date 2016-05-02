@@ -574,6 +574,9 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   for(int i = 0; i < this->census_tracts.size(); ++i) {
     FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %011ld\n", i, this->census_tracts[i]);
   }
+
+  if (Global::Test != 7) {
+
   // HOUSEHOLD in-place allocator
   Place::Allocator<Household> household_allocator;
   household_allocator.reserve(this->place_type_counts[Place::TYPE_HOUSEHOLD]);
@@ -682,6 +685,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   add_preallocated_places<School>(Place::TYPE_SCHOOL, school_allocator);
   add_preallocated_places<Workplace>(Place::TYPE_WORKPLACE, workplace_allocator);
   add_preallocated_places<Hospital>(Place::TYPE_HOSPITAL, hospital_allocator);
+  }
 
   FRED_STATUS(0, "finished reading %d locations, now creating additional FRED locations\n", next_place_id);
 
