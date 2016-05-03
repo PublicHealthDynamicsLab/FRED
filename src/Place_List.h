@@ -48,8 +48,8 @@ typedef std::unordered_map<std::string, int> LabelMapT;
 class Place_Init_Data;
 
 class Place_List {
-  typedef std::set<Place_Init_Data> InitSetT;
-  typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
+  typedef std::vector<Place_Init_Data> InitSetT;
+  // typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
   typedef std::map<char, std::string> TypeNameMapT;
   typedef std::map<int, int> HospitalIDCountMapT;

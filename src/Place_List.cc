@@ -1025,13 +1025,10 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
 	this->fips_to_census_tract_map[census_tract] = this->census_tracts.size() - 1;
       }
 
-      SetInsertResultT result = pids.insert(
-					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
-							    tokens[longitude], deme_id, census_tract, tokens[hh_income]));
-
-      if(result.second) {
-        ++(this->place_type_counts[place_type]);
-      }
+      pids.push_back(
+		     Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
+				     tokens[longitude], deme_id, census_tract, tokens[hh_income]));
+      ++(this->place_type_counts[place_type]);
     }
     tokens.clear();
   }
@@ -1099,12 +1096,10 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file,
 
       sprintf(s, "%c%s", place_type, tokens[workplace_id]);
 
-      SetInsertResultT result = pids.insert(
+      pids.push_back(
 					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
 
-      if(result.second) {
-        ++(this->place_type_counts[place_type]);
-      }
+      ++(this->place_type_counts[place_type]);
     }
     tokens.clear();
   }
@@ -1198,11 +1193,9 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file, 
       tempPlace.bed_cnt = bed_count;
       tempPlace.physician_cnt = physician_count;
 
-      SetInsertResultT result = pids.insert(tempPlace);
+      pids.push_back(tempPlace);
 
-      if(result.second) {
-        ++(this->place_type_counts[place_type]);
-      }
+      ++(this->place_type_counts[place_type]);
     }
     tokens.clear();
   }
@@ -1316,14 +1309,12 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
       // place type
       sprintf(s, "%c%s", place_type, tokens[school_id]);
 
-      SetInsertResultT result = pids.insert(
+      pids.push_back(
 					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, fips));
 
-      if(result.second) {
         ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| fips %ld\n", s, place_type, result.first->lat,
-		     result.first->lon, tokens[name], fips);
-      }
+        FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| fips %ld\n", s, place_type, pids.back().lat,
+		     pids.back().lon, tokens[name], fips);
     }
     tokens.clear();
   }
@@ -1357,7 +1348,6 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
     if(strcmp(tokens[gq_id], "gq_id") != 0 && strcmp(tokens[gq_id], "sp_id") != 0) {
       char s[80];
       char wp[80];
-      SetInsertResultT result;
       char place_type;
       char place_subtype = Place::SUBTYPE_NONE;
 
@@ -1406,36 +1396,30 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       place_type = Place::TYPE_WORKPLACE;
       sprintf(wp, "%c%s", place_type, tokens[gq_id]);
 
-      result = pids.insert(
+      pids.push_back(
 			   Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
 					   tokens[longitude], deme_id, census_tract, "0", true));
 
-      if(result.second) {
-        ++(this->place_type_counts[place_type]);
-      }
+      ++(this->place_type_counts[place_type]);
 
       // add as household
       place_type = Place::TYPE_HOUSEHOLD;
       sprintf(s, "%c%s", place_type, tokens[gq_id]);
-      result = pids.insert(
+      pids.push_back(
 			   Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
 					   tokens[longitude], deme_id, census_tract,
 					   "0", true, 0, number_of_units, tokens[gq_type], wp));
-      if(result.second) {
-        ++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s type %c size %d lat %f lon %f\n", s, place_type, capacity,
-		     result.first->lat, result.first->lon);
-      }
+      ++(this->place_type_counts[place_type]);
+      FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s type %c size %d lat %f lon %f\n", s, place_type, capacity,
+		   pids.back().lat, pids.back().lon);
 
       // generate additional household units associated with this group quarters
       for(int i = 1; i < number_of_units; ++i) {
         sprintf(s, "%c%s-%03d", place_type, tokens[gq_id], i);
-        result = pids.insert(
+        pids.push_back(
 			     Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id,
 					     census_tract, "0", true, 0, 0, tokens[gq_type], wp));
-        if(result.second) {
-          ++(this->place_type_counts[place_type]);
-        }
+	++(this->place_type_counts[place_type]);
         FRED_VERBOSE(1, "Adding GQ Household %s out of %d units\n", s, number_of_units);
       }
     }
