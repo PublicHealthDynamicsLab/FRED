@@ -1752,12 +1752,20 @@ Place* Place_List::add_place(int id, char* label, char type, char subtype, fred:
     place = new Workplace(label, subtype, lon, lat);
     break;
     
+  case 'O':
+    place = new Office(label, subtype, lon, lat);
+    break;
+    
   case 'N':
     place = new Neighborhood(label, subtype, lon, lat);
     break;
 
   case 'S':
     place = new School(label, subtype, lon, lat);
+    break;
+    
+  case 'C':
+    place = new Classroom(label, subtype, lon, lat);
     break;
     
   case 'M':
@@ -1985,30 +1993,37 @@ void Place_List::setup_households() {
 
 void Place_List::setup_classrooms() {
 
-  FRED_STATUS(0, "setup classrooms entered\n", "");
-
+  FRED_STATUS(0, "setup classrooms entered\n");
+  
   int number_classrooms = 0;
   int number_schools = this->schools.size();
 
-  for(int p = 0; p < number_schools; ++p) {
-    School* school = get_school_ptr(p);
-    number_classrooms += school->get_number_of_rooms();
+  if (Global::Test==7) {
+    for(int p = 0; p < number_schools; ++p) {
+      School* school = get_school_ptr(p);
+      school->setup_classrooms();
+    }
+  }
+  else {
+    for(int p = 0; p < number_schools; ++p) {
+      School* school = get_school_ptr(p);
+      number_classrooms += school->get_number_of_rooms();
+    }
+    Place::Allocator<Classroom> classroom_allocator;
+    classroom_allocator.reserve(number_classrooms);
+
+    FRED_STATUS(0, "Allocating space for %d classrooms in %d schools (out of %d total places)\n",
+		number_classrooms, number_schools, get_number_of_places());
+
+    for(int p = 0; p < number_schools; ++p) {
+      School* school = get_school_ptr(p);
+      school->setup_classrooms(classroom_allocator);
+    }
+
+    add_preallocated_places<Classroom>(Place::TYPE_CLASSROOM, classroom_allocator);
   }
 
-  Place::Allocator<Classroom> classroom_allocator;
-  classroom_allocator.reserve(number_classrooms);
-
-  FRED_STATUS(0, "Allocating space for %d classrooms in %d schools (out of %d total places)\n",
-	      number_classrooms, number_schools, get_number_of_places());
-
-  for(int p = 0; p < number_schools; ++p) {
-    School* school = get_school_ptr(p);
-    school->setup_classrooms(classroom_allocator);
-  }
-
-  add_preallocated_places<Classroom>(Place::TYPE_CLASSROOM, classroom_allocator);
-
-  FRED_STATUS(0, "setup classrooms finished\n", "");
+  FRED_STATUS(0, "setup classrooms finished\n");
 }
 
 void Place_List::reassign_workers() {

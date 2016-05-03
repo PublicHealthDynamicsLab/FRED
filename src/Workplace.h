@@ -79,6 +79,7 @@ public:
   /**
    * Setup the offices within this Workplace
    */
+  void setup_offices();
   void setup_offices(Allocator<Office> &office_allocator);
 
   /**

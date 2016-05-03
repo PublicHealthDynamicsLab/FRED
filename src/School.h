@@ -82,6 +82,7 @@ public:
   void print(int condition);
   int get_number_of_rooms();
   // int get_number_of_classrooms() { return (int) classrooms.size(); }
+  void setup_classrooms();
   void setup_classrooms(Allocator<Classroom> &classroom_allocator);
   Place* select_classroom_for_student(Person* per);
   int get_number_of_students() { 
