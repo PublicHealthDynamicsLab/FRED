@@ -78,6 +78,14 @@ void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
   vector_control_status = 0;
 }
 
+void Neighborhood_Patch::make_neighborhood() {
+  char label[80];
+  sprintf(label, "N-%04d-%04d", this->row, this->col);
+  fred::geo lat = Geo::get_latitude(this->center_y);
+  fred::geo lon = Geo::get_longitude(this->center_x);
+  this->neighborhood = Global::Places.add_place(0, label, Place::TYPE_NEIGHBORHOOD, Place::SUBTYPE_NONE, lon, lat);
+}
+
 void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator) {
   char str[80];
   sprintf(str, "N-%04d-%04d", this->row, this->col);

@@ -92,6 +92,26 @@ Neighborhood_Layer::Neighborhood_Layer() {
   Params::get_param_from_string("home_neighborhood_prob", &this->Home_neighborhood_prob);
 }
 
+void Neighborhood_Layer::setup() {
+  // create one neighborhood per patch
+  for(int i = 0; i < this->rows; i++) {
+    for(int j = 0; j < this->cols; j++) {
+      if(this->grid[i][j].get_houses() > 0) {
+        this->grid[i][j].make_neighborhood();
+      }
+    }
+  }
+
+  if(Global::Verbose > 1) {
+    for(int i = 0; i < this->rows; i++) {
+      for(int j = 0; j < this->cols; j++) {
+        printf("print grid[%d][%d]:\n", i, j);
+        this->grid[i][j].print();
+      }
+    }
+  }
+}
+
 void Neighborhood_Layer::setup(Place::Allocator<Neighborhood> & neighborhood_allocator) {
   // create one neighborhood per patch
   for(int i = 0; i < this->rows; i++) {

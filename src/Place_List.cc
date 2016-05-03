@@ -572,7 +572,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     FRED_VERBOSE(0, "COUNTIES[%d] = %05d\n", i, fips);
   }
   for(int i = 0; i < this->census_tracts.size(); ++i) {
-    FRED_VERBOSE(1, "CENSUS_TRACTS[%d] = %011ld\n", i, this->census_tracts[i]);
+    FRED_VERBOSE(0, "CENSUS_TRACTS[%d] = %011ld\n", i, this->census_tracts[i]);
   }
 
   if (Global::Test != 7) {
@@ -641,11 +641,11 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
       }
       this->households.push_back(h);
       //FRED_VERBOSE(9, "pushing household %s\n", s);
+    } else if(place_type == Place::TYPE_WORKPLACE) {
+      place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat);
     } else if(place_type == Place::TYPE_SCHOOL) {
       place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat);
       place->set_census_tract_fips(census_tract_fips);
-    } else if(place_type == Place::TYPE_WORKPLACE) {
-      place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat);
     } else if(place_type == Place::TYPE_HOSPITAL) {
       place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat);
       Hospital* hosp = static_cast<Hospital*>(place);
@@ -711,6 +711,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   Global::Neighborhoods = new Neighborhood_Layer();
 
   // add households to the Neighborhoods Layer
+  FRED_VERBOSE(0, "adding %d households to neighborhoods\n", this->households.size());
   for(int i = 0; i < this->households.size(); ++i) {
     Household* h = this->get_household_ptr(i);
     int row = Global::Neighborhoods->get_row(h->get_latitude());
@@ -727,6 +728,13 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   }
 
   int number_of_neighborhoods = Global::Neighborhoods->get_number_of_neighborhoods();
+
+  if (Global::Test == 7) {
+    // Neighborhood_Layer::setup call Neighborhood_Patch::make_neighborhood
+    Global::Neighborhoods->setup();
+    FRED_VERBOSE(0, "Created %d neighborhgoods\n", this->neighborhoods.size());
+  }
+  else {
   // create allocator for neighborhoods
   Place::Allocator<Neighborhood> neighborhood_allocator;
   // reserve enough space for all neighborhoods
@@ -736,6 +744,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   Global::Neighborhoods->setup(neighborhood_allocator);
   // add Neighborhoods in one contiguous block
   add_preallocated_places<Neighborhood>(Place::TYPE_NEIGHBORHOOD, neighborhood_allocator);
+  }
 
   int number_places = (int)places.size();
   for(int p = 0; p < number_places; ++p) {
@@ -783,18 +792,9 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
 
 
   // log county info
-  fprintf(Global::Statusfp, "COUNTIES AFTER READING HOUSEHOLDS\n");
+
   for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
-  }
-
-  // read workplace locations
-  sprintf(location_file, "%s/%s/%s_workplaces.txt", pop_dir, pop_id, pop_id);
-  if (Global::Test==7) {
-    read_workplace_file(deme_id, location_file);
-  }
-  else {
-    read_workplace_file(deme_id, location_file, pids);
   }
 
   // read school locations
@@ -810,6 +810,15 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
   for(int i = 0; i < this->counties.size(); i++) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
+  }
+
+  // read workplace locations
+  sprintf(location_file, "%s/%s/%s_workplaces.txt", pop_dir, pop_id, pop_id);
+  if (Global::Test==7) {
+    read_workplace_file(deme_id, location_file);
+  }
+  else {
+    read_workplace_file(deme_id, location_file, pids);
   }
 
   // read hospital locations
@@ -925,15 +934,14 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
       this->fips_to_county_map[county_fips] = this->counties.size() - 1;
     }
       
-    printf("county = %d census_tract = %ld\n", county_fips, census_tract);
+    // printf("county = %d census_tract = %ld\n", county_fips, census_tract);
 
     // household race and income
     Household* p = static_cast<Household*>(place);
     sscanf(tokens[race_field], "%d", &race); 
-    p->set_household_income(income);
-	  
-    sscanf(tokens[income_field], "%d", &income); 
     p->set_household_race(race);
+    sscanf(tokens[income_field], "%d", &income); 
+    p->set_household_income(income);
   }
   fclose(fp);
 }
@@ -1821,6 +1829,8 @@ bool Place_List::add_place(Place* p) {
     if(p->is_school()) {
       this->schools.push_back(p);
     }
+    FRED_VERBOSE(0, "add_place %d lab %s type %c sub %c lat %f lon %f\n",
+		 p->get_id(), p->get_label(), p->get_type(), p->get_subtype(), p->get_latitude(), p->get_longitude());
     return true;
   } else {
     printf("WARNING: duplicate place label found: ");

@@ -35,6 +35,7 @@ public:
   Neighborhood_Layer();
   ~Neighborhood_Layer() {}
 
+  void setup();
   void setup( Place::Allocator< Neighborhood > & neighborhood_allocator );
 
   /**

@@ -359,6 +359,8 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
+  Place* add_place(int id, char* label, char type, char subtype, fred::geo lon, fred::geo lat);
+
 private:
 
   // lists of places by type
@@ -369,8 +371,6 @@ private:
   place_vector_t schools_by_grade[GRADES];
   place_vector_t workplaces;
   place_vector_t hospitals;
-
-  Place* add_place(int id, char* label, char type, char subtype, fred::geo lon, fred::geo lat);
 
   void read_household_file(unsigned char deme_id, char* location_file);
   void read_workplace_file(unsigned char deme_id, char* location_file);

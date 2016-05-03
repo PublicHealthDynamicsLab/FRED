@@ -72,6 +72,7 @@ public:
   /**
    * Setup the neighborhood in this Neighborhood_Patch
    */
+  void make_neighborhood();
   void make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator);
 
   /**
