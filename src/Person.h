@@ -517,8 +517,8 @@ public:
     return this->exposed_household_index;
   }
 
-  void set_exposed_household(int index_) {
-    this->exposed_household_index = index_;
+  void set_exposed_household(int _index) {
+    this->exposed_household_index = _index;
   }
 
   Place* get_permanent_household() {

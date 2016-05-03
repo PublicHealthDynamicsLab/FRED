@@ -52,7 +52,6 @@ class Place_List {
   typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
   typedef std::map<char, int> TypeCountsMapT;
   typedef std::map<char, std::string> TypeNameMapT;
-  typedef std::map<std::string, int> HouseholdHospitalIDMapT;
   typedef std::map<int, int> HospitalIDCountMapT;
 
 public:
@@ -107,9 +106,8 @@ public:
    * @param sim_day the simulation day
    * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
    * @param check_insurance whether or not to use the agent's insurance in the matching
-   * @param use_search_radius_limit whether or not to cap the search radius
    */
-  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit);
+  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance);
 
   /**
    * Uses a gravity model to find a random open healthcare location given the search parameters.
@@ -187,10 +185,9 @@ public:
   County* get_county(int fips) {
     std::map<int,int>::iterator itr;
     itr = this->fips_to_county_map.find(fips);
-    if (itr == fips_to_county_map.end()) {
+    if (itr == this->fips_to_county_map.end()) {
       return NULL;
-    }
-    else {
+    } else {
       return this->counties[itr->second];
     }
   }
@@ -275,7 +272,7 @@ public:
   }
   
   int get_number_of_households() {
-    return (int) this->households.size();
+    return (int)this->households.size();
   }
 
   Place* get_household(int i) {
@@ -287,7 +284,7 @@ public:
   }
   
   int get_number_of_neighborhoods() {
-    return (int) this->neighborhoods.size();
+    return (int)this->neighborhoods.size();
   }
 
   Place* get_neighborhood(int i) {
@@ -311,7 +308,7 @@ public:
   }
   
   int get_number_of_workplaces() {
-    return (int) this->workplaces.size();
+    return (int)this->workplaces.size();
   }
 
   Place* get_workplace(int i) {
@@ -323,7 +320,7 @@ public:
   }
 
   int get_number_of_hospitals() {
-    return (int) this->hospitals.size();
+    return (int)this->hospitals.size();
   }
 
   Place* get_hospital(int i) {
@@ -416,6 +413,8 @@ private:
   // map from fips code to census tract
   std::map<long int,int> fips_to_census_tract_map;
 
+  static bool Static_variables_set;
+
   // mean size of "household" associated with group quarters
   static double College_dorm_mean_size;
   static double Military_barracks_mean_size;
@@ -483,7 +482,8 @@ private:
   void evacuate_household(Household* h);
 
   // For hospitalization
-  HouseholdHospitalIDMapT household_hospital_map;
+  std::map<std::string, std::string>  hh_lbl_hosp_lbl_map;
+  std::map<std::string, int>  hosp_lbl_hosp_id_map;
 
   void set_number_of_demes(int n) {
     this->number_of_demes = n;
@@ -553,6 +553,10 @@ struct Place_Init_Data {
   char gq_type[8];
   char gq_workplace[32];
 
+  //Temporary additions for Hospital read-in
+  int physician_cnt;
+  int bed_cnt;
+
   void setup(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
 	     unsigned char _deme_id, long int _fips, const char* _income, bool _is_group_quarters,
 	     int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
@@ -576,6 +580,9 @@ struct Place_Init_Data {
     group_quarters_units = _group_quarters_units;
     strcpy(gq_type, _gq_type);
     strcpy(gq_workplace, _gq_workplace);
+
+    physician_cnt = 0;
+    bed_cnt = 0;
   }
 
   Place_Init_Data(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,

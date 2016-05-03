@@ -56,6 +56,8 @@ using namespace std;
 
 typedef std::map<int, int> HospitalIDCountMapT;
 
+bool Place_List::Static_variables_set = false;
+
 // mean size of "household" associated with group quarters
 double Place_List::College_dorm_mean_size = 3.5;
 double Place_List::Military_barracks_mean_size = 12;
@@ -127,78 +129,90 @@ void Place_List::init_place_type_name_lookup_map() {
 
 void Place_List::get_parameters() {
 
-  // get static parameters for all place subclasses
-  Household::get_parameters();
-  Neighborhood::get_parameters();
-  School::get_parameters();
-  Classroom::get_parameters();
-  Workplace::get_parameters();
-  Office::get_parameters();
-  Hospital::get_parameters();
+  if(!Place_List::Static_variables_set) {
 
-  Params::get_param_from_string("enable_copy_files", &Place_List::Enable_copy_files);
+    // get static parameters for all place subclasses
+    Household::get_parameters();
+    Neighborhood::get_parameters();
+    School::get_parameters();
+    Classroom::get_parameters();
+    Workplace::get_parameters();
+    Office::get_parameters();
+    Hospital::get_parameters();
 
-  // geography
-  Params::get_param_from_string("msa_file", Place_List::MSA_file);
-  Params::get_param_from_string("counties_file", Place_List::Counties_file);
-  Params::get_param_from_string("states_file", Place_List::States_file);
+    Params::get_param_from_string("enable_copy_files", &Place_List::Enable_copy_files);
 
-  // population parameters
-  Params::get_param_from_string("synthetic_population_directory", Global::Synthetic_population_directory);
-  Params::get_param_from_string("synthetic_population_id", Global::Synthetic_population_id);
-  Params::get_param_from_string("synthetic_population_version", Global::Synthetic_population_version);
-  Params::get_param_from_string("city", Global::City);
-  Params::get_param_from_string("county", Global::County);
-  Params::get_param_from_string("state", Global::US_state);
-  Params::get_param_from_string("fips", Global::FIPS_code);
-  Params::get_param_from_string("msa", Global::MSA_code);
+    // geography
+    Params::get_param_from_string("msa_file", Place_List::MSA_file);
+    Params::get_param_from_string("counties_file", Place_List::Counties_file);
+    Params::get_param_from_string("states_file", Place_List::States_file);
 
-  if(Global::Enable_Group_Quarters) {
-    // group quarter parameters
-    Params::get_param_from_string("college_dorm_mean_size", &Place_List::College_dorm_mean_size);
-    Params::get_param_from_string("military_barracks_mean_size", &Place_List::Military_barracks_mean_size);
-    Params::get_param_from_string("prison_cell_mean_size", &Place_List::Prison_cell_mean_size);
-    Params::get_param_from_string("nursing_home_room_mean_size", &Place_List::Nursing_home_room_mean_size);
+    // population parameters
+    Params::get_param_from_string("synthetic_population_directory", Global::Synthetic_population_directory);
+    Params::get_param_from_string("synthetic_population_id", Global::Synthetic_population_id);
+    Params::get_param_from_string("synthetic_population_version", Global::Synthetic_population_version);
+    Params::get_param_from_string("city", Global::City);
+    Params::get_param_from_string("county", Global::County);
+    Params::get_param_from_string("state", Global::US_state);
+    Params::get_param_from_string("fips", Global::FIPS_code);
+    Params::get_param_from_string("msa", Global::MSA_code);
 
-    Params::get_param_from_string("school_fixed_staff", &Place_List::School_fixed_staff);
-    Params::get_param_from_string("school_student_teacher_ratio", &Place_List::School_student_teacher_ratio);
-    Params::get_param_from_string("college_fixed_staff", &Place_List::College_fixed_staff);
-    Params::get_param_from_string("college_resident_to_staff_ratio", &Place_List::College_resident_to_staff_ratio);
-    Params::get_param_from_string("prison_fixed_staff", &Place_List::Prison_fixed_staff);
-    Params::get_param_from_string("prison_resident_to_staff_ratio", &Place_List::Prison_resident_to_staff_ratio);
-    Params::get_param_from_string("nursing_home_fixed_staff", &Place_List::Nursing_home_fixed_staff);
-    Params::get_param_from_string("nursing_home_resident_to_staff_ratio",
-        &Place_List::Nursing_home_resident_to_staff_ratio);
-    Params::get_param_from_string("military_fixed_staff", &Place_List::Military_fixed_staff);
-    Params::get_param_from_string("military_resident_to_staff_ratio", &Place_List::Military_resident_to_staff_ratio);
+    if(Global::Enable_Group_Quarters) {
+      // group quarter parameters
+      Params::get_param_from_string("college_dorm_mean_size", &Place_List::College_dorm_mean_size);
+      Params::get_param_from_string("military_barracks_mean_size", &Place_List::Military_barracks_mean_size);
+      Params::get_param_from_string("prison_cell_mean_size", &Place_List::Prison_cell_mean_size);
+      Params::get_param_from_string("nursing_home_room_mean_size", &Place_List::Nursing_home_room_mean_size);
+
+      Params::get_param_from_string("school_fixed_staff", &Place_List::School_fixed_staff);
+      Params::get_param_from_string("school_student_teacher_ratio", &Place_List::School_student_teacher_ratio);
+      Params::get_param_from_string("college_fixed_staff", &Place_List::College_fixed_staff);
+      Params::get_param_from_string("college_resident_to_staff_ratio", &Place_List::College_resident_to_staff_ratio);
+      Params::get_param_from_string("prison_fixed_staff", &Place_List::Prison_fixed_staff);
+      Params::get_param_from_string("prison_resident_to_staff_ratio", &Place_List::Prison_resident_to_staff_ratio);
+      Params::get_param_from_string("nursing_home_fixed_staff", &Place_List::Nursing_home_fixed_staff);
+      Params::get_param_from_string("nursing_home_resident_to_staff_ratio", &Place_List::Nursing_home_resident_to_staff_ratio);
+      Params::get_param_from_string("military_fixed_staff", &Place_List::Military_fixed_staff);
+      Params::get_param_from_string("military_resident_to_staff_ratio", &Place_List::Military_resident_to_staff_ratio);
+    }
+
+    // household shelter parameters
+    if(Global::Enable_Household_Shelter) {
+      Params::get_param_from_string("shelter_in_place_duration_mean", &Place_List::Shelter_duration_mean);
+      Params::get_param_from_string("shelter_in_place_duration_std", &Place_List::Shelter_duration_std);
+      Params::get_param_from_string("shelter_in_place_delay_mean", &Place_List::Shelter_delay_mean);
+      Params::get_param_from_string("shelter_in_place_delay_std", &Place_List::Shelter_delay_std);
+      Params::get_param_from_string("shelter_in_place_compliance", &Place_List::Pct_households_sheltering);
+      int temp_int;
+      Params::get_param_from_string("shelter_in_place_by_income", &temp_int);
+      Place_List::High_income_households_sheltering = (temp_int == 0 ? false : true);
+      Params::get_param_from_string("shelter_in_place_early_rate", &Place_List::Early_shelter_rate);
+      Params::get_param_from_string("shelter_in_place_decay_rate", &Place_List::Shelter_decay_rate);
+    }
+
+    // household evacuation parameters
+    if(Global::Enable_HAZEL) {
+      Params::get_param_from_string("HAZEL_disaster_start_sim_day", &Place_List::HAZEL_disaster_start_sim_day);
+      Params::get_param_from_string("HAZEL_disaster_end_sim_day", &Place_List::HAZEL_disaster_end_sim_day);
+      Params::get_param_from_string("HAZEL_disaster_evac_start_offset", &Place_List::HAZEL_disaster_evac_start_offset);
+      Params::get_param_from_string("HAZEL_disaster_evac_end_offset", &Place_List::HAZEL_disaster_evac_end_offset);
+      Params::get_param_from_string("HAZEL_disaster_return_start_offset", &Place_List::HAZEL_disaster_return_start_offset);
+      Params::get_param_from_string("HAZEL_disaster_return_end_offset", &Place_List::HAZEL_disaster_return_end_offset);
+      Params::get_param_from_string("HAZEL_disaster_evac_prob_per_day", &Place_List::HAZEL_disaster_evac_prob_per_day);
+      Params::get_param_from_string("HAZEL_disaster_return_prob_per_day", &Place_List::HAZEL_disaster_return_prob_per_day);
+      Params::get_param_from_string("HAZEL_mobile_van_max", &Place_List::HAZEL_mobile_van_max);
+    }
+    if(Global::Enable_Hospitals) {
+      Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
+      Place_List::Hospital_worker_to_bed_ratio = (Place_List::Hospital_worker_to_bed_ratio == 0.0 ? 1.0 : Place_List::Hospital_worker_to_bed_ratio);
+      Params::get_param_from_string("hospital_outpatients_per_day_per_employee", &Place_List::Hospital_outpatients_per_day_per_employee);
+      Params::get_param_from_string("healthcare_clinic_outpatients_per_day_per_employee", &Place_List::Healthcare_clinic_outpatients_per_day_per_employee);
+      Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
+      Params::get_param_from_string("hospitalization_radius", &Place_List::Hospitalization_radius);
+      Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
+    }
   }
-
-  // household shelter parameters
-  if(Global::Enable_Household_Shelter) {
-    Params::get_param_from_string("shelter_in_place_duration_mean", &Place_List::Shelter_duration_mean);
-    Params::get_param_from_string("shelter_in_place_duration_std", &Place_List::Shelter_duration_std);
-    Params::get_param_from_string("shelter_in_place_delay_mean", &Place_List::Shelter_delay_mean);
-    Params::get_param_from_string("shelter_in_place_delay_std", &Place_List::Shelter_delay_std);
-    Params::get_param_from_string("shelter_in_place_compliance", &Place_List::Pct_households_sheltering);
-    int temp_int;
-    Params::get_param_from_string("shelter_in_place_by_income", &temp_int);
-    Place_List::High_income_households_sheltering = (temp_int == 0 ? false : true);
-    Params::get_param_from_string("shelter_in_place_early_rate", &Place_List::Early_shelter_rate);
-    Params::get_param_from_string("shelter_in_place_decay_rate", &Place_List::Shelter_decay_rate);
-  }
-
-  // household evacuation parameters
-  if(Global::Enable_HAZEL) {
-    Params::get_param_from_string("HAZEL_disaster_start_sim_day", &Place_List::HAZEL_disaster_start_sim_day);
-    Params::get_param_from_string("HAZEL_disaster_end_sim_day", &Place_List::HAZEL_disaster_end_sim_day);
-    Params::get_param_from_string("HAZEL_disaster_evac_start_offset", &Place_List::HAZEL_disaster_evac_start_offset);
-    Params::get_param_from_string("HAZEL_disaster_evac_end_offset", &Place_List::HAZEL_disaster_evac_end_offset);
-    Params::get_param_from_string("HAZEL_disaster_return_start_offset", &Place_List::HAZEL_disaster_return_start_offset);
-    Params::get_param_from_string("HAZEL_disaster_return_end_offset", &Place_List::HAZEL_disaster_return_end_offset);
-    Params::get_param_from_string("HAZEL_disaster_evac_prob_per_day", &Place_List::HAZEL_disaster_evac_prob_per_day);
-    Params::get_param_from_string("HAZEL_disaster_return_prob_per_day", &Place_List::HAZEL_disaster_return_prob_per_day);
-    Params::get_param_from_string("HAZEL_mobile_van_max", &Place_List::HAZEL_mobile_van_max);
-  }
+  Place_List::Static_variables_set = true;
 
   if(Global::Enable_Hospitals) {
     char hosp_file_dir[FRED_STRING_SIZE];
@@ -206,13 +220,7 @@ void Place_List::get_parameters() {
 
     Params::get_param_from_string("household_hospital_map_file_directory", hosp_file_dir);
     Params::get_param_from_string("household_hospital_map_file", hh_hosp_map_file_name);
-    Params::get_param_from_string("hospital_worker_to_bed_ratio", &Place_List::Hospital_worker_to_bed_ratio);
-    Place_List::Hospital_worker_to_bed_ratio = (Place_List::Hospital_worker_to_bed_ratio == 0.0 ? 1.0 : Place_List::Hospital_worker_to_bed_ratio);
-    Params::get_param_from_string("hospital_outpatients_per_day_per_employee", &Place_List::Hospital_outpatients_per_day_per_employee);
-    Params::get_param_from_string("healthcare_clinic_outpatients_per_day_per_employee", &Place_List::Healthcare_clinic_outpatients_per_day_per_employee);
-    Params::get_param_from_string("hospital_min_bed_threshold", &Place_List::Hospital_min_bed_threshold);
-    Params::get_param_from_string("hospitalization_radius", &Place_List::Hospitalization_radius);
-    Params::get_param_from_string("hospital_fixed_staff", &Place_List::Hospital_fixed_staff);
+
     if(strcmp(hh_hosp_map_file_name, "none") == 0) {
       Place_List::Household_hospital_map_file_exists = false;
     } else {
@@ -227,23 +235,21 @@ void Place_List::get_parameters() {
       if(hospital_household_map_fp != NULL) {
         Place_List::Household_hospital_map_file_exists = true;
         enum column_index {
-          hh_id = 0, hospital_id = 1
+          hh_lbl = 0, hospital_lbl = 1
         };
         char line_str[255];
         Utils::Tokens tokens;
         for(char* line = line_str; fgets(line, 255, hospital_household_map_fp); line = line_str) {
           tokens = Utils::split_by_delim(line, ',', tokens, false);
           // skip header line
-          if(strcmp(tokens[hh_id], "hh_id") != 0 && strcmp(tokens[hh_id], "sp_id") != 0) {
+          if(strcmp(tokens[hh_lbl], "hh_id") != 0 && strcmp(tokens[hh_lbl], "sp_id") != 0) {
             char s[80];
 
-            sprintf(s, "%s", tokens[hh_id]);
-            string hh_id_str(s);
-            sprintf(s, "%s", tokens[hospital_id]);
-            string hosp_id_str(s);
-            int hosp_id = 0;
-            sscanf(hosp_id_str.c_str(), "%d", &hosp_id);
-            this->household_hospital_map.insert(std::pair<string, int>(hh_id_str, hosp_id));
+            sprintf(s, "%s", tokens[hh_lbl]);
+            string hh_lbl_str(s);
+            sprintf(s, "%s", tokens[hospital_lbl]);
+            string hosp_lbl_str(s);
+            this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
           }
           tokens.clear();
         }
@@ -649,16 +655,17 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     } else if(place_type == Place::TYPE_HOSPITAL) {
       place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat);
       Hospital* hosp = static_cast<Hospital*>(place);
-      int bed_count = static_cast<int>((static_cast<double>((*itr).num_workers_assigned)
-          / Place_List::Hospital_worker_to_bed_ratio) + 1.0);
+      int bed_count = (*itr).bed_cnt;
       hosp->set_bed_count(bed_count);
+      hosp->set_employee_count((*itr).num_workers_assigned);
+      hosp->set_physician_count((*itr).physician_cnt);
       if(hosp->get_daily_patient_capacity(0) == -1) {
         int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned))
             * Place_List::Hospital_outpatients_per_day_per_employee;
         hosp->set_daily_patient_capacity(capacity);
       }
       if(hosp->get_subtype() != Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
-        if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "bed" to be considered for overnight
+        if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "beds" to be considered for overnight
           hosp->set_subtype(Place::SUBTYPE_HEALTHCARE_CLINIC);
         } else { // This place is a hospital that allows overnight stays, so add in bed count for capacity
           int capacity = hosp->get_daily_patient_capacity(0);
@@ -746,12 +753,17 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   add_preallocated_places<Neighborhood>(Place::TYPE_NEIGHBORHOOD, neighborhood_allocator);
   }
 
-  int number_places = (int)places.size();
+  int number_places = static_cast<int>(this->places.size());
   for(int p = 0; p < number_places; ++p) {
     // add workplaces to the regional layer (needed for teacher assignments to schools)
-    if(places[p]->get_type() == Place::TYPE_WORKPLACE) {
+    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
       Place* place = places[p];
       Global::Simulation_Region->add_workplace(place);
+    }
+
+    if(this->places[p]->get_type() == Place::TYPE_HOSPITAL) {
+      Place* place = this->places[p];
+      Global::Simulation_Region->add_hospital(place);
     }
   }
 
@@ -987,31 +999,31 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       // if this is a new county fips code, create a County object
       std::map<int,int>::iterator itr;
       itr = this->fips_to_county_map.find(fips);
-      if (itr == this->fips_to_county_map.end()) {
+      if(itr == this->fips_to_county_map.end()) {
         County* new_county = new County(fips);
         this->counties.push_back(new_county);
-	this->fips_to_county_map[fips] = this->counties.size() - 1;
+	      this->fips_to_county_map[fips] = this->counties.size() - 1;
       }
       
       // Grab the first eleven (state and county + six) digits of stcotrbg to get the census tract
       // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
 
       if(Global::Enable_Vector_Transmission) {
-	// Colombian census tracks are just 8 digits
-	strncpy(census_tract_str, tokens[stcotrbg], 8);
-	census_tract_str[8] = '\0';
-      }else{
-	strncpy(census_tract_str, tokens[stcotrbg], 11);
-	census_tract_str[11] = '\0';
+	      // Colombian census tracks are just 8 digits
+	      strncpy(census_tract_str, tokens[stcotrbg], 8);
+	      census_tract_str[8] = '\0';
+      } else {
+	      strncpy(census_tract_str, tokens[stcotrbg], 11);
+	      census_tract_str[11] = '\0';
       }
       sscanf(census_tract_str, "%ld", &census_tract);
 
       // add to census tract map if new
       std::map<long int,int>::iterator tract_itr;
       tract_itr = this->fips_to_census_tract_map.find(census_tract);
-      if (tract_itr == this->fips_to_census_tract_map.end()) {
+      if(tract_itr == this->fips_to_census_tract_map.end()) {
         this->census_tracts.push_back(census_tract);
-	this->fips_to_census_tract_map[census_tract] = this->census_tracts.size() - 1;
+	      this->fips_to_census_tract_map[census_tract] = this->census_tracts.size() - 1;
       }
 
       SetInsertResultT result = pids.insert(
@@ -1154,7 +1166,8 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file, 
   }
 
   enum column_index {
-    workplace_id = 0, num_workers_assigned = 1, latitude = 2, longitude = 3
+    hospital_id = 0, name = 1, stabbr = 2, address = 3, city = 4, zipcode = 5,
+    emp_cnt = 6, physician_cnt = 7, bed_cnt = 8, latitude = 9, longitude = 10
   };
 
   FILE* fp = Utils::fred_open_file(location_file);
@@ -1163,21 +1176,30 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file, 
   }
   char line_str[255];
   int workers = 0;
+  int bed_count = 0;
+  int physician_count = 0;
   Utils::Tokens tokens;
 
   for(char* line = line_str; fgets(line, 255, fp); line = line_str) {
     tokens = Utils::split_by_delim(line, ',', tokens, false);
     // skip header line
-    if(strcmp(tokens[workplace_id], "workplace_id") != 0 && strcmp(tokens[workplace_id], "sp_id") != 0) {
+    if(strcmp(tokens[hospital_id], "workplace_id") != 0 && strcmp(tokens[hospital_id], "sp_id") != 0) {
       char place_type = Place::TYPE_HOSPITAL;
       char place_subtype = Place::SUBTYPE_NONE;
       char s[80];
 
-      sprintf(s, "%c%s", place_type, tokens[workplace_id]);
-      sscanf(tokens[num_workers_assigned], "%d", &workers);
-      SetInsertResultT result = pids.insert(
-          Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, 0, "0", false,
-              workers));
+      sprintf(s, "%c%s", place_type, tokens[hospital_id]);
+      sscanf(tokens[emp_cnt], "%d", &workers);
+      sscanf(tokens[physician_cnt], "%d", &physician_count);
+      sscanf(tokens[bed_cnt], "%d", &bed_count);
+
+      Place_Init_Data tempPlace =  Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
+             tokens[longitude], deme_id, 0, "0", false, workers);
+      //Temporary fix to allow for Additional hospital information
+      tempPlace.bed_cnt = bed_count;
+      tempPlace.physician_cnt = physician_count;
+
+      SetInsertResultT result = pids.insert(tempPlace);
 
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -1824,6 +1846,11 @@ bool Place_List::add_place(Place* p) {
 
     if(p->is_hospital()) {
       this->hospitals.push_back(p);
+
+      //Add a mapping for the hospital label to the id
+      int id = static_cast<int>(this->hospitals.size()) - 1;
+      string hosp_lbl_str(p->get_label());
+      this->hosp_lbl_hosp_id_map.insert(std::pair<string, int>(p->get_label(), id));
     }
 
     if(p->is_school()) {
@@ -2055,6 +2082,9 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
       if(place_type == Place::TYPE_SCHOOL) {
         School* s = static_cast<School*>(place);
         n = s->get_orig_number_of_students();
+      } else if(place_type == Place::TYPE_HOSPITAL) {
+        Hospital* hosp = static_cast<Hospital*>(place);
+        n = hosp->get_employee_count(); // From the input file
       }
       FRED_VERBOSE(1, "Size %d\n", n);
       int staff = fixed_staff;
@@ -2165,8 +2195,10 @@ void Place_List::assign_hospitals_to_households() {
       assert(hosp != NULL);
       if(hosp != NULL) {
         hh->set_household_visitation_hospital(hosp);
-        string hh_id_str(hh->get_label());
-        this->household_hospital_map.insert(std::pair<string, int>(hh_id_str, hosp->get_id()));
+        string hh_lbl_str(hh->get_label());
+        string hosp_lbl_str(hosp->get_label());
+
+        this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
       }
     }
 
@@ -2179,7 +2211,7 @@ void Place_List::assign_hospitals_to_households() {
       Params::get_param_from_string("household_hospital_map_file", map_file_name);
 
       if(strcmp(map_file_name, "none") == 0) {
-        this->household_hospital_map.clear();
+        this->hh_lbl_hosp_lbl_map.clear();
         return;
       }
 
@@ -2187,21 +2219,20 @@ void Place_List::assign_hospitals_to_households() {
       sprintf(filename, "%s%s", map_file_dir, map_file_name);
 
       Utils::get_fred_file_name(filename);
-      FILE* hospital_household_map_fp = fopen(filename, "w");
-      if(hospital_household_map_fp == NULL) {
+      FILE* hh_lbl_hosp_lbl_map_fp = fopen(filename, "w");
+      if(hh_lbl_hosp_lbl_map_fp == NULL) {
         Utils::fred_abort("Can't open %s\n", filename);
       }
 
-      for(std::map<std::string, int>::iterator itr = this->household_hospital_map.begin();
-          itr != this->household_hospital_map.end(); ++itr) {
-        fprintf(hospital_household_map_fp, "%s,%d\n", itr->first.c_str(), itr->second);
+      for(std::map<std::string, string>::iterator itr = this->hh_lbl_hosp_lbl_map.begin(); itr != this->hh_lbl_hosp_lbl_map.end(); ++itr) {
+        fprintf(hh_lbl_hosp_lbl_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
       }
 
-      fflush(hospital_household_map_fp);
-      fclose(hospital_household_map_fp);
+      fflush(hh_lbl_hosp_lbl_map_fp);
+      fclose(hh_lbl_hosp_lbl_map_fp);
     }
 
-    this->household_hospital_map.clear();
+    this->hh_lbl_hosp_lbl_map.clear();
   }
 }
 
@@ -2229,7 +2260,7 @@ void Place_List::prepare_primary_care_assignment() {
   }
 }
 
-Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit) {
+Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance) {
   if(!Global::Enable_Hospitals) {
     return NULL;
   }
@@ -2241,18 +2272,26 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
 
   int overnight_cap = 0;
   Hospital* assigned_hospital = NULL;
-  int number_hospitals = this->hospitals.size();
-  if(number_hospitals == 0) {
-    Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
-  }
-  int number_possible_hospitals = 0;
   Household* hh = static_cast<Household*>(per->get_household());
   assert(hh != NULL);
+
+  // ignore place if it is outside the region
+  fred::geo lat = hh->get_latitude();
+  fred::geo lon = hh->get_longitude();
+  Regional_Patch* hh_patch = Global::Simulation_Region->get_patch(lat, lon);
+
+  vector<Place*> possible_hosp = Global::Simulation_Region->get_nearby_hospitals(hh_patch->get_row(), hh_patch->get_col(), lat, lon, 5);
+  int number_hospitals = static_cast<int>(possible_hosp.size());
+  if(number_hospitals <= 0) {
+    Utils::fred_abort("Found no nearby Hospitals in simulation that has Enabled Hospitalization", "");
+  }
+
+  int number_possible_hospitals = 0;
   //First, only try Hospitals within a certain radius (* that accept insurance)
   std::vector<double> hosp_probs;
   double probability_total = 0.0;
   for(int i = 0; i < number_hospitals; ++i) {
-    Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+    Hospital* hospital = static_cast<Hospital*>(possible_hosp[i]);
     double distance = distance_between_places(hh, hospital);
     double cur_prob = 0.0;
     int increment = 0;
@@ -2261,46 +2300,21 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     if(distance > 0.0 && !hospital->is_healthcare_clinic() && !hospital->is_mobile_healthcare_clinic()
          && hospital->should_be_open(sim_day)
          && (hospital->get_occupied_bed_count() < overnight_cap)) {
-      if(use_search_radius_limit) {
-        if(distance <= Place_List::Hospitalization_radius) {
-          if(check_insurance) {
-            Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
-            if(hospital->accepts_insurance(per_insur)) {
-              //Hospital accepts the insurance so we are good
-              cur_prob = static_cast<double>(overnight_cap) / (distance * distance);
-              increment = 1;
-            } else {
-              //Not possible (Doesn't accept insurance)
-              cur_prob = 0.0;
-              increment = 0;
-            }
-          } else {
-            //We don't care about insurance so good to go
-            cur_prob = static_cast<double>(overnight_cap) / (distance * distance);
-            increment = 1;
-          }
+      if(check_insurance) {
+        Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
+        if(hospital->accepts_insurance(per_insur)) {
+          //Hospital accepts the insurance so we are good
+          cur_prob = static_cast<double>(overnight_cap) / distance;
+          increment = 1;
         } else {
-          //Not possible (not within the radius)
+          //Not possible (Doesn't accept insurance)
           cur_prob = 0.0;
           increment = 0;
         }
-      } else { //Don't car about search radius
-        if(check_insurance) {
-          Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
-          if(hospital->accepts_insurance(per_insur)) {
-            //Hospital accepts the insurance so we are good
-            cur_prob = static_cast<double>(overnight_cap) / (distance * distance);
-            increment = 1;
-          } else {
-            //Not possible (Doesn't accept insurance)
-            cur_prob = 0.0;
-            increment = 0;
-          }
-        } else {
-          //We don't care about insurance so good to go
-          cur_prob = static_cast<double>(overnight_cap) / (distance * distance);
-          increment = 1;
-        }
+      } else {
+        //We don't care about insurance so good to go
+        cur_prob = static_cast<double>(overnight_cap) / distance;
+        increment = 1;
       }
     } else {
       //Not possible
@@ -2325,11 +2339,11 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     while(i < number_hospitals) {
       cum_prob += hosp_probs[i];
       if(rand < cum_prob) {
-        return static_cast<Hospital*>(this->hospitals[i]);
+        return static_cast<Hospital*>(possible_hosp[i]);
       }
       ++i;
     }
-    return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+    return static_cast<Hospital*>(possible_hosp[number_hospitals - 1]);
   } else {
     //No hospitals in the simulation match search criteria
     return NULL;
@@ -3008,11 +3022,15 @@ void Place_List::combine_households(int house_index1, int house_index2) {
 
 Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
   assert(this->is_load_completed());
-  if(this->household_hospital_map.find(string(hh->get_label())) != this->household_hospital_map.end()) {
-    return static_cast<Hospital*>(this->get_hospital_ptr(
-        this->household_hospital_map.find(string(hh->get_label()))->second));
+  if(this->hh_lbl_hosp_lbl_map.find(string(hh->get_label())) != this->hh_lbl_hosp_lbl_map.end()) {
+    string hosp_lbl = this->hh_lbl_hosp_lbl_map.find(string(hh->get_label()))->second;
+    if(this->hosp_lbl_hosp_id_map.find(hosp_lbl) != this->hosp_lbl_hosp_id_map.end()) {
+      int hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl)->second;
+      return static_cast<Hospital*>(this->get_hospital_ptr(hosp_id));
+    } else {
+      return NULL;
+    }
   } else {
-
     if(Place_List::Household_hospital_map_file_exists) {
       //List is incomplete so set this so we can print out a new file
       Place_List::Household_hospital_map_file_exists = false;
@@ -3023,21 +3041,14 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
       Person* per = hh->get_enrollee(0);
       assert(per != NULL);
       if(Global::Enable_Health_Insurance) {
-        hosp = this->get_random_open_hospital_matching_criteria(0, per, true, true);
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, true);
       } else {
-        hosp = this->get_random_open_hospital_matching_criteria(0, per, false, true);
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, false);
       }
-      //If it came back with nothing, expand the search radius
-      if(hosp == NULL) {
-        if(Global::Enable_Health_Insurance) {
-          hosp = this->get_random_open_hospital_matching_criteria(0, per, true, false);
-        } else {
-          hosp = this->get_random_open_hospital_matching_criteria(0, per, false, false);
-        }
-      }
+
       //If it still came back with nothing, ignore health insurance
       if(hosp == NULL) {
-        hosp = this->get_random_open_hospital_matching_criteria(0, per, false, false);
+        hosp = this->get_random_open_hospital_matching_criteria(0, per, false);
       }
     }
     assert(hosp != NULL);

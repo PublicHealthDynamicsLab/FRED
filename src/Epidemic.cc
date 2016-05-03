@@ -672,7 +672,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
 }
   
 void Epidemic::spread_infection_in_active_places(int day) {
-  FRED_VERBOSE(0, "spread_infection__active_places day %d\n", day);
+  FRED_VERBOSE(0, "spread_infection_in_active_places day %d\n", day);
   for(int i = 0; i < this->active_place_vec.size(); ++i) {
     Place* place = this->active_place_vec[i];
     this->condition->get_transmission()->spread_infection(day, this->id, place);
