@@ -214,6 +214,14 @@ public:
     return this->household_income;
   }
 
+  void set_household_race(int _race) {
+    this->race = _race;
+  }
+
+  int get_household_race() {
+    return this->race;
+  }
+
   /**
    * Determine if the household should be open. It is dependent on the condition and simulation day.
    *
@@ -476,6 +484,7 @@ private:
   int household_income;
   int household_income_code;
   int income_quartile;
+  int race;
 
   // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;

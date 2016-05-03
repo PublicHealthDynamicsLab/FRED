@@ -773,7 +773,12 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
     dst << src.rdbuf();
     strcpy(location_file, temp_file);
   }
-  read_household_file(deme_id, location_file, pids);
+  if (Global::Test==7) {
+    read_household_file(deme_id, location_file);
+  }
+  else {
+    read_household_file(deme_id, location_file, pids);
+  }
   Utils::fred_print_lap_time("Places.read_household_file");
 
 
@@ -785,11 +790,21 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
 
   // read workplace locations
   sprintf(location_file, "%s/%s/%s_workplaces.txt", pop_dir, pop_id, pop_id);
-  read_workplace_file(deme_id, location_file, pids);
+  if (Global::Test==7) {
+    read_workplace_file(deme_id, location_file);
+  }
+  else {
+    read_workplace_file(deme_id, location_file, pids);
+  }
 
   // read school locations
   sprintf(location_file, "%s/%s/%s_schools.txt", pop_dir, pop_id, pop_id);
-  read_school_file(deme_id, location_file, pids);
+  if (Global::Test==7) {
+    read_school_file(deme_id, location_file);
+  }
+  else {
+    read_school_file(deme_id, location_file, pids);
+  }
 
   // log county info
   fprintf(Global::Statusfp, "COUNTIES AFTER READING SCHOOLS\n");
@@ -800,7 +815,12 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   // read hospital locations
   if(Global::Enable_Hospitals) {
     sprintf(location_file, "%s/%s/%s_hospitals.txt", pop_dir, pop_id, pop_id);
-    read_hospital_file(deme_id, location_file, pids);
+    if (Global::Test==7) {
+      read_hospital_file(deme_id, location_file);
+    }
+    else {
+      read_hospital_file(deme_id, location_file, pids);
+    }
   }
 
   if(Global::Enable_Group_Quarters) {
@@ -816,6 +836,106 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
   for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
   }
+}
+
+
+void Place_List::read_household_file(unsigned char deme_id, char* location_file) {
+  // location of fields in input file
+  int id_field = 0;
+  int fips_field = 2;
+  int lat_field = 7;
+  int lon_field = 8;
+  int race_field = 3;
+  int income_field = 4;
+
+  // data to fill in from input file
+  char place_type = Place::TYPE_HOUSEHOLD;
+  char place_subtype = Place::SUBTYPE_NONE;
+  int id = -1;
+  char label[80];
+  char fips_str[12];
+  long int census_tract = 0;
+  int county_fips;
+  double lat;
+  double lon;
+  int race;
+  int income;
+
+  char line_str[10*FRED_STRING_SIZE];
+  Utils::Tokens tokens;
+  FILE* fp = Utils::fred_open_file(location_file);
+
+  for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
+    // printf("%s\n",line); fflush(stdout);
+    tokens.clear();
+    tokens = Utils::split_by_delim(line, ',', tokens, false);
+
+    // skip header line
+    if(strcmp(tokens[id_field], "sp_id") == 0) {
+      continue;
+    }
+
+    // place label
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+
+    // lat/lon
+    sscanf(tokens[lat_field], "%lf", &lat); 
+    sscanf(tokens[lon_field], "%lf", &lon); 
+
+    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+
+    // update max and min geo coords
+    if(lat != 0.0) {
+      if(lat < this->min_lat) {
+	this->min_lat = lat;
+      }
+      if(this->max_lat < lat) {
+	this->max_lat = lat;
+      }
+    }
+    if(lon != 0.0) {
+      if(lon < this->min_lon) {
+	this->min_lon = lon;
+      }
+      if(this->max_lon < lon) {
+	this->max_lon = lon;
+      }
+    }
+
+    // census tract
+    // use the first eleven (state and county + six) digits of fips_field to get the census tract
+    // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
+    strncpy(fips_str, tokens[fips_field], 11);
+    fips_str[11] = '\0';
+    sscanf(fips_str, "%ld", &census_tract);
+    place->set_census_tract_fips(census_tract);
+    
+    // county fips code
+    // use the first five digits of fips_field to get the county fips code
+    strncpy(fips_str, tokens[fips_field], 5);
+    fips_str[5] = '\0';
+    sscanf(fips_str, "%d", &county_fips);
+
+    // if this is a new county fips code, create a County object
+    std::map<int,int>::iterator itr;
+    itr = this->fips_to_county_map.find(county_fips);
+    if (itr == this->fips_to_county_map.end()) {
+      County* new_county = new County(county_fips);
+      this->counties.push_back(new_county);
+      this->fips_to_county_map[county_fips] = this->counties.size() - 1;
+    }
+      
+    printf("county = %d census_tract = %ld\n", county_fips, census_tract);
+
+    // household race and income
+    Household* p = static_cast<Household*>(place);
+    sscanf(tokens[race_field], "%d", &race); 
+    p->set_household_income(income);
+	  
+    sscanf(tokens[income_field], "%d", &income); 
+    p->set_household_race(race);
+  }
+  fclose(fp);
 }
 
 void Place_List::read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids) {
@@ -900,6 +1020,46 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
 
 }
 
+void Place_List::read_workplace_file(unsigned char deme_id, char* location_file) {
+  // location of fields in input file
+  int id_field = 0;
+  int lat_field = 2;
+  int lon_field = 3;
+
+  // data to fill in from input file
+  char place_type = Place::TYPE_WORKPLACE;
+  char place_subtype = Place::SUBTYPE_NONE;
+  int id = -1;
+  char label[80];
+  double lat;
+  double lon;
+
+  char line_str[10*FRED_STRING_SIZE];
+  Utils::Tokens tokens;
+  FILE* fp = Utils::fred_open_file(location_file);
+
+  for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
+
+    tokens.clear();
+    tokens = Utils::split_by_delim(line, ',', tokens, false);
+
+    // skip header line
+    if(strcmp(tokens[id_field], "sp_id") == 0) {
+      continue;
+    }
+
+    // place label
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+
+    // lat/lon
+    sscanf(tokens[lat_field], "%lf", &lat); 
+    sscanf(tokens[lon_field], "%lf", &lon); 
+
+    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+  }
+  fclose(fp);
+}
+
 void Place_List::read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids) {
 
   enum column_index {
@@ -928,6 +1088,53 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file,
       }
     }
     tokens.clear();
+  }
+  fclose(fp);
+}
+
+void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) {
+  // location of fields in input file
+  int id_field = 0;
+  int workers_field = 1;
+  int lat_field = 2;
+  int lon_field = 3;
+
+  // data to fill in from input file
+  char place_type = Place::TYPE_HOSPITAL;
+  char place_subtype = Place::SUBTYPE_NONE;
+  int id = -1;
+  char label[80];
+  double lat;
+  double lon;
+  int workers;
+
+  char line_str[10*FRED_STRING_SIZE];
+  Utils::Tokens tokens;
+  FILE* fp = Utils::fred_open_file(location_file);
+
+  for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
+
+    tokens.clear();
+    tokens = Utils::split_by_delim(line, ',', tokens, false);
+
+    // skip header line
+    if(strcmp(tokens[id_field], "sp_id") == 0) {
+      continue;
+    }
+
+    // place label
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+
+    // lat/lon
+    sscanf(tokens[lat_field], "%lf", &lat); 
+    sscanf(tokens[lon_field], "%lf", &lon); 
+
+    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+
+    // workers
+    sscanf(tokens[workers_field], "%d", &workers); 
+
+    place->set_staff_size(workers);
   }
   fclose(fp);
 }
@@ -969,6 +1176,56 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file, 
       }
     }
     tokens.clear();
+  }
+  fclose(fp);
+}
+
+void Place_List::read_school_file(unsigned char deme_id, char* location_file) {
+  // location of fields in input file
+  int id_field = 0;
+  int fips_field = 17;
+  int lat_field = 14;
+  int lon_field = 15;
+
+  // place data to fill in from input file
+  char place_type = Place::TYPE_SCHOOL;
+  char place_subtype = Place::SUBTYPE_NONE;
+  int id = -1;
+  char label[80];
+  long int census_tract = 0;
+  double lat;
+  double lon;
+
+  char county_fips_str[8];
+  char line_str[10*FRED_STRING_SIZE];
+  Utils::Tokens tokens;
+  FILE* fp = Utils::fred_open_file(location_file);
+
+  for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
+
+    tokens.clear();
+    tokens = Utils::split_by_delim(line, ',', tokens, false);
+
+    // skip header line
+    if(strcmp(tokens[id_field], "sp_id") == 0) {
+      continue;
+    }
+
+    // place label
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+
+    // lat/lon
+    sscanf(tokens[lat_field], "%lf", &lat); 
+    sscanf(tokens[lon_field], "%lf", &lon); 
+
+    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+
+    // census tract fips code
+    strncpy(county_fips_str, tokens[fips_field], 5);
+    county_fips_str[5] = '\0';
+    sscanf(county_fips_str, "%ld", &census_tract);
+    census_tract *= 1000000;
+    place->set_census_tract_fips(census_tract);
   }
   fclose(fp);
 }
@@ -1468,6 +1725,71 @@ Place* Place_List::get_place_from_label(const char* s) const {
     FRED_VERBOSE(1, "Help!  can't find place with label = %s\n", str.c_str());
     return NULL;
   }
+}
+
+Place* Place_List::add_place(int id, char* label, char type, char subtype, fred::geo lon, fred::geo lat) {
+
+  Place* place = NULL;
+  switch(type) {
+  case 'H':
+    place = new Household(label, subtype, lon, lat);
+    break;
+
+  case 'W':
+    place = new Workplace(label, subtype, lon, lat);
+    break;
+    
+  case 'N':
+    place = new Neighborhood(label, subtype, lon, lat);
+    break;
+
+  case 'S':
+    place = new School(label, subtype, lon, lat);
+    break;
+    
+  case 'M':
+    place = new Hospital(label, subtype, lon, lat);
+    break;
+  }
+
+  id = get_new_place_id();
+  place->set_id(id);
+
+  string str;
+  str.assign(label);
+  if(this->place_label_map->find(str) == this->place_label_map->end()) {
+    this->place_label_map->insert(std::make_pair(str, id));
+  }
+  else {
+    Utils::fred_abort("add_place: duplicate place label found: %s\n", label);
+  }
+
+  this->places.push_back(place);
+
+  if(place->is_household()) {
+    this->households.push_back(place);
+  }
+
+  if(place->is_neighborhood()) {
+    this->neighborhoods.push_back(place);
+  }
+
+  if(place->is_workplace()) {
+    this->workplaces.push_back(place);
+  }
+
+  if(place->is_hospital()) {
+    this->hospitals.push_back(place);
+  }
+  
+  if(place->is_school()) {
+    this->schools.push_back(place);
+  }
+
+  FRED_VERBOSE(0, "add_place %d lab %s type %c sub %c lat %f lon %f\n",
+	 place->get_id(), place->get_label(), place->get_type(), place->get_subtype(), place->get_latitude(), place->get_longitude());
+
+  return place;
 }
 
 bool Place_List::add_place(Place* p) {
