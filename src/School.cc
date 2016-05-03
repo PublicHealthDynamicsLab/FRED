@@ -13,17 +13,19 @@
 //
 // File: School.cc
 //
-#include "School.h"
+
 #include "Classroom.h"
 #include "Date.h"
 #include "Condition.h"
 #include "Condition_List.h"
 #include "Global.h"
+#include "Mixing_Group.h"
 #include "Params.h"
 #include "Person.h"
 #include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
+#include "School.h"
 #include "Utils.h"
 #include "Tracker.h"
 
@@ -382,7 +384,7 @@ void School::unenroll(int pos) {
 	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->get_id(), this->get_label(), this->get_size());
 
   // call the base class method
-  Place::unenroll(pos);
+  Mixing_Group::unenroll(pos);
 
   if(removed->is_teacher() || grade == 0) {
     this->staff_size--;

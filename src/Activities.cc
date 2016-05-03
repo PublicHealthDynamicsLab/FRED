@@ -692,24 +692,25 @@ void Activities::update_schedule(int sim_day) {
       decide_whether_to_seek_healthcare(sim_day);
     }
 
-    //Decide whether to visit hospitalized housemates
-    if(Global::Enable_Hospitals && !this->myself->is_hospitalized() && static_cast<Household*>(this->myself->get_household())->has_hospitalized_member()) {
-
-      Household* hh = static_cast<Household*>(this->myself->get_household());
-
-      if(hh == NULL) {
-        if(Global::Enable_Hospitals && this->myself->is_hospitalized() && this->myself->get_permanent_household() != NULL) {
-          hh = static_cast<Household*>(this->myself->get_permanent_household());
-        }
-      }
-
-      if(hh != NULL) {
-        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && Random::draw_random() < Activities::Hospitalization_visit_housemate_prob) {
-          set_ad_hoc(hh->get_household_visitation_hospital());
-          this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
-        }
-      }
-    }
+    //TODO - there is an issue with unenroll for this part. Disabled for now
+//    //Decide whether to visit hospitalized housemates
+//    if(Global::Enable_Hospitals && !this->myself->is_hospitalized() && static_cast<Household*>(this->myself->get_household())->has_hospitalized_member()) {
+//
+//      Household* hh = static_cast<Household*>(this->myself->get_household());
+//
+//      if(hh == NULL) {
+//        if(Global::Enable_Hospitals && this->myself->is_hospitalized() && this->myself->get_permanent_household() != NULL) {
+//          hh = static_cast<Household*>(this->myself->get_permanent_household());
+//        }
+//      }
+//
+//      if(hh != NULL) {
+//        if(this->profile != PRISONER_PROFILE && this->profile != NURSING_HOME_RESIDENT_PROFILE && Random::draw_random() < Activities::Hospitalization_visit_housemate_prob) {
+//          assign_ad_hoc_place(hh->get_household_visitation_hospital());
+//          this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = true;
+//        }
+//      }
+//    }
 
     // skip work at background absenteeism rate
     if(Global::Work_absenteeism > 0.0 && this->on_schedule[Activity_index::WORKPLACE_ACTIVITY]) {
@@ -1273,12 +1274,12 @@ void Activities::decide_whether_to_seek_healthcare(int sim_day) {
           this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
 
           // record work absent/present decision if it is a workday
-          if(is_a_workday) {
+          if(Global::Report_Presenteeism && is_a_workday) {
             Global::Daily_Tracker->increment_index_key_pair(sim_day, SICK_DAYS_ABSENT, 1);
           }
 
           // record school absent/present decision if it is a school day
-          if(!is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
+          if(Global::Report_Childhood_Presenteeism && !is_teacher() && this->on_schedule[Activity_index::SCHOOL_ACTIVITY]) {
             Global::Daily_Tracker->increment_index_key_pair(sim_day, SCHL_SICK_DAYS_ABSENT, 1);
           }
         }
@@ -1325,12 +1326,12 @@ void Activities::start_hospitalization(int sim_day, int length_of_stay) {
         Global::Daily_Tracker->increment_index_key_pair(sim_day, PRIMARY_HC_UNAV, 1);
 
         //Find an open healthcare provider
-        hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, this->myself, true, false);
+        hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, this->myself, true);
         if(hosp == NULL) {
           hh->set_other_healthcare_location_that_accepts_insurance_available(false);
           hh->set_count_hc_accept_ins_unav(hh->get_count_hc_accept_ins_unav() + 1);
           Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_ACCEP_INS_UNAV, 1);
-          hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, this->myself, false, false);
+          hosp = Global::Places.get_random_open_hospital_matching_criteria(sim_day, this->myself, false);
           if(hosp == NULL) {
             hh->set_is_healthcare_available(false);
             Global::Daily_Tracker->increment_index_key_pair(sim_day, HC_UNAV, 1);
@@ -1350,6 +1351,7 @@ void Activities::start_hospitalization(int sim_day, int length_of_stay) {
         this->on_schedule[Activity_index::HOSPITAL_ACTIVITY] = true;
         this->on_schedule[Activity_index::AD_HOC_ACTIVITY] = false;
         assign_hospital(hosp);
+
         this->is_hospitalized = true;
         this->sim_day_hospitalization_ends = sim_day + length_of_stay;
         hosp->increment_occupied_bed_count();
@@ -2157,7 +2159,7 @@ const char* Activities::get_daily_activity_location_label(int p) {
 
 
 void Activities::set_daily_activity_location(int i, Place* place) {
-  if (place) {
+  if(place != NULL) {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to place %d %s\n",i, place->get_id(), place->get_label());
   } else {
     FRED_VERBOSE(1, "SET FAVORITE PLACE %d to NULL\n",i);

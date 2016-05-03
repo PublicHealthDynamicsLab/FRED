@@ -678,7 +678,7 @@ public:
 private:
 
   // link back to person
-  Person * myself;
+  Person* myself;
 
   // active infections (NULL if not infected)
   Infection** infection;
