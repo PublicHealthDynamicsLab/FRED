@@ -375,8 +375,8 @@ void Place_List::get_parameters() {
       }
     } else {
       Utils::fred_abort(
-          "FRED keyword fips only supports 2 digits (for states) and 5 digits (for counties), you specified %s",
-          Global::FIPS_code);
+			"FRED keyword fips only supports 2 digits (for states) and 5 digits (for counties), you specified %s",
+			Global::FIPS_code);
     }
   } else if(strcmp(Global::City, "none") != 0) {
 
@@ -419,7 +419,7 @@ void Place_List::get_parameters() {
     fclose(fp);
     if(found) {
       Utils::fred_log("FOUND a county for city = |%s| county = |%s County %s| and fips = |%s|\n", Global::City, county,
-          state, fips);
+		      state, fips);
       sprintf(Global::Synthetic_population_id, "%s_%s", Global::Synthetic_population_version, fips);
     } else {
       Utils::fred_abort("Sorry, could not find a county for city = |%s|\n", Global::City);
@@ -583,115 +583,115 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
 
   if (Global::Test != 7) {
 
-  // HOUSEHOLD in-place allocator
-  Place::Allocator<Household> household_allocator;
-  household_allocator.reserve(this->place_type_counts[Place::TYPE_HOUSEHOLD]);
-  // SCHOOL in-place allocator
-  Place::Allocator<School> school_allocator;
-  school_allocator.reserve(this->place_type_counts[Place::TYPE_SCHOOL]);
-  // WORKPLACE in-place allocator
-  Place::Allocator<Workplace> workplace_allocator;
-  workplace_allocator.reserve(this->place_type_counts[Place::TYPE_WORKPLACE]);
-  // HOSPITAL in-place allocator
-  Place::Allocator<Hospital> hospital_allocator;
-  hospital_allocator.reserve(this->place_type_counts[Place::TYPE_HOSPITAL]);
+    // HOUSEHOLD in-place allocator
+    Place::Allocator<Household> household_allocator;
+    household_allocator.reserve(this->place_type_counts[Place::TYPE_HOUSEHOLD]);
+    // SCHOOL in-place allocator
+    Place::Allocator<School> school_allocator;
+    school_allocator.reserve(this->place_type_counts[Place::TYPE_SCHOOL]);
+    // WORKPLACE in-place allocator
+    Place::Allocator<Workplace> workplace_allocator;
+    workplace_allocator.reserve(this->place_type_counts[Place::TYPE_WORKPLACE]);
+    // HOSPITAL in-place allocator
+    Place::Allocator<Hospital> hospital_allocator;
+    hospital_allocator.reserve(this->place_type_counts[Place::TYPE_HOSPITAL]);
 
-  // fred-specific place types initialized elsewhere (setup_offices, setup_classrooms)
+    // fred-specific place types initialized elsewhere (setup_offices, setup_classrooms)
 
-  // more temporaries
-  Place* place = NULL;
+    // more temporaries
+    Place* place = NULL;
 
-  // loop through sorted init data and create objects using Place_Allocator
-  InitSetT::iterator itr = pids.begin();
-  for(int i = 0; itr != pids.end(); ++itr, ++i) {
-    char s[80];
-    strcpy(s, (*itr).s);
-    char place_type = (*itr).place_type;
-    char place_subtype = (*itr).place_subtype;
-    fred::geo lon = (*itr).lon;
-    fred::geo lat = (*itr).lat;
-    long int census_tract_fips = (*itr).fips;
+    // loop through sorted init data and create objects using Place_Allocator
+    InitSetT::iterator itr = pids.begin();
+    for(int i = 0; itr != pids.end(); ++itr, ++i) {
+      char s[80];
+      strcpy(s, (*itr).s);
+      char place_type = (*itr).place_type;
+      char place_subtype = (*itr).place_subtype;
+      fred::geo lon = (*itr).lon;
+      fred::geo lat = (*itr).lat;
+      long int census_tract_fips = (*itr).fips;
 
-    if(place_type == Place::TYPE_HOUSEHOLD && lat != 0.0) {
-      if(lat < this->min_lat) {
-        this->min_lat = lat;
+      if(place_type == Place::TYPE_HOUSEHOLD && lat != 0.0) {
+	if(lat < this->min_lat) {
+	  this->min_lat = lat;
+	}
+	if(this->max_lat < lat) {
+	  this->max_lat = lat;
+	}
       }
-      if(this->max_lat < lat) {
-        this->max_lat = lat;
+      if(place_type == Place::TYPE_HOUSEHOLD && lon != 0.0) {
+	if(lon < this->min_lon) {
+	  this->min_lon = lon;
+	}
+	if(this->max_lon < lon) {
+	  this->max_lon = lon;
+	}
       }
-    }
-    if(place_type == Place::TYPE_HOUSEHOLD && lon != 0.0) {
-      if(lon < this->min_lon) {
-        this->min_lon = lon;
-      }
-      if(this->max_lon < lon) {
-        this->max_lon = lon;
-      }
-    }
-    if(place_type == Place::TYPE_HOUSEHOLD) {
-      place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat);
-      place->set_census_tract_fips(census_tract_fips);
-      Household* h = static_cast<Household*>(place);
-      // ensure that household income is non-negative
-      h->set_household_income((*itr).income > 0 ? (*itr).income : 0);
-      h->set_deme_id((*itr).deme_id);
-      if(itr->is_group_quarters) {
-        h->set_group_quarters_units((*itr).group_quarters_units);
-        h->set_group_quarters_workplace(get_place_from_label((*itr).gq_workplace));
-      }
-      h->set_shelter(false);
-      int ci = get_index_of_county_with_fips(place->get_county_fips());
-      this->counties[ci]->add_household(h);
-      if(Global::Enable_Visualization_Layer) {
-        Global::Visualization->add_census_tract(census_tract_fips);
-      }
-      this->households.push_back(h);
-      //FRED_VERBOSE(9, "pushing household %s\n", s);
-    } else if(place_type == Place::TYPE_WORKPLACE) {
-      place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat);
-    } else if(place_type == Place::TYPE_SCHOOL) {
-      place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat);
-      place->set_census_tract_fips(census_tract_fips);
-    } else if(place_type == Place::TYPE_HOSPITAL) {
-      place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat);
-      Hospital* hosp = static_cast<Hospital*>(place);
-      int bed_count = (*itr).bed_cnt;
-      hosp->set_bed_count(bed_count);
-      hosp->set_employee_count((*itr).num_workers_assigned);
-      hosp->set_physician_count((*itr).physician_cnt);
-      if(hosp->get_daily_patient_capacity(0) == -1) {
-        int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned))
+      if(place_type == Place::TYPE_HOUSEHOLD) {
+	place = new (household_allocator.get_free()) Household(s, place_subtype, lon, lat);
+	place->set_census_tract_fips(census_tract_fips);
+	Household* h = static_cast<Household*>(place);
+	// ensure that household income is non-negative
+	h->set_household_income((*itr).income > 0 ? (*itr).income : 0);
+	h->set_deme_id((*itr).deme_id);
+	if(itr->is_group_quarters) {
+	  h->set_group_quarters_units((*itr).group_quarters_units);
+	  h->set_group_quarters_workplace(get_place_from_label((*itr).gq_workplace));
+	}
+	h->set_shelter(false);
+	int ci = get_index_of_county_with_fips(place->get_county_fips());
+	this->counties[ci]->add_household(h);
+	if(Global::Enable_Visualization_Layer) {
+	  Global::Visualization->add_census_tract(census_tract_fips);
+	}
+	this->households.push_back(h);
+	//FRED_VERBOSE(9, "pushing household %s\n", s);
+      } else if(place_type == Place::TYPE_WORKPLACE) {
+	place = new (workplace_allocator.get_free()) Workplace(s, place_subtype, lon, lat);
+      } else if(place_type == Place::TYPE_SCHOOL) {
+	place = new (school_allocator.get_free()) School(s, place_subtype, lon, lat);
+	place->set_census_tract_fips(census_tract_fips);
+      } else if(place_type == Place::TYPE_HOSPITAL) {
+	place = new (hospital_allocator.get_free()) Hospital(s, place_subtype, lon, lat);
+	Hospital* hosp = static_cast<Hospital*>(place);
+	int bed_count = (*itr).bed_cnt;
+	hosp->set_bed_count(bed_count);
+	hosp->set_employee_count((*itr).num_workers_assigned);
+	hosp->set_physician_count((*itr).physician_cnt);
+	if(hosp->get_daily_patient_capacity(0) == -1) {
+	  int capacity = static_cast<int>(static_cast<double>((*itr).num_workers_assigned))
             * Place_List::Hospital_outpatients_per_day_per_employee;
-        hosp->set_daily_patient_capacity(capacity);
+	  hosp->set_daily_patient_capacity(capacity);
+	}
+	if(hosp->get_subtype() != Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
+	  if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "beds" to be considered for overnight
+	    hosp->set_subtype(Place::SUBTYPE_HEALTHCARE_CLINIC);
+	  } else { // This place is a hospital that allows overnight stays, so add in bed count for capacity
+	    int capacity = hosp->get_daily_patient_capacity(0);
+	    capacity += hosp->get_bed_count(0);
+	    hosp->set_daily_patient_capacity(capacity);
+	  }
+	  Place_List::Hospital_overall_panel_size += hosp->get_daily_patient_capacity(0);
+	}
+      } else {
+	Utils::fred_abort("Help! bad place_type %c\n", place_type);
       }
-      if(hosp->get_subtype() != Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
-        if(bed_count < Place_List::Hospital_min_bed_threshold) { // This place is not have enough "beds" to be considered for overnight
-          hosp->set_subtype(Place::SUBTYPE_HEALTHCARE_CLINIC);
-        } else { // This place is a hospital that allows overnight stays, so add in bed count for capacity
-          int capacity = hosp->get_daily_patient_capacity(0);
-          capacity += hosp->get_bed_count(0);
-          hosp->set_daily_patient_capacity(capacity);
-        }
-        Place_List::Hospital_overall_panel_size += hosp->get_daily_patient_capacity(0);
+
+      if(place == NULL) {
+	Utils::fred_abort("Help! allocation failure for the %dth entry in location file (s=%s, type=%c)\n", i, s,
+			  place_type);
       }
-    } else {
-      Utils::fred_abort("Help! bad place_type %c\n", place_type);
+      place = NULL;
     }
 
-    if(place == NULL) {
-      Utils::fred_abort("Help! allocation failure for the %dth entry in location file (s=%s, type=%c)\n", i, s,
-          place_type);
-    }
-    place = NULL;
-  }
-
-  // since everything was allocated in contiguous blocks, we can use pointer arithmetic
-  // call to add_preallocated_places also ensures that all allocations were used for
-  // successful additions to the place list
-  add_preallocated_places<Household>(Place::TYPE_HOUSEHOLD, household_allocator);
-  add_preallocated_places<School>(Place::TYPE_SCHOOL, school_allocator);
-  add_preallocated_places<Workplace>(Place::TYPE_WORKPLACE, workplace_allocator);
-  add_preallocated_places<Hospital>(Place::TYPE_HOSPITAL, hospital_allocator);
+    // since everything was allocated in contiguous blocks, we can use pointer arithmetic
+    // call to add_preallocated_places also ensures that all allocations were used for
+    // successful additions to the place list
+    add_preallocated_places<Household>(Place::TYPE_HOUSEHOLD, household_allocator);
+    add_preallocated_places<School>(Place::TYPE_SCHOOL, school_allocator);
+    add_preallocated_places<Workplace>(Place::TYPE_WORKPLACE, workplace_allocator);
+    add_preallocated_places<Hospital>(Place::TYPE_HOSPITAL, hospital_allocator);
   }
 
   FRED_STATUS(0, "finished reading %d locations, now creating additional FRED locations\n", next_place_id);
@@ -726,7 +726,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     Neighborhood_Patch* patch = Global::Neighborhoods->get_patch(row, col);
 
     FRED_CONDITIONAL_VERBOSE(0, patch == NULL, "Help: household %d has bad patch,  lat = %f  lon = %f\n", h->get_id(),
-        h->get_latitude(), h->get_longitude());
+			     h->get_latitude(), h->get_longitude());
 
     assert(patch != NULL);
 
@@ -742,15 +742,15 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     FRED_VERBOSE(0, "Created %d neighborhgoods\n", this->neighborhoods.size());
   }
   else {
-  // create allocator for neighborhoods
-  Place::Allocator<Neighborhood> neighborhood_allocator;
-  // reserve enough space for all neighborhoods
-  neighborhood_allocator.reserve(number_of_neighborhoods);
-  FRED_STATUS(0, "Allocated space for %7d neighborhoods\n", number_of_neighborhoods);
-  // pass allocator to Neighborhood_Layer::setup (which then passes to Neighborhood_Patch::make_neighborhood)
-  Global::Neighborhoods->setup(neighborhood_allocator);
-  // add Neighborhoods in one contiguous block
-  add_preallocated_places<Neighborhood>(Place::TYPE_NEIGHBORHOOD, neighborhood_allocator);
+    // create allocator for neighborhoods
+    Place::Allocator<Neighborhood> neighborhood_allocator;
+    // reserve enough space for all neighborhoods
+    neighborhood_allocator.reserve(number_of_neighborhoods);
+    FRED_STATUS(0, "Allocated space for %7d neighborhoods\n", number_of_neighborhoods);
+    // pass allocator to Neighborhood_Layer::setup (which then passes to Neighborhood_Patch::make_neighborhood)
+    Global::Neighborhoods->setup(neighborhood_allocator);
+    // add Neighborhoods in one contiguous block
+    add_preallocated_places<Neighborhood>(Place::TYPE_NEIGHBORHOOD, neighborhood_allocator);
   }
 
   int number_places = static_cast<int>(this->places.size());
@@ -804,7 +804,6 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
 
 
   // log county info
-
   for(int i = 0; i < this->counties.size(); ++i) {
     fprintf(Global::Statusfp, "COUNTIES[%d] = %05d\n", i, this->counties[i]->get_fips());
   }
@@ -1002,19 +1001,19 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       if(itr == this->fips_to_county_map.end()) {
         County* new_county = new County(fips);
         this->counties.push_back(new_county);
-	      this->fips_to_county_map[fips] = this->counties.size() - 1;
+	this->fips_to_county_map[fips] = this->counties.size() - 1;
       }
       
       // Grab the first eleven (state and county + six) digits of stcotrbg to get the census tract
       // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
 
       if(Global::Enable_Vector_Transmission) {
-	      // Colombian census tracks are just 8 digits
-	      strncpy(census_tract_str, tokens[stcotrbg], 8);
-	      census_tract_str[8] = '\0';
+	// Colombian census tracks are just 8 digits
+	strncpy(census_tract_str, tokens[stcotrbg], 8);
+	census_tract_str[8] = '\0';
       } else {
-	      strncpy(census_tract_str, tokens[stcotrbg], 11);
-	      census_tract_str[11] = '\0';
+	strncpy(census_tract_str, tokens[stcotrbg], 11);
+	census_tract_str[11] = '\0';
       }
       sscanf(census_tract_str, "%ld", &census_tract);
 
@@ -1023,7 +1022,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file,
       tract_itr = this->fips_to_census_tract_map.find(census_tract);
       if(tract_itr == this->fips_to_census_tract_map.end()) {
         this->census_tracts.push_back(census_tract);
-	      this->fips_to_census_tract_map[census_tract] = this->census_tracts.size() - 1;
+	this->fips_to_census_tract_map[census_tract] = this->census_tracts.size() - 1;
       }
 
       SetInsertResultT result = pids.insert(
@@ -1101,7 +1100,7 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file,
       sprintf(s, "%c%s", place_type, tokens[workplace_id]);
 
       SetInsertResultT result = pids.insert(
-          Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
+					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id));
 
       if(result.second) {
         ++(this->place_type_counts[place_type]);
@@ -1194,7 +1193,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file, 
       sscanf(tokens[bed_cnt], "%d", &bed_count);
 
       Place_Init_Data tempPlace =  Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
-             tokens[longitude], deme_id, 0, "0", false, workers);
+						   tokens[longitude], deme_id, 0, "0", false, workers);
       //Temporary fix to allow for Additional hospital information
       tempPlace.bed_cnt = bed_count;
       tempPlace.physician_cnt = physician_count;
@@ -1318,12 +1317,12 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
       sprintf(s, "%c%s", place_type, tokens[school_id]);
 
       SetInsertResultT result = pids.insert(
-          Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, fips));
+					    Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id, fips));
 
       if(result.second) {
         ++(this->place_type_counts[place_type]);
         FRED_VERBOSE(1, "READ_SCHOOL: %s %c %f %f name |%s| fips %ld\n", s, place_type, result.first->lat,
-            result.first->lon, tokens[name], fips);
+		     result.first->lon, tokens[name], fips);
       }
     }
     tokens.clear();
@@ -1425,7 +1424,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       if(result.second) {
         ++(this->place_type_counts[place_type]);
         FRED_VERBOSE(1, "READ_GROUP_QUARTERS: %s type %c size %d lat %f lon %f\n", s, place_type, capacity,
-            result.first->lat, result.first->lon);
+		     result.first->lat, result.first->lon);
       }
 
       // generate additional household units associated with this group quarters
@@ -1462,7 +1461,7 @@ void Place_List::prepare() {
     // add school to lists of school by grade
     for(int grade = 0; grade < GRADES; ++grade) {
       if(school->get_orig_students_in_grade(grade) > 0) {
-	      this->schools_by_grade[grade].push_back(get_school(p));
+	this->schools_by_grade[grade].push_back(get_school(p));
       }
     }
   }
@@ -1487,23 +1486,23 @@ void Place_List::prepare() {
 
   // add household list to visualization layer if needed
   /*
-  int num_households = this->households.size();
-  if(Global::Enable_Visualization_Layer) {
+    int num_households = this->households.size();
+    if(Global::Enable_Visualization_Layer) {
     for(int i = 0; i < num_households; ++i) {
-      Household* h = this->get_household_ptr(i);
-      // Global::Visualization->add_household(h);
+    Household* h = this->get_household_ptr(i);
+    // Global::Visualization->add_household(h);
     }
-  }
+    }
 
-  // print out household locations to visualization directory
-  char filename[256];
-  sprintf(filename, "%s/households.txt", Global::Visualization_directory);
-  FILE* fp = fopen(filename, "w");
-  for(int i = 0; i < num_households; ++i) {
+    // print out household locations to visualization directory
+    char filename[256];
+    sprintf(filename, "%s/households.txt", Global::Visualization_directory);
+    FILE* fp = fopen(filename, "w");
+    for(int i = 0; i < num_households; ++i) {
     Household* h = get_household_ptr(i);
     fprintf(fp, "%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
-  }
-  fclose(fp);
+    }
+    fclose(fp);
   */
 
   // add list of counties to visualization data directory
@@ -1540,11 +1539,11 @@ void Place_List::print_status_of_schools(int day) {
       int now = school->get_students_in_grade(grade);
       students_per_grade[grade] += now;
       if(0 && total > 1500 && orig > 0) {
-	      printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n", school->get_label(), grade,
-	             school->get_orig_students_in_grade(grade),
-	             school->get_students_in_grade(grade),
-	             school->get_students_in_grade(grade)
-	               - school->get_orig_students_in_grade(grade));
+	printf("%s GRADE %d ORIG %d NOW %d DIFF %d\n", school->get_label(), grade,
+	       school->get_orig_students_in_grade(grade),
+	       school->get_students_in_grade(grade),
+	       school->get_students_in_grade(grade)
+	       - school->get_orig_students_in_grade(grade));
       }
     }
   }
@@ -1663,8 +1662,8 @@ void Place_List::setup_household_income_quartile_sick_days() {
       for(int i = 0; i < static_cast<int>((*itr).second->enrollees.size()); ++i) {
         Person* per = (*itr).second->enrollees[i];
         if(per->is_adult() && !per->is_student()
-            && (per->get_activities()->is_teacher() || per->get_activities()->get_profile() == WORKER_PROFILE
-                || per->get_activities()->get_profile() == WEEKEND_WORKER_PROFILE)) {
+	   && (per->get_activities()->is_teacher() || per->get_activities()->get_profile() == WORKER_PROFILE
+	       || per->get_activities()->get_profile() == WEEKEND_WORKER_PROFILE)) {
           hh_sick_leave_total += (per->get_activities()->is_sick_leave_available() ? 1.0 : 0.0);
           hh_employee_total += 1.0;
         }
@@ -1692,13 +1691,13 @@ void Place_List::setup_household_income_quartile_sick_days() {
     }
 
     FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q1,
-        (q1_count == 0.0 ? 0.0 : (q1_sick_leave / q1_count)));
+		(q1_count == 0.0 ? 0.0 : (q1_sick_leave / q1_count)));
     FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q2,
-        (q2_count == 0.0 ? 0.0 : (q2_sick_leave / q2_count)));
+		(q2_count == 0.0 ? 0.0 : (q2_sick_leave / q2_count)));
     FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q3,
-        (q3_count == 0.0 ? 0.0 : (q3_sick_leave / q3_count)));
+		(q3_count == 0.0 ? 0.0 : (q3_sick_leave / q3_count)));
     FRED_STATUS(0, "HOUSEHOLD INCOME QUARITLE[%d]: %.2f\n", Global::Q4,
-        (q4_count == 0.0 ? 0.0 : (q4_sick_leave / q4_count)));
+		(q4_count == 0.0 ? 0.0 : (q4_sick_leave / q4_count)));
 
     delete household_income_hh_mm;
   }
@@ -1817,7 +1816,7 @@ Place* Place_List::add_place(int id, char* label, char type, char subtype, fred:
   }
 
   FRED_VERBOSE(0, "add_place %d lab %s type %c sub %c lat %f lon %f\n",
-	 place->get_id(), place->get_label(), place->get_type(), place->get_subtype(), place->get_latitude(), place->get_longitude());
+	       place->get_id(), place->get_label(), place->get_type(), place->get_subtype(), place->get_latitude(), place->get_longitude());
 
   return place;
 }
@@ -1884,20 +1883,20 @@ void Place_List::setup_group_quarters() {
       int gq_size = house->get_size();
       int gq_units = house->get_group_quarters_units();
       FRED_VERBOSE(1, "GQ_setup: house %d label %s subtype %c initial size %d units %d\n", p, house->get_label(),
-          house->get_subtype(), gq_size, gq_units);
+		   house->get_subtype(), gq_size, gq_units);
       if(gq_units > 1) {
-	      vector<Person*> housemates;
-	      housemates.clear();
-	      for(int i = 0; i < gq_size; ++i) {
-	        Person* person = house->get_enrollee(i);
-	        housemates.push_back(person);
-	      }
-	      int units_filled = 1;
-	      int min_per_unit = gq_size / gq_units;
-	      int larger_units = gq_size - min_per_unit * gq_units;
+	vector<Person*> housemates;
+	housemates.clear();
+	for(int i = 0; i < gq_size; ++i) {
+	  Person* person = house->get_enrollee(i);
+	  housemates.push_back(person);
+	}
+	int units_filled = 1;
+	int min_per_unit = gq_size / gq_units;
+	int larger_units = gq_size - min_per_unit * gq_units;
         int smaller_units = gq_units - larger_units;
         FRED_VERBOSE(1, "GQ min_per_unit %d smaller = %d  larger = %d total = %d  orig = %d\n", min_per_unit,
-            smaller_units, larger_units, smaller_units*min_per_unit + larger_units*(min_per_unit+1), gq_size);
+		     smaller_units, larger_units, smaller_units*min_per_unit + larger_units*(min_per_unit+1), gq_size);
         int next_person = min_per_unit;
         for(int i = 1; i < smaller_units; ++i) {
           // assert(units_filled < gq_units);
@@ -1978,7 +1977,7 @@ void Place_List::setup_households() {
     }
     assert(head_of_household != NULL);
     FRED_VERBOSE(1, "HOLDER: house %d label %s is_group_quarters %d householder %d age %d\n", house->get_id(),
-        house->get_label(), house->is_group_quarters()?1:0, head_of_household->get_id(), head_of_household->get_age());
+		 house->get_label(), house->is_group_quarters()?1:0, head_of_household->get_id(), head_of_household->get_age());
   }
 
   // NOTE: the following sorts households from lowest income to highest
@@ -2032,23 +2031,23 @@ void Place_List::reassign_workers() {
   if(Global::Assign_Teachers) {
     //from: http://www.statemaster.com/graph/edu_ele_sec_pup_rat-elementary-secondary-pupil-teacher-ratio
     reassign_workers_to_places_of_type(Place::TYPE_SCHOOL, Place_List::School_fixed_staff,
-        Place_List::School_student_teacher_ratio);
+				       Place_List::School_student_teacher_ratio);
   }
 
   if(Global::Enable_Hospitals) {
     reassign_workers_to_places_of_type(Place::TYPE_HOSPITAL, Place_List::Hospital_fixed_staff,
-        (1.0 / Place_List::Hospital_worker_to_bed_ratio));
+				       (1.0 / Place_List::Hospital_worker_to_bed_ratio));
   }
 
   if(Global::Enable_Group_Quarters) {
     reassign_workers_to_group_quarters(Place::SUBTYPE_COLLEGE, Place_List::College_fixed_staff,
-        Place_List::College_resident_to_staff_ratio);
+				       Place_List::College_resident_to_staff_ratio);
     reassign_workers_to_group_quarters(Place::SUBTYPE_PRISON, Place_List::Prison_fixed_staff,
-        Place_List::Prison_resident_to_staff_ratio);
+				       Place_List::Prison_resident_to_staff_ratio);
     reassign_workers_to_group_quarters(Place::SUBTYPE_MILITARY_BASE, Place_List::Military_fixed_staff,
-        Place_List::Military_resident_to_staff_ratio);
+				       Place_List::Military_resident_to_staff_ratio);
     reassign_workers_to_group_quarters(Place::SUBTYPE_NURSING_HOME, Place_List::Nursing_home_fixed_staff,
-        Place_List::Nursing_home_resident_to_staff_ratio);
+				       Place_List::Nursing_home_resident_to_staff_ratio);
   }
 
   Utils::fred_print_lap_time("reassign workers");
@@ -2065,9 +2064,9 @@ void Place_List::reassign_workers_to_places_of_type(char place_type, int fixed_s
       double x = Geo::get_x(lon);
       double y = Geo::get_y(lat);
       if(place_type == Place::TYPE_SCHOOL) {
-	      FRED_VERBOSE(0, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign teachers to school %s at (%f,%f) \n", place->get_label(), x, y);
       } else {
-	      FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
+	FRED_VERBOSE(0, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
       }
 
       // ignore place if it is outside the region
@@ -2251,7 +2250,7 @@ void Place_List::prepare_primary_care_assignment() {
       double proprtn_of_total_panel = 0;
       if(hosp->get_subtype() != Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
         proprtn_of_total_panel = static_cast<double>(hosp->get_daily_patient_capacity(0))
-            / static_cast<double>(Place_List::Hospital_overall_panel_size);
+	  / static_cast<double>(Place_List::Hospital_overall_panel_size);
       }
       Place_List::Hospital_ID_total_assigned_size_map.insert(std::pair<int, int>(hosp->get_id(), ceil(proprtn_of_total_panel * tot_pop_size)));
       Place_List::Hospital_ID_current_assigned_size_map.insert(std::pair<int, int>(hosp->get_id(), 0));
@@ -2298,8 +2297,8 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     overnight_cap = hospital->get_bed_count(sim_day);
     //Need to make sure place is not a healthcare clinic && there are beds available
     if(distance > 0.0 && !hospital->is_healthcare_clinic() && !hospital->is_mobile_healthcare_clinic()
-         && hospital->should_be_open(sim_day)
-         && (hospital->get_occupied_bed_count() < overnight_cap)) {
+       && hospital->should_be_open(sim_day)
+       && (hospital->get_occupied_bed_count() < overnight_cap)) {
       if(check_insurance) {
         Insurance_assignment_index::e per_insur = per->get_health()->get_insurance_type();
         if(hospital->accepts_insurance(per_insur)) {
@@ -2503,7 +2502,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
             if(hospital->accepts_insurance(per_insur)) {
               //Hospital accepts the insurance so can check further
               if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-                  < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+		 < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
                 //Hospital accepts the insurance and it hasn't been filled so we are good
                 cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
                 increment = 1;
@@ -2520,7 +2519,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
           } else {
             //We don't care about insurance so can check further
             if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-                < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+	       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
               //Hospital accepts the insurance and it hasn't been filled so we are good
               cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
               increment = 1;
@@ -2541,7 +2540,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
           if(hospital->accepts_insurance(per_insur)) {
             //Hospital accepts the insurance so can check further
             if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-                < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+	       < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
               //Hospital accepts the insurance and it hasn't been filled so we are good
               cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
               increment = 1;
@@ -2558,7 +2557,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
         } else {
           //We don't care about insurance so can check further
           if(Place_List::Hospital_ID_current_assigned_size_map.at(hospital->get_id())
-              < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
+	     < Place_List::Hospital_ID_total_assigned_size_map.at(hospital->get_id())) {
             //Hospital accepts the insurance and it hasn't been filled so we are good
             cur_prob = static_cast<double>(daily_hosp_cap) / (distance * distance);
             increment = 1;
@@ -2696,12 +2695,12 @@ void Place_List::report_household_incomes() {
       Household* h = this->get_household_ptr(i);
       int h_county = h->get_county_fips();
       FRED_VERBOSE(0, "INCOME: %s %c %f %f %d %d\n", h->get_label(), h->get_type(), h->get_latitude(),
-          h->get_longitude(), h->get_household_income(), h_county);
+		   h->get_longitude(), h->get_household_income(), h_county);
     }
   }
   FRED_VERBOSE(0, "INCOME_STATS: households: %d  min %d  first_quartile %d  median %d  third_quartile %d  max %d\n",
-      num_households, min_household_income, first_quartile_household_income, median_household_income,
-      third_quartile_household_income, max_household_income);
+	       num_households, min_household_income, first_quartile_household_income, median_household_income,
+	       third_quartile_household_income, max_household_income);
 
 }
 
@@ -2744,7 +2743,7 @@ void Place_List::shelter_household(Household* h) {
 
   // set shelter delay
   int shelter_start_day = 0.4999999
-      + Random::draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
+    + Random::draw_normal(Place_List::Shelter_delay_mean, Place_List::Shelter_delay_std);
   if(Place_List::Early_shelter_rate > 0.0) {
     double r = Random::draw_random();
     while(shelter_start_day > 0 && r < Place_List::Early_shelter_rate) {
@@ -2759,7 +2758,7 @@ void Place_List::shelter_household(Household* h) {
 
   // set shelter duration
   int shelter_duration = 0.4999999
-      + Random::draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
+    + Random::draw_normal(Place_List::Shelter_duration_mean, Place_List::Shelter_duration_std);
   if(shelter_duration < 1) {
     shelter_duration = 1;
   }
@@ -2779,7 +2778,7 @@ void Place_List::shelter_household(Household* h) {
 
   FRED_VERBOSE(1, "ISOLATE household %s size %d income %d ", h->get_label(), h->get_size(), h->get_household_income());
   FRED_VERBOSE(1, "start_day %d end_day %d duration %d ", h->get_shelter_start_day(), h->get_shelter_end_day(),
-      h->get_shelter_end_day()-h->get_shelter_start_day());
+	       h->get_shelter_end_day()-h->get_shelter_start_day());
 }
 
 void Place_List::select_households_for_evacuation() {
@@ -2840,7 +2839,7 @@ void Place_List::select_households_for_evacuation() {
   FRED_VERBOSE(0, "HAZEL: num_households = %d\n", num_households);
   FRED_VERBOSE(0, "HAZEL: num_evacuating = %d\n", count_hh_evacuating);
   FRED_VERBOSE(0, "HAZEL: pct_households_evacuating = %f\n",
-      static_cast<float>(count_hh_evacuating) / static_cast<float>(num_households));
+	       static_cast<float>(count_hh_evacuating) / static_cast<float>(num_households));
   FRED_VERBOSE(0, "HAZEL: select_households_for_evacuation finished.\n");
 }
 
@@ -2933,11 +2932,11 @@ void Place_List::end_of_run() {
     }
 
     fprintf(Global::Statusfp,
-        "ISOLATION REPORT: households_sheltering %d pop_sheltering %d infections_sheltering %d ar_sheltering %f ",
-        households_sheltering, pop_sheltering, infections_sheltering, ar_sheltering);
+	    "ISOLATION REPORT: households_sheltering %d pop_sheltering %d infections_sheltering %d ar_sheltering %f ",
+	    households_sheltering, pop_sheltering, infections_sheltering, ar_sheltering);
     fprintf(Global::Statusfp,
-        "households_not_sheltering %d pop_not_sheltering %d infections_not_sheltering %d ar_not_sheltering %f\n",
-        households_not_sheltering, pop_not_sheltering, infections_not_sheltering, ar_not_sheltering);
+	    "households_not_sheltering %d pop_not_sheltering %d infections_not_sheltering %d ar_not_sheltering %f\n",
+	    households_not_sheltering, pop_not_sheltering, infections_not_sheltering, ar_not_sheltering);
     fflush(Global::Statusfp);
   }
 }
@@ -2960,7 +2959,7 @@ void Place_List::swap_houses(int house_index1, int house_index2) {
     return;
 
   FRED_VERBOSE(1, "HOUSING: swapping house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 
   // get pointers to residents of house h1
   vector<Person*> temp1;
@@ -2989,7 +2988,7 @@ void Place_List::swap_houses(int house_index1, int house_index2) {
   }
 
   FRED_VERBOSE(1, "HOUSING: swapped house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 }
 
 void Place_List::combine_households(int house_index1, int house_index2) {
@@ -3000,7 +2999,7 @@ void Place_List::combine_households(int house_index1, int house_index2) {
     return;
 
   FRED_VERBOSE(1, "HOUSING: combining house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 
   // get pointers to residents of house h2
   vector<Person*> temp2;
@@ -3016,7 +3015,7 @@ void Place_List::combine_households(int house_index1, int house_index2) {
   }
 
   printf("HOUSING: combined house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	 h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 
 }
 
@@ -3098,7 +3097,7 @@ Place* Place_List::select_school(int county_fips, int grade) {
     int orig = school_with_vacancy->get_orig_students_in_grade(grade);
     int now = school_with_vacancy->get_students_in_grade(grade);
     FRED_VERBOSE(1, "select_school_by_grade: GRADE %d closest school WITH VACANCY %s ORIG %d NOW %d\n", grade,
-        school_with_vacancy->get_label(), orig, now);
+		 school_with_vacancy->get_label(), orig, now);
     return school_with_vacancy;
   }
 
@@ -3107,7 +3106,7 @@ Place* Place_List::select_school(int county_fips, int grade) {
     int orig = school_with_overcrowding->get_orig_students_in_grade(grade);
     int now = school_with_overcrowding->get_students_in_grade(grade);
     FRED_VERBOSE(1, "select_school_by_grade: GRADE %d school with smallest OVERCROWDING %s ORIG %d NOW %d\n", grade,
-        school_with_overcrowding->get_label(), orig, now);
+		 school_with_overcrowding->get_label(), orig, now);
     return school_with_overcrowding;
   }
 
@@ -3152,7 +3151,7 @@ void Place_List::setup_HAZEL_mobile_vans() {
     for(int i = 0; i < static_cast<int>(temp_hosp_vec.size()); ++i) {
       //The Mobile Healthcare Clinics close after days
       temp_hosp_vec.at(i)->set_close_date(Place_List::HAZEL_disaster_end_sim_day + Hospital::get_HAZEL_mobile_van_open_delay()
-        + Hospital::get_HAZEL_mobile_van_closure_day());
+					  + Hospital::get_HAZEL_mobile_van_closure_day());
       temp_hosp_vec.at(i)->set_open_date(Global::Days);
       temp_hosp_vec.at(i)->have_HAZEL_closure_dates_been_set(true);
     }
@@ -3162,7 +3161,7 @@ void Place_List::setup_HAZEL_mobile_vans() {
     for(int i = 0; i < Place_List::HAZEL_mobile_van_max; ++i) {
       //The Mobile Healthcare Clinics close after days
       temp_hosp_vec.at(i)->set_close_date(Place_List::HAZEL_disaster_end_sim_day + Hospital::get_HAZEL_mobile_van_open_delay()
-        + Hospital::get_HAZEL_mobile_van_closure_day());
+					  + Hospital::get_HAZEL_mobile_van_closure_day());
       temp_hosp_vec.at(i)->set_open_date(Global::Days);
       temp_hosp_vec.at(i)->have_HAZEL_closure_dates_been_set(true);
     }
