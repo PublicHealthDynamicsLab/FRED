@@ -36,7 +36,6 @@ class Hospital : public Place {
 public: 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Hospital();
 

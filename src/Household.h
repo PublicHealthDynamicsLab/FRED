@@ -140,7 +140,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Household();
 
@@ -212,6 +211,14 @@ public:
    */
   int get_household_income() {
     return this->household_income;
+  }
+
+  void set_household_race(int _race) {
+    this->race = _race;
+  }
+
+  int get_household_race() {
+    return this->race;
   }
 
   /**
@@ -476,6 +483,7 @@ private:
   int household_income;
   int household_income_code;
   int income_quartile;
+  int race;
 
   // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;

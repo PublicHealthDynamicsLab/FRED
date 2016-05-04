@@ -53,7 +53,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Place();
 
@@ -396,93 +395,27 @@ public:
 protected:
   static double** prob_contact;
 
-  fred::geo latitude;     // geo location
-  fred::geo longitude;    // geo location
+  fred::geo latitude;				// geo location
+  fred::geo longitude;				// geo location
   long int fips;			       // census_tract fips code
 
-  int close_date;         // this place will be closed during:
-  int open_date;          //   [close_date, open_date)
-  double intimacy;	      // prob of intimate contact
-  int index;		          // index for households
-  int staff_size;			    // outside workers in this place
+  int close_date;		    // this place will be closed during:
+  int open_date;			    //   [close_date, open_date)
+  double intimacy;			     // prob of intimate contact
+  int index;					// index for households
+  int staff_size;			// outside workers in this place
 
   
-  Neighborhood_Patch* patch;       // geo patch for this place
+  Neighborhood_Patch* patch;		     // geo patch for this place
 
   // optional data for vector transmission model
   vector_condition_data_t* vector_condition_data;
   bool vectors_have_been_infected_today;
   bool vector_control_status;
 
-  // Place_List, Neighborhood_Layer and Neighborhood_Patch are friends so that they can access
-  // the Place Allocator.
+  // Place_List and Place are friends so that they can access enrollees
   friend class Place_List;
-  friend class Neighborhood_Layer;
-  friend class Neighborhood_Patch;
 
-  // Place Allocator reserves chunks of memory and hands out pointers for use
-  // with placement new
-  template<typename Place_Type>
-  struct Allocator {
-    Place_Type* allocation_array;
-    int current_allocation_size;
-    int current_allocation_index;
-    int number_of_contiguous_blocks_allocated;
-    int remaining_allocations;
-    int allocations_made;
-
-    Allocator() {
-      remaining_allocations = 0;
-      number_of_contiguous_blocks_allocated = 0;
-      allocations_made = 0;
-      current_allocation_index = 0;
-      current_allocation_size = 0;
-      allocation_array = NULL;
-    }
-
-    bool reserve(int n = 1) {
-      if(remaining_allocations == 0) {
-        current_allocation_size = n;
-        allocation_array = new Place_Type[n];
-        remaining_allocations = n; 
-        current_allocation_index = 0;
-        ++(number_of_contiguous_blocks_allocated);
-        allocations_made += n;
-        return true;
-      }
-      return false;
-    }
-
-    Place_Type* get_free() {
-      if(remaining_allocations == 0) {
-        reserve();
-      }
-      Place_Type* place_pointer = allocation_array + current_allocation_index;
-      --(remaining_allocations);
-      ++(current_allocation_index);
-      return place_pointer;
-    }
-
-    int get_number_of_remaining_allocations() {
-      return remaining_allocations;
-    }
-
-    int get_number_of_contiguous_blocks_allocated() {
-      return number_of_contiguous_blocks_allocated;
-    }
-
-    int get_number_of_allocations_made() {
-      return allocations_made;
-    }
-
-    Place_Type* get_base_pointer() {
-      return allocation_array;
-    }
-
-    int size() {
-      return allocations_made;
-    }
-  }; // end Place Allocator
 };
 
 

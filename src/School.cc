@@ -424,10 +424,11 @@ int School::get_number_of_rooms() {
   return total_rooms;
 }
 
-void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
+void School::setup_classrooms() {
   if(School::school_classroom_size == 0) {
     return;
   }
+  FRED_VERBOSE(1, "setup_classroom for School %d %s\n", this->get_id(), this->get_label());
 
   for(int a = 0; a < GRADES; ++a) {
     int n = this->students_in_grade[a];
@@ -438,22 +439,22 @@ void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
     if(n % School::school_classroom_size) {
       rooms++;
     }
-
-    FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", this->get_id(), this->get_label(), a, n, rooms);
-
+    FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", 
+		this->get_id(), this->get_label(), a, n, rooms);
     for(int c = 0; c < rooms; ++c) {
       char new_label[128];
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
-
-      Classroom* clsrm = new (classroom_allocator.get_free()) Classroom(new_label,
-									Place::SUBTYPE_NONE,
-									this->get_longitude(),
-									this->get_latitude());
-      clsrm->set_school(this);
-
-      this->classrooms[a].push_back(clsrm);
+      Classroom* classroom = static_cast<Classroom *>(Global::Places.add_place(new_label, 
+									       Place::TYPE_CLASSROOM, 
+									       Place::SUBTYPE_NONE,
+									       this->get_longitude(),
+									       this->get_latitude(),
+									       this->get_census_tract_fips()));
+      classroom->set_school(this);
+      this->classrooms[a].push_back(classroom);
     }
   }
+  FRED_VERBOSE(1, "setup_classroom finished for School %d %s\n", this->get_id(), this->get_label());
 }
 
 Place* School::select_classroom_for_student(Person* per) {

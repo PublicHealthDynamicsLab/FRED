@@ -29,7 +29,6 @@ class School : public Place {
 public:
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   School();
 
@@ -81,8 +80,7 @@ public:
   void print_size_distribution();
   void print(int condition);
   int get_number_of_rooms();
-  // int get_number_of_classrooms() { return (int) classrooms.size(); }
-  void setup_classrooms(Allocator<Classroom> &classroom_allocator);
+  void setup_classrooms();
   Place* select_classroom_for_student(Person* per);
   int get_number_of_students() { 
     int n = 0;
