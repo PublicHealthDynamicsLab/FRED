@@ -43,13 +43,8 @@ class Office;
 
 typedef std::unordered_map<std::string, int> LabelMapT;
 
-// Helper class used during read_all_places/read_places; definition
-// after Place_List class
-class Place_Init_Data;
-
 class Place_List {
-  typedef std::vector<Place_Init_Data> InitSetT;
-  // typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
+
   typedef std::map<char, int> TypeCountsMapT;
   typedef std::map<char, std::string> TypeNameMapT;
   typedef std::map<int, int> HospitalIDCountMapT;
@@ -71,7 +66,7 @@ public:
   ~Place_List();
 
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
-  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id, InitSetT &pids);
+  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id);
 
   void reassign_workers();
   void prepare();
@@ -375,12 +370,6 @@ private:
   void read_hospital_file(unsigned char deme_id, char* location_file);
   void read_group_quarters_file(unsigned char deme_id, char* location_file);
 
-  void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_hospital_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_school_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
   void reassign_workers_to_group_quarters(char subtype, int fixed_staff, double resident_to_staff_ratio);
   void prepare_primary_care_assignment();
@@ -492,8 +481,6 @@ private:
 
   fred::geo min_lat, max_lat, min_lon, max_lon;
 
-  void parse_lines_from_stream(std::istream & stream, std::vector<Place_Init_Data> & pids);
-
   TypeNameMapT place_type_name_lookup_map;
 
   void init_place_type_name_lookup_map();
@@ -503,121 +490,9 @@ private:
     return this->place_type_name_lookup_map[place_type];
   }
 
-  bool add_place(Place* p);
-
-  template<typename Place_Type>
-    void add_preallocated_places(char place_type, Place::Allocator<Place_Type> & pal) {
-      // make sure that the expected number of places were allocated
-      assert(pal.get_number_of_contiguous_blocks_allocated() == 1);
-      assert(pal.get_number_of_remaining_allocations() == 0);
-
-      int places_added = 0;
-      Place_Type* place = pal.get_base_pointer();
-      int places_allocated = pal.size();
-
-      for(int i = 0; i < places_allocated; ++i) {
-        if(add_place(place)) {
-          ++(places_added);
-        }
-        ++(place);
-      }
-      FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
-          lookup_place_type_name( place_type ).c_str());
-      FRED_CONDITIONAL_WARNING(places_added != places_allocated,
-          "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
-          lookup_place_type_name( place_type ).c_str(), places_allocated);
-      // update/set place_type_counts for this place_type
-      this->place_type_counts[place_type] = places_added;
-    }
-
-  // map to hold counts for each place type
-  TypeCountsMapT place_type_counts;
-
   int next_place_id;
 
   LabelMapT* place_label_map;
-};
-
-struct Place_Init_Data {
-
-  char s[80];
-  char place_type;
-  char place_subtype;
-  long int admin_id;
-  int income;
-  unsigned char deme_id;
-  fred::geo lat, lon;
-  long int fips;
-  bool is_group_quarters;
-  int num_workers_assigned;
-  int group_quarters_units;
-  char gq_type[8];
-  char gq_workplace[32];
-
-  //Temporary additions for Hospital read-in
-  int physician_cnt;
-  int bed_cnt;
-
-  void setup(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-	     unsigned char _deme_id, long int _fips, const char* _income, bool _is_group_quarters,
-	     int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
-    place_type = _place_type;
-    place_subtype = _place_subtype;
-    strcpy(s, _s);
-    sscanf(_lat, "%f", &lat);
-    sscanf(_lon, "%f", &lon);
-    fips = _fips;
-    sscanf(_income, "%d", &income);
-
-    if(!(lat >= -90 && lat <= 90) || !(lon >= -180 && lon <= 180)) {
-      printf("BAD LAT-LON: type = %c lat = %f  lon = %f  inc = %d  s = %s\n", place_type, lat, lon, income, s);
-      lat = 34.999999;
-    }
-    assert(lat >= -90 && lat <= 90);
-    assert(lon >= -180 && lon <= 180);
-
-    is_group_quarters = _is_group_quarters;
-    num_workers_assigned = _num_workers_assigned;
-    group_quarters_units = _group_quarters_units;
-    strcpy(gq_type, _gq_type);
-    strcpy(gq_workplace, _gq_workplace);
-
-    physician_cnt = 0;
-    bed_cnt = 0;
-  }
-
-  Place_Init_Data(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-		  unsigned char _deme_id, long int _fips = 0, const char* _income = "0",
-		  bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
-		  const char* gq_type = "X", const char* gq_workplace = "") {
-    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _fips, _income, _is_group_quarters,
-	  _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
-  }
-
-  bool operator<(const Place_Init_Data & other) const {
-
-    if(place_type != other.place_type) {
-      return place_type < other.place_type;
-    } else if(strcmp(s, other.s) < 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  const std::string to_string() const {
-    std::stringstream ss;
-    ss << "Place Init Data ";
-    ss << place_type << " ";
-    ss << lat << " ";
-    ss << lon << " ";
-    ss << fips << " ";
-    ss << s << " ";
-    ss << int(deme_id) << " ";
-    ss << num_workers_assigned << std::endl;
-    return ss.str();
-  }
-
 };
 
 #endif // _FRED_PLACE_LIST_H

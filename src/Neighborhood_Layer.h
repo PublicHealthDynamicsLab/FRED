@@ -36,7 +36,6 @@ public:
   ~Neighborhood_Layer() {}
 
   void setup();
-  void setup( Place::Allocator< Neighborhood > & neighborhood_allocator );
 
   /**
    * @param row the row where the Patch is located

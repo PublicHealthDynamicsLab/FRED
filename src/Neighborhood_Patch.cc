@@ -92,16 +92,6 @@ void Neighborhood_Patch::make_neighborhood() {
 						this->census_tract_fips);
 }
 
-void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator) {
-  char str[80];
-  sprintf(str, "N-%04d-%04d", this->row, this->col);
-  fred::geo lat = Geo::get_latitude(this->center_y);
-  fred::geo lon = Geo::get_longitude(this->center_x);
-
-  this->neighborhood = new (neighborhood_allocator.get_free())
-    Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
-}
-
 void Neighborhood_Patch::add_household(Household* p) {
   this->households.push_back(p);
   if (this->census_tract_fips == 0) {

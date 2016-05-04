@@ -112,26 +112,6 @@ void Neighborhood_Layer::setup() {
   }
 }
 
-void Neighborhood_Layer::setup(Place::Allocator<Neighborhood> & neighborhood_allocator) {
-  // create one neighborhood per patch
-  for(int i = 0; i < this->rows; i++) {
-    for(int j = 0; j < this->cols; j++) {
-      if(this->grid[i][j].get_houses() > 0) {
-        this->grid[i][j].make_neighborhood(neighborhood_allocator);
-      }
-    }
-  }
-
-  if(Global::Verbose > 1) {
-    for(int i = 0; i < this->rows; i++) {
-      for(int j = 0; j < this->cols; j++) {
-        printf("print grid[%d][%d]:\n", i, j);
-        this->grid[i][j].print();
-      }
-    }
-  }
-}
-
 void Neighborhood_Layer::prepare() {
   record_daily_activity_locations();
   if (Enable_neighborhood_gravity_model) {
@@ -842,7 +822,6 @@ void Neighborhood_Layer::register_place(Place *place) {
   Neighborhood_Patch * patch = get_patch(place->get_latitude(), place->get_longitude());
   if (patch != NULL) {
     patch->register_place(place);
-    //    place->set_patch(patch);  
   }
   else {
     FRED_VERBOSE(1, "register place: can't find patch for place %s county = %d\n",

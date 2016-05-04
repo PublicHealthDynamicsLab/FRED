@@ -29,7 +29,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Workplace();
 
@@ -80,7 +79,6 @@ public:
    * Setup the offices within this Workplace
    */
   void setup_offices();
-  void setup_offices(Allocator<Office> &office_allocator);
 
   /**
    * Assign a person to a particular Office
@@ -146,13 +144,10 @@ private:
   static double contacts_per_day;
   static double** prob_transmission_per_contact;
   static int Office_size;
-
   static int total_workers;
-  
   static std::vector<int> workplace_size_max; // vector to hold the upper limit for each workplace size group
   static std::vector<int> workers_by_workplace_size; // vector to hold the counts of workers in each group (plus, the "greater than" group)
   static int workplace_size_group_count;
-
   vector<Place*> offices;
   int next_office;
 };
