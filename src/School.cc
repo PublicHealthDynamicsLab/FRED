@@ -442,13 +442,14 @@ void School::setup_classrooms() {
     FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", 
 		this->get_id(), this->get_label(), a, n, rooms);
     for(int c = 0; c < rooms; ++c) {
-      char c_label[128];
-      sprintf(c_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
-      Classroom* classroom = static_cast<Classroom *>(Global::Places.add_place(0, c_label, 
+      char new_label[128];
+      sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
+      Classroom* classroom = static_cast<Classroom *>(Global::Places.add_place(new_label, 
 									       Place::TYPE_CLASSROOM, 
 									       Place::SUBTYPE_NONE,
 									       this->get_longitude(),
-									       this->get_latitude()));
+									       this->get_latitude(),
+									       this->get_census_tract_fips()));
       classroom->set_school(this);
       this->classrooms[a].push_back(classroom);
     }

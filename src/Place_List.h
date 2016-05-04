@@ -356,7 +356,7 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
-  Place* add_place(int id, char* label, char type, char subtype, fred::geo lon, fred::geo lat);
+  Place* add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract);
 
 private:
 
@@ -373,13 +373,14 @@ private:
   void read_workplace_file(unsigned char deme_id, char* location_file);
   void read_school_file(unsigned char deme_id, char* location_file);
   void read_hospital_file(unsigned char deme_id, char* location_file);
+  void read_group_quarters_file(unsigned char deme_id, char* location_file);
 
   void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_hospital_file(unsigned char deme_id, char* location_file, InitSetT &pids);
   void read_school_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-
   void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
+
   void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
   void reassign_workers_to_group_quarters(char subtype, int fixed_staff, double resident_to_staff_ratio);
   void prepare_primary_care_assignment();

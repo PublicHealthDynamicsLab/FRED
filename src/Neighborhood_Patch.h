@@ -197,6 +197,7 @@ protected:
   int popsize;
   double mean_household_income;
   int vector_control_status;
+  long int census_tract_fips;
 
   // lists of places by type
   place_vector_t households;

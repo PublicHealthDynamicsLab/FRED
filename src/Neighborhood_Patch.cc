@@ -51,6 +51,7 @@ Neighborhood_Patch::Neighborhood_Patch() {
   this->popsize = 0;
   this->mean_household_income = 0.0;
   this->neighborhood = NULL;
+  this->census_tract_fips = 0;
 }
 
 void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
@@ -75,7 +76,8 @@ void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
   this->popsize = 0;
   this->mean_household_income = 0.0;
   this->neighborhood = NULL;
-  vector_control_status = 0;
+  this->vector_control_status = 0;
+  this->census_tract_fips = 0;
 }
 
 void Neighborhood_Patch::make_neighborhood() {
@@ -83,7 +85,11 @@ void Neighborhood_Patch::make_neighborhood() {
   sprintf(label, "N-%04d-%04d", this->row, this->col);
   fred::geo lat = Geo::get_latitude(this->center_y);
   fred::geo lon = Geo::get_longitude(this->center_x);
-  this->neighborhood = Global::Places.add_place(0, label, Place::TYPE_NEIGHBORHOOD, Place::SUBTYPE_NONE, lon, lat);
+  this->neighborhood = Global::Places.add_place(label,
+						Place::TYPE_NEIGHBORHOOD,
+						Place::SUBTYPE_NONE,
+						lon, lat,
+						this->census_tract_fips);
 }
 
 void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator) {
@@ -98,6 +104,9 @@ void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neigh
 
 void Neighborhood_Patch::add_household(Household* p) {
   this->households.push_back(p);
+  if (this->census_tract_fips == 0) {
+    this->census_tract_fips = p->get_census_tract_fips();
+  }
   if (Global::Householdfp != NULL) {
     fprintf(Global::Householdfp,"%s %.8f %.8f %f %f house_id: %d row = %d  col = %d  house_number = %d\n",
 	    p->get_label(),p->get_longitude(),p->get_latitude(),

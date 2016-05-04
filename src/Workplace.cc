@@ -174,11 +174,12 @@ void Workplace::setup_offices() {
   for(int i = 0; i < rooms; ++i) {
     char label[128];
     sprintf(label, "%s-%03d", this->get_label(), i);
-    Office* office = static_cast<Office *>(Global::Places.add_place(0, label, 
+    Office* office = static_cast<Office *>(Global::Places.add_place(label, 
 								    Place::TYPE_OFFICE, 
 								    Place::SUBTYPE_NONE,
 								    this->get_longitude(),
-								    this->get_latitude()));
+								    this->get_latitude(),
+								    this->get_census_tract_fips()));
     office->set_workplace(this);
     this->offices.push_back(office);
     FRED_STATUS(1, "workplace %d %s added office %d %s %d\n", this->get_id(), this->get_label(), i,

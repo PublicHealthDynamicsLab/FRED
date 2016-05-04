@@ -739,7 +739,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   if (Global::Test == 7) {
     // Neighborhood_Layer::setup call Neighborhood_Patch::make_neighborhood
     Global::Neighborhoods->setup();
-    FRED_VERBOSE(0, "Created %d neighborhgoods\n", this->neighborhoods.size());
+    FRED_VERBOSE(0, "Created %d neighborhoods\n", this->neighborhoods.size());
   }
   else {
     // create allocator for neighborhoods
@@ -847,7 +847,12 @@ void Place_List::read_places(const char* pop_dir, const char* pop_id, unsigned c
     // read group quarters locations (a new workplace and household is created 
     // for each group quarters)
     sprintf(location_file, "%s/%s/%s_synth_gq.txt", pop_dir, pop_id, pop_id);
-    read_group_quarters_file(deme_id, location_file, pids);
+    if (Global::Test==7) {
+      read_group_quarters_file(deme_id, location_file);
+    }
+    else {
+      read_group_quarters_file(deme_id, location_file, pids);
+    }
   }
   Utils::fred_print_lap_time("Places.read_group_quarters_file");
 
@@ -871,7 +876,6 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
   // data to fill in from input file
   char place_type = Place::TYPE_HOUSEHOLD;
   char place_subtype = Place::SUBTYPE_NONE;
-  int id = -1;
   char label[80];
   char fips_str[12];
   long int census_tract = 0;
@@ -902,8 +906,6 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
 
-    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
-
     // update max and min geo coords
     if(lat != 0.0) {
       if(lat < this->min_lat) {
@@ -928,7 +930,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
     strncpy(fips_str, tokens[fips_field], 11);
     fips_str[11] = '\0';
     sscanf(fips_str, "%ld", &census_tract);
-    place->set_census_tract_fips(census_tract);
+    Place* place = add_place(label, place_type, place_subtype, lon, lat, census_tract);
     
     // county fips code
     // use the first five digits of fips_field to get the county fips code
@@ -1045,7 +1047,6 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file)
   // data to fill in from input file
   char place_type = Place::TYPE_WORKPLACE;
   char place_subtype = Place::SUBTYPE_NONE;
-  int id = -1;
   char label[80];
   double lat;
   double lon;
@@ -1071,7 +1072,7 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file)
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
 
-    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+    Place* place = add_place(label, place_type, place_subtype, lon, lat, 0);
   }
   fclose(fp);
 }
@@ -1116,7 +1117,6 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
   // data to fill in from input file
   char place_type = Place::TYPE_HOSPITAL;
   char place_subtype = Place::SUBTYPE_NONE;
-  int id = -1;
   char label[80];
   double lat;
   double lon;
@@ -1143,7 +1143,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
 
-    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
+    Place* place = add_place(label, place_type, place_subtype, lon, lat, 0);
 
     // workers
     sscanf(tokens[workers_field], "%d", &workers); 
@@ -1212,7 +1212,6 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file) {
   // place data to fill in from input file
   char place_type = Place::TYPE_SCHOOL;
   char place_subtype = Place::SUBTYPE_NONE;
-  int id = -1;
   char label[80];
   long int census_tract = 0;
   double lat;
@@ -1240,14 +1239,12 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file) {
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
 
-    Place* place = add_place(id, label, place_type, place_subtype, lon, lat);
-
     // census tract fips code
     strncpy(county_fips_str, tokens[fips_field], 5);
     county_fips_str[5] = '\0';
     sscanf(county_fips_str, "%ld", &census_tract);
     census_tract *= 1000000;
-    place->set_census_tract_fips(census_tract);
+    Place* place = add_place(label, place_type, place_subtype, lon, lat, census_tract);
   }
   fclose(fp);
 }
@@ -1317,6 +1314,119 @@ void Place_List::read_school_file(unsigned char deme_id, char* location_file, In
 		     pids.back().lon, tokens[name], fips);
     }
     tokens.clear();
+  }
+  fclose(fp);
+}
+
+void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_file) {
+
+  // location of fields in input file
+  int id_field = 0;
+  int type_field = 1;
+  int size_field = 2;
+  int fips_field = 3;
+  int lat_field = 4;
+  int lon_field = 5;
+
+  // data to fill in from input file
+  char place_type = Place::TYPE_HOUSEHOLD;
+  char place_subtype = Place::SUBTYPE_NONE;
+  char label[80];
+  char fips_str[12];
+  long int census_tract = 0;
+  int county_fips;
+  double lat;
+  double lon;
+  int capacity;
+
+  char line_str[10*FRED_STRING_SIZE];
+  Utils::Tokens tokens;
+  FILE* fp = Utils::fred_open_file(location_file);
+
+  for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
+    tokens.clear();
+    tokens = Utils::split_by_delim(line, ',', tokens, false);
+
+    // skip header line
+    if(strcmp(tokens[id_field], "sp_id") == 0) {
+      continue;
+    }
+
+    // lat/lon
+    sscanf(tokens[lat_field], "%lf", &lat); 
+    sscanf(tokens[lon_field], "%lf", &lon); 
+
+    // update max and min geo coords
+    if(lat != 0.0) {
+      if(lat < this->min_lat) {
+	this->min_lat = lat;
+      }
+      if(this->max_lat < lat) {
+	this->max_lat = lat;
+      }
+    }
+    if(lon != 0.0) {
+      if(lon < this->min_lon) {
+	this->min_lon = lon;
+      }
+      if(this->max_lon < lon) {
+	this->max_lon = lon;
+      }
+    }
+
+    // census tract
+    // use the first eleven (state and county + six) digits of fips_field to get the census tract
+    // e.g 090091846001 StateCo = 09009, 184600 is the census tract, throw away the 1
+    strncpy(fips_str, tokens[fips_field], 11);
+    fips_str[11] = '\0';
+    sscanf(fips_str, "%ld", &census_tract);
+
+    // size
+    sscanf(tokens[size_field], "%d", &capacity); 
+
+    // set number of units and subtype for this group quarters
+    int number_of_units = 0;
+    if(strcmp(tokens[type_field], "C") == 0) {
+      number_of_units = capacity / Place_List::College_dorm_mean_size;
+      place_subtype = Place::SUBTYPE_COLLEGE;
+    }
+    if(strcmp(tokens[type_field], "M") == 0) {
+      number_of_units = capacity / Place_List::Military_barracks_mean_size;
+      place_subtype = Place::SUBTYPE_MILITARY_BASE;
+    }
+    if(strcmp(tokens[type_field], "P") == 0) {
+      number_of_units = capacity / Place_List::Prison_cell_mean_size;
+      place_subtype = Place::SUBTYPE_PRISON;
+    }
+    if(strcmp(tokens[type_field], "N") == 0) {
+      number_of_units = capacity / Place_List::Nursing_home_room_mean_size;
+      place_subtype = Place::SUBTYPE_NURSING_HOME;
+    }
+    if(number_of_units == 0) {
+      number_of_units = 1;
+    }
+
+    // add a workplace for this group quarters
+    place_type = Place::TYPE_WORKPLACE;
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+    FRED_VERBOSE(0, "Adding GQ Workplace %s\n", label);
+    Place* workplace = add_place(label, place_type, place_subtype, lon, lat, census_tract);
+    
+    // add as household
+    place_type = Place::TYPE_HOUSEHOLD;
+    sprintf(label, "%c%s", place_type, tokens[id_field]);
+
+    FRED_VERBOSE(0, "Adding GQ Household %s\n", label);
+    Household *place = static_cast<Household *>(add_place(label, place_type, place_subtype, lon, lat, census_tract));
+    place->set_group_quarters_units(number_of_units);
+    place->set_group_quarters_workplace(workplace);
+    
+    // generate additional household units associated with this group quarters
+    for(int i = 1; i < number_of_units; ++i) {
+      sprintf(label, "%c%s-%03d", place_type, tokens[id_field], i);
+      Place *place = add_place(label, place_type, place_subtype, lon, lat, census_tract);
+      FRED_VERBOSE(0, "Adding GQ Household %s out of %d units\n", label, number_of_units);
+    }
   }
   fclose(fp);
 }
@@ -1395,6 +1505,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       // add a workplace for this group quarters
       place_type = Place::TYPE_WORKPLACE;
       sprintf(wp, "%c%s", place_type, tokens[gq_id]);
+      FRED_VERBOSE(0, "Adding GQ Workplace %s\n", wp);
 
       pids.push_back(
 			   Place_Init_Data(wp, place_type, place_subtype, tokens[latitude],
@@ -1405,6 +1516,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
       // add as household
       place_type = Place::TYPE_HOUSEHOLD;
       sprintf(s, "%c%s", place_type, tokens[gq_id]);
+      FRED_VERBOSE(0, "Adding GQ Household %s\n", s);
       pids.push_back(
 			   Place_Init_Data(s, place_type, place_subtype, tokens[latitude],
 					   tokens[longitude], deme_id, census_tract,
@@ -1420,7 +1532,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
 			     Place_Init_Data(s, place_type, place_subtype, tokens[latitude], tokens[longitude], deme_id,
 					     census_tract, "0", true, 0, 0, tokens[gq_type], wp));
 	++(this->place_type_counts[place_type]);
-        FRED_VERBOSE(1, "Adding GQ Household %s out of %d units\n", s, number_of_units);
+        FRED_VERBOSE(0, "Adding GQ Household %s out of %d units\n", s, number_of_units);
       }
     }
     tokens.clear();
@@ -1613,15 +1725,12 @@ void Place_List::setup_household_income_quartile_sick_days() {
     typedef std::multimap<double, Household*> HouseholdMultiMapT;
 
     HouseholdMultiMapT* household_income_hh_mm = new HouseholdMultiMapT();
-    int number_places = this->places.size();
-    for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      if(this->places[p]->get_type() == Place::TYPE_HOUSEHOLD) {
-        Household* hh = static_cast<Household*>(places[p]);
-        double hh_income = hh->get_household_income();
-        std::pair<double, Household*> my_insert(hh_income, hh);
-        household_income_hh_mm->insert(my_insert);
-      }
+    int number_households = this->households.size();
+    for(int p = 0; p < number_households; ++p) {
+      Household* hh = get_household_ptr(p);
+      double hh_income = hh->get_household_income();
+      std::pair<double, Household*> my_insert(hh_income, hh);
+      household_income_hh_mm->insert(my_insert);
     }
 
     int total = static_cast<int>(household_income_hh_mm->size());
@@ -1740,7 +1849,7 @@ Place* Place_List::get_place_from_label(const char* s) const {
   }
 }
 
-Place* Place_List::add_place(int id, char* label, char type, char subtype, fred::geo lon, fred::geo lat) {
+Place* Place_List::add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract) {
 
   Place* place = NULL;
   switch(type) {
@@ -1773,8 +1882,9 @@ Place* Place_List::add_place(int id, char* label, char type, char subtype, fred:
     break;
   }
 
-  id = get_new_place_id();
+  int id = get_new_place_id();
   place->set_id(id);
+  place->set_census_tract_fips(census_tract);
 
   string str;
   str.assign(label);
@@ -1795,6 +1905,10 @@ Place* Place_List::add_place(int id, char* label, char type, char subtype, fred:
     this->neighborhoods.push_back(place);
   }
 
+  if(place->is_school()) {
+    this->schools.push_back(place);
+  }
+
   if(place->is_workplace()) {
     this->workplaces.push_back(place);
   }
@@ -1803,11 +1917,7 @@ Place* Place_List::add_place(int id, char* label, char type, char subtype, fred:
     this->hospitals.push_back(place);
   }
   
-  if(place->is_school()) {
-    this->schools.push_back(place);
-  }
-
-  FRED_VERBOSE(0, "add_place %d lab %s type %c sub %c lat %f lon %f\n",
+  FRED_VERBOSE(1, "add_place %d lab %s type %c sub %c lat %f lon %f\n",
 	       place->get_id(), place->get_label(), place->get_type(), place->get_subtype(), place->get_latitude(), place->get_longitude());
 
   return place;
@@ -1900,7 +2010,7 @@ void Place_List::setup_group_quarters() {
           }
           units_filled++;
           // printf("GQ size of smaller unit %s = %d remaining in main house %d\n",
-          // new_house->get_label(), new_house->get_size(), house->get_size());
+	  // new_house->get_label(), new_house->get_size(), house->get_size());
         }
         for(int i = 0; i < larger_units; ++i) {
           new_house = this->get_household_ptr(p++);
@@ -1910,7 +2020,7 @@ void Place_List::setup_group_quarters() {
             person->move_to_new_house(new_house);
           }
           // printf("GQ size of larger unit %s = %d -- remaining in main house %d\n",
-          // new_house->get_label(), new_house->get_size(), house->get_size());
+	  // new_house->get_label(), new_house->get_size(), house->get_size());
         }
       }
     }
@@ -2145,35 +2255,38 @@ void Place_List::reassign_workers_to_group_quarters(char subtype, int fixed_staf
   }
 }
 
+
 void Place_List::setup_offices() {
+  FRED_STATUS(0, "setup offices entered\n");
+  int number_workplaces = this->workplaces.size();
 
-  FRED_STATUS(0, "setup offices entered\n", "");
-
-  int number_offices = 0;
-  int number_places = this->places.size();
-
-#pragma omp parallel for reduction(+:number_offices)
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
-      Workplace* workplace = static_cast<Workplace*>(places[p]);
+  if (Global::Test==7) {
+    for(int p = 0; p < number_workplaces; ++p) {
+      Workplace* workplace = get_workplace_ptr(p);
+      workplace->setup_offices();
+    }
+  }
+  else {
+    int number_offices = 0;
+    for(int p = 0; p < number_workplaces; ++p) {
+      Workplace* workplace = get_workplace_ptr(p);
       number_offices += workplace->get_number_of_rooms();
     }
-  }
 
-  Place::Allocator<Office> office_allocator;
-  office_allocator.reserve(number_offices);
+    Place::Allocator<Office> office_allocator;
+    office_allocator.reserve(number_offices);
 
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
-      Workplace* workplace = static_cast<Workplace*>(this->places[p]);
+    for(int p = 0; p < number_workplaces; ++p) {
+      Workplace* workplace = get_workplace_ptr(p);
       workplace->setup_offices(office_allocator);
     }
-  }
-  // add offices in one contiguous block to Place_List
-  add_preallocated_places<Office>(Place::TYPE_OFFICE, office_allocator);
 
-  FRED_STATUS(0, "setup offices finished\n", "");
+    // add offices in one contiguous block to Place_List
+    add_preallocated_places<Office>(Place::TYPE_OFFICE, office_allocator);
+  }
+  FRED_STATUS(0, "setup offices finished\n");
 }
+
 
 Place* Place_List::get_random_workplace() {
   int size = static_cast<int>(this->workplaces.size());
@@ -2183,6 +2296,7 @@ Place* Place_List::get_random_workplace() {
     return NULL;
   }
 }
+
 
 void Place_List::assign_hospitals_to_households() {
   if(Global::Enable_Hospitals) {
@@ -2728,7 +2842,7 @@ void Place_List::select_households_for_shelter() {
     for(int i = 0; i < this->households.size(); ++i) {
       tmp.push_back(this->get_household_ptr(i));
     }
-    // randomly shuffle households
+    // randomly shuffle selected households
     FYShuffle<Household*>(tmp);
     for(int i = 0; i < num_sheltering; ++i) {
       this->shelter_household(tmp[i]);
