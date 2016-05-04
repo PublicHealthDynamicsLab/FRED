@@ -826,11 +826,14 @@ void Place_List::read_workplace_file(unsigned char deme_id, char* location_file)
 }
 
 void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) {
+
   // location of fields in input file
   int id_field = 0;
-  int workers_field = 1;
-  int lat_field = 2;
-  int lon_field = 3;
+  int workers_field = 6;
+  int physicians_field = 7;
+  int beds_field = 8;
+  int lat_field = 9;
+  int lon_field = 10;
 
   // data to fill in from input file
   char place_type = Place::TYPE_HOSPITAL;
@@ -839,6 +842,8 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
   double lat;
   double lon;
   int workers;
+  int physicians;
+  int beds;
 
   char line_str[10*FRED_STRING_SIZE];
   Utils::Tokens tokens;
@@ -861,12 +866,19 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
 
-    Place* place = add_place(label, place_type, place_subtype, lon, lat, 0);
-
     // workers
     sscanf(tokens[workers_field], "%d", &workers); 
 
-    place->set_staff_size(workers);
+    // physicians
+    sscanf(tokens[physicians_field], "%d", &physicians); 
+
+    // beds
+    sscanf(tokens[beds_field], "%d", &beds); 
+
+    Hospital* place = static_cast<Hospital*>(add_place(label, place_type, place_subtype, lon, lat, 0));
+    place->set_employee_count(workers);
+    place->set_physician_count(physicians);
+    place->set_bed_count(beds);
   }
   fclose(fp);
 }
