@@ -517,7 +517,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
     FRED_VERBOSE(0, "read_all_places: Demes[%d][0] = %s\n", i, Demes[i][0]);
   }
 
-  // clear the vectors
+  // clear the vectors and maps
   this->households.clear();
   this->neighborhoods.clear();
   this->schools.clear();
@@ -527,6 +527,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   this->census_tracts.clear();
   this->fips_to_county_map.clear();
   this->fips_to_census_tract_map.clear();
+  this->hosp_lbl_hosp_id_map.clear();
+  this->hh_lbl_hosp_lbl_map.clear();
 
   // store the number of demes as member variable
   set_number_of_demes(Demes.size());
@@ -848,6 +850,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
   char line_str[10*FRED_STRING_SIZE];
   Utils::Tokens tokens;
   FILE* fp = Utils::fred_open_file(location_file);
+  int hosp_id = 0;
 
   for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
 
@@ -879,6 +882,10 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     place->set_employee_count(workers);
     place->set_physician_count(physicians);
     place->set_bed_count(beds);
+
+    string hosp_lbl_str(label);
+    this->hosp_lbl_hosp_id_map.insert(std::pair<string, int>(hosp_lbl_str, hosp_id));
+    hosp_id++;
   }
   fclose(fp);
 }
@@ -1357,6 +1364,13 @@ Place* Place_List::get_place_from_label(const char* s) const {
 
 Place* Place_List::add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract) {
 
+  string label_str;
+  label_str.assign(label);
+  if(this->place_label_map->find(label_str) != this->place_label_map->end()) {
+    FRED_WARNING("duplicate place label found: %s\n", label);
+    return get_place_from_label(label);
+  }
+
   Place* place = NULL;
   switch(type) {
   case 'H':
@@ -1391,16 +1405,7 @@ Place* Place_List::add_place(char* label, char type, char subtype, fred::geo lon
   int id = get_new_place_id();
   place->set_id(id);
   place->set_census_tract_fips(census_tract);
-
-  string str;
-  str.assign(label);
-  if(this->place_label_map->find(str) == this->place_label_map->end()) {
-    this->place_label_map->insert(std::make_pair(str, id));
-  }
-  else {
-    Utils::fred_abort("add_place: duplicate place label found: %s\n", label);
-  }
-
+  this->place_label_map->insert(std::make_pair(label_str, id));
   this->places.push_back(place);
 
   if(place->is_household()) {
@@ -1721,11 +1726,7 @@ Place* Place_List::get_random_workplace() {
 void Place_List::assign_hospitals_to_households() {
   if(Global::Enable_Hospitals) {
 
-    int number_hospitals = get_number_of_hospitals();
-    int catchment_count[number_hospitals];
-    for (int i = 0; i < number_hospitals; i++) {
-      catchment_count[i] = 0;
-    }
+    FRED_STATUS(0, "assign_hospitals_to_household entered\n");
 
     int number_hh = (int)this->households.size();
     for(int i = 0; i < number_hh; ++i) {
@@ -1738,13 +1739,48 @@ void Place_List::assign_hospitals_to_households() {
         string hosp_lbl_str(hosp->get_label());
 
         this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
-	int hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl_str)->second;
-	catchment_count[hosp_id] += hh->get_size();
+      }
+    }
+
+    int number_hospitals = get_number_of_hospitals();
+    int catchment_count[number_hospitals];
+    double catchment_age[number_hospitals];
+    double catchment_dist[number_hospitals];
+    for (int i = 0; i < number_hospitals; i++) {
+      catchment_count[i] = 0;
+      catchment_age[i] = 0;
+      catchment_dist[i] = 0;
+    }
+
+    for(int i = 0; i < number_hh; ++i) {
+      Household* hh = get_household_ptr(i);
+      Hospital* hosp = hh->get_household_visitation_hospital();
+      assert(hosp != NULL);
+      string hosp_lbl_str(hosp->get_label());
+      int hosp_id = -1;
+      if(this->hosp_lbl_hosp_id_map.find(hosp_lbl_str) != this->hosp_lbl_hosp_id_map.end()) {
+	hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl_str)->second;
+      }
+      assert(0 <= hosp_id && hosp_id < number_hospitals);
+      // printf("CATCH house %s hosp_id %d %s\n", hh->get_label(), hosp_id, hosp->get_label());
+      catchment_count[hosp_id] += hh->get_size();
+      catchment_dist[hosp_id] += hh->get_size()*(distance_between_places(hh,hosp));
+      for (int j = 0; j < hh->get_size(); j++) {
+	double age = hh->get_enrollee(j)->get_real_age();
+	catchment_age[hosp_id] += age;
       }
     }
 
     for (int i = 0; i < number_hospitals; i++) {
-      printf("HOSPITAL CATCHMENT %s %d %d\n", this->hospitals[i]->get_label(), i, catchment_count[i]);
+      if (catchment_count[i] > 0) {
+	catchment_dist[i] /= catchment_count[i];
+	catchment_age[i] /= catchment_count[i];
+      }
+      printf("HOSPITAL CATCHMENT %d %s beds %d count %d age %f dist %f\n", i, this->hospitals[i]->get_label(),
+	     static_cast<Hospital*>(this->hospitals[i])->get_bed_count(0),
+	     catchment_count[i],
+	     catchment_age[i],
+	     catchment_dist[i]);
     }
 
     //Write the mapping file if it did not already exist (or if it was incomplete)
@@ -1778,6 +1814,7 @@ void Place_List::assign_hospitals_to_households() {
     }
 
     this->hh_lbl_hosp_lbl_map.clear();
+    FRED_STATUS(0, "assign_hospitals_to_household finished\n");
   }
 }
 

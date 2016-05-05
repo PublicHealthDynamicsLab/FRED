@@ -294,7 +294,7 @@ std::vector<Place*> Regional_Layer::get_nearby_hospitals(int row, int col, doubl
 
     //Try to expand the search if we don't have enough hospitals and we CAN
     if(static_cast<int>(ret_val.size() < min_found)) {
-      if((row + search_dist + 1 < this->rows || col + search_dist + 1 < this->cols) &&
+      if((row + search_dist + 1 < this->rows || col + search_dist + 1 < this->cols) ||
          (row - search_dist - 1 >= 0 || col - search_dist - 1 >= 0)) {
         //Expand the search
         ret_val.clear();
