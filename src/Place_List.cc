@@ -1720,6 +1720,13 @@ Place* Place_List::get_random_workplace() {
 
 void Place_List::assign_hospitals_to_households() {
   if(Global::Enable_Hospitals) {
+
+    int number_hospitals = get_number_of_hospitals();
+    int catchment_count[number_hospitals];
+    for (int i = 0; i < number_hospitals; i++) {
+      catchment_count[i] = 0;
+    }
+
     int number_hh = (int)this->households.size();
     for(int i = 0; i < number_hh; ++i) {
       Household* hh = static_cast<Household*>(this->households[i]);
@@ -1731,7 +1738,13 @@ void Place_List::assign_hospitals_to_households() {
         string hosp_lbl_str(hosp->get_label());
 
         this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
+	int hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl_str)->second;
+	catchment_count[hosp_id] += hh->get_size();
       }
+    }
+
+    for (int i = 0; i < number_hospitals; i++) {
+      printf("HOSPITAL CATCHMENT %s %d %d\n", this->hospitals[i]->get_label(), i, catchment_count[i]);
     }
 
     //Write the mapping file if it did not already exist (or if it was incomplete)
