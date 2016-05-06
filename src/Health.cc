@@ -560,7 +560,7 @@ void Health::become_infectious(Condition* condition) {
   assert(this->infection[condition_id] != NULL);
   this->infectious.set(condition_id);
   int household_index = this->myself->get_exposed_household_index();
-  Household* hh = Global::Places.get_household_ptr(household_index);
+  Household* hh = Global::Places.get_household(household_index);
   assert(hh != NULL);
   hh->set_human_infectious(condition_id);
   FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
@@ -628,7 +628,7 @@ void Health::recover(Condition* condition, int day) {
 			  Global::Conditions.get_condition_name(condition_id).c_str());
   this->recovered.set(condition_id);
   int household_index = myself->get_exposed_household_index();
-  Household* h = Global::Places.get_household_ptr(household_index);
+  Household* h = Global::Places.get_household(household_index);
   h->set_recovered(condition_id);
   h->reset_human_infectious();
   myself->reset_neighborhood();

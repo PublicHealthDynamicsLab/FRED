@@ -593,7 +593,7 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   // add households to the Neighborhoods Layer
   FRED_VERBOSE(0, "adding %d households to neighborhoods\n", this->households.size());
   for(int i = 0; i < this->households.size(); ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     int row = Global::Neighborhoods->get_row(h->get_latitude());
     int col = Global::Neighborhoods->get_col(h->get_longitude());
     Neighborhood_Patch* patch = Global::Neighborhoods->get_patch(row, col);
@@ -1065,12 +1065,12 @@ void Place_List::prepare() {
 
   int number_of_schools = this->schools.size();
   for(int p = 0; p < number_of_schools; ++p) {
-    School* school = get_school_ptr(p);
+    School* school = get_school(p);
     
     // add school to lists of school by grade
     for(int grade = 0; grade < GRADES; ++grade) {
       if(school->get_orig_students_in_grade(grade) > 0) {
-	this->schools_by_grade[grade].push_back(get_school(p));
+	this->schools_by_grade[grade].push_back(school);
       }
     }
   }
@@ -1098,7 +1098,7 @@ void Place_List::prepare() {
     int num_households = this->households.size();
     if(Global::Enable_Visualization_Layer) {
     for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     // Global::Visualization->add_household(h);
     }
     }
@@ -1108,7 +1108,7 @@ void Place_List::prepare() {
     sprintf(filename, "%s/households.txt", Global::Visualization_directory);
     FILE* fp = fopen(filename, "w");
     for(int i = 0; i < num_households; ++i) {
-    Household* h = get_household_ptr(i);
+    Household* h = get_household(i);
     fprintf(fp, "%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
     }
     fclose(fp);
@@ -1141,7 +1141,7 @@ void Place_List::print_status_of_schools(int day) {
 
   int number_of_schools = this->schools.size();
   for(int p = 0; p < number_of_schools; ++p) {
-    School *school = get_school_ptr(p);
+    School *school = get_school(p);
     for(int grade = 0; grade < GRADES; ++grade) {
       int total = school->get_orig_number_of_students();
       int orig = school->get_orig_students_in_grade(grade);
@@ -1213,7 +1213,7 @@ void Place_List::setup_household_childcare() {
   if(Global::Report_Childhood_Presenteeism) {
     int number_places = this->households.size();
     for(int p = 0; p < number_places; ++p) {
-      Household* hh = get_household_ptr(p);
+      Household* hh = get_household(p);
       hh->prepare_person_childcare_sickleave_map();
     }
   }
@@ -1225,7 +1225,7 @@ void Place_List::setup_school_income_quartile_pop_sizes() {
   if(Global::Report_Childhood_Presenteeism) {
     int number_places = this->schools.size();
     for(int p = 0; p < number_places; ++p) {
-      School* school = get_school_ptr(p);
+      School* school = get_school(p);
       school->prepare_income_quartile_pop_size();
     }
   }
@@ -1240,7 +1240,7 @@ void Place_List::setup_household_income_quartile_sick_days() {
     HouseholdMultiMapT* household_income_hh_mm = new HouseholdMultiMapT();
     int number_households = this->households.size();
     for(int p = 0; p < number_households; ++p) {
-      Household* hh = get_household_ptr(p);
+      Household* hh = get_household(p);
       double hh_income = hh->get_household_income();
       std::pair<double, Household*> my_insert(hh_income, hh);
       household_income_hh_mm->insert(my_insert);
@@ -1442,12 +1442,12 @@ void Place_List::setup_group_quarters() {
   // reset household indexes
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    this->get_household_ptr(i)->set_index(i);
+    this->get_household(i)->set_index(i);
   }
 
   int p = 0;
   while(p < num_households) {
-    Household* house = this->get_household_ptr(p++);
+    Household* house = this->get_household(p++);
     Household* new_house;
     if(house->is_group_quarters()) {
       int gq_size = house->get_size();
@@ -1470,7 +1470,7 @@ void Place_List::setup_group_quarters() {
         int next_person = min_per_unit;
         for(int i = 1; i < smaller_units; ++i) {
           // assert(units_filled < gq_units);
-          new_house = this->get_household_ptr(p++);
+          new_house = this->get_household(p++);
           // printf("GQ smaller new_house %s\n", new_house->get_label()); fflush(stdout);
           for(int j = 0; j < min_per_unit; ++j) {
             Person* person = housemates[next_person++];
@@ -1481,7 +1481,7 @@ void Place_List::setup_group_quarters() {
 	  // new_house->get_label(), new_house->get_size(), house->get_size());
         }
         for(int i = 0; i < larger_units; ++i) {
-          new_house = this->get_household_ptr(p++);
+          new_house = this->get_household(p++);
           // printf("GQ larger new_house %s\n", new_house->get_label()); fflush(stdout);
           for(int j = 0; j < min_per_unit + 1; ++j) {
             Person* person = housemates[next_person++];
@@ -1509,7 +1509,7 @@ void Place_List::setup_households() {
   // ensure that each household has an identified householder
   int num_households = this->households.size();
   for(int p = 0; p < num_households; ++p) {
-    Household* house = this->get_household_ptr(p);
+    Household* house = this->get_household(p);
     house->set_index(p);
     if(house->get_size() == 0) {
       FRED_VERBOSE(0, "Warning: house %d label %s has zero size.\n", house->get_id(), house->get_label());
@@ -1555,7 +1555,7 @@ void Place_List::setup_households() {
 
   // reset household indexes
   for(int i = 0; i < num_households; ++i) {
-    this->get_household_ptr(i)->set_index(i);
+    this->get_household(i)->set_index(i);
   }
 
   report_household_incomes();
@@ -1575,7 +1575,7 @@ void Place_List::setup_classrooms() {
   int number_classrooms = 0;
   int number_schools = this->schools.size();
   for(int p = 0; p < number_schools; ++p) {
-    School* school = get_school_ptr(p);
+    School* school = get_school(p);
     school->setup_classrooms();
   }
   FRED_STATUS(0, "setup classrooms finished\n");
@@ -1706,7 +1706,7 @@ void Place_List::setup_offices() {
   FRED_STATUS(0, "setup offices entered\n");
   int number_workplaces = this->workplaces.size();
   for(int p = 0; p < number_workplaces; ++p) {
-    Workplace* workplace = get_workplace_ptr(p);
+    Workplace* workplace = get_workplace(p);
     workplace->setup_offices();
   }
   FRED_STATUS(0, "setup offices finished\n");
@@ -1753,7 +1753,7 @@ void Place_List::assign_hospitals_to_households() {
     }
 
     for(int i = 0; i < number_hh; ++i) {
-      Household* hh = get_household_ptr(i);
+      Household* hh = get_household(i);
       Hospital* hosp = hh->get_household_visitation_hospital();
       assert(hosp != NULL);
       string hosp_lbl_str(hosp->get_label());
@@ -1829,7 +1829,7 @@ void Place_List::prepare_primary_care_assignment() {
     assert(Place_List::Hospital_overall_panel_size > 0);
     //Determine the distribution of population that should be assigned to each hospital location
     for(int i = 0; i < this->hospitals.size(); ++i) {
-      Hospital* hosp = this->get_hospital_ptr(i);
+      Hospital* hosp = this->get_hospital(i);
       double proprtn_of_total_panel = 0;
       if(hosp->get_subtype() != Place::SUBTYPE_MOBILE_HEALTHCARE_CLINIC) {
         proprtn_of_total_panel = static_cast<double>(hosp->get_daily_patient_capacity(0))
@@ -2226,7 +2226,7 @@ void Place_List::delete_place_label_map() {
 void Place_List::get_initial_visualization_data_from_households() {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     Global::Visualization->initialize_household_data(h->get_latitude(), h->get_longitude(), h->get_size());
     // printf("%f %f %3d %s\n", h->get_latitude(), h->get_longitude(), h->get_size(), h->get_label());
   }
@@ -2235,7 +2235,7 @@ void Place_List::get_initial_visualization_data_from_households() {
 void Place_List::get_visualization_data_from_households(int day, int condition_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     int count = h->get_visualization_counter(day, condition_id, output_code);
     int popsize = h->get_size();
     // update appropriate visualization patch
@@ -2246,7 +2246,7 @@ void Place_List::get_visualization_data_from_households(int day, int condition_i
 void Place_List::get_census_tract_data_from_households(int day, int condition_id, int output_code) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     int count = h->get_visualization_counter(day, condition_id, output_code);
     int popsize = h->get_size();
     long int census_tract = h->get_census_tract_fips();
@@ -2265,17 +2265,17 @@ void Place_List::report_household_incomes() {
 
   int num_households = this->households.size();
   if(num_households > 0) {
-    this->min_household_income = this->get_household_ptr(0)->get_household_income();
-    this->max_household_income = this->get_household_ptr(num_households - 1)->get_household_income();
-    this->first_quartile_household_income = this->get_household_ptr(num_households / 4)->get_household_income();
-    this->median_household_income = this->get_household_ptr(num_households / 2)->get_household_income();
-    this->third_quartile_household_income = this->get_household_ptr((3 * num_households) / 4)->get_household_income();
+    this->min_household_income = this->get_household(0)->get_household_income();
+    this->max_household_income = this->get_household(num_households - 1)->get_household_income();
+    this->first_quartile_household_income = this->get_household(num_households / 4)->get_household_income();
+    this->median_household_income = this->get_household(num_households / 2)->get_household_income();
+    this->third_quartile_household_income = this->get_household((3 * num_households) / 4)->get_household_income();
   }
 
   // print household incomes to LOG file
   if(Global::Verbose > 1) {
     for(int i = 0; i < num_households; ++i) {
-      Household* h = this->get_household_ptr(i);
+      Household* h = this->get_household(i);
       int h_county = h->get_county_fips();
       FRED_VERBOSE(0, "INCOME: %s %c %f %f %d %d\n", h->get_label(), h->get_type(), h->get_latitude(),
 		   h->get_longitude(), h->get_household_income(), h_county);
@@ -2302,7 +2302,7 @@ void Place_List::select_households_for_shelter() {
     // in setup_households()
     for(int i = 0; i < num_sheltering; ++i) {
       int j = num_households - 1 - i;
-      Household* h = get_household_ptr(j);
+      Household* h = get_household(j);
       shelter_household(h);
     }
   } else {
@@ -2310,7 +2310,7 @@ void Place_List::select_households_for_shelter() {
     vector<Household*> tmp;
     tmp.clear();
     for(int i = 0; i < this->households.size(); ++i) {
-      tmp.push_back(this->get_household_ptr(i));
+      tmp.push_back(this->get_household(i));
     }
     // randomly shuffle selected households
     FYShuffle<Household*>(tmp);
@@ -2392,7 +2392,7 @@ void Place_List::select_households_for_evacuation() {
   }
 
   for(int i = 0; i < num_households; ++i) {
-    Household* tmp_hh = this->get_household_ptr(i);
+    Household* tmp_hh = this->get_household(i);
     bool evac_date_set = false;
     bool return_date_set = false;
     for(int j = evac_start_sim_day; j <= evac_end_sim_day; ++j) {
@@ -2439,7 +2439,7 @@ void Place_List::report_shelter_stats(int day) {
   double sheltering_ar = 0.0;
   double non_sheltering_ar = 0.0;
   for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     if(h->is_sheltering()) {
       sheltering_new_infections += h->get_new_infections(day,0);
       sheltering_total_infections += h->get_total_infections(0);
@@ -2494,7 +2494,7 @@ void Place_List::end_of_run() {
     double ar_not_sheltering = 0.0;
     int num_households = this->households.size();
     for(int i = 0; i < num_households; ++i) {
-      Household* h = this->get_household_ptr(i);
+      Household* h = this->get_household(i);
       if(h->is_sheltering()) {
         pop_sheltering += h->get_size();
         infections_sheltering += h->get_total_infections(0);
@@ -2527,7 +2527,7 @@ void Place_List::end_of_run() {
 int Place_List::get_housing_data(int* target_size, int* current_size) {
   int num_households = this->households.size();
   for(int i = 0; i < num_households; ++i) {
-    Household* h = this->get_household_ptr(i);
+    Household* h = this->get_household(i);
     current_size[i] = h->get_size();
     target_size[i] = h->get_orig_size();
   }
@@ -2536,8 +2536,8 @@ int Place_List::get_housing_data(int* target_size, int* current_size) {
 
 void Place_List::swap_houses(int house_index1, int house_index2) {
 
-  Household* h1 = this->get_household_ptr(house_index1);
-  Household* h2 = this->get_household_ptr(house_index2);
+  Household* h1 = this->get_household(house_index1);
+  Household* h2 = this->get_household(house_index2);
   if(h1 == NULL || h2 == NULL)
     return;
 
@@ -2576,8 +2576,8 @@ void Place_List::swap_houses(int house_index1, int house_index2) {
 
 void Place_List::combine_households(int house_index1, int house_index2) {
 
-  Household* h1 = this->get_household_ptr(house_index1);
-  Household* h2 = this->get_household_ptr(house_index2);
+  Household* h1 = this->get_household(house_index1);
+  Household* h2 = this->get_household(house_index2);
   if(h1 == NULL || h2 == NULL)
     return;
 
@@ -2608,7 +2608,7 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
     string hosp_lbl = this->hh_lbl_hosp_lbl_map.find(string(hh->get_label()))->second;
     if(this->hosp_lbl_hosp_id_map.find(hosp_lbl) != this->hosp_lbl_hosp_id_map.end()) {
       int hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl)->second;
-      return static_cast<Hospital*>(this->get_hospital_ptr(hosp_id));
+      return static_cast<Hospital*>(this->get_hospital(hosp_id));
     } else {
       return NULL;
     }
@@ -2722,7 +2722,7 @@ void Place_List::setup_HAZEL_mobile_vans() {
   vector<Hospital*> temp_hosp_vec;
   int count = 0;
   for(int i = 0; i < num_hospitals; ++i) {
-    Hospital* tmp_hosp = this->get_hospital_ptr(i);
+    Hospital* tmp_hosp = this->get_hospital(i);
     if(tmp_hosp->is_mobile_healthcare_clinic()) {
       temp_hosp_vec.push_back(tmp_hosp);
       count++;
@@ -2765,7 +2765,7 @@ void Place_List::print_stats(int day) {
     int tot_hosp_cap = 0;
     int num_hospitals = static_cast<int>(this->hospitals.size());
     for(int i = 0; i < num_hospitals; ++i) {
-      Hospital* tmp_hosp = this->get_hospital_ptr(i);
+      Hospital* tmp_hosp = this->get_hospital(i);
       int hosp_cap = tmp_hosp->get_daily_patient_capacity(day);
       if(tmp_hosp->should_be_open(day)) {
         num_open_hosp++;
@@ -2781,7 +2781,7 @@ void Place_List::print_stats(int day) {
     int tot_res_evac = 0;
 
     for(int i = 0; i < num_households; ++i) {
-      Household* hh = this->get_household_ptr(i);
+      Household* hh = this->get_household(i);
       if(hh->is_sheltering_today(day)) {
         tot_res_evac += hh->get_size();
       } else {

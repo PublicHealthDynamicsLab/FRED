@@ -613,7 +613,7 @@ void Vector_Layer::quality_control() {
 void Vector_Layer::setup() {
   int num_households = Global::Places.get_number_of_households();
   for(int i = 0; i < num_households; ++i) {
-    Household* hh = Global::Places.get_household_ptr(i);
+    Household* hh = Global::Places.get_household(i);
     add_hosts(hh);
   }
   if(Vector_Layer::Enable_Vector_Control){
@@ -747,7 +747,7 @@ void Vector_Layer::get_county_ids(){
   }
   for(int i = 0; i < num_households; ++i) {
     int household_county = -1;
-    Household* hh = Global::Places.get_household_ptr(i);
+    Household* hh = Global::Places.get_household(i);
     int hh_county = hh->get_county_fips();
     for (int j = 0;j<county_set.size();j++){
       if(hh_county == county_set[j].id){
@@ -1143,7 +1143,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   int places = Global::Places.get_number_of_households();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_household_ptr(i);
+    Place *place = Global::Places.get_household(i);
     household_vectors += place->get_vector_population_size();
     household_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){
@@ -1166,7 +1166,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   places = Global::Places.get_number_of_schools();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_school_ptr(i);
+    Place *place = Global::Places.get_school(i);
     school_vectors += place->get_vector_population_size();
     school_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){
@@ -1176,7 +1176,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   places = Global::Places.get_number_of_workplaces();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_workplace_ptr(i);
+    Place *place = Global::Places.get_workplace(i);
     workplace_vectors += place->get_vector_population_size();
     workplace_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){

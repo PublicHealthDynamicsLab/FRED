@@ -499,7 +499,7 @@ void Epidemic::get_imported_infections(int day) {
 	int hsize = Global::Places.get_number_of_households();
 	// printf("IMPORT: houses  %d\n", hsize); fflush(stdout);
 	for(int i = 0; i < hsize; ++i) {
-	  Household* hh = Global::Places.get_household_ptr(i);
+	  Household* hh = Global::Places.get_household(i);
 	  double dist = 0.0;
 	  if(radius > 0) {
 	    dist = Geo::xy_distance(lat,lon,hh->get_latitude(),hh->get_longitude());
@@ -641,7 +641,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add households
       size = Global::Places.get_number_of_households();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_household_ptr(i);
+	Place* place = Global::Places.get_household(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}
@@ -651,7 +651,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add schools
       size = Global::Places.get_number_of_schools();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_school_ptr(i);
+	Place* place = Global::Places.get_school(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}
@@ -661,7 +661,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add workplaces
       size = Global::Places.get_number_of_workplaces();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_workplace_ptr(i);
+	Place* place = Global::Places.get_workplace(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}

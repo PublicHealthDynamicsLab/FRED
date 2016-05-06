@@ -286,29 +286,44 @@ public:
     return (int)this->hospitals.size();
   }
 
-  // access function for when we need a Household pointer
-  Household* get_household_ptr(int i) {
-    return static_cast<Household*>(get_household(i));
+  Household* get_household(int i) {
+    if(0 <= i && i < get_number_of_households()) {
+      return static_cast<Household*>(this->households[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Neighborhood pointer
-  Neighborhood* get_neighborhood_ptr(int i) {
-    return static_cast<Neighborhood*>(get_neighborhood(i));
+  Neighborhood* get_neighborhood(int i) {
+    if(0 <= i && i < get_number_of_neighborhoods()) {
+      return static_cast<Neighborhood*>(this->neighborhoods[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a School pointer
-  School* get_school_ptr(int i) {
-    return static_cast<School*>(get_school(i));
+  School* get_school(int i) {
+    if(0 <= i && i < get_number_of_schools()) {
+      return static_cast<School*>(this->schools[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Workplace pointer
-  Workplace* get_workplace_ptr(int i) {
-    return static_cast<Workplace*>(get_workplace(i));
+  Workplace* get_workplace(int i) {
+    if(0 <= i && i < get_number_of_workplaces()) {
+      return static_cast<Workplace*>(this->workplaces[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Hospital pointer
-  Hospital* get_hospital_ptr(int i) {
-    return static_cast<Hospital*>(get_hospital(i));
+  Hospital* get_hospital(int i) {
+    if(0 <= i && i < get_number_of_hospitals()) {
+      return static_cast<Hospital*>(this->hospitals[i]);
+    } else {
+      return NULL;
+    }
   }
 
 private:
@@ -444,46 +459,6 @@ private:
   int third_quartile_household_income;
 
   // private methods
-  Place* get_household(int i) {
-    if(0 <= i && i < get_number_of_households()) {
-      return this->households[i];
-    } else {
-      return NULL;
-    }
-  }
-  
-  Place* get_neighborhood(int i) {
-    if(0 <= i && i < get_number_of_neighborhoods()) {
-      return this->neighborhoods[i];
-    } else {
-      return NULL;
-    }
-  }
-  
-  Place* get_school(int i) {
-    if(0 <= i && i < get_number_of_schools()) {
-      return this->schools[i];
-    } else {
-      return NULL;
-    }
-  }
-  
-  Place* get_workplace(int i) {
-    if(0 <= i && i < get_number_of_workplaces()) {
-      return this->workplaces[i];
-    } else {
-      return NULL;
-    }
-  }
-
-  Place* get_hospital(int i) {
-    if(0 <= i && i < get_number_of_hospitals()) {
-      return this->hospitals[i];
-    } else {
-      return NULL;
-    }
-  }
-
 
   void report_household_incomes();
   void select_households_for_shelter();

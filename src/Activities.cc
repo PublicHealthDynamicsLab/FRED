@@ -331,7 +331,7 @@ void Activities::before_run() {
     int number_places = Global::Places.get_number_of_households();
     for(int p = 0; p < number_places; ++p) {
       Person* per = NULL;
-      Household* hh = Global::Places.get_household_ptr(p);
+      Household* hh = Global::Places.get_household(p);
       if(hh->get_children() == 0) {
         continue;
       }
@@ -1647,7 +1647,7 @@ void Activities::update_profile() {
       FRED_VERBOSE(1, "CHANGING PROFILE TO COLLEGE_STUDENT FOR PERSON %d AGE %d\n", this->myself->get_id(), age);
       this->profile = COLLEGE_STUDENT_PROFILE;
       change_school(NULL);
-      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_workplace(Global::Places.get_household(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1656,7 +1656,7 @@ void Activities::update_profile() {
       FRED_VERBOSE(1, "CHANGING PROFILE TO MILITARY FOR PERSON %d AGE %d barracks %s\n", this->myself->get_id(), age, get_household()->get_label());
       this->profile = MILITARY_PROFILE;
       change_school(NULL);
-      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_workplace(Global::Places.get_household(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1665,7 +1665,7 @@ void Activities::update_profile() {
       FRED_VERBOSE(1,"CHANGING PROFILE TO PRISONER FOR PERSON %d AGE %d prison %s\n", this->myself->get_id(), age, get_household()->get_label());
       this->profile = PRISONER_PROFILE;
       change_school(NULL);
-      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_workplace(Global::Places.get_household(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
@@ -1674,7 +1674,7 @@ void Activities::update_profile() {
       FRED_VERBOSE(1,"CHANGING PROFILE TO NURSING HOME FOR PERSON %d AGE %d nursing_home %s\n", this->myself->get_id(), age, get_household()->get_label());
       this->profile = NURSING_HOME_RESIDENT_PROFILE;
       change_school(NULL);
-      change_workplace(Global::Places.get_household_ptr(get_household()->get_index())->get_group_quarters_workplace());
+      change_workplace(Global::Places.get_household(get_household()->get_index())->get_group_quarters_workplace());
     }
     return;
   }
