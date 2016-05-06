@@ -849,8 +849,8 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
   char line_str[10*FRED_STRING_SIZE];
   Utils::Tokens tokens;
   FILE* fp = Utils::fred_open_file(location_file);
-  int hosp_id = 0;
 
+  int new_hospitals = 0;
   for(char* line = line_str; fgets(line, 10*FRED_STRING_SIZE, fp); line = line_str) {
 
     tokens.clear();
@@ -883,10 +883,12 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     place->set_bed_count(beds);
 
     string hosp_lbl_str(label);
+    int hosp_id = this->hospitals.size() - 1;
     this->hosp_lbl_hosp_id_map.insert(std::pair<string, int>(hosp_lbl_str, hosp_id));
-    hosp_id++;
+    new_hospitals++;
   }
   fclose(fp);
+  FRED_VERBOSE(0, "read_hospital_file: found %d hospitals\n", new_hospitals);
 }
 
 
@@ -1904,12 +1906,18 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     number_possible_hospitals += increment;
   }
   assert(static_cast<int>(hosp_probs.size()) == number_hospitals);
+  printf("CATCH HOSP FOR HH %s number_hospitals %d number_poss_hosp %d\n",
+	 hh->get_label(), number_hospitals, number_possible_hospitals);
+
+
   if(number_possible_hospitals > 0) {
     if(probability_total > 0.0) {
       for(int i = 0; i < number_hospitals; ++i) {
         hosp_probs[i] /= probability_total;
+	// printf("%f ", hosp_probs[i]);
       }
     }
+    // printf("\n");
 
     double rand = Random::draw_random();
     double cum_prob = 0.0;
@@ -1917,10 +1925,12 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     while(i < number_hospitals) {
       cum_prob += hosp_probs[i];
       if(rand < cum_prob) {
+	// printf("picked i = %d %f\n", i, hosp_probs[i]);
         return static_cast<Hospital*>(possible_hosp[i]);
       }
       ++i;
     }
+    printf("CATCH picked default i = %d %f\n", number_hospitals-1, hosp_probs[number_hospitals-1]);
     return static_cast<Hospital*>(possible_hosp[number_hospitals - 1]);
   } else {
     //No hospitals in the simulation match search criteria

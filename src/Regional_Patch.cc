@@ -65,6 +65,13 @@ void Regional_Patch::setup(Regional_Layer* grd, int i, int j) {
 }
 
 void Regional_Patch::quality_control() {
+  if(Global::Verbose) {
+    for (int i = 0; i < hospitals.size(); i++) {
+      fprintf(Global::Statusfp, "patch quality control row %d col %d hosp %d %s\n",
+	      this->row, this->col, i, this->hospitals[i]->get_label());
+    }
+    fflush(Global::Statusfp);
+  }
   return;
 }
 
