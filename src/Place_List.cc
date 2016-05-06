@@ -1743,11 +1743,13 @@ void Place_List::assign_hospitals_to_households() {
 	catchment_dist[i] /= catchment_count[i];
 	catchment_age[i] /= catchment_count[i];
       }
-      printf("HOSPITAL CATCHMENT %d %s beds %d count %d age %f dist %f\n", i, this->hospitals[i]->get_label(),
-	     static_cast<Hospital*>(this->hospitals[i])->get_bed_count(0),
-	     catchment_count[i],
-	     catchment_age[i],
-	     catchment_dist[i]);
+      FRED_STATUS(0,
+		  "HOSPITAL CATCHMENT %d %s beds %d count %d age %f dist %f\n",
+		  i, this->hospitals[i]->get_label(),
+		  static_cast<Hospital*>(this->hospitals[i])->get_bed_count(0),
+		  catchment_count[i],
+		  catchment_age[i],
+		  catchment_dist[i]);
     }
 
     //Write the mapping file if it did not already exist (or if it was incomplete)
@@ -1875,8 +1877,8 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
     number_possible_hospitals += increment;
   }
   assert(static_cast<int>(hosp_probs.size()) == number_hospitals);
-  printf("CATCH HOSP FOR HH %s number_hospitals %d number_poss_hosp %d\n",
-	 hh->get_label(), number_hospitals, number_possible_hospitals);
+  FRED_VERBOSE(1,"CATCH HOSP FOR HH %s number_hospitals %d number_poss_hosp %d\n",
+	       hh->get_label(), number_hospitals, number_possible_hospitals);
 
 
   if(number_possible_hospitals > 0) {
@@ -1899,7 +1901,7 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
       }
       ++i;
     }
-    printf("CATCH picked default i = %d %f\n", number_hospitals-1, hosp_probs[number_hospitals-1]);
+    printf("HOSP CATCHMENT picked default i = %d %f\n", number_hospitals-1, hosp_probs[number_hospitals-1]);
     return static_cast<Hospital*>(possible_hosp[number_hospitals - 1]);
   } else {
     //No hospitals in the simulation match search criteria
