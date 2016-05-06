@@ -235,21 +235,21 @@ void Place_List::get_parameters() {
       if(hospital_household_map_fp != NULL) {
         Place_List::Household_hospital_map_file_exists = true;
         enum column_index {
-          hh_lbl = 0, hospital_lbl = 1
+          hh_label = 0, hospital_label = 1
         };
         char line_str[255];
         Utils::Tokens tokens;
         for(char* line = line_str; fgets(line, 255, hospital_household_map_fp); line = line_str) {
           tokens = Utils::split_by_delim(line, ',', tokens, false);
           // skip header line
-          if(strcmp(tokens[hh_lbl], "hh_id") != 0 && strcmp(tokens[hh_lbl], "sp_id") != 0) {
+          if(strcmp(tokens[hh_label], "hh_id") != 0 && strcmp(tokens[hh_label], "sp_id") != 0) {
             char s[80];
 
-            sprintf(s, "%s", tokens[hh_lbl]);
-            string hh_lbl_str(s);
-            sprintf(s, "%s", tokens[hospital_lbl]);
-            string hosp_lbl_str(s);
-            this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
+            sprintf(s, "%s", tokens[hh_label]);
+            string hh_label_str(s);
+            sprintf(s, "%s", tokens[hospital_label]);
+            string hosp_label_str(s);
+            this->hh_label_hosp_label_map.insert(std::pair<string, string>(hh_label_str, hosp_label_str));
           }
           tokens.clear();
         }
@@ -527,8 +527,8 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   this->census_tracts.clear();
   this->fips_to_county_map.clear();
   this->fips_to_census_tract_map.clear();
-  this->hosp_lbl_hosp_id_map.clear();
-  this->hh_lbl_hosp_lbl_map.clear();
+  this->hosp_label_hosp_id_map.clear();
+  this->hh_label_hosp_label_map.clear();
 
   // store the number of demes as member variable
   set_number_of_demes(Demes.size());
@@ -867,9 +867,9 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     place->set_physician_count(physicians);
     place->set_bed_count(beds);
 
-    string hosp_lbl_str(label);
+    string hosp_label_str(label);
     int hosp_id = this->hospitals.size() - 1;
-    this->hosp_lbl_hosp_id_map.insert(std::pair<string, int>(hosp_lbl_str, hosp_id));
+    this->hosp_label_hosp_id_map.insert(std::pair<string, int>(hosp_label_str, hosp_id));
     new_hospitals++;
     // printf("READ HOSP %s hosp_id %d\n", place->get_label(), hosp_id);
   }
@@ -1702,10 +1702,10 @@ void Place_List::assign_hospitals_to_households() {
       assert(hosp != NULL);
       if(hosp != NULL) {
         hh->set_household_visitation_hospital(hosp);
-        string hh_lbl_str(hh->get_label());
-        string hosp_lbl_str(hosp->get_label());
+        string hh_label_str(hh->get_label());
+        string hosp_label_str(hosp->get_label());
 
-        this->hh_lbl_hosp_lbl_map.insert(std::pair<string, string>(hh_lbl_str, hosp_lbl_str));
+        this->hh_label_hosp_label_map.insert(std::pair<string, string>(hh_label_str, hosp_label_str));
       }
     }
 
@@ -1723,10 +1723,10 @@ void Place_List::assign_hospitals_to_households() {
       Household* hh = get_household(i);
       Hospital* hosp = hh->get_household_visitation_hospital();
       assert(hosp != NULL);
-      string hosp_lbl_str(hosp->get_label());
+      string hosp_label_str(hosp->get_label());
       int hosp_id = -1;
-      if(this->hosp_lbl_hosp_id_map.find(hosp_lbl_str) != this->hosp_lbl_hosp_id_map.end()) {
-	hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl_str)->second;
+      if(this->hosp_label_hosp_id_map.find(hosp_label_str) != this->hosp_label_hosp_id_map.end()) {
+	hosp_id = this->hosp_label_hosp_id_map.find(hosp_label_str)->second;
       }
       assert(0 <= hosp_id && hosp_id < number_hospitals);
       // printf("CATCH house %s hosp_id %d %s\n", hh->get_label(), hosp_id, hosp->get_label());
@@ -1761,7 +1761,7 @@ void Place_List::assign_hospitals_to_households() {
       Params::get_param_from_string("household_hospital_map_file", map_file_name);
 
       if(strcmp(map_file_name, "none") == 0) {
-        this->hh_lbl_hosp_lbl_map.clear();
+        this->hh_label_hosp_label_map.clear();
         return;
       }
 
@@ -1769,20 +1769,20 @@ void Place_List::assign_hospitals_to_households() {
       sprintf(filename, "%s%s", map_file_dir, map_file_name);
 
       Utils::get_fred_file_name(filename);
-      FILE* hh_lbl_hosp_lbl_map_fp = fopen(filename, "w");
-      if(hh_lbl_hosp_lbl_map_fp == NULL) {
+      FILE* hh_label_hosp_label_map_fp = fopen(filename, "w");
+      if(hh_label_hosp_label_map_fp == NULL) {
         Utils::fred_abort("Can't open %s\n", filename);
       }
 
-      for(std::map<std::string, string>::iterator itr = this->hh_lbl_hosp_lbl_map.begin(); itr != this->hh_lbl_hosp_lbl_map.end(); ++itr) {
-        fprintf(hh_lbl_hosp_lbl_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
+      for(std::map<std::string, string>::iterator itr = this->hh_label_hosp_label_map.begin(); itr != this->hh_label_hosp_label_map.end(); ++itr) {
+        fprintf(hh_label_hosp_label_map_fp, "%s,%s\n", itr->first.c_str(), itr->second.c_str());
       }
 
-      fflush(hh_lbl_hosp_lbl_map_fp);
-      fclose(hh_lbl_hosp_lbl_map_fp);
+      fflush(hh_label_hosp_label_map_fp);
+      fclose(hh_label_hosp_label_map_fp);
     }
 
-    this->hh_lbl_hosp_lbl_map.clear();
+    this->hh_label_hosp_label_map.clear();
     FRED_STATUS(0, "assign_hospitals_to_household finished\n");
   }
 }
@@ -2581,10 +2581,10 @@ void Place_List::combine_households(int house_index1, int house_index2) {
 
 Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
   assert(this->is_load_completed());
-  if(this->hh_lbl_hosp_lbl_map.find(string(hh->get_label())) != this->hh_lbl_hosp_lbl_map.end()) {
-    string hosp_lbl = this->hh_lbl_hosp_lbl_map.find(string(hh->get_label()))->second;
-    if(this->hosp_lbl_hosp_id_map.find(hosp_lbl) != this->hosp_lbl_hosp_id_map.end()) {
-      int hosp_id = this->hosp_lbl_hosp_id_map.find(hosp_lbl)->second;
+  if(this->hh_label_hosp_label_map.find(string(hh->get_label())) != this->hh_label_hosp_label_map.end()) {
+    string hosp_label = this->hh_label_hosp_label_map.find(string(hh->get_label()))->second;
+    if(this->hosp_label_hosp_id_map.find(hosp_label) != this->hosp_label_hosp_id_map.end()) {
+      int hosp_id = this->hosp_label_hosp_id_map.find(hosp_label)->second;
       return static_cast<Hospital*>(this->get_hospital(hosp_id));
     } else {
       return NULL;

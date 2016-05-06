@@ -421,8 +421,8 @@ private:
   static double Shelter_decay_rate;
 
   // Hospital support
-  std::map<std::string, std::string>  hh_lbl_hosp_lbl_map;
-  std::map<std::string, int>  hosp_lbl_hosp_id_map;
+  std::map<std::string, std::string>  hh_label_hosp_label_map;
+  std::map<std::string, int>  hosp_label_hosp_id_map;
 
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
