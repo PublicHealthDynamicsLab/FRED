@@ -16,36 +16,26 @@
 #ifndef _FRED_PLACE_LIST_H
 #define _FRED_PLACE_LIST_H
 
-#include <cstring>
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <set>
-#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 using namespace std;
 
-#include "Global.h"
 #include "County.h"
-#include "Health.h"
 #include "Place.h"
-#include "Utils.h"
 #include "Household.h"
 #include "Neighborhood.h"
 #include "School.h"
-#include "Hospital.h"
 #include "Workplace.h"
 class Classroom;
 class Office;
 
 #define GRADES 20
 
-typedef std::unordered_map<std::string, int> LabelMapT;
 
 class Place_List {
 
-  typedef std::map<char, int> TypeCountsMapT;
+  typedef std::unordered_map<std::string, int> LabelMapT;
   typedef std::map<char, std::string> TypeNameMapT;
   typedef std::map<int, int> HospitalIDCountMapT;
 
@@ -55,33 +45,30 @@ public:
   Place_List() {
     this->load_completed = false;
     this->is_primary_care_assignment_initialized = false;
-    this->places.clear();
-    this->schools.clear();
-    this->workplaces.clear();
     this->next_place_id = 0;
     init_place_type_name_lookup_map();
     this->place_label_map = new LabelMapT();
+    this->places.clear();
+    this->households.clear();
+    this->neighborhoods.clear();
+    this->schools.clear();
+    this->workplaces.clear();
+    this->hospitals.clear();
+    for (int grade = 0; grade < GRADES; grade++) {
+      schools_by_grade[grade].clear();
+    }
   }
 
   ~Place_List();
 
+  // initialization methods
+  void get_parameters();
   void read_all_places(const std::vector<Utils::Tokens> & Demes);
   void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id);
-
+  Place* add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract);
+  void quality_control();
   void reassign_workers();
   void prepare();
-  void print_status_of_schools(int day);
-  void update(int day);
-  void quality_control();
-  void report_school_distributions(int day);
-  void report_household_distributions();
-  void get_parameters();
-  int get_new_place_id() {
-    int id = this->next_place_id;
-    ++(this->next_place_id);
-    return id;
-  }
-
   void setup_group_quarters();
   void setup_households();
   void setup_classrooms();
@@ -90,10 +77,34 @@ public:
   void setup_household_childcare();
   void setup_school_income_quartile_pop_sizes();
   void setup_household_income_quartile_sick_days();
-  int get_min_household_income_by_percentile(int percentile);
-  Place* get_place_from_label(const char* s) const;
-  Place* get_random_workplace();
+  int get_new_place_id() {
+    int id = this->next_place_id;
+    ++(this->next_place_id);
+    return id;
+  }
   void assign_hospitals_to_households();
+
+  // reporting methods
+  void report_school_distributions(int day);
+  void report_household_distributions();
+  void print_status_of_schools(int day);
+  Place* get_place_from_label(const char* s) const;
+  int get_housing_data(int* target_size, int* current_size);
+  void get_initial_visualization_data_from_households();
+  void get_visualization_data_from_households(int day, int condition_id, int output_code);
+  void get_census_tract_data_from_households(int day, int condition_id, int output_code);
+  void report_shelter_stats(int day);
+  int get_number_of_demes() {
+    return this->number_of_demes;
+  }
+  void print_household_size_distribution(char* dir, char* date_string, int run);
+
+  // periodic updates
+  void update(int day);
+  void swap_houses(int house_index1, int house_index2);
+  void combine_households(int house_index1, int house_index2);
+  Place* select_school(int county_fips, int grade);
+  Place* get_random_workplace();
 
   /**
    * Uses a gravity model to find a random open hospital given the search parameters.
@@ -122,22 +133,11 @@ public:
    * @param use_search_radius_limit whether or not to cap the search radius
    */
   Hospital* get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit);
-  void print_household_size_distribution(char* dir, char* date_string, int run);
-  void report_shelter_stats(int day);
   void end_of_run();
 
-  int get_number_of_demes() {
-    return this->number_of_demes;
-  }
+  // access methods
 
-  int get_housing_data(int* target_size, int* current_size);
-  void get_initial_visualization_data_from_households();
-  void get_visualization_data_from_households(int day, int condition_id, int output_code);
-  void get_census_tract_data_from_households(int day, int condition_id, int output_code);
-  void swap_houses(int house_index1, int house_index2);
-  void combine_households(int house_index1, int house_index2);
-
-  Place* select_school(int county_fips, int grade);
+  int get_min_household_income_by_percentile(int percentile);
 
   int get_number_of_counties() {
     return (int) this->counties.size();
@@ -351,9 +351,23 @@ public:
     return static_cast<Hospital*>(get_hospital(i));
   }
 
-  Place* add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract);
-
 private:
+
+  // unique place id counter
+  int next_place_id;
+
+  // geo info
+  fred::geo min_lat, max_lat, min_lon, max_lon;
+
+  // map of place type names
+  TypeNameMapT place_type_name_lookup_map;
+  LabelMapT* place_label_map;
+
+  // set when all input files have been processed
+  bool load_completed;
+
+  // number of population files to include
+  int number_of_demes;
 
   // lists of places by type
   place_vector_t places;
@@ -383,7 +397,6 @@ private:
    * @return a pointer to the Hospital that is assigned to the Household
    */
   Hospital* get_hospital_assigned_to_household(Household* hh);
-  int number_of_demes;
   bool is_primary_care_assignment_initialized;
 
   // input files
@@ -421,7 +434,7 @@ private:
   static int Military_fixed_staff;
   static double Military_resident_to_staff_ratio;
 
-  // the following support household shelter:
+  // support for household shelter:
   static int Enable_copy_files;
   static int Shelter_duration_mean;
   static int Shelter_duration_std;
@@ -433,6 +446,9 @@ private:
   static double Shelter_decay_rate;
 
   // Hospital support
+  std::map<std::string, std::string>  hh_lbl_hosp_lbl_map;
+  std::map<std::string, int>  hosp_lbl_hosp_id_map;
+
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
@@ -444,7 +460,8 @@ private:
   static HospitalIDCountMapT Hospital_ID_total_assigned_size_map;
   static HospitalIDCountMapT Hospital_ID_current_assigned_size_map;
   static int Hospital_overall_panel_size;
-
+  
+  // support for HAZEL project
   static int HAZEL_disaster_start_sim_day;
   static int HAZEL_disaster_end_sim_day;
   static int HAZEL_disaster_evac_start_offset;
@@ -459,29 +476,23 @@ private:
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 
-  bool load_completed;
+  // household income
   int min_household_income;
   int max_household_income;
   int median_household_income;
   int first_quartile_household_income;
   int third_quartile_household_income;
+
+  // private methods
   void report_household_incomes();
   void select_households_for_shelter();
   void shelter_household(Household* h);
   void select_households_for_evacuation();
   void evacuate_household(Household* h);
 
-  // For hospitalization
-  std::map<std::string, std::string>  hh_lbl_hosp_lbl_map;
-  std::map<std::string, int>  hosp_lbl_hosp_id_map;
-
   void set_number_of_demes(int n) {
     this->number_of_demes = n;
   }
-
-  fred::geo min_lat, max_lat, min_lon, max_lon;
-
-  TypeNameMapT place_type_name_lookup_map;
 
   void init_place_type_name_lookup_map();
 
@@ -490,9 +501,6 @@ private:
     return this->place_type_name_lookup_map[place_type];
   }
 
-  int next_place_id;
-
-  LabelMapT* place_label_map;
 };
 
 #endif // _FRED_PLACE_LIST_H
