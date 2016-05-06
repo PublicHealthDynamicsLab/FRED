@@ -465,6 +465,7 @@ private:
   void shelter_household(Household* h);
   void select_households_for_evacuation();
   void evacuate_household(Household* h);
+  void update_geo_boundaries(fred::geo lat, fred::geo lon);
 
   void set_number_of_demes(int n) {
     this->number_of_demes = n;

@@ -196,6 +196,7 @@ void Regional_Patch::add_workplace(Place* workplace) {
 }
 
 void Regional_Patch::add_hospital(Place* hospital) {
+  // printf("REGIONAL PATCH row %d col %d ADD HOSP %s\n", this->row, this->col, hospital->get_label());
   this->hospitals.push_back(hospital);
 }
 

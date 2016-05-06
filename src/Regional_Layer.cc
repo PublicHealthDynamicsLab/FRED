@@ -243,9 +243,15 @@ void Regional_Layer::add_workplace(Place* place) {
 }
 
 void Regional_Layer::add_hospital(Place* place) {
+  // printf("REGIONAL LAYER ADD HOSP %s\n", place->get_label());
   Regional_Patch* patch = this->get_patch(place);
   if(patch != NULL) {
     patch->add_hospital(place);
+  }
+  else {
+    printf("REGIONAL LAYER NULL PATCH FOR HOSP %s lat %f lon %f\n",
+	   place->get_label(), place->get_latitude(), place->get_longitude());
+
   }
 }
 

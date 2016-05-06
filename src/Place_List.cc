@@ -613,18 +613,17 @@ void Place_List::read_all_places(const std::vector<Utils::Tokens> &Demes) {
   Global::Neighborhoods->setup();
   FRED_VERBOSE(0, "Created %d neighborhoods\n", this->neighborhoods.size());
 
-  int number_places = static_cast<int>(this->places.size());
+  // add workplaces to Regional grid (for worker reassignment)
+  int number_places = static_cast<int>(this->workplaces.size());
   for(int p = 0; p < number_places; ++p) {
-    // add workplaces to the regional layer (needed for teacher assignments to schools)
-    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
-      Place* place = places[p];
-      Global::Simulation_Region->add_workplace(place);
-    }
+    Global::Simulation_Region->add_workplace(this->workplaces[p]);
+  }
 
-    if(this->places[p]->get_type() == Place::TYPE_HOSPITAL) {
-      Place* place = this->places[p];
-      Global::Simulation_Region->add_hospital(place);
-    }
+  // add hospitals to Regional grid (for household hospital assignment)
+  number_places = static_cast<int>(this->hospitals.size());
+  for(int p = 0; p < number_places; ++p) {
+    // printf("ADD HOSP %d %s\n", p, this->hospitals[p]->get_label());
+    Global::Simulation_Region->add_hospital(this->hospitals[p]);
   }
 
   this->load_completed = true;
@@ -734,24 +733,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
     // lat/lon
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
-
-    // update max and min geo coords
-    if(lat != 0.0) {
-      if(lat < this->min_lat) {
-	this->min_lat = lat;
-      }
-      if(this->max_lat < lat) {
-	this->max_lat = lat;
-      }
-    }
-    if(lon != 0.0) {
-      if(lon < this->min_lon) {
-	this->min_lon = lon;
-      }
-      if(this->max_lon < lon) {
-	this->max_lon = lon;
-      }
-    }
+    update_geo_boundaries(lat, lon);
 
     // census tract
     // use the first eleven (state and county + six) digits of fips_field to get the census tract
@@ -861,12 +843,15 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
       continue;
     }
 
+    // printf("READ HOSP %s", line);
+
     // place label
     sprintf(label, "%c%s", place_type, tokens[id_field]);
 
     // lat/lon
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
+    update_geo_boundaries(lat, lon);
 
     // workers
     sscanf(tokens[workers_field], "%d", &workers); 
@@ -886,6 +871,7 @@ void Place_List::read_hospital_file(unsigned char deme_id, char* location_file) 
     int hosp_id = this->hospitals.size() - 1;
     this->hosp_lbl_hosp_id_map.insert(std::pair<string, int>(hosp_lbl_str, hosp_id));
     new_hospitals++;
+    // printf("READ HOSP %s hosp_id %d\n", place->get_label(), hosp_id);
   }
   fclose(fp);
   FRED_VERBOSE(0, "read_hospital_file: found %d hospitals\n", new_hospitals);
@@ -977,24 +963,7 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
     // lat/lon
     sscanf(tokens[lat_field], "%lf", &lat); 
     sscanf(tokens[lon_field], "%lf", &lon); 
-
-    // update max and min geo coords
-    if(lat != 0.0) {
-      if(lat < this->min_lat) {
-	this->min_lat = lat;
-      }
-      if(this->max_lat < lat) {
-	this->max_lat = lat;
-      }
-    }
-    if(lon != 0.0) {
-      if(lon < this->min_lon) {
-	this->min_lon = lon;
-      }
-      if(this->max_lon < lon) {
-	this->max_lon = lon;
-      }
-    }
+    update_geo_boundaries(lat, lon);
 
     // census tract
     // use the first eleven (state and county + six) digits of fips_field to get the census tract
@@ -2877,3 +2846,23 @@ void Place_List::report_county_populations() {
   }
 }
 
+void Place_List::update_geo_boundaries(fred::geo lat, fred::geo lon) {
+  // update max and min geo coords
+  if(lat != 0.0) {
+    if(lat < this->min_lat) {
+      this->min_lat = lat;
+    }
+    if(this->max_lat < lat) {
+      this->max_lat = lat;
+    }
+  }
+  if(lon != 0.0) {
+    if(lon < this->min_lon) {
+      this->min_lon = lon;
+    }
+    if(this->max_lon < lon) {
+      this->max_lon = lon;
+    }
+  }
+  return;
+}
