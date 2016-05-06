@@ -215,9 +215,9 @@ void Regional_Patch::swap_county_people(){
 	        if(p2 !=NULL) {
 	          Place* s1 = p->get_school();
 	          Place* s2 = p2->get_school();
-	          Household* h1 =  static_cast<Household*>(p->get_household());
+	          Household* h1 =  p->get_household();
 	          int h1_county = h1->get_county_fips();
-	          Household* h2 = static_cast<Household*>(p2->get_household());
+	          Household* h2 = p2->get_household();
 	          int h2_county = h2->get_county_fips();
 	          if(h1_county != h2_county) {
 	            p->change_school(s2);
@@ -232,9 +232,9 @@ void Regional_Patch::swap_county_people(){
           if(p2 != NULL) {
             Place* w1 = p->get_workplace();
             Place* w2 = p2->get_workplace();
-            Household* h1 = static_cast<Household*>(p->get_household());
+            Household* h1 = p->get_household();
             int h1_county = h1->get_county_fips();
-            Household* h2 = static_cast<Household*>(p2->get_household());
+            Household* h2 = p2->get_household();
             int h2_county = h2->get_county_fips();
             if(h1_county != h2_county) {
               p->change_workplace(w2);

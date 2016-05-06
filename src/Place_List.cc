@@ -759,7 +759,7 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
     strncpy(fips_str, tokens[fips_field], 11);
     fips_str[11] = '\0';
     sscanf(fips_str, "%ld", &census_tract);
-    Place* place = add_place(label, place_type, place_subtype, lon, lat, census_tract);
+    Household* place = static_cast<Household*>(add_place(label, place_type, place_subtype, lon, lat, census_tract));
     
     // county fips code
     // use the first five digits of fips_field to get the county fips code
@@ -779,11 +779,10 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
     // printf("county = %d census_tract = %ld\n", county_fips, census_tract);
 
     // household race and income
-    Household* p = static_cast<Household*>(place);
     sscanf(tokens[race_field], "%d", &race); 
-    p->set_household_race(race);
+    place->set_household_race(race);
     sscanf(tokens[income_field], "%d", &income); 
-    p->set_household_income(income);
+    place->set_household_income(income);
   }
   fclose(fp);
 }
@@ -1318,15 +1317,12 @@ int Place_List::get_min_household_income_by_percentile(int percentile) {
     typedef std::multimap<double, Household*> HouseholdMultiMapT;
 
     HouseholdMultiMapT* household_income_hh_mm = new HouseholdMultiMapT();
-    int number_places = this->places.size();
+    int number_places = this->households.size();
     for(int p = 0; p < number_places; ++p) {
-      Place* place = this->places[p];
-      if(this->places[p]->get_type() == Place::TYPE_HOUSEHOLD) {
-        Household* hh = static_cast<Household*>(this->places[p]);
-        double hh_income = hh->get_household_income();
-        std::pair<double, Household*> my_insert(hh_income, hh);
-        household_income_hh_mm->insert(my_insert);
-      }
+      Household* hh = get_household(p);
+      double hh_income = hh->get_household_income();
+      std::pair<double, Household*> my_insert(hh_income, hh);
+      household_income_hh_mm->insert(my_insert);
     }
     int total = static_cast<int>(household_income_hh_mm->size());
     int percentile_goal = static_cast<int>((static_cast<float>(percentile) / static_cast<float>(100)) * total);
@@ -1956,7 +1952,7 @@ Hospital* Place_List::get_random_open_healthcare_facility_matching_criteria(int 
   std::vector<double> hosp_probs;
   double probability_total = 0.0;
   for(int i = 0; i < number_hospitals; ++i) {
-    Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+    Hospital* hospital = get_hospital(i);
     daily_hosp_cap = hospital->get_daily_patient_capacity(sim_day);
     double distance = distance_between_places(hh, hospital);
     double cur_prob = 0.0;
@@ -2030,11 +2026,11 @@ Hospital* Place_List::get_random_open_healthcare_facility_matching_criteria(int 
     while(i < number_hospitals) {
       cum_prob += hosp_probs[i];
       if(rand < cum_prob) {
-        return static_cast<Hospital*>(this->hospitals[i]);
+        return get_hospital(i);
       }
       ++i;
     }
-    return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+    return get_hospital(number_hospitals - 1);
   } else {
     //No hospitals in the simulation match search criteria
     return NULL;
@@ -2070,7 +2066,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
   std::vector<double> hosp_probs;
   double probability_total = 0.0;
   for(int i = 0; i < number_hospitals; ++i) {
-    Hospital* hospital = static_cast<Hospital*>(this->hospitals[i]);
+    Hospital* hospital = get_hospital(i);
     daily_hosp_cap = hospital->get_daily_patient_capacity(0);
     double distance = distance_between_places(hh, hospital);
     double cur_prob = 0.0;
@@ -2175,11 +2171,11 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
     while(i < number_hospitals) {
       cum_prob += hosp_probs[i];
       if(rand < cum_prob) {
-        return static_cast<Hospital*>(this->hospitals[i]);
+        return get_hospital(i);
       }
       ++i;
     }
-    return static_cast<Hospital*>(this->hospitals[number_hospitals - 1]);
+    return get_hospital(number_hospitals - 1);
   } else {
     //No hospitals in the simulation match search criteria
     return NULL;

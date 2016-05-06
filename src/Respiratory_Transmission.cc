@@ -158,7 +158,7 @@ bool Respiratory_Transmission::attempt_transmission(double transmission_prob, Pe
     
   if(Global::Enable_hh_income_based_susc_mod) {
     int hh_income = Household::get_max_hh_income(); //Default to max (no modifier)
-    Household* hh = static_cast<Household*>(infectee->get_household());
+    Household* hh = infectee->get_household();
     if(hh != NULL) {
       hh_income = hh->get_household_income();
     }
