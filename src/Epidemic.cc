@@ -23,16 +23,21 @@
 
 using namespace std;
 
-#include "Date.h"
+#include "Classroom.h"
 #include "Condition.h"
+#include "Date.h"
 #include "Epidemic.h"
 #include "Events.h"
 #include "Geo.h"
 #include "Global.h"
+#include "HIV_Epidemic.h"
+#include "Hospital.h"
 #include "Household.h"
 #include "Infection.h"
+#include "Markov_Epidemic.h"
 #include "Natural_History.h"
 #include "Neighborhood_Layer.h"
+#include "Office.h"
 #include "Params.h"
 #include "Person.h"
 #include "Place.h"
@@ -47,8 +52,6 @@ using namespace std;
 #include "Vector_Layer.h"
 #include "Workplace.h"
 
-#include "Markov_Epidemic.h"
-#include "HIV_Epidemic.h"
 
 /**
  * This static factory method is used to get an instance of a specific

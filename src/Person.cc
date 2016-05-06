@@ -19,15 +19,21 @@
 #include "Activities.h"
 #include "Age_Map.h"
 #include "Behavior.h"
+#include "Classroom.h"
 #include "Demographics.h"
 #include "Condition.h"
 #include "Condition_List.h"
 #include "Global.h"
 #include "Health.h"
+#include "Household.h"
 #include "Mixing_Group.h"
+#include "Neighborhood.h"
+#include "Office.h"
 #include "Place.h"
 #include "Population.h"
 #include "Random.h"
+#include "School.h"
+#include "Workplace.h"
 
 #include <cstdio>
 #include <vector>

@@ -29,12 +29,17 @@ using namespace std;
 
 class Age_Map;
 class Activities_Tracking_Data;
+class Classroom;
 class Hospital;
+class Household;
 class Mixing_Group;
+class Neighborhood;
 class Network;
+class Office;
 class Person;
-class Person_Network_Link;
 class Place;
+class School;
+class Workplace;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -104,6 +109,14 @@ namespace Activity_index {
 class Activities {
 
 public:
+
+  /**
+   * Default constructor
+   */
+
+  Activities();
+
+  void setup(Person* self, Place* house, Place* school, Place* work);
 
   static const char* activity_lookup(int idx) {
     assert(idx >= 0);
@@ -276,9 +289,7 @@ public:
   void change_school(Place* place);
   void change_workplace(Place* place, int include_office = 1);
 
-  Place* get_stored_household() {
-    return this->stored_daily_activity_locations[Activity_index::HOUSEHOLD_ACTIVITY];
-  }
+  Household* get_stored_household();
 
   /**
    * @return a pointer to this agent's permanent Household
@@ -286,7 +297,7 @@ public:
    * If traveling, this is the Person's permanent residence,
    * NOT the household being visited
    */
-  Place* get_permanent_household() {
+  Household* get_permanent_household() {
     if(this->is_traveling && this->is_traveling_outside) {
       return get_stored_household();
     } else if(Global::Enable_Hospitals && this->is_hospitalized) {
@@ -299,51 +310,37 @@ public:
   /**
    * @return a pointer to this agent's Household
    */
-  Place* get_household() {
-    return get_daily_activity_location(Activity_index::HOUSEHOLD_ACTIVITY);
-  }
+  Household* get_household();
 
   /**
    * @return a pointer to this agent's Neighborhood
    */
-  Place* get_neighborhood() {
-    return get_daily_activity_location(Activity_index::NEIGHBORHOOD_ACTIVITY);
-  }
+  Neighborhood* get_neighborhood();
 
   /**
    * @return a pointer to this agent's School
    */
-  Place* get_school() {
-    return get_daily_activity_location(Activity_index::SCHOOL_ACTIVITY);
-  }
+  School* get_school();
 
   /**
    * @return a pointer to this agent's Classroom
    */
-  Place* get_classroom() {
-    return get_daily_activity_location(Activity_index::CLASSROOM_ACTIVITY);
-  }
+  Classroom* get_classroom();
 
   /**
    * @return a pointer to this agent's Workplace
    */
-  Place* get_workplace() {
-    return get_daily_activity_location(Activity_index::WORKPLACE_ACTIVITY);
-  }
+  Workplace* get_workplace();
 
   /**
    * @return a pointer to this agent's Office
    */
-  Place* get_office() {
-    return get_daily_activity_location(Activity_index::OFFICE_ACTIVITY);
-  }
+  Office* get_office();
 
   /**
    * @return a pointer to this agent's Hospital
    */
-  Place* get_hospital() {
-    return get_daily_activity_location(Activity_index::HOSPITAL_ACTIVITY);
-  }
+  Hospital* get_hospital();
 
   /**
    * @return a pointer to this agent's Ad Hoc location
@@ -550,6 +547,8 @@ public:
 
 private:
 
+  friend class Person;
+
   // pointer to owner
   Person* myself;
 
@@ -643,15 +642,6 @@ private:
   int get_daily_activity_location_id(int i);
   const char* get_daily_activity_location_label(int i);
   bool is_present(int sim_day, Place* place);
-
-protected:
-
-  /**
-   * Default constructor
-   */
-  friend class Person;
-  Activities();
-  void setup(Person* self, Place* house, Place* school, Place* work);
 
 };
 

@@ -163,6 +163,10 @@ public:
 
   std::string to_string();
 
+  string to_string(bool is_JSON, bool is_inline, int indent_level) {
+    return Place::to_string(is_JSON, is_inline, indent_level);
+  }
+
   static int get_HAZEL_mobile_van_open_delay() {
     return Hospital::HAZEL_mobile_van_open_delay;
   }
