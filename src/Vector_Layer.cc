@@ -23,23 +23,25 @@
 #include <sstream>
 using namespace std;
 
-#include "Utils.h"
-#include "Vector_Layer.h"
-#include "Vector_Patch.h"
+#include "Household.h"
 #include "Condition.h"
 #include "Condition_List.h"
 #include "Epidemic.h"
-#include "Visualization_Layer.h"
-#include "Regional_Layer.h"
-#include "Regional_Patch.h"
 #include "Neighborhood_Layer.h"
 #include "Neighborhood_Patch.h"
 #include "Params.h"
-#include "Random.h"
 #include "Place.h"
 #include "Place_List.h"
-#include "Household.h"
+#include "Random.h"
+#include "Regional_Layer.h"
+#include "Regional_Patch.h"
+#include "School.h"
 #include "Tracker.h"
+#include "Utils.h"
+#include "Vector_Layer.h"
+#include "Vector_Patch.h"
+#include "Visualization_Layer.h"
+#include "Workplace.h"
 
 typedef vector<Person*> pvec;//Vector of person pointers
 typedef vector <Neighborhood_Patch*> patch_vec;//Vector of person pointers
@@ -611,8 +613,8 @@ void Vector_Layer::quality_control() {
 void Vector_Layer::setup() {
   int num_households = Global::Places.get_number_of_households();
   for(int i = 0; i < num_households; ++i) {
-    Household* house = Global::Places.get_household_ptr(i);
-    add_hosts(house);
+    Household* hh = Global::Places.get_household_ptr(i);
+    add_hosts(hh);
   }
   if(Vector_Layer::Enable_Vector_Control){
     this->setup_vector_control_by_census_tract();
@@ -723,6 +725,7 @@ void Vector_Layer::add_host(Person* person, Place* place) {
   }
   */
 }
+
 void Vector_Layer::get_county_ids(){
   // get the county ids from external file
   char county_codes_file[FRED_STRING_SIZE];
@@ -744,26 +747,28 @@ void Vector_Layer::get_county_ids(){
   }
   for(int i = 0; i < num_households; ++i) {
     int household_county = -1;
-    Household* h = Global::Places.get_household_ptr(i);
-    int h_county = h->get_county_fips();
+    Household* hh = Global::Places.get_household_ptr(i);
+    int hh_county = hh->get_county_fips();
     for (int j = 0;j<county_set.size();j++){
-      if(h_county == county_set[j].id){
+      if(hh_county == county_set[j].id){
 	household_county = j;
       }
     }
     //find the county for each household
     if(household_county == -1){
-      Utils::fred_abort("No county code found for house in county %d\n", h_county);
+      Utils::fred_abort("No county code found for house in county %d\n", hh_county);
     }
-    int house_mates = h->get_size();
+    int house_mates = hh->get_size();
     // load every person in the house in a  county
     for(int j = 0; j<house_mates; ++j) {
-      Person* p = h->get_enrollee(j);
+      Person* p = hh->get_enrollee(j);
       county_set[household_county].habitants.push_back(p);
     }
   }
   FRED_VERBOSE(0,"get_county_ids finished\n");
 }
+
+
 void Vector_Layer::get_immunity_from_file() {
   FILE* fp;
   // get the prior immune proportion by age  from external file for each county for total immunity
@@ -1138,7 +1143,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   int places = Global::Places.get_number_of_households();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_household(i);
+    Place *place = Global::Places.get_household_ptr(i);
     household_vectors += place->get_vector_population_size();
     household_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){
@@ -1161,7 +1166,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   places = Global::Places.get_number_of_schools();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_school(i);
+    Place *place = Global::Places.get_school_ptr(i);
     school_vectors += place->get_vector_population_size();
     school_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){
@@ -1171,7 +1176,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   places = Global::Places.get_number_of_workplaces();
   for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_workplace(i);
+    Place *place = Global::Places.get_workplace_ptr(i);
     workplace_vectors += place->get_vector_population_size();
     workplace_infected_vectors += place->get_infected_vectors(condition_id);
     if(place->get_vector_control_status()){

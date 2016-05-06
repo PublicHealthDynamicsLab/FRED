@@ -782,16 +782,16 @@ void Population::set_school_income_levels() {
     if(person->get_school() == NULL) {
       continue;
     } else {
-      School* schl = static_cast<School*>(person->get_school());
+      School* schl = person->get_school();
       SchoolMapT::iterator got = school_enrollment_map->find(schl);
       //Try to find the school label
       if(got == school_enrollment_map->end()) {
         //Add the school to the map
         school_enrollment_map->insert(std::pair<School*, int>(schl, 1));
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -800,10 +800,10 @@ void Population::set_school_income_levels() {
       } else {
         //Update the values
         school_enrollment_map->at(schl) += 1;
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -877,16 +877,16 @@ void Population::report_mean_hh_income_per_school() {
     if(person->get_school() == NULL) {
       continue;
     } else {
-      School* schl = static_cast<School*>(person->get_school());
+      School* schl = person->get_school();
       SchoolMapT::iterator got = school_enrollment_map->find(schl);
       //Try to find the school
       if(got == school_enrollment_map->end()) {
         //Add the school to the map
         school_enrollment_map->insert(std::pair<School*, int>(schl, 1));
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -895,10 +895,10 @@ void Population::report_mean_hh_income_per_school() {
       } else {
         //Update the values
         school_enrollment_map->at(schl) += 1;
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -935,16 +935,16 @@ void Population::report_mean_hh_size_per_school() {
     if(person->get_school() == NULL) {
       continue;
     } else {
-      School* schl = static_cast<School*>(person->get_school());
+      School* schl = person->get_school();
       SchoolMapT::iterator got = school_enrollment_map->find(schl);
       //Try to find the school
       if(got == school_enrollment_map->end()) {
         //Add the school to the map
         school_enrollment_map->insert(std::pair<School*, int>(schl, 1));
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -953,10 +953,10 @@ void Population::report_mean_hh_size_per_school() {
       } else {
         //Update the values
         school_enrollment_map->at(schl) += 1;
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -995,16 +995,16 @@ void Population::report_mean_hh_distance_from_school() {
     if(person->get_school() == NULL) {
       continue;
     } else {
-      School* schl = static_cast<School*>(person->get_school());
+      School* schl = person->get_school();
       SchoolMapT::iterator got = school_enrollment_map->find(schl);
       //Try to find the school
       if(got == school_enrollment_map->end()) {
         //Add the school to the map
         school_enrollment_map->insert(std::pair<School*, int>(schl, 1));
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -1016,10 +1016,10 @@ void Population::report_mean_hh_distance_from_school() {
       } else {
         //Update the values
         school_enrollment_map->at(schl) += 1;
-        Household* student_hh = static_cast<Household*>(person->get_household());
+        Household* student_hh = person->get_household();
         if(student_hh == NULL) {
           if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-            student_hh = static_cast<Household*>(person->get_permanent_household());;
+            student_hh = person->get_permanent_household();
           }
         }
         assert(student_hh != NULL);
@@ -1057,23 +1057,23 @@ void Population::report_mean_hh_stats_per_income_category() {
     Person* person = get_person(p);
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-        int income_level = static_cast<Household*>(person->get_permanent_household())->get_household_income_code();
+        int income_level = person->get_permanent_household()->get_household_income_code();
         household_sets[income_level].insert((Household*)person->get_permanent_household());
         Global::Income_Category_Tracker->add_index(income_level);
       } else {
         continue;
       }
     } else {
-      int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
-      household_sets[income_level].insert(static_cast<Household*>(person->get_household()));
+      int income_level = person->get_household()->get_household_income_code();
+      household_sets[income_level].insert(person->get_household());
       Global::Income_Category_Tracker->add_index(income_level);
     }
 
     if(person->get_household() == NULL) {
       continue;
     } else {
-      int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
-      household_sets[income_level].insert(static_cast<Household*>(person->get_household()));
+      int income_level = person->get_household()->get_household_income_code();
+      household_sets[income_level].insert(person->get_household());
     }
   }
 
@@ -1161,17 +1161,17 @@ void Population::report_mean_hh_stats_per_census_tract() {
     long int census_tract;
     if(person->get_household() == NULL) {
       if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-        census_tract = static_cast<Household*>(person->get_permanent_household())->get_census_tract_fips();
+        census_tract = person->get_permanent_household()->get_census_tract_fips();
         Global::Tract_Tracker->add_index(census_tract);
-        household_sets[census_tract].insert(static_cast<Household*>(person->get_permanent_household()));
+        household_sets[census_tract].insert(person->get_permanent_household());
         Household::census_tract_set.insert(census_tract);
       } else {
         continue;
       }
     } else {
-      census_tract = static_cast<Household*>(person->get_household())->get_census_tract_fips();
+      census_tract = person->get_household()->get_census_tract_fips();
       Global::Tract_Tracker->add_index(census_tract);
-      household_sets[census_tract].insert(static_cast<Household*>(person->get_household()));
+      household_sets[census_tract].insert(person->get_household());
       Household::census_tract_set.insert(census_tract);
     }
   }
@@ -1617,10 +1617,10 @@ void Population::set_health_insurance(Person* p) {
   //    p->get_health()->set_insurance_type(Insurance_assignment_index::MEDICARE);
   //  } else {
   //    //Get the household of the agent to see if anyone already has insurance
-  //    Household* hh = static_cast<Household*>(p->get_household());
+  //    Household* hh = p->get_household();
   //    if(hh == NULL) {
   //      if(Global::Enable_Hospitals && p->is_hospitalized() && p->get_permanent_household() != NULL) {
-  //        hh = static_cast<Household*>(p->get_permanent_household());;
+  //        hh = p->get_permanent_household();
   //      }
   //    }
   //    assert(hh != NULL);
@@ -1653,10 +1653,10 @@ void Population::set_health_insurance(Person* p) {
   }
 
   //Get the household of the agent to see if anyone already has insurance
-  Household* hh = static_cast<Household*>(p->get_household());
+  Household* hh = p->get_household();
   if(hh == NULL) {
     if(Global::Enable_Hospitals && p->is_hospitalized() && p->get_permanent_household() != NULL) {
-      hh = static_cast<Household*>(p->get_permanent_household());;
+      hh = p->get_permanent_household();
     }
   }
   assert(hh != NULL);

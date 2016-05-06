@@ -1854,7 +1854,7 @@ Hospital* Place_List::get_random_open_hospital_matching_criteria(int sim_day, Pe
 
   int overnight_cap = 0;
   Hospital* assigned_hospital = NULL;
-  Household* hh = static_cast<Household*>(per->get_household());
+  Household* hh = per->get_household();
   assert(hh != NULL);
 
   // ignore place if it is outside the region
@@ -1950,7 +1950,7 @@ Hospital* Place_List::get_random_open_healthcare_facility_matching_criteria(int 
     Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
   }
   int number_possible_hospitals = 0;
-  Household* hh = static_cast<Household*>(per->get_household());
+  Household* hh = per->get_household();
   assert(hh != NULL);
   //First, only try Hospitals within a certain radius (* that accept insurance)
   std::vector<double> hosp_probs;
@@ -2064,7 +2064,7 @@ Hospital* Place_List::get_random_primary_care_facility_matching_criteria(Person*
     Utils::fred_abort("No Hospitals in simulation that has Enabled Hospitalization", "");
   }
   int number_possible_hospitals = 0;
-  Household* hh = static_cast<Household*>(per->get_household());
+  Household* hh = per->get_household();
   assert(hh != NULL);
   //First, only try Hospitals within a certain radius (* that accept insurance)
   std::vector<double> hosp_probs;

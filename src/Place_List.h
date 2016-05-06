@@ -270,60 +270,20 @@ public:
     return (int)this->households.size();
   }
 
-  Place* get_household(int i) {
-    if(0 <= i && i < get_number_of_households()) {
-      return this->households[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_neighborhoods() {
     return (int)this->neighborhoods.size();
   }
 
-  Place* get_neighborhood(int i) {
-    if(0 <= i && i < get_number_of_neighborhoods()) {
-      return this->neighborhoods[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_schools() {
     return (int) this->schools.size();
-  }
-  
-  Place* get_school(int i) {
-    if(0 <= i && i < get_number_of_schools()) {
-      return this->schools[i];
-    } else {
-      return NULL;
-    }
   }
   
   int get_number_of_workplaces() {
     return (int)this->workplaces.size();
   }
 
-  Place* get_workplace(int i) {
-    if(0 <= i && i < get_number_of_workplaces()) {
-      return this->workplaces[i];
-    } else {
-      return NULL;
-    }
-  }
-
   int get_number_of_hospitals() {
     return (int)this->hospitals.size();
-  }
-
-  Place* get_hospital(int i) {
-    if(0 <= i && i < get_number_of_hospitals()) {
-      return this->hospitals[i];
-    } else {
-      return NULL;
-    }
   }
 
   // access function for when we need a Household pointer
@@ -484,6 +444,47 @@ private:
   int third_quartile_household_income;
 
   // private methods
+  Place* get_household(int i) {
+    if(0 <= i && i < get_number_of_households()) {
+      return this->households[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  Place* get_neighborhood(int i) {
+    if(0 <= i && i < get_number_of_neighborhoods()) {
+      return this->neighborhoods[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  Place* get_school(int i) {
+    if(0 <= i && i < get_number_of_schools()) {
+      return this->schools[i];
+    } else {
+      return NULL;
+    }
+  }
+  
+  Place* get_workplace(int i) {
+    if(0 <= i && i < get_number_of_workplaces()) {
+      return this->workplaces[i];
+    } else {
+      return NULL;
+    }
+  }
+
+  Place* get_hospital(int i) {
+    if(0 <= i && i < get_number_of_hospitals()) {
+      return this->hospitals[i];
+    } else {
+      return NULL;
+    }
+  }
+
+
   void report_household_incomes();
   void select_households_for_shelter();
   void shelter_household(Household* h);

@@ -46,10 +46,10 @@ public:
     fred::Scoped_Lock lock(this->mutex);
     this->person.push_back(p);
     if(Global::Enable_Vector_Layer) {
-      Household* hh = static_cast<Household*>(p->get_household());
+      Household* hh = p->get_household();
       if(hh == NULL) {
         if(Global::Enable_Hospitals && p->is_hospitalized() && p->get_permanent_household() != NULL) {
-          hh = static_cast<Household*>(p->get_permanent_household());
+          hh = p->get_permanent_household();
         }
       }
       int h_county = hh->get_county_fips();

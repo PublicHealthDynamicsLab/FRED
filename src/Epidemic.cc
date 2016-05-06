@@ -499,20 +499,20 @@ void Epidemic::get_imported_infections(int day) {
 	int hsize = Global::Places.get_number_of_households();
 	// printf("IMPORT: houses  %d\n", hsize); fflush(stdout);
 	for(int i = 0; i < hsize; ++i) {
-	  Household* house = Global::Places.get_household_ptr(i);
+	  Household* hh = Global::Places.get_household_ptr(i);
 	  double dist = 0.0;
 	  if(radius > 0) {
-	    dist = Geo::xy_distance(lat,lon,house->get_latitude(),house->get_longitude());
+	    dist = Geo::xy_distance(lat,lon,hh->get_latitude(),hh->get_longitude());
 	    if(radius < dist) {
 	      continue;
 	    }
 	  }
 	  // this household qualifies by distance.
 	  // find all susceptible housemates who qualify by age.
-	  int size = house->get_size();
-	  // printf("IMPORT: house %d %s size %d\n", i, house->get_label(), size); fflush(stdout);
+	  int size = hh->get_size();
+	  // printf("IMPORT: house %d %s size %d\n", i, hh->get_label(), size); fflush(stdout);
 	  for(int j = 0; j < size; ++j) {
-	    Person* person = house->get_enrollee(j);
+	    Person* person = hh->get_enrollee(j);
 	    if(person->get_health()->is_susceptible(this->id)) {
 	      double age = person->get_real_age();
 	      if(this->import_age_lower_bound <= age && age <= this->import_age_upper_bound) {
@@ -641,7 +641,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add households
       size = Global::Places.get_number_of_households();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_household(i);
+	Place* place = Global::Places.get_household_ptr(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}
@@ -651,7 +651,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add schools
       size = Global::Places.get_number_of_schools();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_school(i);
+	Place* place = Global::Places.get_school_ptr(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}
@@ -661,7 +661,7 @@ void Epidemic::find_active_places_of_type(int day, int place_type) {
       // add workplaces
       size = Global::Places.get_number_of_workplaces();
       for(int i = 0; i < size; ++i) {
-	Place* place = Global::Places.get_workplace(i);
+	Place* place = Global::Places.get_workplace_ptr(i);
 	if(place->get_infectious_vectors(this->id) > 0) {
 	  this->active_places.insert(place);
 	}
@@ -844,7 +844,7 @@ void Epidemic::become_exposed(Person* person, int day) {
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
-      Household* hh = static_cast<Household*>(person->get_household());
+      Household* hh = person->get_household();
       int income_level = hh->get_household_income_code();
       if(income_level >= Household_income_level_code::CAT_I &&
          income_level < Household_income_level_code::UNCLASSIFIED) {
@@ -860,7 +860,7 @@ void Epidemic::become_exposed(Person* person, int day) {
 
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
-      Household* hh = static_cast<Household*>(person->get_household());
+      Household* hh = person->get_household();
       long int census_tract = hh->get_census_tract_fips();
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
         this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_inf++;
@@ -875,8 +875,8 @@ void Epidemic::become_exposed(Person* person, int day) {
     if(person->is_student() &&
        person->get_school() != NULL &&
        person->get_household() != NULL) {
-      School* schl = static_cast<School*>(person->get_school());
-      Household* hh = static_cast<Household*>(person->get_household());
+      School* schl = person->get_school();
+      Household* hh = person->get_household();
       int income_quartile = schl->get_income_quartile();
 
       if(person->is_child()) { //Already know person is student
@@ -943,7 +943,7 @@ void Epidemic::become_symptomatic(Person* person, int day) {
 
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
     if(person->get_household() != NULL) {
-      int income_level = static_cast<Household*>(person->get_household())->get_household_income_code();
+      int income_level = person->get_household()->get_household_income_code();
       if(income_level >= Household_income_level_code::CAT_I &&
 	 income_level < Household_income_level_code::UNCLASSIFIED) {
 	this->household_income_infection_counts_map[income_level].tot_ppl_evr_sympt++;
@@ -956,7 +956,7 @@ void Epidemic::become_symptomatic(Person* person, int day) {
 
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
     if(person->get_household() != NULL) {
-      Household* hh = static_cast<Household*>(person->get_household());
+      Household* hh = person->get_household();
       long int census_tract = hh->get_census_tract_fips();
       if(Household::census_tract_set.find(census_tract) != Household::census_tract_set.end()) {
 	this->census_tract_infection_counts_map[census_tract].tot_ppl_evr_sympt++;
@@ -969,7 +969,7 @@ void Epidemic::become_symptomatic(Person* person, int day) {
 
   if(Global::Report_Presenteeism) {
     char wp_symp[30];
-    Workplace* wp = static_cast<Workplace*>(person->get_workplace());
+    Workplace* wp = person->get_workplace();
     int index = Activities::get_index_of_sick_leave_dist(person);
     if(wp != NULL && index != -1) {
       this->workplace_size_infection_counts_map[index].tot_ppl_evr_sympt++;
@@ -980,8 +980,8 @@ void Epidemic::become_symptomatic(Person* person, int day) {
     if(person->get_household() != NULL &&
        person->is_student() &&
        person->get_school() != NULL) {
-      Household* hh = static_cast<Household*>(person->get_household());
-      School* schl = static_cast<School*>(person->get_school());
+      Household* hh = person->get_household();
+      School* schl = person->get_school();
       int income_quartile = schl->get_income_quartile();
       if(person->is_child()) { //Already know person is student
         this->school_income_infection_counts_map[income_quartile].tot_chldrn_evr_sympt++;
@@ -1614,10 +1614,10 @@ void Epidemic::report_incidence_by_county(int day) {
   for(int i = 0; i < infected; ++i) {
     Person* infectee = this->daily_infections_list[i];
     // FRED_VERBOSE(0, "person %d is %d out of %d\n", infectee->get_id(), i, infected);
-    Household* hh = static_cast<Household*>(infectee->get_household());
+    Household* hh = infectee->get_household();
     if(hh == NULL) {
       if(Global::Enable_Hospitals && infectee->is_hospitalized() && infectee->get_permanent_household() != NULL) {
-        hh = static_cast<Household*>(infectee->get_permanent_household());;
+        hh = infectee->get_permanent_household();
       }
     }
 
@@ -1685,10 +1685,10 @@ void Epidemic::report_incidence_by_census_tract(int day) {
   }
   for(int i = 0; i < this->people_becoming_infected_today; ++i) {
     Person* infectee = this->daily_infections_list[i];
-    Household* hh = static_cast<Household*>(infectee->get_household());
+    Household* hh = infectee->get_household();
     if(hh == NULL) {
       if(Global::Enable_Hospitals && infectee->is_hospitalized() && infectee->get_permanent_household() != NULL) {
-        hh = static_cast<Household*>(infectee->get_permanent_household());;
+        hh = infectee->get_permanent_household();
       }
     }
     int t = Global::Places.get_index_of_census_tract_with_fips(hh->get_census_tract_fips());
@@ -1989,7 +1989,7 @@ void Epidemic::report_school_attack_rates_by_income_level(int day) {
     infections_at_school++;
 
     // get the school income quartile
-    School* school = static_cast<School*>(infectee->get_school());
+    School* school = infectee->get_school();
     assert(school != NULL);
     int income_quartile = school->get_income_quartile();
 
@@ -1999,7 +1999,7 @@ void Epidemic::report_school_attack_rates_by_income_level(int day) {
     if(infector->is_symptomatic()) {
 
       // determine whether anyone was at home to watch child
-      Household* hh = static_cast<Household*>(infector->get_household());
+      Household* hh = infector->get_household();
       assert(hh != NULL);
       bool infector_could_stay_home = hh->has_school_aged_child_and_unemployed_adult();
 

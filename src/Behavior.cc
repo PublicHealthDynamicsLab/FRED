@@ -84,11 +84,11 @@ void Behavior::setup(Person* self) {
 
   // setup a child
   int relationship = self->get_relationship();
-  Household* hh = static_cast<Household*>(self->get_household());
+  Household* hh = self->get_household();
 
   if(hh == NULL) {
     if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
-      hh = static_cast<Household*>(self->get_permanent_household());
+      hh = self->get_permanent_household();
     }
   }
 
@@ -566,10 +566,10 @@ void Behavior::terminate(Person* self) {
   }
 
   // see if this person is the adult decision maker for any child in the household
-  Household* hh = static_cast<Household*>(self->get_household());
+  Household* hh = self->get_household();
   if(hh == NULL) {
     if(Global::Enable_Hospitals && self->is_hospitalized() && self->get_permanent_household() != NULL) {
-      hh = static_cast<Household*>(self->get_permanent_household());;
+      hh = self->get_permanent_household();
     }
   }
   int size = hh->get_size();
