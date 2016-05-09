@@ -435,6 +435,18 @@ public:
     Household::Min_hh_income_90_pct = _hh_income;
   }
 
+ void set_migration_fips(int mig_fips) {
+	  this->migration_fips = mig_fips;
+  }
+
+  void clear_migration_fips() {
+  	  this->migration_fips = 0;  // 0 means not planning to migrate or done migrating
+    }
+
+  int get_migration_fips() {
+	  return this->migration_fips;
+  }
+
 private:
 
   static double contacts_per_day;
@@ -476,6 +488,8 @@ private:
   int household_income;
   int household_income_code;
   int income_quartile;
+
+  int migration_fips;  //household preparing to do county-to-county migration
 
   // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;

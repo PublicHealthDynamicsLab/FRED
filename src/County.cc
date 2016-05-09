@@ -61,6 +61,7 @@ County::County(int _fips) {
   this->max_occupants = -1;
   this->ready_to_move.clear();
   this->households.clear();
+  this->migration_households.clear();
   this->mortality_rate_adjustment_weight = 0.0;
 
   for(int i = 0; i <= Demographics::MAX_AGE; ++i) {
@@ -319,8 +320,8 @@ void County::update(int day) {
     report_age_distribution();
 
     // migration from outside state
-    external_migration();
-    report_age_distribution();
+    //external_migration();
+    //report_age_distribution();
 
 
     // try to move households to houses of appropriate size
@@ -1319,6 +1320,30 @@ void County::county_to_county_migration() {
   FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION entered year %d\n", year);
 
   int num_counties = County::migration_fips.size();
+  if ( this->fips == County::migration_fips[0]){
+  	  FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION clearing %d day %d year %d\n",
+   	    		this->fips,  day, year);
+   	   //clear county-to-county migration counts before starting migration only once per year, before first migration of year
+   	     for (int i = 0; i < num_counties; i++) {
+   	    	int dest = County::migration_fips[i];
+   	    	County* dest_county = Global::Places.get_county(dest);
+   	     	  for (int col = 0; col < 18; col++ ) {
+   	     		County::county_male_migrants[i][col] = 0;
+   	     		County::county_female_migrants[i][col] = 0;
+   	     		//debug
+   	     		int lower_age = 5*col;
+   	     			  int upper_age = lower_age+4;
+   	     			  if (lower_age == 85) {
+   	     				  upper_age = 120;
+   	     			  }
+   	     			  int current_males = dest_county->get_current_popsize(lower_age, upper_age, 'M');
+   	     			  int current_females = dest_county->get_current_popsize(lower_age, upper_age, 'F');
+   	     			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION popsize before county-to-county fips %d male %d female %d\n",
+   	     			 	    		dest, current_males, current_females);
+   	     		//debug
+   	     }
+   	   }
+    }
   for (int c = 0; c < num_counties; c++) {
     int dest = County::migration_fips[c];
     if (dest == this->fips) {
@@ -1337,9 +1362,9 @@ void County::county_to_county_migration() {
       int current_females = get_current_popsize(lower_age, upper_age, 'F');
       males[a] = current_males * get_migration_rate(0, a, this->fips, dest);
       females[a] = current_females * get_migration_rate(1, a, this->fips, dest);
-      FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION to county %d age %d, %d males, %d females on day %d year %d\n",
-		   dest, lower_age, males[a], females[a], day, year);
-	  FRED_VERBOSE(0, "counting destination %d age %d, %d males, %d females on day %d year %d\n",
+      FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION from county %d to county %d age %d, %d males, %d females on day %d year %d\n",
+		   this->fips, dest, lower_age, males[a], females[a], day, year);
+	  FRED_VERBOSE(1, "counting destination %d age %d, %d males, %d females on day %d year %d\n",
 			   dest, lower_age,  County::county_male_migrants[c][a],  County::county_female_migrants[c][a], day, year);
 	}
 
@@ -1354,7 +1379,8 @@ void County::county_to_county_migration() {
 	  shuff[i]=i;
 	}
 	std::random_shuffle(shuff.begin(), shuff.end());
-
+//debug
+	int house_count = 0;
 	for (int i = 0; i < this->houses; i++) {
 	  int hnum = shuff[i];
 	  // see if this household is eligible to migrate
@@ -1379,6 +1405,8 @@ void County::county_to_county_migration() {
 		// migrate this household
 		FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD %d size %d\n", house->get_id(), hsize);
 			for(int j = 0; j < hsize; ++j) {
+			//debug
+				house_count++;
 			  Person* person = house->get_enrollee(j);
 			  int age = person->get_age();
 			  char s = person->get_sex();
@@ -1391,14 +1419,19 @@ void County::county_to_county_migration() {
 				females[a]--;
 			  }
 			}
-		migrate_household_to_county(house, dest);
+			this->households[hnum]->set_migration_fips(dest);
+			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD checking dest %d \n", this->households[hnum]->get_migration_fips());
+			this->migration_households.push_back(hnum);
+			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD set destination fips house id %d from global %d from household %d hnum %d destination %d house.destination %d last in vector %d\n", house->get_id(), Global::Places.get_household_ptr(hnum)->get_label(), this->households[hnum]->get_id(), hnum, dest, this->households[hnum]->get_migration_fips(), this->migration_households.back());
+		//migrate_household_to_county(house, dest);
 	  }
 	  else {
 		  FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD %d not ok\n", house->get_id());
 	  }
 	}
-
-	// select random migrants
+//debug
+	int stragglers = 0;
+	// select random migrants -- do stragglers before doing swap
 	for (int a = 0; a < 18; a++) {
 	  int lower_age = a*5;
 	  int upper_age = lower_age+4;
@@ -1408,16 +1441,67 @@ void County::county_to_county_migration() {
 	  if (males[a] > 0) {
 		  select_migrants(day, males[a], lower_age, upper_age, 'M', dest);
 		  males[a] = 0;
+		  stragglers += males[a];
 	  }
 	  if (females[a] > 0) {
 		  select_migrants(day, females[a], lower_age, upper_age, 'F', dest);
 		  females[a] = 0;
+		  stragglers += females[a];
 	  }
+	   //debug
+	  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION source %d dest %d stragglers %d\n", this->fips, dest, stragglers);
 	}
 
   }// end for loop over other counties
+  //checking migration list
+ if ( this->fips == County::migration_fips[County::migration_fips.size()-1]){
+        FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION done %d\n", this->fips);
+        for (int i = 0; i < num_counties; i++) {
+        	int source = County::migration_fips[i];
+        	County* source_county = Global::Places.get_county(source);
+        	for (int j=0; j < source_county->migration_households.size(); j++) {
+        		FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION household list %d id %d\n", source_county->migration_households[j], source_county->households[source_county->migration_households[j]]->get_migration_fips());
+        	}
 
- //debug
+        }
+     }
+
+
+ //do this after all counties have identified households to swap
+ if ( this->fips == County::migration_fips[County::migration_fips.size()-1]){
+ 	 	 County::migration_swap_houses();
+ }
+
+ //take care of remaining houses marked for migration
+
+ if ( this->fips == County::migration_fips[County::migration_fips.size()-1]){
+
+	 FRED_VERBOSE(0, "COUNTY TO COUNTY MIGRATION REMAINING HOUSES\n");
+
+	  for (int k=0; k<num_counties; k++) {
+		  //debug
+		  int remaining = 0;
+		  int source = County::migration_fips[k];
+		  County* source_county = Global::Places.get_county(source);
+		  int index = -1;
+		  FRED_VERBOSE(0, "MIGRATION REMAINING HOUSES source %d\n", source);
+		  for (int m=0; m<source_county->houses; m++) {
+			  //FRED_VERBOSE(0, "MIGRATION SWAP HOUSES swap matrix before m %d\n", m);
+			  //for each house to move, get the destination, get index for destination
+			  int dest_fips = source_county->households[m]->get_migration_fips();
+			  if (dest_fips >0) {
+				  //debug
+				  remaining++;
+				  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix dest %d\n", dest_fips);
+				  migrate_household_to_county(source_county->households[m], dest_fips);
+				  source_county->households[m]->clear_migration_fips();
+				  }
+			  }
+		  //debug
+		  FRED_VERBOSE(0, "MIGRATION REMAINING HOUSES source %d number of houses %d\n", source, remaining);
+	  }
+ }
+ /*/debug
  	if ( this->fips == County::migration_fips[County::migration_fips.size()-1]){
  		  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION done %d\n", this->fips);
  	 	   //clear county-to-county migration counts before starting migration only once, before first migration of year
@@ -1450,12 +1534,104 @@ void County::county_to_county_migration() {
 		   			  }
 		   }
 		    	     		//debug
- 	  }
+ 	  }*/
 
  	//debug
 
-  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION finished for year %d\n", year);
+  FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION finished for county %d year %d\n", this->fips, year);
 }
+
+//adding
+void County::migration_swap_houses() {
+  FRED_DEBUG(1, "MIGRATION SWAP HOUSES =======================\n");
+  // get the current year
+   int year = Date::get_year();
+   int day = Global::Simulation_Day;
+
+   if (year < 2010 || 2040 < year) {
+     return;
+   }
+
+   FRED_VERBOSE(0, "MIGRATION SWAP HOUSES entered year %d\n", year);
+   int num_counties = County::migration_fips.size();
+  // two-dim array of vectors of houses to swap
+  HouselistT** swap_houselist;
+  swap_houselist = new HouselistT*[num_counties];
+  for(int i = 0; i < num_counties; ++i) {
+	  swap_houselist[i] = new HouselistT[num_counties];
+    for(int j = 0; j < num_counties; ++j) {
+    	swap_houselist[i][j].clear();
+    }
+  }
+  // for each county, get the houses moving to all other counties and set up swap matrix of vectors of households to swap
+
+  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix before\n");
+  for (int k=0; k<num_counties; k++) {
+		  int source = County::migration_fips[k];
+		  County* source_county = Global::Places.get_county(source);
+		  int index = -1;
+		  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix source %d\n", source);
+		  for (int m=0; m<source_county->houses; m++) {
+			  //FRED_VERBOSE(0, "MIGRATION SWAP HOUSES swap matrix before m %d\n", m);
+			  //for each house to move, get the destination, get index for destination
+			  int dest_fips = source_county->households[m]->get_migration_fips();
+			  if (dest_fips >0) {
+				  for (int z = 0; z < num_counties; z++) {
+				    	 if (County::migration_fips[z] == dest_fips){
+				    		 index = z;
+				    	 }
+				  }
+			  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix dest %d index %d\n", dest_fips, index);
+			  swap_houselist[k][index].push_back(m);
+			  }
+		  }
+  }
+  //checking
+  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix checking\n");
+  /*vector <int>::iterator It;
+  for (int n=0; n<num_counties-1; n++) {
+	  for (int p=n+1; p<num_counties; p++) {
+		  cout << " n p " << n << p  << '\t';
+		  FRED_VERBOSE(0, "MIGRATION SWAP HOUSES swap matrix\n");
+	  	  for (It = swap_houselist[n][p].begin(); It != swap_houselist[n][p].end(); ++It){
+	      cout << *It << '\t';
+	  	cout  << '\t';
+  		  }
+    }
+  }*/
+  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES done checking\n");
+  // swap county 1 with counties 2 to max, then 2 with 3 to max, etc
+  // check that both counties have households to swap and swap the lesser number of the two
+  for (int n=0; n<num_counties-1; n++) {
+  	  for (int p=n+1; p<num_counties; p++) {
+  		  int hs_size = swap_houselist[n][p].size();
+  		  int hd_size = swap_houselist[p][n].size();
+  		  int num_to_swap = 0;
+  		  if (hs_size>0 && hd_size>0) {
+			  num_to_swap = (hs_size<=hd_size ? hs_size : hd_size); //get smaller size to swap
+			  int mig_source = County::migration_fips[n];
+			  County* mig_source_county = Global::Places.get_county(mig_source);
+			  int mig_dest = County::migration_fips[p];
+			  County* mig_dest_county = Global::Places.get_county(mig_dest);
+			  for (int s=0; s<num_to_swap; s++) {
+				  // clear the migration status for households being swapped
+				  mig_source_county->households[swap_houselist[n][p][s]]->clear_migration_fips();
+				  mig_dest_county->households[swap_houselist[p][n][s]]->clear_migration_fips();
+				  FRED_VERBOSE(0, "MIGRATION SWAP HOUSES clearing migration fips house1 %d house2 %d\n", mig_source_county->households[swap_houselist[n][p][s]]->get_migration_fips(), mig_dest_county->households[swap_houselist[p][n][s]]->get_migration_fips());
+				  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES testing swap houses sizes houselist1 %d houselist2 %d\n", hs_size, hd_size);
+				  Household* hs = mig_source_county->households[swap_houselist[n][p][s]];
+				  Household* hd = mig_dest_county->households[swap_houselist[p][n][s]];
+
+				  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES testing swap houses house1 %d house2 %d\n", hs->get_id(), hd->get_id());
+				  Global::Places.swap_houses(hs, hd);
+			  }
+  		  }
+  	  }
+  }
+
+	// printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
+}//end
+//adding
 
 void County::migrate_household_to_county(Place* house, int dest) {
   int day = Global::Simulation_Day;
@@ -1622,7 +1798,6 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
 	    return;
 	  }
 	}
->>>>>>> 71cd479962a03651076487ffa437690912efe8a6
       }
 	if (found == 0) {
 		// advance to next household

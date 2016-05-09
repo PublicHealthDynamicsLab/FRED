@@ -77,6 +77,7 @@ Household::Household() : Place() {
   this->income_quartile = -1;
   this->household_income = -1;
   this->household_income_code = Household_income_level_code::UNCLASSIFIED;
+  this->migration_fips = 0;
 }
 
 Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
@@ -104,6 +105,7 @@ Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo la
   this->income_quartile = -1;
   this->household_income = -1;
   this->household_income_code = Household_income_level_code::UNCLASSIFIED;
+  this->migration_fips = 0;
 }
 
 void Household::get_parameters() {

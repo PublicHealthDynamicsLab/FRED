@@ -2642,6 +2642,46 @@ void Place_List::swap_houses(int house_index1, int house_index2) {
       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 }
 
+void Place_List::swap_houses(Household* h1, Household* h2) {
+
+  //Household* h1 = this->get_household_ptr(house_index1);
+  //Household* h2 = this->get_household_ptr(house_index2);
+  if(h1 == NULL || h2 == NULL)
+    return;
+
+  FRED_VERBOSE(0, "HOUSING: swapping house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
+      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+
+  // get pointers to residents of house h1
+  vector<Person*> temp1;
+  temp1.clear();
+  vector<Person*> housemates1 = h1->get_inhabitants();
+  for(std::vector<Person*>::iterator itr = housemates1.begin(); itr != housemates1.end(); ++itr) {
+    temp1.push_back(*itr);
+  }
+
+  // get pointers to residents of house h2
+  vector<Person*> temp2;
+  temp2.clear();
+  vector<Person *> housemates2 = h2->get_inhabitants();
+  for(std::vector<Person*>::iterator itr = housemates2.begin(); itr != housemates2.end(); ++itr) {
+    temp2.push_back(*itr);
+  }
+
+  // move first group into house h2
+  for(std::vector<Person*>::iterator itr = temp1.begin(); itr != temp1.end(); ++itr) {
+    (*itr)->move_to_new_house(h2);
+  }
+
+  // move second group into house h1
+  for(std::vector<Person*>::iterator itr = temp2.begin(); itr != temp2.end(); ++itr) {
+    (*itr)->move_to_new_house(h1);
+  }
+
+  FRED_VERBOSE(1, "HOUSING: swapped house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
+      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+}
+
 void Place_List::combine_households(int house_index1, int house_index2) {
 
   Household* h1 = this->get_household_ptr(house_index1);
