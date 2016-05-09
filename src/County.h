@@ -137,7 +137,7 @@ public:
   void add_immigrant(Person* person);
   void add_immigrant(int age, char sex);
   void report_age_distribution();
-
+  void migration_swap_houses();
   void read_migration_parameters();
   double get_migration_rate(int sex, int age, int src, int dst);
 
@@ -187,7 +187,8 @@ private:
   // county to county migration arrays
   static int** county_male_migrants;
   static int** county_female_migrants;
-
+  std::vector<int> migration_households;  //vector of household IDs for migration
+ 
   // static vars
   static std::vector<int> migration_fips;
   static double**** migration_rate;

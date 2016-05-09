@@ -142,6 +142,7 @@ public:
   void get_visualization_data_from_households(int day, int condition_id, int output_code);
   void get_census_tract_data_from_households(int day, int condition_id, int output_code);
   void swap_houses(int house_index1, int house_index2);
+  void swap_houses(Household* h1, Household* h2);
   void combine_households(int house_index1, int house_index2);
 
   Place* select_school(int county_fips, int grade);
