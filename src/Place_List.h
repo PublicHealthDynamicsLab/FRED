@@ -102,6 +102,7 @@ public:
   // periodic updates
   void update(int day);
   void swap_houses(int house_index1, int house_index2);
+  void swap_houses(Household* h1, Household* h2);
   void combine_households(int house_index1, int house_index2);
   Place* select_school(int county_fips, int grade);
   Place* get_random_workplace();
@@ -136,21 +137,6 @@ public:
   void end_of_run();
 
   // access methods
-<<<<<<< HEAD
-  int get_number_of_demes() {
-    return this->number_of_demes;
-  }
-
-  int get_housing_data(int* target_size, int* current_size);
-  void get_initial_visualization_data_from_households();
-  void get_visualization_data_from_households(int day, int condition_id, int output_code);
-  void get_census_tract_data_from_households(int day, int condition_id, int output_code);
-  void swap_houses(int house_index1, int house_index2);
-  void swap_houses(Household* h1, Household* h2);
-  void combine_households(int house_index1, int house_index2);
-=======
->>>>>>> master
-
   int get_min_household_income_by_percentile(int percentile);
 
   int get_number_of_counties() {

@@ -1422,7 +1422,7 @@ void County::county_to_county_migration() {
 			this->households[hnum]->set_migration_fips(dest);
 			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD checking dest %d \n", this->households[hnum]->get_migration_fips());
 			this->migration_households.push_back(hnum);
-			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD set destination fips house id %d from global %d from household %d hnum %d destination %d house.destination %d last in vector %d\n", house->get_id(), Global::Places.get_household_ptr(hnum)->get_label(), this->households[hnum]->get_id(), hnum, dest, this->households[hnum]->get_migration_fips(), this->migration_households.back());
+			FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION HOUSEHOLD set destination fips house id %d from global %d from household %d hnum %d destination %d house.destination %d last in vector %d\n", house->get_id(), Global::Places.get_household(hnum)->get_label(), this->households[hnum]->get_id(), hnum, dest, this->households[hnum]->get_migration_fips(), this->migration_households.back());
 		//migrate_household_to_county(house, dest);
 	  }
 	  else {
