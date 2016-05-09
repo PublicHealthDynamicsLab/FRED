@@ -491,7 +491,7 @@ private:
 
   int migration_fips;  //household preparing to do county-to-county migration
 
-  // true if a household member is at one of the places for an extended absence
+  // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
   std::bitset<4> not_home_bitset;
 
