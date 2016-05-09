@@ -996,6 +996,14 @@ public:
     this->health.update_health_conditions(day);
   }
 
+  bool get_migration_status() {
+	  return  this->migrant;
+  }
+
+  void set_migration_status(bool status) {
+  	  this->migrant = status;
+    }
+
 private:
 
   // id: Person's unique identifier (never reused)
@@ -1009,6 +1017,7 @@ private:
   Activities activities;
   Behavior behavior;
   bool eligible_to_migrate;
+  bool migrant;
 
 protected:
 

@@ -102,6 +102,7 @@ public:
   // periodic updates
   void update(int day);
   void swap_houses(int house_index1, int house_index2);
+  void swap_houses(Household* h1, Household* h2);
   void combine_households(int house_index1, int house_index2);
   Place* select_school(int county_fips, int grade);
   Place* get_random_workplace();
@@ -136,7 +137,6 @@ public:
   void end_of_run();
 
   // access methods
-
   int get_min_household_income_by_percentile(int percentile);
 
   int get_number_of_counties() {
