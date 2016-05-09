@@ -16,23 +16,25 @@
 #ifndef _FRED_PERSON_H
 #define _FRED_PERSON_H
 
-#include "Global.h"
-#include <vector>
-using namespace std;
-
-class Place;
-class Household;
-class Condition;
-class Infection;
-class Mixing_Group;
-class Network;
-class Population;
-
 #include "Demographics.h"
+#include "Global.h"
 #include "Health.h"
 #include "Behavior.h"
 #include "Activities.h"
-#include <map>
+
+class Classroom;
+class Condition;
+class Hospital;
+class Infection;
+class Household;
+class Mixing_Group;
+class Neighborhood;
+class Network;
+class Office;
+class Place;
+class Population;
+class School;
+class Workplace;
 
 class Person {
 public:
@@ -497,7 +499,7 @@ public:
   /**
    * @return the a pointer to this agent's Neighborhood
    */
-  Place* get_neighborhood() {
+  Neighborhood* get_neighborhood() {
     return this->activities.get_neighborhood();
   }
 
@@ -509,7 +511,7 @@ public:
    * @return a pointer to this Person's Household
    * @see Activities::get_household()
    */
-  Place* get_household() {
+  Household* get_household() {
     return this->activities.get_household();
   }
 
@@ -517,11 +519,11 @@ public:
     return this->exposed_household_index;
   }
 
-  void set_exposed_household(int index_) {
-    this->exposed_household_index = index_;
+  void set_exposed_household(int _index) {
+    this->exposed_household_index = _index;
   }
 
-  Place* get_permanent_household() {
+  Household* get_permanent_household() {
     return this->activities.get_permanent_household();
   }
 
@@ -541,7 +543,7 @@ public:
    * @return a pointer to this Person's School
    * @see Activities::get_school()
    */
-  Place* get_school() {
+  School* get_school() {
     return this->activities.get_school();
   }
 
@@ -549,7 +551,7 @@ public:
    * @return a pointer to this Person's Classroom
    * @see Activities::get_classroom()
    */
-  Place* get_classroom() {
+  Classroom* get_classroom() {
     return this->activities.get_classroom();
   }
 
@@ -557,7 +559,7 @@ public:
    * @return a pointer to this Person's Workplace
    * @see Activities::get_workplace()
    */
-  Place* get_workplace() {
+  Workplace* get_workplace() {
     return this->activities.get_workplace();
   }
 
@@ -565,7 +567,7 @@ public:
    * @return a pointer to this Person's Office
    * @see Activities::get_office()
    */
-  Place* get_office() {
+  Office* get_office() {
     return this->activities.get_office();
   }
 
@@ -573,7 +575,7 @@ public:
    * @return a pointer to this Person's Hospital
    * @see Activities::get_hospital()
    */
-  Place* get_hospital() {
+  Hospital* get_hospital() {
     return this->activities.get_hospital();
   }
 

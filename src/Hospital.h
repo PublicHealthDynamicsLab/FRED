@@ -36,7 +36,6 @@ class Hospital : public Place {
 public: 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Hospital();
 
@@ -76,7 +75,6 @@ public:
   bool is_open(int sim_day);
 
   /**
-   * @see Place::should_be_open(int day)
    *
    * Determine if the Hospital should be open. This is independent of any condition.
    *
@@ -107,6 +105,22 @@ public:
 
   void set_bed_count(int _bed_count) {
     this->bed_count = _bed_count;
+  }
+
+  int get_employee_count() {
+    return this->employee_count;
+  }
+
+  void set_employee_count(int _employee_count) {
+    this->employee_count = _employee_count;
+  }
+
+  int get_physician_count() {
+    return this->physician_count;
+  }
+
+  void set_physician_count(int _physician_count) {
+    this->physician_count = _physician_count;
   }
 
   int get_daily_patient_capacity(int sim_day);
@@ -149,6 +163,10 @@ public:
 
   std::string to_string();
 
+  string to_string(bool is_JSON, bool is_inline, int indent_level) {
+    return Place::to_string(is_JSON, is_inline, indent_level);
+  }
+
   static int get_HAZEL_mobile_van_open_delay() {
     return Hospital::HAZEL_mobile_van_open_delay;
   }
@@ -172,6 +190,10 @@ private:
   int occupied_bed_count;
   int daily_patient_capacity;
   int current_daily_patient_count;
+
+  int employee_count;
+  int physician_count;
+
   bool add_capacity;
   bool HAZEL_closure_dates_have_been_set;
 

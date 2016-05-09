@@ -30,7 +30,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Neighborhood() : Place() {}
 

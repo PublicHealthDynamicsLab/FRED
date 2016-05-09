@@ -18,7 +18,7 @@ Person_Place_Link::Person_Place_Link() {
 }
 
 void Person_Place_Link::enroll(Person* person, Place* new_place) {
-  if (this->place != NULL) {
+  if(this->place != NULL) {
     FRED_VERBOSE(0,"enroll failed: place %d %s  enrollee_index %d \n",
 	   this->place->get_id(), this->place->get_label(), enrollee_index);
   }

@@ -109,8 +109,6 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->set_subtype(Place::SUBTYPE_NONE);
   this->index = -1;
   this->staff_size = 0;
-  this->longitude = lon;
-  this->latitude = lat;
   this->open_date = 0;
   this->close_date = INT_MAX;
   this->intimacy = 0.0;
@@ -120,6 +118,10 @@ Place::Place(const char* lab, fred::geo lon, fred::geo lat) : Mixing_Group(lab) 
   this->last_day_infectious = -2;
   this->intimacy = 0.0;
   this->patch = NULL;
+
+  this->longitude = lon;
+  this->latitude = lat;
+  this->fips = 0;				// assigned elsewhere
 
   int conditions = Global::Conditions.get_number_of_conditions();
   this->infectious_people = new std::vector<Person*>[conditions];

@@ -129,7 +129,7 @@ void Travel::setup_travelers_per_hub() {
   int households = Global::Places.get_number_of_households();
   FRED_VERBOSE(0,"Preparing to set households: %li \n",households);
   for(int i = 0; i < households; ++i) {
-    Household* h = Global::Places.get_household_ptr(i);
+    Household* h = Global::Places.get_household(i);
     double h_lat = h->get_latitude();
     double h_lon = h->get_longitude();
     long int h_id = h->get_census_tract_fips();

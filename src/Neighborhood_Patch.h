@@ -72,7 +72,7 @@ public:
   /**
    * Setup the neighborhood in this Neighborhood_Patch
    */
-  void make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator);
+  void make_neighborhood();
 
   /**
    * Add household to this Neighborhood_Patch's household vector
@@ -196,6 +196,7 @@ protected:
   int popsize;
   double mean_household_income;
   int vector_control_status;
+  long int census_tract_fips;
 
   // lists of places by type
   place_vector_t households;

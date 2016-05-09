@@ -136,6 +136,7 @@ public:
   void end_of_run();
 
   // access methods
+<<<<<<< HEAD
   int get_number_of_demes() {
     return this->number_of_demes;
   }
@@ -147,6 +148,8 @@ public:
   void swap_houses(int house_index1, int house_index2);
   void swap_houses(Household* h1, Household* h2);
   void combine_households(int house_index1, int house_index2);
+=======
+>>>>>>> master
 
   int get_min_household_income_by_percentile(int percentile);
 

@@ -10,7 +10,6 @@
 */
 
 void Place_List::report_school_distributions(int day) {
-  int number_places = this->places.size();
   // original size distribution
   int count[21];
   int osize[21];
@@ -21,18 +20,16 @@ void Place_List::report_school_distributions(int day) {
     osize[c] = 0;
     nsize[c] = 0;
   }
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
-      int os = this->places[p]->get_orig_size();
-      int ns = this->places[p]->get_size();
-      int n = os / 50;
-      if(n > 20) {
-        n = 20;
-      }
-      count[n]++;
-      osize[n] += os;
-      nsize[n] += ns;
+  for(int p = 0; p < get_number_of_schools(); ++p) {
+    int os = this->schools[p]->get_orig_size();
+    int ns = this->schools[p]->get_size();
+    int n = os / 50;
+    if(n > 20) {
+      n = 20;
     }
+    count[n]++;
+    osize[n] += os;
+    nsize[n] += ns;
   }
   fprintf(Global::Statusfp, "SCHOOL SIZE distribution: ");
   for(int c = 0; c <= 20; ++c) {
@@ -49,47 +46,41 @@ void Place_List::report_school_distributions(int day) {
 
   sprintf(filename, "%s/school-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::TYPE_SCHOOL) {
-      Place* h = this->places[p];
-      fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size()-h->get_staff_size(), h->get_size()-h->get_staff_size());
-      /*
-	School * s = static_cast<School*>(h);
-	for(int a = 1; a <=20; ++a) {
-	if(s->get_orig_students_in_grade(a) > 0) {
-	fprintf(fp, "SCHOOL %s age %d orig %d current %d\n",
-	s->get_label(), a, s->get_orig_students_in_grade(a), s->get_students_in_grade(a));
-	}
-	}
-	fprintf(fp,"\n");
-      */
-    }
+  for(int p = 0; p < get_number_of_schools(); ++p) {
+    Place* h = this->schools[p];
+    fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size()-h->get_staff_size(), h->get_size()-h->get_staff_size());
+    /*
+      School * s = static_cast<School*>(h);
+      for(int a = 1; a <=20; ++a) {
+      if(s->get_orig_students_in_grade(a) > 0) {
+      fprintf(fp, "SCHOOL %s age %d orig %d current %d\n",
+      s->get_label(), a, s->get_orig_students_in_grade(a), s->get_students_in_grade(a));
+      }
+      }
+      fprintf(fp,"\n");
+    */
   }
   fclose(fp);
 
   sprintf(filename, "%s/work-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->get_type() == Place::TYPE_WORKPLACE) {
-      Place* h = this->places[p];
-      fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size(), h->get_size());
-    }
+  for(int p = 0; p < this->workplaces.size(); ++p) {
+    Place* h = this->workplaces[p];
+    fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size(), h->get_size());
   }
   fclose(fp);
 
   sprintf(filename, "%s/house-%d.txt", Global::Simulation_directory, year);
   fp = fopen(filename, "w");
-  for(int p = 0; p < number_places; ++p) {
-    if(this->places[p]->is_household()) {
-      Place* h = this->places[p];
-      fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size(), h->get_size());
-    }
+  for(int p = 0; p < get_number_of_households(); ++p) {
+    Place* h = this->households[p];
+    fprintf(fp, "%s orig_size %d current_size %d\n", h->get_label(), h->get_orig_size(), h->get_size());
   }
   fclose(fp);
 }
 
 void Place_List::report_household_distributions() {
-  int number_places = this->places.size();
+  int number_places = this->households.size();
 
   if(Global::Verbose) {
     int count[20];
@@ -99,15 +90,13 @@ void Place_List::report_household_distributions() {
       count[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->is_household()) {
-        int n = this->places[p]->get_size();
-        if(n <= 10) {
-          count[n]++;
-        } else {
-          count[10]++;
-        }
-        total++;
+      int n = this->households[p]->get_size();
+      if(n <= 10) {
+	count[n]++;
+      } else {
+	count[10]++;
       }
+      total++;
     }
     fprintf(Global::Statusfp, "Household size distribution: N = %d ", total);
     for(int c = 0; c <= 10; ++c) {
@@ -115,7 +104,7 @@ void Place_List::report_household_distributions() {
 	      c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
-
+    
     // original size distribution
     int hsize[20];
     total = 0;
@@ -125,18 +114,16 @@ void Place_List::report_household_distributions() {
       hsize[c] = 0;
     }
     for(int p = 0; p < number_places; ++p) {
-      if(this->places[p]->is_household()) {
-        int n = this->places[p]->get_orig_size();
-	int hs = this->places[p]->get_size();
-        if(n <= 10) {
-          count[n]++;
-          hsize[n] += hs;
-        } else {
-          count[10]++;
-          hsize[10] += hs;
-        }
-        total++;
+      int n = this->households[p]->get_orig_size();
+      int hs = this->households[p]->get_size();
+      if(n <= 10) {
+	count[n]++;
+	hsize[n] += hs;
+      } else {
+	count[10]++;
+	hsize[10] += hs;
       }
+      total++;
     }
     fprintf(Global::Statusfp, "Household orig distribution: N = %d ", total);
     for(int c = 0; c <= 10; c++) {

@@ -16,6 +16,13 @@
 #include "Utils.h"
 
 Markov_Chain::Markov_Chain() {
+  this->number_of_states = -1;
+
+  this->age_map = NULL;
+  this->age_groups = -1;
+  this->state_initial_percent = NULL;
+  this->transition_matrix = NULL;
+  this->transition_time_period = 0.0;
 }
 
 Markov_Chain::~Markov_Chain() {
@@ -33,7 +40,7 @@ void Markov_Chain::get_parameters() {
   this->state_name.reserve(this->number_of_states);
     
   // get state names
-  for (int i = 0; i < this->number_of_states; i++) {
+  for(int i = 0; i < this->number_of_states; ++i) {
     sprintf(paramstr, "%s[%d].name", this->name, i);
     Params::get_param(paramstr, state_name);
     this->state_name.push_back(state_name);
@@ -46,18 +53,18 @@ void Markov_Chain::get_parameters() {
   this->age_groups = this->age_map->get_groups();
 
   // create initial distribution for each age group
-  state_initial_percent = new double* [this->age_groups];
-  for (int group = 0; group < this->age_groups; group++) {
-    state_initial_percent[group] = new double [this->number_of_states];
+  this->state_initial_percent = new double* [this->age_groups];
+  for(int group = 0; group < this->age_groups; group++) {
+    this->state_initial_percent[group] = new double [this->number_of_states];
     double initial_total = 0.0;
-    for (int i = 0; i < this->number_of_states; i++) {
+    for(int i = 0; i < this->number_of_states; ++i) {
       double init_pct;
       sprintf(paramstr, "%s.group[%d].initial_percent[%d]", this->name, group, i);
       printf("read param %s\n", paramstr); fflush(stdout);
       Params::get_param(paramstr, &init_pct);
       this->state_initial_percent[group][i] = init_pct;
-      if (i > 0) {
-	initial_total += init_pct;
+      if(i > 0) {
+	      initial_total += init_pct;
       }
     }
     // make sure state percentages add up
@@ -67,16 +74,16 @@ void Markov_Chain::get_parameters() {
 
   // initialize transition matrices, one for each age group
   this->transition_matrix = new double** [this->age_groups];
-  for (int group = 0; group < this->age_groups; group++) {
+  for(int group = 0; group < this->age_groups; ++group) {
     this->transition_matrix[group] = new double* [this->number_of_states];
-    for (int i = 0; i < this->number_of_states; i++) {
+    for(int i = 0; i < this->number_of_states; ++i) {
       this->transition_matrix[group][i] = new double [this->number_of_states];
     }
 
     // identity matrix
-    for (int i = 0; i < this->number_of_states; i++) {
-      for (int j = 0; j < this->number_of_states; j++) {
-	this->transition_matrix[group][i][j] = 0.0;
+    for(int i = 0; i < this->number_of_states; ++i) {
+      for(int j = 0; j < this->number_of_states; ++j) {
+	      this->transition_matrix[group][i][j] = 0.0;
       }
       this->transition_matrix[group][i][i] = 1.0;
     }
@@ -88,25 +95,25 @@ void Markov_Chain::get_parameters() {
     this->transition_time_period = 1;
     Params::get_indexed_param(this->name, "transition_time_period", &(this->transition_time_period));
 
-    for (int i = 0; i < this->number_of_states; i++) {
-      for (int j = 0; j < this->number_of_states; j++) {
-	// default value if not in params file:
-	double prob = 0.0;
-	sprintf(paramstr, "%s.group[%d].trans[%d][%d]", this->name, group,i,j);
-	Params::get_param(paramstr, &prob);
-	this->transition_matrix[group][i][j] = prob;
+    for(int i = 0; i < this->number_of_states; ++i) {
+      for(int j = 0; j < this->number_of_states; ++j) {
+	      // default value if not in params file:
+	      double prob = 0.0;
+	      sprintf(paramstr, "%s.group[%d].trans[%d][%d]", this->name, group,i,j);
+	      Params::get_param(paramstr, &prob);
+	      this->transition_matrix[group][i][j] = prob;
       }
     }
     // restore requiring parameters
     Params::set_abort_on_failure();
 
     // guarantee probability distribution by making same-state transition the default
-    for (int i = 0; i < this->number_of_states; i++) {
+    for(int i = 0; i < this->number_of_states; ++i) {
       double sum = 0;
-      for (int j = 0; j < this->number_of_states; j++) {
-	if (i != j) {
-	  sum += this->transition_matrix[group][i][j];
-	}
+      for(int j = 0; j < this->number_of_states; ++j) {
+	      if(i != j) {
+	        sum += this->transition_matrix[group][i][j];
+	      }
       }
       assert(sum <= 1.0);
       this->transition_matrix[group][i][i] = 1.0 - sum;
@@ -117,22 +124,22 @@ void Markov_Chain::get_parameters() {
 
 
 void Markov_Chain::print() {
-  for (int i = 0; i < this->number_of_states; i++) {
+  for(int i = 0; i < this->number_of_states; ++i) {
     printf("MARKOV MODEL %s[%d].name = %s\n",
 	   this->name, i, this->state_name[i].c_str());
   }
 
   this->age_map->print();
 
-  for (int g = 0; g < this->age_groups; g++) {
-    for (int i = 0; i < this->number_of_states; i++) {
+  for(int g = 0; g < this->age_groups; ++g) {
+    for (int i = 0; i < this->number_of_states; ++i) {
       printf("MARKOV MODEL %s.group[%d].initial_percent[%d] = %f\n",
 	     this->name, g, i, this->state_initial_percent[g][i]);
     }
 
-    for (int i = 0; i < this->number_of_states; i++) {
-      for (int j = 0; j < this->number_of_states; j++) {
-	printf("MARKOV MODEL %s.group[%d].trans[%d][%d] = %f\n",
+    for(int i = 0; i < this->number_of_states; ++i) {
+      for(int j = 0; j < this->number_of_states; ++j) {
+	      printf("MARKOV MODEL %s.group[%d].trans[%d][%d] = %f\n",
 	       this->name,g,i,j,this->transition_matrix[g][i][j]);
       }
     }
@@ -142,16 +149,16 @@ void Markov_Chain::print() {
 
 int Markov_Chain::get_initial_state(double age, int adjustment_state, double adjustment) {
   int group = this->age_map->find_value(age);
-  double total = 100.0 - (1.0-adjustment)*this->state_initial_percent[group][adjustment_state];
+  double total = 100.0 - (1.0 - adjustment) * this->state_initial_percent[group][adjustment_state];
   double r = total * Random::draw_random();
   double sum = 0.0;
-  for (int i = 0; i < this->number_of_states; i++) {
+  for (int i = 0; i < this->number_of_states; ++i) {
     double next_pct = this->state_initial_percent[group][i];
-    if (i==adjustment_state) {
+    if(i == adjustment_state) {
       next_pct *= adjustment;
     }
     sum += next_pct;
-    if (r < sum) {
+    if(r < sum) {
       return i;
     }
   }  
@@ -166,14 +173,14 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   int group = this->age_map->find_value(age);
 
   double stay = this->transition_matrix[group][state][state];
-  if (adjustment_state == state) {
+  if(adjustment_state == state) {
     stay *= adjustment;
-    if (stay > 1.0) {
+    if(stay > 1.0) {
       stay = 1.0;
     }
   }
 
-  if (stay == 1.0) {
+  if(stay == 1.0) {
     // current state is absorbing
     return;
   }
@@ -184,8 +191,8 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   // find time of next transition
   *transition_day = day + round(Random::draw_exponential(lambda) * this->transition_time_period);
   // transition must be in the future
-  if (*transition_day == day) {
-    *transition_day = day+1;
+  if(*transition_day == day) {
+    *transition_day = day + 1;
   }
 
   // find the next state
@@ -193,14 +200,13 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
   // form a prob dist over outgoing states
   double p[this->number_of_states];
   double total = 0.0;
-  for (int j = 0; j < this->number_of_states; j++) {
-    if (j == state) {
+  for(int j = 0; j < this->number_of_states; ++j) {
+    if(j == state) {
       p[j] = 0.0;
-    }
-    else {
+    } else {
       p[j] = this->transition_matrix[group][state][j];
-      if (adjustment_state == j) {
-	p[j] *= adjustment;
+      if(adjustment_state == j) {
+	      p[j] *= adjustment;
       }
     }
     total += p[j];
@@ -212,9 +218,9 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
 
   // find transition corresponding to this draw
   double sum = 0.0;
-  for (int j = 0; j < this->number_of_states; j++) {
+  for(int j = 0; j < this->number_of_states; ++j) {
     sum += p[j];
-    if (r < sum) {
+    if(r < sum) {
       *next_state = j;
       return;
     }
@@ -228,5 +234,5 @@ void Markov_Chain::get_next_state(int day, double age, int state, int* next_stat
 
 
 int Markov_Chain::get_age_group(double age) {
-  return (int) this->age_map->find_value(age);
+  return (int)this->age_map->find_value(age);
 }

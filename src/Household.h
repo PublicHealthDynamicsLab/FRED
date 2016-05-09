@@ -140,7 +140,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Household();
 
@@ -212,6 +211,14 @@ public:
    */
   int get_household_income() {
     return this->household_income;
+  }
+
+  void set_household_race(int _race) {
+    this->race = _race;
+  }
+
+  int get_household_race() {
+    return this->race;
   }
 
   /**
@@ -488,6 +495,7 @@ private:
   int household_income;
   int household_income_code;
   int income_quartile;
+  int race;
 
   int migration_fips;  //household preparing to do county-to-county migration
 

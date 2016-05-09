@@ -485,9 +485,14 @@ void Health::become_exposed(int condition_id, Person* infector, Mixing_Group* mi
   }
   become_unsusceptible(condition);
   this->immunity_end_date[condition_id] = -1;
-  if(myself->get_household() != NULL) {
-    myself->get_household()->set_exposed(condition_id);
-    myself->set_exposed_household(myself->get_household()->get_index());
+  if(this->myself->get_household() != NULL) {
+    this->myself->get_household()->set_exposed(condition_id);
+    this->myself->set_exposed_household(this->myself->get_household()->get_index());
+  } else if(Global::Enable_Hospitals && this->myself->is_hospitalized()) {
+    if(this->myself->get_permanent_household() != NULL) {
+      this->myself->get_permanent_household()->set_exposed(condition_id);
+      this->myself->set_exposed_household(this->myself->get_permanent_household()->get_index());
+    }
   }
   if(infector != NULL) {
     this->infector_id[condition_id] = infector->get_id();
@@ -554,10 +559,10 @@ void Health::become_infectious(Condition* condition) {
   int condition_id = condition->get_id();
   assert(this->infection[condition_id] != NULL);
   this->infectious.set(condition_id);
-  int household_index = myself->get_exposed_household_index();
-  Household* h = Global::Places.get_household_ptr(household_index);
-  assert(h != NULL);
-  h->set_human_infectious(condition_id);
+  int household_index = this->myself->get_exposed_household_index();
+  Household* hh = Global::Places.get_household(household_index);
+  assert(hh != NULL);
+  hh->set_human_infectious(condition_id);
   FRED_CONDITIONAL_STATUS(0, Global::Enable_Health_Records,
 			  "HEALTH RECORD: %s person %d is INFECTIOUS for %s\n",
 			  Date::get_date_string().c_str(),
@@ -623,7 +628,7 @@ void Health::recover(Condition* condition, int day) {
 			  Global::Conditions.get_condition_name(condition_id).c_str());
   this->recovered.set(condition_id);
   int household_index = myself->get_exposed_household_index();
-  Household* h = Global::Places.get_household_ptr(household_index);
+  Household* h = Global::Places.get_household(household_index);
   h->set_recovered(condition_id);
   h->reset_human_infectious();
   myself->reset_neighborhood();

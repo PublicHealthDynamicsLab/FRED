@@ -168,24 +168,20 @@ int Workplace::get_number_of_rooms() {
   return rooms;
 }
 
-void Workplace::setup_offices(Allocator<Office> &office_allocator) {
+void Workplace::setup_offices() {
   int rooms = get_number_of_rooms();
-
   FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", this->get_id(), this->get_label(), this->get_size(), rooms);
-  
   for(int i = 0; i < rooms; ++i) {
-    char new_label[128];
-    sprintf(new_label, "%s-%03d", this->get_label(), i);
-    
-    Office* office = new(office_allocator.get_free())Office(new_label,
-							           Place::SUBTYPE_NONE,
-							           this->get_longitude(),
-							           this->get_latitude());
-
+    char label[128];
+    sprintf(label, "%s-%03d", this->get_label(), i);
+    Office* office = static_cast<Office *>(Global::Places.add_place(label, 
+								    Place::TYPE_OFFICE, 
+								    Place::SUBTYPE_NONE,
+								    this->get_longitude(),
+								    this->get_latitude(),
+								    this->get_census_tract_fips()));
     office->set_workplace(this);
-
     this->offices.push_back(office);
-
     FRED_STATUS(1, "workplace %d %s added office %d %s %d\n", this->get_id(), this->get_label(), i,
                 office->get_label(), office->get_id());
   }

@@ -26,7 +26,7 @@ public:
   ~Markov_Chain();
 
   void setup(char* condition_name) {
-    strcpy(name, condition_name);
+    strcpy(this->name, condition_name);
   }
 
   void get_parameters();
@@ -54,7 +54,7 @@ public:
 protected:
   char name[256];
   int number_of_states;
-  std::vector<std::string>state_name;
+  std::vector<std::string> state_name;
 
 private:
   Age_Map* age_map;
