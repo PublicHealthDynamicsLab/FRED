@@ -254,18 +254,6 @@ public:
 
   // access function for places by type
 
-  int get_number_of_places() {
-    return (int) this->places.size();
-  }
-
-  Place* get_place(int i) {
-    if(0 <= i && i < get_number_of_places()) {
-      return this->places[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_households() {
     return (int)this->households.size();
   }

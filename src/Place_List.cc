@@ -1033,18 +1033,16 @@ void Place_List::prepare() {
   }
   Global::Neighborhoods->prepare();
 
+  // create lists of school by grade
   int number_of_schools = this->schools.size();
   for(int p = 0; p < number_of_schools; ++p) {
     School* school = get_school(p);
-    
-    // add school to lists of school by grade
     for(int grade = 0; grade < GRADES; ++grade) {
       if(school->get_orig_students_in_grade(grade) > 0) {
 	this->schools_by_grade[grade].push_back(school);
       }
     }
   }
-
 
   if(Global::Verbose > 1) {
     // check the schools by grade lists

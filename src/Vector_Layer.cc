@@ -1146,6 +1146,7 @@ void Vector_Layer::get_vector_population(int condition_id){
     Place *place = Global::Places.get_household(i);
     household_vectors += place->get_vector_population_size();
     household_infected_vectors += place->get_infected_vectors(condition_id);
+    total_susceptible_vectors += place->get_susceptible_vectors();
     if(place->get_vector_control_status()){
       households_in_vector_control++;
     }
@@ -1158,6 +1159,7 @@ void Vector_Layer::get_vector_population(int condition_id){
     Place *place = Global::Places.get_neighborhood(i);
     neighborhood_vectors += place->get_vector_population_size();
     neighborhood_infected_vectors += place->get_infected_vectors(condition_id);
+    total_susceptible_vectors += place->get_susceptible_vectors();
     if(place->get_vector_control_status()){
       neighborhoods_in_vector_control++;
     }
@@ -1169,6 +1171,7 @@ void Vector_Layer::get_vector_population(int condition_id){
     Place *place = Global::Places.get_school(i);
     school_vectors += place->get_vector_population_size();
     school_infected_vectors += place->get_infected_vectors(condition_id);
+    total_susceptible_vectors += place->get_susceptible_vectors();
     if(place->get_vector_control_status()){
       schools_in_vector_control++;
     }
@@ -1179,15 +1182,10 @@ void Vector_Layer::get_vector_population(int condition_id){
     Place *place = Global::Places.get_workplace(i);
     workplace_vectors += place->get_vector_population_size();
     workplace_infected_vectors += place->get_infected_vectors(condition_id);
+    total_susceptible_vectors += place->get_susceptible_vectors();
     if(place->get_vector_control_status()){
       workplaces_in_vector_control++;
     }
-  }
-
-  places = Global::Places.get_number_of_places();
-  for (int i = 0; i < places; i++) {
-    Place *place = Global::Places.get_place(i);
-    total_susceptible_vectors += place->get_susceptible_vectors();
   }
 
   vector_pop = school_vectors + workplace_vectors + household_vectors + neighborhood_vectors;
