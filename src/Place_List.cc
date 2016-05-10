@@ -2560,7 +2560,7 @@ void Place_List::swap_houses(Household* h1, Household* h2) {
     return;
 
   FRED_VERBOSE(0, "HOUSING: swapping house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 
   // get pointers to residents of house h1
   vector<Person*> temp1;
@@ -2589,7 +2589,7 @@ void Place_List::swap_houses(Household* h1, Household* h2) {
   }
 
   FRED_VERBOSE(1, "HOUSING: swapped house %s with %d beds and %d occupants with %s with %d beds and %d occupants\n",
-      h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
+	       h1->get_label(), h1->get_orig_size(), h1->get_size(), h2->get_label(), h2->get_orig_size(), h2->get_size());
 }
 
 void Place_List::combine_households(int house_index1, int house_index2) {
@@ -2727,11 +2727,11 @@ void Place_List::update_population_dynamics(int day) {
   }
   int year = Date::get_year();
   if ( (year >= 2010) && ( year <= 2040)) {
-	  if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
-		  for(int i = 0; i < number_counties; ++i) {
-				this->counties[i]->external_migration();
-		   }
-		}
+    if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
+      for(int i = 0; i < number_counties; ++i) {
+	this->counties[i]->external_migration();
+      }
+    }
   }
 }
 

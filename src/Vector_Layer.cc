@@ -77,6 +77,7 @@ bool Vector_Layer::Limit_Vector_Control = false;
 vector <census_t> census_tract_set;
 vector<county_record_t> county_set;
 
+
 Vector_Layer::Vector_Layer() {
   Regional_Layer* base_grid = Global::Simulation_Region;
   this->min_lat = base_grid->get_min_lat();
@@ -171,6 +172,8 @@ Vector_Layer::Vector_Layer() {
   this->read_vector_seeds();
   census_tract_set.clear();
 }
+
+
 void Vector_Layer::swap_county_people(){
   int cols = Global::Simulation_Region->get_cols();
   int rows = Global::Simulation_Region->get_rows();
@@ -184,6 +187,8 @@ void Vector_Layer::swap_county_people(){
     }
   }
 }
+
+
 std::vector<int> Vector_Layer::read_vector_control_tracts(char * filename){
   std::vector<int>temp_tracts;
   temp_tracts.clear();
@@ -205,6 +210,8 @@ std::vector<int> Vector_Layer::read_vector_control_tracts(char * filename){
   fclose(fp);
   return temp_tracts;
 }
+
+
 void Vector_Layer::add_infectious_patch(Place * p, int day){
   int col_ = Global::Neighborhoods->get_col(p->get_longitude());
   int row_ = Global::Neighborhoods->get_row(p->get_latitude());
@@ -239,6 +246,8 @@ void Vector_Layer::add_infectious_patch(Place * p, int day){
     }
   }
 }
+
+
 void Vector_Layer::update_vector_control_by_census_tract(int day){
   FRED_VERBOSE(1,"update_vector_control_by_census_tract entered day %d\n",day);
   if(vector_control_places_enrolled >= vector_control_max_places && Limit_Vector_Control == true){
@@ -326,11 +335,10 @@ void Vector_Layer::update_vector_control_by_census_tract(int day){
   }
 
   FRED_VERBOSE(1,"update_vector_control_by_census_tract_finished\n");
-
-
-
   // this->make_eligible_for_vector_control(neighborhood_temp);
 }
+
+
 int Vector_Layer::select_places_for_vector_control(Neighborhood_Patch * patch_n, int day){
   int places_enrolled = 0;
   if(patch_n != NULL){
@@ -390,6 +398,8 @@ int Vector_Layer::select_places_for_vector_control(Neighborhood_Patch * patch_n,
   }
   return places_enrolled;
 }
+
+
 void Vector_Layer::setup_vector_control_by_census_tract(){
   FRED_VERBOSE(0,"setup_vector_control_by_census_tract entered\n");
   int temp_int = 0;
@@ -452,7 +462,7 @@ void Vector_Layer::setup_vector_control_by_census_tract(){
 	}
       }
     }
-    }
+  }
   for(int i = 0;i < total_census_tracts;i++){
     if(census_tract_set[i].eligible_for_vector_control){
       FRED_VERBOSE(0,"setup_vector_control Census_tract: %d is eligible for vector control with %d neighborhoods threshold %f cols %d rows %d pop %d\n",census_tract_set[i].ind,census_tract_set[i].total_neighborhoods,census_tract_set[i].threshold, cols_n,rows_n,census_tract_set[i].popsize);
@@ -460,6 +470,8 @@ void Vector_Layer::setup_vector_control_by_census_tract(){
   }
   FRED_VERBOSE(0,"setup_vector_control_by_census_tract finished\n");
 }
+
+
 void Vector_Layer::read_temperature(){
   double  patch_temperature;
   double lati;
@@ -490,6 +502,8 @@ void Vector_Layer::read_temperature(){
   }
   fclose(fp);
 }
+
+
 void Vector_Layer::seed_patches_by_distance_in_km(fred::geo lat, fred::geo lon,
 						  double radius_in_km, int dis,int day_on, int day_off,double seeds_) {
   //ASSUMMING WE ARE IN THE TROPIC 1/120 degree ~ 1 km
@@ -524,6 +538,7 @@ void Vector_Layer::seed_patches_by_distance_in_km(fred::geo lat, fred::geo lon,
     }
   }
 }
+
 
 void Vector_Layer::read_vector_seeds(){
   // first I will try with all seeded 
@@ -592,6 +607,7 @@ Vector_Patch* Vector_Layer::select_random_patch() {
   return &this->grid[row][col];
 }
 
+
 void Vector_Layer::quality_control() {
   if(Global::Verbose) {
     fprintf(Global::Statusfp, "vector grid quality control check\n");
@@ -610,6 +626,7 @@ void Vector_Layer::quality_control() {
   }
 }
 
+
 void Vector_Layer::setup() {
   int num_households = Global::Places.get_number_of_households();
   for(int i = 0; i < num_households; ++i) {
@@ -620,6 +637,7 @@ void Vector_Layer::setup() {
     this->setup_vector_control_by_census_tract();
   }
 }
+
 
 void Vector_Layer::update(int day) {
   this->total_infected_vectors = 0;
@@ -632,6 +650,7 @@ void Vector_Layer::update(int day) {
   // Global::Daily_Tracker->log_key_value("Vec_I", total_infected_vectors);
   // Global::Daily_Tracker->log_key_value("Vec_H", total_infectious_hosts);
 }
+
 
 void Vector_Layer::update_visualization_data(int condition_id, int day) {
   for (int i = 0; i < this->rows; ++i) {
@@ -647,17 +666,19 @@ void Vector_Layer::update_visualization_data(int condition_id, int day) {
   }
 }
 
+
 void Vector_Layer::add_hosts(Place* p) {
   /*
-  fred::geo lat = p->get_latitude();
-  fred::geo lon = p->get_longitude();
-  int hosts = p->get_size();
-  Vector_Patch* patch = get_patch(lat,lon);
-  if(patch != NULL) {
+    fred::geo lat = p->get_latitude();
+    fred::geo lon = p->get_longitude();
+    int hosts = p->get_size();
+    Vector_Patch* patch = get_patch(lat,lon);
+    if(patch != NULL) {
     patch->add_hosts(hosts);
-  }
+    }
   */
 }
+
 
 double Vector_Layer::get_seeds(Place* p, int dis, int day) {
   fred::geo lat = p->get_latitude();
@@ -669,6 +690,7 @@ double Vector_Layer::get_seeds(Place* p, int dis, int day) {
     return 0.0;
   }
 }
+
 
 double Vector_Layer::get_seeds(Place* p, int dis) {
   fred::geo lat = p->get_latitude();
@@ -690,6 +712,7 @@ double Vector_Layer::get_seeds(Place* p, int dis) {
   }
 }
 
+
 double Vector_Layer::get_day_start_seed(Place* p, int dis) {
   fred::geo lat = p->get_latitude();
   fred::geo lon = p->get_longitude();
@@ -700,6 +723,7 @@ double Vector_Layer::get_day_start_seed(Place* p, int dis) {
     return 0;
   }
 }
+
 
 double Vector_Layer::get_day_end_seed(Place* p, int dis) {
   fred::geo lat = p->get_latitude();
@@ -712,19 +736,21 @@ double Vector_Layer::get_day_end_seed(Place* p, int dis) {
   }
 }
 
+
 void Vector_Layer::add_host(Person* person, Place* place) {
   /*
-  if(place->is_neighborhood()) {
+    if(place->is_neighborhood()) {
     return;
-  }
-  fred::geo lat = place->get_latitude();
-  fred::geo lon = place->get_longitude();
-  Vector_Patch* patch = get_patch(lat,lon);
-  if(patch != NULL) {
+    }
+    fred::geo lat = place->get_latitude();
+    fred::geo lon = place->get_longitude();
+    Vector_Patch* patch = get_patch(lat,lon);
+    if(patch != NULL) {
     patch->add_host(person);
-  }
+    }
   */
 }
+
 
 void Vector_Layer::get_county_ids(){
   // get the county ids from external file
@@ -784,23 +810,24 @@ void Vector_Layer::get_immunity_from_file() {
     double temp_immune ;
     if(fscanf(fp,"%d ", &temp_county) == 1) {
       for(int i = 0; i < county_set.size(); ++i) {
-	    if(county_set[i].id == temp_county) {
-	      index_county = i;
-	    }
+	if(county_set[i].id == temp_county) {
+	  index_county = i;
+	}
       }
       if(index_county == -1) {
-	    Utils::fred_abort("No county found %d\n",temp_county);
+	Utils::fred_abort("No county found %d\n",temp_county);
       }
       FRED_VERBOSE(2,"County code  %d\n",temp_county);
       for(int i = 0; i < 102; ++i) {
         int val = fscanf(fp,"%lg ",&temp_immune);
-	    county_set[index_county].immunity_by_age[i] = temp_immune;
-	    FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
+	county_set[index_county].immunity_by_age[i] = temp_immune;
+	FRED_VERBOSE(2,"Age: %d Immunity  %lg\n", i, temp_immune);
       }
     }
   }
   fclose(fp);
 }
+
 
 void Vector_Layer::get_immunity_from_file(int d) {
   FILE* fp;
@@ -838,6 +865,7 @@ void Vector_Layer::get_immunity_from_file(int d) {
   fclose(fp);
 }
 
+
 void Vector_Layer::get_people_size_by_age() {
   //calculate number of people by age
   for(int i = 0; i < county_set.size(); ++i) {
@@ -856,6 +884,7 @@ void Vector_Layer::get_people_size_by_age() {
     }
   }
 }
+
 
 void Vector_Layer::immunize_total_by_age() {
   for(int i = 0; i < county_set.size(); ++i) {
@@ -882,6 +911,8 @@ void Vector_Layer::immunize_total_by_age() {
     }
   }
 }
+
+
 void Vector_Layer::immunize_by_age(int d) {
   for(int i = 0; i < county_set.size(); ++i) {
     county_set[i].people_immunized = 0;
@@ -906,6 +937,7 @@ void Vector_Layer::immunize_by_age(int d) {
   }
 }
 
+
 void Vector_Layer::init_prior_immunity_by_county() {
   FILE* fp;
   this->get_county_ids();
@@ -923,6 +955,7 @@ void Vector_Layer::init_prior_immunity_by_county() {
   }
   //  Utils::fred_abort("Running test finishes here\n");
 }
+
 
 void Vector_Layer::init_prior_immunity_by_county(int d) {
   FILE* fp;
@@ -977,6 +1010,7 @@ double Vector_Layer::get_vectors_per_host(Place* place) {
 	       place->get_label(), place->get_latitude(), place->get_longitude(),temperature, development_time, vectors_per_host,place->get_orig_size());
   return vectors_per_host;
 }
+
 
 vector_condition_data_t Vector_Layer::update_vector_population(int day, Place * place) {
 
@@ -1154,16 +1188,16 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   // skip neighborhoods?
   /*
-  places = Global::Places.get_number_of_neighborhoods();
-  for (int i = 0; i < places; i++) {
+    places = Global::Places.get_number_of_neighborhoods();
+    for (int i = 0; i < places; i++) {
     Place *place = Global::Places.get_neighborhood(i);
     neighborhood_vectors += place->get_vector_population_size();
     neighborhood_infected_vectors += place->get_infected_vectors(condition_id);
     total_susceptible_vectors += place->get_susceptible_vectors();
     if(place->get_vector_control_status()){
-      neighborhoods_in_vector_control++;
+    neighborhoods_in_vector_control++;
     }
-  }
+    }
   */
 
   places = Global::Places.get_number_of_schools();
@@ -1195,6 +1229,7 @@ void Vector_Layer::get_vector_population(int condition_id){
 
   assert(vector_pop == total_infected_vectors + total_susceptible_vectors);
 }
+
 
 void Vector_Layer::report(int day, Epidemic * epidemic) {
   get_vector_population(epidemic->get_id());

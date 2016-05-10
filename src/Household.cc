@@ -118,7 +118,7 @@ void Household::get_parameters() {
     printf("\nHousehold contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	      printf("%f ", Household::prob_transmission_per_contact[i][j]);
+	printf("%f ", Household::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
