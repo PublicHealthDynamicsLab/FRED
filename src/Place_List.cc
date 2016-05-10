@@ -757,6 +757,9 @@ void Place_List::read_household_file(unsigned char deme_id, char* location_file)
       this->counties.push_back(new_county);
       this->fips_to_county_map[county_fips] = this->counties.size() - 1;
     }
+    // add the household to the county list
+    County* county = get_county(county_fips);
+    county->add_household(place);
       
     // printf("county = %d census_tract = %ld\n", county_fips, census_tract);
 
