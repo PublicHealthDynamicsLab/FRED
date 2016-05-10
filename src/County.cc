@@ -443,7 +443,7 @@ int County::fill_vacancies(int day) {
 
 void County::update_housing(int day) {
 
-  FRED_VERBOSE(0, "UPDATE_HOUSING: day = %d houses = %d\n", day, houses);
+  FRED_VERBOSE(0, "UPDATE_HOUSING: FIPS = %d day = %d houses = %d\n", fips, day, houses);
 
   if(day == 0) {
     // initialize house data structures
@@ -1148,6 +1148,8 @@ int County::get_housing_data(int* target_size, int* current_size) {
 
 void County::report_household_distributions() {
   int houses = this->households.size();
+  // get the current year
+  int year = Date::get_year();
 
   if(Global::Verbose) {
     int count[20];
@@ -1165,7 +1167,7 @@ void County::report_household_distributions() {
       }
       total++;
     }
-    fprintf(Global::Statusfp, "UPDATE_HOUSING Household curr sizes: N = %d ", total);
+    fprintf(Global::Statusfp, "UPDATE_HOUSING FIPS %d year %d Household curr sizes: total = %d ", fips, year, total);
     for(int c = 0; c <= 10; ++c) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) ", c, count[c], (100.0 * count[c]) / total);
     }
@@ -1191,12 +1193,12 @@ void County::report_household_distributions() {
       }
       total++;
     }
-    fprintf(Global::Statusfp, "UPDATE_HOUSING Household orig sizes: N = %d ", total);
+    fprintf(Global::Statusfp, "UPDATE_HOUSING FIPS %d year %d Household orig sizes: total = %d ", fips, year, total);
     for(int c = 0; c <= 10; c++) {
       fprintf(Global::Statusfp, "%3d: %6d (%.2f%%) ", c, count[c], (100.0 * count[c]) / total);
     }
     fprintf(Global::Statusfp, "\n");
-    fprintf(Global::Statusfp, "UPDATE_HOUSING Household size comparison: N = %d ", total);
+    fprintf(Global::Statusfp, "UPDATE_HOUSING FIPS %d year %d Household size comparison: total = %d ", fips, year, total);
     for(int c = 0; c <= 10; c++) {
       fprintf(Global::Statusfp, "%3d: %0.2f ", c, count[c] ? ((double)hsize[c] / (double)count[c]) : 0.0);
     }
