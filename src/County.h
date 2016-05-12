@@ -138,7 +138,7 @@ public:
   void add_immigrant(int age, char sex);
   void report_age_distribution();
   void migration_swap_houses();
-
+  void migrate_to_target();
   void read_migration_parameters();
   double get_migration_rate(int sex, int age, int src, int dst);
 
@@ -176,6 +176,8 @@ private:
   int max_beds;
   int max_occupants;
   std::vector< pair<Person*, int> > ready_to_move;
+  int male_targets[17][7];
+  int female_targets[17][7];
 
   // pointers to households
   std::vector<Household*> households;

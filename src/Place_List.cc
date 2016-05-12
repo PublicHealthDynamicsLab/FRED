@@ -2725,14 +2725,15 @@ void Place_List::update_population_dynamics(int day) {
   for(int i = 0; i < number_counties; ++i) {
     this->counties[i]->update(day);
   }
-  int year = Date::get_year();
+  /*int year = Date::get_year();
   if ( (year >= 2010) && ( year <= 2040)) {
     if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
       for(int i = 0; i < number_counties; ++i) {
-	this->counties[i]->external_migration();
+	    //this->counties[i]->external_migration();
+    	  this->counties[i]->migrate_to_target();
       }
     }
-  }
+  }*/
 }
 
 int Place_List::get_HAZEL_disaster_start_sim_day() {

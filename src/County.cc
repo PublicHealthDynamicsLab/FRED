@@ -38,6 +38,7 @@ int*** County::female_migrants;
 int** County::county_male_migrants;
 int** County::county_female_migrants;
 
+
 County::~County() {
 }
 
@@ -76,6 +77,8 @@ County::County(int _fips) {
   char mortality_rate_file[FRED_STRING_SIZE];
   char birth_rate_file[FRED_STRING_SIZE];
   char migration_file[FRED_STRING_SIZE];
+  char male_target_file[FRED_STRING_SIZE];
+  char female_target_file[FRED_STRING_SIZE];
   double birth_rate_multiplier;
   double mortality_rate_multiplier;
 
@@ -178,7 +181,71 @@ County::County(int _fips) {
     this->adjusted_female_mortality_rate[i] = this->female_mortality_rate[i];
     this->adjusted_male_mortality_rate[i] = this->male_mortality_rate[i];
   }
+ //read target files
 
+  sprintf(paramstr, "male_target_file_%d", fips);
+  strcpy(male_target_file, "");
+  cout<< "male target file " << male_target_file<<endl;
+  Params::get_param_from_string(paramstr, male_target_file);
+  fp = Utils::fred_open_file(male_target_file);
+    if(fp == NULL) {
+      fprintf(Global::Statusfp, "County male target file %s not found\n", male_target_file);
+      exit(1);
+    }
+
+   if(fp != NULL) {
+        for (int row = 0; row < 18; row++) {
+        	int y;
+        	fscanf(fp, "%d ", &y);
+        	char other[100];
+        	fscanf(fp, "%s ", other);
+        	fscanf(fp, "%s ", other); //throw away first 3 fields
+			for (int col = 0; col < 7; col++ ) {
+			int count;
+			fscanf(fp, "%d ", &count);
+			this->male_targets[row][col] = count;
+			}
+        }
+		printf("male targets:\n");fflush(stdout);
+		for (int i = 0; i < 17; i++) {
+			for (int j = 0; j < 7; j++) {
+			   printf("%d ", this->male_targets[i][j]);
+			}
+		printf("\n");
+		}
+   	  }
+  fclose(fp);
+  sprintf(paramstr, "female_target_file_%d", fips);
+  strcpy(female_target_file, "");
+  Params::get_param_from_string(paramstr, female_target_file);
+    fp = Utils::fred_open_file(female_target_file);
+      if(fp == NULL) {
+        fprintf(Global::Statusfp, "County female target file %s not found\n", female_target_file);
+        exit(1);
+      }
+
+      if(fp != NULL) {
+           for (int row = 0; row < 17; row++) {
+   			int y;
+   			fscanf(fp, "%d ", &y);
+   			char other[100];
+			fscanf(fp, "%s ", other);
+			fscanf(fp, "%s ", other); //throw away first 3 fields
+   			for (int col = 0; col < 7; col++ ) {
+   			int count;
+   			fscanf(fp, "%d ", &count);
+   			this->female_targets[row][col] = count;
+   			}
+           }
+   		printf("female targets:\n");fflush(stdout);
+   		for (int i = 0; i < 17; i++) {
+			for (int j = 0; j < 7; j++) {
+			printf("%d ", this->female_targets[i][j]);
+			}
+   		printf("\n");
+   		}
+     }
+      fclose(fp);
   // read in the migration file
   /*this->male_migrants = new int* [7];
     this->female_migrants = new int* [7];
@@ -242,7 +309,7 @@ County::County(int _fips) {
   if(Global::Enable_Population_Dynamics) {
     read_migration_parameters();
     int county_fips_size = County::migration_fips.size();
-    read_population_target_parameters();
+   // read_population_target_parameters();
     // county-to-county migrants
     County::county_male_migrants = new int* [county_fips_size];
     County::county_female_migrants = new int* [county_fips_size];
@@ -314,11 +381,11 @@ void County::update(int day) {
 
   if(Date::get_month() == 7 && Date::get_day_of_month() == 1) {
 
-    // county to county migration
+    //county to county migration
     report_age_distribution();
     county_to_county_migration();
     report_age_distribution();
-
+    migrate_to_target();
     // migration from outside state
     //external_migration();
     //report_age_distribution();
@@ -1340,7 +1407,7 @@ void County::county_to_county_migration() {
 	}
 	int current_males = dest_county->get_current_popsize(lower_age, upper_age, 'M');
 	int current_females = dest_county->get_current_popsize(lower_age, upper_age, 'F');
-	FRED_VERBOSE(1, "COUNTY-TO-COUNTY MIGRATION popsize before county-to-county fips %d male %d female %d\n",
+	FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION popsize before county-to-county fips %d male %d female %d\n",
 		     dest, current_males, current_females);
 	//debug
       }
@@ -1351,6 +1418,7 @@ void County::county_to_county_migration() {
     if (dest == this->fips) {
       continue;
     }
+
     FRED_VERBOSE(0, "COUNTY-TO-COUNTY MIGRATION from %d to %d\n", this->fips, dest);
     int males[18];
     int females[18];
@@ -1358,7 +1426,7 @@ void County::county_to_county_migration() {
       int lower_age = 5*a;
       int upper_age = lower_age+4;
       if (lower_age == 85) {
-	upper_age = 120;
+	     upper_age = 120;
       }
       int current_males = get_current_popsize(lower_age, upper_age, 'M');
       int current_females = get_current_popsize(lower_age, upper_age, 'F');
@@ -1577,30 +1645,18 @@ void County::migration_swap_houses() {
       //FRED_VERBOSE(0, "MIGRATION SWAP HOUSES swap matrix before m %d\n", m);
       //for each house to move, get the destination, get index for destination
       int dest_fips = source_county->households[m]->get_migration_fips();
-      if (dest_fips >0) {
-	for (int z = 0; z < num_counties; z++) {
-	  if (County::migration_fips[z] == dest_fips){
-	    index = z;
-	  }
-	}
-	FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix dest %d index %d\n", dest_fips, index);
-	swap_houselist[k][index].push_back(m);
-      }
+	  if (dest_fips >0) {
+		for (int z = 0; z < num_counties; z++) {
+		  if (County::migration_fips[z] == dest_fips){
+			index = z;
+		  }
+		}
+		FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix dest %d index %d\n", dest_fips, index);
+		swap_houselist[k][index].push_back(m);
+		  }
     }
   }
-  //checking
-  FRED_VERBOSE(1, "MIGRATION SWAP HOUSES swap matrix checking\n");
-  /*vector <int>::iterator It;
-    for (int n=0; n<num_counties-1; n++) {
-    for (int p=n+1; p<num_counties; p++) {
-    cout << " n p " << n << p  << '\t';
-    FRED_VERBOSE(0, "MIGRATION SWAP HOUSES swap matrix\n");
-    for (It = swap_houselist[n][p].begin(); It != swap_houselist[n][p].end(); ++It){
-    cout << *It << '\t';
-    cout  << '\t';
-    }
-    }
-    }*/
+
   FRED_VERBOSE(1, "MIGRATION SWAP HOUSES done checking\n");
   // swap county 1 with counties 2 to max, then 2 with 3 to max, etc
   // check that both counties have households to swap and swap the lesser number of the two
@@ -1630,9 +1686,153 @@ void County::migration_swap_houses() {
       }
     }
   }
+}
 
-  // printf("SWAPPING: "); report_ages(day,hi); report_ages(day,hj); printf("\n");
-}//end
+
+void County::migrate_to_target() {
+	//get population and put in array
+	int year = Date::get_year();
+	if (year < 2010 || 2040 < year) {
+	    return;
+	  }
+	int day = Global::Simulation_Day;
+	FRED_VERBOSE(0, "COUNTY migration to target entered year %d\n", year);
+	int max_size = Demographics::MAX_AGE + 5;
+	int mig_males[max_size]; //array big enough to move up by 4 years without losing
+	int mig_females[max_size];
+	for (int i=0; i<max_size-4; i++){
+		mig_males[i] = male_popsize[i];
+		mig_females[i] = female_popsize[i];
+	//cout <<"migrate to target " << i << "," << male_popsize[i] <<"," << female_popsize[i] <<endl;
+	}
+	int years_to_target = 0;
+	int year_index = (year-2010) /5;
+	  if (year % 5 == 0) {
+		  years_to_target = 1;
+	  }
+	  else {
+		  years_to_target = 6 - (year % 5);
+	  }
+
+	cout <<"migrate to target, years to target, year index" << years_to_target  << ',' << year_index <<endl;
+	//for years to target
+	for (int j=0; j<=years_to_target; j++) {
+		for (int k=0; k<max_size-4; k++) { //apply mortality
+			//cout <<"mig_males[k]" << mig_males[k]  <<endl;
+			mig_males[k] -=  (mig_males[k] * this->get_mortality_rate(k,'M'));
+			//cout <<"mig_males[k] after" << mig_males[k]  <<endl;
+			mig_females[k] -= (mig_females[k] * this->get_mortality_rate(k,'F'));
+		}
+		for (int l=max_size-1; l>0; l--) { //age
+			mig_males[l] =  mig_males[l-1];
+			mig_females[l] = mig_females[l-1];
+		}
+		mig_males[0] =  0; //no agents in this age
+		mig_females[0] = 0;
+	}
+	cout <<"after mortality"  <<endl;
+	//rewind age by years_to_target
+	for (int j=0; j<=years_to_target; j++) {
+		for (int k=1; k<max_size-3; k++) { //age
+			mig_males[k-1] =  mig_males[k];
+			mig_females[k-1] = mig_females[k];
+		}
+		mig_males[max_size-1] =  0;
+		mig_females[max_size-1] = 0;
+	}
+	//check
+	/*for (int i=0; i <max_size; i++) {
+		cout << "males count " << ',' << i << ',' << mig_males[i]  << endl;
+
+	}*/
+	//first get numbers in age categories
+	int male_cat[17];
+	int female_cat[17];
+	int male_total = 0;
+	int female_total = 0;
+	int cat_count = 0;
+	//
+	for (int m = 5; m < 85; ++m) { //start at age 5
+	   male_total += mig_males[m];
+	   female_total += mig_females[m];
+		 if (m%5 == 4) {
+			 cat_count = m-5;
+			 male_cat[cat_count/5] = male_total;
+			 female_cat[cat_count/5] = female_total;
+			 male_total = 0;
+			 female_total = 0;
+		 }
+	  }
+	  male_total = 0;
+	  female_total = 0;
+	  for (int i = 85; i < max_size-4; ++i) { //add over 85
+		  male_total += mig_males[i];
+		  female_total += mig_females[i];
+	  }
+	  male_cat[16] = male_total;
+	  female_cat[16] = female_total;
+//checking
+	 /* for (int i=0; i<17; ++i) {
+		  cout <<"migrate to target age categories" << i << "," << male_cat[i] <<"," << female_cat[i] <<endl;
+	  	  }*/
+	//
+// get diff from target male_targets[18][7] female_targets[18][7] and adjust for number of years to target
+	  int male_to_migrate[17];
+	  int female_to_migrate[17];
+	  int col = (year - 2010)/5;   // current year gives column
+	  cout <<"column " << ',' << col << endl;
+	  if (year % 5 > 0) {
+	    col++;
+	  }
+	  for (int n=0; n<17; n++) {
+		  //cout <<"migrate to target subtract" << n << "," << male_targets[n][col] <<"," << male_cat[n] <<endl;
+		  male_to_migrate[n] = (male_targets[n][col] - male_cat[n])/ years_to_target;
+		  female_to_migrate[n] = (female_targets[n][col] - female_cat[n]) / years_to_target;
+	  }
+	  //checking
+	  	/*  for (int i=0; i<17; ++i) {
+	  		  cout <<"migrate to target number to migrate" << i << "," <<  male_to_migrate[i] <<"," << female_to_migrate[i] <<endl;
+	  	  	  }*/
+	  	//
+//add or remove migrants, code copied from external migration
+	  	for (int j = 0; j < 17; j++) {
+	  	    int lower_age = 5*j+5;
+	  	    int upper_age = lower_age+4;
+	  	    if (lower_age == 85) {
+	  	      upper_age = 100;
+	  	    }
+	      if (male_to_migrate[j] > 0) {
+	        // add these migrants to the population
+	        FRED_VERBOSE(0, "MIGRATION TO TARGET ADD age %d %d males year %d\n", lower_age, male_to_migrate[j], year);
+	        for (int k = 0; k < male_to_migrate[j]; k++) {
+				char sex = 'M';
+				int my_age = Random::draw_random_int(lower_age, upper_age);
+				add_immigrant(my_age, sex);
+	        }
+	      }
+	      else {
+	        // find outgoing migrants
+	        FRED_VERBOSE(0, "MIGRATION TO TARGET REMOVE  age %d  %d males on day %d year %d\n", lower_age, male_to_migrate[j], day,  year);
+	        select_migrants(day, -male_to_migrate[j], lower_age, upper_age, 'M');
+	      }
+
+	      if (female_to_migrate[j] > 0) {
+	        // add these migrants to the population
+	        FRED_VERBOSE(0, "MIGRATION TO TARGET ADD age %d ADD %d females on day %d year %d\n", lower_age, female_to_migrate[j], day, year);
+	        for (int k = 0; k < female_to_migrate[j]; k++) {
+				char sex = 'F';
+				int my_age = Random::draw_random_int(lower_age, upper_age);
+				add_immigrant(my_age, sex);
+	        }
+	      }
+	      else {
+	        // find outgoing migrants
+	        FRED_VERBOSE(0, "MIGRATION TO TARGET REMOVE age %d %d females on day %d year %d\n", lower_age, female_to_migrate[j], day, year);
+	        select_migrants(day, -female_to_migrate[j], lower_age, upper_age, 'F');
+	      }
+	 }
+}
+//new
 //adding
 
 void County::migrate_household_to_county(Place* house, int dest) {
@@ -1801,7 +2001,7 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
 	  }
 	}
       }
-      if (found == 0) {
+    /* if (found == 0) {
 	// advance to next household
 	if (n < this->houses) {
 	  hnum = shuff[n++];
@@ -1823,9 +2023,9 @@ void County::select_migrants(int day, int migrants, int lower_age, int upper_age
       }
       else {
 	// keep looking in the same household
-      }
+      }*/
     } // end while loop
-  } // end for loop
+  }// end for loop
 }
 
 void County::add_immigrant(int age, char sex) {
