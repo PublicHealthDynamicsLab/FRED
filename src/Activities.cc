@@ -20,6 +20,7 @@
 #include "Date.h"
 #include "Condition.h"
 #include "Condition_List.h"
+#include "County.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Household.h"
@@ -181,7 +182,7 @@ Activities::Activities() {
 void Activities::setup(Person* self, Place* house, Place* school, Place* work) {
 
   FRED_VERBOSE(1, "ACTIVITIES_SETUP: person %d age %d household %s\n",
-	       this->myself->get_id(), this->myself->get_age(), house->get_label());
+	       self->get_id(), self->get_age(), house->get_label());
 
   this->myself = self;
   clear_daily_activity_locations();
@@ -452,17 +453,21 @@ void Activities::assign_initial_profile() {
   // profiles for group quarters residents
   if(get_household()->is_college()) {
     this->profile = COLLEGE_STUDENT_PROFILE;
+    update_profile();
   }
   if(get_household()->is_military_base()) {
     this->profile = MILITARY_PROFILE;
+    update_profile();
   }
   if(get_household()->is_prison()) {
     this->profile = PRISONER_PROFILE;
     FRED_VERBOSE(2, "INITIAL PROFILE AS PRISONER ID %d AGE %d SEX %c HOUSEHOLD %s\n",
 		 this->myself->get_id(), age, this->myself->get_sex(), get_household()->get_label());
+    update_profile();
   }
   if(get_household()->is_nursing_home()) {
     this->profile = NURSING_HOME_RESIDENT_PROFILE;
+    update_profile();
   }
 }
 
@@ -1434,7 +1439,8 @@ void Activities::assign_school() {
     }
   }
   assert(hh != NULL);
-  Place* school = Global::Places.select_school(hh->get_county_fips(), grade);
+
+  Place* school = Global::Places.get_county(hh->get_county_fips())->select_new_school(grade);
   assert(school != NULL);
   FRED_VERBOSE(1, "assign_school %s selected for person %d age %d\n",
 	       school->get_label(), this->myself->get_id(), this->myself->get_age());
@@ -1444,7 +1450,6 @@ void Activities::assign_school() {
   FRED_VERBOSE(1, "assign_school finished for person %d age %d: school %s classroom %s\n",
                this->myself->get_id(), this->myself->get_age(),
 	             get_school()->get_label(), get_classroom()->get_label());
-  return;
 }
 
 void Activities::assign_classroom() {
@@ -1465,14 +1470,13 @@ void Activities::assign_classroom() {
 }
 
 void Activities::assign_workplace() {
-  Neighborhood_Patch* patch = NULL;
+  Household* hh;
   if(Global::Enable_Hospitals && this->is_hospitalized) {
-    patch = get_permanent_household()->get_patch();
+    hh = get_permanent_household();
   } else {
-    patch = get_household()->get_patch();
+    hh = get_household();
   }
-  assert(patch != NULL);
-  Place* p = patch->select_workplace();
+  Place* p = Global::Places.get_county(hh->get_county_fips())->select_new_workplace();
   change_workplace(p);
 }
 
@@ -1671,7 +1675,7 @@ void Activities::update_profile() {
   }
   if(get_household()->is_nursing_home()) {
     if(this->profile != NURSING_HOME_RESIDENT_PROFILE) {
-      FRED_VERBOSE(1,"CHANGING PROFILE TO NURSING HOME FOR PERSON %d AGE %d nursing_home %s\n", this->myself->get_id(), age, get_household()->get_label());
+      FRED_VERBOSE(0,"CHANGING PROFILE TO NURSING HOME FOR PERSON %d AGE %d nursing_home %s\n", this->myself->get_id(), age, get_household()->get_label());
       this->profile = NURSING_HOME_RESIDENT_PROFILE;
       change_school(NULL);
       change_workplace(Global::Places.get_household(get_household()->get_index())->get_group_quarters_workplace());

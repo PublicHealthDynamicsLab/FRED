@@ -320,6 +320,10 @@ public:
     this->staff_size = _staff_size;
   }
 
+  int get_state_fips() {
+    return get_county_fips()/1000;
+  }
+
   int get_county_fips() {
     return (int) (this->fips/1000000);
   }

@@ -192,6 +192,9 @@ void fred_setup(int argc, char* argv[]) {
   Global::Places.setup_households();
   Utils::fred_print_lap_time("Places.setup_households");
 
+  // setup county lists of schools and workplaces.
+  // this may optionally re-assigned students to in-state schools
+  Global::Places.setup_counties();
 
   // define FRED-specific places and have each person enroll as needed
 
@@ -210,10 +213,6 @@ void fred_setup(int argc, char* argv[]) {
   Global::Pop.assign_offices();
   Utils::fred_print_lap_time("assign offices");
 
-  // after all enrollments, prepare to receive visitors
-  Global::Places.prepare();
-  Utils::fred_print_lap_time("place preparation");
-
   if(Global::Enable_Hospitals) {
     Global::Places.assign_hospitals_to_households();
     Utils::fred_print_lap_time("assign hospitals to households");
@@ -223,6 +222,10 @@ void fred_setup(int argc, char* argv[]) {
       Global::Places.setup_HAZEL_mobile_vans();
     }
   }
+
+  // after all enrollments, prepare to receive visitors
+  Global::Places.prepare();
+  Utils::fred_print_lap_time("place preparation");
 
   FRED_STATUS(0, "deleting place_label_map\n", "");
   Global::Places.delete_place_label_map();

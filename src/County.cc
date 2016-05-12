@@ -15,19 +15,19 @@
 //
 #include <limits>
 
-#include "County.h"
-
-#include "Population.h"
 #include "Age_Map.h"
-#include "Person.h"
-#include "Random.h"
-#include "Global.h"
+#include "County.h"
 #include "Date.h"
-#include "Utils.h"
-#include "Place_List.h"
+#include "Global.h"
 #include "Household.h"
+#include "Person.h"
+#include "Place_List.h"
+#include "Population.h"
+#include "Random.h"
+#include "School.h"
+#include "Utils.h"
+#include "Workplace.h"
 
-class Global;
 
 std::vector<int> County::migration_fips;
 double**** County::migration_rate = NULL;
@@ -118,6 +118,9 @@ County::County(int _fips) {
     if (strcmp(migration_file,"") == 0) {
     Params::get_param_from_string("migration_file", migration_file);
     }*/
+
+  this->enable_within_state_school_assignment = 0;
+  Params::get_param_from_string("enable_within_state_school_assignment", &(this->enable_within_state_school_assignment));
 
   Params::set_abort_on_failure();
 
@@ -393,6 +396,10 @@ void County::update(int day) {
 
     // try to move households to houses of appropriate size
     update_housing(day);
+
+    // check workplace sizes
+    report_workplace_sizes();
+    report_school_sizes();
 
     // update birth and death rates
     update_population_dynamics(day);
@@ -2245,6 +2252,7 @@ void County::read_population_target_parameters() {
   Params::set_abort_on_failure();
 
   if (strcmp(migration_file,"none")==0) { //should there be an error??
+    FRED_VERBOSE(0, "no migration file\n");
     return;
   }
 
@@ -2382,5 +2390,216 @@ void clear_population_target_parameters(){
     County::county_female_migrants[i][col] = 0;
     }
     }*/
+}
+
+void County::set_workplace_probabilities() {
+
+  // list of workplaces attended by people in this county
+  typedef std::unordered_map<Workplace*,int> attendance_map_t;
+  typedef attendance_map_t::iterator attendance_map_itr_t;
+
+  workplaces_attended.clear();
+  workplace_probabilities.clear();
+
+  // get number of people in this county attending each workplace
+  // at the start of the simulation
+  int houses = this->households.size();
+  attendance_map_t workplace_counts;
+  workplace_counts.clear();
+  int total = 0;
+  for (int i = 0; i < houses; i++) {
+    Household* hh = this->households[i];
+    int hh_size = hh->get_size();
+    for (int j = 0; j < hh_size; j++) {
+      Person* person = hh->get_enrollee(j);
+      Workplace* workplace = person->get_workplace();
+      if (workplace != NULL) {
+	if (workplace_counts.find(workplace) == workplace_counts.end()) {
+	  std::pair<Workplace*,int> new_workplace_count(workplace,1);
+	  workplace_counts.insert(new_workplace_count);
+	}
+	else {
+	  workplace_counts[workplace]++;
+	}
+	total++;
+      }
+    }
+  }
+  if (total == 0) {
+    return;
+  }
+
+  // convert to probabilities
+  for (attendance_map_itr_t itr = workplace_counts.begin(); itr != workplace_counts.end(); ++itr) {
+    Workplace* workplace = itr->first;
+    workplaces_attended.push_back(workplace);
+    int count = itr->second;
+    double prob = (double) count / (double) total;
+    workplace_probabilities.push_back(prob);
+    // printf("workplace %s attended by %d prob %f\n", workplace->get_label(), count, prob);
+  }
+
+}
+
+
+Workplace* County::select_new_workplace() {
+  double r = Random::draw_random();
+  double sum = 0.0;
+  for (int i = 0; i < this->workplace_probabilities.size(); ++i) {
+    sum += this->workplace_probabilities[i];
+    if (r < sum) {
+      return this->workplaces_attended[i];
+    }
+  }
+  assert(r < sum);
+  return NULL;
+}
+
+
+void County::report_workplace_sizes() {
+  int year = Date::get_year();
+  for(int i = 0; i < this->workplaces_attended.size(); ++i) {
+    Workplace* workplace = workplaces_attended[i];
+    printf("WORKPLACE SIZE REPORT year %d workplace %s curr %d orig %d\n",
+	   year,
+	   workplace->get_label(),
+	   workplace->is_group_quarters()?workplace->get_staff_size():workplace->get_size(),
+	   workplace->is_group_quarters()?workplace->get_staff_size():workplace->get_orig_size());
+  }
+}
+
+void County::set_school_probabilities() {
+
+  // list of schools attended by people in this county
+  typedef std::unordered_map<School*,int> attendance_map_t;
+  typedef attendance_map_t::iterator attendance_map_itr_t;
+  attendance_map_t school_counts[GRADES];
+  int total[GRADES];
+
+  for (int g = 0; g < GRADES; g++) {
+    schools_attended[g].clear();
+    school_probabilities[g].clear();
+    school_counts[g].clear();
+    total[g] = 0;
+  }
+
+  // get number of people in this county attending each school
+  // at the start of the simulation
+  int houses = this->households.size();
+  for (int i = 0; i < houses; i++) {
+    Household* hh = this->households[i];
+    int hh_size = hh->get_size();
+    for (int j = 0; j < hh_size; j++) {
+      Person* person = hh->get_enrollee(j);
+      School* school = person->get_school();
+      int grade = person->get_age();
+      if (school != NULL && grade < GRADES) {
+
+	int state_fips = this->fips / 1000;
+	int school_state_fips = school->get_state_fips();
+
+	if (state_fips == school_state_fips) {
+	  FRED_VERBOSE(1, "In-state school %s grade %d %d %d county %d %d\n",
+		       school->get_label(), grade, school->get_county_fips(),
+		       school_state_fips, this->fips, state_fips);
+	}
+	else {
+	  FRED_VERBOSE(1, "Out of state school %s grade %d %d %d county %d %d\n",
+		       school->get_label(), grade, school->get_county_fips(),
+		       school_state_fips, this->fips, state_fips);
+	}
+
+	if (state_fips == school_state_fips || !(this->enable_within_state_school_assignment)) {
+	  // add this person to the count for this school
+	  // printf("school %s grade %d person %d\n", school->get_label(), grade, person->get_id()); fflush(stdout);
+	  if (school_counts[grade].find(school) == school_counts[grade].end()) {
+	    std::pair<School*,int> new_school_count(school,1);
+	    school_counts[grade].insert(new_school_count);
+	  }
+	  else {
+	    school_counts[grade][school]++;
+	  }
+	  total[grade]++;
+	} // endif
+      } // endif school != NULL
+    } // foreach housemate
+  } // foreach household
+
+  // convert to probabilities
+  for (int g = 0; g < GRADES; g++) {
+    if (total[g] > 0) {
+      for (attendance_map_itr_t itr = school_counts[g].begin(); itr != school_counts[g].end(); ++itr) {
+	School* school = itr->first;
+	schools_attended[g].push_back(school);
+	int count = itr->second;
+	double prob = (double) count / (double) total[g];
+	school_probabilities[g].push_back(prob);
+	FRED_VERBOSE(1,"school %s fips %d grade %d attended by %d prob %f\n",
+		     school->get_label(), school->get_county_fips(), g, count, prob);
+      }
+    }
+  }
+
+
+  // reassign student to in-state school, if necessary
+  if (this->enable_within_state_school_assignment) {
+    for (int i = 0; i < houses; i++) {
+      Household* hh = this->households[i];
+      int hh_size = hh->get_size();
+      for (int j = 0; j < hh_size; j++) {
+	Person* person = hh->get_enrollee(j);
+	School* school = person->get_school();
+	int grade = person->get_age();
+	if (school != NULL && grade < GRADES) {
+	  int state_fips = this->fips / 1000;
+	  int school_state_fips = school->get_state_fips();
+	  if (state_fips != school_state_fips) {
+	    // skip out of state schools
+	    School* new_school = select_new_school(grade);
+	    person->change_school(new_school);
+	    FRED_VERBOSE(0, "transferred person %d from school %s county %d to in-state school %s county %d new_size %d\n",
+			 person->get_id(), school->get_label(), school->get_county_fips(),
+			 new_school==NULL?"NONE":new_school->get_label(),
+			 new_school==NULL?(-1):new_school->get_county_fips(),
+			 new_school==NULL?0:new_school->get_size());
+	  }
+	}
+      }
+    }
+  }
+
+}
+
+
+School* County::select_new_school(int grade) {
+  double r = Random::draw_random();
+  double sum = 0.0;
+  for (int i = 0; i < this->school_probabilities[grade].size(); ++i) {
+    sum += this->school_probabilities[grade][i];
+    if (r < sum) {
+      return this->schools_attended[grade][i];
+    }
+  }
+  FRED_VERBOSE(0,"WARNING: no school found in fips = %d grade = %d schools = %d r = %f sum = %f\n",
+	 this->fips, grade, (int) (this->school_probabilities[grade].size()), r, sum);
+  // assert(r < sum);
+  // this person gets to skip school this year. try again next year.
+  return NULL;
+}
+
+
+void County::report_school_sizes() {
+  int year = Date::get_year();
+  printf("SCHOOL SIZE REPORT year %d\n", year);
+  for (int g = 0; g < GRADES; g++) {
+    for(int i = 0; i < this->schools_attended[g].size(); ++i) {
+      School* school = schools_attended[g][i];
+      printf("SCHOOL SIZE REPORT year %d grade %d school %s curr %d orig %d\n",
+	     year, g,
+	     school->get_label(),
+	     school->get_size(),
+	     school->get_orig_size());
+    }
+  }
 }
 

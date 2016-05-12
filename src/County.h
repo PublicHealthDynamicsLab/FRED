@@ -18,15 +18,22 @@
 #define _FRED_COUNTY_H
 
 #include <vector>
-#include "Demographics.h"
-
-class Person;
-class Household;
-
+#include <unordered_map>
 using namespace std;
+
+#include "Demographics.h"
+class Household;
+class Person;
+class Place;
+class School;
+class Workplace;
+
+// for lists of schools
+#define GRADES 20
 
 // 2-d array of lists
 typedef std::vector<int> HouselistT;
+
 
 class County {
 public:
@@ -147,6 +154,14 @@ public:
   int get_population_target(int sex, int age, int fips, int year);
   int set_population_target(int sex, int age, int fips, int year);
 
+  void set_workplace_probabilities();
+  Workplace* select_new_workplace();
+  void report_workplace_sizes();
+
+  void set_school_probabilities();
+  School* select_new_school(int grade);
+  void report_school_sizes();
+
 private:
   int fips;
   int tot_current_popsize;
@@ -178,10 +193,20 @@ private:
   std::vector< pair<Person*, int> > ready_to_move;
   int male_targets[17][7];
   int female_targets[17][7];
+  int enable_within_state_school_assignment;
+
 
   // pointers to households
   std::vector<Household*> households;
   int houses;
+
+  // schools attended by people in this county, with probabilities
+  std::vector<School*> schools_attended[GRADES];
+  std::vector<double> school_probabilities[GRADES];
+
+  // workplaces attended by people in this county, with probabilities
+  std::vector<Workplace*> workplaces_attended;
+  std::vector<double> workplace_probabilities;
 
   // migration arrays
   static int*** male_migrants;

@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include "Classroom.h"
 #include "Condition.h"
+#include "Date.h"
 #include "Geo.h"
 #include "Global.h"
 #include "Hospital.h"
@@ -1003,14 +1004,14 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
     // add a workplace for this group quarters
     place_type = Place::TYPE_WORKPLACE;
     sprintf(label, "%c%s", place_type, tokens[id_field]);
-    FRED_VERBOSE(0, "Adding GQ Workplace %s\n", label);
+    FRED_VERBOSE(0, "Adding GQ Workplace %s subtype %c\n", label, place_subtype);
     Place* workplace = add_place(label, place_type, place_subtype, lon, lat, census_tract);
     
     // add as household
     place_type = Place::TYPE_HOUSEHOLD;
     sprintf(label, "%c%s", place_type, tokens[id_field]);
 
-    FRED_VERBOSE(0, "Adding GQ Household %s\n", label);
+    FRED_VERBOSE(0, "Adding GQ Household %s subtype %c\n", label, place_subtype);
     Household *place = static_cast<Household *>(add_place(label, place_type, place_subtype, lon, lat, census_tract));
     place->set_group_quarters_units(number_of_units);
     place->set_group_quarters_workplace(workplace);
@@ -1019,12 +1020,20 @@ void Place_List::read_group_quarters_file(unsigned char deme_id, char* location_
     for(int i = 1; i < number_of_units; ++i) {
       sprintf(label, "%c%s-%03d", place_type, tokens[id_field], i);
       Place *place = add_place(label, place_type, place_subtype, lon, lat, census_tract);
-      FRED_VERBOSE(0, "Adding GQ Household %s out of %d units\n", label, number_of_units);
+      FRED_VERBOSE(0, "Adding GQ Household %s subtype %c out of %d units\n", label, place_subtype, number_of_units);
     }
   }
   fclose(fp);
 }
 
+
+void Place_List::setup_counties() {
+  // set each county's school and workplace attendance probabilities
+  for(int i = 0; i < this->counties.size(); ++i) {
+    this->counties[i]->set_workplace_probabilities();
+    this->counties[i]->set_school_probabilities();
+  }
+}
 
 void Place_List::prepare() {
 
@@ -1094,7 +1103,7 @@ void Place_List::prepare() {
   }
   fclose(fp);
 
-  // add list of counties to visualization data directory
+  // add list of census_tracts to visualization data directory
   sprintf(filename, "%s/VIS/CENSUS_TRACTS", Global::Simulation_directory);
   fp = fopen(filename, "w");
   for(int i = 0; i < this->census_tracts.size(); ++i) {
@@ -1641,15 +1650,6 @@ void Place_List::reassign_workers_to_group_quarters(char subtype, int fixed_staf
       fred::geo lon = place->get_longitude();
       double x = Geo::get_x(lon);
       double y = Geo::get_y(lat);
-      FRED_VERBOSE(1, "Reassign workers to place %s at (%f,%f) \n", place->get_label(), x, y);
-
-      // ignore place if it is outside the region
-      Regional_Patch* regional_patch = Global::Simulation_Region->get_patch(lat, lon);
-      if(regional_patch == NULL) {
-        FRED_VERBOSE(0, "place OUTSIDE_REGION lat %f lon %f \n", lat, lon);
-        continue;
-      }
-
       // target staff size
       FRED_VERBOSE(1, "Size %d ", place->get_size());
       int staff = fixed_staff;
@@ -1657,13 +1657,28 @@ void Place_List::reassign_workers_to_group_quarters(char subtype, int fixed_staf
         staff += 0.5 + (double)place->get_size() / resident_to_staff_ratio;
       }
 
+      FRED_VERBOSE(0, "REASSIGN WORKERS to GQ %s subtype %c target staff %d at (%f,%f) \n",
+		   place->get_label(), subtype, staff, lat, lon);
+
+      // ignore place if it is outside the region
+      Regional_Patch* regional_patch = Global::Simulation_Region->get_patch(lat, lon);
+      if(regional_patch == NULL) {
+        FRED_VERBOSE(0, "REASSIGN WORKERS to place GQ %s subtype %c FAILED -- OUTSIDE_REGION lat %f lon %f \n",
+		     place->get_label(), subtype, lat, lon);
+        continue;
+      }
+
       Place* nearby_workplace = regional_patch->get_nearby_workplace(place, staff);
       if(nearby_workplace != NULL) {
         // make all the workers in selected workplace as workers in the target place
+        FRED_VERBOSE(0, "REASSIGN WORKERS: NEARBY_WORKPLACE FOUND %s for GQ %s subtype %c at lat %f lon %f \n",
+		     nearby_workplace->get_label(),
+		     place->get_label(), subtype, lat, lon);
         nearby_workplace->reassign_workers(place);
-        return;
-      } else {
-        FRED_VERBOSE(0, "NO NEARBY_WORKPLACE FOUND for place at lat %f lon %f \n", lat, lon);
+      }
+      else {
+        FRED_VERBOSE(0, "REASSIGN WORKERS: NO NEARBY_WORKPLACE FOUND for GQ %s subtype %c at lat %f lon %f \n",
+		     place->get_label(), subtype, lat, lon);
       }
     }
   }
@@ -2654,66 +2669,6 @@ Hospital* Place_List::get_hospital_assigned_to_household(Household* hh) {
     assert(hosp != NULL);
     return hosp;
   }
-}
-
-Place* Place_List::select_school(int county_fips, int grade) {
-  // find school with this grade with greatest vacancy, and one with smallest overcapacity
-  School* school_with_vacancy = NULL;
-  School* school_with_overcrowding = NULL;
-  double vacancy = -1.0;
-  // limit capacity to 150% of original size:
-  double overcap = 50.0;
-  int size = this->schools_by_grade[grade].size();
-  for(int i = 0; i < size; ++i) {
-    School* school = static_cast<School*>(this->schools_by_grade[grade][i]);
-    int orig = school->get_orig_students_in_grade(grade);
-    // the following treats schools with fewer than 20 original
-    // students as an anomaly due to incomplete representation of
-    // the student body, perhaps from outside the simulation region
-    if(orig < 20) {
-      continue;
-    }
-    // the following avoids initially empty schools
-    // if (orig == 0) continue;
-    int now = school->get_students_in_grade(grade);
-    if(now <= orig) {
-      // school has vacancy
-      double vac_pct = static_cast<double>((orig - now)) / static_cast<double>(orig);
-      if(vac_pct > vacancy) {
-        vacancy = vac_pct;
-        school_with_vacancy = school;
-      }
-    } else {
-      // school is at or over capacity
-      double over_pct = static_cast<double>((now - orig)) / static_cast<double>(orig);
-      if(over_pct < overcap) {
-        overcap = over_pct;
-        school_with_overcrowding = school;
-      }
-    }
-  }
-
-  // if there is a school with a vacancy, return one with the most vacancy
-  if(school_with_vacancy != NULL) {
-    int orig = school_with_vacancy->get_orig_students_in_grade(grade);
-    int now = school_with_vacancy->get_students_in_grade(grade);
-    FRED_VERBOSE(1, "select_school_by_grade: GRADE %d closest school WITH VACANCY %s ORIG %d NOW %d\n", grade,
-		 school_with_vacancy->get_label(), orig, now);
-    return school_with_vacancy;
-  }
-
-  // otherwise, return school with minimal overcrowding, if there is one
-  if(school_with_overcrowding != NULL) {
-    int orig = school_with_overcrowding->get_orig_students_in_grade(grade);
-    int now = school_with_overcrowding->get_students_in_grade(grade);
-    FRED_VERBOSE(1, "select_school_by_grade: GRADE %d school with smallest OVERCROWDING %s ORIG %d NOW %d\n", grade,
-		 school_with_overcrowding->get_label(), orig, now);
-    return school_with_overcrowding;
-  }
-
-  // ERROR: no grade appropriate school found
-  Utils::fred_abort("select_school_by_grade: NULL -- no grade-appropriate school found\n");
-  return NULL;
 }
 
 void Place_List::update_population_dynamics(int day) {

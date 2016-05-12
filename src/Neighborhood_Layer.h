@@ -47,8 +47,6 @@ public:
   Neighborhood_Patch * get_patch(fred::geo lat, fred::geo lon);
   Neighborhood_Patch * select_random_patch(double x0, double y0, double dist);
   Neighborhood_Patch * select_random_neighbor(int row, int col);
-  Place * select_school_in_area(int age, int row, int col);
-  Place * select_workplace_in_area(int row, int col);
 
   /**
    * @return a pointer to a random patch in this layer

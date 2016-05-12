@@ -73,6 +73,7 @@ public:
   void setup_households();
   void setup_classrooms();
   void setup_offices();
+  void setup_counties();
   void setup_HAZEL_mobile_vans();
   void setup_household_childcare();
   void setup_school_income_quartile_pop_sizes();
@@ -104,7 +105,6 @@ public:
   void swap_houses(int house_index1, int house_index2);
   void swap_houses(Household* h1, Household* h2);
   void combine_households(int house_index1, int house_index2);
-  Place* select_school(int county_fips, int grade);
   Place* get_random_workplace();
 
   /**

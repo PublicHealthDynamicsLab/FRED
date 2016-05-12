@@ -95,18 +95,6 @@ public:
   Place* select_random_household();
 
   /**
-   * @return a pointer to a random Workplace in this Neighborhood_Patch
-   */
-  Place* select_random_workplace();
-  Place* select_workplace();
-  Place* select_workplace_in_neighborhood();
-
-  Place* select_random_school(int age);
-  Place* select_school(int age);
-  Place* select_school_in_neighborhood(int age, double threshold);
-  void find_schools_for_age(int age, place_vector* schools);
-
-  /**
    * @return a count of houses in this Neighborhood_Patch
    */
   int get_houses() { 
@@ -158,7 +146,7 @@ public:
       return NULL;
     }
   }
-  
+
   int get_number_of_workplaces() {
     return (int) this->workplaces.size();
   }

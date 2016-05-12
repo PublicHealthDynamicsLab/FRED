@@ -61,7 +61,6 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
-  FRED_VERBOSE(1, "Person::setup() activities_setup finished\n");
 
   // behavior setup called externally, after entire population is available
 

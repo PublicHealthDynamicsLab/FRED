@@ -212,19 +212,20 @@ void Place::turn_workers_into_teachers(Place* school) {
   for(int i = 0; i < static_cast<int>(this->enrollees.size()); ++i) {
     workers.push_back(this->enrollees[i]);
   }
-  FRED_VERBOSE(0, "turn_workers_into_teachers: place %d %s has %d workers\n", this->get_id(), this->get_label(), this->enrollees.size());
+  FRED_VERBOSE(1, "turn_workers_into_teachers: place %d %s has %d workers\n", this->get_id(), this->get_label(), this->enrollees.size());
   int new_teachers = 0;
   for(int i = 0; i < static_cast<int>(workers.size()); ++i) {
     Person* person = workers[i];
     assert(person != NULL);
-    FRED_VERBOSE(0, "Potential teacher %d age %d\n", person->get_id(), person->get_age());
+    FRED_VERBOSE(1, "Potential teacher %d age %d\n", person->get_id(), person->get_age());
     if(person->become_a_teacher(school)) {
       new_teachers++;
-      FRED_VERBOSE(0, "new teacher %d age %d moved from workplace %d %s to school %d %s\n",
+      FRED_VERBOSE(1, "new teacher %d age %d moved from workplace %d %s to school %d %s\n",
 		   person->get_id(), person->get_age(), this->get_id(), this->get_label(), school->get_id(), school->get_label());
     }
   }
-  FRED_VERBOSE(0, "%d new teachers reassigned from workplace %s to school %s\n", new_teachers,
+  school->set_staff_size(school->get_staff_size() + new_teachers);
+  FRED_VERBOSE(1, "%d new teachers reassigned from workplace %s to school %s\n", new_teachers,
 	       this->get_label(), school->get_label());
 }
 
@@ -242,6 +243,7 @@ void Place::reassign_workers(Place* new_place) {
     //   workers[i]->get_id(), workers[i]->get_age(), label, new_place->get_label());
     reassigned_workers++;
   }
+  new_place->set_staff_size(new_place->get_staff_size() + reassigned_workers);
   FRED_VERBOSE(1, "%d workers reassigned from workplace %s to place %s\n", reassigned_workers,
 	       this->get_label(), new_place->get_label());
 }
