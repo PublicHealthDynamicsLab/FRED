@@ -281,12 +281,10 @@ void Activities::initialize_sick_leave() {
 
   if(!Activities::Enable_default_sick_behavior) {
     int index = Activities::get_index_of_sick_leave_dist(this->myself);
-    assert(index > 0);
-    if(Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
+    if(index >= 0 && Activities::Sick_leave_dist_method == Activities::WP_SIZE_DIST) {
       this->sick_leave_available = (Random::draw_random() < Activities::WP_size_sl_prob_vec[index]);
       if(this->sick_leave_available) {
         Activities::Tracking_data.employees_with_sick_leave[index]++;
-        // compute sick days available
         // compute sick days available
         int workplace_size = 0;
         if(get_workplace() != NULL) {
@@ -306,16 +304,16 @@ void Activities::initialize_sick_leave() {
       } else {
         Activities::Tracking_data.employees_without_sick_leave[index]++;
       }
-    } else if(Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
+    } else if(index >= 0 && Activities::Sick_leave_dist_method == Activities::HH_INCOME_QTILE_DIST) {
       this->sick_leave_available = (Random::draw_random() < Activities::HH_income_qtile_sl_prob_vec[index]);
       // compute sick days available
       this->sick_days_remaining = Activities::HH_income_qtile_mean_sl_days_available + Activities::Flu_days;
     }
 
-    FRED_VERBOSE(1, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
+    FRED_VERBOSE(0, "Activities::initialize_sick_leave size_leave_avaliable = %d\n",
 		             (this->sick_leave_available ? 1 : 0));
   }
-  FRED_VERBOSE(1, "Activities::initialize_sick_leave sick_days_remaining = %d\n", this->sick_days_remaining);
+  FRED_VERBOSE(0, "Activities::initialize_sick_leave sick_days_remaining = %d\n", this->sick_days_remaining);
 }
 
 void Activities::before_run() {
@@ -660,8 +658,7 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
     } else {
       if(it_is_a_workday) {
         int index = Activities::get_index_of_sick_leave_dist(this->myself);
-        assert(index > 0);
-        if(this->my_sick_leave_decision_has_been_made) {
+        if(index >= 0 && this->my_sick_leave_decision_has_been_made) {
           if(this->is_sick_leave_available() && this->sick_days_remaining > 0.0) {
             if(this->sick_days_remaining < 1.0) { //I have sick leave, but my days are about to run out
               this->sick_days_remaining = (this->sick_days_remaining < 0.0 ? 0.0 : this->sick_days_remaining);
@@ -722,7 +719,7 @@ void Activities::decide_whether_to_stay_home(int sim_day) {
               Activities::Tracking_data.employees_sick_days_present[index]++;
             }
           }
-        } else { //Sick Leave decision hasn't been made
+        } else if(index >= 0) { //Sick Leave decision hasn't been made
           if(this->is_sick_leave_available() && this->sick_days_remaining > 0.0) {
             if(this->sick_days_remaining < 1.0) { //I have sick leave but I am running out of days, so need to decide what to do
               this->sick_days_remaining = (this->sick_days_remaining < 0.0 ? 0.0 : this->sick_days_remaining);
@@ -1741,7 +1738,7 @@ void Activities::update_profile() {
       }
       change_workplace(NULL);
       this->profile = RETIRED_PROFILE;
-      initialize_sick_leave(); // no sick leave available if retired
+      //initialize_sick_leave(); // no sick leave available if retired
       FRED_STATUS(1, "CHANGED BEHAVIOR PROFILE TO RETIRED: id %d age %d sex %c\n%s\n",
                   this->myself->get_id(), age, this->myself->get_sex(), this->to_string().c_str() );
     }
@@ -2297,6 +2294,7 @@ int Activities::get_index_of_sick_leave_dist(Person* per) {
           workplace_size = per->get_school()->get_staff_size();
         }
       }
+        
       // is sick leave available?
       if(workplace_size > 0) {
         for(int i = 0; i < Workplace::get_workplace_size_group_count(); ++i) {
