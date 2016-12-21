@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+use strict;
+use List::MoreUtils qw(:all);
+
+my @heading_arr = qw /tot_Cs_0_4 tot_Cs_5_17 tot_Cs_18_49 tot_Cs_50_64 tot_Cs_65_up Cs schl_sick_days_abs schl_sick_days_pres sick_days_abs sick_days_pres tot_days_sympt tot_emp tot_emp_days_used tot_emp_days_used_for_child tot_emp_sl_days_used_for_child tot_emp_miss_work tot_emp_sl_days_pres tot_emp_sl_days_used tot_emp_using_sl tot_emp_symp_workdays tot_emp_symp_nonworkdays tot_ppl_evr_sympt tot_school_pop wp_0_4_emp_days_used wp_0_4_emp_sick_days_pres wp_0_4_emp_sl_days_used wp_0_4_emp_taking_day_off wp_0_4_emp_taking_sl_day_off wp_0_4_inf wp_0_4_tot_symp wp_0_4_n wp_0_4_emp_days_used_for_child wp_0_4_emp_sl_days_used_for_child wp_0_4_emp_days_at_work_with_symp_child_at_home wp_5_9_emp_days_used wp_5_9_emp_sick_days_pres wp_5_9_emp_sl_days_used wp_5_9_emp_taking_day_off wp_5_9_emp_taking_sl_day_off wp_5_9_inf wp_5_9_tot_symp wp_5_9_n wp_5_9_emp_days_used_for_child wp_5_9_emp_sl_days_used_for_child wp_5_9_emp_days_at_work_with_symp_child_at_home wp_10_14_emp_days_used wp_10_14_emp_sick_days_pres wp_10_14_emp_sl_days_used wp_10_14_emp_taking_day_off wp_10_14_emp_taking_sl_day_off wp_10_14_inf wp_10_14_tot_symp wp_10_14_n wp_10_14_emp_days_used_for_child wp_10_14_emp_sl_days_used_for_child wp_10_14_emp_days_at_work_with_symp_child_at_home wp_15_19_emp_days_used wp_15_19_emp_sick_days_pres wp_15_19_emp_sl_days_used wp_15_19_emp_taking_day_off wp_15_19_emp_taking_sl_day_off wp_15_19_inf wp_15_19_tot_symp wp_15_19_n wp_15_19_emp_days_used_for_child wp_15_19_emp_sl_days_used_for_child wp_15_19_emp_days_at_work_with_symp_child_at_home wp_20_49_emp_days_used wp_20_49_emp_sick_days_pres wp_20_49_emp_sl_days_used wp_20_49_emp_taking_day_off wp_20_49_emp_taking_sl_day_off wp_20_49_inf wp_20_49_tot_symp wp_20_49_n wp_20_49_emp_days_used_for_child wp_20_49_emp_sl_days_used_for_child wp_20_49_emp_days_at_work_with_symp_child_at_home wp_50_99_emp_days_used wp_50_99_emp_sick_days_pres wp_50_99_emp_sl_days_used wp_50_99_emp_taking_day_off wp_50_99_emp_taking_sl_day_off wp_50_99_inf wp_50_99_n  wp_50_99_tot_symp wp_50_99_emp_days_used_for_child wp_50_99_emp_sl_days_used_for_child wp_50_99_emp_days_at_work_with_symp_child_at_home wp_100_499_emp_days_used wp_100_499_emp_sick_days_pres wp_100_499_emp_sl_days_used wp_100_499_emp_taking_day_off wp_100_499_emp_taking_sl_day_off wp_100_499_inf wp_100_499_n wp_100_499_tot_symp wp_100_499_emp_days_used_for_child wp_100_499_emp_sl_days_used_for_child wp_100_499_emp_days_at_work_with_symp_child_at_home wp_500_up_emp_days_used_for_child wp_500_up_emp_sick_days_pres wp_500_up_emp_sl_days_used wp_500_up_emp_taking_day_off wp_500_up_emp_taking_sl_day_off wp_500_up_inf wp_500_up_n wp_500_up_tot_symp wp_500_up_emp_days_used_for_child wp_500_up_emp_sl_days_used_for_child wp_500_up_emp_days_at_work_with_symp_child_at_home/; 
+
+my @table = ();
+my @transposed = ();
+
+open (MYFILE, '>./table.csv');
+
+foreach my $heading (@heading_arr)
+{
+  my @column_mean= `cat $heading.txt | awk '{ print \$1 }' `;
+  chomp @column_mean;
+  push(@table, [@column_mean]);
+  
+  my @column_std = `cat $heading.txt | awk '{ print \$2 }' `;
+  chomp @column_std;
+  push(@table, [@column_std]);
+  
+}
+
+#Transpose the table
+for my $row (@table) {
+  for my $column (0 .. $#{$row}) {
+    push(@{$transposed[$column]}, $row->[$column]);
+  }
+}
+
+foreach my $row (@transposed) {
+  foreach my $element (@$row) {
+    print MYFILE $element, ", ";
+  }
+  print MYFILE "\n";
+}
+
+
+
+
+#my $result = each_array(@heading_arr, @array2, @array3);
+
+#while ( my ($a, $b, $c) = $result->() )
+#{
+#	print "\n$a $b $c";
+#}
+

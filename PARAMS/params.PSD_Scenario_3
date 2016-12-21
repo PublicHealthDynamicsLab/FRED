@@ -1,0 +1,59 @@
+days = 100 
+seed = 123456
+start_date = 2015-1-1 
+report_age_of_infection = 3
+
+#synthetic_population_id = 2010_ver1_42003 2010_ver1_42065
+synthetic_population_id = 2010_ver1_42
+
+# schedule of initial seed cases
+#primary_cases_file = $FRED_HOME/primary_cases_0_on_day_0.txt
+
+report_presenteeism = 1
+report_childhood_presenteeism = 1
+
+#### SICK LEAVE BEHAVIOR
+
+## default sick behavior:
+# if set, use sick_day_prob and overide other sick leave behavior
+enable_default_sick_behavior = 0 
+
+# each agent withdraws to the household with sick_day_prob
+# on each day the agent is symptomatic
+sick_day_prob = 0.5
+
+# Determine how sick leave is given
+# Don’t use default_sick_behavior
+# 1 - By Workplace Size
+# 2 - By Household Income Quartile
+sick_leave_dist_method = 1 
+
+# workplace_size_max = 6 4 9 19 49 99 499
+# (1-4, 5-9, 10-19, 20-49, 50-99, 100-499, >=500 workers)
+#wp_size_sl_prob_vec = 7 0.53 0.53 0.53 0.53 0.58 0.70 0.85
+
+#Scenario 3:
+#1 - 9 workers: 50% have 5 days PSD
+#10 - 99 workers: 60% have 6 days / 40% have 5 days (so 100% have 5.6 days) PSD
+#100 - 499 workers: 70% have 6 days / 30% have 5 days (so 100% have 5.7 days) PSD
+#500 and above: 84% have 10 days / 16% have 5 days (so 100% have 9.2 PSD)
+
+workplace_size_max = 7 4 9 14 19 49 99 499
+wp_size_sl_prob_vec = 8 0.5 0.5 1.0 1.0 1.0 1.0 1.0 1.0
+wp_size_sl_days_vec = 8 5.0 5.0 5.6 5.6 5.6 5.6 5.7 9.2
+
+hh_income_qtile_sl_prob_vec = 0
+
+## behavior if sick leave is available (SLA)
+#SLA_absent_prob = 0.72
+SLA_absent_prob = 0.577
+
+## behavior if sick leave is unavailable (SLU)
+#SLU_absent_prob = 0.52
+SLU_absent_prob = 0.393
+
+standard_sicktime_allocated_per_child = 0.5
+
+##########################################################
+
+

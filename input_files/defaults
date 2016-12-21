@@ -46,6 +46,7 @@ test = 0
 outdir = OUT
 tracefile = none
 track_infection_events = 0
+track_JSON_infection_events = 0
 track_age_distribution = 0
 track_household_distribution = 0
 track_network_stats = 0
@@ -88,7 +89,7 @@ output_population_date_match = 01-01-*
 
 # if set, out each person health status changes to logfile
 # with tag "HEALTH CHART:"
-enable_health_charts = 0
+enable_health_records = 0
 
 ##########################################################
 #
@@ -244,6 +245,7 @@ cat_IV_max_income = 35001
 cat_V_max_income = 50001
 cat_VI_max_income = 100001
 report_epidemic_data_by_census_tract = 0
+report_epidemic_data_by_county = 0
 
 ##########################################################
 #
@@ -292,7 +294,7 @@ workplace_size_max = 0
 
 enable_hospitals = 0
 # These are the probabilities for general hospital or outpatient healthcare
-# see also disease specific values for probabilities
+# see also condition specific values for probabilities
 hospitalization_prob_age_groups = 0
 hospitalization_prob_values = 0
 outpatient_healthcare_prob_age_groups = 0
@@ -419,7 +421,7 @@ enable_antivirals = 0
 number_antivirals = 0
 
 ## Sample Antiviral 1:
-av_disease[0] = 0
+av_condition[0] = 0
 av_initial_stock[0] = 100
 av_total_avail[0] = 1000
 av_additional_per_day[0] = 100
@@ -496,7 +498,7 @@ isolation_rate = 1.0
 # 
 # Note: HAZEL is concerned with Hospitals, Health 
 #  Insurance, Chronic conditions, and visualization of 
-#  such. Also it is not so much about disease transmission.
+#  such. Also it is not so much about condition transmission.
 #  So, at least the following should be set 
 #  (along with any specific params needed:
 #
@@ -558,11 +560,11 @@ HAZEL_seek_hc_ramp_up_mult = 1.0
 #
 ##########################################################
 
-# Number of diseases circulating
-diseases = 1
+# Number of conditions circulating
+conditions = 1
 
-# Names of diseases
-disease_names = 1 influenza
+# Names of conditions
+condition_names = 1 influenza
 
 ### DISEASE TRANSMISSION MODE
 influenza_transmission_mode = respiratory
@@ -750,7 +752,7 @@ vector_transmission_efficiency = 0.3
 ##########################################################
 
 enable_viral_evolution = 0
-all_diseases_antigenically_identical = 0
+all_conditions_antigenically_identical = 0
 influenza_evolution = 0
 influenza_num_strains = 1
 influenza_strain_data[0] = a:1
@@ -801,7 +803,7 @@ influenza_face_mask_plus_hand_washing_susceptibility_efficacy = 0.33
 ##########################################################
 
 # The following parameters provide a sinusoidal reduction in
-# transmission in all diseases, with a peak tranmissibility of the given
+# transmission in all conditions, with a peak tranmissibility of the given
 # day of the year, and the minimum transmissibility 183 days before or
 # after the peak.
 #
@@ -846,7 +848,11 @@ shelter_in_place_by_income = 0
 #
 ##########################################################
 
+enable_within_state_school_assignment = 1
+
 enable_population_dynamics = 0 
+enable_migration_to_target_popsize = 0
+enable_county_to_county_migration = 0
 
 mortality_rate_file = $FRED_HOME/input_files/countries/usa/mortality_rates.txt
 mortality_rate_multiplier = 1
@@ -854,6 +860,8 @@ mortality_rate_adjustment_weight = 0
 
 birth_rate_file = $FRED_HOME/input_files/countries/usa/birth_rates.txt
 birth_rate_multiplier = 1
+
+migration_file = $FRED_HOME/input_files/migration-42003.txt
 
 # this the percent per year population growth, e.g. 1 => 1% growth each year
 population_growth_rate = 0
@@ -867,9 +875,16 @@ military_departure_rate = 0.25
 # assume a mean of 2 years: http://www.bjs.gov/content/pub/pdf/p10.pdf
 prison_departure_rate = 0.5
 
-# assuming mean age of leaving home about 21
-youth_home_departure_rate = 0.3
-adult_home_departure_rate = 0.3
+# ref: National Longitudinal Survey of Youth 1997
+youth_home_departure_rate = 0.2
+
+# adult_home_departure_rate = 0.3
+
+# According to ACS, about 2% of marriages result in divorce each
+# year. We use this same percent to model adults leaving a household
+# with at least one other adult
+
+adult_home_departure_rate = 0.02
 
 ##########################################################
 #
@@ -885,12 +900,12 @@ asthma_prob_age_groups = 0
 asthma_prob_values = 0
 COPD_prob_age_groups = 0
 COPD_prob_values = 0
-chronic_renal_disease_prob_age_groups = 0
-chronic_renal_disease_prob_values = 0
+chronic_renal_condition_prob_age_groups = 0
+chronic_renal_condition_prob_values = 0
 diabetes_prob_age_groups = 0
 diabetes_prob_values = 0
-heart_disease_prob_age_groups = 0
-heart_disease_prob_values = 0
+heart_condition_prob_age_groups = 0
+heart_condition_prob_values = 0
 hypertension_prob_age_groups = 0
 hypertension_prob_values = 0
 hypercholestrolemia_prob_age_groups = 0
@@ -901,12 +916,12 @@ asthma_hospitalization_prob_mult_age_groups = 1 120
 asthma_hospitalization_prob_mult_values = 1 1.0
 COPD_hospitalization_prob_mult_age_groups = 1 120
 COPD_hospitalization_prob_mult_values = 1 1.0
-chronic_renal_disease_hospitalization_prob_mult_age_groups = 1 120
-chronic_renal_disease_hospitalization_prob_mult_values = 1 1.0
+chronic_renal_condition_hospitalization_prob_mult_age_groups = 1 120
+chronic_renal_condition_hospitalization_prob_mult_values = 1 1.0
 diabetes_hospitalization_prob_mult_age_groups = 1 120
 diabetes_hospitalization_prob_mult_values = 1 1.0
-heart_disease_hospitalization_prob_mult_age_groups = 1 120
-heart_disease_hospitalization_prob_mult_values = 1 1.0
+heart_condition_hospitalization_prob_mult_age_groups = 1 120
+heart_condition_hospitalization_prob_mult_values = 1 1.0
 hypertension_hospitalization_prob_mult_age_groups = 1 120
 hypertension_hospitalization_prob_mult_values = 1 1.0
 hypercholestrolemia_hospitalization_prob_mult_age_groups = 1 120
@@ -919,12 +934,12 @@ asthma_case_fatality_prob_mult_age_groups = 1 120
 asthma_case_fatality_prob_mult_values = 1 1.0
 COPD_case_fatality_prob_mult_age_groups = 1 120
 COPD_case_fatality_prob_mult_values = 1 1.0
-chronic_renal_disease_case_fatality_prob_mult_age_groups = 1 120
-chronic_renal_disease_case_fatality_prob_mult_values = 1 1.0
+chronic_renal_condition_case_fatality_prob_mult_age_groups = 1 120
+chronic_renal_condition_case_fatality_prob_mult_values = 1 1.0
 diabetes_case_fatality_prob_mult_age_groups = 1 120
 diabetes_case_fatality_prob_mult_values = 1 1.0
-heart_disease_case_fatality_prob_mult_age_groups = 1 120
-heart_disease_case_fatality_prob_mult_values = 1 1.0
+heart_condition_case_fatality_prob_mult_age_groups = 1 120
+heart_condition_case_fatality_prob_mult_values = 1 1.0
 hypertension_case_fatality_prob_mult_age_groups = 1 120
 hypertension_case_fatality_prob_mult_values = 1 1.0
 hypercholestrolemia_case_fatality_prob_mult_age_groups = 1 120
@@ -977,11 +992,8 @@ sick_day_prob = 0.5
 sick_leave_dist_method = 1
 
 wp_size_sl_prob_vec = 0
+wp_size_sl_days_vec = 0
 hh_income_qtile_sl_prob_vec = 0
-
-wp_small_mean_sl_days_available = 0.0
-wp_large_mean_sl_days_available = 0.0
-wp_size_cutoff_sl_exception = 0
 
 ## behavior if sick leave is available (SLA)
 SLA_absent_prob = 0.72
