@@ -33,7 +33,7 @@ class ODEIntraHost : public IntraHost {
 
 public:
   Trajectory* get_trajectory();
-  void setup(Disease *disease);
+  void setup(Condition *condition);
   int get_days_symp() {
     return 1;  // TODO
   }

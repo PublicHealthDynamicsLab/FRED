@@ -29,7 +29,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Classroom();
 
@@ -45,36 +44,36 @@ public:
   void unenroll(int pos);
 
   /**
-   * @see Place::get_group(int disease, Person* per)
+   * @see Place::get_group(int condition, Person* per)
    */
-  int get_group(int disease, Person* per);
+  int get_group(int condition, Person* per);
 
   /**
-   * @see Mixing_Group::get_transmission_prob(int disease, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_prob(int condition, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Classroom::Classroom_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Classroom_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>classroom_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person* i, Person* s);
+  double get_transmission_prob(int condition, Person* i, Person* s);
 
   bool is_open(int day);
 
   /**
-   * @see Place::should_be_open(int day, int disease)
+   * @see Place::should_be_open(int day, int condition)
    */
-  bool should_be_open(int day, int disease);
+  bool should_be_open(int day, int condition);
 
   /**
-   * @see Place::get_contacts_per_day(int disease)
+   * @see Place::get_contacts_per_day(int condition)
    *
    * This method returns the value from the static array <code>Classroom::Classroom_contacts_per_day</code>
-   * that corresponds to a particular disease.<br />
+   * that corresponds to a particular condition.<br />
    * The static array <code>Classroom_contacts_per_day</code> will be filled with values from the parameter
    * file for the key <code>classroom_contacts[]</code>.
    */
-  double get_contacts_per_day(int disease);
+  double get_contacts_per_day(int condition);
 
   /**
    *  @return the age_level
@@ -83,9 +82,7 @@ public:
     return this->age_level;
   }
 
-  void set_school(School* _school) {
-    this->school = _school;
-  }
+  void set_school(School* _school);
 
   School* get_school() {
     return this->school;

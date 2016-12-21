@@ -36,7 +36,6 @@ class Hospital : public Place {
 public: 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Hospital();
 
@@ -49,52 +48,51 @@ public:
   static void get_parameters();
 
   /**
-   * @see Place::get_group(int disease, Person* per)
+   * @see Place::get_group(int condition, Person* per)
    */
-  int get_group(int disease, Person* per);
+  int get_group(int condition, Person* per);
 
   /**
-   * @see Mixing_Group::get_transmission_prob(int disease, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_prob(int condition, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Hospital::Hospital_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Hospital_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>hospital_prob[]</code>.
    */
-  double get_transmission_prob(int disease, Person* i, Person* s);
+  double get_transmission_prob(int condition, Person* i, Person* s);
 
   /**
-   * @see Place::get_contacts_per_day(int disease)
+   * @see Place::get_contacts_per_day(int condition)
    *
    * This method returns the value from the static array <code>Hospital::Hospital_contacts_per_day</code>
-   * that corresponds to a particular disease.<br />
+   * that corresponds to a particular condition.<br />
    * The static array <code>Hospital_contacts_per_day</code> will be filled with values from the parameter
    * file for the key <code>hospital_contacts[]</code>.
    */
-  double get_contacts_per_day(int disease);
+  double get_contacts_per_day(int condition);
 
   bool is_open(int sim_day);
 
   /**
-   * @see Place::should_be_open(int day)
    *
-   * Determine if the Hospital should be open. This is independent of any disease.
+   * Determine if the Hospital should be open. This is independent of any condition.
    *
    * @param sim_day the simulation day
-   * @return whether or not the hospital is open on the given day for the given disease
+   * @return whether or not the hospital is open on the given day for the given condition
    */
   bool should_be_open(int sim_day);
 
   /**
-   * @see Place::should_be_open(int day, int disease)
+   * @see Place::should_be_open(int day, int condition)
    *
-   * Determine if the Hospital should be open. It is dependent on the disease and simulation day.
+   * Determine if the Hospital should be open. It is dependent on the condition and simulation day.
    *
    * @param sim_day the simulation day
-   * @param disease an integer representation of the disease
-   * @return whether or not the hospital is open on the given day for the given disease
+   * @param condition an integer representation of the condition
+   * @return whether or not the hospital is open on the given day for the given condition
    */
-  bool should_be_open(int sim_day, int disease);
+  bool should_be_open(int sim_day, int condition);
 
   void set_accepts_insurance(Insurance_assignment_index::e insr, bool does_accept);
   void set_accepts_insurance(int insr_indx, bool does_accept);
@@ -107,6 +105,22 @@ public:
 
   void set_bed_count(int _bed_count) {
     this->bed_count = _bed_count;
+  }
+
+  int get_employee_count() {
+    return this->employee_count;
+  }
+
+  void set_employee_count(int _employee_count) {
+    this->employee_count = _employee_count;
+  }
+
+  int get_physician_count() {
+    return this->physician_count;
+  }
+
+  void set_physician_count(int _physician_count) {
+    this->physician_count = _physician_count;
   }
 
   int get_daily_patient_capacity(int sim_day);
@@ -149,6 +163,10 @@ public:
 
   std::string to_string();
 
+  string to_string(bool is_JSON, bool is_inline, int indent_level) {
+    return Place::to_string(is_JSON, is_inline, indent_level);
+  }
+
   static int get_HAZEL_mobile_van_open_delay() {
     return Hospital::HAZEL_mobile_van_open_delay;
   }
@@ -172,6 +190,10 @@ private:
   int occupied_bed_count;
   int daily_patient_capacity;
   int current_daily_patient_count;
+
+  int employee_count;
+  int physician_count;
+
   bool add_capacity;
   bool HAZEL_closure_dates_have_been_set;
 

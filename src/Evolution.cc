@@ -19,12 +19,12 @@
 
 using namespace std;
 
-void Evolution :: setup(Disease *disease) {
-  this->disease = disease;
+void Evolution :: setup(Condition *condition) {
+  this->condition = condition;
 }
 
 inline double Evolution::residual_immunity(Person *person, int challenge_strain, int day) {
-  return double( !( person->get_health()->is_susceptible( disease->get_id() ) ) );
+  return double( !( person->get_health()->is_susceptible( condition->get_id() ) ) );
 }
 
 void Evolution::print() {}
@@ -45,8 +45,8 @@ void Evolution::print() {}
 
 double Evolution::antigenic_diversity(Person *p1, Person *p2) {
   /*
-  Infection *inf1 = p1->get_health()->get_infection(disease->get_id());
-  Infection *inf2 = p2->get_health()->get_infection(disease->get_id());
+  Infection *inf1 = p1->get_health()->get_infection(condition->get_id());
+  Infection *inf2 = p2->get_health()->get_infection(condition->get_id());
 
   if(!inf1 || !inf2) return 0;
 

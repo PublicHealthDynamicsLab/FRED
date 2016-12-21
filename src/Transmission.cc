@@ -50,7 +50,7 @@ Transmission* Transmission::get_new_transmission(char* transmission_mode) {
 
 void Transmission::get_parameters() {
 
-  // all-disease seasonality reduction
+  // all-condition seasonality reduction
   Params::get_param_from_string("seasonal_reduction", &Transmission::Seasonal_Reduction);
   // setup seasonal multipliers
 

@@ -30,14 +30,14 @@ class Vaccine_Dose;
 class Vaccine{
 public:
   // Creation
-  Vaccine(string _name, int _id, int _disease, 
+  Vaccine(string _name, int _id, int _condition, 
           int _total_avail, int _additional_per_day, 
           int _start_day, int num_strains, int *_strains);
   ~Vaccine();
   
   void add_dose(Vaccine_Dose* dose);
   
-  int get_disease()                 const { return disease; }
+  int get_condition()                 const { return condition; }
   int get_ID()                     const { return id; }
   int get_number_doses()           const { return doses.size(); }
   Vaccine_Dose* get_dose(int i)    const { return doses[i]; }
@@ -78,7 +78,7 @@ public:
 private:
   string name;
   int id;                              // Which in the number of vaccines is it
-  int disease;                          // Which Disease is this vaccine for
+  int condition;                          // Which Condition is this vaccine for
   int number_doses;                    // How many doses does the vaccine need.
   vector < Vaccine_Dose* > doses;       // Data structure to hold the efficacy of each dose.
   

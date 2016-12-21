@@ -42,7 +42,7 @@ Manager::Manager(Population *P) {
   this->current_policy = 0;
 }
 
-int Manager::poll_manager(Person* p, int disease, int day) {
-  int result = this->policies[this->current_policy]->choose(p, disease,day);
+int Manager::poll_manager(Person* p, int condition, int day) {
+  int result = this->policies[this->current_policy]->choose(p, condition,day);
   return result;
 }

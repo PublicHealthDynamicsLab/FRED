@@ -13,14 +13,14 @@
 
 #include "HIV_Infection.h"
 #include "HIV_Natural_History.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Person.h"
 #include "Mixing_Group.h"
 #include "Utils.h"
 
-HIV_Infection::HIV_Infection(Disease* _disease, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) :
-  Infection(_disease, _infector, _host, _mixing_group, day) {
+HIV_Infection::HIV_Infection(Condition* _condition, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) :
+  Infection(_condition, _infector, _host, _mixing_group, day) {
 }
 
 void HIV_Infection::setup() {

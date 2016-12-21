@@ -1,0 +1,434 @@
+Fred.o: Fred.cc Activities.h Condition_List.h Global.h Tracker.h Utils.h \
+  Person_Network_Link.h Person_Place_Link.h AV_Manager.h Antivirals.h \
+  Manager.h Behavior.h Date.h Demographics.h Condition.h Evolution.h \
+  Epidemic.h Person.h Health.h Age_Map.h Params.h Infection.h \
+  Natural_History.h Past_Infection.h Place.h Geo.h Mixing_Group.h Fred.h \
+  Neighborhood_Layer.h Abstract_Grid.h Network.h Place_List.h \
+  Census_Tract.h Household.h Hospital.h Neighborhood.h School.h \
+  Workplace.h Population.h Random.h Regional_Layer.h Seasonality.h \
+  Seasonality_Timestep_Map.h Timestep_Map.h \
+  Sexual_Transmission_Network.h Transmission.h Travel.h \
+  Vaccine_Manager.h Vector_Layer.h Neighborhood_Patch.h Abstract_Patch.h \
+  Visualization_Layer.h
+Global.o: Global.cc Global.h Tracker.h Utils.h Params.h Demographics.h \
+  Population.h Condition_List.h Place_List.h Census_Tract.h Household.h \
+  Hospital.h Health.h Age_Map.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Mixing_Group.h Person.h Behavior.h \
+  Activities.h Person_Network_Link.h Person_Place_Link.h Place.h Geo.h \
+  Neighborhood.h School.h Workplace.h
+Age_Map.o: Age_Map.cc Age_Map.h Global.h Tracker.h Utils.h Params.h \
+  Demographics.h
+Timestep_Map.o: Timestep_Map.cc Timestep_Map.h Global.h Tracker.h Utils.h \
+  Params.h
+Utils.o: Utils.cc Utils.h Global.h Tracker.h
+Params.o: Params.cc Params.h Global.h Tracker.h Utils.h
+Date.o: Date.cc Date.h
+Events.o: Events.cc Events.h Utils.h
+Random.o: Random.cc Random.h Global.h Tracker.h Utils.h
+Markov_Model.o: Markov_Model.cc Age_Map.h Global.h Tracker.h Utils.h \
+  Params.h Markov_Model.h Random.h
+Geo.o: Geo.cc Geo.h Global.h Tracker.h Utils.h
+Abstract_Grid.o: Abstract_Grid.cc Abstract_Grid.h Global.h Tracker.h \
+  Utils.h Geo.h
+Abstract_Patch.o: Abstract_Patch.cc Abstract_Patch.h
+County.o: County.cc Age_Map.h Global.h Tracker.h Utils.h Params.h \
+  County.h Demographics.h Date.h Household.h Hospital.h Health.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Mixing_Group.h Person.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Place_List.h \
+  Census_Tract.h Neighborhood.h School.h Workplace.h Population.h \
+  Random.h
+Neighborhood_Layer.o: Neighborhood_Layer.cc Global.h Tracker.h Utils.h \
+  Geo.h Neighborhood_Layer.h Place.h Mixing_Group.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h \
+  Abstract_Grid.h Neighborhood_Patch.h Abstract_Patch.h Place_List.h \
+  Census_Tract.h Household.h Hospital.h Neighborhood.h School.h \
+  Workplace.h Random.h Population.h Regional_Layer.h
+Neighborhood_Patch.o: Neighborhood_Patch.cc Global.h Tracker.h Utils.h \
+  Geo.h Neighborhood_Layer.h Place.h Mixing_Group.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h \
+  Abstract_Grid.h Neighborhood_Patch.h Abstract_Patch.h Neighborhood.h \
+  Place_List.h Census_Tract.h Household.h Hospital.h School.h \
+  Workplace.h Random.h
+Regional_Layer.o: Regional_Layer.cc Geo.h Global.h Tracker.h Utils.h \
+  Household.h Hospital.h Health.h Age_Map.h Params.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Mixing_Group.h Person.h \
+  Demographics.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Regional_Layer.h \
+  Abstract_Grid.h Regional_Patch.h Abstract_Patch.h Place_List.h \
+  Census_Tract.h Neighborhood.h School.h Workplace.h Population.h \
+  Random.h
+Regional_Patch.o: Regional_Patch.cc Global.h Tracker.h Utils.h \
+  Regional_Patch.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Abstract_Patch.h Household.h Hospital.h \
+  Mixing_Group.h Place.h Geo.h Place_List.h Census_Tract.h \
+  Neighborhood.h School.h Workplace.h Regional_Layer.h Abstract_Grid.h \
+  Random.h
+Visualization_Layer.o: Visualization_Layer.cc Params.h Place_List.h \
+  Census_Tract.h Household.h Global.h Tracker.h Utils.h Hospital.h \
+  Health.h Age_Map.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Mixing_Group.h Person.h Demographics.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Neighborhood.h School.h Workplace.h \
+  Random.h Regional_Layer.h Abstract_Grid.h Vector_Layer.h \
+  Neighborhood_Patch.h Abstract_Patch.h Visualization_Layer.h \
+  Visualization_Patch.h
+Visualization_Patch.o: Visualization_Patch.cc Visualization_Patch.h \
+  Global.h Tracker.h Utils.h Abstract_Patch.h Visualization_Layer.h \
+  Abstract_Grid.h Geo.h Place.h Mixing_Group.h Person.h Demographics.h \
+  Health.h Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h
+Seasonality_Timestep_Map.o: Seasonality_Timestep_Map.cc \
+  Seasonality_Timestep_Map.h Global.h Tracker.h Utils.h Timestep_Map.h \
+  Date.h Params.h
+Seasonality.o: Seasonality.cc Seasonality.h Abstract_Grid.h Global.h \
+  Tracker.h Utils.h Geo.h Seasonality_Timestep_Map.h Timestep_Map.h \
+  Date.h Condition.h Population.h Random.h Condition_List.h
+Vector_Layer.o: Vector_Layer.cc Household.h Global.h Tracker.h Utils.h \
+  Hospital.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Mixing_Group.h Person.h \
+  Demographics.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Epidemic.h \
+  Neighborhood_Layer.h Abstract_Grid.h Neighborhood_Patch.h \
+  Abstract_Patch.h Place_List.h Census_Tract.h Neighborhood.h School.h \
+  Workplace.h Random.h Regional_Layer.h Regional_Patch.h Vector_Layer.h \
+  Vector_Patch.h Visualization_Layer.h
+Vector_Patch.o: Vector_Patch.cc Vector_Patch.h Global.h Tracker.h Utils.h \
+  Abstract_Patch.h Vector_Layer.h Abstract_Grid.h Geo.h \
+  Neighborhood_Patch.h Place.h Mixing_Group.h Person.h Demographics.h \
+  Health.h Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Random.h
+Person.o: Person.cc Person.h Demographics.h Global.h Tracker.h Utils.h \
+  Health.h Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Classroom.h Place.h Geo.h \
+  Mixing_Group.h Household.h Hospital.h Neighborhood.h Office.h \
+  Population.h Random.h School.h Workplace.h
+Activities.o: Activities.cc Activities.h Condition_List.h Global.h \
+  Tracker.h Utils.h Person_Network_Link.h Person_Place_Link.h Behavior.h \
+  Classroom.h Place.h Geo.h Mixing_Group.h Person.h Demographics.h \
+  Health.h Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Date.h County.h Household.h Hospital.h Manager.h \
+  Neighborhood.h Neighborhood_Layer.h Abstract_Grid.h \
+  Neighborhood_Patch.h Abstract_Patch.h Network.h Office.h Place_List.h \
+  Census_Tract.h School.h Workplace.h Random.h Travel.h \
+  Vaccine_Manager.h
+Person_Place_Link.o: Person_Place_Link.cc Person_Place_Link.h Place.h \
+  Geo.h Global.h Tracker.h Utils.h Mixing_Group.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h
+Demographics.o: Demographics.cc County.h Demographics.h Global.h \
+  Tracker.h Utils.h Events.h Population.h Age_Map.h Params.h Person.h \
+  Health.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Random.h Date.h Place_List.h Census_Tract.h \
+  Household.h Hospital.h Mixing_Group.h Place.h Geo.h Neighborhood.h \
+  School.h Workplace.h
+Health.o: Health.cc Age_Map.h Global.h Tracker.h Utils.h Params.h \
+  Antiviral.h AV_Health.h Random.h AV_Manager.h Antivirals.h Manager.h \
+  Date.h Condition.h Condition_List.h Epidemic.h Person.h Demographics.h \
+  Health.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Person_Network_Link.h Person_Place_Link.h Place.h Geo.h \
+  Mixing_Group.h Evolution.h Household.h Hospital.h Place_List.h \
+  Census_Tract.h Neighborhood.h School.h Workplace.h Population.h \
+  Sexual_Transmission_Network.h Network.h Vaccine.h Vaccine_Dose.h \
+  Vaccine_Health.h Vaccine_Manager.h
+Behavior.o: Behavior.cc Global.h Tracker.h Utils.h Behavior.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Intention.h Random.h \
+  Place_List.h Census_Tract.h Household.h Hospital.h Mixing_Group.h \
+  Place.h Geo.h Neighborhood.h School.h Workplace.h
+Intention.o: Intention.cc Intention.h Global.h Tracker.h Utils.h Random.h \
+  Behavior.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Perceptions.h
+Perceptions.o: Perceptions.cc Condition.h Condition_List.h Epidemic.h \
+  Global.h Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Person_Network_Link.h Person_Place_Link.h Place.h Geo.h \
+  Mixing_Group.h Household.h Hospital.h Perceptions.h Random.h
+Travel.o: Travel.cc Global.h Tracker.h Utils.h Events.h Params.h Random.h \
+  Geo.h Travel.h Person.h Demographics.h Health.h Age_Map.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h \
+  Place_List.h Census_Tract.h Household.h Hospital.h Mixing_Group.h \
+  Place.h Neighborhood.h School.h Workplace.h
+Population.o: Population.cc Activities.h Condition_List.h Global.h \
+  Tracker.h Utils.h Person_Network_Link.h Person_Place_Link.h Age_Map.h \
+  Params.h AV_Manager.h Antivirals.h Manager.h Behavior.h Date.h \
+  Demographics.h Condition.h Evolution.h Geo.h Health.h Infection.h \
+  Natural_History.h Past_Infection.h Household.h Hospital.h \
+  Mixing_Group.h Person.h Place.h Place_List.h Census_Tract.h \
+  Neighborhood.h School.h Workplace.h Population.h Random.h Travel.h \
+  Vaccine_Manager.h
+Person_Network_Link.o: Person_Network_Link.cc Network.h Mixing_Group.h \
+  Global.h Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+Disease.o: Disease.cc Age_Map.h Global.h Tracker.h Utils.h Params.h \
+  Disease.h Epidemic.h Person.h Demographics.h Health.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h Place.h \
+  Geo.h Mixing_Group.h Evolution.h EvolutionFactory.h Household.h \
+  Hospital.h Place_List.h Census_Tract.h Neighborhood.h School.h \
+  Workplace.h Population.h Random.h Seasonality.h Abstract_Grid.h \
+  Seasonality_Timestep_Map.h Timestep_Map.h Date.h Transmission.h
+Epidemic.o: Epidemic.cc Classroom.h Place.h Geo.h Global.h Tracker.h \
+  Utils.h Mixing_Group.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Date.h Epidemic.h Events.h HIV_Epidemic.h \
+  Hospital.h Household.h Markov_Epidemic.h Neighborhood_Layer.h \
+  Abstract_Grid.h Office.h Place_List.h Census_Tract.h Neighborhood.h \
+  School.h Workplace.h Population.h Random.h \
+  Sexual_Transmission_Network.h Network.h Transmission.h Vector_Layer.h \
+  Neighborhood_Patch.h Abstract_Patch.h
+Infection.o: Infection.cc Condition.h Global.h Tracker.h Utils.h \
+  HIV_Infection.h Infection.h Natural_History.h Markov_Infection.h \
+  Household.h Hospital.h Health.h Age_Map.h Params.h Past_Infection.h \
+  Mixing_Group.h Person.h Demographics.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h Place.h \
+  Geo.h Neighborhood_Patch.h Abstract_Patch.h Place_List.h \
+  Census_Tract.h Neighborhood.h School.h Workplace.h Random.h
+Natural_History.o: Natural_History.cc Natural_History.h Age_Map.h \
+  Global.h Tracker.h Utils.h Params.h Markov_Natural_History.h \
+  HIV_Natural_History.h Condition.h Evolution.h EvolutionFactory.h \
+  Person.h Demographics.h Health.h Infection.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Random.h
+Transmission.o: Transmission.cc Transmission.h Respiratory_Transmission.h \
+  Sexual_Transmission.h Vector_Transmission.h Global.h Tracker.h Utils.h \
+  Params.h
+Respiratory_Transmission.o: Respiratory_Transmission.cc \
+  Respiratory_Transmission.h Transmission.h Date.h Condition.h \
+  Condition_List.h Epidemic.h Global.h Tracker.h Utils.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Mixing_Group.h \
+  Household.h Hospital.h Random.h
+Sexual_Transmission.o: Sexual_Transmission.cc Condition.h Epidemic.h \
+  Global.h Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Mixing_Group.h Network.h Random.h \
+  Sexual_Transmission.h Transmission.h Sexual_Transmission_Network.h
+Vector_Transmission.o: Vector_Transmission.cc Date.h Condition.h \
+  Condition_List.h Epidemic.h Global.h Tracker.h Utils.h Person.h \
+  Demographics.h Health.h Age_Map.h Params.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Mixing_Group.h \
+  Random.h Vector_Layer.h Abstract_Grid.h Neighborhood_Patch.h \
+  Abstract_Patch.h Vector_Transmission.h Transmission.h
+Past_Infection.o: Past_Infection.cc Past_Infection.h Global.h Tracker.h \
+  Utils.h Condition.h Strain.h Epidemic.h Person.h Demographics.h \
+  Health.h Age_Map.h Params.h Infection.h Natural_History.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Mixing_Group.h
+Strain.o: Strain.cc Strain.h Global.h Tracker.h Utils.h Epidemic.h \
+  Person.h Demographics.h Health.h Age_Map.h Params.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h Place.h \
+  Geo.h Mixing_Group.h Population.h Random.h Timestep_Map.h
+StrainTable.o: StrainTable.cc StrainTable.h Global.h Tracker.h Utils.h \
+  Strain.h Epidemic.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Mixing_Group.h
+Trajectory.o: Trajectory.cc Trajectory.h Global.h Tracker.h Utils.h \
+  Params.h Random.h
+Disease_List.o: Disease_List.cc Disease_List.h Disease.h \
+  Natural_History.h Global.h Tracker.h Utils.h Params.h
+HIV_Epidemic.o: HIV_Epidemic.cc HIV_Epidemic.h Epidemic.h Global.h \
+  Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Mixing_Group.h HIV_Natural_History.h
+HIV_Infection.o: HIV_Infection.cc HIV_Infection.h Infection.h \
+  Natural_History.h HIV_Natural_History.h Condition.h Global.h Tracker.h \
+  Utils.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Mixing_Group.h
+HIV_Natural_History.o: HIV_Natural_History.cc HIV_Natural_History.h \
+  Natural_History.h Condition.h Params.h Person.h Demographics.h \
+  Global.h Tracker.h Utils.h Health.h Age_Map.h Infection.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Random.h
+Markov_Epidemic.o: Markov_Epidemic.cc Events.h Date.h Condition.h \
+  Global.h Tracker.h Utils.h Health.h Age_Map.h Params.h Infection.h \
+  Natural_History.h Past_Infection.h Markov_Epidemic.h Epidemic.h \
+  Person.h Demographics.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Mixing_Group.h \
+  Markov_Natural_History.h Markov_Chain.h Population.h Place_List.h \
+  Census_Tract.h Household.h Hospital.h Neighborhood.h School.h \
+  Workplace.h Random.h
+Markov_Infection.o: Markov_Infection.cc Markov_Infection.h Infection.h \
+  Natural_History.h Markov_Natural_History.h Condition.h Epidemic.h \
+  Global.h Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Mixing_Group.h
+Markov_Natural_History.o: Markov_Natural_History.cc Condition.h Global.h \
+  Tracker.h Utils.h Markov_Natural_History.h Natural_History.h \
+  Markov_Chain.h Params.h
+Mixing_Group.o: Mixing_Group.cc Mixing_Group.h Global.h Tracker.h Utils.h \
+  Person.h Demographics.h Health.h Age_Map.h Params.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h
+Place.o: Place.cc Place.h Geo.h Global.h Tracker.h Utils.h Mixing_Group.h \
+  Person.h Demographics.h Health.h Age_Map.h Params.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h Date.h \
+  Household.h Hospital.h Neighborhood.h Neighborhood_Layer.h \
+  Abstract_Grid.h Neighborhood_Patch.h Abstract_Patch.h Random.h \
+  Seasonality.h Seasonality_Timestep_Map.h Timestep_Map.h Population.h \
+  Vector_Layer.h
+Household.o: Household.cc Household.h Global.h Tracker.h Utils.h \
+  Hospital.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Mixing_Group.h Person.h \
+  Demographics.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Place.h Geo.h Random.h \
+  Regional_Layer.h Abstract_Grid.h Neighborhood_Layer.h \
+  Neighborhood_Patch.h Abstract_Patch.h Population.h
+Neighborhood.o: Neighborhood.cc Neighborhood.h Place.h Geo.h Global.h \
+  Tracker.h Utils.h Mixing_Group.h Person.h Demographics.h Health.h \
+  Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Random.h
+School.o: School.cc Classroom.h Place.h Geo.h Global.h Tracker.h Utils.h \
+  Mixing_Group.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Date.h Place_List.h Census_Tract.h Household.h \
+  Hospital.h Neighborhood.h School.h Workplace.h Population.h Random.h
+Classroom.o: Classroom.cc Classroom.h Place.h Geo.h Global.h Tracker.h \
+  Utils.h Mixing_Group.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Random.h School.h
+Workplace.o: Workplace.cc Workplace.h Place.h Geo.h Global.h Tracker.h \
+  Utils.h Mixing_Group.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Random.h Place_List.h Census_Tract.h Household.h \
+  Hospital.h Neighborhood.h School.h Population.h Office.h
+Office.o: Office.cc Office.h Place.h Geo.h Global.h Tracker.h Utils.h \
+  Mixing_Group.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Random.h Workplace.h
+Hospital.o: Hospital.cc Condition.h Condition_List.h Global.h Tracker.h \
+  Utils.h Hospital.h Health.h Age_Map.h Params.h Infection.h \
+  Natural_History.h Past_Infection.h Mixing_Group.h Person.h \
+  Demographics.h Behavior.h Activities.h Person_Network_Link.h \
+  Person_Place_Link.h Place.h Geo.h Place_List.h Census_Tract.h \
+  Household.h Neighborhood.h School.h Workplace.h Random.h
+Place_List.o: Place_List.cc Census_Tract.h Classroom.h Place.h Geo.h \
+  Global.h Tracker.h Utils.h Mixing_Group.h Person.h Demographics.h \
+  Health.h Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h County.h Date.h Hospital.h \
+  Household.h Neighborhood.h Neighborhood_Layer.h Abstract_Grid.h \
+  Neighborhood_Patch.h Abstract_Patch.h Office.h Place_List.h School.h \
+  Workplace.h Population.h Regional_Layer.h Regional_Patch.h Random.h \
+  Seasonality.h Seasonality_Timestep_Map.h Timestep_Map.h Travel.h \
+  Visualization_Layer.h Place_List_Quality_Control.cc
+Network.o: Network.cc Network.h Mixing_Group.h Global.h Tracker.h Utils.h \
+  Person.h Demographics.h Health.h Age_Map.h Params.h Condition.h \
+  Infection.h Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h Random.h \
+  Population.h
+Sexual_Transmission_Network.o: Sexual_Transmission_Network.cc \
+  Sexual_Transmission_Network.h Network.h Mixing_Group.h Global.h \
+  Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Place_List.h Census_Tract.h Household.h Hospital.h \
+  Place.h Geo.h Neighborhood.h School.h Workplace.h Random.h \
+  Population.h
+Decision.o: Decision.cc Policy.h Decision.h
+Policy.o: Policy.cc Policy.h Decision.h Manager.h
+Manager.o: Manager.cc Manager.h Policy.h Person.h Demographics.h Global.h \
+  Tracker.h Utils.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Behavior.h Activities.h \
+  Condition_List.h Person_Network_Link.h Person_Place_Link.h
+Antiviral.o: Antiviral.cc Antiviral.h Global.h Tracker.h Utils.h \
+  AV_Health.h Random.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Population.h
+Antivirals.o: Antivirals.cc Antivirals.h Antiviral.h Global.h Tracker.h \
+  Utils.h Params.h Person.h Demographics.h Health.h Age_Map.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+AV_Decisions.o: AV_Decisions.cc AV_Decisions.h AV_Policies.h Policy.h \
+  Decision.h Manager.h AV_Manager.h Antivirals.h Antiviral.h Global.h \
+  Tracker.h Utils.h Random.h Person.h Demographics.h Health.h Age_Map.h \
+  Params.h Condition.h Infection.h Natural_History.h Past_Infection.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+AV_Policies.o: AV_Policies.cc Decision.h AV_Policies.h Policy.h \
+  AV_Decisions.h Manager.h AV_Manager.h Antivirals.h
+AV_Manager.o: AV_Manager.cc Global.h Tracker.h Utils.h Manager.h \
+  AV_Manager.h Antivirals.h Policy.h AV_Policies.h Population.h \
+  Antiviral.h Params.h Person.h Demographics.h Health.h Age_Map.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+AV_Health.o: AV_Health.cc Random.h Global.h Tracker.h Utils.h AV_Health.h \
+  Antiviral.h Health.h Age_Map.h Params.h Condition.h Infection.h \
+  Natural_History.h Past_Infection.h Person.h Demographics.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+Vaccine_Health.o: Vaccine_Health.cc Random.h Global.h Tracker.h Utils.h \
+  Vaccine_Health.h Population.h Vaccine.h Condition.h Condition_List.h \
+  Vaccine_Dose.h Age_Map.h Params.h Vaccine_Manager.h Manager.h Health.h \
+  Infection.h Natural_History.h Past_Infection.h Person.h Demographics.h \
+  Behavior.h Activities.h Person_Network_Link.h Person_Place_Link.h
+Vaccine_Dose.o: Vaccine_Dose.cc Vaccine_Dose.h Global.h Tracker.h Utils.h \
+  Age_Map.h Params.h Random.h
+Vaccine.o: Vaccine.cc Vaccine.h Global.h Tracker.h Utils.h Vaccine_Dose.h \
+  Age_Map.h Params.h
+Vaccines.o: Vaccines.cc Vaccines.h Vaccine.h Global.h Tracker.h Utils.h \
+  Vaccine_Dose.h Age_Map.h Params.h Random.h
+Vaccine_Priority_Decisions.o: Vaccine_Priority_Decisions.cc \
+  Vaccine_Priority_Decisions.h Decision.h Vaccine_Priority_Policies.h \
+  Policy.h Manager.h Vaccine_Manager.h Vaccines.h Random.h Global.h \
+  Tracker.h Utils.h Person.h Demographics.h Health.h Age_Map.h Params.h \
+  Condition.h Infection.h Natural_History.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+Vaccine_Priority_Policies.o: Vaccine_Priority_Policies.cc Decision.h \
+  Vaccine_Priority_Policies.h Policy.h Vaccine_Priority_Decisions.h \
+  Manager.h Vaccine_Manager.h
+Vaccine_Manager.o: Vaccine_Manager.cc Manager.h Vaccine_Manager.h \
+  Policy.h Vaccine_Priority_Policies.h Population.h Global.h Tracker.h \
+  Utils.h Vaccines.h Vaccine.h Person.h Demographics.h Health.h \
+  Age_Map.h Params.h Condition.h Infection.h Natural_History.h \
+  Past_Infection.h Behavior.h Activities.h Condition_List.h \
+  Person_Network_Link.h Person_Place_Link.h Random.h Timestep_Map.h
+EvolutionFactory.o: EvolutionFactory.cc EvolutionFactory.h Evolution.h \
+  MSEvolution.h Utils.h
+Evolution.o: Evolution.cc Evolution.h Global.h Tracker.h Utils.h \
+  Infection.h Natural_History.h Person.h Demographics.h Health.h \
+  Age_Map.h Params.h Condition.h Past_Infection.h Behavior.h \
+  Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h
+MSEvolution.o: MSEvolution.cc Age_Map.h Global.h Tracker.h Utils.h \
+  Params.h MSEvolution.h Evolution.h Past_Infection.h Person.h \
+  Demographics.h Health.h Condition.h Infection.h Natural_History.h \
+  Behavior.h Activities.h Condition_List.h Person_Network_Link.h \
+  Person_Place_Link.h Piecewise_Linear.h
+Piecewise_Linear.o: Piecewise_Linear.cc Global.h Tracker.h Utils.h \
+  Piecewise_Linear.h Params.h Condition.h

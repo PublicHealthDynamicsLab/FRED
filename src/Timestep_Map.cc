@@ -44,7 +44,7 @@ Timestep_Map::Timestep_Map(string _name){
   
   char map_file_param[255];
   // Need Special parsing if this is an array from input
-  // Allows for Disease specific values
+  // Allows for Condition specific values
   if(name.find("[") != string::npos) {
     string name_tmp;
     string number;

@@ -18,28 +18,32 @@
 #define _FRED_SEXUAL_TRANSMISSION_NETWORK_H
 
 #include "Network.h"
+class Condition;
 
 class Sexual_Transmission_Network : public Network {
 public: 
   Sexual_Transmission_Network(const char* lab);
   ~Sexual_Transmission_Network() {}
 
-  static void get_parameters();
+  void get_parameters();
 
-  static double get_sexual_contacts_per_day() {
-    return Sexual_Transmission_Network::sexual_contacts_per_day;
+  double get_sexual_contacts_per_day() {
+    return this->sexual_contacts_per_day;
   }
 
-  static double get_sexual_transmission_per_contact() {
-    return Sexual_Transmission_Network::sexual_transmission_per_contact;;
+  double get_sexual_transmission_per_contact() {
+    return this->probability_of_transmission_per_contact;
   }
 
   void setup();
 
-private:
-  static double sexual_contacts_per_day;
-  static double sexual_transmission_per_contact;
+  void read_sexual_partner_file(char* sexual_partner_file);
 
+  void add_person_to_sexual_partner_network(Person* person);
+
+private:
+  double sexual_contacts_per_day;
+  double probability_of_transmission_per_contact;
 };
 
 #endif // _FRED_SEXUAL_TRANSMISSION_NETWORK_H

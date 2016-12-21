@@ -151,15 +151,13 @@ void Vaccine_Manager::fill_queues() {
     return;
   }
   // We need to loop over the entire population that the Manager oversees to put them in a queue.
-  for(int ip = 0; ip < pop->get_index_size(); ip++) {
-    Person * current_person = this->pop->get_person_by_index(ip);
-    if (current_person != NULL) {
-      if(this->policies[current_policy]->choose_first_positive(current_person, 0, 0) == true) {
-	priority_queue.push_back(current_person);
-      } else {
-	if(this->vaccine_priority_only == false)
-	  this->queue.push_back(current_person);
-      }
+  for(int ip = 0; ip < pop->get_population_size(); ip++) {
+    Person * current_person = this->pop->get_person(ip);
+    if(this->policies[current_policy]->choose_first_positive(current_person, 0, 0) == true) {
+      priority_queue.push_back(current_person);
+    } else {
+      if(this->vaccine_priority_only == false)
+	this->queue.push_back(current_person);
     }
   }
 
@@ -339,7 +337,7 @@ void Vaccine_Manager::vaccinate(int day) {
     // printf("person = %d age = %.1f vacc_app = %d\n", current_person->get_id(), current_person->get_real_age(), vacc_app);
     if(vacc_app > -1) {
       bool accept_vaccine = false;
-      // STB need to refactor to work with multiple diseases
+      // STB need to refactor to work with multiple conditions
       if((this->vaccinate_symptomatics == false)
 	 && (current_person->get_health()->get_symptoms_start_date(0) != -1)
 	 && (day >= current_person->get_health()->get_symptoms_start_date(0))) {

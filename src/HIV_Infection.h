@@ -17,7 +17,7 @@
 
 #include "Infection.h"
 
-class Disease;
+class Condition;
 class Person;
 class Mixing_Group;
 
@@ -26,7 +26,7 @@ class HIV_Infection : public Infection {
  public:
 
   // if primary infection, infector and place are null.
-  HIV_Infection(Disease* disease, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
+  HIV_Infection(Condition* condition, Person* infector, Person* host, Mixing_Group* mixing_group, int day);
 
   ~HIV_Infection() {}
 

@@ -33,7 +33,7 @@ Vaccine_Priority_Decision_Specific_Age::Vaccine_Priority_Decision_Specific_Age(P
   policy = p;
 }
 
-int Vaccine_Priority_Decision_Specific_Age::evaluate(Person* person, int disease, int day){
+int Vaccine_Priority_Decision_Specific_Age::evaluate(Person* person, int condition, int day){
   Vaccine_Manager* vcm = dynamic_cast < Vaccine_Manager* >(policy->get_manager());
   int low_age = vcm->get_vaccine_priority_age_low();
   int high_age = vcm->get_vaccine_priority_age_high();
@@ -52,7 +52,7 @@ Vaccine_Priority_Decision_Pregnant::Vaccine_Priority_Decision_Pregnant(Policy *p
   policy = p;
 }
 
-int Vaccine_Priority_Decision_Pregnant::evaluate(Person* person, int disease, int day){
+int Vaccine_Priority_Decision_Pregnant::evaluate(Person* person, int condition, int day){
   if(person->get_demographics()->is_pregnant()) return 1;
   return -1;
 }
@@ -65,8 +65,8 @@ Vaccine_Priority_Decision_At_Risk::Vaccine_Priority_Decision_At_Risk(Policy *p):
   policy = p;
 }
 
-int Vaccine_Priority_Decision_At_Risk::evaluate(Person* person, int disease, int day){
-  if(person->get_health()->is_at_risk(disease)) return 1;
+int Vaccine_Priority_Decision_At_Risk::evaluate(Person* person, int condition, int day){
+  if(person->get_health()->is_at_risk(condition)) return 1;
   return -1;
 }
 
@@ -79,7 +79,7 @@ Vaccine_Priority_Decision_No_Priority::Vaccine_Priority_Decision_No_Priority(Pol
   policy=p;
 }
 
-int Vaccine_Priority_Decision_No_Priority::evaluate(Person* person, int disease, int day){  
+int Vaccine_Priority_Decision_No_Priority::evaluate(Person* person, int condition, int day){  
   return -1;
 }
 

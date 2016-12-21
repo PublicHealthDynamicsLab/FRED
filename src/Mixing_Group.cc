@@ -36,28 +36,28 @@ Mixing_Group::Mixing_Group(const char* lab) {
   // lists of people
   this->enrollees.clear();
 
-  // track whether or not place is infectious with each disease
+  // track whether or not place is infectious with each condition
   this->infectious_bitset.reset();
   this->human_infectious_bitset.reset();
   this->recovered_bitset.reset();
   this->exposed_bitset.reset();
   
-  int diseases = Global::Diseases.get_number_of_diseases();
-  this->infectious_people = new std::vector<Person*>[diseases];
+  int conditions = Global::Conditions.get_number_of_conditions();
+  this->infectious_people = new std::vector<Person*>[conditions];
 
   // epidemic counters
-  this->new_infections = new int[diseases];
-  this->current_infections = new int[diseases];
-  this->total_infections = new int[diseases];
-  this->new_symptomatic_infections = new int[diseases];
-  this->current_symptomatic_infections = new int[diseases];
-  this->total_symptomatic_infections = new int[diseases];
-  this->current_case_fatalities = new int[diseases];
-  this->total_case_fatalities = new int[diseases];
+  this->new_infections = new int[conditions];
+  this->current_infections = new int[conditions];
+  this->total_infections = new int[conditions];
+  this->new_symptomatic_infections = new int[conditions];
+  this->current_symptomatic_infections = new int[conditions];
+  this->total_symptomatic_infections = new int[conditions];
+  this->current_case_fatalities = new int[conditions];
+  this->total_case_fatalities = new int[conditions];
 
-  // zero out all disease-specific counts
+  // zero out all condition-specific counts
   this->last_update = 0;
-  for(int d = 0; d < diseases; ++d) {
+  for(int d = 0; d < conditions; ++d) {
     this->new_infections[d] = 0;
     this->current_infections[d] = 0;
     this->total_infections[d] = 0;
@@ -130,11 +130,11 @@ void Mixing_Group::unenroll(int pos) {
   FRED_VERBOSE(1, "UNENROLL mixing group %d %s size = %d\n", this->get_id(), this->get_label(), this->enrollees.size());
 }
 
-void Mixing_Group::print_infectious(int disease_id) {
-  printf("INFECTIOUS in Mixing_Group %s Disease %d: ", this->get_label(), disease_id);
-  int size = this->infectious_people[disease_id].size();
+void Mixing_Group::print_infectious(int condition_id) {
+  printf("INFECTIOUS in Mixing_Group %s Condition %d: ", this->get_label(), condition_id);
+  int size = this->infectious_people[condition_id].size();
   for(int i = 0; i < size; ++i) {
-    printf(" %d", this->infectious_people[disease_id][i]->get_id());
+    printf(" %d", this->infectious_people[condition_id][i]->get_id());
   }
   printf("\n");
 }
@@ -151,19 +151,19 @@ int Mixing_Group::get_adults() {
   return (this->enrollees.size() - this->get_children());
 }
 
-int Mixing_Group::get_recovereds(int disease_id) {
+int Mixing_Group::get_recovereds(int condition_id) {
   int count = 0;
   int size = this->enrollees.size();
   for(int i = 0; i < size; ++i) {
     Person* person = this->get_enrollee(i);
-    count += person->is_recovered(disease_id);
+    count += person->is_recovered(condition_id);
   }
   return count;
 }
 
-void Mixing_Group::add_infectious_person(int disease_id, Person* person) {
+void Mixing_Group::add_infectious_person(int condition_id, Person* person) {
   FRED_VERBOSE(1, "ADD_INF: person %d mix_group %s\n", person->get_id(), this->label);
-  this->infectious_people[disease_id].push_back(person);
+  this->infectious_people[condition_id].push_back(person);
 }
 
 void Mixing_Group::record_infectious_days(int day) {

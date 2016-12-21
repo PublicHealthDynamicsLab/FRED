@@ -18,11 +18,12 @@
 #include "Params.h"
 #include "Demographics.h"
 #include "Population.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 #include "Place_List.h"
 
 // global simulation variables
 char Global::Simulation_directory[FRED_STRING_SIZE];
+char Global::Visualization_directory[FRED_STRING_SIZE];
 int Global::Simulation_run_number = 1;
 unsigned long Global::Simulation_seed = 1;
 high_resolution_clock::time_point Global::Simulation_start_time = high_resolution_clock::now();
@@ -51,6 +52,7 @@ char Global::MSA_code[FRED_STRING_SIZE];
 
 char Global::ErrorLogbase[FRED_STRING_SIZE];
 bool Global::Enable_Behaviors = false;
+bool Global::Track_JSON_infection_events = false;
 bool Global::Track_age_distribution = false;
 bool Global::Track_household_distribution = false;
 bool Global::Track_network_stats = false;
@@ -59,6 +61,7 @@ bool Global::Report_Mean_Household_Income_Per_School = false;
 bool Global::Report_Mean_Household_Size_Per_School = false;
 bool Global::Report_Mean_Household_Distance_From_School = false;
 bool Global::Report_Mean_Household_Stats_Per_Income_Category = false;
+bool Global::Report_Epidemic_Data_By_County = false;
 bool Global::Report_Epidemic_Data_By_Census_Tract = false;
 int Global::Popsize_by_age[Demographics::MAX_AGE+1];
 
@@ -74,7 +77,7 @@ char Global::Start_date[FRED_STRING_SIZE];
 char Global::Seasonality_Timestep[FRED_STRING_SIZE];
 double Global::Work_absenteeism = 0.0;
 double Global::School_absenteeism = 0.0;
-bool Global::Enable_Health_Charts = false;
+bool Global::Enable_Health_Records = false;
 bool Global::Enable_Transmission_Network = false;
 bool Global::Enable_Sexual_Partner_Network = false;
 bool Global::Enable_Transmission_Bias = false;
@@ -131,7 +134,7 @@ bool Global::Report_Immunity = false;
 
 // global singleton objects
 Population Global::Pop;
-Disease_List Global::Diseases;
+Condition_List Global::Conditions;
 Place_List Global::Places;
 Neighborhood_Layer* Global::Neighborhoods = NULL;
 Regional_Layer* Global::Simulation_Region;
@@ -150,6 +153,7 @@ FILE* Global::Statusfp = NULL;
 FILE* Global::Outfp = NULL;
 FILE* Global::Tracefp = NULL;
 FILE* Global::Infectionfp = NULL;
+FILE* Global::InfectionJSONfp = NULL;
 FILE* Global::VaccineTracefp = NULL;
 FILE* Global::Birthfp = NULL;
 FILE* Global::Deathfp = NULL;
@@ -190,6 +194,8 @@ void Global::get_global_parameters() {
 
   Params::get_param_from_string("enable_behaviors", &temp_int);
   Global::Enable_Behaviors = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("track_JSON_infection_events", &temp_int);
+  Global::Track_JSON_infection_events = (temp_int == 0 ? false : true);
   Params::get_param_from_string("track_age_distribution", &temp_int);
   Global::Track_age_distribution = (temp_int == 0 ? false : true);
   Params::get_param_from_string("track_household_distribution", &temp_int);
@@ -204,8 +210,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Size_Per_School = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_mean_household_distance_from_school", &temp_int);
   Global::Report_Mean_Household_Distance_From_School = (temp_int == 0 ? false : true);
-  Params::get_param_from_string("enable_health_charts", &temp_int);
-  Global::Enable_Health_Charts = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("enable_health_records", &temp_int);
+  Global::Enable_Health_Records = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_transmission_network", &temp_int);
   Global::Enable_Transmission_Network = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_sexual_partner_network", &temp_int);
@@ -218,6 +224,8 @@ void Global::get_global_parameters() {
   Global::Report_Mean_Household_Stats_Per_Income_Category = (temp_int == 0 ? false : true);
   Params::get_param_from_string("report_epidemic_data_by_census_tract", &temp_int);
   Global::Report_Epidemic_Data_By_Census_Tract = (temp_int == 0 ? false : true);
+  Params::get_param_from_string("report_epidemic_data_by_county", &temp_int);
+  Global::Report_Epidemic_Data_By_County = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_hospitals", &temp_int);
   Global::Enable_Hospitals = (temp_int == 0 ? false : true);
   Params::get_param_from_string("enable_health_insurance", &temp_int);

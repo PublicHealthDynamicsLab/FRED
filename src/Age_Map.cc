@@ -55,7 +55,7 @@ void Age_Map::read_from_input(string input) {
 
   if(input.find("[") != string::npos) {
     // Need Special parsing if this is an array from input
-    // Allows Disease specific values
+    // Allows Condition specific values
     string input_tmp;
     string number;
     size_t found = input.find_first_of("[");

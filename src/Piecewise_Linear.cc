@@ -21,16 +21,16 @@
 using namespace std;
 
 Piecewise_Linear :: Piecewise_Linear() {
-  disease = NULL;
+  condition = NULL;
 }
 
-void Piecewise_Linear :: setup( string _name, Disease * _disease ) {
-  name = _name; disease = _disease;
+void Piecewise_Linear :: setup( string _name, Condition * _condition ) {
+  name = _name; condition = _condition;
   char param_name[ 255 ];
-  sprintf( param_name, "%s_dists[%d]", name.c_str(), disease->get_id() );
+  sprintf( param_name, "%s_dists[%d]", name.c_str(), condition->get_id() );
   Params::get_param_vector( param_name, ag_distances );
   
-  sprintf( param_name, "%s_probs[%d]", name.c_str(), disease->get_id());
+  sprintf( param_name, "%s_probs[%d]", name.c_str(), condition->get_id());
   Params::get_param_vector( param_name, probabilities );
   
   if ( quality_control() != true ){
@@ -40,11 +40,11 @@ void Piecewise_Linear :: setup( string _name, Disease * _disease ) {
 
 bool Piecewise_Linear :: quality_control() {
   bool return_value = true;
-  int disease_id = disease->get_id();
+  int condition_id = condition->get_id();
   if ( ag_distances.size() != probabilities.size() ) {
     FRED_WARNING("Error parsing %s[%d]: "
 		 "number of distances not equal to number of probabilities", 
-		 name.c_str(), disease_id);
+		 name.c_str(), condition_id);
     return_value = false;
   }
  
@@ -53,7 +53,7 @@ bool Piecewise_Linear :: quality_control() {
     if ( ag_distances[ i ] >= ag_distances[ i + 1 ] ) {
       FRED_WARNING("Error parsing %s[%d]: "
 		   "%s_distances[%d][%d] not smaller than %s_distances[%d][%d]", 
-		   name.c_str(), disease_id, i, name.c_str(), disease_id, i+1);
+		   name.c_str(), condition_id, i, name.c_str(), condition_id, i+1);
       return_value = false;
     }
   }
@@ -63,7 +63,7 @@ bool Piecewise_Linear :: quality_control() {
     if ( probabilities[ i ] > 1.0 || probabilities[ i ] < 0.0 ) {
       FRED_WARNING("Error parsing %s[%d]: "
 		   "%s_probabilities[%d][%d] not a valid probability", 
-		   name.c_str(), disease->get_id(), i);
+		   name.c_str(), condition->get_id(), i);
       return_value = false;
     }
   }

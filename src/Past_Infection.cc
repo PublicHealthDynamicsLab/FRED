@@ -15,7 +15,7 @@
 #include <iostream>
 
 #include "Past_Infection.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Strain.h"
 #include "Person.h"
 
@@ -39,5 +39,5 @@ void Past_Infection::report () {
 }
 
 string Past_Infection :: format_header() {
-  return "# person_id disease_id recovery_date age_at_exposure strain_id\n";
+  return "# person_id condition_id recovery_date age_at_exposure strain_id\n";
 }

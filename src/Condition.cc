@@ -11,7 +11,7 @@
 
 //
 //
-// File: Disease.cc
+// File: Condition.cc
 //
 #include <stdio.h>
 #include <new>
@@ -22,7 +22,7 @@
 using namespace std;
 
 #include "Age_Map.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Epidemic.h"
 #include "Evolution.h"
 #include "EvolutionFactory.h"
@@ -39,7 +39,7 @@ using namespace std;
 #include "Timestep_Map.h"
 #include "Transmission.h"
 
-Disease::Disease() {
+Condition::Condition() {
   this->id = -1;
   this->transmissibility = -1.0;
   this->residual_immunity = NULL;
@@ -68,13 +68,18 @@ Disease::Disease() {
   this->make_all_susceptible = true;
 }
 
-Disease::~Disease() {
+Condition::~Condition() {
+
+  delete this->natural_history;
   delete this->epidemic;
-  delete this->residual_immunity;
+
+  if (this->residual_immunity != NULL) {
+    delete this->residual_immunity;
+  }
+
   if (this->at_risk != NULL) {
     delete this->at_risk;
   }
-  delete this->natural_history;
 
   if(this->hospitalization_prob != NULL) {
     delete this->hospitalization_prob;
@@ -85,41 +90,47 @@ Disease::~Disease() {
   }
 }
 
-void Disease::get_parameters(int disease_id, string name) {
+void Condition::get_parameters(int condition_id, string name) {
   char paramstr[256];
 
-  // set disease id
-  this->id = disease_id;
+  // set condition id
+  this->id = condition_id;
   
-  // set disease name
-  strcpy(this->disease_name, name.c_str());
+  // set condition name
+  strcpy(this->condition_name, name.c_str());
 
-  FRED_VERBOSE(0, "disease %d %s read_parameters entered\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s read_parameters entered\n", this->id, this->condition_name);
   
   // contagiousness
   // Note: the following tries first to find "trans" but falls back to "transmissibility":
   Params::disable_abort_on_failure();
-  int found = Params::get_indexed_param(this->disease_name, "trans", &(this->transmissibility));
+  int found = Params::get_indexed_param(this->condition_name, "trans", &(this->transmissibility));
   Params::set_abort_on_failure();
   if (found == 0) {
-    Params::get_indexed_param(this->disease_name, "transmissibility", &(this->transmissibility));
+    Params::get_indexed_param(this->condition_name, "transmissibility", &(this->transmissibility));
   }
   
   // type of natural history and transmission mode
-  Params::get_indexed_param(this->disease_name, "natural_history_model", this->natural_history_model);
+  Params::get_indexed_param(this->condition_name, "natural_history_model", this->natural_history_model);
   if (this->transmissibility > 0.0) {
-    Params::get_indexed_param(this->disease_name, "transmission_mode", this->transmission_mode);
+    Params::get_indexed_param(this->condition_name, "transmission_mode", this->transmission_mode);
   }
   
   // optional parameters:
   Params::disable_abort_on_failure();
   int n = 1;
-  Params::get_indexed_param(this->disease_name, "make_all_susceptible", &n);
+  Params::get_indexed_param(this->condition_name, "make_all_susceptible", &n);
   this->make_all_susceptible = n ? true : false;
+
+  // default is to generate an infection for the condition
+  n = 1;
+  Params::get_indexed_param(this->condition_name, "generates_infection", &n);
+  this->generates_infection = n ? true : false;
+
   Params::set_abort_on_failure();
 
 
-  // convenience parameters (for single disease simulations only)
+  // convenience parameters (for single condition simulations only)
   if (this->id == 0) {
     Params::get_param_from_string("R0", &this->R0);
     Params::get_param_from_string("R0_a", &this->R0_a);
@@ -131,52 +142,52 @@ void Disease::get_parameters(int disease_id, string name) {
 
   // variation over time of year
   if(Global::Enable_Climate) {
-    Params::get_indexed_param(this->disease_name, "seasonality_multiplier_min",
+    Params::get_indexed_param(this->condition_name, "seasonality_multiplier_min",
 			      &(this->seasonality_min));
-    Params::get_indexed_param(this->disease_name, "seasonality_multiplier_max",
+    Params::get_indexed_param(this->condition_name, "seasonality_multiplier_max",
 			      &(this->seasonality_max));
-    Params::get_indexed_param(this->disease_name, "seasonality_multiplier_Ka",
+    Params::get_indexed_param(this->condition_name, "seasonality_multiplier_Ka",
 			      &(this->seasonality_Ka)); // Ka = -180 by default
     this->seasonality_Kb = log(this->seasonality_max - this->seasonality_min);
   }
 
   //Hospitalization and Healthcare parameters
   if(Global::Enable_Hospitals) {
-    Params::get_indexed_param(this->disease_name, "min_symptoms_for_seek_healthcare",
+    Params::get_indexed_param(this->condition_name, "min_symptoms_for_seek_healthcare",
 			      &(this->min_symptoms_for_seek_healthcare));
     this->hospitalization_prob = new Age_Map("Hospitalization Probability");
-    sprintf(paramstr, "%s_hospitalization_prob", this->disease_name);
+    sprintf(paramstr, "%s_hospitalization_prob", this->condition_name);
     this->hospitalization_prob->read_from_input(paramstr);
     this->outpatient_healthcare_prob = new Age_Map("Outpatient Healthcare Probability");
-    sprintf(paramstr, "%s_outpatient_healthcare_prob", this->disease_name);
+    sprintf(paramstr, "%s_outpatient_healthcare_prob", this->condition_name);
     this->outpatient_healthcare_prob->read_from_input(paramstr);
   }
 
   // protective behavior efficacy parameters
   Params::get_param_from_string("enable_face_mask_usage", &(this->enable_face_mask_usage));
   if(this->enable_face_mask_usage) {
-    Params::get_indexed_param(this->disease_name, "face_mask_transmission_efficacy",
+    Params::get_indexed_param(this->condition_name, "face_mask_transmission_efficacy",
 			      &(this->face_mask_transmission_efficacy));
-    Params::get_indexed_param(this->disease_name, "face_mask_susceptibility_efficacy",
+    Params::get_indexed_param(this->condition_name, "face_mask_susceptibility_efficacy",
 			      &(this->face_mask_susceptibility_efficacy));
   }
   Params::get_param_from_string("enable_hand_washing", &(this->enable_hand_washing));
   if(this->enable_hand_washing) {
-    Params::get_indexed_param(this->disease_name, "hand_washing_transmission_efficacy",
+    Params::get_indexed_param(this->condition_name, "hand_washing_transmission_efficacy",
 			      &(this->hand_washing_transmission_efficacy));
-    Params::get_indexed_param(this->disease_name, "hand_washing_susceptibility_efficacy",
+    Params::get_indexed_param(this->condition_name, "hand_washing_susceptibility_efficacy",
 			      &(this->hand_washing_susceptibility_efficacy));
   }
   if(this->enable_face_mask_usage && this->enable_hand_washing) {
-    Params::get_indexed_param(this->disease_name, "face_mask_plus_hand_washing_transmission_efficacy",
+    Params::get_indexed_param(this->condition_name, "face_mask_plus_hand_washing_transmission_efficacy",
 			      &(this->face_mask_plus_hand_washing_transmission_efficacy));
-    Params::get_indexed_param(this->disease_name, "face_mask_plus_hand_washing_susceptibility_efficacy",
+    Params::get_indexed_param(this->condition_name, "face_mask_plus_hand_washing_susceptibility_efficacy",
 			      &(this->face_mask_plus_hand_washing_susceptibility_efficacy));
   }
 
   // Define residual immunity
   this->residual_immunity = new Age_Map("Residual Immunity");
-  sprintf(paramstr, "%s_residual_immunity", this->disease_name);
+  sprintf(paramstr, "%s_residual_immunity", this->condition_name);
   this->residual_immunity->read_from_input(paramstr);
 
   // use params "Immunization" to override the residual immunity for
@@ -207,16 +218,16 @@ void Disease::get_parameters(int disease_id, string name) {
   // Define at risk people
   if (Global::Enable_Vaccination) {
     this->at_risk = new Age_Map("At Risk Population");
-    sprintf(paramstr, "%s_at_risk", this->disease_name);
+    sprintf(paramstr, "%s_at_risk", this->condition_name);
     this->at_risk->read_from_input(paramstr);
   }
 
-  FRED_VERBOSE(0, "disease %d %s read_parameters finished\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s read_parameters finished\n", this->id, this->condition_name);
 }
 
-void Disease::setup() {
+void Condition::setup() {
 
-  FRED_VERBOSE(0, "disease %d %s setup entered\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s setup entered\n", this->id, this->condition_name);
 
   // Initialize Natural History Model
   this->natural_history = Natural_History::get_new_natural_history(this->natural_history_model);
@@ -237,41 +248,41 @@ void Disease::setup() {
   this->epidemic = Epidemic::get_epidemic(this);
   this->epidemic->setup();
 
-  FRED_VERBOSE(0, "disease %d %s setup finished\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s setup finished\n", this->id, this->condition_name);
 }
 
-void Disease::prepare() {
+void Condition::prepare() {
 
-  FRED_VERBOSE(0, "disease %d %s prepare entered\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s prepare entered\n", this->id, this->condition_name);
 
   // final prep for epidemic
   this->epidemic->prepare();
 
-  FRED_VERBOSE(0, "disease %d %s prepare finished\n", this->id, this->disease_name);
+  FRED_VERBOSE(0, "condition %d %s prepare finished\n", this->id, this->condition_name);
 }
 
-double Disease::get_attack_rate() {
+double Condition::get_attack_rate() {
   return this->epidemic->get_attack_rate();
 }
 
-double Disease::get_symptomatic_attack_rate() {
+double Condition::get_symptomatic_attack_rate() {
   return this->epidemic->get_symptomatic_attack_rate();
 }
 
-double Disease::calculate_climate_multiplier(double seasonality_value) {
+double Condition::calculate_climate_multiplier(double seasonality_value) {
   return exp(((this->seasonality_Ka* seasonality_value) + this->seasonality_Kb))
     + this->seasonality_min;
 }
 
-double Disease::get_hospitalization_prob(Person* per) {
+double Condition::get_hospitalization_prob(Person* per) {
   return this->hospitalization_prob->find_value(per->get_real_age());
 }
 
-double Disease::get_outpatient_healthcare_prob(Person* per) {
+double Condition::get_outpatient_healthcare_prob(Person* per) {
   return this->outpatient_healthcare_prob->find_value(per->get_real_age());
 }
 
-void Disease::read_residual_immunity_by_FIPS() {  
+void Condition::read_residual_immunity_by_FIPS() {  
   //Params::get_param_from_string("residual_immunity_by_FIPS_file", Global::Residual_Immunity_File);
   char fips_string[FRED_STRING_SIZE];
   int fips_int;
@@ -295,44 +306,44 @@ void Disease::read_residual_immunity_by_FIPS() {
   }
 }
 
-vector<double> Disease::get_residual_immunity_values_by_FIPS(int FIPS_int) {
+vector<double> Condition::get_residual_immunity_values_by_FIPS(int FIPS_int) {
   return residual_immunity_by_FIPS[FIPS_int];
 }
 
-void Disease::print_stats(int day) {
-  this->epidemic->print_stats(day);
+void Condition::report(int day) {
+  this->epidemic->report(day);
 }
 
 
-void Disease::increment_cohort_infectee_count(int day) {
+void Condition::increment_cohort_infectee_count(int day) {
   this->epidemic->increment_cohort_infectee_count(day);
 }
  
-void Disease::update(int day) {
+void Condition::update(int day) {
   this->epidemic->update(day);
 }
 
-void Disease::terminate_person(Person* person, int day) {
+void Condition::terminate_person(Person* person, int day) {
   this->epidemic->terminate_person(person, day);
 }
 
-void Disease::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
+void Condition::become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic) {
   this->epidemic->become_immune(person, susceptible, infectious, symptomatic);
 }
 
-bool Disease::is_case_fatality_enabled() {
+bool Condition::is_case_fatality_enabled() {
   return this->natural_history->is_case_fatality_enabled();
 }
 
-bool Disease::is_fatal(double real_age, double symptoms, int days_symptomatic) {
+bool Condition::is_fatal(double real_age, double symptoms, int days_symptomatic) {
   return this->natural_history->is_fatal(real_age, symptoms, days_symptomatic);
 }
 
-bool Disease::is_fatal(Person* per, double symptoms, int days_symptomatic) {
+bool Condition::is_fatal(Person* per, double symptoms, int days_symptomatic) {
   return this->natural_history->is_fatal(per, symptoms, days_symptomatic);
 }
 
-void Disease::end_of_run() {
+void Condition::end_of_run() {
   this->epidemic->end_of_run();
   this->natural_history->end_of_run();
 }

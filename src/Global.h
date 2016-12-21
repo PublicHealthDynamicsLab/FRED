@@ -51,7 +51,7 @@ using namespace std::chrono;
 #define FRED_FIPS_LIST_SIZE 1000
 
 class Population;
-class Disease_List;
+class Condition_List;
 class Network;
 class Place;
 class Place_List;
@@ -99,10 +99,10 @@ public:
   static const int ADULT_AGE = 18;
   static const int SCHOOL_AGE = 5;
   static const int RETIREMENT_AGE = 67;
-  // MAX_NUM_DISEASES sets the size of stl::bitsets and static arrays used throughout FRED
-  // to store disease-specific flags and pointers; set to the visualizationest possible value 
+  // MAX_NUM_CONDITIONS sets the size of stl::bitsets and static arrays used throughout FRED
+  // to store condition-specific flags and pointers; set to the visualizationest possible value 
   // for optimal performance and memory usage
-  static const int MAX_NUM_DISEASES = 4;
+  static const int MAX_NUM_CONDITIONS = 4;
   // Change this constant and recompile to allow more threads.  For efficiency should be
   // equal to OMP_NUM_THREADS value that will be used.  If OMP_NUM_THREADS greater than
   // MAX_NUM_THREADS is used, FRED will abort the run.
@@ -132,7 +132,7 @@ public:
   static const int HOUSEMATE = 9;
   static const int PARTNER = 10;
   static const int FOSTER_CHILD = 11;
-  static const int OTHER_NON_RELATIVE = 13;
+  static const int OTHER_NON_RELATIVE = 12;
   static const int INSTITUTIONALIZED_GROUP_QUARTERS_POP = 13;
   static const int NONINSTITUTIONALIZED_GROUP_QUARTERS_POP = 14;
 
@@ -176,6 +176,7 @@ public:
 
   // global simulation variables
   static char Simulation_directory[FRED_STRING_SIZE];
+  static char Visualization_directory[FRED_STRING_SIZE];
   static int Simulation_run_number;
   static unsigned long Simulation_seed;
   static high_resolution_clock::time_point Simulation_start_time;
@@ -206,6 +207,7 @@ public:
   static char ErrorLogbase[];
   static bool Enable_Behaviors;
   static int Track_infection_events;
+  static bool Track_JSON_infection_events;
   static bool Track_age_distribution;
   static bool Track_household_distribution;
   static bool Track_network_stats;
@@ -215,6 +217,7 @@ public:
   static bool Report_Mean_Household_Distance_From_School;
   static bool Report_Mean_Household_Stats_Per_Income_Category;
   static bool Report_Epidemic_Data_By_Census_Tract;
+  static bool Report_Epidemic_Data_By_County;
   static int Verbose;
   static int Debug;
   static int Test;
@@ -229,7 +232,7 @@ public:
   static double School_absenteeism;
 
   //Boolean flags
-  static bool Enable_Health_Charts;
+  static bool Enable_Health_Records;
   static bool Enable_Transmission_Network;
   static bool Enable_Sexual_Partner_Network;
   static bool Enable_Transmission_Bias;
@@ -281,7 +284,7 @@ public:
 
   // global singleton objects
   static Population Pop;
-  static Disease_List Diseases;
+  static Condition_List Conditions;
   static Place_List Places;
   static Neighborhood_Layer* Neighborhoods;
   static Regional_Layer* Simulation_Region;
@@ -301,6 +304,7 @@ public:
   static FILE* Outfp;
   static FILE* Tracefp;
   static FILE* Infectionfp;
+  static FILE* InfectionJSONfp;
   static FILE* VaccineTracefp;
   static FILE* Birthfp;
   static FILE* Deathfp;
@@ -336,10 +340,8 @@ namespace fred {
 
     tiny_bitset() {
       if(n_bits > sizeof(BitType) * 8) {
-        fprintf(stderr,
-		"This specialized bitset is limited to %zu bytes.%s\n",
-		sizeof(BitType),
-		"If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
+        fprintf(stderr, "This specialized bitset is limited to %zu bytes.%s\n", sizeof(BitType),
+		            "If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
       }
       assert(n_bits <= sizeof(BitType) * 8);
       reset();
@@ -390,16 +392,16 @@ namespace fred {
 
 
   /* 
-   * bitset big enough to store flags for MAX_NUM_DISEASES
-   * Global::MAX_NUM_DISEASES should be equal to number of diseases
+   * bitset big enough to store flags for MAX_NUM_CONDITIONS
+   * Global::MAX_NUM_CONDITIONS should be equal to number of conditions
    * for efficiency. 
-   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual diseases may be less than
-   * 'MAX_NUM_DISEASES' so care should be taken when performing operations
-   * (such as any(), flip(), reset(), etc.) on a disease_bitset to avoid
-   * unintended setting/resetting flags for non-existent diseases.
+   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual conditions may be less than
+   * 'MAX_NUM_CONDITIONS' so care should be taken when performing operations
+   * (such as any(), flip(), reset(), etc.) on a condition_bitset to avoid
+   * unintended setting/resetting flags for non-existent conditions.
    *
    */
-  typedef tiny_bitset<Global::MAX_NUM_DISEASES> disease_bitset;
+  typedef tiny_bitset<Global::MAX_NUM_CONDITIONS> condition_bitset;
 
   typedef float geo;
 
@@ -562,6 +564,6 @@ typedef struct {
   int place_seeds[VECTOR_DISEASE_TYPES];
   int day_start_seed[VECTOR_DISEASE_TYPES];
   int day_end_seed[VECTOR_DISEASE_TYPES];
-} vector_disease_data_t;
+} vector_condition_data_t;
 
 #endif // _FRED_GLOBAL_H

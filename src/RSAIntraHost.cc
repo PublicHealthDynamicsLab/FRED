@@ -14,7 +14,7 @@
 #include <map>
 
 #include "RSAIntraHost.h"
-#include "Disease.h"
+#include "Condition.h"
 // #include "Infection.h"
 // #include "Trajectory.h"
 #include "Params.h"
@@ -31,16 +31,16 @@ RSAIntraHost::RSAIntraHost() {
   
 }
 
-void RSAIntraHost::setup(Disease *disease) {
-  IntraHost::setup(disease);
+void RSAIntraHost::setup(Condition *condition) {
+  IntraHost::setup(condition);
 
-  int id = disease->get_id();
+  int id = condition->get_id();
   //Params::get_indexed_param("symp",id,&prob_symptomatic);
 
 }
 
 Trajectory * RSAIntraHost::get_trajectory(double real_age) {
-  double Symp_threshold = disease->get_symptomaticity_threshold();
+  double Symp_threshold = condition->get_symptomaticity_threshold();
   Params::get_param_from_string("symptoms_scaling", &symptoms_scaling );
   Params::get_param_from_string("viral_infectivity_scaling", &viral_infectivity_scaling );
   Params::get_param_from_string("days_sick",  &days_sick );

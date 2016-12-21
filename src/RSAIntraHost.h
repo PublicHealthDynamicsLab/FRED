@@ -43,9 +43,9 @@ public:
   /**
    * Set the attributes for the IntraHost
    *
-   * @param dis the disease to which this IntraHost model is associated
+   * @param dis the condition to which this IntraHost model is associated
    */
-  void setup(Disease *disease);
+  void setup(Condition *condition);
   /**
    * @return the prob_symptomatic
    */

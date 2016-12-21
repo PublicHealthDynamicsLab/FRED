@@ -9,10 +9,10 @@
   more information.
 */
 
-#include "Disease.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Markov_Natural_History.h"
-#include "Markov_Model.h"
+#include "Markov_Chain.h"
 #include "Params.h"
 #include "Utils.h"
 
@@ -27,21 +27,26 @@ Markov_Natural_History::~Markov_Natural_History() {
 }
 
 
-void Markov_Natural_History::setup(Disease * _disease) {
-  Natural_History::setup(_disease);
-  this->markov_model = new Markov_Model;
-  markov_model->setup(this->disease->get_disease_name());
+void Markov_Natural_History::setup(Condition * _condition) {
+  Natural_History::setup(_condition);
+  this->markov_chain = new Markov_Chain;
+  markov_chain->setup(this->condition->get_condition_name());
 }
 
 
 void Markov_Natural_History::get_parameters() {
+  char paramstr[256];
 
   FRED_VERBOSE(0, "Markov_Natural_History::get_parameters\n");
 
-  // skip get_parameters() in base class:
-  // Natural_History::get_parameters();
+  // Note: we skip get_parameters() in base class.
 
-  markov_model->get_parameters();
+  // get the state definitions and transition probabilities
+  markov_chain->get_parameters();
+
+  if (this->condition->causes_infection() == false) {
+    return;
+  }
 
   this->state_infectivity.reserve(get_number_of_states());
   this->state_symptoms.reserve(get_number_of_states());
@@ -51,7 +56,6 @@ void Markov_Natural_History::get_parameters() {
   this->state_symptoms.clear();
   this->state_fatality.clear();
     
-  char paramstr[256];
   int fatal;
   double inf, symp;
   for (int i = 0; i < get_number_of_states(); i++) {
@@ -75,19 +79,19 @@ void Markov_Natural_History::get_parameters() {
 }
 
 char* Markov_Natural_History::get_name() {
-  return markov_model->get_name();
+  return markov_chain->get_name();
 }
 
 int Markov_Natural_History::get_number_of_states() {
-  return markov_model->get_number_of_states();
+  return markov_chain->get_number_of_states();
 }
 
 std::string Markov_Natural_History::get_state_name(int i) {
-  return markov_model->get_state_name(i);
+  return markov_chain->get_state_name(i);
 }
 
 void Markov_Natural_History::print() {
-  markov_model->print();
+  markov_chain->print();
   for (int i = 0; i < get_number_of_states(); i++) {
     printf("MARKOV MODEL %s[%d].infectivity = %f\n",
 	   get_name(), i, this->state_infectivity[i]);

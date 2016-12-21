@@ -11,11 +11,11 @@
 
 //
 //
-// File: Disease.h
+// File: Condition.h
 //
 
-#ifndef _FRED_Disease_H
-#define _FRED_Disease_H
+#ifndef _FRED_Condition_H
+#define _FRED_Condition_H
 
 #include <vector>
 #include <map>
@@ -30,26 +30,26 @@ class Natural_History;
 class Person;
 class Transmission;
 
-class Disease {
+class Condition {
 public:
 
   /**
    * Default constructor
    */
-  Disease();
-  virtual ~Disease();
+  Condition();
+  virtual ~Condition();
 
-  void get_parameters(int disease, string name);
+  void get_parameters(int condition, string name);
 
   /**
-   * Set all of the attributes for the Disease
+   * Set all of the attributes for the Condition
    */
   void setup();
 
   void prepare();
 
   /**
-   * @return this Disease's id
+   * @return this Condition's id
    */
   int get_id() {
     return this->id;
@@ -77,27 +77,23 @@ public:
   double get_symptomatic_attack_rate();
 
   /**
-   * @return a pointer to this Disease's residual_immunity Age_Map
+   * @return a pointer to this Condition's residual_immunity Age_Map
    */
   Age_Map* get_residual_immunity() const {
     return this->residual_immunity;
   }
 
   /**
-   * @return a pointer to this Disease's at_risk Age_Map
+   * @return a pointer to this Condition's at_risk Age_Map
    */
   Age_Map* get_at_risk() const {
     return this->at_risk;
   }
 
-  /**
-   * @param day the simulation day
-   * @see Epidemic::print_stats(day);
-   */
-  void print_stats(int day);
+  void report(int day);
 
   /**
-   * @return the epidemic with which this Disease is associated
+   * @return the epidemic with which this Condition is associated
    */
   Epidemic* get_epidemic() {
     return this->epidemic;
@@ -113,7 +109,7 @@ public:
    */
   static void set_prob_stay_home(double);
 
-  void get_disease_parameters();
+  void get_condition_parameters();
 
   void increment_cohort_infectee_count(int day);
  
@@ -153,8 +149,8 @@ public:
 
   double get_outpatient_healthcare_prob(Person* per);
 
-  char* get_disease_name() {
-    return this->disease_name;
+  char* get_condition_name() {
+    return this->condition_name;
   }
 
   void read_residual_immunity_by_FIPS();
@@ -193,20 +189,27 @@ public:
     return this->make_all_susceptible;
   }
 
+  bool causes_infection() {
+    return this->generates_infection;
+  }
+
   void end_of_run();
 
 private:
 
-  // disease identifiers
+  // condition identifiers
   int id;
-  char disease_name[20];
+  char condition_name[20];
 
   // the course of infection within a host
   char natural_history_model[20];
   Natural_History* natural_history;
   bool make_all_susceptible;
 
-  // how the disease spreads
+  // whether to generate an Infection object
+  bool generates_infection;
+
+  // how the condition spreads
   char transmission_mode[20];
   Transmission* transmission;
 
@@ -244,4 +247,4 @@ private:
 
 };
 
-#endif // _FRED_Disease_H
+#endif // _FRED_Condition_H

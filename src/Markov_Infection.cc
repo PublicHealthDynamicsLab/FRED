@@ -13,15 +13,15 @@
 
 #include "Markov_Infection.h"
 #include "Markov_Natural_History.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Epidemic.h"
 #include "Global.h"
 #include "Person.h"
 #include "Mixing_Group.h"
 #include "Utils.h"
 
-Markov_Infection::Markov_Infection(Disease* _disease, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) :
-  Infection(_disease, _infector, _host, _mixing_group, day) {
+Markov_Infection::Markov_Infection(Condition* _condition, Person* _infector, Person* _host, Mixing_Group* _mixing_group, int day) :
+  Infection(_condition, _infector, _host, _mixing_group, day) {
   this->infectious_start_date = -1;
   this->infectious_end_date = -1;
   this->symptoms_start_date = -1;
@@ -39,8 +39,8 @@ void Markov_Infection::setup() {
 
   // initialize Markov specific-variables here:
 
-    this->state = this->disease->get_natural_history()->get_initial_state();
-    printf("MARKOV INIT state %d\n", this->state);
+    this->state = this->condition->get_natural_history()->get_initial_state();
+    // printf("MARKOV INIT state %d\n", this->state);
     if (this->get_infectivity(this->exposure_date) > 0.0) {
       this->infectious_start_date = this->exposure_date;
       this->infectious_end_date = 99999;
@@ -52,15 +52,15 @@ void Markov_Infection::setup() {
 }
 
 double Markov_Infection::get_infectivity(int day) {
-  return (this->disease->get_natural_history()->get_infectivity(this->state));
+  return (this->condition->get_natural_history()->get_infectivity(this->state));
 }
 
 double Markov_Infection::get_symptoms(int day) {
-  return (this->disease->get_natural_history()->get_symptoms(this->state));
+  return (this->condition->get_natural_history()->get_symptoms(this->state));
 }
 
 bool Markov_Infection::is_fatal(int day) {
-  return (this->disease->get_natural_history()->is_fatal(this->state));
+  return (this->condition->get_natural_history()->is_fatal(this->state));
 }
 
 void Markov_Infection::update(int day) {

@@ -13,17 +13,19 @@
 //
 // File: School.cc
 //
-#include "School.h"
+
 #include "Classroom.h"
 #include "Date.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
+#include "Mixing_Group.h"
 #include "Params.h"
 #include "Person.h"
 #include "Place_List.h"
 #include "Population.h"
 #include "Random.h"
+#include "School.h"
 #include "Utils.h"
 #include "Tracker.h"
 
@@ -184,7 +186,7 @@ void School::get_parameters() {
   }
 }
 
-int School::get_group(int disease_id, Person* per) {
+int School::get_group(int condition_id, Person* per) {
   int age = per->get_age();
   if(age < 12) {
     return 0;
@@ -197,11 +199,11 @@ int School::get_group(int disease_id, Person* per) {
   }
 }
 
-double School::get_transmission_prob(int disease_id, Person* i, Person* s) {
+double School::get_transmission_prob(int condition_id, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease_id, i);
-  int col = get_group(disease_id, s);
+  int row = get_group(condition_id, i);
+  int col = get_group(condition_id, s);
   double tr_pr = School::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
@@ -227,7 +229,7 @@ bool School::is_open(int day) {
   return open;
 }
 
-bool School::should_be_open(int day, int disease_id) {
+bool School::should_be_open(int day, int condition_id) {
   // no students
   if(get_size() == 0) {
     return false;
@@ -255,13 +257,13 @@ bool School::should_be_open(int day, int disease_id) {
 
   // global school closure policy in effect
   if(strcmp(School::school_closure_policy, "global") == 0) {
-    apply_global_school_closure_policy(day, disease_id);
+    apply_global_school_closure_policy(day, condition_id);
     return is_open(day);
   }
 
   // individual school closure policy in effect
   if(strcmp(School::school_closure_policy, "individual") == 0) {
-    apply_individual_school_closure_policy(day, disease_id);
+    apply_individual_school_closure_policy(day, condition_id);
     return is_open(day);
   }
 
@@ -269,7 +271,7 @@ bool School::should_be_open(int day, int disease_id) {
   return true;
 }
 
-void School::apply_global_school_closure_policy(int day, int disease_id) {
+void School::apply_global_school_closure_policy(int day, int condition_id) {
 
   // Only test triggers for school closure if not global closure is not already activated
   if(School::global_closure_is_active == false) {
@@ -285,8 +287,8 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
       }
     } else {
       // Close schools if the global symptomatic attack rate has reached the threshold (after a delay)
-      Disease* disease = Global::Diseases.get_disease(disease_id);
-      if(School::school_closure_threshold <= disease->get_symptomatic_attack_rate()) {
+      Condition* condition = Global::Conditions.get_condition(condition_id);
+      if(School::school_closure_threshold <= condition->get_symptomatic_attack_rate()) {
         // the following only happens once
         School::global_close_date = day + School::school_closure_delay;
         School::global_open_date = day + School::school_closure_delay
@@ -301,15 +303,15 @@ void School::apply_global_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 0) {
-      Disease* disease = Global::Diseases.get_disease(disease_id);
+      Condition* condition = Global::Conditions.get_condition(condition_id);
       printf("GLOBAL SCHOOL CLOSURE pop_ar %5.2f local_cases = %d / %d (%5.2f)\n",
-	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
-	     get_size(), get_symptomatic_attack_rate(disease_id));
+	     condition->get_symptomatic_attack_rate(), get_total_cases(condition_id),
+	     get_size(), get_symptomatic_attack_rate(condition_id));
     }
   }
 }
 
-void School::apply_individual_school_closure_policy(int day, int disease_id) {
+void School::apply_individual_school_closure_policy(int day, int condition_id) {
 
   // don't apply any policy prior to School::min_school_closure_day
   if(day <= School::min_school_closure_day) {
@@ -317,8 +319,8 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
   }
 
   // don't apply any policy before the epidemic reaches a noticeable threshold
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  if(disease->get_symptomatic_attack_rate() < School::school_closure_threshold) {
+  Condition* condition = Global::Conditions.get_condition(condition_id);
+  if(condition->get_symptomatic_attack_rate() < School::school_closure_threshold) {
     return;
   }
 
@@ -326,10 +328,10 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
   // if school_closure_cases > -1 then close if this number of cases occurs
   if(School::school_closure_cases != -1) {
-    close_this_school = (School::school_closure_cases <= get_total_cases(disease_id));
+    close_this_school = (School::school_closure_cases <= get_total_cases(condition_id));
   } else {
     // close if attack rate threshold is reached
-    close_this_school = (School::individual_school_closure_threshold <= get_symptomatic_attack_rate(disease_id));
+    close_this_school = (School::individual_school_closure_threshold <= get_symptomatic_attack_rate(condition_id));
   }
 
   if(close_this_school) {
@@ -338,15 +340,15 @@ void School::apply_individual_school_closure_policy(int day, int disease_id) {
 
     // log this school closure decision
     if(Global::Verbose > 0) {
-      Disease* disease = Global::Diseases.get_disease(disease_id);
+      Condition* condition = Global::Conditions.get_condition(condition_id);
       printf("LOCAL SCHOOL CLOSURE pop_ar %.3f local_cases = %d / %d (%.3f)\n",
-	     disease->get_symptomatic_attack_rate(), get_total_cases(disease_id),
-	     get_size(), get_symptomatic_attack_rate(disease_id));
+	     condition->get_symptomatic_attack_rate(), get_total_cases(condition_id),
+	     get_size(), get_symptomatic_attack_rate(condition_id));
     }
   }
 }
 
-double School::get_contacts_per_day(int disease_id) {
+double School::get_contacts_per_day(int condition_id) {
   return School::contacts_per_day;
 }
 
@@ -355,8 +357,9 @@ int School::enroll(Person* person) {
   // call base class method:
   int return_value = Place::enroll(person);
 
-  FRED_VERBOSE(1,"Enroll person %d age %d in school %d %s new size %d\n",
-	       person->get_id(), person->get_age(), this->get_id(), this->get_label(), this->get_size());
+  FRED_VERBOSE(1,"day %d Enroll person %d age %d in school %d %s new size %d\n",
+	       Global::Simulation_Day, person->get_id(), person->get_age(),
+	       this->get_id(), this->get_label(), this->get_size());
   if(person->is_teacher()) {
     this->staff_size++;
   } else {
@@ -378,11 +381,12 @@ void School::unenroll(int pos) {
   assert(0 <= pos && pos < size);
   Person* removed = this->enrollees[pos];
   int grade = removed->get_grade();
-  FRED_VERBOSE(1,"UNENROLL person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
-	       removed->get_id(), removed->get_age(), grade, removed->is_teacher()?1:0, this->get_id(), this->get_label(), this->get_size());
+  FRED_VERBOSE(1,"day %d UNENROLL person %d age %d grade %d, is_teacher %d from school %d %s Size = %d\n",
+	       Global::Simulation_Day, removed->get_id(), removed->get_age(), grade,
+	       removed->is_teacher()?1:0, this->get_id(), this->get_label(), this->get_size());
 
   // call the base class method
-  Place::unenroll(pos);
+  Mixing_Group::unenroll(pos);
 
   if(removed->is_teacher() || grade == 0) {
     this->staff_size--;
@@ -391,10 +395,11 @@ void School::unenroll(int pos) {
     this->students_in_grade[grade]--;
   }
   removed->set_grade(0);
-  FRED_VERBOSE(1,"UNENROLLED from school %d %s size = %d\n", this->get_id(), this->get_label(), this->get_size());
+  FRED_VERBOSE(1,"day %d UNENROLLED from school %d %s size = %d\n", 
+	       Global::Simulation_Day, this->get_id(), this->get_label(), this->get_size());
 }
 
-void School::print(int disease_id) {
+void School::print(int condition_id) {
   fprintf(Global::Statusfp, "Place %d label %s type %c ", this->get_id(), this->get_label(), this->get_type());
   for(int g = 0; g < GRADES; ++g) {
     fprintf(Global::Statusfp, "%d students in grade %d | ", this->students_in_grade[g], g);
@@ -422,10 +427,11 @@ int School::get_number_of_rooms() {
   return total_rooms;
 }
 
-void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
+void School::setup_classrooms() {
   if(School::school_classroom_size == 0) {
     return;
   }
+  FRED_VERBOSE(1, "setup_classroom for School %d %s\n", this->get_id(), this->get_label());
 
   for(int a = 0; a < GRADES; ++a) {
     int n = this->students_in_grade[a];
@@ -436,22 +442,22 @@ void School::setup_classrooms(Allocator<Classroom> &classroom_allocator) {
     if(n % School::school_classroom_size) {
       rooms++;
     }
-
-    FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", this->get_id(), this->get_label(), a, n, rooms);
-
+    FRED_STATUS(1, "School %d %s grade %d number %d rooms %d\n", 
+		this->get_id(), this->get_label(), a, n, rooms);
     for(int c = 0; c < rooms; ++c) {
       char new_label[128];
       sprintf(new_label, "%s-%02d-%02d", this->get_label(), a, c + 1);
-
-      Classroom* clsrm = new (classroom_allocator.get_free()) Classroom(new_label,
-									Place::SUBTYPE_NONE,
-									this->get_longitude(),
-									this->get_latitude());
-      clsrm->set_school(this);
-
-      this->classrooms[a].push_back(clsrm);
+      Classroom* classroom = static_cast<Classroom *>(Global::Places.add_place(new_label, 
+									       Place::TYPE_CLASSROOM, 
+									       Place::SUBTYPE_NONE,
+									       this->get_longitude(),
+									       this->get_latitude(),
+									       this->get_census_tract_fips()));
+      classroom->set_school(this);
+      this->classrooms[a].push_back(classroom);
     }
   }
+  FRED_VERBOSE(1, "setup_classroom finished for School %d %s\n", this->get_id(), this->get_label());
 }
 
 Place* School::select_classroom_for_student(Person* per) {

@@ -10,7 +10,7 @@
 */
 
 #include "HIV_Natural_History.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Params.h"
 #include "Person.h"
 #include "Random.h"
@@ -22,8 +22,8 @@ HIV_Natural_History::HIV_Natural_History() {
 HIV_Natural_History::~HIV_Natural_History() {
 }
 
-void HIV_Natural_History::setup(Disease * _disease) {
-  Natural_History::setup(_disease);
+void HIV_Natural_History::setup(Condition * _condition) {
+  Natural_History::setup(_condition);
 }
 
 void HIV_Natural_History::get_parameters() {
@@ -40,7 +40,7 @@ void HIV_Natural_History::get_parameters() {
   // called get_X() that returns the value of X.  Then HIV_Infection can
   // access the value of X as follows:
 
-  // int my_x = this->disease->get_natural_history()->get_X();
+  // int my_x = this->condition->get_natural_history()->get_X();
 
 }
 

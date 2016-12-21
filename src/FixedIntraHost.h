@@ -17,7 +17,7 @@
 
 using namespace std;
 
-class Disease;
+class Condition;
 class Trajectory;
 
 class FixedIntraHost : public IntraHost {
@@ -33,9 +33,9 @@ public:
   /**
    * Set the attributes for the IntraHost
    *
-   * @param dis the disease to which this IntraHost model is associated
+   * @param dis the condition to which this IntraHost model is associated
    */
-  void setup(Disease *disease);
+  void setup(Condition *condition);
 
   /**
    * @return this intrahost model's days symptomatic

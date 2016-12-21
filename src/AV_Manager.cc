@@ -114,23 +114,21 @@ void AV_Manager::disseminate(int day) {
       this->current_av = av;
 
       // loop over the entire population
-      for(int ip = 0; ip < this->pop->get_index_size(); ++ip) {
+      for(int ip = 0; ip < this->pop->get_population_size(); ++ip) {
         if(av->get_current_stock() == 0) {
           break;
         }
-        Person * current_person = this->pop->get_person_by_index(ip);
-	if (current_person != NULL) {
-	  // Should the person get an av
-	  //int yeah_or_ney = p->choose(current_person,av->get_disease(),day);
-	  //if(yeah_or_ney == 0){
+        Person * current_person = this->pop->get_person(ip);
+	// Should the person get an av
+	//int yeah_or_ney = p->choose(current_person,av->get_condition(),day);
+	//if(yeah_or_ney == 0){
 
-	  if(p->choose_first_negative(current_person, av->get_disease(), day) == true) {
-	    if(Global::Debug > 3)
-	      cout << "Giving Antiviral for disease " << av->get_disease() << " to " << ip << "\n";
-	    av->remove_stock(1);
-	    current_person->get_health()->take(av, day);
-	    num_avs++;
-	  }
+	if(p->choose_first_negative(current_person, av->get_condition(), day) == true) {
+	  if(Global::Debug > 3)
+	    cout << "Giving Antiviral for condition " << av->get_condition() << " to " << ip << "\n";
+	  av->remove_stock(1);
+	  current_person->get_health()->take(av, day);
+	  num_avs++;
 	}
       }
     }

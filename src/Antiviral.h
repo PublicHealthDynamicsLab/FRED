@@ -24,7 +24,7 @@
 
 using namespace std;
 
-class Disease;
+class Condition;
 class Health;
 class Policy;
 class AV_Health;
@@ -40,7 +40,7 @@ public:
   /**
    * Constructor that sets all of the attributes of an Antiviral object
    */
-  Antiviral(int _disease, int _course_length, double _reduce_infectivity,
+  Antiviral(int _condition, int _course_length, double _reduce_infectivity,
             double _reduce_susceptibility, double _reduce_asymp_period,
             double _reduce_sympt_period, double _prob_symptoms,
             int _initial_stock, int _total_avail, int _additional_per_day,
@@ -54,9 +54,9 @@ public:
 
   //Parameter Access Members
   /**
-   * @return this Antiviral's disease
+   * @return this Antiviral's condition
    */
-  int     get_disease()                const { return disease;}
+  int     get_condition()                const { return condition;}
 
   /**
    * @return this Antiviral's reduce_infectivity
@@ -208,10 +208,10 @@ public:
    * Used during debugging to verify that code is functioning properly. <br />
    * Currently, this checks the parsing of the AVs, and it returns 1 if there is a problem
    *
-   * @param ndiseases the bumber of diseases
+   * @param nconditions the bumber of conditions
    * @return 1 if there is a problem, 0 otherwise
    */
-  int quality_control(int ndiseases) const;
+  int quality_control(int nconditions) const;
 
   /**
    * Print out current stock information
@@ -232,37 +232,37 @@ public:
    * Modify the susceptibility of an agent (through that agent's Health)
    *
    * @param health pointer to a Health object
-   * @param disease which disease
+   * @param condition which condition
    */
-  void modify_susceptiblilty(Health *health, int disease);
+  void modify_susceptiblilty(Health *health, int condition);
 
   /**
    * Modify the infectivity of an agent (through that agent's Health)
    *
    * @param health pointer to a Health object
-   * @param disease which disease
+   * @param condition which condition
    */
-  void modify_infectivity(Health *health, int disease);
+  void modify_infectivity(Health *health, int condition);
 
   /**
    * Modify the infectivity of an agent (through that agent's Health)
    *
    * @param health pointer to a Health object
-   * @param disease which disease
-   * @param strain which strain of the disease
+   * @param condition which condition
+   * @param strain which strain of the condition
    */
-  void modify_infectivity_strain(Health *health, int disease, int strain);
+  void modify_infectivity_strain(Health *health, int condition, int strain);
 
   /**
    * Modify the symptomaticity of an agent (through that agent's Health)
    *
    * @param health pointer to a Health object
-   * @param disease which disease
+   * @param condition which condition
    * @param cur_day the simulation day
    */
-  void modify_symptomaticity(Health *health, int disease, int cur_day);
+  void modify_symptomaticity(Health *health, int condition, int cur_day);
 
-  void avEffect(Health *health, int disease, int cur_day, AV_Health *av_health);
+  void avEffect(Health *health, int condition, int cur_day, AV_Health *av_health);
 
   // Policies members
   // Antivirals need a policy associated with them to determine who gets them.
@@ -283,7 +283,7 @@ public:
   void add_ineff_given_out(int amount)      {ineff_given_out+=amount;}
 
 private:
-  int disease;
+  int condition;
   int course_length;               // How many days mush one take the AV
   double reduce_infectivity;       // What percentage does it reduce infectivity
   double reduce_susceptibility;    // What percentage does it reduce susceptability

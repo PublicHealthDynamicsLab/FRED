@@ -13,12 +13,12 @@
 #define _FRED_HIV_EPIDEMIC_H
 
 #include "Epidemic.h"
-class Disease;
+class Condition;
 
 class HIV_Epidemic : public Epidemic {
 
 public:
-  HIV_Epidemic(Disease * disease);
+  HIV_Epidemic(Condition * condition);
 
   ~HIV_Epidemic() {}
 
@@ -26,7 +26,7 @@ public:
 
   void update(int day);
 
-  void report_disease_specific_stats(int day);
+  void report_condition_specific_stats(int day);
 
   void end_of_run();
 

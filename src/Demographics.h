@@ -105,6 +105,10 @@ public:
     return this->deceased;
   }
 
+  void set_deceased() {
+    this->deceased = true;
+  }
+
   /**
    * Print out information about this object
    */
@@ -215,7 +219,6 @@ public:
   static void add_mortality_event(int day, Person* person);
   static void delete_mortality_event(int day, Person* person);
   static void report(int day); 
-
   static int find_fips_code(int n);
 
 private:
@@ -250,7 +253,6 @@ private:
   static std::map<Person*, int> birthday_map;
 
   static std::vector<int> fips_codes;
-
 protected:
 
   friend class Person;

@@ -16,7 +16,7 @@
 using namespace std;
 
 class Age_Map;
-class Disease;
+class Condition;
 class Evolution;
 class Person;
 class Regional_Layer;
@@ -50,7 +50,7 @@ public:
    * virtual methods as needed.
    */
 
-  virtual void setup(Disease* disease);
+  virtual void setup(Condition* condition);
 
   virtual void get_parameters();
 
@@ -186,7 +186,7 @@ public:
 
 
 protected:
-  Disease* disease;
+  Condition* condition;
   // prob of getting symptoms
   double probability_of_symptoms;
   // relative infectivity if asymptomatic

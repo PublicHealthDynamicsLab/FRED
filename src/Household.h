@@ -95,24 +95,24 @@ public:
     assert(idx >= 0);
     assert(idx <= Household_income_level_code::UNCLASSIFIED);
     switch(idx) {
-      case Household_income_level_code::CAT_I:
-        return "cat_I";
-      case Household_income_level_code::CAT_II:
-        return "cat_II";
-      case Household_income_level_code::CAT_III:
-        return "cat_III";
-      case Household_income_level_code::CAT_IV:
-        return "cat_IV";
-      case Household_income_level_code::CAT_V:
-        return "cat_V";
-      case Household_income_level_code::CAT_VI:
-        return "cat_VI";
-      case Household_income_level_code::CAT_VII:
-        return "cat_VII";
-      case Household_income_level_code::UNCLASSIFIED:
-        return "Unclassified";
-      default:
-        Utils::fred_abort("Invalid Household Income Level Code", "");
+    case Household_income_level_code::CAT_I:
+      return "cat_I";
+    case Household_income_level_code::CAT_II:
+      return "cat_II";
+    case Household_income_level_code::CAT_III:
+      return "cat_III";
+    case Household_income_level_code::CAT_IV:
+      return "cat_IV";
+    case Household_income_level_code::CAT_V:
+      return "cat_V";
+    case Household_income_level_code::CAT_VI:
+      return "cat_VI";
+    case Household_income_level_code::CAT_VII:
+      return "cat_VII";
+    case Household_income_level_code::UNCLASSIFIED:
+      return "Unclassified";
+    default:
+      Utils::fred_abort("Invalid Household Income Level Code", "");
     }
     return NULL;
   }
@@ -140,7 +140,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Household();
 
@@ -154,31 +153,31 @@ public:
   static void get_parameters();
 
   /**
-   * @see Place::get_group(int disease, Person* per)
+   * @see Place::get_group(int condition, Person* per)
    */
-  int get_group(int disease, Person* per);
+  int get_group(int condition, Person* per);
 
   /**
-   * @see Mixing_Group::get_transmission_prob(int disease_id, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_prob(int condition_id, Person* i, Person* s)
    *
    * This method returns the value from the static array <code>Household::Household_contact_prob</code> that
    * corresponds to a particular age-related value for each person.<br />
    * The static array <code>Household_contact_prob</code> will be filled with values from the parameter
    * file for the key <code>household_prob[]</code>.
    */
-  double get_transmission_prob(int disease_id, Person* i, Person* s);
+  double get_transmission_prob(int condition_id, Person* i, Person* s);
 
-  double get_transmission_probability(int disease, Person* i, Person* s);
+  double get_transmission_probability(int condition, Person* i, Person* s);
 
   /**
-   * @see Place::get_contacts_per_day(int disease)
+   * @see Place::get_contacts_per_day(int condition)
    *
    * This method returns the value from the static array <code>Household::Household_contacts_per_day</code>
-   * that corresponds to a particular disease.<br />
+   * that corresponds to a particular condition.<br />
    * The static array <code>Household_contacts_per_day</code> will be filled with values from the parameter
    * file for the key <code>household_contacts[]</code>.
    */
-  double get_contacts_per_day(int disease);
+  double get_contacts_per_day(int condition);
 
   /**
    * Use to get list of all people in the household.
@@ -214,14 +213,22 @@ public:
     return this->household_income;
   }
 
+  void set_household_race(int _race) {
+    this->race = _race;
+  }
+
+  int get_household_race() {
+    return this->race;
+  }
+
   /**
-   * Determine if the household should be open. It is dependent on the disease and simulation day.
+   * Determine if the household should be open. It is dependent on the condition and simulation day.
    *
    * @param day the simulation day
-   * @param disease an integer representation of the disease
-   * @return whether or not the household is open on the given day for the given disease
+   * @param condition an integer representation of the condition
+   * @return whether or not the household is open on the given day for the given condition
    */
-  bool should_be_open(int day, int disease) {
+  bool should_be_open(int day, int condition) {
     return true;
   }
 
@@ -361,8 +368,8 @@ public:
     return this->hh_sympt_child;
   }
 
-  void set_hh_schl_aged_chld_unemplyd_adlt_chng(bool _hh_status_changed) {
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = _hh_status_changed;
+  void set_hh_schl_aged_chld_unemplyd_adlt_is_set(bool _hh_status_changed) {
+    this->hh_schl_aged_chld_unemplyd_adlt_is_set = _hh_status_changed;
   }
 
   void set_working_adult_using_sick_leave(bool _is_using_sl) {
@@ -435,7 +442,99 @@ public:
     Household::Min_hh_income_90_pct = _hh_income;
   }
 
+  void set_migration_fips(int mig_fips) {
+    this->migration_fips = mig_fips;
+  }
+
+  void clear_migration_fips() {
+    this->migration_fips = 0;  // 0 means not planning to migrate or done migrating
+  }
+
+  int get_migration_fips() {
+    return this->migration_fips;
+  }
+
+  int get_orig_household_structure() {
+    return this->orig_household_structure;
+  }
+
+  int get_household_structure() {
+    return this->household_structure;
+  }
+
+  void set_household_structure();
+
+  void set_orig_household_structure() {
+    this->orig_household_structure = this->household_structure;
+    strcpy(this->orig_household_structure_label,this->household_structure_label);
+  }
+
+  char* get_household_structure_label() {
+    return this->household_structure_label;
+  }
+
+  char* get_orig_household_structure_label() {
+    return this->orig_household_structure_label;
+  }
+
 private:
+
+  // household structure types
+  #define HTYPES 21
+
+  enum htype_t {
+    SINGLE_FEMALE,
+    SINGLE_MALE,
+    OPP_SEX_SIM_AGE_PAIR,
+    OPP_SEX_DIF_AGE_PAIR,
+    OPP_SEX_TWO_PARENTS,
+    SINGLE_PARENT,
+    SINGLE_PAR_MULTI_GEN_FAMILY,
+    TWO_PAR_MULTI_GEN_FAMILY,
+    UNATTENDED_KIDS,
+    OTHER_FAMILY,
+    YOUNG_ROOMIES,
+    OLDER_ROOMIES,
+    MIXED_ROOMIES,
+    SAME_SEX_SIM_AGE_PAIR,
+    SAME_SEX_DIF_AGE_PAIR,
+    SAME_SEX_TWO_PARENTS,
+    DORM_MATES,
+    CELL_MATES,
+    BARRACK_MATES,
+    NURSING_HOME_MATES,
+    UNKNOWN,
+  };
+
+  htype_t orig_household_structure;
+  htype_t household_structure;
+
+  char orig_household_structure_label[64];
+  char household_structure_label[64];
+
+  string htype[HTYPES] = {
+    "single-female",
+    "single-male",
+    "opp-sex-sim-age-pair",
+    "opp-sex-dif-age-pair",
+    "opp-sex-two-parent-family",
+    "single-parent-family",
+    "single-parent-multigen-family",
+    "two-parent-multigen-family",
+    "unattended-minors",
+    "other-family",
+    "young-roomies",
+    "older-roomies",
+    "mixed-roomies",
+    "same-sex-sim-age-pair",
+    "same-sex-dif-age-pair",
+    "same-sex-two-parent-family",
+    "dorm-mates",
+    "cell-mates",
+    "barrack-mates",
+    "nursing-home-mates",
+    "unknown",
+  };
 
   static double contacts_per_day;
   static double same_age_bias;
@@ -463,7 +562,7 @@ private:
   int count_primary_hc_unav;
   int count_hc_accept_ins_unav;
 
-  bool hh_schl_aged_chld_unemplyd_adlt_chng;
+  bool hh_schl_aged_chld_unemplyd_adlt_is_set;
   bool hh_schl_aged_chld;
   bool hh_schl_aged_chld_unemplyd_adlt;
   bool hh_sympt_child;
@@ -476,6 +575,9 @@ private:
   int household_income;
   int household_income_code;
   int income_quartile;
+  int race;
+
+  int migration_fips;  //household preparing to do county-to-county migration
 
   // true iff a household member is at one of the places for an extended absence
   //std::bitset<Household_extended_absence_index::HOUSEHOLD_EXTENDED_ABSENCE> not_home_bitset;
@@ -522,7 +624,6 @@ private:
   }
 
 };
-
 
 /**
  * This is a helper class that is used to store information about the children in the household

@@ -17,7 +17,7 @@
 using namespace std;
 
 #include "Natural_History.h"
-class Markov_Model;
+class Markov_Chain;
 
 
 class Markov_Natural_History : public Natural_History {
@@ -28,7 +28,7 @@ public:
 
   ~Markov_Natural_History();
 
-  void setup(Disease *disease);
+  void setup(Condition *condition);
 
   void get_parameters();
 
@@ -46,8 +46,8 @@ public:
     return (state_fatality[s] == 1);
   }
 
-  Markov_Model* get_markov_model() {
-    return markov_model;
+  Markov_Chain* get_markov_chain() {
+    return markov_chain;
   }
 
   char* get_name();
@@ -87,7 +87,7 @@ public:
   }
 
 private:
-  Markov_Model* markov_model;
+  Markov_Chain* markov_chain;
   std::vector<double>state_infectivity;
   std::vector<double>state_symptoms;
   std::vector<int>state_fatality;

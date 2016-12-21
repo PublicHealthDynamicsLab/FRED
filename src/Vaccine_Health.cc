@@ -19,8 +19,8 @@
 #include "Random.h"
 #include "Vaccine_Health.h"
 #include "Vaccine.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Vaccine_Dose.h"
 #include "Vaccine_Manager.h"
 #include "Health.h"
@@ -73,9 +73,9 @@ void Vaccine_Health::update(int day, double age){
   // First check for immunity 
   if (is_effective()) {
     if (day == vaccination_effective_day) {
-      Disease* disease = Global::Diseases.get_disease(0);
-      if (person->is_infected(disease->get_id())==false) {
-	person->become_immune(disease);
+      Condition* condition = Global::Conditions.get_condition(0);
+      if (person->is_infected(condition->get_id())==false) {
+	person->become_immune(condition);
 	effective = true;
 	if(Global::Verbose > 0) {
 	  cout << "Agent " << person->get_id() 
@@ -97,8 +97,8 @@ void Vaccine_Health::update(int day, double age){
 	     << " became immune on day "<< vaccination_effective_day
 	     << " and lost immunity on day " << day << "\n";
       }
-      int disease_id = 0;
-      person->become_susceptible_by_vaccine_waning(disease_id);
+      int condition_id = 0;
+      person->become_susceptible_by_vaccine_waning(condition_id);
       effective = false;
     }
   }

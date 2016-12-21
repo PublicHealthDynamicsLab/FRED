@@ -39,7 +39,7 @@ public:
   Vector_Patch * select_random_patch();
   void quality_control();
   void update(int day);
-  void update_visualization_data(int disease_id, int day);
+  void update_visualization_data(int condition_id, int day);
   void add_hosts(Place * p);
   double get_vectors_per_host(Place * p);
   double get_seeds(Place * place, int dis, int day);
@@ -58,9 +58,9 @@ public:
   double get_day_start_seed(Place * p, int dis);
   double get_day_end_seed(Place * p, int dis);
   void report(int day, Epidemic * epidemic);
-  vector_disease_data_t update_vector_population(int day, Place * place);
+  vector_condition_data_t update_vector_population(int day, Place * place);
   double get_bite_rate() { return this->bite_rate; }
-  void get_vector_population(int disease_id);
+  void get_vector_population(int condition_id);
 
   std::vector<int> read_vector_control_tracts(char * filename);
   void setup_vector_control_by_census_tract();
@@ -80,7 +80,7 @@ protected:
 
   Vector_Patch ** grid;			 // Rectangular array of patches
 
-  // fixed parameters for this disease vector
+  // fixed parameters for this condition vector
   double infection_efficiency;
   double transmission_efficiency;
   double place_seeding_probability;

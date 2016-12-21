@@ -19,7 +19,7 @@
 
 #include "StrainTable.h"
 #include "Params.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Strain.h"
 #include "Global.h"
 #include "Utils.h"
@@ -27,27 +27,27 @@
 using namespace std;
 
 StrainTable::StrainTable() {
-  this->disease = NULL;
+  this->condition = NULL;
   this->strains.clear();
 }
 
 StrainTable::~StrainTable() { }
 
-void StrainTable::setup(Disease * d) {
-  this->disease = d;
-  int diseaseId = this->disease->get_id();
+void StrainTable::setup(Condition * d) {
+  this->condition = d;
+  int conditionId = this->condition->get_id();
   strains.clear();
 }
 
 void StrainTable::add_root_strain(int num_elements) {
   assert(this->strains.size() == 0);
   Strain * new_strain = new Strain(num_elements);
-  add(new_strain, this->disease->get_transmissibility());
+  add(new_strain, this->condition->get_transmissibility());
 }
 
 void StrainTable::reset() {
   this->strains.clear();
-  setup(this->disease);
+  setup(this->condition);
 }
 
 void StrainTable::add(Strain * strain) {
@@ -67,8 +67,8 @@ int StrainTable::add(Strain * new_strain, double transmissibility) {
     // child strain id is next available id from strain table
     new_strain_id = this->strains.size();
     this->strain_genotype_map[new_geno_string] = new_strain_id;
-    // set the child strain's id, disease pointer, transmissibility, and parent strain pointer
-    new_strain->setup(new_strain_id, this->disease, transmissibility, NULL);
+    // set the child strain's id, condition pointer, transmissibility, and parent strain pointer
+    new_strain->setup(new_strain_id, this->condition, transmissibility, NULL);
     // Add the new child to the strain table
     add(new_strain);
   }
@@ -94,8 +94,8 @@ int StrainTable::add(Strain * child_strain, double transmissibility, int parent_
     // child strain id is next available id from strain table
     child_strain_id = this->strains.size();
     this->strain_genotype_map[ child_geno_string ] = child_strain_id;
-    // set the child strain's id, disease pointer, transmissibility, and parent strain pointer
-    child_strain->setup( child_strain_id, this->disease, transmissibility, parent_strain );
+    // set the child strain's id, condition pointer, transmissibility, and parent strain pointer
+    child_strain->setup( child_strain_id, this->condition, transmissibility, parent_strain );
     // Add the new child to the strain table
     add(child_strain);
   }

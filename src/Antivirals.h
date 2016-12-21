@@ -98,21 +98,21 @@ public:
    * Used during debugging to verify that code is functioning properly. <br />
    * Checks the quality_control of each Antiviral in this group's vector of AVs
    *
-   * @param ndiseases the bumber of diseases
+   * @param nconditions the bumber of conditions
    * @return 1 if there is a problem, 0 otherwise
    */
-  void quality_control(int ndiseases) const;
+  void quality_control(int nconditions) const;
   
   // Polling the collection 
   /**
    * This method looks through the vector of Antiviral objects and checks to see if each one is
-   * effective against the particular disease and if it also has some in stock.  If so, then that
+   * effective against the particular condition and if it also has some in stock.  If so, then that
    * particular AV is added to the return vector.
    *
-   * @param the disease to poll for
+   * @param the condition to poll for
    * @return a vector of pointers to Antiviral objects
    */
-  vector < Antiviral*> find_applicable_AVs(int disease) const;
+  vector < Antiviral*> find_applicable_AVs(int condition) const;
 
   /**
    * @return a vector of pointers to all Antiviral objects in this group that are prophylaxis

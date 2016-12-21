@@ -20,7 +20,7 @@
 #include "Global.h"
 #include "Transmission.h"
 
-class Disease;
+class Condition;
 class Mixing_Group;
 class Person;
 class Place;
@@ -30,14 +30,14 @@ class Vector_Transmission: public Transmission {
 public:
   Vector_Transmission() {}
   ~Vector_Transmission() {}
-  void setup(Disease* disease);
-  void spread_infection(int day, int disease_id, Mixing_Group* mixing_group);
-  void spread_infection(int day, int disease_id, Place* place);
+  void setup(Condition* condition);
+  void spread_infection(int day, int condition_id, Mixing_Group* mixing_group);
+  void spread_infection(int day, int condition_id, Place* place);
 
 private:
-  bool attempt_transmission(double transmission_prob, Person* infector, Person* infectee, int disease_id, int day, Place* place);
+  bool attempt_transmission(double transmission_prob, Person* infector, Person* infectee, int condition_id, int day, Place* place);
   void infect_vectors(int day, Place* place);
-  void infect_hosts(int day, int disease_id, Place* place);
+  void infect_hosts(int day, int condition_id, Place* place);
   std::vector<Person*> visitors;
   std::vector<Person*> susceptible_visitors;
 };

@@ -13,14 +13,16 @@
 //
 // File: Perceptions.cc
 //
+
+#include "Condition.h"
+#include "Condition_List.h"
+#include "Epidemic.h"
 #include "Global.h"
+#include "Household.h"
 #include "Params.h"
 #include "Perceptions.h"
-#include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
-#include "Household.h"
+#include "Random.h"
 
 //Private static variables that will be set by parameter lookups
 double Perceptions::memory_decay_distr[2] = { 0.0, 0.0 };
@@ -38,14 +40,14 @@ Perceptions::Perceptions(Person *p) {
     this->memory_decay = 0.00001;
   }
 
-  this->perceived_susceptibility = new double[Global::Diseases.get_number_of_diseases()];
-  this->perceived_severity = new double[Global::Diseases.get_number_of_diseases()];
+  this->perceived_susceptibility = new double[Global::Conditions.get_number_of_conditions()];
+  this->perceived_severity = new double[Global::Conditions.get_number_of_conditions()];
   for(int b = 0; b < Behavior_index::NUM_BEHAVIORS; b++) {
-    this->perceived_benefits[b] = new double[Global::Diseases.get_number_of_diseases()];
-    this->perceived_barriers[b] = new double[Global::Diseases.get_number_of_diseases()];
+    this->perceived_benefits[b] = new double[Global::Conditions.get_number_of_conditions()];
+    this->perceived_barriers[b] = new double[Global::Conditions.get_number_of_conditions()];
   }
 
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
     this->perceived_susceptibility[d] = 0.0;
     this->perceived_severity[d] = 0.0;
     for(int b = 0; b < Behavior_index::NUM_BEHAVIORS; b++) {
@@ -73,14 +75,14 @@ void Perceptions::update(int day) {
 }
 
 void Perceptions::update_perceived_severity(int day) {
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
     this->perceived_severity[d] = 1.0;
   }
 }
 
 void Perceptions::update_perceived_susceptibility(int day) {
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
-    this->epidemic = Global::Diseases.get_disease(d)->get_epidemic();
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
+    this->epidemic = Global::Conditions.get_condition(d)->get_epidemic();
     this->perceived_susceptibility[d] = 100.0 * this->epidemic->get_symptomatic_prevalence();
     // printf("update_per_sus: %f\n", perceived_susceptibility[d]);
   }

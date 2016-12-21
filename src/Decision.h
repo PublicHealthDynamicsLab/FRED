@@ -49,14 +49,14 @@ public:
   string get_type() const { return type; }
   
   /**
-   * Evaluate the Decision for an agent and disease on a given day
+   * Evaluate the Decision for an agent and condition on a given day
    *
    * @param person a pointer to a Person object
-   * @param disease the disease to evaluate for
+   * @param condition the condition to evaluate for
    * @param current_day the simulation day
    *
    * @return the evaluation value
    */
-  virtual int evaluate(Person* person, int disease, int current_day) = 0;  
+  virtual int evaluate(Person* person, int condition, int current_day) = 0;  
 };
 #endif

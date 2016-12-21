@@ -98,7 +98,7 @@ void Intention::update(int day) {
 ////// HEALTH BELIEF MODEL
 
 double Intention::update_hbm(int day) {
-  int disease_id = 0;
+  int condition_id = 0;
 
   FRED_VERBOSE(1, "update_hbm entered: thresholds: sus= %f sev= %f  ben= %f bar = %f\n",
 	       this->susceptibility_threshold, this->severity_threshold,
@@ -108,9 +108,9 @@ double Intention::update_hbm(int day) {
   this->perceptions->update(day);
 
   // each update is specific to current behavior
-  double perceived_severity = (this->perceptions->get_perceived_severity(disease_id) > this->severity_threshold);
+  double perceived_severity = (this->perceptions->get_perceived_severity(condition_id) > this->severity_threshold);
 
-  double perceived_susceptibility = (this->perceptions->get_perceived_susceptibility(disease_id)
+  double perceived_susceptibility = (this->perceptions->get_perceived_susceptibility(condition_id)
 				     > this->susceptibility_threshold);
 
   double perceived_benefits = 1.0;

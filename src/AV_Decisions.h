@@ -33,9 +33,9 @@ public:
   AV_Decision_Allow_Only_One();
 
   /**
-   * @see Decision::evaluate(Person* person, int disease, int current_day);
+   * @see Decision::evaluate(Person* person, int condition, int current_day);
    */
-  int evaluate(Person* person, int disease, int current_day);
+  int evaluate(Person* person, int condition, int current_day);
 };
 
 /**
@@ -48,9 +48,9 @@ public:
   AV_Decision_Give_One_Chance();
 
   /**
-   * @see Decision::evaluate(Person* person, int disease, int current_day);
+   * @see Decision::evaluate(Person* person, int condition, int current_day);
    */
-  int evaluate(Person* person, int disease, int current_day);
+  int evaluate(Person* person, int condition, int current_day);
 };
 
 /**
@@ -62,9 +62,9 @@ public:
   AV_Decision_Give_to_Sympt();
 
   /**
-   * @see Decision::evaluate(Person* person, int disease, int current_day);
+   * @see Decision::evaluate(Person* person, int condition, int current_day);
    */
-  int evaluate(Person* person, int disease, int current_day);
+  int evaluate(Person* person, int condition, int current_day);
 };
 
 /**
@@ -76,9 +76,9 @@ public:
   AV_Decision_Begin_AV_On_Day();
 
   /**
-   * @see Decision::evaluate(Person* person, int disease, int current_day);
+   * @see Decision::evaluate(Person* person, int condition, int current_day);
    */
-  int evaluate(Person* person, int disease, int current_day);
+  int evaluate(Person* person, int condition, int current_day);
 };
 
 #endif

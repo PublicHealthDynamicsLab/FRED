@@ -24,7 +24,7 @@ using namespace std;
 #include "Params.h"
 #include "Person.h"
 #include "Health.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 
 Antivirals::Antivirals(){
   int nav;
@@ -32,12 +32,12 @@ Antivirals::Antivirals(){
   Params::get_param_from_string("number_antivirals",&nav);
   
   for(int iav=0;iav<nav;iav++){
-    int Disease, CorLength, InitSt, TotAvail, PerDay;
+    int Condition, CorLength, InitSt, TotAvail, PerDay;
     double RedInf, RedSusc, RedASympPer, RedSympPer, ProbSymp, Eff, PerSympt;
     int StrtDay,Proph;
     bool isProph;
     
-    Params::get_indexed_param("av_disease",iav,&Disease);
+    Params::get_indexed_param("av_condition",iav,&Condition);
     Params::get_indexed_param("av_initial_stock",iav,&InitSt);
     Params::get_indexed_param("av_total_avail",iav,&TotAvail);
     Params::get_indexed_param("av_additional_per_day",iav,&PerDay);
@@ -59,7 +59,7 @@ Antivirals::Antivirals(){
     double* AVCourseSt= new double [n];
     int MaxAVCourseSt = Params::get_indexed_param_vector("av_course_start_day",iav, AVCourseSt) -1;
     
-    AVs.push_back(new Antiviral(Disease, CorLength, RedInf, 
+    AVs.push_back(new Antiviral(Condition, CorLength, RedInf, 
                                 RedSusc, RedASympPer, RedSympPer,
                                 ProbSymp, InitSt, TotAvail, PerDay, 
                                 Eff, AVCourseSt, MaxAVCourseSt,
@@ -67,7 +67,7 @@ Antivirals::Antivirals(){
     
   }
   print();
-  quality_control(Global::Diseases.get_number_of_diseases());
+  quality_control(Global::Conditions.get_number_of_conditions());
 }
 
 int Antivirals::get_total_current_stock() const {
@@ -76,10 +76,10 @@ int Antivirals::get_total_current_stock() const {
   return sum;
 }
 
-vector < Antiviral* > Antivirals::find_applicable_AVs(int disease) const {
+vector < Antiviral* > Antivirals::find_applicable_AVs(int condition) const {
   vector <Antiviral* > avs;
   for(unsigned int iav=0;iav< AVs.size();iav++){
-    if(AVs[iav]->get_disease() == disease && AVs[iav]->get_current_stock() != 0){
+    if(AVs[iav]->get_condition() == condition && AVs[iav]->get_current_stock() != 0){
       avs.push_back(AVs[iav]);
     }
   }
@@ -114,12 +114,12 @@ void Antivirals::print_stocks() const {
   }
 }
 
-void Antivirals::quality_control(int ndiseases) const {  
+void Antivirals::quality_control(int nconditions) const {  
   for(unsigned int iav = 0;iav < AVs.size();iav++) {
     if (Global::Verbose > 1) {
       AVs[iav]->print();
     }
-    if(AVs[iav]->quality_control(ndiseases)){
+    if(AVs[iav]->quality_control(nconditions)){
       cout << "\nHelp! AV# "<<iav << " failed Quality\n";
       exit(1);
     }

@@ -20,7 +20,7 @@
 #include "Global.h"
 #include "Params.h"
 #include "Person.h"
-#include "Disease_List.h"
+#include "Condition_List.h"
 #include "Utils.h"
 #include "Random.h"
 #include "Regional_Layer.h"
@@ -57,7 +57,7 @@ Household::Household() : Place() {
   this->set_type(Place::TYPE_HOUSEHOLD);
   this->set_subtype(Place::SUBTYPE_NONE);
   this->sheltering = false;
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   this->hh_schl_aged_chld = false;
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
@@ -77,13 +77,16 @@ Household::Household() : Place() {
   this->income_quartile = -1;
   this->household_income = -1;
   this->household_income_code = Household_income_level_code::UNCLASSIFIED;
+  this->migration_fips = 0;
 }
 
 Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : Place(lab, lon, lat) {
   this->set_type(Place::TYPE_HOUSEHOLD);
   this->set_subtype(_subtype);
+  this->orig_household_structure = UNKNOWN;
+  this->household_structure = UNKNOWN;
   this->sheltering = false;
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   this->hh_schl_aged_chld = false;
   this->hh_schl_aged_chld_unemplyd_adlt = false;
   this->hh_sympt_child = false;
@@ -104,6 +107,7 @@ Household::Household(const char* lab, char _subtype, fred::geo lon, fred::geo la
   this->income_quartile = -1;
   this->household_income = -1;
   this->household_income_code = Household_income_level_code::UNCLASSIFIED;
+  this->migration_fips = 0;
 }
 
 void Household::get_parameters() {
@@ -116,7 +120,7 @@ void Household::get_parameters() {
     printf("\nHousehold contact_prob:\n");
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	      printf("%f ", Household::prob_transmission_per_contact[i][j]);
+	printf("%f ", Household::prob_transmission_per_contact[i][j]);
       }
       printf("\n");
     }
@@ -131,7 +135,7 @@ void Household::get_parameters() {
   Params::get_param_from_string("cat_VI_max_income", &Household::Cat_VI_Max_Income);
 }
 
-int Household::get_group(int disease, Person* per) {
+int Household::get_group(int condition, Person* per) {
   int age = per->get_age();
   if(age < Global::ADULT_AGE) {
     return 0;
@@ -140,7 +144,7 @@ int Household::get_group(int disease, Person* per) {
   }
 }
 
-double Household::get_transmission_probability(int disease, Person* i, Person* s) {
+double Household::get_transmission_probability(int condition, Person* i, Person* s) {
   double age_i = i->get_real_age();
   double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
@@ -148,21 +152,21 @@ double Household::get_transmission_probability(int disease, Person* i, Person* s
   return prob;
 }
 
-double Household::get_transmission_prob(int disease, Person* i, Person* s) {
+double Household::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Household::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Household::get_contacts_per_day(int disease) {
+double Household::get_contacts_per_day(int condition) {
   return Household::contacts_per_day;
 }
 
 void Household::set_household_has_hospitalized_member(bool does_have) {
-  this->hh_schl_aged_chld_unemplyd_adlt_chng = true;
+  this->hh_schl_aged_chld_unemplyd_adlt_is_set = false;
   if(does_have) {
     this->not_home_bitset[Household_extended_absence_index::HAS_HOSPITALIZED] = true;
   } else {
@@ -187,7 +191,7 @@ bool Household::has_school_aged_child() {
   //Household has been loaded
   assert(Global::Pop.is_load_completed());
   //If the household status hasn't changed, just return the flag
-  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+  if(this->hh_schl_aged_chld_unemplyd_adlt_is_set) {
     return this->hh_schl_aged_chld;
   } else {
     bool ret_val = false;
@@ -199,7 +203,6 @@ bool Household::has_school_aged_child() {
       }
     }
     this->hh_schl_aged_chld = ret_val;
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
     return ret_val;
   }
 }
@@ -208,7 +211,7 @@ bool Household::has_school_aged_child_and_unemployed_adult() {
   //Household has been loaded
   assert(Global::Pop.is_load_completed());
   //If the household status hasn't changed, just return the flag
-  if(!this->hh_schl_aged_chld_unemplyd_adlt_chng) {
+  if(this->hh_schl_aged_chld_unemplyd_adlt_is_set) {
     return this->hh_schl_aged_chld_unemplyd_adlt;
   } else {
     bool ret_val = false;
@@ -244,7 +247,7 @@ bool Household::has_school_aged_child_and_unemployed_adult() {
       }
     }
     this->hh_schl_aged_chld_unemplyd_adlt = ret_val;
-    this->hh_schl_aged_chld_unemplyd_adlt_chng = false;
+    this->hh_schl_aged_chld_unemplyd_adlt_is_set = true;
     return ret_val;
   }
 }
@@ -306,7 +309,7 @@ bool Household::have_working_adult_use_sickleave_for_child(Person* adult, Person
   std::map<Person*, HH_Adult_Sickleave_Data>::iterator itr;
   itr = this->adult_childcare_sickleave_map.find(adult);
   if(itr != this->adult_childcare_sickleave_map.end()) {
-    if(!itr->second.stay_home_with_child(adult)) { //didn't already stayed home with this child
+    if(!itr->second.stay_home_with_child(adult)) { //didn't already stay home with this child
       return itr->second.stay_home_with_child(child);
     }
   }
@@ -328,3 +331,281 @@ void Household::record_profile() {
   }
 }
 
+void Household::set_household_structure () {
+
+  if (this->is_college_dorm()) {
+    this->household_structure = DORM_MATES;
+    strcpy(this->household_structure_label, htype[this->household_structure].c_str());
+    return;
+  }
+
+  if (this->is_prison_cell()) {
+    this->household_structure = CELL_MATES;
+    strcpy(this->household_structure_label, htype[this->household_structure].c_str());
+    return;
+  }
+
+  if (this->is_military_barracks()) {
+    this->household_structure = BARRACK_MATES;
+    strcpy(this->household_structure_label, htype[this->household_structure].c_str());
+    return;
+  }
+
+  if (this->is_nursing_home()) {
+    this->household_structure = NURSING_HOME_MATES;
+    strcpy(this->household_structure_label, htype[this->household_structure].c_str());
+    return;
+  }
+
+  Person* person = NULL;
+  int count[76];
+  for (int i = 0; i < 76; i++) { count[i] = 0;}
+  int hsize = 0;
+  int male_adult = 0;
+  int female_adult = 0;
+  int male_minor = 0;
+  int female_minor = 0;
+  int max_minor_age = -1;
+  int max_adult_age = -1;
+  int min_minor_age = 100;
+  int min_adult_age = 100;
+  int size = get_size();
+  // std::vector<int> ages;
+  // ages.clear();
+  for(int i = 0; i < size; ++i) {
+    person = get_enrollee(i);
+    if(person != NULL) {
+      hsize++;
+      int a = person->get_age();
+      // ages.push_back(a);
+      if (a > 75) {
+	a = 75;
+      }
+      count[a]++;
+      if (a >= 18 && a < min_adult_age) { min_adult_age = a; }
+      if (a >= 18 && a > max_adult_age) { max_adult_age = a; }
+      if (a < 18 && a < min_minor_age) { min_minor_age = a; }
+      if (a < 18 && a > max_minor_age) { max_minor_age = a; }
+      if (a >= 18) {
+	if (person->get_sex() == 'F') {
+	  female_adult++;
+	}
+	else {
+	  male_adult++;
+	}
+      }
+      else {
+	if (person->get_sex() == 'F') {
+	  female_minor++;
+	}
+	else {
+	  male_minor++;
+	}
+      }
+    }
+  }
+  /*
+  std::sort (ages.begin(), ages.end());
+  // find biggest difference in ages
+  int max_diff = -1;
+  int max_diff_i = 0;
+  for (int i = 1; i < hsize; i++) {
+    if (max_diff < (ages[i]-ages[i-1])) {
+      max_diff = ages[i]-ages[i-1];
+      max_diff_i = i;
+    }
+  }
+  */
+  htype_t t = UNKNOWN;
+
+  if (max_minor_age > -1) {
+    // households with minors:
+
+    // more than two adults
+    if (male_adult+female_adult>2) {
+      // check for adult children in household
+      int max_child_age = -1;
+      for(int i = 0; i < hsize; ++i) {
+	person = get_enrollee(i);
+	int age = person->get_age();
+	// find age of oldest "child"
+	if (age < 30 && age < max_minor_age+15 && age > max_child_age) {
+	  max_child_age = age;
+	}
+      }
+      // count potential parents
+      int males = 0;
+      int females = 0;
+      int max_par_age = -1;
+      int min_par_age = 100;
+      for(int i = 0; i < hsize; ++i) {
+	person = get_enrollee(i);
+	int age = person->get_age();
+	// count potential parents
+	if (age >= max_child_age+15) {
+	  if (age > max_par_age) { max_par_age = age; }
+	  if (age < min_par_age) { min_par_age = age; }
+	  if (person->get_sex() == 'F') {
+	    females++;
+	  }
+	  else {
+	    males++;
+	  }
+	}
+      }
+      if (0 < males+females && males+females <= 2 && max_par_age < min_par_age+15) {
+	// we have at least one potential biological parent
+	if (males==1 && females==1) {
+	  t = OPP_SEX_TWO_PARENTS;
+	}
+	else if (males+females==2) {
+	  t = SAME_SEX_TWO_PARENTS;
+	}
+	else if (males+females==1) {
+	  t = SINGLE_PARENT;
+	}
+      }
+      else if (max_par_age >= min_par_age + 15) {
+	// multi-gen family:
+	// delete the older generation
+	int ma = males;
+	int fa = females;
+	for(int i = 0; i < hsize; ++i) {
+	  person = get_enrollee(i);
+	  int age = person->get_age();
+	  if (age >= min_par_age+15) {
+	    if (person->get_sex() == 'F') {
+	      fa--;
+	    }
+	    else {
+	      ma--;
+	    }
+	  }
+	}
+	if (ma+fa==1) {
+	  t = SINGLE_PAR_MULTI_GEN_FAMILY;
+	}
+	else if (ma+fa==2) {
+	  t = TWO_PAR_MULTI_GEN_FAMILY;
+	}
+	else {
+	  t = OTHER_FAMILY;
+	}
+      }
+      else {
+	t = OTHER_FAMILY;
+      }
+    } // end more than 2 adults
+    
+    // two adults
+    if (male_adult+female_adult == 2) {
+      if (max_adult_age < min_adult_age + 15) {
+	if (male_adult==1 && female_adult==1) {
+	  t = OPP_SEX_TWO_PARENTS;
+	}
+	else {
+	  t = SAME_SEX_TWO_PARENTS;
+	}
+      }
+      else {
+	t = SINGLE_PAR_MULTI_GEN_FAMILY;
+      }
+    } // end two adults
+
+    // one adult
+    if (male_adult+female_adult == 1) {
+      t = SINGLE_PARENT;
+    } // end one adult
+
+    // no adults
+    if (male_adult+female_adult==0) {
+      if (hsize==2 && max_minor_age >= 15 && min_minor_age <= max_minor_age-14) {
+	t = SINGLE_PARENT;
+      } 
+      else if (count[15]+count[16]+count[17]==2 && min_minor_age <= max_minor_age-14) {
+	t = OPP_SEX_TWO_PARENTS;
+      } 
+      else if (hsize==2 && count[15]+count[16]+count[17]==2) {
+	if (female_minor && male_minor) {
+	  t = OPP_SEX_SIM_AGE_PAIR;
+	}
+	else {
+	  t = SAME_SEX_SIM_AGE_PAIR;
+	}
+      } 
+      else if (hsize == 1 && max_minor_age > 14) {
+	if (female_minor) {
+	  t = SINGLE_FEMALE;
+	}
+	else {
+	  t = SINGLE_MALE;
+	}
+      }
+      else if (hsize > 2 && count[17]==hsize) {
+	t = YOUNG_ROOMIES;
+      }
+      else {
+	t = UNATTENDED_KIDS;
+      }
+    }
+  } // end households with minors
+
+  else {
+
+    // single adults
+    if (hsize == 1) {
+      if (female_adult || female_minor) {
+	t = SINGLE_FEMALE;
+      }
+      else {
+	t = SINGLE_MALE;
+      }
+    }
+
+    // pairs of adults
+    if (hsize == 2) {
+      if (max_adult_age < min_adult_age+15) {
+	if (male_adult && female_adult) {
+	  t = OPP_SEX_SIM_AGE_PAIR;
+	}
+	else {
+	  t = SAME_SEX_SIM_AGE_PAIR;
+	}
+      }
+      else {
+	if (male_adult && female_adult) {
+	  t = OPP_SEX_DIF_AGE_PAIR;
+	}
+	else {
+	  t = SAME_SEX_DIF_AGE_PAIR;
+	}
+      }
+    } // end adults pairs
+
+    // more than 2 adults
+    if (hsize > 2) {
+      if (max_adult_age < 30) {
+	t = YOUNG_ROOMIES;
+      }
+      else if (min_adult_age >= 30) {
+	t = OLDER_ROOMIES;
+      }
+      else {
+	t = MIXED_ROOMIES;
+      }
+    }
+  } // end adult-only households
+
+  this->household_structure = t;
+  strcpy(this->household_structure_label, htype[t].c_str());
+
+  /*
+  printf("HOUSEHOLD_TYPE: %s size = %d ", get_household_structure_label(), get_size());
+  for(int i = 0; i < hsize; ++i) {
+    Person* person = get_enrollee(i);
+    printf("%d%c ", person->get_age(), person->get_sex());
+  }
+  printf("\n");
+  */
+
+}

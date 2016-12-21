@@ -116,9 +116,9 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 	$(CPP) $(CPPFLAGS) $(FRED_CLANG_FLAGS) -c $< $(INCLUDES)
 
 CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o \
-	Random.o Markov_Model.o $(SNAPPY_OBJ)
+	Random.o Markov_Chain.o $(SNAPPY_OBJ)
 
-ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
+ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o Census_Tract.o \
 	Neighborhood_Layer.o Neighborhood_Patch.o \
 	Regional_Layer.o Regional_Patch.o \
 	Visualization_Layer.o Visualization_Patch.o \
@@ -128,14 +128,14 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
 	Behavior.o Intention.o Perceptions.o Travel.o Population.o Person_Network_Link.o
 
-DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
+CONDITION_MODULE = Condition.o Epidemic.o Infection.o \
 	Natural_History.o Transmission.o \
 	Respiratory_Transmission.o Sexual_Transmission.o Vector_Transmission.o \
-	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
+	Past_Infection.o Strain.o StrainTable.o Trajectory.o Condition_List.o \
 	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
 	Markov_Epidemic.o Markov_Infection.o Markov_Natural_History.o
 
-PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
+MIXING_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
 	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o
 
 INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
@@ -145,7 +145,7 @@ INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
 
 VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
 
-OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
+OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(CONDITION_MODULE) $(MIXING_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 

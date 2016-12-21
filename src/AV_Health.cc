@@ -22,7 +22,7 @@
 #include "AV_Health.h"
 #include "Antiviral.h"
 #include "Health.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Person.h"
 #include "Global.h"
 
@@ -30,7 +30,7 @@ using namespace std;
 
 AV_Health::AV_Health(int _av_day, Antiviral* _AV, Health* _health){
   AV              = _AV;
-  disease          = AV->get_disease();
+  condition          = AV->get_condition();
   av_day          = _av_day +1;
   health          = _health;
   av_end_day      = -1;
@@ -43,7 +43,7 @@ void AV_Health::print() const {
 }
 
 void AV_Health::printTrace() const {
-  fprintf(Global::Tracefp," %2d %2d %2d",av_day,disease,is_effective());
+  fprintf(Global::Tracefp," %2d %2d %2d",av_day,condition,is_effective());
 }
 
 void AV_Health::update(int day){

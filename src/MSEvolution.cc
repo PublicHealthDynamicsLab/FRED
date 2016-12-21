@@ -29,20 +29,20 @@ MSEvolution::MSEvolution() {
   this->prob_inoc_norm = 0.0;
 }
 
-void MSEvolution::setup( Disease * disease ) {
-  Evolution::setup(disease);
+void MSEvolution::setup( Condition * condition ) {
+  Evolution::setup(condition);
   this->halflife_inf = new Age_Map("Infection Protection Half Life");
-  this->halflife_inf->read_from_input("half_life_inf", disease->get_id());
+  this->halflife_inf->read_from_input("half_life_inf", condition->get_id());
 
   this->halflife_vac = new Age_Map("Vaccination Protection Half Life");
-  this->halflife_vac->read_from_input("half_life_vac", disease->get_id());
+  this->halflife_vac->read_from_input("half_life_vac", condition->get_id());
   
   Params::get_param((char*) "init_protection_inf", &this->init_prot_inf);
   Params::get_param((char*) "init_protection_vac", &this->init_prot_vac);
   Params::get_param((char*) "saturation_quantity", &this->sat_quantity);
   
   this->protection = new Piecewise_Linear;
-  this->protection->setup("strain_dependent_protection", disease);
+  this->protection->setup("strain_dependent_protection", condition);
 
   this->prob_inoc_norm = 1 - exp(-1);
  
@@ -104,11 +104,11 @@ double MSEvolution::prob_blocking(int old_strain, int new_strain, int time, doub
 }
 
 double MSEvolution::prob_past_infections(Person* infectee, int new_strain, int day) {
-  int disease_id = this->disease->get_id();
+  int condition_id = this->condition->get_id();
   double probTaking = 1.0;
-  int n = infectee->get_num_past_infections(disease_id);
+  int n = infectee->get_num_past_infections(condition_id);
   for(int i = 0; i < n; ++i) {
-    Past_Infection * past_infection = infectee->get_past_infection(disease_id, i);
+    Past_Infection * past_infection = infectee->get_past_infection(condition_id, i);
     //printf("DATES: %d %d\n", day, pastInf->get_infectious_end_date()); 
     probTaking *= (1 - prob_inf_blocking(past_infection->get_strain(), new_strain,
 					   day - past_infection->get_infectious_end_date(), past_infection->get_age_at_exposure()));

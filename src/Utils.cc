@@ -17,8 +17,11 @@
 #include "Utils.h"
 #include "Global.h"
 #include <chrono>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
 
 using namespace std;
 using namespace std::chrono;
@@ -138,6 +141,20 @@ void Utils::fred_open_output_files(){
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
+  Global::InfectionJSONfp = NULL;
+  if(Global::Track_JSON_infection_events) {
+    sprintf(filename, "%s/infections%d.json", directory, run);
+    Global::InfectionJSONfp = fopen(filename, "w");
+    if(Global::InfectionJSONfp == NULL) {
+      Utils::fred_abort("Can't open %s\n", filename);
+    } else {
+      //Print initial line to file
+      fprintf(Global::InfectionJSONfp,"{\n");
+      fprintf(Global::InfectionJSONfp,"  \"infections\":[\n");
+      fflush(Global::InfectionJSONfp);
+    }
+  }
+
   Global::VaccineTracefp = NULL;
   if(strcmp(Global::VaccineTracefilebase, "none") != 0) {
     sprintf(filename, "%s/vacctr%d.txt", directory, run);
@@ -147,7 +164,7 @@ void Utils::fred_open_output_files(){
     }
   }
   Global::Birthfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
+  if(0 && Global::Enable_Population_Dynamics) {
     sprintf(filename, "%s/births%d.txt", directory, run);
     Global::Birthfp = fopen(filename, "w");
     if(Global::Birthfp == NULL) {
@@ -155,7 +172,7 @@ void Utils::fred_open_output_files(){
     }
   }
   Global::Deathfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
+  if(0 && Global::Enable_Population_Dynamics) {
     sprintf(filename, "%s/deaths%d.txt", directory, run);
     Global::Deathfp = fopen(filename, "w");
     if(Global::Deathfp == NULL) {
@@ -202,6 +219,19 @@ void Utils::fred_open_output_files(){
 }
 
 void Utils::fred_make_directory(char* directory) {
+  struct stat info;
+  if( stat( directory, &info ) == 0 ) {
+    // file already exists. verify that it is a directory
+    if( info.st_mode & S_IFDIR )  {
+      printf( "fred_make_directory: %s already exists\n", directory );
+      return;
+    }
+    else {
+      Utils::fred_abort("fred_make_directory: %s exists but is not a directory\n", directory );
+      return;
+    }    
+  }
+  // try to create the directory:
   mode_t mask;        // the user's current umask
   mode_t mode = 0777; // as a start
   mask = umask(0); // get the current mask, which reads and sets...
@@ -223,6 +253,14 @@ void Utils::fred_end(void){
   }
   if(Global::Infectionfp != NULL) {
     fclose(Global::Infectionfp);
+  }
+  if(Global::InfectionJSONfp != NULL) {
+    //Print final line to file
+    //Print initial line to file
+    fprintf(Global::InfectionJSONfp,"  ]\n");
+    fprintf(Global::InfectionJSONfp,"}");
+    fflush(Global::InfectionJSONfp);
+    fclose(Global::InfectionJSONfp);
   }
   if(Global::VaccineTracefp != NULL) {
     fclose(Global::VaccineTracefp);
@@ -569,6 +607,20 @@ void Utils::normalize_white_space(char* s) {
       started = 1;
       // printf("new_s = |%s|\n", new_s); fflush(stdout);
     }
+  }
+}
+
+string Utils::indent(int indent_level) {
+  stringstream tmp_string_stream;
+  if(indent_level <= 0) {
+    tmp_string_stream << "";
+    return tmp_string_stream.str();
+  } else {
+    const char* indent = "  ";
+    for(int i = 0; i < indent_level; ++i) {
+      tmp_string_stream << indent;
+    }
+    return tmp_string_stream.str();
   }
 }
 

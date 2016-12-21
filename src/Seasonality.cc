@@ -14,8 +14,8 @@
 #include "Random.h"
 #include "Timestep_Map.h"
 #include "Seasonality_Timestep_Map.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include <vector>
 #include <iterator>
 #include <stdlib.h>
@@ -30,7 +30,7 @@ Seasonality::Seasonality(Abstract_Grid * abstract_grid) {
   for (int i = 0; i < grid->get_rows(); i++) {
     seasonality_values[i] = new double [grid->get_cols()];
   }
-  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
+  for (int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
     seasonality_multiplier.push_back(new double * [grid->get_rows()]);
     for (int i = 0; i < grid->get_rows(); i++) {
       seasonality_multiplier.back()[i] = new double [grid->get_cols()];
@@ -76,12 +76,12 @@ void Seasonality::update(int day) {
 }
 
 void Seasonality::update_seasonality_multiplier() {
-  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
-    Disease * disease = Global::Diseases.get_disease(d);
-    if (Global::Enable_Climate) { // should seasonality values be interpreted by Disease as specific humidity?
+  for (int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
+    Condition * condition = Global::Conditions.get_condition(d);
+    if (Global::Enable_Climate) { // should seasonality values be interpreted by Condition as specific humidity?
       for (int r = 0; r < grid->get_rows(); r++) {
         for (int c = 0; c < grid->get_cols(); c++) {
-          seasonality_multiplier[d][r][c] = disease->calculate_climate_multiplier(seasonality_values[r][c]);
+          seasonality_multiplier[d][r][c] = condition->calculate_climate_multiplier(seasonality_values[r][c]);
         }
       }
     }
@@ -92,21 +92,21 @@ void Seasonality::update_seasonality_multiplier() {
   }
 }
 
-double Seasonality::get_seasonality_multiplier_by_lat_lon(fred::geo lat, fred::geo lon, int disease_id) {
+double Seasonality::get_seasonality_multiplier_by_lat_lon(fred::geo lat, fred::geo lon, int condition_id) {
   int row = grid->get_row(lat);
   int col = grid->get_col(lon);
-  return get_seasonality_multiplier(row, col, disease_id);
+  return get_seasonality_multiplier(row, col, condition_id);
 }
 
-double Seasonality::get_seasonality_multiplier_by_cartesian(double x, double y, int disease_id) {
+double Seasonality::get_seasonality_multiplier_by_cartesian(double x, double y, int condition_id) {
   int row = grid->get_row(y);
   int col = grid->get_row(x);
-  return get_seasonality_multiplier(row, col, disease_id);
+  return get_seasonality_multiplier(row, col, condition_id);
 }
 
-double Seasonality::get_seasonality_multiplier(int row, int col, int disease_id) {
+double Seasonality::get_seasonality_multiplier(int row, int col, int condition_id) {
   if ( row >= 0 && col >= 0 && row < grid->get_rows() && col < grid->get_cols() )
-    return seasonality_multiplier[disease_id][row][col];
+    return seasonality_multiplier[condition_id][row][col];
   else
     return 0;
 }
@@ -141,8 +141,8 @@ void Seasonality::print() {
   cout << "Seasonality Values" << endl;
   print_field(&seasonality_values);
   cout << endl;
-  for (int d = 0; d < Global::Diseases.get_number_of_diseases(); d++) {
-    printf("Seasonality Modululated Transmissibility for Disease[%d]\n",d);
+  for (int d = 0; d < Global::Conditions.get_number_of_conditions(); d++) {
+    printf("Seasonality Modululated Transmissibility for Condition[%d]\n",d);
     print_field(&(seasonality_multiplier[d]));
     cout << endl;
   }
@@ -158,11 +158,11 @@ void Seasonality::print_field(double *** field) {
   }
 }
 
-double Seasonality::get_average_seasonality_multiplier(int disease_id) {
+double Seasonality::get_average_seasonality_multiplier(int condition_id) {
   double total = 0;
   for (int row = 0; row < grid->get_rows(); row++) {
     for (int col = 0; col < grid->get_cols(); col++) {
-      total += get_seasonality_multiplier(row, col, disease_id);
+      total += get_seasonality_multiplier(row, col, condition_id);
     }
   }
   return total / (grid->get_rows() * grid->get_cols());
@@ -170,15 +170,15 @@ double Seasonality::get_average_seasonality_multiplier(int disease_id) {
 
 void Seasonality::print_summary() {
   return;
-  for (int disease_id = 0; disease_id < Global::Diseases.get_number_of_diseases(); disease_id++) { 
+  for (int condition_id = 0; condition_id < Global::Conditions.get_number_of_conditions(); condition_id++) { 
     double min = 9999999;
     double max = 0;
     double total = 0;
     double daily_avg = 0;
-    printf("\nSeasonality Summary for disease %d:\n\n",disease_id);
+    printf("\nSeasonality Summary for condition %d:\n\n",condition_id);
     for (int day = 0; day < Global::Days; day++) {
       update(day);
-      daily_avg = get_average_seasonality_multiplier(disease_id);
+      daily_avg = get_average_seasonality_multiplier(condition_id);
       if (min > daily_avg) { min = daily_avg; }
       if (max < daily_avg) { max = daily_avg; }
       total += daily_avg;

@@ -39,13 +39,13 @@ public:
   
   /**
    * @param person a pointer to a person object
-   * @param disease the disease
+   * @param condition the condition
    * @param current_day the simulation day
    *
    * @return
-   * @see Policy::choose(Person* person, int disease, int current_day)
+   * @see Policy::choose(Person* person, int condition, int current_day)
    */
-  virtual int choose(Person* person, int disease, int current_day);
+  virtual int choose(Person* person, int condition, int current_day);
 };
 
 class AV_Policy_Distribute_To_Everyone: public Policy {
@@ -56,12 +56,12 @@ public:
   
   /**
    * @param person a pointer to a person object
-   * @param disease the disease
+   * @param condition the condition
    * @param current_day the simulation day
    *
    * @return
-   * @see Policy::choose(Person* person, int disease, int current_day)
+   * @see Policy::choose(Person* person, int condition, int current_day)
    */
-  virtual int choose(Person* person, int disease, int current_day);
+  virtual int choose(Person* person, int condition, int current_day);
 };
 #endif

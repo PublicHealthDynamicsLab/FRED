@@ -19,7 +19,7 @@
 
 #include "Abstract_Grid.h"
 #include "Seasonality_Timestep_Map.h"
-#include "Disease.h"
+#include "Condition.h"
 #include "Population.h"
 #include "Global.h"
 #include <vector>
@@ -33,10 +33,10 @@ public:
   Seasonality(Abstract_Grid * grid);
   //~Seasonality(Abstract_Grid * grid);
   void update(int day);
-  double get_seasonality_multiplier_by_lat_lon(fred::geo lat, fred::geo lon, int disease_id);
-  double get_seasonality_multiplier_by_cartesian(double x, double y, int disease_id);
-  double get_seasonality_multiplier(int row, int col, int disease_id);
-  double get_average_seasonality_multiplier(int disease_id);
+  double get_seasonality_multiplier_by_lat_lon(fred::geo lat, fred::geo lon, int condition_id);
+  double get_seasonality_multiplier_by_cartesian(double x, double y, int condition_id);
+  double get_seasonality_multiplier(int row, int col, int condition_id);
+  double get_average_seasonality_multiplier(int condition_id);
 
   void print();
   void print_summary();
@@ -44,7 +44,7 @@ public:
 private:
   void update_seasonality_multiplier();
   double ** seasonality_values; // rectangular array of seasonality values
-  vector < double ** > seasonality_multiplier; // result of applying each disease's seasonality/transmissibily kernel
+  vector < double ** > seasonality_multiplier; // result of applying each condition's seasonality/transmissibily kernel
   Seasonality_Timestep_Map * seasonality_timestep_map;
   Abstract_Grid * grid;
 

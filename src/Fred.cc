@@ -18,8 +18,8 @@
 #include "Behavior.h"
 #include "Date.h"
 #include "Demographics.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Evolution.h"
 #include "Epidemic.h"
 #include "Fred.h"
@@ -101,8 +101,8 @@ void fred_setup(int argc, char* argv[]) {
   Global::get_global_parameters();
   Date::setup_dates(Global::Start_date);
 
-  // create diseases and read parameters
-  Global::Diseases.get_parameters();
+  // create conditions and read parameters
+  Global::Conditions.get_parameters();
   Transmission::get_parameters();
 
   Global::Pop.get_parameters();
@@ -174,9 +174,12 @@ void fred_setup(int argc, char* argv[]) {
   Health::initialize_static_variables();
   Utils::fred_print_lap_time("initialize_static_variables");
 
-  // finished setting up Diseases
-  Global::Diseases.setup();
-  Utils::fred_print_lap_time("Diseases.setup");
+  // setup visualuzation data directories
+  Global::Visualization->setup();
+
+  // finished setting up Conditions
+  Global::Conditions.setup();
+  Utils::fred_print_lap_time("Conditions.setup");
 
   // read in the population and have each person enroll
   // in each daily activity location identified in the population file
@@ -189,6 +192,9 @@ void fred_setup(int argc, char* argv[]) {
   Global::Places.setup_households();
   Utils::fred_print_lap_time("Places.setup_households");
 
+  // setup county lists of schools and workplaces.
+  // this may optionally re-assigned students to in-state schools
+  Global::Places.setup_counties();
 
   // define FRED-specific places and have each person enroll as needed
 
@@ -197,19 +203,11 @@ void fred_setup(int argc, char* argv[]) {
   Global::Pop.assign_classrooms();
   Utils::fred_print_lap_time("assign classrooms");
 
-  // reassign workers (to schools, hospitals, groups quarters, etc)
-  Global::Places.reassign_workers();
-  Utils::fred_print_lap_time("reassign workers");
-
   // offices
   Global::Places.setup_offices();
   Utils::fred_print_lap_time("setup_offices");
   Global::Pop.assign_offices();
   Utils::fred_print_lap_time("assign offices");
-
-  // after all enrollments, prepare to receive visitors
-  Global::Places.prepare();
-  Utils::fred_print_lap_time("place preparation");
 
   if(Global::Enable_Hospitals) {
     Global::Places.assign_hospitals_to_households();
@@ -221,10 +219,21 @@ void fred_setup(int argc, char* argv[]) {
     }
   }
 
+  // setup census_tract lists of schools and workplaces.
+  Global::Places.setup_census_tracts();
+
+  // after all enrollments, prepare to receive visitors
+  Global::Places.prepare();
+  Utils::fred_print_lap_time("place preparation");
+
   FRED_STATUS(0, "deleting place_label_map\n", "");
   Global::Places.delete_place_label_map();
   FRED_STATUS(0, "prepare places finished\n", "");
   
+  // reassign workers (to schools, hospitals, groups quarters, etc)
+  Global::Places.reassign_workers();
+  Utils::fred_print_lap_time("reassign workers");
+
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->setup();
     Utils::fred_print_lap_time("Vectors->setup");
@@ -238,7 +247,7 @@ void fred_setup(int argc, char* argv[]) {
 
   if(Global::Enable_Sexual_Partner_Network) {
     Global::Sexual_Partner_Network = new Sexual_Transmission_Network("Sexual_Partner_Network");
-    Sexual_Transmission_Network::get_parameters();
+    Global::Sexual_Partner_Network->get_parameters();
     //Global::Sexual_Partner_Network->test();
   }
 
@@ -269,13 +278,13 @@ void fred_setup(int argc, char* argv[]) {
     Utils::fred_print_lap_time("quality control");
   }
 
-  if(Global::Track_age_distribution) {
-    /*
-      Global::Pop.print_age_distribution(Global::Simulation_directory,
-      (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
-      Global::Simulation_run_number);
-    */
-  }
+  /*
+    if(Global::Track_age_distribution) {
+    Global::Pop.print_age_distribution(Global::Simulation_directory,
+    (char *) Global::Sim_Start_Date->get_YYYYMMDD().c_str(),
+    Global::Simulation_run_number);
+    }
+  */
 
   if(Global::Enable_Seasonality) {
     Global::Clim->print_summary();
@@ -296,7 +305,7 @@ void fred_setup(int argc, char* argv[]) {
   if(Global::Report_Childhood_Presenteeism) {
     Global::Pop.set_school_income_levels();
     Global::Places.setup_school_income_quartile_pop_sizes();
-    //Global::Places.setup_household_income_quartile_sick_days();
+    Global::Places.setup_household_childcare();
   }
 
   if(Global::Enable_hh_income_based_susc_mod) {
@@ -326,22 +335,17 @@ void fred_setup(int argc, char* argv[]) {
   // want from wherever in the output file
   Global::Daily_Tracker = new Tracker<int>("Main Daily Tracker","Day");
   
-  // prepare diseases after population is all set up
-  FRED_VERBOSE(0, "prepare diseases\n");
-  Global::Diseases.prepare_diseases();
-  Utils::fred_print_lap_time("prepare_diseases");
+  // prepare conditions after population is all set up
+  FRED_VERBOSE(0, "prepare conditions\n");
+  Global::Conditions.prepare_conditions();
+  Utils::fred_print_lap_time("prepare_conditions");
 
   if(Global::Enable_Vector_Layer) {
     Global::Vectors->init_prior_immunity_by_county();
-    for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+    for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
       Global::Vectors->init_prior_immunity_by_county(d);
     }
     Utils::fred_print_lap_time("vector_layer_initialization");
-  }
-
-  // initialize visualization data if desired
-  if(Global::Enable_Visualization_Layer) {
-    Global::Visualization->initialize();
   }
 
   // initialize generic activities
@@ -387,24 +391,23 @@ void fred_step(int day) {
   Global::Places.update(day);
   Utils::fred_print_lap_time("day %d update places", day);
 
-  // optional: update population dynamics 
-  if(Global::Enable_Population_Dynamics) {
-    Demographics::update(day);
-    Utils::fred_print_lap_time("day %d update demographics", day);
-    Global::Places.update_population_dynamics(day);
-    Utils::fred_print_lap_time("day %d update population dynamics", day);
-  }
+  // update population demographics
+  Global::Pop.update_demographics(day);
+  Utils::fred_print_lap_time("day %d update demographics", day);
 
-  // update everyone's health intervention status
-  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
-    Global::Pop.update_health_interventions(day);
-  }
+  // update population mobility
+  Global::Places.update_population_dynamics(day);
+  Utils::fred_print_lap_time("day %d update population dynamics", day);
 
   // remove dead from population
   Global::Pop.remove_dead_from_population(day);
 
-  // update activity profiles on July 1
-  if(Global::Enable_Population_Dynamics && Date::get_month() == 7 && Date::get_day_of_month() == 1) {
+  // remove migrants from population
+  Global::Pop.remove_migrants_from_population(day);
+
+  // update everyone's health intervention status
+  if(Global::Enable_Vaccination || Global::Enable_Antivirals) {
+    Global::Pop.update_health_interventions(day);
   }
 
   // Update vector dynamics
@@ -420,40 +423,48 @@ void fred_step(int day) {
   }
 
   // distribute vaccines
-  Global::Pop.vacc_manager->update(day);
+  Global::Pop.get_vaccine_manager()->update(day);
 
   // distribute AVs
-  Global::Pop.av_manager->update(day);
+  Global::Pop.get_av_manager()->update(day);
 
   // update generic activities (individual activities updated only if
   // needed -- see below)
   Activities::update(day);
 
-  // shuffle the order of diseases to reduce systematic bias
+  // shuffle the order of conditions to reduce systematic bias
   vector<int> order;
   order.clear();
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
     order.push_back(d);
   }
-  if(Global::Diseases.get_number_of_diseases() > 1) {
+  if(Global::Conditions.get_number_of_conditions() > 1) {
     FYShuffle<int>(order);
   }
 
-  // transmit each disease in turn
-  for(int d = 0; d < Global::Diseases.get_number_of_diseases(); ++d) {
-    int disease_id = order[d];
-    Disease* disease = Global::Diseases.get_disease(disease_id);
-    disease->update(day);
-    Utils::fred_print_lap_time("day %d update epidemic for disease %d", day, disease_id);
+  // transmit each condition in turn
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+    int condition_id = order[d];
+    Condition* condition = Global::Conditions.get_condition(condition_id);
+    condition->update(day);
+    Utils::fred_print_lap_time("day %d update epidemic for condition %d", day, condition_id);
   }
 
-  // print daily report
+  // print daily reports and visualization data
+  for(int d = 0; d < Global::Conditions.get_number_of_conditions(); ++d) {
+    Global::Conditions.get_condition(d)->report(day);
+  }
+  Utils::fred_print_lap_time("day %d report conditions", day);
+
   Global::Pop.report(day);
   Utils::fred_print_lap_time("day %d report population", day);
 
   if(Global::Enable_HAZEL) {
-    //Activities::print_stats(day);
     Global::Places.print_stats(day);
+  }
+
+  if(Global::Report_Presenteeism || Global::Report_Childhood_Presenteeism) {
+    Activities::report(day);
   }
 
   // print visualization data if desired
@@ -479,12 +490,16 @@ void fred_step(int day) {
     {
       // flush infections file buffer
       fflush(Global::Infectionfp);
+      if(Global::Track_JSON_infection_events) {
+        fflush(Global::InfectionJSONfp);
+      }
     }
   }
 
   // print daily reports
   Utils::fred_print_resource_usage(day);
   Utils::fred_print_wall_time("day %d finished", day);
+  FRED_VERBOSE(0, "%s ", Date::get_date_string().c_str());
   Utils::fred_print_day_timer(day);
   Global::Daily_Tracker->output_inline_report_format_for_index(day, Global::Outfp);
 
@@ -496,6 +511,9 @@ void fred_step(int day) {
 void fred_finish() {
   //Global::Daily_Tracker->create_full_log(10,cout);
   fflush(Global::Infectionfp);
+  if(Global::Track_JSON_infection_events) {
+    fflush(Global::InfectionJSONfp);
+  }
   
   // final reports
   if(Global::Report_Mean_Household_Stats_Per_Income_Category && Global::Report_Epidemic_Data_By_Census_Tract) {
@@ -517,7 +535,7 @@ void fred_finish() {
 
   Global::Pop.end_of_run();
   Global::Places.end_of_run();
-  Global::Diseases.end_of_run();
+  Global::Conditions.end_of_run();
 
   if(Global::Enable_Transmission_Network) {
     // Global::Transmission_Network->print();

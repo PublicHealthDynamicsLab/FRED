@@ -20,6 +20,8 @@
 #include "Abstract_Grid.h"
 #include "Global.h"
 
+#include <vector>
+
 class Regional_Patch;
 class Person;
 class Place;
@@ -37,7 +39,9 @@ public:
   Regional_Patch* get_patch_from_id(int id);
   Regional_Patch* select_random_patch();
   void add_workplace(Place* place);
+  void add_hospital(Place* place);
   Place* get_nearby_workplace(int row, int col, double x, double y, int min_staff, int max_staff, double* min_dist);
+  vector<Place*> get_nearby_hospitals(int row, int col, double x, double y, int min_found);
   void set_population_size();
   void quality_control();
   void read_max_popsize();
