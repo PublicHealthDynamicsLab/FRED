@@ -1,0 +1,79 @@
+# exclude everything other than FRED core directories
+/*
+!LICENSE
+!Makefile
+!README.md
+!/bin/
+!/data/
+!/doc/
+!/etc/
+!/input_files/
+!/src/
+!/tests/
+!/tutorial/
+
+# include only sample populations
+/populations/*
+!/populations/2010_synth_pop_ver1_quickstart.pdf
+!/populations/2010_ver1_42003.zip
+!/populations/2010_ver1_42065.zip
+!/populations/Makefile
+
+# exclude country data other than USA
+input_files/country/*
+!input_files/country/usa
+
+data/country/*
+!data/country/usa
+data/country/usa/*
+!data/country/usa/*.txt
+!data/country/usa/msa/
+!data/country/usa/state/
+!data/country/usa/SHAPES/
+!data/country/usa/MAPS/*
+
+# include only sample populations
+!data/country/usa/RTI_2010_ver1
+data/country/usa/RTI_2010_ver1/*
+!data/country/usa/RTI_2010_ver1/*.txt
+!data/country/usa/RTI_2010_ver1/42003
+!data/country/usa/RTI_2010_ver1/42065
+
+# exclude RESULTS
+RESULTS/**
+
+# exclude temporary test files
+**/OUT.TEST/
+**/OUT.RT/VIS/
+**/compare.test
+
+# exclude FRED executables
+src/FRED
+bin/FRED
+
+# exclude DEPENDS file created by make
+src/DEPENDS
+src/params*
+src/OUT*/
+src/fsz
+bin/fsz
+
+# ignore file that start with period
+**/\.*
+
+# include the .gitignore file
+!.gitignore
+
+# ignore file that end with tilde
+**/*~
+
+# ignore .o files
+**/*.o
+
+# ignore LOG files
+**/LOG
+
+# ignore all CVS directories
+**/CVS/
+
+
