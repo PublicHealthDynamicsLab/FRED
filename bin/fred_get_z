@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($orig_prob, $target_prob) = @ARGV;
+# die "usage: $0 orig_prob target_prob\n" if (not $target_prob);
+
+my $z0;
+if ($orig_prob eq 1.0) {
+ $z0 = 100;
+}
+elsif ($orig_prob eq 0.0) {
+ $z0 = -100;
+}
+else {
+  $z0 = log($orig_prob/(1.0-$orig_prob));
+}
+
+my $zz;
+if ($target_prob eq 1.0) {
+ $zz = 100;
+}
+elsif ($target_prob eq 0.0) {
+ $zz = -100;
+}
+else {
+  $zz = log($target_prob/(1.0-$target_prob));
+}
+
+my $z1 = $zz - $z0;
+
+print "$z0 $z1\n";

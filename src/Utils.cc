@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -17,8 +20,11 @@
 #include "Utils.h"
 #include "Global.h"
 #include <chrono>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
 
 using namespace std;
 using namespace std::chrono;
@@ -111,65 +117,61 @@ void Utils::fred_open_output_files(){
   int run = Global::Simulation_run_number;
   char filename[FRED_STRING_SIZE];
   char directory[FRED_STRING_SIZE];
-  strcpy(directory, Global::Simulation_directory);
+  sprintf(directory, "%s/RUN%d", Global::Simulation_directory, run);
+  fred_make_directory(directory);
 
   // ErrorLog file is created at the first warning or error
   Global::ErrorLogfp = NULL;
-  sprintf(ErrorFilename, "%s/err%d.txt", directory, run);
+  sprintf(ErrorFilename, "%s/err.txt", directory);
 
-  sprintf(filename, "%s/out%d.txt", directory, run);
+  sprintf(filename, "%s/out.csv", directory);
   Global::Outfp = fopen(filename, "w");
   if(Global::Outfp == NULL) {
     Utils::fred_abort("Can't open %s\n", filename);
   }
   Global::Tracefp = NULL;
+  /*
   if (strcmp(Global::Tracefilebase, "none") != 0) {
-    sprintf(filename, "%s/trace%d.txt", directory, run);
+    sprintf(filename, "%s/trace.txt", directory);
     Global::Tracefp = fopen(filename, "w");
     if(Global::Tracefp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
+  */
   Global::Infectionfp = NULL;
   if(Global::Track_infection_events > 0) {
-    sprintf(filename, "%s/infections%d.txt", directory, run);
+    sprintf(filename, "%s/infections.txt", directory);
     Global::Infectionfp = fopen(filename, "w");
     if(Global::Infectionfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
-  Global::VaccineTracefp = NULL;
-  if(strcmp(Global::VaccineTracefilebase, "none") != 0) {
-    sprintf(filename, "%s/vacctr%d.txt", directory, run);
-    Global::VaccineTracefp = fopen(filename, "w");
-    if(Global::VaccineTracefp == NULL) {
+
+  Global::HealthRecordfp = NULL;
+  if(Global::Enable_Health_Records > 0) {
+    sprintf(filename, "%s/health_records.txt", directory);
+    Global::HealthRecordfp = fopen(filename, "w");
+    if(Global::HealthRecordfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
+
   Global::Birthfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
-    sprintf(filename, "%s/births%d.txt", directory, run);
+  if(0 && Global::Enable_Population_Dynamics) {
+    sprintf(filename, "%s/births.txt", directory);
     Global::Birthfp = fopen(filename, "w");
     if(Global::Birthfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
   Global::Deathfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
-    sprintf(filename, "%s/deaths%d.txt", directory, run);
+  if(0 && Global::Enable_Population_Dynamics) {
+    sprintf(filename, "%s/deaths.txt", directory);
     Global::Deathfp = fopen(filename, "w");
     if(Global::Deathfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
-  }
-  Global::Immunityfp = NULL;
-  if(strcmp(Global::Immunityfilebase, "none") != 0) {
-    sprintf(filename, "%s/immunity%d.txt", directory, run);
-    Global::Immunityfp = fopen(filename, "w");
-    if(Global::Immunityfp == NULL) {
-      Utils::fred_abort("Help! Can't open %s\n", filename);
-    }
-    Global::Report_Immunity = true;
   }
   Global::Householdfp = NULL;
   if(Global::Print_Household_Locations) {
@@ -182,7 +184,7 @@ void Utils::fred_open_output_files(){
 
   Global::Tractfp = NULL;
   if(Global::Report_Epidemic_Data_By_Census_Tract) {
-    sprintf(filename,"%s/tracts%d.txt",directory,run);
+    sprintf(filename,"%s/tracts.txt",directory);
     Global::Tractfp = fopen(filename,"w");
     if(Global::Tractfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
@@ -191,7 +193,7 @@ void Utils::fred_open_output_files(){
   
   Global::IncomeCatfp = NULL;
   if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
-    sprintf(filename,"%s/income_category%d.txt",directory,run);
+    sprintf(filename,"%s/income_category.txt",directory);
     Global::IncomeCatfp = fopen(filename,"w");
     if(Global::IncomeCatfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
@@ -202,6 +204,19 @@ void Utils::fred_open_output_files(){
 }
 
 void Utils::fred_make_directory(char* directory) {
+  struct stat info;
+  if( stat( directory, &info ) == 0 ) {
+    // file already exists. verify that it is a directory
+    if( info.st_mode & S_IFDIR )  {
+      printf( "fred_make_directory: %s already exists\n", directory );
+      return;
+    }
+    else {
+      Utils::fred_abort("fred_make_directory: %s exists but is not a directory\n", directory );
+      return;
+    }    
+  }
+  // try to create the directory:
   mode_t mask;        // the user's current umask
   mode_t mode = 0777; // as a start
   mask = umask(0); // get the current mask, which reads and sets...
@@ -224,17 +239,11 @@ void Utils::fred_end(void){
   if(Global::Infectionfp != NULL) {
     fclose(Global::Infectionfp);
   }
-  if(Global::VaccineTracefp != NULL) {
-    fclose(Global::VaccineTracefp);
-  }
   if(Global::Prevfp != NULL) {
     fclose(Global::Prevfp);
   }
   if(Global::Incfp != NULL) {
     fclose(Global::Incfp);
-  }
-  if(Global::Immunityfp != NULL) {
-    fclose(Global::Immunityfp);
   }
   if(Global::Householdfp != NULL) {
     fclose(Global::Householdfp);
@@ -572,6 +581,20 @@ void Utils::normalize_white_space(char* s) {
   }
 }
 
+string Utils::indent(int indent_level) {
+  stringstream tmp_string_stream;
+  if(indent_level <= 0) {
+    tmp_string_stream << "";
+    return tmp_string_stream.str();
+  } else {
+    const char* indent = "  ";
+    for(int i = 0; i < indent_level; ++i) {
+      tmp_string_stream << indent;
+    }
+    return tmp_string_stream.str();
+  }
+}
+
 bool Utils::to_bool(string s) {
   assert(s.size() == 1 && s[0] >= '0' && s[0] <= '1' );
   bool b = (s[0] == '1');
@@ -667,40 +690,4 @@ Utils::Tokens Utils::split_by_delim(const char* str,
   return split_by_delim(std::string(str), delim,
 			collapse_consecutive_delims);
 }
-
-
-void Utils::track_value(int day, char* key, int value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-  
-  
-void Utils::track_value(int day, char* key, double value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-  
-  
-void Utils::track_value(int day, char* key, string value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-
-
-
 

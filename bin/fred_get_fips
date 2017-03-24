@@ -28,7 +28,7 @@ EOH
 
 die $usage if $help;
 
-my $fipsfile = "$FRED/input_files/countries/usa/US_counties.txt";
+my $fipsfile = "$FRED/data/country/usa/US_counties.txt";
 open FH, $fipsfile or die "$0: Can't find $fipsfile\n";
 
 my ($loc) = join " ", @ARGV;

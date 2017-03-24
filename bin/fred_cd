@@ -21,6 +21,6 @@ my $id = `$bindir/fred_id $key`;
 chomp $id;
 die "fred_cd: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 
-my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+my $outdir = "$FREDRESULTS/JOB/$id/OUT";
 print "cd $outdir\n";
 exit;

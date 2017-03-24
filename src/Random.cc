@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -56,6 +59,7 @@ int RNG::draw_from_distribution(int n, double* dist) {
 }
 
 double RNG::exponential(double lambda) {
+  assert(lambda > 0.0);
   double u = random();
   return (-log(u) / lambda);
 }
@@ -65,10 +69,12 @@ double RNG::normal(double mu, double sigma) {
 }
 
 double RNG::lognormal(double mu, double sigma) {
+  // Notation as on https://en.wikipedia.org/wiki/Log-normal_distribution
+  // mu = log(median)
+  // sigma = log(dispersion)
   double z = normal(0.0,1.0);
   return exp(mu + sigma * z);
 }
-
 
 int RNG::draw_from_cdf(double* v, int size) {
   double r = random();

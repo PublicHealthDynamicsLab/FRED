@@ -188,7 +188,7 @@ sub add_experiment {
       system "change_params $param $value $newparams";
     }
     else {
-      system "ch '$param' $value $newparams > /dev/null";
+      system "fred_set -- '$param' $value $newparams > /dev/null";
     }
   }
   $task_number++;

@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -17,6 +20,7 @@
 #include <vector>
 using namespace std;
 
+#include "Age_Map.h"
 #include "Global.h"
 #include "Events.h"
 #include "Params.h"
@@ -68,7 +72,7 @@ void Travel::setup(char* directory) {
 
 void Travel::read_hub_file() {
   char hub_file[FRED_STRING_SIZE];
-  Params::get_param_from_string("travel_hub_file", hub_file);
+  Params::get_param("travel_hub_file", hub_file);
   FILE* fp = Utils::fred_open_file(hub_file);
   if(fp == NULL) {
     Utils::fred_abort("Help! Can't open travel_hub_file %s\n", hub_file);
@@ -94,7 +98,7 @@ void Travel::read_hub_file() {
 
 void Travel::read_trips_per_day_file() {
   char trips_per_day_file[FRED_STRING_SIZE];
-  Params::get_param_from_string("trips_per_day_file", trips_per_day_file);
+  Params::get_param("trips_per_day_file", trips_per_day_file);
   FILE*fp = Utils::fred_open_file(trips_per_day_file);
   if(fp == NULL) {
     Utils::fred_abort("Help! Can't open trips_per_day_file %s\n", trips_per_day_file);
@@ -129,13 +133,11 @@ void Travel::setup_travelers_per_hub() {
   int households = Global::Places.get_number_of_households();
   FRED_VERBOSE(0,"Preparing to set households: %li \n",households);
   for(int i = 0; i < households; ++i) {
-    Household* h = Global::Places.get_household_ptr(i);
+    Household* h = Global::Places.get_household(i);
     double h_lat = h->get_latitude();
     double h_lon = h->get_longitude();
-    int census_tract_index = h->get_census_tract_index();
-    long int h_id = Global::Places.get_census_tract_with_index(census_tract_index);
-    int c = h->get_county_index();
-    int h_county = Global::Places.get_fips_of_county_with_index(c);
+    long int h_id = h->get_census_tract_fips();
+    int h_county = h->get_county_fips();
     FRED_VERBOSE(2,"h_id: %li h_county: %i \n", h_id, h_county);
     // find the travel hub closest to this household
     double max_distance = 166.0;		// travel at most 100 miles to nearest airport

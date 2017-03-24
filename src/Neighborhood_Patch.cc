@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -27,7 +30,7 @@
 #include "Random.h"
 #include "Household.h"
 #include "School.h"
-class Person;
+
 
 void insert_if_unique(place_vector* vec, Place* p) {
   for (place_vector::iterator itr = vec->begin(); itr != vec->end(); ++itr) {
@@ -51,6 +54,7 @@ Neighborhood_Patch::Neighborhood_Patch() {
   this->popsize = 0;
   this->mean_household_income = 0.0;
   this->neighborhood = NULL;
+  this->census_tract_fips = 0;
 }
 
 void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
@@ -75,21 +79,27 @@ void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
   this->popsize = 0;
   this->mean_household_income = 0.0;
   this->neighborhood = NULL;
-  vector_control_status = 0;
+  this->vector_control_status = 0;
+  this->census_tract_fips = 0;
 }
 
-void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator) {
-  char str[80];
-  sprintf(str, "N-%04d-%04d", this->row, this->col);
+void Neighborhood_Patch::make_neighborhood() {
+  char label[80];
+  sprintf(label, "N-%04d-%04d", this->row, this->col);
   fred::geo lat = Geo::get_latitude(this->center_y);
   fred::geo lon = Geo::get_longitude(this->center_x);
-
-  this->neighborhood = new (neighborhood_allocator.get_free())
-  Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
+  this->neighborhood = Global::Places.add_place(label,
+						Place::TYPE_NEIGHBORHOOD,
+						Place::SUBTYPE_NONE,
+						lon, lat,
+						this->census_tract_fips);
 }
 
 void Neighborhood_Patch::add_household(Household* p) {
   this->households.push_back(p);
+  if (this->census_tract_fips == 0) {
+    this->census_tract_fips = p->get_census_tract_fips();
+  }
   if (Global::Householdfp != NULL) {
     fprintf(Global::Householdfp,"%s %.8f %.8f %f %f house_id: %d row = %d  col = %d  house_number = %d\n",
 	    p->get_label(),p->get_longitude(),p->get_latitude(),
@@ -132,13 +142,13 @@ void Neighborhood_Patch::record_daily_activity_locations() {
       }
       s = static_cast<School *>(per->get_activities()->get_school());
       if(s != NULL) {
-	      insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
-	      for(int age = 0; age < Global::ADULT_AGE; ++age) {
-	        if(s->get_students_in_grade(age) > 0) {
-	          // school_by_age[age].push_back(s);
-	          insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
+	insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
+	for(int age = 0; age < Global::ADULT_AGE; ++age) {
+	  if(s->get_students_in_grade(age) > 0) {
+	    // school_by_age[age].push_back(s);
+	    insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
           }
-	      }
+	}
       }
     }
     // fprintf(fp, "\n");
@@ -169,121 +179,8 @@ Place* Neighborhood_Patch::select_random_household() {
 }
 
 
-Place* Neighborhood_Patch::select_random_workplace() {
-  if(static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size()) == 0) {
-    return NULL;
-  }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size())) - 1);
-  return this->workplaces_attended_by_neighborhood_residents[i];
-}
-
-
-Place *Neighborhood_Patch::select_random_school(int age) {
-  if(static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size()) == 0) {
-    return NULL;
-  }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size())) - 1);
-  return this->schools_attended_by_neighborhood_residents_by_age[age][i];
-}
-
-Place* Neighborhood_Patch::select_school(int age) {
-  return this->grid->select_school_in_area(age,row,col);
-}
-
-Place* Neighborhood_Patch::select_school_in_neighborhood(int age, double threshold) {
-  FRED_VERBOSE(1,"select_school_in_neighborhood entered age %d row %d col %d\n",age,row,col);
-  int size = static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size());
-  if(size == 0) {
-    FRED_VERBOSE(1,"Found no schools for age %d\n",age);
-    return NULL;
-  }
-  FRED_VERBOSE(1,"Found %d schools for age %d\n",size,age);
-  double max_vacancies = -9999999.0;
-  int max_vacancies_index = -1;
-  for(int i = 0; i < size; ++i) {
-    Place* p = this->schools_attended_by_neighborhood_residents_by_age[age][i];
-    School* s = static_cast<School*>(p);
-    double vacancies;
-    if(s->get_orig_students_in_grade(age) > 0) {
-      vacancies = (double)(s->get_orig_students_in_grade(age) - s->get_students_in_grade(age))/(double)s->get_orig_students_in_grade(age);
-    } else {
-      vacancies = -1.0 * s->get_students_in_grade(age);
-    }
-    // avoid moves into places that are already overfilled
-    if(vacancies > max_vacancies && vacancies > threshold) {
-      max_vacancies = vacancies;
-      max_vacancies_index = i;
-    }
-  }
-  if(max_vacancies_index < 0) {
-    FRED_VERBOSE(1,"select_school_in_neighborhood entered age %d row %d col %d\n",age,row,col);
-    FRED_VERBOSE(1,"Found no schools with vacancies for age %d\n",age);
-    return NULL;
-  }
-  Place* school = this->schools_attended_by_neighborhood_residents_by_age[age][max_vacancies_index];
-  School* s = static_cast<School*>(school);
-  FRED_VERBOSE(1,"SELECT_SCHOOL: age %d %s size %d orig_in_grade %d curr_in_grade %d max_vacancies %0.4f\n", 
-	       age, s->get_label(), s->get_size(), s->get_orig_students_in_grade(age),
-	       s->get_students_in_grade(age),max_vacancies);
-  return school;
-}
-
-
-void  Neighborhood_Patch::find_schools_for_age(int age, place_vector* schools) {
-  FRED_VERBOSE(1,"find_schools_for_age %d row %d col %d\n",age,row,col);
-  int size =static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size());
-  for (int i = 0; i < size; ++i) {
-    Place* p = this->schools_attended_by_neighborhood_residents_by_age[age][i];
-    insert_if_unique(schools, p);
-  }
-}
-
-
-Place* Neighborhood_Patch::select_workplace() {
-  return this->grid->select_workplace_in_area(row,col);
-}
-
-Place* Neighborhood_Patch::select_workplace_in_neighborhood() {
-  FRED_VERBOSE(1,"select_workplace_in_neighborhood entered row %d col %d\n",row,col);
-  int size = static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size());
-  if(size == 0) {
-    FRED_VERBOSE(1,"Found no workplaces\n");
-    return NULL;
-  }
-  FRED_VERBOSE(1,"Found %d workplaces\n",size);
-  double max_vacancies = -9999999;
-  int max_vacancies_index = -1;
-  for(int i = 0; i < size; ++i) {
-    Place* p = this->workplaces_attended_by_neighborhood_residents[i];
-    double vacancies = 0.0;
-    if(p->get_orig_size() > 0) {
-      vacancies = (double)(p->get_orig_size() - p->get_size())/(double)p->get_orig_size();
-    } else {
-      vacancies = -1.0 * p->get_size();
-    }
-    
-    // avoid moves into places that are already 50% overfilled
-    if (vacancies > max_vacancies && vacancies > -0.5) {
-      max_vacancies = vacancies;
-      max_vacancies_index = i;
-    }
-  }
-  if(max_vacancies_index < 0) {
-    FRED_VERBOSE(1,"select_workplace_in_neighborhood entered row %d col %d\n",row,col);
-    FRED_VERBOSE(1,"Found no workplaces with vacancies\n");
-    return NULL;
-  }
-  assert(max_vacancies_index >= 0);
-  Place * p = workplaces_attended_by_neighborhood_residents[max_vacancies_index];
-  FRED_VERBOSE(1,"SELECT_WORKPLACE: %s orig %d curr %d max_vacancies %0.4f\n", 
-	       p->get_label(), p->get_orig_size(), p->get_size(), max_vacancies);
-  return p;
-}
-
-
 void Neighborhood_Patch::quality_control() {
-  return;
-  if(this->person.size() > 0) {
+  if(Global::Quality_control > 1 && this->person.size() > 0) {
     fprintf(Global::Statusfp,
 	    "PATCH row = %d col = %d  pop = %d  houses = %d work = %d schools = %d by_age ",
 	    this->row, this->col, static_cast<int>(this->person.size()), static_cast<int>(this->households.size()), static_cast<int>(this->workplaces.size()), static_cast<int>(this->schools.size()));
@@ -293,12 +190,12 @@ void Neighborhood_Patch::quality_control() {
     fprintf(Global::Statusfp, "\n");
     if(Global::Verbose > 0) {
       for(int i = 0; i < this->schools_attended_by_neighborhood_residents.size(); ++i) {
-	      School* s = static_cast<School*>(this->schools_attended_by_neighborhood_residents[i]);
-	      fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
-	      for(int a = 0; a < 19; ++a) {
-	        fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
-	      }
-	      fprintf(Global::Statusfp, "\n");
+	School* s = static_cast<School*>(this->schools_attended_by_neighborhood_residents[i]);
+	fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
+	for(int a = 0; a < 19; ++a) {
+	  fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
+	}
+	fprintf(Global::Statusfp, "\n");
       }
       fflush(Global::Statusfp);
     }
@@ -316,12 +213,15 @@ double Neighborhood_Patch::distance_to_patch(Neighborhood_Patch* p2) {
 
 void Neighborhood_Patch::register_place(Place* place) {
   if(place->is_school()) {
+    FRED_VERBOSE(1, "register place: added school %s\n", place->get_label());
     this->schools.push_back(place);
   }
   if(place->is_workplace()) {
+    FRED_VERBOSE(1, "register place: added workplace %s\n", place->get_label());
     this->workplaces.push_back(place);
   }
   if(place->is_hospital()) {
+    FRED_VERBOSE(1, "register place: added hospital %s\n", place->get_label());
     this->hospitals.push_back(place);
   }
 }

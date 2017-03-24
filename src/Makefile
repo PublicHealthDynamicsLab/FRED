@@ -38,35 +38,6 @@ NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 =-m64
 endif
 
-################   Snappy Compression  ###############################
-## Snappy can significantly improve FRED startup time by reading
-## compressed population files.  If you have snappy installed,
-## set the following flag to 1, and make sure the library locations
-## below are correct.
-SNAPPY = 0
-ifeq ($(SNAPPY),1)
-SNAPPY_DIR = /usr/local
-SNAPPY_INC_DIR = $(SNAPPY_DIR)/include
-SNAPPY_HDR = $(SNAPPY_INC_DIR)/snappy.h 
-INCLUDE_DIRS = -I$(SNAPPY_INC_DIR)
-SNAPPY_LIB_DIR = $(SNAPPY_DIR)/lib
-
-# location of library differs by OS
-OS := $(shell uname)
-ifeq ($(OS),Linux)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.so
-else ifeq ($(shell echo $(OS) | cut -f1 -d_),CYGWIN)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.la 
-else ifeq ($(OS),Darwin)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.dylib
-endif
-
-SNAPPY_LFLAGS = $(SNAPPY_LIB_DIR)/libsnappy.a
-SNAPPY_LDFLAGS = -L$(SNAPPY_LIB_DIR)
-SNAPPY_OBJ = Compression.o
-FSZ = fsz
-endif
-
 #################  MD5 Program ##############################
 UNIX	:= $(shell uname)
 ifeq ($(UNIX), Linux)
@@ -102,12 +73,12 @@ LOGGING_PRESET_3 = -DFREDVERBOSE -DFREDSTATUS -DFREDWARNING -DFREDDEBUG
 LOGGING_LEVEL = $(LOGGING_PRESET_3)
 
 ## recommended for development:
-# CPPFLAGS = -g -std=c++11 $(M64) -O2 $(LOGGING_PRESET_3) -Wall -DSNAPPY=$(SNAPPY)
+# CPPFLAGS = -g -std=c++11 $(M64) -O2 $(LOGGING_PRESET_3) -Wall
 
 ## recommended for production runs:
-CPPFLAGS = -std=c++11 $(M64) -O3 $(OPENMP) $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
+CPPFLAGS = -std=c++11 $(M64) -O3 $(OPENMP) $(LOGGING_LEVEL) -DNCPU=$(NCPU) $(INCLUDE_DIRS)
 
-FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -DNCPU=$(NCPU) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 
 ###############################################
@@ -116,9 +87,9 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 	$(CPP) $(CPPFLAGS) $(FRED_CLANG_FLAGS) -c $< $(INCLUDES)
 
 CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o \
-	Random.o Markov_Model.o $(SNAPPY_OBJ)
+	Random.o State_Space.o Logit.o Logistic_Regression.o
 
-ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
+ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o Census_Tract.o \
 	Neighborhood_Layer.o Neighborhood_Patch.o \
 	Regional_Layer.o Regional_Patch.o \
 	Visualization_Layer.o Visualization_Patch.o \
@@ -126,26 +97,18 @@ ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
 	Vector_Layer.o Vector_Patch.o
 
 AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
-	Behavior.o Intention.o Perceptions.o Travel.o Population.o Person_Network_Link.o
+	Travel.o Population.o Person_Network_Link.o
 
-DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
-	Natural_History.o Transmission.o \
+EPIDEMIC_MODULE = Condition.o Epidemic.o Condition_List.o \
+	Natural_History.o Transmission.o Environmental_Transmission.o \
 	Respiratory_Transmission.o Sexual_Transmission.o Vector_Transmission.o \
-	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
-	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
-	Markov_Epidemic.o Markov_Infection.o Markov_Natural_History.o
+	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o
 
-PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
-	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o
+MIXING_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
+	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o \
+	Relationships.o
 
-INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
-	Antiviral.o Antivirals.o AV_Decisions.o AV_Policies.o AV_Manager.o AV_Health.o \
-	Vaccine_Health.o Vaccine_Dose.o Vaccine.o Vaccines.o \
-	Vaccine_Priority_Decisions.o Vaccine_Priority_Policies.o Vaccine_Manager.o
-
-VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
-
-OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
+OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(EPIDEMIC_MODULE) $(MIXING_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 
@@ -156,15 +119,8 @@ MD5 := FRED.md5
 all: FRED FRED.tar.gz $(FSZ) $(MD5)
 
 FRED: $(OBJ)
-	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(OBJ) $(LDFLAGS) $(SNAPPY_LFLAGS) -ldl
+	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(OBJ) $(LDFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
-
-Compression.o: $(SNAPPY_LIB)
-	$(CPP) -o Compression.o $(CPPFLAGS) $(SNAPPY_INCLUDE_DIRS) -c Compression.cc
-
-fsz: $(SNAPPY_LIB) $(SNAPPY_OBJ) Global.h fsz.cc
-	$(CPP) -o fsz $(CPPFLAGS) $(INCLUDE_FLAGS) $(SNAPPY_LDFLAGS) $(SNAPPY_OBJ) $(SNAPPY_LFLAGS) fsz.cc
-	cp fsz ../bin
 
 FRED_memcheck: FRED
 
@@ -190,7 +146,6 @@ print:
 
 clean:
 	rm -f *.o FRED FRED_Unit_Tracker ../bin/FRED fsz ../bin/fsz *~
-	(cd ../populations; make clean)
 	(cd ../tests; make clean)
 
 tags:

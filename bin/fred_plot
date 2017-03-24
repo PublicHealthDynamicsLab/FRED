@@ -16,26 +16,91 @@ die "$0: no gnuplot\n" if (not $gnuplot or (not -x $gnuplot));
 my $commandline = "fred_plot @ARGV";
 my @data = ();
 
+my %vtofile = (
+		S => "S",
+		E => "E",
+		I => "I",
+		IM => "Im",
+		M => "Im",
+		CS => "CS",
+		P => "P",
+		Ps => "CS",
+		PS => "CS",
+		PIm => "Im",
+		R => "R",
+
+		C => "newC",
+		newI => "newI",
+		Cs => "newCS",
+		CF => "newCF",
+		newIM => "newIm",
+
+		AR => "totC",
+		TCF => "totCF",
+		ARs => "totCS",
+		ARS => "totCS",
+
+		Is => "INF.Is",
+		N => "Popsize",
+
+		H => "newHH",
+		HH => "newHH",
+		Hh => "newHH",
+		NBR => "newNBR",
+		Nbr => "newNBR",
+		SCH => "newSCH",
+		Sch => "newSCH",
+		CLS => "newCLS",
+		Cls => "newCLS",
+		OFF => "newOFF",
+		Off => "newOFF",
+		WRK => "newWRK",
+		Wrk => "newWRK",
+		HOS => "newHOS",
+		Hos => "newHOS",
+		IMP => "newIMP",
+		Imp => "newIMP",
+		X => "newIMP",
+);
+
 my %titles = ( AR => "Attack Rate",
 	       ARs => "Symptomatic Attack Rate",
+	       ARS => "Symptomatic Attack Rate",
 	       C => "Incidence",
+	       CF => "Case Fatality",
+	       TCF => "Total Case Fatalities",
 	       Cs => "Symptomatic Incidence",
+	       CS => "Symptomatic Incidence",
+	       CLS => "Classroom Transmissions",
 	       Cls => "Classroom Transmissions",
 	       E => "Exposed",
 	       H => "Household Transmissions",
+	       HH => "Household Transmissions",
+	       Hh => "Household Transmissions",
 	       I => "Infectious",
 	       Is => "Symptomatics",
 	       M => "Immune",
+	       Im => "Immune",
+	       IM => "Immune",
+	       PIm => "Immune",
 	       N => "Pop Size",
+	       NBR => "Neighborhood Transmission",
+	       Nbr => "Neighborhood Transmission",
 	       P => "Prevalence",
+	       Ps => "Symptomatic Prevalence",
 	       Off => "Office Transmissions",
+	       OFF => "Office Transmissions",
 	       R => "Recovered",
 	       RR => "Reproductive Rate",
 	       S => "Susceptible",
 	       Sch => "School Transmissions",
+	       SCH => "School Transmissions",
 	       SM => "Seasonality Mult",
 	       Wrk => "Workplace Transmissions",
+	       WRK => "Workplace Transmissions",
 	       X => "Imported Transmissions",
+	       IMP => "Imported Transmissions",
+	       Imp => "Imported Transmissions",
 	       small => "Presenteeism at Small Workplaces",
 	       med => "Presenteeism at Medium Workplaces",
 	       large => "Presenteeism at Large Workplaces",
@@ -51,14 +116,15 @@ my $ymax = "*";
 my $display = 1;
 my $errorbars;
 my $title = "FRED Simulation";
-my $weekly;
+my $weekly = 0;
+my $monthly = 0;
+my $annually = 0;
 my $all;
 my $font = "Helvetica";
 my $fontsize = "12";
 my $boxes;
 my $normalize;
 my $scale = 100000;
-my $smooth;
 my $legend;
 my $linewidth = 0;
 my $xlabel = "Days";
@@ -71,6 +137,7 @@ my $show_vars = 0;
 my $run = 0;
 my $total = 0;
 my $make_png = 0;
+my $use_mean_std = 0;
 my $opt_result = GetOptions(
 			    "a" => \$all,
 			    "all" => \$all,
@@ -100,17 +167,19 @@ my $opt_result = GetOptions(
 			    "fsize=f" => \$fontsize,
 			    "keys=s" => \@keys,
 			    "legend=s" => \$legend,
+			    "mean" => \$use_mean_std,
 			    "n" => \$normalize,
 			    "normalize" => \$normalize,
 			    "r=i" => \$run,
 			    "s=f" => \$scale,
 			    "scale=f" => \$scale,
-			    "smooth" => \$smooth,
 			    "title=s" => \$title,
 			    "total" => \$total,
 			    "var=s" => \@varlist,
 			    "w" => \$weekly,
 			    "weekly" => \$weekly,
+			    "monthly" => \$monthly,
+			    "annually" => \$annually,
 			    "xmin=i" => \$xmin,
 			    "xmax=i" => \$xmax,
 			    "Xmax=i" => \$xmax,
@@ -142,12 +211,14 @@ usage: fred_plot -k key -v var [ options ], where options include:
        -s <s> : scale factor for normalization.
        -t title: Title to appear on plot.
        -v var [ -v var ... ]: variable to be plotted.
-       -V : list available plotable variables.
+       -V: print list of available variables and exit.
        -w: plot variables averaged over epi weeks.
        -x xmin: min value for x-axis.
        -X xmax: max value for x-axis.
        -y ymin: min value for y-axis.
        -Y ymax: max value for y-axis.
+       --annually: plot annual values
+       --monthly: plot monthly values
        --xtics <n>: put xtics every <n> units.
        --xlabel <s>: label the x axis with "s".
        --ylabel <s>: label the y axis with "s".
@@ -157,21 +228,8 @@ EOH
 
 die $usage if $help;
 die $usage if not @keys;
-die $usage if not @varlist;
 
 # resolve conflicting options
-
-# if attack rates are requested, disable smoothing and weekly sums
-for my $v (@varlist) {
- if ($v =~ /AR/) {  
-   $smooth = 0;
-   $weekly = 0;
-   $legend = "top right";
- }
-}
-
-# bar charts overides smoothing
-$smooth = 0 if $boxes;
 
 # check keys
 my $bindir = "$FRED/bin";
@@ -188,13 +246,31 @@ for my $key (@keys) {
   $status =~ s/\s.*//;
   die "$0 bad status: $status\n" if $status ne "FINISHED";
   $id_of_key{$key} = $id;
+
+  if ($show_vars) {
+    my $available = `cat $FREDRESULTS/JOB/$id/OUT/PLOT/VARS`;
+    print "$0: Plot variables:\n$available\n";
+    exit;
+  }
 }
 
-show_vars() if $show_vars;
+die $usage if not @varlist;
+
+# if attack rates are requested, disable sums over time periods
+for my $v (@varlist) {
+ if ($v =~ /AR/) {  
+   $weekly = 0;
+   $monthly = 0;
+   $annually = 0;
+   $legend = "top right";
+   $normalize = 1;
+   $scale = 100;
+ }
+}
 
 # create a good name for the plt and pdf files
 my $varstr = join "-", @varlist;
-my $pltfile = "plot-$varstr.plt";
+my $plotfile = "plot-$varstr.plt";
 if (not $outfile) {
   if ($make_png == 0) {
     # user did not supply a name as -o option
@@ -214,7 +290,7 @@ else {
     # user did not supply a name as -o option
     $outfile = "$outfile.pdf";
   }
-  $pltfile = "plot-$outfile.plt";
+  $plotfile = "plot-$outfile.plt";
 }
 
 for my $v (@varlist) {
@@ -235,7 +311,7 @@ for my $v (@varlist) {
 my $date = scalar localtime;
 my $titlefontsize = $fontsize + 4;
 my $terminal;
-open FH, ">$pltfile";
+open FH, ">$plotfile";
 if ($make_png == 1) {
   $terminal = "png font '$font,$fontsize' linewidth 1";
 }
@@ -248,7 +324,7 @@ my $setkey = "set key at graph 0.96, graph 0.96 right";
 print FH <<"EOF";
 #!$gnuplot
 #
-# file: $pltfile
+# file: $plotfile
 # created: $date
 #
 # command line used to generate this file:
@@ -286,6 +362,8 @@ for my $v (@varlist) {
  }
 }
 
+$xlabel = "Year" if $annually;
+$xlabel = "Month" if $monthly;
 $xlabel = "Week" if $weekly;
 
 print FH "set xrange [$xmin:$xmax]\n";
@@ -293,7 +371,8 @@ print FH "set yrange [$ymin:$ymax]\n";
 print FH "set datafile separator ','\n";
 print FH "set xlabel \"$xlabel\" offset 0,0.5\n";
 print FH "set ylabel \"$ylabel\" offset 1.2,0\n";
-print FH "set xtics rotate by 270\n" if $weekly;
+print FH "set xtics rotate by 315\n" if ($monthly);
+print FH "set xtics rotate by 270\n" if ($weekly);
 print FH "set key $legend\n" if $legend;
 print FH "set bars 2.0 front\n";
 
@@ -312,11 +391,17 @@ if ($boxes) {
   print FH "\n";
 }
 
+if ($monthly) {
+  $xtics = 1 if not $xtics;
+  print FH "unset grid\n" if $xtics > 1;
+  print FH "\n";
+}
+
 if ($weekly) {
   $xtics = 1 if not $xtics;
   my $xlab_start = 6;
   $xlab_start = 0 if $show_year;
-  print FH "get_xlabel(s) = (((s[6:*]+0)\%$xtics)==0)?sprintf('\%s',s[$xlab_start:*]):''\n";
+  print FH "get_xlabel(s) = (((s[6:*]+0)\%$xtics)==1 \&\& (s[6:*]+0 != 53))?sprintf('\%s',s[$xlab_start:*]):''\n";
   print FH "unset grid\n" if $xtics > 1;
   print FH "\n";
 }
@@ -348,28 +433,39 @@ print FH "\n";
 print FH "$_\n" for @data;
 print FH "\n";
 close FH;
-system "chmod +x $pltfile";
-system ($pltfile);
-print "fred_plot: source_file = $pltfile  image_file = $outfile\n";
+system "chmod +x $plotfile";
+system ($plotfile);
+print "fred_plot: source_file = $plotfile  image_file = $outfile\n";
 system ("open $outfile") if $display;
 exit;
 
+##########################################################
+
 sub get_data {
   my ($key, $var, $run) = @_;
+  # print "get_data key = $key var = |$var| run = |$run|\n";
   my $tmpfile = ".tmpfile";
-  my $week = "";
-  $week = "--weekly" if $weekly;
-  my $options = "-k $key -v $var";
-  $options .= " --weekly" if $weekly;
-  $options .= " -r $run" if $run > 0;
-  $options .= " --total" if $total;
-  system "fred_csv $options > $tmpfile";
-  if (not -s $tmpfile) {
-    print "$0: error in get_data\n";
-    exit;
+
+  my $file = $var;
+  if (exists $vtofile{$var}) {
+    $file = $vtofile{$var};
   }
+  # print "file base = |$file|\n";
+
+  my $time = "DAILY";
+  $time = "WEEKLY" if $weekly;
+
+  # find the CSV files directory
+  my $id = `fred_id $key`;
+  chomp $id;
+  my $csvfile = "$FREDRESULTS/JOB/$id/OUT/PLOT/$time/$file.csv";
+  if (not -e $csvfile) {
+    my $available = `cat $FREDRESULTS/JOB/$id/OUT/PLOT/VARS`;
+    die "$0: Can't find csv file $csvfile\nSelect variable from list:\n$available\n";
+  }
+
   my @tmpdata = ();
-  open IN, $tmpfile;
+  open IN, $csvfile;
   while (<IN>) {
     chomp;
     push @tmpdata, $_;
@@ -378,12 +474,12 @@ sub get_data {
   push @tmpdata, "EOF";
   push @data, @tmpdata;
   push @data, @tmpdata if $errorbars and $run == 0;
-  unlink $tmpfile;
 }
+
+##########################################################
 
 sub plot_command {
   my ($ptitle,$n,$run) = @_;
-  $smooth = 0 if $weekly;
 
   # x-axis value
   my $x = "(\$1):";
@@ -391,37 +487,36 @@ sub plot_command {
   $x = "(\$0+get_shift($n)):" if $boxes;
 
   # y-axis value
-  # daily values
-  my $y = $run ? "\$8" :"\$9";
-  if ($total) {
-    $y = $run ? "\$9" : "\$11";
-  }
+  my $y = "\$6"; #this is the median value (default)
+  $y = "\$9" if $use_mean_std; # this is the mean
+  $y = "\$" . ($run+10) if $run; # this is the individual run value
 
-  if ($weekly) {
-    $y = $run ? "\$5" :"\$6";
-    if ($total) {
-      $y = $run ? "(7*\$6)" : "(7*\$8)";
-    }
+  # divide by pop size to normalize
+  my $mult = 1.0;
+  if ($normalize) {
+    $mult = "(1.0*$scale/\$3)";
+    $y = "$y*$mult";
   }
 
   # errorbars
-  my $e = "";
+  my $e = "(0)";
   if ($errorbars and $run == 0) {
-    $e = $weekly? "\$7" : "\$10";
-  }
-
-  # divide by pop size to normalize
-  if ($normalize) {
-    my $mult = $weekly ? "(1.0*$scale/\$4)" : "(1.0*$scale/\$7)";
-    $y = "$y*$mult";
-    $e = "$e*$mult";
+    if ($use_mean_std) {
+      $e = "(\$10*$mult)";
+    }
+    else {
+      $e = "(\$5*$mult):(\$7*$mult)";
+    }
   }
 
   # xtics
   my $xtic = "";
-  $xtic = ":xtic(\$0>1?get_xlabel(strcol(1)):'')" if $weekly and $n == 1;
+  $xtic = ":xtic(\$0>0?strcol(1):'')" if ($monthly or $weekly) and $n == 1;
+  $xtic = ":xtic((\$0>0&&(int(\$0)\%$xtics==1))?strcol(1):'')" if ($monthly and $xtics > 1) and $n == 1;
+  $xtic = ":xtic(\$0>0?get_xlabel(strcol(1)):'')" if ($weekly and $xtics>1) and $n == 1;
 
   # title
+  $ptitle =~ s/_/\\_/g;
   my $title = "title '$ptitle'";
   $title = "notitle" if $run > 0;
 
@@ -439,12 +534,11 @@ sub plot_command {
 
   # plot with lines?
   my $w = "with lines";
-  # $w = "smooth csplines" if $smooth or $weekly;
   $w = "with boxes" if $boxes;
 
   my $spec = "";
   $spec = "'-' using $x($y)$xtic $title $w $lw, \\\n";
-  $spec .= "'-' using $x($y):($e) notitle wi errorbars lt -1 lw 2, \\\n" if $errorbars and $run == 0;
+  $spec .= "'-' using $x($y):$e notitle wi errorbars lt -1 lw 2, \\\n" if $errorbars and $run == 0;
   return $spec;
 }
 
@@ -456,21 +550,3 @@ sub get_runs {
   return $runs;
 }
 
-sub show_vars {
-  my %plotvars = ();
-  for my $key (@keys) {
-    my $id = $id_of_key{$key};
-    my $outpath = "$FREDRESULTS/JOB/$id/DATA/OUT/";
-    my $head = `head $outpath/out1.txt`;
-    $head =~ s/\n.*//s;
-    # print "$head\n";
-    my @a = split " ", $head;
-    for (my $i = 0; $i < scalar @a; $i = $i + 2) {
-      $plotvars{$a[$i]} = 1;
-    }
-  }
-  for my $v (sort keys %plotvars) {
-    print "$v\n";
-  }
-  exit;
-}

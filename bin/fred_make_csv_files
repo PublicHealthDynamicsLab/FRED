@@ -1,0 +1,286 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+$| = 1;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $out = "OUT";
+my $opt_result = GetOptions(
+			    "dir=s" => \$out,
+			   );
+
+die "$0: Can't find $out\n" if (not -d "$out");
+chdir $out;
+
+# make PLOT directories if needed
+system "mkdir -p PLOT";
+system "mkdir -p PLOT/DAILY";
+system "mkdir -p PLOT/WEEKLY";
+
+my $runlist = `ls -d RUN*`;
+chomp $runlist;
+$runlist =~ s/RUN//g;
+my @runs = split " ", $runlist;
+@runs = sort { $a <=> $b } @runs;
+my @tmp = @runs;
+@runs = ();
+foreach my $r (@tmp) {
+  push @runs, "RUN$r";
+}
+# print "|@runs|\n";
+my $r1 = $runs[0];
+
+# Dates and EpiWeeks
+my $dates = "$r1/DAILY/Date.txt";
+my $weeks = "$r1/DAILY/EpiWeek.txt";
+
+# get list of output vars
+my $vars = `ls $r1/DAILY/*.txt`;
+chomp $vars;
+$vars =~ s/\bRUN\d+.DAILY.//g;
+$vars =~ s/.txt\b//g;
+
+# remove date variables
+$vars =~ s/\bDay\b\s*//;
+$vars =~ s/\bDate\b\s*//;
+$vars =~ s/\bEpiWeek\b\s*//;
+
+# temporariliy remove Popsize
+$vars =~ s/\bPopsize\b//;
+
+my @varlist = split " ", $vars;
+# place Popsize at the head of the list
+unshift @varlist, "Popsize";
+open VAR,">PLOT/VARS" or die "$0: Can't open VARS";
+for my $v (@varlist) {
+  print VAR "$v\n";
+}
+close VAR;
+
+# get number of days in initial week
+my $init_week = 0;
+open FH, $weeks or die "$0: Can't open epiweeks file $weeks\n";
+my $i = 0;
+my $oldepiwk = "x";
+my ($day,$epiwk) = ();
+while (my $line = <FH>) {
+  chomp $line;
+  ($day,$epiwk) = split " ", $line;
+  if ($epiwk ne $oldepiwk) {
+    $oldepiwk = $epiwk;
+    $i++;
+  }
+  if ($i == 1) {
+    $init_week++;
+  }
+  last if $i == 2;
+}
+close FH;
+# print "init_week $init_week\n"; exit;
+
+# make weekly files
+for my $v (@varlist) {
+  my $file = "$v.txt";
+  make_weekly($file, $init_week, @runs);
+}
+ 
+# make files with data from all runs
+my @times = qw/DAILY WEEKLY/;
+for my $v (@varlist) {
+  my $file = "$v.txt";
+  for my $t (@times) {
+    # create single file with columns for data from all runs
+    my @r = @runs;
+    my $run = shift @r;
+    # print "cp $run/$t/$file PLOT/$t\n";
+    system "cp $run/$t/$file PLOT/$t";
+    for $run (@r) {
+      system "join PLOT/$t/$file $run/$t/$file > tmp; mv tmp PLOT/$t/$file";
+    }
+  }
+}
+
+for my $v (@varlist) {
+  get_stats($v);
+}
+
+
+
+########################################################
+
+
+sub make_weekly {
+  my ($file, $init_week, @runs) = @_;
+  my @r = @runs;
+  # print "make_weekly: $file\n";
+  for my $d (@r) {
+    my $daily = "$d/DAILY/$file";
+    die "#0: make_weekly Can't find $daily\n" if not -e $daily;
+
+    my $wdir = "$d/WEEKLY";
+    system "mkdir -p $wdir";
+
+    open OUT, ">$wdir/$file" or die "Can't write to file $wdir/$file\n";
+
+    open WK, $weeks;
+    open FH, $daily;
+    my $first = 1;
+    my $day = 0;
+    my $sum = 0;
+    my $count = 0;
+    my $wkline = "";
+    my ($w,$wk) = ();
+    while (my $line = <FH>) {
+      chomp $line;
+      my $i;
+      ($i,$count) = split " ", $line;
+      $sum += $count;
+      $wkline = <WK>;
+      chomp $wkline;
+      ($w,$wk) = split " ", $wkline;
+      $day++;
+      if ($first) {
+	if ($day == $init_week) {
+	  if ($file =~ /tot/) {
+	    print OUT "$wk $count\n";
+	  }
+	  elsif ($file =~ /new/) {
+	    print OUT "$wk $sum\n";
+	  }
+	  else {
+	    my $ave = int($sum/$day + 0.5);
+	    print OUT "$wk $ave\n";
+	  }
+	  $sum = 0;
+	  $first = 0;
+	  $day = 0;
+	}
+      }
+      elsif ($day == 7) {
+	if ($file =~ /tot/) {
+	  print OUT "$wk $count\n";
+	}
+	elsif ($file =~ /new/) {
+	  print OUT "$wk $sum\n";
+	}
+	else {
+	  my $ave = int($sum/$day + 0.5);
+	  print OUT "$wk $ave\n";
+	}
+	$sum = 0;
+	$day = 0;
+      }
+    }
+    close FH;
+    if ($day > 0) {
+      if ($file =~ /tot/) {
+	print OUT "$wk $count\n";
+      }
+      elsif ($file =~ /new/) {
+	print OUT "$wk $sum\n";
+      }
+      else {
+	my $ave = int($sum/$day + 0.5);
+	print OUT "$wk $ave\n";
+      }
+    }
+    close OUT;
+    close WK;
+  }
+}
+
+##########################################
+
+sub get_stats {
+  my ($var) = @_;
+  my @times = qw/DAILY WEEKLY/;
+  for my $t (@times) {
+    my $popsize = "PLOT/$t/Popsize.csv";
+    open POP, "$popsize" if ($var ne "Popsize");
+    my $popline = <POP>  if ($var ne "Popsize");
+
+    my $infile = "PLOT/$t/$var\.txt";
+    open FH,$infile  or die "$0: can't open $infile";
+    open OUT, ">PLOT/$t/$var\.csv" or die "$0: can't write to PLOT/$t/$var\.csv";;
+    my $first = 1;
+    while (my $line = <FH>) {
+      chomp $line;
+      my @udata = split " ", $line;
+      my $index = shift @udata;
+      my @data = sort { $a <=> $b } @udata;
+      my $n = scalar @data;
+      if ($first) {
+	print OUT "INDEX,N,POPSIZE,MIN,QUART1,MED,QUART3,MAX,MEAN,STD";
+	for my $i (1..$n) {
+	  print OUT ",RUN$i";
+	}
+	print OUT "\n";
+	$first = 0;
+      }
+      my $min = $data[0];
+      my $max = $data[$n-1];
+
+      # first quartile using weighted mean:
+      my $rank = 0.25*($n+1);
+      my $irank = int($rank);
+      my $weight = $rank - $irank;
+      my $quartile1 = $data[$irank-1];
+      # print "quartile1 $n @data\n";
+      $quartile1 += $weight*($data[$irank]-$data[$irank-1]) if $n > 1;
+      
+      # second quartile using weighted mean:
+      $rank = 0.5*($n+1);
+      $irank = int($rank);
+      $weight = $rank - $irank;
+      my $med = $data[$irank-1];
+      # print "med $n @data\n";
+      $med += $weight*($data[$irank]-$data[$irank-1]) if $n > 1;
+      
+      # third quartile using weighted mean:
+      $rank = 0.75*($n+1);
+      $irank = int($rank);
+      $irank = $n-1 if $irank == $n;
+      $weight = $rank - $irank;
+      # print "quartile3 $n $irank @data\n";
+      my $quartile3 = $data[$irank-1];
+      $quartile3 += $weight*($data[$irank]-$data[$irank-1]) if $n > 1;
+
+      # mean and stdev
+      my $sum = 0;
+      my $std = 0;
+      my $sumsq = 0;
+      for my $i (0..($n-1)) {
+	$sum += $data[$i];
+	$sumsq += $data[$i]*$data[$i];
+      }
+      my $square = 0;
+      $square = ($n*$sumsq - $sum*$sum) / ($n*($n-1)) if $n > 1;
+      $std = sqrt($square) if $square > 0.000000001;
+      my $mean = 0;
+      $mean = $sum / $n if $n > 0;
+      my $showdata = join ",", @udata;
+      my $mean_pop = 1;
+      if ($var ne "Popsize") {
+	my $popline = <POP>;
+	chomp $popline;
+	my @x = split ",", $popline;
+	$mean_pop = $x[6];
+      }
+      # output
+      printf OUT "%s,%0.0f,%0.0f,%0.0f,%0.2f,%0.2f,%0.2f,%0.0f,%0.5f,%0.5f,$showdata\n",
+	$index, $n, $mean_pop, $min, $quartile1, $med, $quartile3, $max, $mean, $std;
+    }
+    close OUT;
+    close FH;
+    close POP if $var ne "Popsize";
+    unlink $infile;
+  }
+}

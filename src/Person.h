@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -16,23 +19,25 @@
 #ifndef _FRED_PERSON_H
 #define _FRED_PERSON_H
 
-#include "Global.h"
-#include <vector>
-using namespace std;
-
-class Place;
-class Household;
-class Disease;
-class Infection;
-class Mixing_Group;
-class Network;
-class Population;
-
 #include "Demographics.h"
+#include "Global.h"
 #include "Health.h"
-#include "Behavior.h"
 #include "Activities.h"
-#include <map>
+#include "Relationships.h" //mina added
+
+class Classroom;
+class Condition;
+class Hospital;
+class Infection;
+class Household;
+class Mixing_Group;
+class Neighborhood;
+class Network;
+class Office;
+class Place;
+class Population;
+class School;
+class Workplace;
 
 class Person {
 public:
@@ -41,34 +46,26 @@ public:
   ~Person();
   
   /**
-   * Make this agent unsusceptible to the given disease
-   * @param disease_id the id of the disease to reference
+   * Make this agent unsusceptible to the given condition
+   * @param condition_id the id of the condition to reference
    */
-  void become_unsusceptible(int disease_id) {
-    this->health.become_unsusceptible(disease_id);
+  void become_unsusceptible(int condition_id) {
+    this->health.become_unsusceptible(condition_id);
   }
 
-  /**
-   * Make this agent unsusceptible to the given disease
-   * @param disease the disease to reference
-   */
-  void become_unsusceptible(Disease* disease) {
-    this->health.become_unsusceptible(disease);
-  }
-
-  void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
-    this->health.become_exposed(disease_id, infector, mixing_group, day);
+  void become_exposed(int condition_id, Person* infector, Mixing_Group* mixing_group, int day) {
+    this->health.become_exposed(condition_id, infector, mixing_group, day);
   }
   /**
-   * Make this agent immune to the given disease
-   * @param disease the disease to reference
+   * Make this agent immune to the given condition
+   * @param condition the condition to reference
    */
-  void become_immune(Disease* disease);
+  void become_immune(int condition_id);
 
-  void print(FILE* fp, int disease_id);
+  void print(FILE* fp, int condition_id);
 
-  void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
-    this->health.infect(infectee, disease_id, mixing_group, day);
+  void infect(Person* infectee, int condition_id, Mixing_Group* mixing_group, int day) {
+    this->health.infect(infectee, condition_id, mixing_group, day);
   }
 
   /**
@@ -79,20 +76,8 @@ public:
     this->demographics.update(day);
   }
 
-  void update_infection(int day, int disease_id) {
-    this->health.update_infection(day, disease_id);
-  }
-
-  void update_health_interventions(int day) {
-    this->health.update_interventions(day);
-  }
-
-  /**
-   * @param day the simulation day
-   * @see Behavior::update(int day)
-   */
-  void update_behavior(int day) {
-    this->behavior.update(this, day);
+  void update_condition(int day, int condition_id) {
+    this->health.update_condition(day, condition_id);
   }
 
   /**
@@ -110,65 +95,71 @@ public:
     this->activities.update_schedule(sim_day);
   }
 
-  void update_activities_of_infectious_person(int sim_day) {
-    this->activities.update_activities_of_infectious_person(sim_day);
+  void update_daily_activities(int sim_day) {
+    this->activities.update_daily_activities(sim_day);
   }
 
   void update_enrollee_index(Mixing_Group* mixing_group, int pos) {
     this->activities.update_enrollee_index(mixing_group, pos);
   }
 
+  School* get_last_school() {
+    return this->activities.get_last_school();
+  }
+
   /**
    * @Activities::update_profile()
    */
-  void update_activity_profile() {
-    this->activities.update_profile();
+  void update_profile_after_changing_household() {
+    this->activities.update_profile_after_changing_household();
   }
 
-  void become_susceptible(int disease_id) {
-    this->health.become_susceptible(disease_id);
+  void become_susceptible(int condition_id) {
+    this->health.become_susceptible(condition_id);
   }
 
-  void become_susceptible_by_vaccine_waning(int disease_id) {
-    this->health.become_susceptible_by_vaccine_waning(disease_id);
-  }
-
-  void update_household_counts(int day, int disease_id);
-  void update_school_counts(int day, int disease_id);
+  void update_household_counts(int day, int condition_id);
+  void update_school_counts(int day, int condition_id);
 
   /**
-   * This agent will become infectious with the disease
-   * @param disease a pointer to the Disease
+   * This agent will become infectious with the condition
+   * @param condition a pointer to the Condition
    */
-  void become_infectious(Disease* disease) {
-    this->health.become_infectious(disease);
+  void become_infectious(int condition_id) {
+    this->health.become_infectious(condition_id);
   }
 
-  void become_noninfectious(Disease* disease) {
-    this->health.become_noninfectious(disease);
+  void become_noninfectious(int condition_id) {
+    this->health.become_noninfectious(condition_id);
   }
 
   /**
-   * This agent will become symptomatic with the disease
-   * @param disease a pointer to the Disease
+   * This agent will become symptomatic with the condition
+   * @param condition a pointer to the Condition
    */
-  void become_symptomatic(Disease* disease) {
-    this->health.become_symptomatic(disease);
+  void become_symptomatic(int condition_id) {
+    this->health.become_symptomatic(condition_id);
   }
 
-  void resolve_symptoms(Disease* disease) {
-    this->health.resolve_symptoms(disease);
+  void resolve_symptoms(int condition_id) {
+    this->health.resolve_symptoms(condition_id);
   }
 
   /**
-   * This agent will recover from the disease
-   * @param disease a pointer to the Disease
+   * This agent will recover from the condition
+   * @param condition a pointer to the Condition
    */
-  void recover(int day, Disease* disease) {
-    this->health.recover(disease, day);
+  void recover(int condition_id, int day) {
+    this->health.recover(condition_id, day);
   }
 
-  void become_case_fatality(int day, Disease* disease);
+  void become_case_fatality(int condition_id, int day) {
+    this->health.become_case_fatality(condition_id, day);
+  }
+
+  void set_case_fatality(int condition_id) {
+    this->health.set_case_fatality(condition_id);
+  }
 
   /**
    * This agent creates a new agent
@@ -203,7 +194,7 @@ public:
   }
 
   /**
-   * Will print out a person in a format similar to that read from population file
+   * Will print out a Person in a format similar to that read from population file
    * (with additional run-time values inserted (denoted by *)):<br />
    * (i.e Label *ID* Age Sex Married Occupation Household School *Classroom* Workplace *Office*)
    * @return a string representation of this Person object
@@ -250,6 +241,10 @@ public:
     return this->demographics.get_real_age();
   }
 
+  bool is_today_my_birthday() {
+    return this->demographics.is_today_my_birthday();
+  }
+
   /**
    * @return the Person's sex
    */
@@ -265,6 +260,16 @@ public:
     return this->demographics.get_race();
   }
 
+  int get_income(); 
+
+  bool is_employed() {
+    return this->activities.is_employed();
+  }
+
+  bool is_pregnant() {
+    return this->demographics.is_pregnant();
+  }
+
   int get_relationship() {
     return this->demographics.get_relationship();
   }
@@ -278,6 +283,22 @@ public:
    */
   bool is_deceased() {
     return this->demographics.is_deceased();
+  }
+
+  void set_deceased() {
+    this->demographics.set_deceased();
+  }
+
+  bool is_eligible_to_migrate() {
+    return this->eligible_to_migrate;
+  }
+
+  void set_eligible_to_migrate() {
+    this->eligible_to_migrate = true;
+  }
+
+  void unset_eligible_to_migrate() {
+    this->eligible_to_migrate = false;
   }
 
   /**
@@ -301,6 +322,15 @@ public:
     return &this->health;
   }
 
+  //mina
+  /**
+   * @return a pointer to this Person's Relationship
+   */
+  Relationships* get_relationships() {
+    return &this->relationships;
+  }
+
+  
   /**
    * @return <code>true</code> if this agent is symptomatic, <code>false</code> otherwise
    * @see Health::is_symptomatic()
@@ -309,21 +339,17 @@ public:
     return this->health.is_symptomatic();
   }
 
-  int is_symptomatic(int disease_id) {
-    return this->health.is_symptomatic(disease_id);
+  int is_symptomatic(int condition_id) {
+    return this->health.is_symptomatic(condition_id);
   }
 
-  int get_days_symptomatic() {
-    return this->health.get_days_symptomatic();
-  }
-
-  bool is_immune(int disease_id) {
-    return this->health.is_immune(disease_id);
+  bool is_immune(int condition_id) {
+    return this->health.is_immune(condition_id);
   }
 
   /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is susceptible to disease, <code>false</code> otherwise
+   * @param dis the condition to check
+   * @return <code>true</code> if this agent is susceptible to condition, <code>false</code> otherwise
    * @see Health::is_susceptible(int dis)
    */
   bool is_susceptible(int dis) {
@@ -331,9 +357,9 @@ public:
   }
 
   /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is infectious with disease, <code>false</code> otherwise
-   * @see Health::is_infectious(int disease)
+   * @param dis the condition to check
+   * @return <code>true</code> if this agent is infectious with condition, <code>false</code> otherwise
+   * @see Health::is_infectious(int condition)
    */
   bool is_infectious(int dis) {
     return this->health.is_infectious(dis);
@@ -344,126 +370,106 @@ public:
   }
 
   /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is infected with disease, <code>false</code> otherwise
-   * @see Health::is_infected(int disease)
+   * @param dis the condition to check
+   * @return <code>true</code> if this agent is infected with condition, <code>false</code> otherwise
+   * @see Health::is_infected(int condition)
    */
   bool is_infected(int dis) {
     return this->health.is_infected(dis);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the specific Disease's susceptibility for this Person
-   * @see Health::get_susceptibility(int disease)
+   * @param condition the condition to check
+   * @return the specific Condition's susceptibility for this Person
+   * @see Health::get_susceptibility(int condition)
    */
-  double get_susceptibility(int disease) const {
-    return this->health.get_susceptibility(disease);
+  double get_susceptibility(int condition) const {
+    return this->health.get_susceptibility(condition);
   }
 
   /**
-   * @param disease the disease to check
+   * @param condition the condition to check
    * @param day the simulation day
-   * @return the specific Disease's infectivity for this Person
-   * @see Health::get_infectivity(int disease, int day)
+   * @return the specific Condition's infectivity for this Person
+   * @see Health::get_infectivity(int condition, int day)
    */
-  double get_infectivity(int disease_id, int day) const {
-    return this->health.get_infectivity(disease_id, day);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @param day the simulation day
-   * @return the Symptoms for this Person
-   * @see Health::get_symptoms(int day)
-   */
-  double get_symptoms(int disease_id, int day) const {
-    return this->health.get_symptoms(disease_id, day);
+  double get_infectivity(int condition_id) const {
+    return this->health.get_infectivity(condition_id);
   }
 
   /*
-   * Advances the course of the infection by moving the exposure date
-   * backwards
-   */
-  void advance_seed_infection(int disease_id, int days_to_advance) {
-    this->health.advance_seed_infection(disease_id, days_to_advance);
+  double get_symptoms(int condition_id, int day) const {
+    return this->health.get_symptoms(condition_id);
+  }
+  */
+
+  int get_symptoms_level(int condition_id) const {
+    return this->health.get_symptoms_level(condition_id);
+  }
+
+  int get_symptoms_level() const {
+    int number_of_conditions = Global::Conditions.get_number_of_conditions();
+    int level = 0;
+    for (int i = 0; i < number_of_conditions; i++) {
+      int symp = get_symptoms_level(i);
+      if (symp > level) {
+	level = symp;
+      }
+    }
+    return level;
   }
 
   /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became exposed to disease
+   * @param condition the condition to check
+   * @return the simulation day that this agent became exposed to condition
    */
-  int get_exposure_date(int disease) const {
-    return this->health.get_exposure_date(disease);
-  }
-
-  int get_infectious_start_date(int disease) const {
-    return this->health.get_infectious_start_date(disease);
-  }
-
-  int get_infectious_end_date(int disease) const {
-    return this->health.get_infectious_end_date(disease);
-  }
-
-  int get_symptoms_start_date(int disease) const {
-    return this->health.get_symptoms_start_date(disease);
-  }
-
-  int get_symptoms_end_date(int disease) const {
-    return this->health.get_symptoms_end_date(disease);
-  }
-
-  int get_immunity_end_date(int disease) const {
-    return this->health.get_immunity_end_date(disease);
+  int get_exposure_date(int condition) const {
+    return this->health.get_onset_day(condition);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the Person who infected this agent with disease
+   * @param condition the condition to check
+   * @return the Person who infected this agent with condition
    */
-  Person* get_infector(int disease) const {
-    return this->health.get_infector(disease);
+  Person* get_infector(int condition) const {
+    return this->health.get_infector(condition);
+  }
+
+  Mixing_Group* get_infected_mixing_group(int condition) const {
+    return this->health.get_mixing_group(condition);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the id of the location where this agent became infected with disease
+   * @param condition the condition to check
+   * @return the id of the location where this agent became infected with condition
    */
-  int get_infected_mixing_group_id(int disease) const {
-    return this->health.get_infected_mixing_group_id(disease);
+  int get_infected_mixing_group_id(int condition) const {
+    return this->health.get_mixing_group_id(condition);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the pointer to the Place where this agent became infected with disease
+   * @param condition the condition to check
+   * @return the label of the location where this agent became infected with condition
    */
-  Mixing_Group* get_infected_mixing_group(int disease) const {
-    return this->health.get_infected_mixing_group(disease);
+  char* get_infected_mixing_group_label(int condition) const {
+    return this->health.get_mixing_group_label(condition);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the label of the location where this agent became infected with disease
+   * @param condition the condition to check
+   * @return the type of the location where this agent became infected with condition
    */
-  char* get_infected_mixing_group_label(int disease) const {
-    return this->health.get_infected_mixing_group_label(disease);
+  char get_infected_mixing_group_type(int condition) const {
+    return this->health.get_mixing_group_type(condition);
   }
 
   /**
-   * @param disease the disease to check
-   * @return the type of the location where this agent became infected with disease
-   */
-  char get_infected_mixing_group_type(int disease) const {
-    return this->health.get_infected_mixing_group_type(disease);
-  }
-
-  /**
-   * @param disease the disease in question
+   * @param condition the condition in question
    * @return the infectees
-   * @see Health::get_infectees(int disease)
+   * @see Health::get_infectees(int condition)
    */
-  int get_infectees(int disease) const {
-    return this->health.get_infectees(disease);
+  int get_infectees(int condition) const {
+    return this->health.get_number_of_infectees(condition);
   }
 
   /**
@@ -476,7 +482,7 @@ public:
   /**
    * @return the a pointer to this agent's Neighborhood
    */
-  Place* get_neighborhood() {
+  Neighborhood* get_neighborhood() {
     return this->activities.get_neighborhood();
   }
 
@@ -488,24 +494,24 @@ public:
    * @return a pointer to this Person's Household
    * @see Activities::get_household()
    */
-  Place* get_household() {
+  Household* get_household() {
     return this->activities.get_household();
   }
+
+  long int get_household_census_tract_fips();
+
+  int get_household_county_fips();
 
   int get_exposed_household_index() {
     return this->exposed_household_index;
   }
 
-  void set_exposed_household(int index_) {
-    this->exposed_household_index = index_;
+  void set_exposed_household(int _index) {
+    this->exposed_household_index = _index;
   }
 
-  Place* get_permanent_household() {
+  Household* get_permanent_household() {
     return this->activities.get_permanent_household();
-  }
-
-  unsigned char get_deme_id() {
-    return this->activities.get_deme_id();
   }
 
   bool is_householder() {
@@ -520,7 +526,7 @@ public:
    * @return a pointer to this Person's School
    * @see Activities::get_school()
    */
-  Place* get_school() {
+  School* get_school() {
     return this->activities.get_school();
   }
 
@@ -528,7 +534,7 @@ public:
    * @return a pointer to this Person's Classroom
    * @see Activities::get_classroom()
    */
-  Place* get_classroom() {
+  Classroom* get_classroom() {
     return this->activities.get_classroom();
   }
 
@@ -536,7 +542,7 @@ public:
    * @return a pointer to this Person's Workplace
    * @see Activities::get_workplace()
    */
-  Place* get_workplace() {
+  Workplace* get_workplace() {
     return this->activities.get_workplace();
   }
 
@@ -544,7 +550,7 @@ public:
    * @return a pointer to this Person's Office
    * @see Activities::get_office()
    */
-  Place* get_office() {
+  Office* get_office() {
     return this->activities.get_office();
   }
 
@@ -552,7 +558,7 @@ public:
    * @return a pointer to this Person's Hospital
    * @see Activities::get_hospital()
    */
-  Place* get_hospital() {
+  Hospital* get_hospital() {
     return this->activities.get_hospital();
   }
 
@@ -625,86 +631,20 @@ public:
     return this->activities.get_travel_status();
   }
 
-  int get_num_past_infections(int disease) {
-    return this->health.get_num_past_infections(disease);
-  }
-
-  Past_Infection* get_past_infection(int disease, int i) {
-    return this->health.get_past_infection(disease, i);
-  }
-
-  void clear_past_infections(int disease) {
-    this->health.clear_past_infections(disease);
-  }
-
-  //void add_past_infection(int d, Past_Infection *pi){ health.add_past_infection(d, pi); }  
-  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Disease* dis) {
-    this->health.add_past_infection(strain_id, recovery_date, age_at_exposure, dis);
-  }
-
-  void take_vaccine(Vaccine* vacc, int day, Vaccine_Manager* vm) {
-    this->health.take_vaccine(vacc, day, vm);
-  }
-
-  // set up and access health behaviors
-  void setup_behavior() {
-    this->behavior.setup(this);
-  }
-
-  bool is_health_decision_maker() {
-    return this->behavior.is_health_decision_maker();
-  }
-
-  Person* get_health_decision_maker() {
-    return this->behavior.get_health_decision_maker();
-  }
-
-  void set_health_decision_maker(Person* p) {
-    this->behavior.set_health_decision_maker(p);
-  }
-
-  void become_health_decision_maker(Person* self) {
-    this->behavior.become_health_decision_maker(self);
-  }
-
-  bool adult_is_staying_home() {
-    return this->behavior.adult_is_staying_home();
-  }
-
-  bool child_is_staying_home() {
-    return this->behavior.child_is_staying_home();
-  }
-
-  bool acceptance_of_vaccine() {
-    return this->behavior.acceptance_of_vaccine();
-  }
-
-  bool acceptance_of_another_vaccine_dose() {
-    return this->behavior.acceptance_of_another_vaccine_dose();
-  }
-
-  bool child_acceptance_of_vaccine() {
-    return this->behavior.child_acceptance_of_vaccine();
-  }
-
-  bool child_acceptance_of_another_vaccine_dose() {
-    return this->behavior.child_acceptance_of_another_vaccine_dose();
-  }
-
   bool is_sick_leave_available() {
     return this->activities.is_sick_leave_available();
   }
 
-  double get_transmission_modifier_due_to_hygiene(int disease_id) {
-    return this->health.get_transmission_modifier_due_to_hygiene(disease_id);
+  double get_transmission_modifier(int condition_id) {
+    return this->health.get_transmission_modifier(condition_id);
   }
 
-  double get_susceptibility_modifier_due_to_hygiene(int disease_id) {
-    return this->health.get_susceptibility_modifier_due_to_hygiene(disease_id);
+  double get_susceptibility_modifier(int condition_id) {
+    return this->health.get_susceptibility_modifier(condition_id);
   }
 
-  bool is_case_fatality(int disease_id) {
-    return this->health.is_case_fatality(disease_id);
+  bool is_case_fatality(int condition_id) {
+    return this->health.is_case_fatality(condition_id);
   }
 
   void terminate(int day);
@@ -733,8 +673,8 @@ public:
     return this->activities.is_student();
   }
 
-  void move_to_new_house(Place* house) {
-    activities.move_to_new_house(house);
+  void change_household(Place* house) {
+    activities.change_household(house);
   }
 
   void change_school(Place* place) {
@@ -749,73 +689,8 @@ public:
     this->activities.change_workplace(place, include_office);
   }
 
-  int get_visiting_health_status(Place* place, int day, int disease_id) {
-    return this->activities.get_visiting_health_status(place, day, disease_id);
-  }
-
-  /**
-   * @return <code>true</code> if agent is asthmatic, <code>false</code> otherwise
-   * @see Health::is_asthmatic()
-   */
-  bool is_asthmatic() {
-    return this->health.is_asthmatic();
-  }
-
-  /**
-   * @return <code>true</code> if agent has COPD (Chronic Obstructive Pulmonary
-   * disease), <code>false</code> otherwise
-   * @see Health::has_COPD()
-   */
-  bool has_COPD() {
-    return this->health.has_COPD();
-  }
-
-  /**
-   * @return <code>true</code> if agent has chronic renal disease, <code>false</code> otherwise
-   * @see Health::has_chronic_renal_disease()
-   */
-  bool has_chronic_renal_disease() {
-    return this->health.has_chronic_renal_disease();
-  }
-
-  /**
-   * @return <code>true</code> if agent is diabetic, <code>false</code> otherwise
-   * @see Health::is_diabetic()
-   */
-  bool is_diabetic() {
-    return this->health.is_diabetic();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_heart_disease()
-   */
-  bool has_heart_disease() {
-    return this->health.has_heart_disease();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_hypertension()
-   */
-  bool has_hypertension() {
-    return this->health.has_hypertension();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_hypercholestrolemia()
-   */
-  bool has_hypercholestrolemia() {
-    return this->health.has_hypercholestrolemia();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_chronic_condition()
-   */
-  bool has_chronic_condition() {
-    return this->health.has_chronic_condition();
+  int get_visiting_health_status(Place* place, int day, int condition_id) {
+    return this->activities.get_visiting_health_status(place, day, condition_id);
   }
 
   /**
@@ -877,6 +752,10 @@ public:
 
   // convenience methods for Networks
 
+  bool is_enrolled_in_network(Network* network) {
+    return this->activities.is_enrolled_in_network(network);
+  }
+
   void create_network_link_to(Person* person, Network* network) {
     this->activities.create_network_link_to(person, network);
   }
@@ -913,8 +792,18 @@ public:
     this->activities.join_network(network);
   }
 
+  //*************** Mina added
+  void unenroll_network(Network* network) {
+    this->activities.unenroll_network(network);
+  }
+  //**************************
+  
   void print_network(FILE* fp, Network* network) {
     this->activities.print_network(fp, network);
+  }
+
+  void print_activities() {
+    this->activities.print();
   }
 
   bool is_connected_to(Person* person, Network* network) {
@@ -929,6 +818,11 @@ public:
     return this->activities.get_out_degree(network);
   }
 
+  int get_out_degree_sexual_acts(Network* network) {  //mina added this method
+    Relationships* relationships = this->get_relationships();
+    return this->activities.get_out_degree_sexual_acts(network, relationships);
+  }
+  
   int get_in_degree(Network* network) {
     return this->activities.get_in_degree(network);
   }
@@ -941,32 +835,74 @@ public:
     return this->activities.get_end_of_link(n, network);
   }
 
-  int get_health_state(int disease_id) {
-    return this->health.get_health_state(disease_id);
+  bool ever_active(int condition_id) {
+    return this->health.ever_active(condition_id);
   }
 
-  void set_health_state(int disease_id, int s, int day) {
-    return this->health.set_health_state(disease_id, s, day);
+  int get_health_state(int condition_id) {
+    return this->health.get_state(condition_id);
   }
 
-  int get_last_health_transition_day(int disease_id) {
-    return this->health.get_last_transition_day(disease_id);
+  void set_health_state(int condition_id, int s, int day) {
+    return this->health.set_state(condition_id, s, day);
   }
 
-  int get_next_health_state(int disease_id) {
-    return this->health.get_next_health_state(disease_id);
+  int get_next_health_transition_day(int condition_id) {
+    return this->health.get_next_transition_day(condition_id);
   }
 
-  void set_next_health_state(int disease_id, int s, int day) {
-    return this->health.set_next_health_state(disease_id, s, day);
+  void set_next_transition_day(int condition_id, int transition_day) {
+    this->health.set_next_transition_day(condition_id, transition_day);
   }
 
-  int get_next_health_transition_day(int disease_id) {
-    return this->health.get_next_transition_day(disease_id);
+  int get_last_health_transition_day(int condition_id) {
+    return this->health.get_last_transition_day(condition_id);
   }
 
-  void update_health_conditions(int day) {
-    this->health.update_health_conditions(day);
+  int get_health_state_onset_day(int condition_id) {
+    return this->health.get_onset_day(condition_id);
+  }
+
+  void set_native() {
+    this->native = true;
+  }
+
+  void unset_native() {
+    this->native = false;
+  }
+
+  bool is_native() {
+    return this->native;
+  }
+
+  void set_original() {
+    this->original = true;
+  }
+
+  void unset_original() {
+    this->original = false;
+  }
+
+  bool is_original() {
+    return this->original;
+  }
+
+  char* get_household_structure_label();
+
+  void confine_to_household(int condition_id) {
+    this->activities.confine_to_household(condition_id);
+  }
+
+  bool is_confined_to_household(int condition_id) {
+    return this->activities.is_confined_to_household(condition_id);
+  }
+
+  bool is_confined_to_household() {
+    return this->activities.is_confined_to_household();
+  }
+
+  void clear_household_confinement(int condition_id) {
+    this->activities.clear_confinement_to_household(condition_id);
   }
 
 private:
@@ -980,7 +916,12 @@ private:
   Health health;
   Demographics demographics;
   Activities activities;
-  Behavior behavior;
+  bool eligible_to_migrate;
+  bool native;
+  bool original;
+
+  //mina
+  Relationships relationships;
 
 protected:
 

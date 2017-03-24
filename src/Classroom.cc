@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -14,8 +17,8 @@
 // File: Classroom.cc
 //
 #include "Classroom.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Mixing_Group.h"
 #include "Params.h"
@@ -48,7 +51,7 @@ Classroom::Classroom(const char* lab, char _subtype, fred::geo lon, fred::geo la
 
 void Classroom::get_parameters() {
 
-  Params::get_param_from_string("classroom_contacts", &Classroom::contacts_per_day);
+  Params::get_param("classroom_contacts", &Classroom::contacts_per_day);
   int n = Params::get_param_matrix((char*)"classroom_trans_per_contact", &Classroom::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
    FRED_STATUS(0, "\nClassroom_contact_prob:\n");
@@ -95,20 +98,20 @@ void Classroom::get_parameters() {
   // end normalization
 }
 
-double Classroom::get_contacts_per_day(int disease) {
+double Classroom::get_contacts_per_day(int condition) {
   return Classroom::contacts_per_day;
 }
 
-int Classroom::get_group(int disease, Person* per) {
-  return this->school->get_group(disease, per);
+int Classroom::get_group(int condition, Person* per) {
+  return this->school->get_group(condition, per);
 }
 
-double Classroom::get_transmission_prob(int disease, Person* i, Person* s) {
+double Classroom::get_transmission_prob(int condition, Person* i, Person* s) {
 
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Classroom::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
@@ -121,8 +124,8 @@ bool Classroom::is_open(int day) {
   return open;
 }
 
-bool Classroom::should_be_open(int day, int disease) {
-  return this->school->should_be_open(day, disease);
+bool Classroom::should_be_open(int day, int condition) {
+  return this->school->should_be_open(day, condition);
 }
 
 int Classroom::get_container_size() {
@@ -136,11 +139,12 @@ int Classroom::enroll(Person* person) {
   int return_value = Mixing_Group::enroll(person);
 
   int age = person->get_age();
-  int grade = ((age < GRADES) ? age : GRADES - 1);
+  int grade = ((age < Global::GRADES) ? age : Global::GRADES-1);
   assert(grade > 0);
 
   FRED_VERBOSE(1, "Enrolled person %d age %d in classroom %d grade %d %s\n",
-	       person->get_id(), person->get_age(), this->get_id(), this->age_level, this->get_label());
+	       person->get_id(), person->get_age(), this->get_id(), grade, this->get_label());
+
   if(this->age_level == -1) {
     this->age_level = age;
   }
@@ -160,5 +164,10 @@ void Classroom::unenroll(int pos) {
   
   // call base class method
   Mixing_Group::unenroll(pos);
+}
+
+void Classroom::set_school(School* _school) {
+  this->school = _school;
+  set_census_tract_fips(this->school->get_census_tract_fips());
 }
 

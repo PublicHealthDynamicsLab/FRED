@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -165,5 +168,13 @@ bool Person_Network_Link::is_connected_from(Person* person) {
     }
   }
   return false;
+}
+
+//mina added
+void Person_Network_Link::update_enrollee_index(int new_index) {
+  assert(this->enrollee_index != -1);
+  assert(new_index != -1);
+  //printf("update_enrollee_index: old = %d new = %d\n", enrollee_index, new_index); fflush(stdout);
+  this->enrollee_index = new_index;
 }
 

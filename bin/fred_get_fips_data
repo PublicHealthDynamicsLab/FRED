@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($dir, $run, $cond, $var, $fips) = @ARGV;
+die "$0: no fips code\n" if not $fips;
+
+my $datadir = "$dir/VIS/run$run/cond$cond/$var";
+die "$0: no directory $datadir\n" if not -d $datadir;
+
+my $len = length($fips);
+my $outfile = "$dir/$var.$fips";
+open OUT, ">$outfile";
+print OUT "$var\n";
+my $day = 0;
+while (1) {
+  my $count = 0;
+  my $datafile = "$datadir/households-$day.txt";
+  if (-e $datafile) {
+    open IN, $datafile;
+    while (my $line = <IN>) {
+      chomp $line;
+      my ($lat, $lon, $code) = split " ", $line;
+      $count++ if $fips eq substr($code,0,$len);
+    }
+    close IN;
+    print OUT "$count\n";
+    $day++;
+  }
+  else {
+    last;
+  }
+}

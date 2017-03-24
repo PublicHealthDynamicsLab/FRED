@@ -2,25 +2,42 @@
 use strict;
 use warnings;
 use Env;
-use Getopt::Std;
-
-my %options = ();
-getopts("k:", \%options);
-my $key = "";
-$key = $options{k} if exists $options{k};
-die "usage: $0 -k key\n" if not $key;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $FRED = $ENV{FRED_HOME};
-die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
-my $bin = "$FRED/bin";
-my $status = `$bin/fred_status -k $key`;
-chomp $status;
-$status =~ s/\s.*//;
-die "$0: bad status: $status\n" if $status ne "FINISHED";
+my $help = "";
+my $key = "";
+my $dir = "OUT";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "d=s" => \$dir,
+);
 
-my $ARs = `$bin/fred_csv -k $key -v ARs | tail -1 `;
-my ($mean,$std) = $ARs =~ /.*,.*,(.*),(.*)/;
-print "$mean $std\n";
+my $usage = <<EOH;
+usage: $0 --help | [ -k key | -d $dir]
+    -k or --key   the key for a FRED job (no default)
+    -d            if no key, the OUT directory (default = OUT)
+EOH
+
+die $usage if $help;
+
+my $line = "";
+if ($key) {
+  $line = `$FRED/bin/fred_csv -k $key -v ARs | tail -1 `;
+}
+else {
+  $line = `$FRED/bin/fred_csv -d $dir -v ARs | tail -1 `;
+}
+die "No data found for key = |$key| and dir = |$dir|\n$0: usage\n" if $line =~ /fred_csv/;
+
+# data found:
+my @data = split ',', $line;
+my ($mean,$std) = ($data[8]/$data[2], $data[9]/$data[2]);
+printf "%.2f %.4f\n", 100.0*$mean, 100.0*$std;
 exit;
 

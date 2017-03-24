@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -15,6 +18,7 @@
 //
 #include <limits>
 
+#include "County.h"
 #include "Demographics.h"
 #include "Events.h"
 #include "Population.h"
@@ -83,7 +87,8 @@ void Demographics::setup(Person* self, short int _age, char _sex,
   // adjust age for those over 89 (due to binning in the synthetic pop)
   if(_age > 89) {
     _age = 90;
-    while(this->age < Demographics::MAX_AGE && Random::draw_random() < 0.6) _age++;
+    while(_age < Demographics::MAX_AGE && Random::draw_random() < 0.6) _age++;
+    FRED_VERBOSE(0, "AGE ADJUSTED: person %d age %d\n", self->get_id(), _age);
   }
 
   // set demographic variables
@@ -119,7 +124,7 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
 
   FRED_VERBOSE(1, "demographic dynamics: id = %d age = %d\n", self->get_id(), this->age);
 
-  int day = 0;
+  int day = Global::Simulation_Day;;
 
   // add self to birthday list
   Demographics::add_to_birthday_list(self);
@@ -131,9 +136,8 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
     FRED_STATUS(1, "DAY %d DEATH BY MAX_AGE RULE\n", day);
   } else {
     // look up mortality in the mortality rate tables
-    int county_index = self->get_household()->get_county_index();
-    int fips = Global::Places.get_fips_of_county_with_index(county_index);
-    age_specific_probability_of_death = Global::Places.get_county_with_index(county_index)->get_mortality_rate(this->age, this->sex);
+    int fips = self->get_household()->get_county_fips();
+    age_specific_probability_of_death = Global::Places.get_county(fips)->get_mortality_rate(this->age, this->sex);
   }
   
   if(Random::draw_random() <= age_specific_probability_of_death) {
@@ -145,8 +149,8 @@ void Demographics::initialize_demographic_dynamics(Person* self) {
   }
   
   // set pregnancy status
-  int county_index = self->get_household()->get_county_index();
-  double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
+  int fips = self->get_household()->get_county_fips();
+  double pregnancy_rate = Global::Places.get_county(fips)->get_pregnancy_rate(this->age);
   if(this->sex == 'F' &&
      Demographics::MIN_PREGNANCY_AGE <= this->age &&
      this->age <= Demographics::MAX_PREGNANCY_AGE &&
@@ -249,22 +253,21 @@ void Demographics::update_birth_stats(int day, Person* self) {
 
   if(Global::Report_County_Demographic_Information) {
     Place* hh = self->get_household();
-    int index = -1;
+    int fips = 0;
     if(hh != NULL) {
-      index = hh->get_county_index();
+      fips = hh->get_county_fips();
     } else if(Global::Enable_Hospitals && self->is_hospitalized()) {
       hh = self->get_permanent_household();
       if(hh != NULL) {
-        index = hh->get_county_index();
+        fips = hh->get_county_fips();
       }
     } else if(Global::Enable_Travel) {
       hh = self->get_permanent_household();
       if(hh != NULL) {
-        index = hh->get_county_index();
+        fips = hh->get_county_fips();
       }
     }
-
-    assert(index != -1);
+    assert(fips != 0);
   }
 
   if(Global::Birthfp != NULL) {
@@ -282,15 +285,23 @@ void Demographics::birthday(Person* self, int day ) {
     return;
   }
 
-  FRED_STATUS(2, "Birthday entered for person %d with (previous) age %d\n", self->get_id(), self->get_age());
+  int birthday_sim_day = self->get_demographics()->get_birthday_sim_day();
 
-  int county_index = self->get_household()->get_county_index();
+  /*
+  FRED_STATUS(0, "BIRTHDAY %s Birthday entered for person %d with (previous) age %d birthday %d-%02d-%02d today is my birthday %s\n",
+	      Date::get_date_string().c_str(),
+	      self->get_id(), self->get_age(),
+	      Date::get_year(birthday_sim_day), Date::get_month(birthday_sim_day), Date::get_day_of_month(birthday_sim_day),
+	      self->get_demographics()->is_today_my_birthday()? "yes" : "no");
+  */
+
+  int fips = self->get_household()->get_county_fips();
   //The count of agents at the current age is decreased by 1
-  Global::Places.decrement_population_of_county_with_index(county_index, self);
+  Global::Places.decrement_population_of_county(fips, self);
   // change age
   this->age++;
   //The count of agents at the new age is increased by 1
-  Global::Places.increment_population_of_county_with_index(county_index, self);
+  Global::Places.increment_population_of_county(fips, self);
 
   // will this person die in the next year?
   double age_specific_probability_of_death = 0.0;
@@ -304,7 +315,7 @@ void Demographics::birthday(Person* self, int day ) {
     */
   } else {
     // look up mortality in the mortality rate tables
-    age_specific_probability_of_death = Global::Places.get_county_with_index(county_index)->get_mortality_rate(this->age, this->sex);
+    age_specific_probability_of_death = Global::Places.get_county(fips)->get_mortality_rate(this->age, this->sex);
   }
   if(this->deceased == false && this->deceased_sim_day == -1 &&
        Random::draw_random() <= age_specific_probability_of_death) {
@@ -318,7 +329,7 @@ void Demographics::birthday(Person* self, int day ) {
   }
   
   // Will this person conceive in the coming year year?
-  double pregnancy_rate = Global::Places.get_county_with_index(county_index)->get_pregnancy_rate(this->age);
+  double pregnancy_rate = Global::Places.get_county(fips)->get_pregnancy_rate(this->age);
   if(this->sex == 'F' &&
      Demographics::MIN_PREGNANCY_AGE <= this->age &&
      this->age <= Demographics::MAX_PREGNANCY_AGE &&
@@ -334,15 +345,6 @@ void Demographics::birthday(Person* self, int day ) {
     FRED_STATUS(1, "CONCEPTION EVENT ADDDED today %d id %d age %d conceive %d house %s\n",
 		day, self->get_id(),age,conception_sim_day,self->get_household()->get_label());
   }
-
-  // become responsible for health decisions when reaching adulthood
-  if(this->age == Global::ADULT_AGE && self->is_health_decision_maker() == false) {
-    FRED_STATUS(2, "Become_health_decision_maker\n");
-    self->become_health_decision_maker(self);
-  }
-  
-  // update any state-base health conditions
-  self->update_health_conditions(day);
 
   FRED_STATUS(2, "Birthday finished for person %d with new age %d\n", self->get_id(), self->get_age());
 }
@@ -389,8 +391,6 @@ void Demographics::terminate(Person* self) {
 	    day, self->get_id(), self->get_age());
     fflush(Global::Deathfp);
   }
-  // self->die();
-  this->deceased = true;
 }
 
 
@@ -419,6 +419,10 @@ void Demographics::update(int day) {
   Demographics::births_today = 0;
   Demographics::deaths_today = 0;
 
+  if (!Global::Enable_Population_Dynamics) {
+    return;
+  }
+
   Demographics::update_people_on_birthday_list(day);
 
   // initiate pregnancies
@@ -439,19 +443,23 @@ void Demographics::update(int day) {
   }
   Demographics::maternity_queue->clear_events(day);
 
-  // remove dead from population
   // FRED_VERBOSE(0, "mortality queue\n");
   size = Demographics::mortality_queue->get_size(day);
   for(int i = 0; i < size; ++i) {
+    // add dying to the population death_list
     Person * person = Demographics::mortality_queue->get_event(day, i);
-    FRED_CONDITIONAL_VERBOSE(0, Global::Enable_Health_Charts,
-			     "HEALTH CHART: %s person %d age %d DIES FROM UNKNOWN CAUSE.\n",
-			     Date::get_date_string().c_str(),
-			     person->get_id(), person->get_age());
+    if (Global::Enable_Health_Records) {
+      fprintf(Global::HealthRecordfp,
+	      "HEALTH RECORD: %s day %d person %d age %d DIES FROM UNKNOWN CAUSE.\n",
+	      Date::get_date_string().c_str(),
+	      day,
+	      person->get_id(), person->get_age());
+    }
     // queue removal from population
     Global::Pop.prepare_to_die(day, person);
   }
   Demographics::mortality_queue->clear_events(day);
+
   return;
 }
 
@@ -497,6 +505,16 @@ void Demographics::delete_from_birthday_list(Person* person) {
 
 }
 
+bool Demographics::is_today_my_birthday() {
+  int birthday_day_of_year = get_day_of_year_for_birthday_in_nonleap_year();
+  int current_day_of_year = Date::get_day_of_year();
+  // correct for leap year
+  if (Date::is_leap_year() && current_day_of_year > 60) {
+    current_day_of_year--;
+  }
+  return (birthday_day_of_year == current_day_of_year);
+}
+
 void Demographics::update_people_on_birthday_list(int day) {
 
   int birthday_index = Date::get_day_of_year();
@@ -514,8 +532,8 @@ void Demographics::update_people_on_birthday_list(int day) {
   
   int size = static_cast<int>(Demographics::birthday_vecs[birthday_index].size());
 
-  FRED_VERBOSE(1, "day %d update_people_on_birthday_list started. size = %d\n",
-	       day, size);
+  FRED_VERBOSE(1, "day %d date %s day_of_year %d update_people_on_birthday_list started. size = %d\n",
+	       day, Date::get_date_string().c_str(), birthday_index, size);
   
   // make a temporary list of birthday people
   std::vector<Person*> birthday_list;
@@ -559,12 +577,8 @@ void Demographics::report(int day) {
   for(int c = 0; c < 20; ++c) {
     count[c] = 0;
   }
-  int current_popsize = Global::Pop.get_pop_size();
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person == NULL) {
-      continue;
-    }
+  for(int p = 0; p < Global::Pop.get_population_size(); ++p) {
+    Person* person = Global::Pop.get_person(p);
     int a = person->get_age();
     if(a < 5) {
       n0++;

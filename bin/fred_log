@@ -30,9 +30,9 @@ print "STARTED:  ";
 system "cat $dir/JOB/$id/META/START";
 print "FINISHED: ";
 system "cat $dir/JOB/$id/META/FINISHED";
-if (-e "$dir/JOB/$id/DATA/OUT/LOG$n") {
+if (-e "$dir/JOB/$id/OUT/LOG$n") {
   print "tail $o LOG$n:\n";
-  system "tail $o $dir/JOB/$id/DATA/OUT/LOG$n";
+  system "tail $o $dir/JOB/$id/OUT/LOG$n";
 }
 elsif (-e "$dir/JOB/$id/META/LOG.$n") {
   print "tail $o LOG.$n:\n";

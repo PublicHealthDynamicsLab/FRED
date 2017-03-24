@@ -1,37 +1,10 @@
-days = 20
-outdir = OUT.TEST
+days = 100
+locations_file = locations.txt
 quality_control = 0
-track_infection_events = 1
+outdir = OUT.TEST
+enable_health_records = 1
 
-# enable behaviors must be set
-enable_behaviors = 1
+conditions = INF VAC
 
-vaccine_prioritize_by_age = 1
-vaccine_priority_age_low = 0
-vaccine_priority_age_high = 24
-vaccination_capacity_file = vaccination_capacity-0.txt
-vaccine_tracefile = vacctrace
+include params.vac
 
-enable_vaccination = 1
-number_of_vaccines = 1
-accept_vaccine_enabled = 1
-accept_vaccine_strategy_distribution = 7 20 80 0 0 0 0 0
-
-## Definition of Vaccine #0
-vaccine_number_of_doses[0]    = 1
-vaccine_total_avail[0]        = 235881
-vaccine_additional_per_day[0] = 10000
-vaccine_starting_day[0]       = 0
-
-#### Vaccine #0 Dose #0
-vaccine_next_dosage_day[0][0] = 0
-vaccine_dose_efficacy_age_groups[0][0] = 2 5 100
-vaccine_dose_efficacy_values[0][0] = 2 0.70 0.83
-
-vaccine_dose_efficacy_delay_age_groups[0][0] = 1 100
-vaccine_dose_efficacy_delay_values[0][0] = 1 14
-
-# these are the strain ids that the vaccine will
-# protect against
-vaccine_strains[0] = 0
-fips = 42065

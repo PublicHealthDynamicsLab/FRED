@@ -1,0 +1,111 @@
+
+************** Information on FRED Synthetic Population Files ***************
+
+The default FRED RTI_2010_ver1 synthetic population files are based on
+the 2010 U.S. Synthesized Population Dataset developed by RTI.
+
+******************************************************************************
+**                2010 U.S. Synthesized Population Dataset                  **
+**              Copyright Research Triangle Institute  2014                 **
+**                           All Rights Reserved                            **
+**                                                                          **
+**              The development of this data was supported by               **
+**               Grant Number U24GM0877044 (MIDAS) from the                 **
+**          National Institutes of General Medical Sciences (NIGMS)         **
+**                                                                          **
+**   The content is solely the responsibility of the authors and does not   **
+**       necessarily represent the official views of the NIGMS or the       **
+**                      National Institutes of Health                       **
+**                                                                          **
+******************************************************************************
+
+******************************* Contact Information **************************
+**                                                                          **
+**  Bill Wheaton                                                            **
+**  Director, Geospatial Science and Technology Program                     **
+**  RTI International                                                       **
+**  P.O. Box 12194                                                          **
+**  3040 Cornwallis Rd.                                                     **
+**  Research Triangle Park, NC 27709                                        **
+**  wdw@rti.org                                                             **
+**  919-541-6158                                                            **
+**                                                                          **
+******************************************************************************
+
+******************************** Citation Information ************************
+**                                                                          **
+**  NIGMS and RTI request that you cite these data in any publication       **
+**  or report in which they were used.  The proper citations are:           **
+**                                                                          **
+**  Data:                                                                   **
+**        2010 RTI U.S. Synthetic Population Ver. 1.0                       **
+**        RTI International. May, 2014. Downloaded from internet            **
+**        URL: https://www.epimodels.org/midas/pubsyntdata1.do              **
+**                                                                          **
+**  Quick Start Guide:                                                      **
+**                                                                          **
+**        Wheaton, W.D., 2014. "2010 U.S. Synthetic Population              **
+**        Quick Start Guide".  RTI International. Retrieved                 **
+**        from http://www.epimodels.org/midasdocs/SynthPop/2010_            **
+**        synth_pop_ver1_quickstart.pdf                                     **
+**                                                                          **
+******************************************************************************
+
+The format of the FRED files is as follows:
+
+people.txt
+	sp_id
+	sp_hh_id
+	age
+	sex
+	race
+	relate
+	school_id
+	work_id
+
+gq_people.txt
+	sp_id
+	sp_gq_id
+	age
+	sex
+
+households.txt:
+	sp_id
+	stcotrbg
+	hh_race
+	hh_income
+	latitude
+	longitude
+
+gq.txt
+	sp_id
+	gq_type
+	stcotrbg
+	persons
+	latitude
+	longitude
+
+schools.txt 
+	sp_id
+	stco
+	latitude
+	longitude
+
+workplaces.txt
+	sp_id
+	latitude
+	longitude
+
+hospitals.txt
+	hosp_id
+	workers
+	physicians
+	beds
+	latitude
+	longitude
+
+See the METADATA.txt file in each directory for further information
+about the individual fields and the source of the original RTI files.
+
+*****************************************************************************
+

@@ -57,7 +57,9 @@ my $set_threads = "export OMP_NUM_THREADS=$threads";
 my $cmd = "'run_fred @arg'";
 system "echo $cmd > $dir/COMMAND_LINE";
 for my $n ($start_run .. $end_run) {
-  $cmd = "($set_threads ; FRED $paramsfile $n $dir 2>&1 > $dir/LOG$n)";
+  my $rundir = "$dir/RUN$n";
+  if (not -d $rundir) { mkdir $rundir }
+  $cmd = "($set_threads ; FRED $paramsfile $n $dir 2>&1 > $rundir/LOG)";
   print "$cmd\n";
   system $cmd;
 }
@@ -69,7 +71,7 @@ sub get_param_value {
   # find defaults file
   my $defaults = "defaults";
   if (not -e $defaults) {
-    $defaults = "$FRED/input_files/defaults";
+    $defaults = "$FRED/data/defaults";
   }
   if (not -e $defaults) {
     die "$0: could not find defaults file\n";

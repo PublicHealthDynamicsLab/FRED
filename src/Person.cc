@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -18,16 +21,20 @@
 
 #include "Activities.h"
 #include "Age_Map.h"
-#include "Behavior.h"
+#include "Classroom.h"
 #include "Demographics.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
 #include "Global.h"
 #include "Health.h"
+#include "Household.h"
 #include "Mixing_Group.h"
+#include "Neighborhood.h"
+#include "Office.h"
 #include "Place.h"
 #include "Population.h"
 #include "Random.h"
+#include "School.h"
+#include "Workplace.h"
 
 #include <cstdio>
 #include <vector>
@@ -37,6 +44,9 @@ Person::Person() {
   this->id = -1;
   this->index = -1;
   this->exposed_household_index = -1;
+  this->eligible_to_migrate = true;
+  this->native = true;
+  this->original = false;
 }
 
 Person::~Person() {
@@ -53,66 +63,35 @@ void Person::setup(int _index, int _id, int age, char sex,
   this->demographics.setup(this, age, sex, race, rel, day, today_is_birthday);
   this->health.setup(this);
   this->activities.setup(this, house, school, work);
-  FRED_VERBOSE(1, "Person::setup() activities_setup finished\n");
 
-  // behavior setup called externally, after entire population is available
-
-  myFIPS = house->get_household_fips();
+  myFIPS = house->get_county_fips();
   if(today_is_birthday) {
     FRED_VERBOSE(1, "Baby index %d id %d age %d born on day %d household = %s  new_size %d orig_size %d\n",
 		 _index, this->id, age, day, house->get_label(), house->get_size(), house->get_orig_size());
-  } else {
-    // residual immunity does NOT apply to newborns
-    for(int disease = 0; disease < Global::Diseases.get_number_of_diseases(); ++disease) {
-      Disease* dis = Global::Diseases.get_disease(disease);
-      
-      if(Global::Residual_Immunity_by_FIPS) {
-	      Age_Map* temp_map = new Age_Map();
-	      vector<double> temp_ages = dis->get_residual_immunity()->get_ages();
-	      vector<double> temp_values = dis->get_residual_immunity_values_by_FIPS(myFIPS);
-	      temp_map->set_ages(temp_ages);
-	      temp_map->set_values(temp_values);
-     	  double residual_immunity_by_fips_prob = temp_map->find_value(this->get_real_age());
-	      if(Random::draw_random() < residual_immunity_by_fips_prob) {
-	        become_immune(dis);
-	      }
-      } else if(!dis->get_residual_immunity()->is_empty()) {
-	      double residual_immunity_prob = dis->get_residual_immunity()->find_value(this->get_real_age());
-	      if(Random::draw_random() < residual_immunity_prob) {
-	        become_immune(dis);
-	      }
-      }
-    }
   }
 }
 
-void Person::print(FILE* fp, int disease) {
+void Person::print(FILE* fp, int condition_id) {
   if(fp == NULL) {
     return;
   }
   fprintf(fp, "%d id %7d  a %3d  s %c r %d ",
-          disease, id,
+          condition_id, id,
           this->demographics.get_age(),
           this->demographics.get_sex(),
           this->demographics.get_race());
   fprintf(fp, "exp: %2d ",
-          this->health.get_exposure_date(disease));
+          this->health.get_exposure_date(condition_id));
   fprintf(fp, "infected_at %c %6d ",
-          this->health.get_infected_mixing_group_type(disease),
-	  this->health.get_infected_mixing_group_id(disease));
-  fprintf(fp, "infector %d ", health.get_infector_id(disease));
-  fprintf(fp, "infectees %d ", this->health.get_infectees(disease));
-  /*
-  fprintf(fp, "antivirals: %2d ", this->health.get_number_av_taken());
-  for(int i=0; i < this->health.get_number_av_taken(); ++i) {
-    fprintf(fp," %2d", this->health.get_av_start_day(i));
-  }
-  */
+          get_infected_mixing_group_type(condition_id),
+	  get_infected_mixing_group_id(condition_id));
+  fprintf(fp, "infector %d ", get_infector(condition_id)->get_id());
+  fprintf(fp, "infectees %d ", get_infectees(condition_id));
   fprintf(fp,"\n");
   fflush(fp);
 }
 
-void Person::update_household_counts(int day, int disease_id) {
+void Person::update_household_counts(int day, int condition_id) {
   // this is only called for people with an active infection.
   Mixing_Group* hh = this->get_household();
   if(hh == NULL) {
@@ -121,22 +100,21 @@ void Person::update_household_counts(int day, int disease_id) {
     }
   }
   if(hh != NULL) {
-    this->health.update_mixing_group_counts(day, disease_id, hh);
+    this->health.update_mixing_group_counts(day, condition_id, hh);
   }
 }
 
-void Person::update_school_counts(int day, int disease_id) {
+void Person::update_school_counts(int day, int condition_id) {
   // this is only called for people with an active infection.
   Mixing_Group* school = this->get_school();
   if(school != NULL) {
-    this->health.update_mixing_group_counts(day, disease_id, school);
+    this->health.update_mixing_group_counts(day, condition_id, school);
   }
 }
 
-void Person::become_immune(Disease* disease) {
-  int disease_id = disease->get_id();
-  if(this->health.is_susceptible(disease_id)) {
-    this->health.become_immune(disease);
+void Person::become_immune(int condition_id) {
+  if(this->health.is_susceptible(condition_id)) {
+    this->health.become_immune(condition_id);
   }
 }
 
@@ -160,24 +138,13 @@ Person* Person::give_birth(int day) {
   Place* school = NULL;
   Place* work = NULL;
   bool today_is_birthday = true;
-  Person* baby = Global::Pop.add_person(age, sex, race, rel,
+  Person* baby = Global::Pop.add_person_to_population(age, sex, race, rel,
 					house, school, work, day, today_is_birthday);
 
   if(Global::Enable_Population_Dynamics) {
     baby->get_demographics()->initialize_demographic_dynamics(baby);
   }
 
-  if(Global::Enable_Behaviors) {
-    // turn mother into an adult decision maker, if not already
-    if(this->is_health_decision_maker() == false) {
-      FRED_VERBOSE(0,
-		   "young mother %d age %d becomes baby's health decision maker on day %d\n",
-		   id, age, day);
-      this->become_health_decision_maker(this);
-    }
-    // let mother decide health behaviors for child
-    baby->set_health_decision_maker(this);
-  }
   this->demographics.update_birth_stats(day, this);
   FRED_VERBOSE(1, "mother %d baby %d\n", this->get_id(), baby->get_id());
 
@@ -188,27 +155,30 @@ string Person::to_string() {
 
   stringstream tmp_string_stream;
   // (i.e *ID* Age Sex Race Household School Classroom Workplace Office Neighborhood Hospital Ad_Hoc Relationship)
-  tmp_string_stream << this->id << " " << get_age() << " " <<  get_sex() << " " ;
-  tmp_string_stream << get_race() << " " ;
-  tmp_string_stream << Place::get_place_label(get_household()) << " ";
-  tmp_string_stream << Place::get_place_label(get_school()) << " ";
-  tmp_string_stream << Place::get_place_label(get_classroom()) << " ";
-  tmp_string_stream << Place::get_place_label(get_workplace()) << " ";
-  tmp_string_stream << Place::get_place_label(get_office()) << " ";
-  tmp_string_stream << Place::get_place_label(get_neighborhood()) << " ";
-  tmp_string_stream << Place::get_place_label(get_hospital()) << " ";
-  tmp_string_stream << Place::get_place_label(get_ad_hoc()) << " ";
-  tmp_string_stream << get_relationship();
+  tmp_string_stream << this->id << " " << this->get_age() << " " <<  this->get_sex() << " " ;
+  tmp_string_stream << this->get_race() << " " ;
+  tmp_string_stream << Place::get_place_label(this->get_household()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_school()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_classroom()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_workplace()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_office()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_neighborhood()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_hospital()) << " ";
+  tmp_string_stream << Place::get_place_label(this->get_ad_hoc()) << " ";
+  tmp_string_stream << this->get_relationship();
 
   return tmp_string_stream.str();
 }
 
 void Person::terminate(int day) {
   FRED_VERBOSE(1, "terminating person %d\n", id);
-  this->behavior.terminate(this);
-  this->activities.terminate();
   this->health.terminate(day);
+  this->activities.terminate();
   this->demographics.terminate(this);
+  
+  if (Global::Enable_Transmission_Network || Global::Enable_Sexual_Partner_Network) {
+    this->relationships.terminate(day, Global::Sexual_Partner_Network);
+  }
 }
 
 double Person::get_x() {
@@ -243,7 +213,19 @@ double Person::get_y() {
   }
 }
 
-
-void Person::become_case_fatality(int day, Disease* disease) {
-  this->health.become_case_fatality(disease->get_id(), day);
+char* Person::get_household_structure_label() {
+  return get_household()->get_household_structure_label();
 }
+
+int Person::get_income() {
+  return get_household()->get_household_income();
+}
+
+long int Person::get_household_census_tract_fips() {
+  return get_household()->get_census_tract_fips();
+}
+
+int Person::get_household_county_fips() {
+  return get_household()->get_county_fips();
+}
+

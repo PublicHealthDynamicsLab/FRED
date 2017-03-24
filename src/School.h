@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -21,15 +24,12 @@
 #include "Global.h"
 #include "Place.h"
 
-#define GRADES 20
-
 class Classroom;
 
 class School : public Place {
 public:
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   School();
 
@@ -43,14 +43,14 @@ public:
 
   void prepare();
   static void get_parameters();
-  int get_group(int disease_id, Person* per);
-  double get_transmission_prob(int disease_id, Person* i, Person* s);
+  int get_group(int condition_id, Person* per);
+  double get_transmission_prob(int condition_id, Person* i, Person* s);
   void close(int day, int day_to_close, int duration);
   bool is_open(int day);
-  bool should_be_open(int day, int disease_id);
-  void apply_global_school_closure_policy(int day, int disease_id);
-  void apply_individual_school_closure_policy(int day, int disease_id);
-  double get_contacts_per_day(int disease_id);
+  bool should_be_open(int day, int condition_id);
+  void apply_global_school_closure_policy(int day, int condition_id);
+  void apply_individual_school_closure_policy(int day, int condition_id);
+  double get_contacts_per_day(int condition_id);
   int enroll(Person* per);
   void unenroll(int pos);
   int get_max_grade() {
@@ -72,21 +72,20 @@ public:
   }
 
   int get_classrooms_in_grade(int grade) {
-    if(grade < 0 || GRADES <= grade) {
+    if(grade < 0 || Global::GRADES <= grade) {
       return 0;
     }
     return static_cast<int>(this->classrooms[grade].size());
   }
 
   void print_size_distribution();
-  void print(int disease);
+  void print(int condition);
   int get_number_of_rooms();
-  // int get_number_of_classrooms() { return (int) classrooms.size(); }
-  void setup_classrooms(Allocator<Classroom> &classroom_allocator);
+  void setup_classrooms();
   Place* select_classroom_for_student(Person* per);
   int get_number_of_students() { 
     int n = 0;
-    for(int grade = 1; grade < GRADES; ++grade) {
+    for(int grade = 1; grade < Global::GRADES; ++grade) {
       n += this->students_in_grade[grade];
     }
     return n;
@@ -94,7 +93,7 @@ public:
 
   int get_orig_number_of_students() const {
     int n = 0;
-    for(int grade = 1; grade < GRADES; ++grade) {
+    for(int grade =0; grade < Global::GRADES; ++grade) {
       n += this->orig_students_in_grade[grade];
     }
     return n;
@@ -166,8 +165,28 @@ public:
   }
 
   //for access from Classroom:
-  static double get_school_contacts_per_day(int disease_id) {
+  static double get_school_contacts_per_day(int condition_id) {
     return School::contacts_per_day;
+  }
+
+  void set_temp(int n) {
+    this->temp = n;
+  }
+
+  int get_temp() {
+    return this->temp;
+  }
+
+  int get_number_of_classrooms() {
+    return this->classroom.size();
+  }
+
+  Classroom* get_classroom(int i) {
+    if (0 <= i && i < get_number_of_classrooms()) {
+      return this->classroom[i];
+    } else {
+      return NULL;
+    }
   }
 
 private:
@@ -199,14 +218,16 @@ private:
   static int pop_income_Q3;
   static int pop_income_Q4;
 
-  int students_in_grade[GRADES];
-  int orig_students_in_grade[GRADES];
-  int next_classroom[GRADES];
-  vector<Classroom*> classrooms[GRADES];
+  int students_in_grade[Global::GRADES];
+  int orig_students_in_grade[Global::GRADES];
+  int next_classroom[Global::GRADES];
+  vector<Classroom*> classrooms[Global::GRADES];
+  vector<Classroom*> classroom;
   bool closure_dates_have_been_set;
   int max_grade;
   int county_index;
   int income_quartile;
+  int temp;
 };
 
 #endif // _FRED_SCHOOL_H

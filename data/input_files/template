@@ -1,0 +1,55 @@
+disease_names = 1 <disease_name>
+
+### REQUIRED NATURAL HISTORY PARAMETERS
+
+### transmission coefficient:
+<disease_name>_trans = 1.0
+
+### symptomatic rate:
+<disease_name>_symp = 0.67
+
+### multipliers for infectivity
+<disease_name>_symp_infectivity = 1.0
+<disease_name>_asymp_infectivity = 0.5
+
+### latent and infectious period CDFs
+<disease_name>_days_latent = 3       0.0 0.8 1.0
+<disease_name>_days_asymp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+<disease_name>_days_symp = 7   0.0 0.0 0.0 0.3 0.7 0.9 1.0
+
+### IMMUNITY
+<disease_name>_immunity_loss_rate = 0
+<disease_name>_residual_immunity_ages = 0
+<disease_name>_residual_immunity_values = 0
+<disease_name>_infection_immunity_prob_ages = 2 0 110
+<disease_name>_infection_immunity_prob_values = 1 1.0
+
+### PLACE-SPECIFIC CONTACTS
+<disease_name>_weekend_contact_rate = 1.5
+<disease_name>_household_contacts = 0.202
+<disease_name>_neighborhood_contacts = 3.98e+01
+<disease_name>_school_contacts = 17.6
+<disease_name>_workplace_contacts = 1.6
+<disease_name>_classroom_contacts = -1
+<disease_name>_office_contacts = -1
+<disease_name>_hospital_contacts = 0
+
+### PLACE-SPECIFIC TRANSMISSION MATRICES
+<disease_name>_household_prob = 4 0.6 0.3 0.3 0.4
+<disease_name>_workplace_prob = 1 0.0575
+<disease_name>_office_prob = 1 0.0575
+<disease_name>_hospital_prob = 0
+<disease_name>_school_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+<disease_name>_classroom_prob = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+<disease_name>_neighborhood_prob = 4 0.0048 0.0048 0.0048 0.0048
+
+### OPTIONAL FEATURES
+### The following settings disable optional features unless needed:
+<disease_name>_enable_case_fatality = 0
+<disease_name>_at_risk_ages = 0
+<disease_name>_at_risk_values = 0
+<disease_name>_intra_host_model = 0
+<disease_name>_infection_model = 0
+<disease_name>_infectivity_threshold = 0
+<disease_name>_symptomaticity_threshold = 0
+<disease_name>_evolution = 0

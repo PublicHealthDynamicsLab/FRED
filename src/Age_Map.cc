@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -55,18 +58,18 @@ void Age_Map::read_from_input(string input) {
 
   if(input.find("[") != string::npos) {
     // Need Special parsing if this is an array from input
-    // Allows Disease specific values
+    // Allows Condition specific values
     string input_tmp;
     string number;
     size_t found = input.find_first_of("[");
     size_t found2 = input.find_last_of("]");
     input_tmp.assign(input.begin(), input.begin() + found);
     number.assign(input.begin() + found + 1, input.begin() + found2);
-    sprintf(ages_string, "%s_age_groups[%s]", input_tmp.c_str(), number.c_str());
-    sprintf(values_string, "%s_values[%s]", input_tmp.c_str(), number.c_str());
+    sprintf(ages_string, "%s.age_groups[%s]", input_tmp.c_str(), number.c_str());
+    sprintf(values_string, "%s.age_values[%s]", input_tmp.c_str(), number.c_str());
   } else {
-    sprintf(ages_string, "%s_age_groups", input.c_str());
-    sprintf(values_string, "%s_values", input.c_str());
+    sprintf(ages_string, "%s.age_groups", input.c_str());
+    sprintf(values_string, "%s.age_values", input.c_str());
   }
 
   // Age map will be empty if not found.
@@ -107,6 +110,17 @@ void Age_Map::set_all_values(double val) {
   }
   this->ages.push_back(Demographics::MAX_AGE);
   this->values.push_back(val);
+}
+
+int Age_Map::find_group(double age) {
+  // printf("find_group: age = %.1f  groups %d \n", age, (int) this->ages.size());
+  for(unsigned int i = 0; i < this->ages.size(); i++) {
+    if (age < this->ages[i]) {
+      return i;
+    }
+  }
+  Utils::fred_abort("No age group found in %s for age %f\n", this->name.c_str(), age);
+  return -1;
 }
 
 double Age_Map::find_value(double age) {

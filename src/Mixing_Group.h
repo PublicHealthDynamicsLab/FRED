@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -37,7 +40,7 @@ public:
    * Get the id.
    * @return the id
    */
-  int get_id() {
+  int get_id() const {
     return this->id;
   }
 
@@ -81,33 +84,33 @@ public:
   int get_children();
 
   /**
-   * Get the age group for a person given a particular disease_id.
+   * Get the age group for a person given a particular condition_id.
    *
-   * @param disease_id an integer representation of the disease
+   * @param condition_id an integer representation of the condition
    * @param per a pointer to a Person object
-   * @return the age group for the given person for the given disease
+   * @return the age group for the given person for the given condition
    */
-  virtual int get_group(int disease_id, Person* per) = 0;
+  virtual int get_group(int condition_id, Person* per) = 0;
 
   // enroll / unenroll:
   virtual int enroll(Person* per);
   virtual void unenroll(int pos);
 
   /**
-   * Get the transmission probability for a given disease between two Person objects.
+   * Get the transmission probability for a given condition between two Person objects.
    *
-   * @param disease_id an integer representation of the disease
+   * @param condition_id an integer representation of the condition
    * @param i a pointer to a Person object
    * @param s a pointer to a Person object
-   * @return the probability that there will be a transmission of disease_id from i to s
+   * @return the probability that there will be a transmission of condition_id from i to s
    */
-  virtual double get_transmission_probability(int disease_id, Person* i, Person* s) = 0;
+  virtual double get_transmission_probability(int condition_id, Person* i, Person* s) = 0;
 
-  virtual double get_transmission_prob(int disease_id, Person* i, Person* s) = 0;
+  virtual double get_transmission_prob(int condition_id, Person* i, Person* s) = 0;
 
-  virtual double get_contacts_per_day(int disease_id) = 0;
-  virtual double get_contact_rate(int day, int disease_id) = 0;
-  virtual int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) = 0;
+  virtual double get_contacts_per_day(int condition_id) = 0;
+  virtual double get_contact_rate(int day, int condition_id) = 0;
+  virtual int get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate) = 0;
 
   /**
    * Get the count of agents in this place.
@@ -126,14 +129,14 @@ public:
     return this->N_orig;
   }
 
-  int get_recovereds(int disease_id);
+  int get_recovereds(int condition_id);
 
   person_vec_t* get_enrollees() {
     return &(this->enrollees);
   }
 
-  person_vec_t* get_infectious_people(int  disease_id) {
-    return &(this->infectious_people[disease_id]);
+  person_vec_t* get_infectious_people(int  condition_id) {
+    return &(this->infectious_people[condition_id]);
   }
 
   Person* get_enrollee(int i) {
@@ -141,54 +144,54 @@ public:
   }
 
   /*
-   * Disease transmission
+   * Condition transmission
    */
-  std::vector<Person*> get_potential_infectors(int disease_id) {
-    return this->infectious_people[disease_id];
+  std::vector<Person*> get_potential_infectors(int condition_id) {
+    return this->infectious_people[condition_id];
   }
 
-  std::vector<Person*> get_potential_infectees(int disease_id) {
+  std::vector<Person*> get_potential_infectees(int condition_id) {
     return this->enrollees;
   }
 
   void record_infectious_days(int day);
-  void print_infectious(int disease_id);
+  void print_infectious(int condition_id);
 
   // infectious people
-  void clear_infectious_people(int disease_id) {
-    this->infectious_people[disease_id].clear();
+  void clear_infectious_people(int condition_id) {
+    this->infectious_people[condition_id].clear();
   }
 
-  void add_infectious_person(int disease_id, Person* person);
+  void add_infectious_person(int condition_id, Person* person);
 
-  int get_number_of_infectious_people(int disease_id) {
-    return this->infectious_people[disease_id].size();
+  int get_number_of_infectious_people(int condition_id) {
+    return this->infectious_people[condition_id].size();
   }
   
-  Person* get_infectious_person(int disease_id, int n) {
-    assert(n < this->infectious_people[disease_id].size());
-    return this->infectious_people[disease_id][n];;
+  Person* get_infectious_person(int condition_id, int n) {
+    assert(n < this->infectious_people[condition_id].size());
+    return this->infectious_people[condition_id][n];;
   }
 
-  bool has_infectious_people(int disease_id) {
-    return this->infectious_people[disease_id].size() > 0;
+  bool has_infectious_people(int condition_id) {
+    return this->infectious_people[condition_id].size() > 0;
   }
 
-  bool is_infectious(int disease_id) {
-    return this->infectious_people[disease_id].size() > 0;
+  bool is_infectious(int condition_id) {
+    return this->infectious_people[condition_id].size() > 0;
   }
 
   bool is_infectious() {
     return this->infectious_bitset.any();
   }
 
-  bool is_human_infectious(int disease_id) {
-    return this->human_infectious_bitset.test(disease_id);
+  bool is_human_infectious(int condition_id) {
+    return this->human_infectious_bitset.test(condition_id);
   }
 
-  void set_human_infectious(int disease_id) {
-    if(!(this->human_infectious_bitset.test(disease_id))) {
-      this->human_infectious_bitset.set(disease_id);
+  void set_human_infectious(int condition_id) {
+    if(!(this->human_infectious_bitset.test(condition_id))) {
+      this->human_infectious_bitset.set(condition_id);
     }
   }
 
@@ -196,166 +199,166 @@ public:
     this->human_infectious_bitset.reset();
   }
 
-  void set_exposed(int disease_id) {
-    this->exposed_bitset.set(disease_id);
+  void set_exposed(int condition_id) {
+    this->exposed_bitset.set(condition_id);
   }
 
   void reset_exposed() {
     this->exposed_bitset.reset();
   }
 
-  bool is_exposed(int disease_id) {
-    return this->exposed_bitset.test(disease_id);
+  bool is_exposed(int condition_id) {
+    return this->exposed_bitset.test(condition_id);
   }
 
-  void set_recovered(int disease_id) {
-    this->recovered_bitset.set(disease_id);
+  void set_recovered(int condition_id) {
+    this->recovered_bitset.set(condition_id);
   }
 
   void reset_recovered() {
     this->recovered_bitset.reset();
   }
 
-  bool is_recovered(int disease_id) {
-    return this->recovered_bitset.test(disease_id);
+  bool is_recovered(int condition_id) {
+    return this->recovered_bitset.test(condition_id);
   }
 
-  void reset_place_state(int disease_id) {
-    this->infectious_bitset.reset(disease_id);
+  void reset_place_state(int condition_id) {
+    this->infectious_bitset.reset(condition_id);
   }
 
-  void increment_new_infections(int day, int disease_id) {
+  void increment_new_infections(int day, int condition_id) {
     if (this->last_update < day) {
       this->last_update = day;
-      this->new_infections[disease_id] = 0;
+      this->new_infections[condition_id] = 0;
     }
-    this->new_infections[disease_id]++;
-    this->total_infections[disease_id]++;
+    this->new_infections[condition_id]++;
+    this->total_infections[condition_id]++;
   }
 
-  void increment_current_infections(int day, int disease_id) {
+  void increment_current_infections(int day, int condition_id) {
     if (this->last_update < day) {
       this->last_update = day;
-      this->current_infections[disease_id] = 0;
+      this->current_infections[condition_id] = 0;
     }
-    this->current_infections[disease_id]++;
+    this->current_infections[condition_id]++;
   }
 
-  void increment_new_symptomatic_infections(int day, int disease_id) {
+  void increment_new_symptomatic_infections(int day, int condition_id) {
     if (this->last_update < day) {
       this->last_update = day;
-      this->new_symptomatic_infections[disease_id] = 0;
+      this->new_symptomatic_infections[condition_id] = 0;
     }
-    this->new_symptomatic_infections[disease_id]++;
-    this->total_symptomatic_infections[disease_id]++;
+    this->new_symptomatic_infections[condition_id]++;
+    this->total_symptomatic_infections[condition_id]++;
   }
 
-  void increment_current_symptomatic_infections(int day, int disease_id) {
+  void increment_current_symptomatic_infections(int day, int condition_id) {
     if (this->last_update < day) {
       this->last_update = day;
-      this->current_symptomatic_infections[disease_id] = 0;
+      this->current_symptomatic_infections[condition_id] = 0;
     }
-    this->current_symptomatic_infections[disease_id]++;
+    this->current_symptomatic_infections[condition_id]++;
   }
 
-  void increment_case_fatalities(int day, int disease_id) {
+  void increment_case_fatalities(int day, int condition_id) {
     if (this->last_update < day) {
       this->last_update = day;
-      this->current_case_fatalities[disease_id] = 0;
+      this->current_case_fatalities[condition_id] = 0;
     }
-    this->current_case_fatalities[disease_id]++;
-    this->total_case_fatalities[disease_id]++;
+    this->current_case_fatalities[condition_id]++;
+    this->total_case_fatalities[condition_id]++;
   }
 
-  int get_current_case_fatalities(int day, int disease_id) {
+  int get_current_case_fatalities(int day, int condition_id) {
     if (last_update < day) {
       return 0;
     }
-    return current_case_fatalities[disease_id];
+    return current_case_fatalities[condition_id];
   }
 
-  int get_total_case_fatalities(int disease_id) {
-    return total_case_fatalities[disease_id];
+  int get_total_case_fatalities(int condition_id) {
+    return total_case_fatalities[condition_id];
   }
 
-  int get_new_infections(int day, int disease_id) {
+  int get_new_infections(int day, int condition_id) {
     if (last_update < day) {
       return 0;
     }
-    return this->new_infections[disease_id];
+    return this->new_infections[condition_id];
   }
 
-  int get_current_infections(int day, int disease_id) {
+  int get_current_infections(int day, int condition_id) {
     if (last_update < day) {
       return 0;
     }
-    return this->current_infections[disease_id];
+    return this->current_infections[condition_id];
   }
 
-  int get_total_infections(int disease_id) {
-    return this->total_infections[disease_id];
+  int get_total_infections(int condition_id) {
+    return this->total_infections[condition_id];
   }
 
-  int get_new_symptomatic_infections(int day, int disease_id) {
+  int get_new_symptomatic_infections(int day, int condition_id) {
     if (last_update < day) {
       return 0;
     }
-    return this->new_symptomatic_infections[disease_id];
+    return this->new_symptomatic_infections[condition_id];
   }
 
-  int get_current_symptomatic_infections(int day, int disease_id) {
+  int get_current_symptomatic_infections(int day, int condition_id) {
     if (last_update < day) {
       return 0;
     }
-    return this->current_symptomatic_infections[disease_id];
+    return this->current_symptomatic_infections[condition_id];
   }
 
-  int get_total_symptomatic_infections(int disease_id) {
-    return this->total_symptomatic_infections[disease_id];
+  int get_total_symptomatic_infections(int condition_id) {
+    return this->total_symptomatic_infections[condition_id];
   }
 
   /**
-   * Get the number of cases of a given disease for the simulation thus far.
+   * Get the number of cases of a given condition for the simulation thus far.
    *
-   * @param disease_id an integer representation of the disease
-   * @return the count of cases for a given disease
+   * @param condition_id an integer representation of the condition
+   * @return the count of cases for a given condition
    */
-  int get_total_cases(int disease_id) {
-    return this->total_symptomatic_infections[disease_id];
+  int get_total_cases(int condition_id) {
+    return this->total_symptomatic_infections[condition_id];
   }
 
   /**
-   * Get the number of cases of a given disease for the simulation thus far divided by the
+   * Get the number of cases of a given condition for the simulation thus far divided by the
    * number of agents in this place.
    *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
+   * @param condition_id an integer representation of the condition
+   * @return the count of rate of cases per people for a given condition
    */
-  double get_incidence_rate(int disease_id) {
-    return static_cast<double>(this->total_symptomatic_infections[disease_id]) / static_cast<double>(get_size());
+  double get_incidence_rate(int condition_id) {
+    return static_cast<double>(this->total_symptomatic_infections[condition_id]) / static_cast<double>(get_size());
   }
 
   /**
    * Get the clincal attack rate = 100 * number of cases thus far divided by the
    * number of agents in this place.
    *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
+   * @param condition_id an integer representation of the condition
+   * @return the count of rate of cases per people for a given condition
    */
-  double get_symptomatic_attack_rate(int disease_id) {
-    return (100.0 * this->total_symptomatic_infections[disease_id]) / static_cast<double>(get_size());
+  double get_symptomatic_attack_rate(int condition_id) {
+    return (100.0 * this->total_symptomatic_infections[condition_id]) / static_cast<double>(get_size());
   }
 
   /**
    * Get the attack rate = 100 * number of infections thus far divided by the
    * number of agents in this place.
    *
-   * @param disease_id an integer representation of the disease
-   * @return the count of rate of cases per people for a given disease
+   * @param condition_id an integer representation of the condition
+   * @return the count of rate of cases per people for a given condition
    */
-  double get_attack_rate(int disease_id) {
+  double get_attack_rate(int condition_id) {
     int n = get_size();
-    return(n > 0 ? (100.0 * this->total_infections[disease_id]) / static_cast<double>(n) : 0.0);
+    return(n > 0 ? (100.0 * this->total_infections[condition_id]) / static_cast<double>(n) : 0.0);
   }
 
   int get_first_day_infectious() {
@@ -366,14 +369,20 @@ public:
     return this->last_day_infectious;
   }
 
-  void resets(int disease_id) {
-    new_infections[disease_id] = 0;
-    current_infections[disease_id] = 0;
-    new_symptomatic_infections[disease_id] = 0;
-    current_symptomatic_infections[disease_id] = 0;
+  void resets(int condition_id) {
+    new_infections[condition_id] = 0;
+    current_infections[condition_id] = 0;
+    new_symptomatic_infections[condition_id] = 0;
+    current_symptomatic_infections[condition_id] = 0;
   }
 
 protected:
+  int id; // id
+  char label[32]; // external id
+  char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
+  char subtype;
+  int last_update;
+
   int N_orig;             // orig number of enrollees
 
   // lists of people
@@ -396,18 +405,11 @@ protected:
   // lists of people
   person_vec_t  enrollees;
 
-  // track whether or not place is infectious with each disease
-  fred::disease_bitset infectious_bitset;
-  fred::disease_bitset human_infectious_bitset;
-  fred::disease_bitset recovered_bitset;
-  fred::disease_bitset exposed_bitset;
-
-private:
-  int id; // id
-  char label[32]; // external id
-  char type; // HOME, WORK, SCHOOL, COMMUNITY, etc;
-  char subtype;
-  int last_update;
+  // track whether or not place is infectious with each condition
+  fred::condition_bitset infectious_bitset;
+  fred::condition_bitset human_infectious_bitset;
+  fred::condition_bitset recovered_bitset;
+  fred::condition_bitset exposed_bitset;
 };
 
 #endif /* _FRED_MIXING_GROUP_H_ */

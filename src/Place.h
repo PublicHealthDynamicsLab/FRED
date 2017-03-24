@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -18,7 +21,6 @@
 #define _FRED_PLACE_H
 
 #include <vector>
-
 
 #include "Geo.h"
 #include "Global.h"
@@ -54,7 +56,6 @@ public:
 
   /**
    * Default constructor
-   * Note: really only used by Allocator
    */
   Place();
 
@@ -63,14 +64,20 @@ public:
    */
   Place(const char* lab, fred::geo lon, fred::geo lat);
   virtual ~Place() {
-    if(this->vector_disease_data != NULL) {
-      delete this->vector_disease_data;
+    if(this->vector_condition_data != NULL) {
+      delete this->vector_condition_data;
     }
   }
 
-  virtual void print(int disease_id);
+  virtual void print(int condition_id);
 
   virtual void prepare();
+
+  /**
+   * Will print out a Place i
+   * @return a string representation of this Place object
+   */
+  virtual string to_string();
 
   // daily update
   virtual void update(int sim_day);
@@ -81,28 +88,28 @@ public:
   }
 
   /**
-   * Get the transmission probability for a given disease between two Person objects.
+   * Get the transmission probability for a given condition between two Person objects.
    *
-   * @see Mixing_Group::get_transmission_probability(int disease_id, Person* i, Person* s)
+   * @see Mixing_Group::get_transmission_probability(int condition_id, Person* i, Person* s)
    */
-  virtual double get_transmission_probability(int disease_id, Person* i, Person* s) {
+  virtual double get_transmission_probability(int condition_id, Person* i, Person* s) {
     return 1.0;
   }
 
-  virtual double get_contacts_per_day(int disease_id) = 0; // access functions
+  virtual double get_contacts_per_day(int condition_id) = 0; // access functions
 
-  double get_contact_rate(int day, int disease_id);
+  double get_contact_rate(int day, int condition_id);
 
-  int get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate);
+  int get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate);
 
   /**
-   * Determine if the place should be open. It is dependent on the disease_id and simulation day.
+   * Determine if the place should be open. It is dependent on the condition_id and simulation day.
    *
    * @param day the simulation day
-   * @param disease_id an integer representation of the disease
+   * @param condition_id an integer representation of the condition
    * @return <code>true</code> if the place should be open; <code>false</code> if not
    */
-  virtual bool should_be_open(int sim_day, int disease_id) = 0;
+  virtual bool should_be_open(int sim_day, int condition_id) = 0;
 
   // test place types
   bool is_household() {
@@ -278,7 +285,7 @@ public:
     this->patch = p;
   }
   
-  int get_visualization_counter(int day, int disease_id, int output_code);
+  int get_visualization_counter(int day, int condition_id, int output_code);
 
   void turn_workers_into_teachers(Place* school);
   void reassign_workers(Place* place);
@@ -307,30 +314,18 @@ public:
     this->staff_size = _staff_size;
   }
 
-  int get_household_fips() {
-    return this->household_fips;
+  int get_state_fips();
+
+  int get_county_fips();
+
+  long int get_census_tract_fips() {
+    return this->fips;
   }
 
-  void set_household_fips(int input_fips) {
-    this->household_fips = input_fips;
-  }
-  
-  void set_county_index(int _county_index) {
-    this->county_index = _county_index;
+  void set_census_tract_fips(long int fips_code) {
+    this->fips = fips_code;
   }
 
-  int get_county_index() {
-    return this->county_index;
-  }
-
-  void set_census_tract_index(int _census_tract_index) {
-    this->census_tract_index = _census_tract_index;
-  }
-
-  int get_census_tract_index() {
-    return this->census_tract_index;
-  }
-  
   static char* get_place_label(Place* p);
 
   double get_seeds(int dis, int sim_day);
@@ -353,30 +348,30 @@ public:
   }
 
   int get_vector_population_size() {
-    return this->vector_disease_data->N_vectors;
+    return this->vector_condition_data->N_vectors;
   }
 
   int get_susceptible_vectors() {
-    return this->vector_disease_data->S_vectors;
+    return this->vector_condition_data->S_vectors;
   }
 
-  int get_infected_vectors(int disease_id) {
-    return this->vector_disease_data->E_vectors[disease_id] +
-      this->vector_disease_data->I_vectors[disease_id];
+  int get_infected_vectors(int condition_id) {
+    return this->vector_condition_data->E_vectors[condition_id] +
+      this->vector_condition_data->I_vectors[condition_id];
   }
 
-  int get_infectious_vectors(int disease_id) {
-    return this->vector_disease_data->I_vectors[disease_id];
+  int get_infectious_vectors(int condition_id) {
+    return this->vector_condition_data->I_vectors[condition_id];
   }
 
-  void expose_vectors(int disease_id, int exposed_vectors) {
-    this->vector_disease_data->E_vectors[disease_id] += exposed_vectors;
-    this->vector_disease_data->S_vectors -= exposed_vectors;
+  void expose_vectors(int condition_id, int exposed_vectors) {
+    this->vector_condition_data->E_vectors[condition_id] += exposed_vectors;
+    this->vector_condition_data->S_vectors -= exposed_vectors;
   }
 
-  vector_disease_data_t get_vector_disease_data () {
-    assert(this->vector_disease_data != NULL);
-    return (*this->vector_disease_data);
+  vector_condition_data_t get_vector_condition_data () {
+    assert(this->vector_condition_data != NULL);
+    return (*this->vector_condition_data);
   }
 
   void update_vector_population(int sim_day);
@@ -385,103 +380,36 @@ public:
     return this->vector_control_status;
   }
   void set_vector_control(){
-    vector_control_status = true;
+    this->vector_control_status = true;
   }
   void stop_vector_control(){
-      vector_control_status = false;
+    this->vector_control_status = false;
   }
 
 protected:
   static double** prob_contact;
 
-  fred::geo latitude;     // geo location
-  fred::geo longitude;    // geo location
-  int close_date;         // this place will be closed during:
-  int open_date;          //   [close_date, open_date)
-  double intimacy;	      // prob of intimate contact
-  int index;		          // index for households
-  int staff_size;			    // outside workers in this place
+  fred::geo latitude;				// geo location
+  fred::geo longitude;				// geo location
+  long int fips;			       // census_tract fips code
 
-  int household_fips;
-  int county_index;
-  int census_tract_index;
+  int close_date;		    // this place will be closed during:
+  int open_date;			    //   [close_date, open_date)
+  double intimacy;			     // prob of intimate contact
+  int index;					// index for households
+  int staff_size;			// outside workers in this place
+
   
-  Neighborhood_Patch* patch;       // geo patch for this place
+  Neighborhood_Patch* patch;		     // geo patch for this place
 
   // optional data for vector transmission model
-  vector_disease_data_t* vector_disease_data;
+  vector_condition_data_t* vector_condition_data;
   bool vectors_have_been_infected_today;
   bool vector_control_status;
 
-  // Place_List, Neighborhood_Layer and Neighborhood_Patch are friends so that they can access
-  // the Place Allocator.
+  // Place_List and Place are friends so that they can access enrollees
   friend class Place_List;
-  friend class Neighborhood_Layer;
-  friend class Neighborhood_Patch;
 
-  // Place Allocator reserves chunks of memory and hands out pointers for use
-  // with placement new
-  template<typename Place_Type>
-  struct Allocator {
-    Place_Type* allocation_array;
-    int current_allocation_size;
-    int current_allocation_index;
-    int number_of_contiguous_blocks_allocated;
-    int remaining_allocations;
-    int allocations_made;
-
-    Allocator() {
-      remaining_allocations = 0;
-      number_of_contiguous_blocks_allocated = 0;
-      allocations_made = 0;
-      current_allocation_index = 0;
-      current_allocation_size = 0;
-      allocation_array = NULL;
-    }
-
-    bool reserve(int n = 1) {
-      if(remaining_allocations == 0) {
-        current_allocation_size = n;
-        allocation_array = new Place_Type[n];
-        remaining_allocations = n; 
-        current_allocation_index = 0;
-        ++(number_of_contiguous_blocks_allocated);
-        allocations_made += n;
-        return true;
-      }
-      return false;
-    }
-
-    Place_Type* get_free() {
-      if(remaining_allocations == 0) {
-        reserve();
-      }
-      Place_Type* place_pointer = allocation_array + current_allocation_index;
-      --(remaining_allocations);
-      ++(current_allocation_index);
-      return place_pointer;
-    }
-
-    int get_number_of_remaining_allocations() {
-      return remaining_allocations;
-    }
-
-    int get_number_of_contiguous_blocks_allocated() {
-      return number_of_contiguous_blocks_allocated;
-    }
-
-    int get_number_of_allocations_made() {
-      return allocations_made;
-    }
-
-    Place_Type* get_base_pointer() {
-      return allocation_array;
-    }
-
-    int size() {
-      return allocations_made;
-    }
-  }; // end Place Allocator
 };
 
 

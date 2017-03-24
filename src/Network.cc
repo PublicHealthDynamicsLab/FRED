@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -14,6 +17,7 @@
 // File: Network.cc
 //
 
+#include "Condition.h"
 #include "Network.h"
 #include "Global.h"
 #include "Params.h"
@@ -23,75 +27,83 @@
 #include "Population.h" // for test only
 
 char Network::TYPE_NETWORK = 'n';
-
 char Network::SUBTYPE_NONE = 'X';
 char Network::SUBTYPE_TRANSMISSION = 't';
 char Network::SUBTYPE_SEXUAL_PARTNER = 's';
 
-//Private static variables that will be set by parameter lookups
-double Network::contacts_per_day = 0.0;
-double** Network::prob_transmission_per_contact;
-
 Network::Network(const char* lab) : Mixing_Group(lab) {
   this->set_type(Network::TYPE_NETWORK);
   this->set_subtype(Network::SUBTYPE_NONE);
+  this->contacts_per_day = 0.0;
+  this->prob_transmission_per_contact = NULL;
 }
 
 void Network::get_parameters() {
 
-  Params::get_param_from_string("network_contacts", &Network::contacts_per_day);
-  int n = Params::get_param_matrix((char*)"network_trans_per_contact", &Network::prob_transmission_per_contact);
-  if(Global::Verbose > 1) {
-    printf("\nNetwork_contact_prob:\n");
+  // set optional parameters
+  Params::disable_abort_on_failure();
+
+  Params::get_param("network_contacts", &(this->contacts_per_day));
+  int n = Params::get_param_matrix((char*)"network_trans_per_contact", &(this->prob_transmission_per_contact));
+
+  if (this->prob_transmission_per_contact != NULL) {
+
+    if(Global::Verbose > 1) {
+      printf("\nNetwork_contact_prob:\n");
+      for(int i  = 0; i < n; ++i)  {
+	for(int j  = 0; j < n; ++j) {
+	  printf("%f ", this->prob_transmission_per_contact[i][j]);
+	}
+	printf("\n");
+      }
+    }
+    
+    // normalize contact parameters
+    // find max contact prob
+    double max_prob = 0.0;
     for(int i  = 0; i < n; ++i)  {
       for(int j  = 0; j < n; ++j) {
-	      printf("%f ", Network::prob_transmission_per_contact[i][j]);
+	if(this->prob_transmission_per_contact[i][j] > max_prob) {
+	  max_prob = this->prob_transmission_per_contact[i][j];
+	}
       }
-      printf("\n");
     }
+
+    // convert max contact prob to 1.0
+    if(max_prob > 0) {
+      for(int i  = 0; i < n; ++i)  {
+	for(int j  = 0; j < n; ++j) {
+	  this->prob_transmission_per_contact[i][j] /= max_prob;
+	}
+      }
+      // compensate contact rate
+      this->contacts_per_day *= max_prob;
+    }
+    
+    if(Global::Verbose > 0) {
+      printf("\nNetwork_contact_prob after normalization:\n");
+      for(int i  = 0; i < n; ++i)  {
+	for(int j  = 0; j < n; ++i) {
+	  printf("%f ", this->prob_transmission_per_contact[i][j]);
+	}
+	printf("\n");
+      }
+      printf("\ncontact rate: %f\n", this->contacts_per_day);
+    }
+    // end normalization
   }
 
-  // normalize contact parameters
-  // find max contact prob
-  double max_prob = 0.0;
-  for(int i  = 0; i < n; ++i)  {
-    for(int j  = 0; j < n; ++j) {
-      if(Network::prob_transmission_per_contact[i][j] > max_prob) {
-	      max_prob = Network::prob_transmission_per_contact[i][j];
-      }
-    }
-  }
-
-  // convert max contact prob to 1.0
-  if(max_prob > 0) {
-    for(int i  = 0; i < n; ++i)  {
-      for(int j  = 0; j < n; ++j) {
-	      Network::prob_transmission_per_contact[i][j] /= max_prob;
-      }
-    }
-    // compensate contact rate
-    Network::contacts_per_day *= max_prob;
-  }
-
-  if(Global::Verbose > 0) {
-    printf("\nNetwork_contact_prob after normalization:\n");
-    for(int i  = 0; i < n; ++i)  {
-      for(int j  = 0; j < n; ++i) {
-	      printf("%f ", Network::prob_transmission_per_contact[i][j]);
-      }
-      printf("\n");
-    }
-    printf("\ncontact rate: %f\n", Network::contacts_per_day);
-  }
-  // end normalization
+  // restore requiring parameters
+  Params::set_abort_on_failure();
+    
 }
 
-double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
+double Network::get_transmission_prob(int condition_id, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease_id, i);
-  int col = get_group(disease_id, s);
-  double tr_pr = Network::prob_transmission_per_contact[row][col];
+  int row = get_group(condition_id, i);
+  int col = get_group(condition_id, s);
+  double tr_pr = this->prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
@@ -101,22 +113,22 @@ double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
 //
 /////////////////////////////////////////
 
-double Network::get_contacts_per_day(int disease_id) {
-  return Network::contacts_per_day;
+double Network::get_contacts_per_day(int condition_id) {
+  return this->contacts_per_day;
 }
 
-double Network::get_contact_rate(int sim_day, int disease_id) {
+double Network::get_contact_rate(int sim_day, int condition_id) {
 
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
   // expected number of susceptible contacts for each infectious person
-  double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
+  double contacts = get_contacts_per_day(condition_id) * condition->get_transmissibility();
 
   return contacts;
 }
 
-int Network::get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) {
+int Network::get_contact_count(Person* infector, int condition_id, int sim_day, double contact_rate) {
   // reduce number of infective contacts by infector's infectivity
-  double infectivity = infector->get_infectivity(disease_id, sim_day);
+  double infectivity = infector->get_infectivity(condition_id);
   double infector_contacts = contact_rate * infectivity;
 
   FRED_VERBOSE(1, "infectivity = %f, so ", infectivity);
@@ -135,10 +147,11 @@ int Network::get_contact_count(Person* infector, int disease_id, int sim_day, do
 }
 
 void Network::print() {
+  int day = Global::Simulation_Day;
   char filename[64];
-  sprintf(filename, "%s/%s.txt", Global::Simulation_directory, get_label());
+  sprintf(filename, "%s/%s-%d.txt", Global::Simulation_directory, get_label(), day);
   FILE* link_fileptr = fopen(filename,"w");
-  sprintf(filename, "%s/%s-people.txt", Global::Simulation_directory, get_label());
+  sprintf(filename, "%s/%s-people-%d.txt", Global::Simulation_directory, get_label(), day);
   FILE* people_fileptr = fopen(filename,"w");
   int size = this->get_size();
   for(int i = 0; i < size; ++i) {

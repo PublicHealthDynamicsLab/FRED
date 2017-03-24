@@ -9,29 +9,27 @@ my $api_key = $ENV{FRED_API_KEY};
 $api_key = "none" if not $api_key;
 # print "api_key = '$api_key'\n";
 
+my $vars = "P";
+my $ls = "1";
+my $ps = "0.5";
+my $pt = "5";
+my $colors = "red";
 my $census_tracts = 0;
 my $country = "usa";
-my $disease_id = 0;
-my $play = 0;
+my $condition_id = 0;
+my $play = "";
 my $filled = 0;
 my $help = 0;
 my $grid = 0;
 my $key = "";
 my $max = 0;
-my $parallelism = 10;
+my $parallelism = 50;
 my $run = 1;
 my $term = "png";
 my $title = "FRED Simulation";
 my $subtitle = " ";
+my $subsubtitle = " ";
 my $lightness = 0;
-my $show_all_households = 0;
-my $show_incidence = 0;
-my $show_infectious = 1;
-my $show_recovered = 1;
-my $show_hc_unav = 0;
-my $show_hc_deficit = 0;
-my $show_primary_hc_unav = 0;
-my $show_accept_insr_hc_unav = 0;
 my $movie_format = "mp4";
 my $moviefile = "";
 my $linewidth = 2;
@@ -46,26 +44,43 @@ my $interval = 1;
 my $google = 1;
 my $shapefile = 1;
 my $point_size = 0.5;
-my $hazel = 0;
 my $case_fatalities = 0;
 my $total_case_fatalities = 0;
+my $bottom_left = "";
+my $bottom_center = "";
+my $bottom_right = "";
+my $bottom_colors = "black black black";
+my $framerate = 3;
+my $show_names = 1;
 
 my $opt_result = GetOptions(
+			    "vars=s" => \$vars,
+			    "ps=s" => \$ps,
+			    "pt=s" => \$pt,
+			    "ls=s" => \$ls,
+			    "colors=s" => \$colors,
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
+			    "bottom_left=s" => \$bottom_left,
+			    "bottom_center=s" => \$bottom_center,
+			    "bottom_right=s" => \$bottom_right,
+			    "bottom_colors=s" => \$bottom_colors,
 			    "start=i" => \$start,
 			    "interval=i" => \$interval,
 			    "census_tracts" => \$census_tracts,
 			    "cf=i" => \$case_fatalities,
 			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
-			    "disease=i" => \$disease_id,
-			    "d=i" => \$disease_id,
-			    "display=i" => \$play,
-			    "play=i" => \$play,
-			    "p=i" => \$play,
+			    "disease=i" => \$condition_id,
+			    "condition=i" => \$condition_id,
+			    "c=i" => \$condition_id,
+			    "d=i" => \$condition_id,
+			    "display" => \$play,
+			    "play" => \$play,
+			    "p" => \$play,
 			    "filled=i" => \$filled,
 			    "finish=i" => \$finish,
+			    "framerate=i" => \$framerate,
 			    "google=i" => \$google,
 			    "grid=i" => \$grid,
 			    "h" => \$help,
@@ -82,17 +97,10 @@ my $opt_result = GetOptions(
 			    "term=s" => \$term,
 			    "title=s" => \$title,
 			    "subtitle=s" => \$subtitle,
-			    "households=i" => \$show_all_households,
-			    "incidence=i" => \$show_incidence,
-			    "infectious=i" => \$show_infectious,
-			    "recovered=i" => \$show_recovered,
-			    "hc_unav=i" => \$show_hc_unav,
-			    "hc_deficit=i"=>\$show_hc_deficit,
-			    "primary_hc_unav=i" => \$show_primary_hc_unav,
-			    "accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
+			    "show_names=i" => \$show_names,
+			    "subsubtitle=s" => \$subsubtitle,
 			    "shapefile=i" => \$shapefile,
 			    "movieformat=s" => \$movie_format,
-			    "hazel=i" => \$hazel,
 			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
@@ -128,9 +136,9 @@ usage: $0 [ options ], where options include [default values]
   --hc_unav <0/1> : plot all households with health care unavailable[0]
   --primary_hc_unav <0/1> : plot all households with primary health care unavailable [0]
   --accept_insr_hc_unav <0/1> : plot all households with health care accepting their insurance unavailable [0] 
-  --hazel <0/1> make hazel specific maps [0]
   --run <n> : plot results of run n [1]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
+  --show_names <0/1>: if set, show local place names
   --start day: start movie on specified day [0]
   --subtitle <str> : subtitle for each map [" "]
   --tcf 0/1: plot total case_fatalities [0]
@@ -159,31 +167,32 @@ my $id = `$bindir/fred_id $key`;
 chomp $id;
 die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 
-my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+my $outdir = "$FREDRESULTS/JOB/$id/OUT";
 chdir $outdir;
 
-my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --disease $disease_id --filled $filled --key $key --max $max --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --households $show_all_households --incidence $show_incidence --infectious $show_infectious --recovered $show_recovered --hc_unav $show_hc_unav --hc_deficit $show_hc_deficit --primary_hc_unav $show_primary_hc_unav --accept_insr_hc_unav $show_accept_insr_hc_unav --hazel $hazel --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --point_size $point_size --finish $finish --cf $case_fatalities --tcf $total_case_fatalities";
+my $command = "fred_make_maps --api_key $api_key --census_tracts $census_tracts --country $country --cond $condition_id --key $key --parallelism $parallelism --run $run --term $term --title '$title' --subtitle '$subtitle' --subsubtitle '$subsubtitle' --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --start $start --interval $interval --google $google --shapefile $shapefile --lightness $lightness --finish $finish --vars '$vars' --ps '$ps' --pt '$pt' --color '$colors' --bottom_colors '$bottom_colors' --bottom_left '$bottom_left' --bottom_center '$bottom_center' --bottom_right '$bottom_right' --show_names $show_names";
 
-# print "$command\n"; exit;
-
+# print "$command\n";
 system $command;
-chdir "VIS/run$run/dis$disease_id/MAPS";
-# system "pwd";
-# system "ls -l map*";
-# exit;
-$moviefile = "$key" if $moviefile eq "";
-$moviefile = "$cwd/$moviefile.$movie_format";
-if (-s "FIPS") {
-  # print "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet\n";
-  system "ffmpeg -r 3 -i map\%04d.png -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y -loglevel quiet";
-  # system "ffmpeg -r 3 -i map\%04d.pdf -c:v libx264 -r 30 -pix_fmt yuv420p movie.$movie_format -y";
-  # print "cp movie.$movie_format $cwd/$key.$movie_format\n";
+
+my $vis = "RUN$run/VIS/MAPS";
+if (not -d $vis) {
+  die "$0: can't find MAPS directory: $vis\n";
+}
+
+chdir $vis;
+$moviefile = "$key.$movie_format" if $moviefile eq "";
+$moviefile = "$cwd/$moviefile";
+if (not -e "FAILED") {
+  $command = "ffmpeg -loglevel quiet -y -f image2 -framerate $framerate -i map%04d.png -f mp4 -vcodec libx264 -pix_fmt yuv420p -s 640x640 movie.$movie_format";
+  system "$command";
   system "cp movie.$movie_format $moviefile";
   chdir $cwd;
-  # system "ls -l $key.$movie_format";
   system "open $moviefile" if $play;
 }
 else {
-  die "$0: map data not found\n";
+  print "$0: fred_make_maps FAILED:\n";
+  system "cat FAILED";
+  die "$0 quitting\n";
 }
 

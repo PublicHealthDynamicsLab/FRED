@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -19,8 +22,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Workplace.h"
 
 //Private static variables that will be set by parameter lookups
@@ -41,7 +44,7 @@ Office::Office(const char* lab, char _subtype, fred::geo lon, fred::geo lat) : P
 
 void Office::get_parameters() {
 
-  Params::get_param_from_string("office_contacts", &Office::contacts_per_day);
+  Params::get_param("office_contacts", &Office::contacts_per_day);
   int n = Params::get_param_matrix((char*)"office_trans_per_contact", &Office::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nOffice_contact_prob:\n");
@@ -92,15 +95,21 @@ int Office::get_container_size() {
   return this->workplace->get_size();
 }
 
-double Office::get_transmission_prob(int disease, Person* i, Person* s) {
+double Office::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Office::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Office::get_contacts_per_day(int disease) {
+double Office::get_contacts_per_day(int condition) {
   return Office::contacts_per_day;
 }
+
+void Office::set_workplace(Workplace* _workplace) {
+  this->workplace = _workplace;
+  set_census_tract_fips(this->workplace->get_census_tract_fips());
+}
+

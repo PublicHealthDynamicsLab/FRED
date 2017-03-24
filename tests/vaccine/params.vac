@@ -1,0 +1,26 @@
+
+# params file for a single vaccine
+VAC.states = Unavail Avail Receive Immune Failed
+
+# TRANSITION PERIODS
+VAC.Unavail.transition_period = 0
+VAC.Avail.transition_period = 10
+VAC.Avail.transition_period_dispersion = 2
+VAC.Receive.transition_period = 14
+VAC.Immune.transition_period = 0
+VAC.Failed.transition_period = 0
+
+VAC.Immune.reduces_susceptibility_to.INF = 1
+
+# TRANSITION PROBABILITIES
+VAC.transition_model = transition_matrix
+VAC.transition_probability[Avail][Receive] = 1
+VAC.transition_probability[Receive][Immune] = 0.8
+VAC.transition_probability[Receive][Failed] = 0.2
+
+# EXPOSED STATE
+VAC.exposed_state = Avail
+
+# availability
+VAC.import_file = import_vaccines.txt
+

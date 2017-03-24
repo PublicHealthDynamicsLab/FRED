@@ -1,0 +1,636 @@
+##########################################################
+#
+# SIMULATION LOCATION PARAMETERS 
+#
+##########################################################
+
+# pointers to synthetic population files
+population_directory = $FRED_HOME/data/country
+country = usa
+population_version = RTI_2010_ver1
+locations_file = $FRED_HOME/data/locations.txt
+
+##########################################################
+#
+# SIMULATION SETUP PARAMETERS 
+#
+##########################################################
+
+# Length of each run
+days = 240
+
+# Simulation start date in the format 'YYYY-MM-DD'
+start_date = 2012-01-02
+
+# Seed for RNG
+seed = 123456
+
+# Day to reset seed
+reseed_day = -1
+
+##### Geographical grids
+use_mean_latitude = 1
+
+# Size of large-scale grid patches in km
+regional_patch_size = 20.0
+# size of neighborhood patches in km
+neighborhood_patch_size = 1.0
+
+#### Probabilistic sensitivity analysis
+psa_sample_size = 0
+psa_sample = 0
+psa_method = LHS
+# psa_method = RAND
+psa_list_file = $FRED_HOME/data/PSA/psa_params.txt
+
+##########################################################
+#
+# OUTPUT CONTROL PARAMETERS 
+#
+##########################################################
+
+verbose = 1
+debug = 1
+test = 0
+outdir = OUT
+tracefile = none
+track_age_distribution = 0
+track_household_distribution = 0
+track_network_stats = 0
+track_infection_events = 0
+
+# report_age_of_infection
+# 1 (Infants, Toddlers, Preschool, Students, Elementary, Highschool, Young_adults, Adults, Elderly)
+# 2 = (Infants, Toddlers, Pre-k, Elementary, Highschool, Young_adults, Adults, Elderly)
+# 3 = (0_4, 5_17, 18_49, 50_64, 65_up)
+# 4 = (Every age from 0 to MAX_AGE)
+# 5+ Report by age_of_infection_log_level
+report_age_of_infection = 0
+report_transmission_by_age = 0
+
+# log_level 0 (min) - 4 (max) 
+age_of_infection_log_level = 0
+
+report_place_of_infection = 0
+report_distance_of_infection = 0
+report_presenteeism = 0
+report_childhood_presenteeism = 0
+report_generation_time = 0
+report_serial_interval = 0 
+report_incidence_by_county = 0
+report_incidence_by_census_tract = 0
+report_symptomatic_incidence_by_census_tract = 0
+report_county_demographic_information = 0
+quality_control = 1
+print_household_locations = 0
+rr_delay = 20
+
+# if set, print a file with initial population demographics
+report_initial_population = 0
+
+# Parameters to allow for output of Population at scheduled times
+# Only done if output_population != 0
+output_population = 0 
+pop_outfile = pop_out
+# date match should be in format MM-DD-YYYY with * as a wildcard for any of the fields
+output_population_date_match = 01-01-* 
+
+# if set, out each person health status changes to logfile
+# with tag "HEALTH CHART:"
+enable_health_records = 0
+
+##########################################################
+#
+# VISUALIZATION DATA COLLECTION (OPTIONAL)
+#
+##########################################################
+
+enable_visualization_layer = 0
+visualization_run = 1
+# maximum rows or columns in visualization grid:
+visualization_grid_size = 250
+household_visualization_mode = 0
+census_tract_visualization_mode = 0
+
+##########################################################
+#
+# EPIDEMIC INITIALIZATION PARAMETERS
+#
+##########################################################
+
+# test new transmission model if set
+enable_new_transmission_model = 0
+enable_transmission_network = 0
+
+# sexual partner network params
+enable_sexual_partner_network = 0
+sexual_partner_contacts = 0.1
+sexual_trans_per_contact = 0.1
+
+##########################################################
+#
+# PLACE PARAMETERS
+#
+##########################################################
+
+# Neighborhood Activities
+community_distance = 20
+community_prob = 0.1
+home_neighborhood_prob = 0.5
+
+#### Neighborhood transmission gravity model:
+enable_neighborhood_gravity_model = 1
+
+# maximum age_values for how much data to store for each patch:
+neighborhood_max_distance = 25
+neighborhood_max_destinations = 100
+
+# gravity model parameters:
+neighborhood_min_distance = 4.0
+neighborhood_distance_exponent = 3.0
+neighborhood_population_exponent = 1.0
+
+# If set, then all workers who have a workplace outside the location file
+# are assigned a random workplace in the location file.
+enable_local_workplace_assignment = 0
+
+#Household Reporting
+report_mean_household_stats_per_income_category = 0
+cat_I_max_income = 10000
+cat_II_max_income = 15001
+cat_III_max_income = 25001
+cat_IV_max_income = 35001
+cat_V_max_income = 50001
+cat_VI_max_income = 100001
+report_epidemic_data_by_census_tract = 0
+report_epidemic_data_by_county = 0
+
+##########################################################
+#
+# SCHOOL SETUP PARAMETERS 
+#
+##########################################################
+
+# max size per classroom
+school_classroom_size = 40
+
+# set to 1 if schools closed during summer
+school_summer_schedule = 0
+
+# summer closure dates (format MM-DD)
+school_summer_start = 06-01
+school_summer_end = 08-31
+
+# if set, then each school within the region is assigned teachers
+# by recruiting workers from a nearby workplace
+assign_teachers = 1
+school_fixed_staff = 5
+# from: http://www.statemaster.com/graph/edu_ele_sec_pup_rat-elementary-secondary-pupil-teacher-ratio
+school_student_teacher_ratio = 15.5
+
+# reporting parameters
+report_mean_household_income_per_school = 0
+report_mean_household_size_per_school = 0
+report_mean_household_distance_from_school = 0
+
+##########################################################
+#
+# WORKPLACE SETUP PARAMETERS 
+#
+##########################################################
+
+office_size = 50
+# The workplace size max is used to group workplaces into categories based on the max number of employees. 
+# There will always be one additional grouping from the max listed to MAX_INT
+workplace_size_max = 0
+
+##########################################################
+#
+# SUPPORT FOR HOSPITALS (OPTIONAL)
+#
+##########################################################
+
+enable_hospitals = 0
+# These are the probabilities for general hospital or outpatient healthcare
+# see also condition specific age_values for probabilities
+hospitalization_prob.age_groups = 0
+hospitalization_prob.age_values = 0
+outpatient_healthcare_prob.age_groups = 0
+outpatient_healthcare_prob.age_values = 0
+
+prob_of_visiting_hospitalized_housemate = 0.0
+hospital_fixed_staff = 20
+hospital_worker_to_bed_ratio = 1.0
+hospital_outpatients_per_day_per_employee = 3.0
+healthcare_clinic_outpatients_per_day_per_employee = 12.0;
+hospitalization_radius = 25.0
+#If there aren’t this many beds, then the Hospital is subtype Clinic (no overnights)
+hospital_min_bed_threshold = 10
+household_hospital_map_file_directory = $FRED_HOME/data/country/usa/
+household_hospital_map_file = none
+
+enable_health_insurance = 0
+
+#### HEALTH INSURANCE MARKET SEGMENTS
+#
+# 0 = PRIVATE
+# 1 = MEDICARE
+# 2 = MEDICAID
+# 3 = HIGHMARK
+# 4 = UPMC
+# 5 = UNINSURED
+#
+# health_insurance_distribution should add up to 100
+health_insurance_distribution = 6 0 0 0 0 0 100
+
+# hospital accepts insurance probabilities
+hospital_health_insurance_prob = 6 0.0 0.0 0.0 0.0 0.0 1.0 
+
+##########################################################
+#
+# SUPPORT FOR GROUP QUARTERS
+#
+##########################################################
+
+enable_group_quarters = 1
+college_dorm_mean_size = 2.5
+college_fixed_staff = 2
+college_resident_to_staff_ratio = 5.0
+military_barracks_mean_size = 8.0
+military_fixed_staff = 5
+military_resident_to_staff_ratio = 10.0
+prison_cell_mean_size = 1.5
+prison_fixed_staff = 5
+prison_resident_to_staff_ratio = 10.0
+nursing_home_room_mean_size = 1.5
+nursing_home_fixed_staff = 5
+nursing_home_resident_to_staff_ratio = 10.0
+
+##########################################################
+#
+# TRAVEL PARAMETERS (OPTIONAL)
+#
+##########################################################
+
+# Long-distance Overnight Travel: 
+enable_travel = 0
+
+# cdf of trip duration in days
+travel_duration = 9 0 0.2 0.4 0.6 0.67 0.74 0.81 0.9 1.0
+
+# for travel age map
+travel_age_prob.age_groups = 9 16 25 35 45 55 65 75 85 120
+travel_age_prob.age_values = 9 0.05 0.12 0.10 0.30 0.17 0.14 0.07 0.05 0.00
+
+# distance threshold for overnight trips (in km)
+min_travel_distance = 100.0
+
+# list of travel hubs
+travel_hub_file = $FRED_HOME/data/country/usa/msa_hubs.txt
+
+# matrix of trips per day between hubs
+trips_per_day_file = $FRED_HOME/data/country/usa/trips_per_day.txt
+
+##########################################################
+#
+# SCHOOL CLOSURE POLICIES
+#
+##########################################################
+
+school_closure_policy = none
+# school_closure_policy = global
+# school_closure_policy = individual
+
+# number of days to keep a school closed
+school_closure_duration = 10
+
+# if Weeks not -1, set school_closure_duration = 7 * Weeks
+Weeks = -1
+
+# delay after reaching any trigger before closing schools
+school_closure_delay = 1
+
+# day to close school under global policy
+school_closure_day = 10
+
+# global closure triggered when global attack rate >= threshold (if school_closure_day == -1);
+school_closure_ar_threshold = 1.0
+
+# day to start checking under individual school closure policy
+min_school_closure_day = 1
+
+# individual school closure triggered when the school's attack rate >= threshold
+individual_school_closure_ar_threshold = 5.0 
+
+# number of cases within a given school that triggers individual school closure
+# If -1, use the school_closure_ar_threshold fraction
+school_closure_cases = -1
+
+# an alias for school_closure_cases
+Cases = -1
+
+##########################################################
+#
+# DISEASE PARAMETERS
+#
+##########################################################
+
+### DISEASE TRANSMISSION MODE
+INF.transmission_mode = respiratory
+
+### NATURAL HISTORY MODEL
+# basic state based model
+INF.natural_history_model = markov
+
+##########################################################
+#
+# INFLUENZA PARAMETERS
+#
+##########################################################
+
+conditions = INF
+INF.transmission_mode = respiratory
+
+### REQUIRED NATURAL HISTORY PARAMETERS
+
+### NUMBER OF STATES and THEIR NAMES
+INF.states = S E Is Ia R
+
+### STATE TRANSITION PARAMETERS
+INF.S.transition_period = 0
+
+INF.E.transition_period = 1.9
+INF.E.transition_period_dispersion = 1.51
+INF.E.transition_period_upper_bound = 9999
+
+INF.Is.transition_period = 5.0
+INF.Is.transition_period_dispersion = 1.5
+INF.Is.transition_period_upper_bound = 9999
+
+INF.Ia.transition_period = 5.0
+INF.Ia.transition_period_dispersion = 1.5
+INF.Ia.transition_period_upper_bound = 9999
+
+INF.R.transition_period = 0
+
+INF.transition_model = transition_matrix
+INF.transition_probability[E][Is] = 0.67
+INF.transition_probability[E][Ia] = 0.33
+INF.transition_probability[Ia][R] = 1
+INF.transition_probability[Is][R] = 1
+
+### STATE TO ENTER WHEN EXPOSED
+INF.exposed_state = E
+
+### STATES THAT ARE RECOVERED
+INF.R.is_recovered = 1
+
+### INFECTIVITY OF STATES
+INF.Is.infectivity = 1.0
+INF.Ia.infectivity = 0.5
+
+### SYMPTOMS LEVEL OF STATES
+# INF.Is.symptoms = 1.0
+INF.Is.symptoms_level = moderate
+INF.Is.probability_of_household_confinement = 0.5
+INF.Is.decide_household_confinement_daily = 0
+
+### transmission coefficient:
+INF.transmissibility = 1.0
+
+### CASE FATALITY MODEL
+INF.case_fatality.background_prob = 0.0
+# INF.case_fatality_model = logit
+# INF.case_fatality.background_prob = 0.00001
+INF.case_fatality.age = 0.0378
+INF.case_fatality.symptoms = 3.0
+INF.case_fatality.symptoms_level = severe
+
+### IMMUNITY
+INF.immunity.background_prob = 0
+INF.immunity_loss_rate = 0
+Immunization = -1
+
+### IMPORTED INFECTIONS (SEEDS)
+INF.import_file = $FRED_HOME/data/import_10_on_day_0.txt
+
+######################################################
+#
+### DEFAULT PLACE-SPECIFIC CONTACTS FOR RESPIRATORY TRANSMISSION
+#
+# The following contacts are calibrated for Allegheny County for a 33%
+# clinical attack rate using the default INF model in this
+# file. If you change any of the default parameters, make sure to
+# recalibrate these age_values.
+#
+### 2010 v1 calibration for Allegheny County, PA (FIPS=42003)
+
+INF.R0 = -1.0
+R0 = -1.0
+
+###  CALIBRATION PHASE II STEP 4 at Wed Jan 25 09:57:08 2017
+###  runs = 20  cores = 4
+household_contacts = 0.1349
+neighborhood_contacts = 0.7676
+school_contacts = 0.4979
+workplace_contacts = 0.0697
+classroom_contacts = 0.9959
+office_contacts = 0.1394
+INF.R0_a = -0.00570298
+INF.R0_b = 0.693071
+
+R0_a = -0.00570298
+R0_b = 0.693071
+
+enable_transmission_bias = 1
+neighborhood_same_age_bias = 0.1
+
+# community contacts increase on weekends
+weekend_contact_rate = 1.5
+
+##################### END default calibration parameters
+
+### OPTIONAL FEATURES
+
+### HOSPITALIZATION:
+#INF.hospitalization_prob.age_groups = 7 2 5 19 25 50 65 120
+#INF.hospitalization_prob.age_values = 7 0.01 0.01 0.01 0.01 0.01 0.01 0.01
+#INF.outpatient_healthcare_prob.age_groups = 7 2 5 19 25 50 65 120
+#INF.outpatient_healthcare_prob.age_values =  7 0.03 0.03 0.03 0.03 0.03 0.03 0.03
+INF.min_symptoms_for_seek_healthcare = 1.0
+INF.hospitalization_prob.age_groups = 0
+INF.hospitalization_prob.age_values = 0
+INF.outpatient_healthcare_prob.age_groups = 0
+INF.outpatient_healthcare_prob.age_values = 0
+
+### PLACE-SPECIFIC TRANSMISSION MATRICES (old age_values)
+# groups = children adults
+household_trans_per_contact = 4 0.6 0.3 0.3 0.4
+# groups = children adults
+neighborhood_trans_per_contact = 4 0.0048 0.0048 0.0048 0.0048
+# groups = adult_workers
+workplace_trans_per_contact = 1 0.0575
+office_trans_per_contact = 1 0.0575
+# groups = HCWs Patients Visitors
+hospital_trans_per_contact = 9 0.0575 0.115 0.0575 0.115 0.0575 0.115 0.0575 0.115 0.0575 
+# groups = elem_students mid_students high_students teachers
+school_trans_per_contact = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+classroom_trans_per_contact = 16 0.0435 0 0 0.0435 0 0.0375 0 0.0375 0 0 0.0315 0.0315 0.0435 0.0375 0.0315 0.0575
+###
+
+### PLACE-SPECIFIC TRANSMISSION MATRICES (deprecated)
+household_trans_per_contact = 4 1.0 0.5 0.5 0.67
+neighborhood_trans_per_contact = 4 1.0 0.5 0.5 1.0
+workplace_trans_per_contact = 1 1.0
+office_trans_per_contact = 1 1.0
+school_trans_per_contact = 16 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+classroom_trans_per_contact = 16 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+
+######### OPTIONAL EXPERIMENT_SPECIFIC PARAMETERS ######################
+
+#########################################################
+##
+## The following parameter make neighborhhood transmission
+## dependent on neighborhood density -- that is, the more
+## people there are in a neighborhood, the greater the
+## number of contacts per infectious person.
+## This requires a recalibration.
+##
+enable_neighborhood_density_transmission = 0
+enable_density_transmission_maximum_infectees = 1
+density_transmission_maximum_infectees = 10
+
+## experimental:
+hospital_contacts = 0
+
+##########################################################
+#
+# VECTOR TRANSMISSION MODEL (OPTIONAL)
+#
+##########################################################
+
+enable_vector_layer = 0
+enable_vector_transmission = 0
+enable_vector_control = 0
+school_vector_control = 0
+workplace_vector_control = 0
+household_vector_control = 0
+neighborhood_vector_control = 0
+limit_vector_control = 0
+report_vector_population = 0
+
+# size of vector patches in km
+vector_patch_size = 1.0
+vector_infection_efficiency = 0.2
+vector_transmission_efficiency = 0.3
+
+##########################################################
+#
+# VIRAL EVOLUTION (OPTIONAL)
+#
+##########################################################
+
+enable_viral_evolution = 0
+all_conditions_antigenically_identical = 0
+enable_protection = 0
+enable_residual_immunity_by_FIPS = 0
+track_residual_immunity = 0
+track_multi_strain_stats = 0
+num_codons = 12
+codon_translation_file = $FRED_HOME/data/evolution/numAA.txt
+past_infections_strains_file = none
+past_infections_hosts_file = none
+
+# evolution visualization stuff
+prevalencefile = none
+# prevalencefile = prev.txt
+incidencefile = none
+# incidencefile = incd.txt
+immunity_file = none
+# immunity_file = immunityd.txt
+transmissionsfile = none
+# transmissionsfile = transmissionsd.txt
+strainsfile = none
+# strainsfile = strainsd.txt
+
+##########################################################
+#
+# SEASONALITY (OPTIONAL)
+#
+##########################################################
+
+# The following parameters provide a sinusoidal reduction in
+# transmission in all conditions, with a peak tranmissibility of the given
+# day of the year, and the minimum transmissibility 183 days before or
+# after the peak.
+#
+# The day_of_year with maximum seasonal transmissibility (e.g. Jan 1 -> day_of_year = 1)
+seasonal_peak_day_of_year = 1
+#
+
+# Amount of reduction in seasonal transmissibility (default = 0 -> no seasonal change).
+# Note: If set to a value > 1, then transmission will be 0 for part of the year.
+seasonal_reduction = 0
+
+#########
+# the following use a climate model to affect seasonality (experimental)
+enable_seasonality = 0
+enable_climate = 0
+seasonality_timestep_file = none
+# seasonality_timestep_file = $FRED_HOME/data/country/usa/seasonality_timestep
+INF.seasonality_multiplier_max = 1
+INF.seasonality_multiplier_min = 1
+INF.seasonality_multiplier_Ka = -180
+#########
+
+##########################################################
+#
+# POPULATION DYNAMICS (OPTIONAL)
+#
+##########################################################
+
+enable_within_state_school_assignment = 1
+
+enable_population_dynamics = 0 
+enable_migration_to_target_popsize = 0
+enable_county_to_county_migration = 0
+
+mortality_rate_file = $FRED_HOME/data/country/usa/mortality_rates.txt
+mortality_rate_multiplier = 1
+mortality_rate_adjustment_weight = 0
+
+birth_rate_file = $FRED_HOME/data/country/usa/birth_rates.txt
+birth_rate_multiplier = 1
+
+migration_file = $FRED_HOME/data/migration-42003.txt
+
+# this the percent per year population growth, e.g. 1 => 1% growth each year
+population_growth_rate = 0
+
+# assume a mean of 4 years in college
+college_departure_rate = 0.25
+
+# assume a mean of 4 years enlistment
+military_departure_rate = 0.25
+
+# assume a mean of 2 years: http://www.bjs.gov/content/pub/pdf/p10.pdf
+prison_departure_rate = 0.5
+
+# ref: National Longitudinal Survey of Youth 1997
+youth_home_departure_rate = 0.2
+
+# adult_home_departure_rate = 0.3
+
+# According to ACS, about 2% of marriages result in divorce each
+# year. We use this same percent to model adults leaving a household
+# with at least one other adult
+
+adult_home_departure_rate = 0.02
+
+#### SICK LEAVE BEHAVIOR
+
+work_absenteeism = 0.0
+school_absenteeism = 0.0
+
+
+

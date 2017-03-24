@@ -1,0 +1,4 @@
+fred_delete -f -k test_av
+fred_job -k test_av -p params.test -n 4 -m 4
+fred_plot -k test_av -v INF.Is -v AV.Received -n -s 100
+

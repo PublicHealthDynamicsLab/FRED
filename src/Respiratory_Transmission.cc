@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -17,8 +20,9 @@
 
 #include "Respiratory_Transmission.h"
 #include "Date.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
+#include "Epidemic.h"
 #include "Global.h"
 #include "Household.h"
 #include "Params.h"
@@ -41,13 +45,13 @@ Respiratory_Transmission::~Respiratory_Transmission() {
   }
 }
 
-void Respiratory_Transmission::setup(Disease* disease) {
+void Respiratory_Transmission::setup(Condition* condition) {
   int temp_int = 0;
-  Params::get_param_from_string("enable_neighborhood_density_transmission", &temp_int);
+  Params::get_param("enable_neighborhood_density_transmission", &temp_int);
   this->enable_neighborhood_density_transmission = (temp_int == 1);
-  Params::get_param_from_string("enable_density_transmission_maximum_infectees", &temp_int);
+  Params::get_param("enable_density_transmission_maximum_infectees", &temp_int);
   this->enable_density_transmission_maximum_infectees = (temp_int == 1);
-  Params::get_param_from_string("density_transmission_maximum_infectees",
+  Params::get_param("density_transmission_maximum_infectees",
 				&(this->density_transmission_maximum_infectees));
 
   /*
@@ -78,25 +82,25 @@ void Respiratory_Transmission::setup(Disease* disease) {
 //
 /////////////////////////////////////////
 
-void Respiratory_Transmission::spread_infection(int day, int disease_id, Mixing_Group* mixing_group) {
+void Respiratory_Transmission::spread_infection(int day, int condition_id, Mixing_Group* mixing_group) {
   if(dynamic_cast<Place*>(mixing_group) == NULL) {
     //Respiratory_Transmission must occur on a Place type
     return;
   } else {
-    this->spread_infection(day, disease_id, dynamic_cast<Place*>(mixing_group));
+    this->spread_infection(day, condition_id, dynamic_cast<Place*>(mixing_group));
   }
 }
 
-void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* place) {
+void Respiratory_Transmission::spread_infection(int day, int condition_id, Place* place) {
 
-  FRED_VERBOSE(1, "spread_infection day %d disease %d place %d %s\n",
-	       day, disease_id, place->get_id(), place->get_label());
+  FRED_VERBOSE(1, "spread_infection day %d condition %d place %d %c %s\n",
+	       day, condition_id, place->get_id(), place->get_type(), place->get_label());
 
   // abort if transmissibility == 0 or if place is closed
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  double beta = disease->get_transmissibility();
-  if(beta == 0.0 || place->is_open(day) == false || place->should_be_open(day, disease_id) == false) {
-    place->reset_place_state(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
+  double beta = condition->get_transmissibility();
+  if(beta == 0.0 || place->is_open(day) == false || place->should_be_open(day, condition_id) == false) {
+    place->reset_place_state(condition_id);
     return;
   }
 
@@ -105,32 +109,32 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* 
 
   // need at least one susceptible
   if(place->get_size() == 0) {
-    place->reset_place_state(disease_id);
+    place->reset_place_state(condition_id);
     return;
   }
 
   if(place->is_household()) {
-    pairwise_transmission_model(day, disease_id, place);
-    FRED_VERBOSE(1, "spread_infection finished day %d disease %d place %d %s\n",
-		 day, disease_id, place->get_id(), place->get_label());
+    pairwise_transmission_model(day, condition_id, place);
+    FRED_VERBOSE(1, "spread_infection finished day %d condition %d place %d %c %s\n",
+		 day, condition_id, place->get_id(), place->get_type(), place->get_label());
     return;
   }
 
   if(place->is_neighborhood() && this->enable_neighborhood_density_transmission == true) {
-    density_transmission_model(day, disease_id, place);
+    density_transmission_model(day, condition_id, place);
   } else {
-    default_transmission_model(day, disease_id, place);
+    default_transmission_model(day, condition_id, place);
   }
 
   /*
   if(Global::Enable_New_Transmission_Model) {
-    age_based_transmission_model(day, disease_id, place);
+    age_based_transmission_model(day, condition_id, place);
   } else {
-    default_transmission_model(day, disease_id, place);
+    default_transmission_model(day, condition_id, place);
   }
   */
-  FRED_VERBOSE(1, "spread_infection finished day %d disease %d place %d %s\n",
-	       day, disease_id, place->get_id(), place->get_label());
+  FRED_VERBOSE(1, "spread_infection finished day %d condition %d place %d %c %s\n",
+	       day, condition_id, place->get_id(), place->get_type(), place->get_label());
 
   return;
 }
@@ -142,29 +146,19 @@ void Respiratory_Transmission::spread_infection(int day, int disease_id, Place* 
 
 
 bool Respiratory_Transmission::attempt_transmission(double transmission_prob, Person* infector, Person* infectee,
-					int disease_id, int day, Place* place) {
+					int condition_id, int day, Place* place) {
 
-  assert(infectee->is_susceptible(disease_id));
+  assert(infectee->is_susceptible(condition_id));
   FRED_STATUS(1, "infector %d -- infectee %d is susceptible\n", infector->get_id(), infectee->get_id());
 
-  double susceptibility = infectee->get_susceptibility(disease_id);
+  double susceptibility = infectee->get_susceptibility(condition_id);
 
-  // reduce transmission probability due to infector's hygiene (face masks or hand washing)
-  transmission_prob *= infector->get_transmission_modifier_due_to_hygiene(disease_id);
+  // reduce transmission probability due to infector's other conditions
+  transmission_prob *= infector->get_transmission_modifier(condition_id);
 
-  // reduce susceptibility due to infectee's hygiene (face masks or hand washing)
-  susceptibility *= infectee->get_susceptibility_modifier_due_to_hygiene(disease_id);
+  // reduce susceptibility due to infectee's other conditions
+  susceptibility *= infectee->get_susceptibility_modifier(condition_id);
     
-  if(Global::Enable_hh_income_based_susc_mod) {
-    int hh_income = Household::get_max_hh_income(); //Default to max (no modifier)
-    Household* hh = static_cast<Household*>(infectee->get_household());
-    if(hh != NULL) {
-      hh_income = hh->get_household_income();
-    }
-    susceptibility *= infectee->get_health()->get_susceptibility_modifier_due_to_household_income(hh_income);
-    //Utils::fred_log("SUSC Modifier [%.4f] for HH Income [%i] modified suscepitibility to [%.4f]\n", hh_income, infectee->get_health()->get_susceptibility_modifier_due_to_household_income(hh_income), susceptibility);
-  }
-
   FRED_VERBOSE(2, "susceptibility = %f\n", susceptibility);
 
   // reduce transmissibility due to seasonality
@@ -178,18 +172,18 @@ bool Respiratory_Transmission::attempt_transmission(double transmission_prob, Pe
 
   if(r < infection_prob) {
     // successful transmission; create a new infection in infectee
-    infector->infect(infectee, disease_id, place, day);
+    infector->infect(infectee, condition_id, place, day);
 
     FRED_VERBOSE(1, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
-    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
+    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(condition_id) == 0,
 			     "SEED infection day %i from %d to %d\n", day, infector->get_id(), infectee->get_id());
-    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) != 0,
-			     "infection day %i of disease %i from %d to %d\n", day, disease_id, infector->get_id(),
+    FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(condition_id) != 0,
+			     "infection day %i of condition %i from %d to %d\n", day, condition_id, infector->get_id(),
 			     infectee->get_id());
     FRED_CONDITIONAL_VERBOSE(0, infection_prob > 1, "infection_prob exceeded unity!\n");
 
     // notify the epidemic
-    Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
+    Global::Conditions.get_condition(condition_id)->get_epidemic()->become_exposed(infectee, day);
 
     return true;
   } else {
@@ -198,11 +192,12 @@ bool Respiratory_Transmission::attempt_transmission(double transmission_prob, Pe
   }
 }
 
-void Respiratory_Transmission::default_transmission_model(int day, int disease_id, Place * place) {
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+void Respiratory_Transmission::default_transmission_model(int day, int condition_id, Place * place) {
+  Condition* condition = Global::Conditions.get_condition(condition_id);
   int N = place->get_size();
+  int new_infections = 0;
 
-  person_vec_t* infectious = place->get_infectious_people(disease_id);
+  person_vec_t* infectious = place->get_infectious_people(condition_id);
   person_vec_t* susceptibles = place->get_enrollees();
 
   FRED_VERBOSE(1, "default_transmission DAY %d PLACE %s N %d susc %d inf %d\n",
@@ -215,7 +210,7 @@ void Respiratory_Transmission::default_transmission_model(int day, int disease_i
   int number_targets = (N - 1 > susceptibles->size() ? N - 1 : susceptibles->size());
 
   // contact_rate is contacts_per_day with weeked and seasonality modulation (if applicable)
-  double contact_rate = place->get_contact_rate(day, disease_id);
+  double contact_rate = place->get_contact_rate(day, condition_id);
 
   // randomize the order of processing the infectious list
   std::vector<int> shuffle_index;
@@ -231,13 +226,13 @@ void Respiratory_Transmission::default_transmission_model(int day, int disease_i
     // infectious visitor
     Person* infector = (*infectious)[infector_pos];
     // printf("infector id %d\n", infector->get_id());
-    if(infector->is_infectious(disease_id) == false) {
+    if(infector->is_infectious(condition_id) == false) {
       // printf("infector id %d not infectious!\n", infector->get_id());
       continue;
     }
 
     // get the actual number of contacts to attempt to infect
-    int contact_count = place->get_contact_count(infector, disease_id, day, contact_rate);
+    int contact_count = place->get_contact_count(infector, condition_id, day, contact_rate);
 
     std::map<int, int> sampling_map;
     // get a susceptible target for each contact resulting in infection
@@ -270,28 +265,35 @@ void Respiratory_Transmission::default_transmission_model(int day, int disease_i
       // get the transmission probs for given infector/infectee pair
       double transmission_prob = 1.0;
       if(Global::Enable_Transmission_Bias) {
-	      transmission_prob = place->get_transmission_probability(disease_id, infector, infectee);
+	      transmission_prob = place->get_transmission_probability(condition_id, infector, infectee);
       } else {
-	      transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+	      transmission_prob = place->get_transmission_prob(condition_id, infector, infectee);
       }
       for(int draw = 0; draw < times_drawn; ++draw) {
         // only proceed if person is susceptible
-        if(infectee->is_susceptible(disease_id)) {
-          attempt_transmission(transmission_prob, infector, infectee, disease_id, day, place);
+        if(infectee->is_susceptible(condition_id)) {
+          if (attempt_transmission(transmission_prob, infector, infectee, condition_id, day, place)) {
+	    new_infections++;
+	  }
         }
       }
     } // end contact loop
   } // end infectious list loop
-  place->reset_place_state(disease_id);
+  place->reset_place_state(condition_id);
+  if (0 && new_infections > 0) {
+    FRED_VERBOSE(1, "default_transmission DAY %d PLACE %s gives %d new_infections\n",
+		 day, place->get_label(), new_infections);
+  }
 }
 
 
-void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_id, Place* place) {
+void Respiratory_Transmission::pairwise_transmission_model(int day, int condition_id, Place* place) {
 
-  person_vec_t* infectious = place->get_infectious_people(disease_id);
+  person_vec_t* infectious = place->get_infectious_people(condition_id);
   person_vec_t* susceptibles = place->get_enrollees();
 
-  double contact_prob = place->get_contact_rate(day, disease_id);
+  double contact_prob = place->get_contact_rate(day, condition_id);
+  int new_infections = 0;
   
   FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s N %d\n",
 	       day, place->get_label(), place->get_size());
@@ -300,7 +302,7 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
     Person* infector = (*infectious)[infector_pos];      // infectious individual
     // FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is %d\n", day, place->get_label(), infector_pos, infector->get_id());
     
-    if(infector->is_infectious(disease_id) == false) {
+    if(infector->is_infectious(condition_id) == false) {
       FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infector %d is not infectious!\n",
 		   day, place->get_label(), infector->get_id());
       continue;
@@ -318,7 +320,7 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
       FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee is %d\n",
 		   day, label, infectee_id);
       
-      if(infectee->is_infectious(disease_id) == false) {
+      if(infectee->is_infectious(condition_id) == false) {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not infectious -- updating schedule\n",
 		                 day, label, infectee_id);
 	      infectee->update_schedule(day);
@@ -332,41 +334,48 @@ void Respiratory_Transmission::pairwise_transmission_model(int day, int disease_
 	      continue;
       }
       // only proceed if person is susceptible
-      if(infectee->is_susceptible(disease_id)) {
+      if(infectee->is_susceptible(condition_id)) {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is present and susceptible\n",
 		                 day, label, infectee_id);
 	      // get the transmission probs for infector/infectee pair
 	      double transmission_prob = 1.0;
 	      if(Global::Enable_Transmission_Bias) {
-	        transmission_prob = place->get_transmission_probability(disease_id, infector, infectee);
+	        transmission_prob = place->get_transmission_probability(condition_id, infector, infectee);
 	      } else {
-	        transmission_prob = place->get_transmission_prob(disease_id, infector, infectee);
+	        transmission_prob = place->get_transmission_prob(condition_id, infector, infectee);
 	      }
-	      double infectivity = infector->get_infectivity(disease_id, day);
+	      double infectivity = infector->get_infectivity(condition_id);
 	      // scale transmission prob by infectivity and contact prob
 	      transmission_prob *= infectivity * contact_prob;
-	      attempt_transmission(transmission_prob, infector, infectee, disease_id, day, place);
+	      if (attempt_transmission(transmission_prob, infector, infectee, condition_id, day, place)) {
+		new_infections++;
+	      };
       } else {
 	      FRED_VERBOSE(1, "pairwise_transmission DAY %d PLACE %s infectee %d is not susceptible\n",
 		                 day, label, infectee_id);
       }
     } // end susceptibles loop
   }
-  place->reset_place_state(disease_id);
+  place->reset_place_state(condition_id);
+  if (0 && new_infections > 0) {
+    FRED_VERBOSE(0, "default_transmission DAY %d PLACE %s gives %d new_infections\n",
+		 day, place->get_label(), new_infections);
+  }
 }
 
-void Respiratory_Transmission::density_transmission_model(int day, int disease_id, Place* place) {
+void Respiratory_Transmission::density_transmission_model(int day, int condition_id, Place* place) {
 
-  person_vec_t* infectious = place->get_infectious_people(disease_id);
+  person_vec_t* infectious = place->get_infectious_people(condition_id);
   person_vec_t* susceptibles = place->get_enrollees();
 
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
   int N = place->get_size();
+  int new_infections = 0;
 
   // printf("DAY %d PLACE %s N %d susc %d inf %d\n",
   // day, place->get_label(), N, (int) susceptibles->size(), (int) infectious->size());
 
-  double contact_prob = place->get_contact_rate(day, disease_id);
+  double contact_prob = place->get_contact_rate(day, condition_id);
   int sus_hosts = susceptibles->size();
   int inf_hosts = infectious->size();
   int exposed = 0;
@@ -408,16 +417,17 @@ void Respiratory_Transmission::density_transmission_model(int day, int disease_i
     FRED_VERBOSE(1,"selected host %d age %d\n", infectee->get_id(), infectee->get_age());
 
     // only proceed if person is susceptible
-    if(infectee->is_susceptible(disease_id)) {
+    if(infectee->is_susceptible(condition_id)) {
       // select a random infector
       int infector_pos = Random::draw_random_int(0,inf_hosts-1);
       Person* infector = (*infectious)[infector_pos];
-      assert(infector->get_health()->is_infectious(disease_id));
+      assert(infector->get_health()->is_infectious(condition_id));
 
       // get the transmission probs for  infectee/infector  pair
-      double transmission_prob = infector->get_infectivity(disease_id, day);
-      if(attempt_transmission(transmission_prob, infector, infectee, disease_id, day, place)) {
+      double transmission_prob = infector->get_infectivity(condition_id);
+      if(attempt_transmission(transmission_prob, infector, infectee, condition_id, day, place)) {
         // successful transmission
+	new_infections++;
         infectee_count[infector_pos]++;
         // if the infector has reached the max allowed, remove from infector list
         if(this->enable_density_transmission_maximum_infectees &&
@@ -440,7 +450,11 @@ void Respiratory_Transmission::density_transmission_model(int day, int disease_i
                 day, place->get_label(), reached_max_infectees_count,
                 this->density_transmission_maximum_infectees, number_infectious_hosts);
   }
-  place->reset_place_state(disease_id);
+  place->reset_place_state(condition_id);
+  if (0 && new_infections > 0) {
+    FRED_VERBOSE(0, "density_transmission DAY %d PLACE %s gives %d new_infections\n",
+		 day, place->get_label(), new_infections);
+  }
 }
 
 
@@ -453,11 +467,11 @@ static bool compare_id (Person* p1, Person* p2) {
   return p1->get_id() < p2->get_id();
 }
 
-void Respiratory_Transmission::age_based_transmission_model(int day, int disease_id, Place * place) {
-  person_vec_t * infectious = place->get_infectious_people(disease_id);
+void Respiratory_Transmission::age_based_transmission_model(int day, int condition_id, Place * place) {
+  person_vec_t * infectious = place->get_infectious_people(condition_id);
   person_vec_t * susceptibles = place->get_enrollees();
 
-  Disease* disease = Global::Diseases.get_disease(disease_id);
+  Condition* condition = Global::Conditions.get_condition(condition_id);
 
   int N = place->get_size();
   std::vector<double> infectivity_of_agent((int) infectious->size());
@@ -468,7 +482,7 @@ void Respiratory_Transmission::age_based_transmission_model(int day, int disease
   double p[101][101];
   double infectivity_of_group[101];
   int infectee_count[101];
-  double beta = disease->get_transmissibility();
+  double beta = condition->get_transmissibility();
   double force = beta * place->intimacy;
 
   // sort the infectious list by age
@@ -488,7 +502,7 @@ void Respiratory_Transmission::age_based_transmission_model(int day, int disease
     if (age > 100) age = 100;
     n[age]++;
     if (start[age] == -1) { start[age] = inf_pos; }
-    double infectivity = person->get_infectivity(disease_id, day); 
+    double infectivity = person->get_infectivity(condition_id); 
     infectivity_of_group[age] += infectivity;
     infectivity_of_agent[inf_pos] = infectivity;
     size[age]++;
@@ -582,7 +596,7 @@ void Respiratory_Transmission::age_based_transmission_model(int day, int disease
 
       // is infectee susceptible?
       double r = Random::draw_random();
-      if(r < infectee->get_susceptibility(disease_id)) {
+      if(r < infectee->get_susceptibility(condition_id)) {
 
 	printf("INFECTING pos %d age %d \n", sus_pos, age); fflush(stdout);
 
@@ -612,25 +626,25 @@ void Respiratory_Transmission::age_based_transmission_model(int day, int disease
 	printf("PICKED INFECTOR pos %d with infectivity %e\n", pos, infectivity_of_agent[pos]); fflush(stdout);
 
 	// successful transmission; create a new infection in infectee
-	infector->infect(infectee, disease_id, place, day);
+	infector->infect(infectee, condition_id, place, day);
 
-	FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) == 0,
+	FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(condition_id) == 0,
 				 "SEED infection day %i from %d to %d\n",
 				 day, infector->get_id(), infectee->get_id());
-	FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(disease_id) != 0,
-				 "infection day %i of disease %i from %d to %d\n",
-				 day, disease_id, infector->get_id(),
+	FRED_CONDITIONAL_VERBOSE(1, infector->get_exposure_date(condition_id) != 0,
+				 "infection day %i of condition %i from %d to %d\n",
+				 day, condition_id, infector->get_id(),
 				 infectee->get_id());
 	
 	// notify the epidemic
-	Global::Diseases.get_disease(disease_id)->get_epidemic()->become_exposed(infectee, day);
+	Global::Conditions.get_condition(condition_id)->get_epidemic()->become_exposed(infectee, day);
 
       }
       // decrement counter (even if transmission fails)
       infectee_count[age]++;
     }
   }
-  place->reset_place_state(disease_id);
+  place->reset_place_state(condition_id);
 }
   */
 

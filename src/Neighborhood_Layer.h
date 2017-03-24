@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -35,7 +38,7 @@ public:
   Neighborhood_Layer();
   ~Neighborhood_Layer() {}
 
-  void setup( Place::Allocator< Neighborhood > & neighborhood_allocator );
+  void setup();
 
   /**
    * @param row the row where the Patch is located
@@ -47,8 +50,6 @@ public:
   Neighborhood_Patch * get_patch(fred::geo lat, fred::geo lon);
   Neighborhood_Patch * select_random_patch(double x0, double y0, double dist);
   Neighborhood_Patch * select_random_neighbor(int row, int col);
-  Place * select_school_in_area(int age, int row, int col);
-  Place * select_workplace_in_area(int row, int col);
 
   /**
    * @return a pointer to a random patch in this layer

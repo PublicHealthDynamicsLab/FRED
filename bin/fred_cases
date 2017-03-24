@@ -4,4 +4,65 @@ use warnings;
 use Env;
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-system "fred_acc @ARGV | tail -1 | awk '{print \$1, \$3}' ";
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $help = "";
+my $key = "";
+my $dir = "OUT";
+my $run = 0;
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "n=i" => \$run,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | [ -k key ]
+    -k or --key   the key for a FRED job (no default)
+EOH
+
+die $usage if $help;
+
+if ($run == 0) {
+  my $line = "";
+  if ($key) {
+    $line = `$FRED/bin/fred_csv -k $key -v totC | tail -1 `;
+  }
+  else {
+    $line = `$FRED/bin/fred_csv -v totC | tail -1 `;
+  }
+  die "No data found for key = |$key|\n$0: usage\n" if $line =~ /fred_csv/;
+  
+  # data found:
+  chomp $line;
+  # print "$line\n";
+  
+  my @data = split ',', $line;
+  my ($mean,$std) = ($data[8], $data[9]);
+  my ($q1,$med,$q3) = ($data[4], $data[5],$data[6]);
+  printf "%.2f %.4f %0.2f %0.2f %0.2f\n", $mean, $std, $q1, $med, $q3;
+}
+else {
+  my $dir = ".";
+  if ($key) {
+    $dir = `fred_find -k $key`;
+    chomp $dir;
+  }
+  else {
+    system "fred_make_csv_files";
+  }
+  my $line = `tail -1 $dir/OUT/RUN$run/DAILY/totC.txt`;
+  print $line;
+}
+
+exit;
+
+
+
+
+
+
+

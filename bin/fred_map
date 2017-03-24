@@ -1,0 +1,241 @@
+#!/usr/local/bin/gnuplot
+
+# File: fred_map
+
+# default parameters
+
+
+if (!exists("my_title")) {
+   my_title = "FRED Simulation"
+}
+
+if (!exists("my_subtitle")) {
+   my_subtitle = ""
+}
+
+if (!exists("my_subsubtitle")) {
+   my_subsubtitle = ""
+}
+
+if (!exists("day")) {
+   day = 1
+}
+
+if (!exists("my_date")) {
+   my_date = ""
+}
+
+if (!exists("show_subsubtitle")) {
+   show_subsubtitle = 0
+}
+
+if (show_subsubtitle) {
+  year = substr(my_date,1,4) + 0
+  if (year > 2015) {
+    subsubtitle = "** FORECAST **"
+  }
+}
+
+## title_string = sprintf("%s\n%s\n{/Arial=12 %s}\n{/Arial=12 Day %d}\n", my_title, my_subtitle, my_date, day)
+## title_string = sprintf("%s\n%s\n{/Arial-Bold=14 %s}\n%s", my_title, my_subtitle, subsubtitle, my_date)
+title_string = sprintf("%s\n%s\n%s\n%s", my_title, my_subtitle, my_subsubtitle, my_date)
+# print sprintf("title_string = |%s|\n",title_string)
+
+if (!exists("terminal")) {
+  terminal = "png"
+}
+if (!exists("mapname")) {
+  mapname = "map" . terminal
+}
+if (!exists("linewidth")) {
+  linewidth = 1.0
+}
+if (!exists("use_shapefile")) {
+  use_shapefile = 1
+}
+if (!exists("show_grid")) {
+   show_grid = 0
+}
+if (!exists("show_border")) {
+   show_border = 0
+}
+if (!exists("bottom_left")) {
+   bottom_left = ""
+}
+if (!exists("bottom_center")) {
+   bottom_center = ""
+}
+if (!exists("bottom_right")) {
+   bottom_right = ""
+}
+
+if (!exists("bottom_colors")) {
+   bottom_colors = "16 16 16"
+}
+# print sprintf("bottom_colors = |%s|", bottom_colors)
+
+if (!exists("background_image")) {
+   background_image = ""
+}
+if (background_image eq "") {
+   use_background_image = 0
+}
+else {
+   use_background_image = 1
+}
+
+if (!exists("datafiles")) {
+  datafiles = "map.data"
+}
+# print sprintf("datafiles = |%s|", datafiles)
+
+if (!exists("shapefiles")) {
+   print "fred_map: no shapefiles defined"
+   use_shapefiles = 0
+}
+# print sprintf("fred_map: shapefiles = |%s|", shapefiles)
+
+if (!exists("ls_list")) {
+   ls_list = ""
+}
+# print sprintf("ls_list = |%s|", ls_list)
+
+if (!exists("ps_list")) {
+  ps_list = ""
+}
+# print sprintf("ps_list = |%s|", ps_list)
+
+if (!exists("pt_list")) {
+  pt_list = ""
+}
+# print sprintf("pt_list = |%s|", pt_list)
+
+default_ls_list = "1 5 6 7 9 16 2 3 4 8 12 13 14 10"
+
+# define styles for each color
+set style line 1 lc rgb "blue" lt 1 lw 0.2
+set style line 2 lc rgb "skyblue" lt 1 lw 0.2
+set style line 3 lc rgb "sea-green" lt 1 lw 0.2
+set style line 4 lc rgb "green" lt 1 lw 0.2
+set style line 5 lc rgb "greenyellow" lt 1 lw 0.2
+set style line 6 lc rgb "yellow" lt 1 lw 0.2
+set style line 7 lc rgb "orange" lt 1 lw 0.2
+set style line 8 lc rgb "orange-red" lt 1 lw 0.2
+set style line 9 lc rgb "red" lt 1 lw 0.2
+set style line 10 lc rgb "beige" lt 1 lw 0.2
+set style line 11 lc rgb 'light-goldenrod' lt 1 lw 0.2
+set style line 12 lc rgb "medium-blue" lt 1 lw 0.2
+set style line 13 lc rgb "dark-green" lt 1 lw 0.2
+set style line 14 lc rgb "gray" lt 1 lw 1
+set style line 15 lc rgb "gray10" lt 1 lw 1
+set style line 16 lc rgb "black" lt 1 lw 1
+set style line 17 lc rgb "white" lt 1 lw 1
+
+unset key; unset tics;
+
+# read in previously computed values for bounding box: xmin, xmax, ymin and ymax
+load 'BBOX'
+
+if (terminal eq "png") {
+  set term pngcairo enhanced font "arial,12" size 640,640
+  title_string = sprintf("{/Arial=14 %s}\n{/Arial=14 %s}\n{/Arial=12 %s}\n{/Arial=10 %s}", my_title, my_subtitle, my_subsubtitle, my_date)
+  #  set title title_string offset 0,-1 font "Arial, 14"
+  set title title_string offset 0,-1
+}
+if (terminal eq "pdf") {
+  set term pdf enhanced font "Helvetica,18" size 8.888,8.888
+  set title title_string offset 0,-2 font "Helvetica,24"
+}
+
+# set the ranges for the axes
+set xrange [ xmin:xmax ]
+set yrange [ ymin:ymax ]
+
+# get the center of the map
+xcenter = (xmin+xmax)/2.0
+ycenter = (ymin+ymax)/2.0
+xsize = xmax-xmin
+ysize = ymax-ymin
+
+# set plot margins
+set lmargin 0
+set rmargin 0
+set tmargin 6
+set bmargin 2
+
+unset xlabel
+unset ylabel
+unset xtics
+unset ytics
+unset grid
+unset border
+
+if (show_border) {
+   set xlabel "Longitude\n" offset 0,0
+   set ylabel "\nLatitude" offset 1.5,0
+   set xtics font "arial,10"
+   set ytics font "arial,10"
+   if (show_grid) {
+    set grid back
+   }
+   else {
+    unset grid
+   }
+}
+
+get_ls(n) = n <= words(ls_list) ? word(ls_list,n) : default_ls(n)
+get_ps(n) = n <= words(ps_list) ? word(ps_list,n) : 0.1
+get_pt(n) = n <= words(pt_list) ? word(pt_list,n) : 5
+
+# name of the file containing boundaries
+shapefile(n) = word(shapefiles,n)
+
+set label bottom_left at graph 0.1, character 1 left tc ls word(bottom_colors,1)
+set label bottom_center at graph 0.5, character 1 center tc ls word(bottom_colors,2)
+set label bottom_right at graph 0.9, character 1 right tc ls word(bottom_colors,3)
+
+set output mapname
+set multiplot
+
+# plot the background map
+if (use_background_image) {
+  my_dx = xsize/640.0
+  my_dy = ysize/498.0
+  print sprintf("plot '%s' binary filetype=png center=(%f,%f)) dx=%f dy=%f with rgbimage notitle", background_image, xcenter, ycenter, my_dx, my_dy)
+  plot background_image binary filetype=png center=(xcenter,ycenter) dx=my_dx dy=my_dy with rgbimage notitle
+}
+else{
+  plot for [n=1:words(shapefiles)] shapefile(n) u 2:1 t '' ls 10 w filledcurve
+}
+unset title
+
+
+do for [n=1:words(datafiles)] {
+   datafile = word(datafiles,n)
+   my_ls = get_ls(n) + 0
+   my_ps = get_ps(n) + 0.0
+   my_pt = get_pt(n) + 0
+   if (my_ps > 0) {
+     print sprintf("plot '%s' wi po ps %f ls %d pt %d ps %f", datafile, my_ls, my_pt, my_ps)
+     if (my_pt < 99) {
+       plot datafile u 2:1 t '' wi po ls my_ls pt my_pt ps my_ps
+     }
+     else {
+       set style circle radius graph my_ps
+       plot datafile u 2:1 t '' wi circles ls my_ls fs solid
+     }
+   }
+   else {
+    print sprintf("plot '%s' wi dots ls %d", datafile, my_ls)
+    plot datafile u 2:1 t '' wi dots ls my_ls
+   }
+}
+
+if (use_shapefile) {
+  # draw outlines
+  plot for [n=1:words(shapefiles)] shapefile(n) u 2:1 t '' w l lt -1 lw linewidth
+}
+
+unset multiplot
+# system("open " . outfile)
+exit

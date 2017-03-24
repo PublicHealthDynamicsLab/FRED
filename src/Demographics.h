@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -105,6 +108,10 @@ public:
     return this->deceased;
   }
 
+  void set_deceased() {
+    this->deceased = true;
+  }
+
   /**
    * Print out information about this object
    */
@@ -144,6 +151,12 @@ public:
   }
 
   int get_day_of_year_for_birthday_in_nonleap_year();
+
+  bool is_today_my_birthday();
+
+  int get_birthday_sim_day() {
+    return birthday_sim_day;
+  }
 
   /**
    * Perform the necessary changes to the demographics on an agent's birthday
@@ -215,7 +228,6 @@ public:
   static void add_mortality_event(int day, Person* person);
   static void delete_mortality_event(int day, Person* person);
   static void report(int day); 
-
   static int find_fips_code(int n);
 
 private:
@@ -250,7 +262,6 @@ private:
   static std::map<Person*, int> birthday_map;
 
   static std::vector<int> fips_codes;
-
 protected:
 
   friend class Person;

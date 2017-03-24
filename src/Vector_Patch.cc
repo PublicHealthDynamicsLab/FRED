@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -16,8 +19,8 @@
 
 #include "Vector_Patch.h"
 #include "Vector_Layer.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Params.h"
 #include "Utils.h"
 #include "Person.h"
@@ -76,7 +79,7 @@ void Vector_Patch::set_vector_seeds(int dis,int day_on, int day_off,double seeds
   seeds[dis] = seeds_;
   day_start_seed[dis] = day_on;
   day_end_seed[dis] = day_off;
-  FRED_VERBOSE(1, "SET_VECTOR_SEEDS: Patch %d %d proportion of susceptible for disease [%d]: %f. start: %d end: %d\n", row, col, dis,seeds[dis],day_on,day_off);
+  FRED_VERBOSE(1, "SET_VECTOR_SEEDS: Patch %d %d proportion of susceptible for condition [%d]: %f. start: %d end: %d\n", row, col, dis,seeds[dis],day_on,day_off);
 }
 void Vector_Patch::print() {
   FRED_VERBOSE(0, "Vector_patch: %d %d\n",

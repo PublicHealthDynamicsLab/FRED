@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -159,6 +162,7 @@ namespace Utils {
   void get_next_token(char* out_string, char** input_string);
   void delete_char(char* s, char c, int maxlen);
   void normalize_white_space(char* s);
+  string indent(int indent_level);
   bool to_bool(string s);
 
   class Tokens {
@@ -234,10 +238,6 @@ namespace Utils {
 
   Tokens split_by_delim(const char* str,
 			const char delim, bool collapse_consecutive_delims = true);
-
-  void track_value(int day, char* key, int value, int id = 0);
-  void track_value(int day, char* key, double value, int id = 0);
-  void track_value(int day, char* key, string value, int id = 0);
 
 }
 

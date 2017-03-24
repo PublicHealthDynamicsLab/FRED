@@ -31,7 +31,6 @@ my $cores = "";
 my $force = "";
 my $key = "";
 my $paramsfile = "";
-my $zip = "";
 my $parallel = "";
 my $start_run = "";
 my $end_run = "";
@@ -50,7 +49,6 @@ my $opt_result = GetOptions(
 			    "s=i" => \$start_run,
 			    "t=i" => \$threads,
 			    "M=i" => \$multiple_cpus,
-			    "z" => \$zip
 );
 die $usage if $help;
 
@@ -224,24 +222,9 @@ if (not -d $work) {
 }
 
 # make directories for output
-my $data = "$dir/DATA";
-if (not -d $data) {
-  mkdir $data or die "Can't make directory $data\n";
-}
-
-my $out = "$data/OUT";
+my $out = "$dir/OUT";
 if (not -d $out) {
   mkdir $out or die "Can't make directory $out\n";
-}
-
-my $tables = "$data/TABLES";
-if (not -d $tables) {
-  mkdir $tables or die "Can't make directory $tables\n";
-}
-
-my $reports = "$data/REPORTS";
-if (not -d $reports) {
-  mkdir $reports or die "Can't make directory $reports\n";
 }
 
 # record meta data about this run
@@ -278,7 +261,7 @@ my $logfile = "$meta/LOG";
 
 # copy the params file for future reference
 `cp $cwd/$paramsfile $meta/PARAMS`;
-`cp $FRED/input_files/defaults $meta/DEFAULT`;
+`cp $FRED/data/defaults $meta/DEFAULT`;
 
 # copy source code
 my $version = "$meta/VERSION";
@@ -286,14 +269,13 @@ if (not -d $version) {
   mkdir $version or die "Can't make directory $version\n";
 }
 `cp -p $FRED/src/FRED.tar.gz $version`;
-`ls -l $FRED/populations > ${version}/POPULATIONS`;
-`ls -l $FRED/input_files > ${version}/INPUT_FILES`;
+`ls -l $FRED/data > ${version}/INPUT_FILES`;
 
 # return to original directory
 chdir $cwd;
 
 # copy the input files to working directory
-`cp $FRED/input_files/defaults $work/defaults`;
+`cp $FRED/data/defaults $work/defaults`;
 
 # get the base of the params file name
 my $params_base = $paramsfile;
@@ -338,6 +320,12 @@ if (not $parallel) {
   print LP "multiple_cpus=$multiple_cpus\n";
   close LP;
 
+  # print "parallel mode:\n";
+  # print "runs=$runs\n";
+  # print "cpus=$cpus\n";
+  # print  "number of sets=$num_run_sets\n";
+  # print  "multiple_cpus=$multiple_cpus\n";
+
   # iterate over the number of sets of runs
   for (my $run_set = 0; $run_set < $num_run_sets; $run_set++) {
     # distribute fred runs accross cpus for this set
@@ -351,10 +339,11 @@ if (not $parallel) {
       open LP, ">>$logfile_parallel";
       print LP "Starting fred instance $fred_instance in set $run_set, instance $run_instance selected_cpu $selected_cpu at ", `date`;
       close LP;
+      # print "Starting fred instance $fred_instance in set $run_set, instance $run_instance selected_cpu $selected_cpu at ", `date`;
 
       # create instance-specific log file
-      # my $logfilep = "$meta/LOG.$fred_instance";
-      my $logfilep = "$out/LOG$fred_instance";
+      system "mkdir -p $out/RUN$fred_instance";
+      my $logfilep = "$out/RUN$fred_instance/LOG";
 
       # create child process
       if (fork() == 0) {
@@ -365,7 +354,8 @@ if (not $parallel) {
           exec "pbsdsh -n $selected_cpu /bin/sh -c \"cd $work && $FRED/bin/FRED $params $fred_instance > $logfilep\"\n";
         } else {
           # run on localhost
-          exec "cd $work && (export OMP_NUM_THREADS=$threads; $FRED/bin/FRED $params $fred_instance > $logfilep)" ;
+          print "(export OMP_NUM_THREADS=$threads; $FRED/bin/FRED $params $fred_instance $out > $logfilep)\n" ;
+          exec "cd $work && (export OMP_NUM_THREADS=$threads; $FRED/bin/FRED $params $fred_instance $out > $logfilep)" ;
         }
       }
       $runs_remaining--;
@@ -378,6 +368,7 @@ if (not $parallel) {
     open LP, ">>$logfile_parallel";
     print LP "run_set $run_set completed at ", `date`, "\n";
     close LP;
+    print "run_set $run_set completed at ", `date`, "\n";
 
   } #for run_set
   open LP, ">>$logfile_parallel";
@@ -397,8 +388,7 @@ if (not $parallel) {
 # }
 
 # record the POPULATION file used (in case it was altered by parameters)
-# my $log1 = $parallel ? "$meta/LOG.1" : "$out/LOG1";
-my $log1 = (-e "$out/LOG1") ? "$out/LOG1" : "$meta/LOG.1";
+my $log1 = (-e "$out/RUN1/LOG") ? "$out/RUN1/LOG" : "$meta/LOG.1";
 `grep POPULATION_FILE $log1 | awk \'{print \$2}\' > $meta/POPULATION`; 
 
 # record the FIPS codes
@@ -415,17 +405,9 @@ close POP;
 `grep convex_density $log1 | awk \'{print \$4}\' > $meta/POPSIZE`; 
 `grep convex_density $log1 | awk \'{print \$11}\' > $meta/DENSITY`; 
 
-# make reports
-`$FRED/bin/fred_post_process $out $tables $reports`;
+# make csv output files
+`$FRED/bin/fred_make_csv_files --dir $out`;
 
-# gzip files to save space
-if ($zip) {
-  system "cd $out; tar czf out.tgz out*.txt; rm out*.txt";
-  system "cd $meta; tar czf LOG.tgz LOG*[0-9]; rm LOG*[0-9]";
-  if (-d "$out/GAIA") {
-    system "cd $out; tar czf gaia.tgz GAIA";
-  }
-}
 
 # update run status
 `echo FINISHED > $meta/STATUS`;
@@ -458,7 +440,7 @@ sub get_param_value {
   # find defaults file
   my $defaults = "defaults";
   if (not -e $defaults) {
-    $defaults = "$FRED/input_files/defaults";
+    $defaults = "$FRED/data/defaults";
   }
   if (not -e $defaults) {
     die "$0: could not find defaults file\n";
@@ -504,7 +486,7 @@ sub copy_include_files {
   open $in, $params;
   while (my $line = <$in>) {
     if ($line =~ /^include /) {
-      next if $line =~ /FRED_HOME\/input_files/;
+      next if $line =~ /FRED_HOME\/data/;
 
       # edit the line to point to the local file
       my ($file) = $line =~ /^include \s*(\S*)/;
@@ -538,8 +520,8 @@ sub copy_file_parameters {
   open OUT,">$newparams";
   open IN, $params;
   while (my $line = <IN>) {
-    if ($line =~ /file =/) {
-      if ($line =~ /FRED_HOME\/input_files/) {
+    if ($line !~ /^\s*#/ and $line =~ /file =/) {
+      if ($line =~ /FRED_HOME\/data/) {
 	print OUT $line;
       }
       else {

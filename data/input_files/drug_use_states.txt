@@ -1,0 +1,44 @@
+Number of states = 4
+
+state 0: 
+name = Non_User
+infectivity = 0.0
+symptoms = 0.0
+fatality = 0
+initial_percent = 94.29
+
+state 1:
+name = Asymp_User
+infectivity = 0.0
+symptoms = 0.0
+fatality = 0
+initial_percent = 2.48
+
+state 2:
+name = Problem_User
+infectivity = 0.0
+symptoms = 1.0
+fatality = 0
+initial_percent = 3.23
+
+state 3:
+name = Fatal_Overdose
+infectivity = 0.0
+symptoms = 0.0
+fatality = 1
+initial_percent = 0.0
+
+state transition probabilities:
+
+0 1 0.000299041331934375
+0 2 0.000183558492087282
+
+1 0 0.000183558492087282
+1 2 0.0054379938290301
+
+2 0 0.00374162758438606
+2 1 0.00308452512501248
+
+
+
+

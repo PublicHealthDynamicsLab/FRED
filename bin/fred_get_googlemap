@@ -32,7 +32,7 @@ close BB;
 my $file = "googlemap.png";
 unlink $file;
 
-my ($api_key, $lightness) = @ARGV;
+my ($api_key, $lightness, $show_names) = @ARGV;
 $lightness = 0 if not $lightness;
 $api_key = "none" if not $api_key;
 
@@ -42,6 +42,10 @@ my $my_style = "lightness:0&feature:road|visibility:simplified&style=feature:poi
 
 if ($lightness>0) {
   $my_style = "lightness:25&feature:road|visibility:simplified&style=feature:poi|visibility:off&style=feature:administrative.locality|visibility:off&style=feature:administrative.neighborhood:off";
+}
+
+if ($show_names) {
+  $my_style = "lightness:0&feature:road|visibility:simplified&style=feature:poi|visibility:on&style=feature:administrative.locality|visibility:on&style=feature:administrative.neighborhood:on";
 }
 
 

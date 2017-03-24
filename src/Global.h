@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -47,11 +50,11 @@ using namespace std::chrono;
 #endif
 
 // Size of strings (usually file names)
-#define FRED_STRING_SIZE 256
+#define FRED_STRING_SIZE 1024
 #define FRED_FIPS_LIST_SIZE 1000
 
 class Population;
-class Disease_List;
+class Condition_List;
 class Network;
 class Place;
 class Place_List;
@@ -59,7 +62,6 @@ class Neighborhood_Layer;
 class Regional_Layer;
 class Visualization_Layer;
 class Vector_Layer;
-class Evolution;
 class Seasonality;
 class Sexual_Transmission_Network;
 
@@ -76,6 +78,8 @@ class Sexual_Transmission_Network;
  */
 class Global {
 public:
+  //mina
+  static const int TEST_ID = 1664;
   
   // Output codes
   static const int OUTPUT_S = 0;
@@ -99,23 +103,25 @@ public:
   static const int ADULT_AGE = 18;
   static const int SCHOOL_AGE = 5;
   static const int RETIREMENT_AGE = 67;
-  // MAX_NUM_DISEASES sets the size of stl::bitsets and static arrays used throughout FRED
-  // to store disease-specific flags and pointers; set to the visualizationest possible value 
+  static const int GRADES = 21;
+  // MAX_NUM_CONDITIONS sets the size of stl::bitsets and static arrays used throughout FRED
+  // to store condition-specific flags and pointers; set to the smallest possible value 
   // for optimal performance and memory usage
-  static const int MAX_NUM_DISEASES = 4;
+  static const int MAX_NUM_CONDITIONS = 8;
   // Change this constant and recompile to allow more threads.  For efficiency should be
   // equal to OMP_NUM_THREADS value that will be used.  If OMP_NUM_THREADS greater than
   // MAX_NUM_THREADS is used, FRED will abort the run.
   static const int MAX_NUM_THREADS = NCPU;
 
   // race codes (ver 2)
+  static const int UNKNOWN_RACE = -1;
   static const int WHITE = 1;
   static const int AFRICAN_AMERICAN = 2;
   static const int AMERICAN_INDIAN = 3;
   static const int ALASKA_NATIVE = 4;
   static const int TRIBAL = 5;
   static const int ASIAN = 6;
-  static const int HAWAIIN_NATIVE = 7;
+  static const int HAWAIIAN_NATIVE = 7;
   static const int OTHER_RACE = 8;
   static const int MULTIPLE_RACE = 9;
 
@@ -132,7 +138,7 @@ public:
   static const int HOUSEMATE = 9;
   static const int PARTNER = 10;
   static const int FOSTER_CHILD = 11;
-  static const int OTHER_NON_RELATIVE = 13;
+  static const int OTHER_NON_RELATIVE = 12;
   static const int INSTITUTIONALIZED_GROUP_QUARTERS_POP = 13;
   static const int NONINSTITUTIONALIZED_GROUP_QUARTERS_POP = 14;
 
@@ -174,47 +180,39 @@ public:
   static const int NON_RELATIVE = 21;
   */
 
+  // symptoms level
+  static const int NO_SYMPTOMS = 0;
+  static const int MILD_SYMPTOMS = 1;
+  static const int MODERATE_SYMPTOMS = 2;
+  static const int SEVERE_SYMPTOMS = 3;
+
   // global simulation variables
   static char Simulation_directory[FRED_STRING_SIZE];
+  static char Plot_directory[FRED_STRING_SIZE];
+  static char Visualization_directory[FRED_STRING_SIZE];
   static int Simulation_run_number;
   static unsigned long Simulation_seed;
   static high_resolution_clock::time_point Simulation_start_time;
   static int Simulation_Day;
 
   // global runtime parameters
-  static char Synthetic_population_directory[];
-  static char Synthetic_population_id[];
-  static char Synthetic_population_version[];
-  static char Population_directory[];
   static char Output_directory[];
   static char Tracefilebase[];
-  static char VaccineTracefilebase[];
-  static int Trace_Headers;
-  static int Rotate_start_date;
   static int Quality_control;
   static int RR_delay;
   static char Prevfilebase[];
   static char Incfilebase[];
-  static char Immunityfilebase[];
-  static char City[];
-  static char County[];
-  static char US_state[];
-  static char FIPS_code[];
-  //added for cbsa
-  static char MSA_code[];
-
   static char ErrorLogbase[];
-  static bool Enable_Behaviors;
   static int Track_infection_events;
   static bool Track_age_distribution;
   static bool Track_household_distribution;
   static bool Track_network_stats;
-  static bool Track_Residual_Immunity;
   static bool Report_Mean_Household_Income_Per_School;
   static bool Report_Mean_Household_Size_Per_School;
   static bool Report_Mean_Household_Distance_From_School;
   static bool Report_Mean_Household_Stats_Per_Income_Category;
   static bool Report_Epidemic_Data_By_Census_Tract;
+  static bool Report_Epidemic_Data_By_County;
   static int Verbose;
   static int Debug;
   static int Test;
@@ -222,14 +220,10 @@ public:
   static int Reseed_day;
   static unsigned long Seed;
   static char Start_date[];
-  static int Epidemic_offset;
-  static int Vaccine_offset;
   static char Seasonality_Timestep[];
-  static double Work_absenteeism;
-  static double School_absenteeism;
 
   //Boolean flags
-  static bool Enable_Health_Charts;
+  static bool Enable_Health_Records;
   static bool Enable_Transmission_Network;
   static bool Enable_Sexual_Partner_Network;
   static bool Enable_Transmission_Bias;
@@ -238,6 +232,7 @@ public:
   static bool Enable_Health_Insurance;
   static bool Enable_Group_Quarters;
   static bool Enable_Visualization_Layer;
+  static int Visualization_Run;
   static bool Enable_Vector_Layer;
   static bool Report_Vector_Population;
   static bool Enable_Vector_Transmission;
@@ -246,13 +241,6 @@ public:
   static bool Enable_Local_Workplace_Assignment;
   static bool Enable_Seasonality;
   static bool Enable_Climate;
-  static bool Enable_Chronic_Condition;
-  static bool Report_Immunity;
-  static bool Enable_Vaccination;
-  static bool Enable_Antivirals;
-  static bool Enable_Viral_Evolution;
-  static bool Enable_HAZEL;
-  static bool Enable_hh_income_based_susc_mod;
   static bool Use_Mean_Latitude;
   static bool Print_Household_Locations;
   static int Report_Age_Of_Infection;
@@ -267,27 +255,19 @@ public:
   static bool Report_Symptomatic_Incidence_By_Census_Tract; 
   static bool Report_County_Demographic_Information;
   static bool Assign_Teachers;
-  static bool Enable_Household_Shelter;
-  static bool Enable_Isolation;
-  static int Isolation_Delay;
-  static double Isolation_Rate;
   static char PSA_Method[];
   static char PSA_List_File[];
   static int PSA_Sample_Size;
   static int PSA_Sample;
-  // for residual immunity by FIPS
-  static bool Residual_Immunity_by_FIPS;
-  static char Residual_Immunity_File[];
 
   // global singleton objects
   static Population Pop;
-  static Disease_List Diseases;
+  static Condition_List Conditions;
   static Place_List Places;
   static Neighborhood_Layer* Neighborhoods;
   static Regional_Layer* Simulation_Region;
   static Visualization_Layer* Visualization;
   static Vector_Layer* Vectors;
-  static Evolution* Evol;
   static Seasonality* Clim;
   static Tracker<int>* Daily_Tracker;
   static Tracker<long int>* Tract_Tracker;
@@ -301,16 +281,15 @@ public:
   static FILE* Outfp;
   static FILE* Tracefp;
   static FILE* Infectionfp;
-  static FILE* VaccineTracefp;
   static FILE* Birthfp;
   static FILE* Deathfp;
   static FILE* Prevfp;
   static FILE* Incfp;
   static FILE* ErrorLogfp;
-  static FILE* Immunityfp;
   static FILE* Householdfp;
   static FILE* Tractfp;
   static FILE* IncomeCatfp;
+  static FILE* HealthRecordfp;
 
   /**
    * Fills the static variables with values from the parameter file.
@@ -336,10 +315,8 @@ namespace fred {
 
     tiny_bitset() {
       if(n_bits > sizeof(BitType) * 8) {
-        fprintf(stderr,
-		"This specialized bitset is limited to %zu bytes.%s\n",
-		sizeof(BitType),
-		"If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
+        fprintf(stderr, "This specialized bitset is limited to %zu bytes.%s\n", sizeof(BitType),
+		            "If a larger bitset is needed, please change the underlying BitType in tiny_bitset (Global.h)");
       }
       assert(n_bits <= sizeof(BitType) * 8);
       reset();
@@ -390,16 +367,16 @@ namespace fred {
 
 
   /* 
-   * bitset big enough to store flags for MAX_NUM_DISEASES
-   * Global::MAX_NUM_DISEASES should be equal to number of diseases
+   * bitset big enough to store flags for MAX_NUM_CONDITIONS
+   * Global::MAX_NUM_CONDITIONS should be equal to number of conditions
    * for efficiency. 
-   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual diseases may be less than
-   * 'MAX_NUM_DISEASES' so care should be taken when performing operations
-   * (such as any(), flip(), reset(), etc.) on a disease_bitset to avoid
-   * unintended setting/resetting flags for non-existent diseases.
+   * IMPORTANT NOTE TO THE PROGRAMMER: Number of actual conditions may be less than
+   * 'MAX_NUM_CONDITIONS' so care should be taken when performing operations
+   * (such as any(), flip(), reset(), etc.) on a condition_bitset to avoid
+   * unintended setting/resetting flags for non-existent conditions.
    *
    */
-  typedef tiny_bitset<Global::MAX_NUM_DISEASES> disease_bitset;
+  typedef tiny_bitset<Global::MAX_NUM_CONDITIONS> condition_bitset;
 
   typedef float geo;
 
@@ -562,6 +539,6 @@ typedef struct {
   int place_seeds[VECTOR_DISEASE_TYPES];
   int day_start_seed[VECTOR_DISEASE_TYPES];
   int day_end_seed[VECTOR_DISEASE_TYPES];
-} vector_disease_data_t;
+} vector_condition_data_t;
 
 #endif // _FRED_GLOBAL_H

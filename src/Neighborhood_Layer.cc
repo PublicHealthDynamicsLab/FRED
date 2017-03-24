@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -46,7 +49,7 @@ Neighborhood_Layer::Neighborhood_Layer() {
   this->max_y = base_grid->get_max_y();
 
   // determine patch size for this layer
-  Params::get_param_from_string("neighborhood_patch_size", &this->patch_size);
+  Params::get_param("neighborhood_patch_size", &this->patch_size);
 
   // determine number of rows and cols
   this->rows = (double)(this->max_y - this->min_y) / this->patch_size;
@@ -77,27 +80,27 @@ Neighborhood_Layer::Neighborhood_Layer() {
 
   // params to determine neighborhood visitation patterns
   int temp_int = 0;
-  Params::get_param_from_string("enable_neighborhood_gravity_model", &temp_int);
+  Params::get_param("enable_neighborhood_gravity_model", &temp_int);
   this->Enable_neighborhood_gravity_model = (temp_int == 0 ? false : true);
 
-  Params::get_param_from_string("neighborhood_max_distance", &this->max_distance);
-  Params::get_param_from_string("neighborhood_max_destinations", &this->max_destinations);
-  Params::get_param_from_string("neighborhood_min_distance", &this->min_distance);
-  Params::get_param_from_string("neighborhood_distance_exponent", &this->dist_exponent);
-  Params::get_param_from_string("neighborhood_population_exponent", &this->pop_exponent);
+  Params::get_param("neighborhood_max_distance", &this->max_distance);
+  Params::get_param("neighborhood_max_destinations", &this->max_destinations);
+  Params::get_param("neighborhood_min_distance", &this->min_distance);
+  Params::get_param("neighborhood_distance_exponent", &this->dist_exponent);
+  Params::get_param("neighborhood_population_exponent", &this->pop_exponent);
 
   // params for old neighborhood model (deprecated)
-  Params::get_param_from_string("community_distance", &this->Community_distance);
-  Params::get_param_from_string("community_prob", &this->Community_prob);
-  Params::get_param_from_string("home_neighborhood_prob", &this->Home_neighborhood_prob);
+  Params::get_param("community_distance", &this->Community_distance);
+  Params::get_param("community_prob", &this->Community_prob);
+  Params::get_param("home_neighborhood_prob", &this->Home_neighborhood_prob);
 }
 
-void Neighborhood_Layer::setup(Place::Allocator<Neighborhood> & neighborhood_allocator) {
+void Neighborhood_Layer::setup() {
   // create one neighborhood per patch
   for(int i = 0; i < this->rows; i++) {
     for(int j = 0; j < this->cols; j++) {
       if(this->grid[i][j].get_houses() > 0) {
-        this->grid[i][j].make_neighborhood(neighborhood_allocator);
+        this->grid[i][j].make_neighborhood();
       }
     }
   }
@@ -633,199 +636,13 @@ Place * Neighborhood_Layer::select_destination_neighborhood_by_old_model(Place *
 }
 
 
-Place * Neighborhood_Layer::select_workplace_in_area(int row, int col) {
-
-  FRED_VERBOSE(1, "SELECT_WORKPLACE_IN_AREA for row %d col %d\n", row, col);
-
-  // look for workplaces in increasingly expanding adjacent neighborhood
-  vector<Neighborhood_Patch *> patches;
-  Neighborhood_Patch * patch;
-  for (int level = 0; level < 100; level++) {
-    FRED_VERBOSE(2,"level %d\n",level);
-    patches.clear();
-    if (level == 0) {
-      patch = get_patch(row, col);
-      if (patch != NULL) {
-	FRED_VERBOSE(2,"adding (%d,%d)\n", row, col); 
-	patches.push_back(patch);
-      }
-    }
-    else {
-      for(int c = col-level; c <= col+level; c++) {
-	patch = get_patch(row - level, c);
-	if (patch != NULL) {
-	  FRED_VERBOSE(2,"adding (%d,%d)\n", row - level, c); 
-	  patches.push_back(patch);
-	}
-	patch = get_patch(row + level, c);
-	if (patch != NULL) {
-	  FRED_VERBOSE(2,"adding (%d,%d)\n", row + level, c); 
-	  patches.push_back(patch);
-	}
-      }
-      for(int r = row-level+1; r <= row+level-1; r++) {
-	patch = get_patch(r, col - level);
-	if (patch != NULL) {
-	  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col - level); 
-	  patches.push_back(patch);
-	}
-	patch = get_patch(r, col + level);
-	if (patch != NULL) {
-	  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col + level); 
-	  patches.push_back(patch);
-	}
-      }
-    }
-
-    // shuffle the patches
-    FYShuffle<Neighborhood_Patch *>(patches);
-
-    FRED_VERBOSE(1,"Level %d include %d patches\n", level, patches.size());
-
-    // look for a suitable workplace in each patch
-    for(size_t i = 0; i < patches.size(); i++) {
-      Neighborhood_Patch *patch = patches.at(i);
-      if(patch == NULL)
-        continue;
-      Place * p = patch->select_workplace_in_neighborhood();
-      if(p != NULL) {
-	FRED_VERBOSE(1, "SELECT_WORKPLACE_IN_AREA found workplace %s at level %d\n",
-		     p->get_label(), level);
-	return(p); // success
-      }
-    }
-  }
-  return NULL;
-}
-
-bool more_room(Place *p1, Place *p2){ 
-  School * s1 = static_cast<School *>(p1);
-  School * s2 = static_cast<School *>(p2);
-  int vac1 = s1->get_orig_number_of_students() - s1->get_number_of_students();
-  int vac2 = s2->get_orig_number_of_students() - s2->get_number_of_students();
-  // return vac1 > vac2;
-  double relvac1 = (vac1 + 0.000001) / (s1->get_orig_number_of_students() + 1.0);
-  double relvac2 = (vac2 + 0.000001) / (s2->get_orig_number_of_students() + 1.0);
-  // resolve ties by place id
-  return (relvac1 == relvac2) ? (s1->get_id() <= s2->get_id()) : (relvac1 > relvac2);
-}
-
-Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
-  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA for age %d row %d col %d\n", age, row, col);
-  // make a list of all schools within 50 kms that have grades for this age
-  place_vector_t * schools = new place_vector_t;
-  schools->clear();
-  Neighborhood_Patch * patch;
-  int max_dist = 60;
-  for(int c = col-max_dist; c <= col+max_dist; c++) {
-    for(int r = row-max_dist; r <= row+max_dist; r++) {
-      patch = get_patch(r,c);
-      if (patch != NULL) {
-	// find all age-appropriate schools in this patch
-	patch->find_schools_for_age(age, schools);
-      }
-    }
-  }
-  assert(schools->size() > 0);
-  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA found %d possible schools\n", schools->size());
-  // sort schools by vacancies
-  std::sort(schools->begin(),schools->end(),more_room);
-  // pick the school with largest vacancy or smallest crowding 
-  Place * place = schools->front();
-  School * s = static_cast<School *>(place);
-  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA found school %s orig %d current %d vacancies %d\n",
-	       s->get_label(), s->get_orig_number_of_students(), s->get_number_of_students(),
-	       s->get_orig_number_of_students()-s->get_number_of_students());
-  // s->print_size_distribution();
-  return place;
-}
-
-/*
-  Place * Neighborhood_Layer::select_school_in_area(int age, int row, int col) {
-
-  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA for age %d row %d col %d\n", age, row, col);
-
-  for (int attempt = 1; attempt <= 20; attempt++) {
-  double threshold = attempt * -0.1;
-  int max_level = 20;
-
-  // look for schools in increasingly expanding adjacent neighborhood
-  vector<Neighborhood_Patch *> patches;
-  Neighborhood_Patch * patch;
-  for (int level = 0; level < max_level; level++) {
-  FRED_VERBOSE(2,"level %d\n",level);
-  patches.clear();
-  if (level == 0) {
-  patch = get_patch(row, col);
-  if (patch != NULL) {
-  FRED_VERBOSE(2,"adding (%d,%d)\n", row, col); 
-  patches.push_back(patch);
-  }
-  }
-  else {
-  for(int c = col-level; c <= col+level; c++) {
-  patch = get_patch(row - level, c);
-  if (patch != NULL) {
-  FRED_VERBOSE(2,"adding (%d,%d)\n", row - level, c); 
-  patches.push_back(patch);
-  }
-  patch = get_patch(row + level, c);
-  if (patch != NULL) {
-  FRED_VERBOSE(2,"adding (%d,%d)\n", row + level, c); 
-  patches.push_back(patch);
-  }
-  }
-  for(int r = row-level+1; r <= row+level-1; r++) {
-  patch = get_patch(r, col - level);
-  if (patch != NULL) {
-  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col - level); 
-  patches.push_back(patch);
-  }
-  patch = get_patch(r, col + level);
-  if (patch != NULL) {
-  FRED_VERBOSE(2,"adding (%d,%d)\n", r, col + level); 
-  patches.push_back(patch);
-  }
-  }
-  }
-
-  if (patches.size() == 0) {
-  FRED_VERBOSE(1, "SELECT_SCHOOL_IN_AREA: no patches at level %d\n", level);
-  continue;
-  }
-
-  // shuffle the patches
-  FYShuffle<Neighborhood_Patch *>(patches);
-
-  FRED_VERBOSE(1,"Level %d include %d patches\n", level, patches.size());
-
-  // look for a suitable school in each patch
-  for(size_t i = 0; i < patches.size(); i++) {
-  Neighborhood_Patch *patch = patches.at(i);
-  if(patch == NULL)
-  continue;
-  Place * p = patch->select_school_in_neighborhood(age, threshold);
-  if(p != NULL) {
-  FRED_VERBOSE(0, "SELECT_SCHOOL_IN_AREA found school %s at level %d threshold %0.1f\n",
-  p->get_label(), level, threshold);
-  return(p); // success
-  }
-  }
-  }
-  }
-  return NULL;
-  }
-
-*/
-
 void Neighborhood_Layer::register_place(Place *place) {
   Neighborhood_Patch * patch = get_patch(place->get_latitude(), place->get_longitude());
   if (patch != NULL) {
     patch->register_place(place);
-    //    place->set_patch(patch);  
   }
   else {
-    FRED_VERBOSE(0, "register place:can't find patch for place %s county = %d\n",
-		 place->get_label(), place->get_county_index());
+    FRED_VERBOSE(1, "register place: can't find patch for place %s county = %d\n",
+		 place->get_label(), place->get_county_fips());
   }
 }

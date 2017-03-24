@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -17,6 +20,7 @@
 #include <math.h>
 
 #include "Transmission.h"
+#include "Environmental_Transmission.h"
 #include "Respiratory_Transmission.h"
 #include "Sexual_Transmission.h"
 #include "Vector_Transmission.h"
@@ -42,6 +46,10 @@ Transmission* Transmission::get_new_transmission(char* transmission_mode) {
     return new Sexual_Transmission();
   }
 
+  if(strcmp(transmission_mode, "environmental") == 0) {
+    return new Environmental_Transmission();
+  }
+  
   Utils::fred_abort("Unknown transmission_mode (%s).\n", transmission_mode);
   return NULL;
 }
@@ -50,13 +58,13 @@ Transmission* Transmission::get_new_transmission(char* transmission_mode) {
 
 void Transmission::get_parameters() {
 
-  // all-disease seasonality reduction
-  Params::get_param_from_string("seasonal_reduction", &Transmission::Seasonal_Reduction);
+  // all-condition seasonality reduction
+  Params::get_param("seasonal_reduction", &Transmission::Seasonal_Reduction);
   // setup seasonal multipliers
 
   if(Transmission::Seasonal_Reduction > 0.0) {
     int seasonal_peak_day_of_year; // e.g. Jan 1
-    Params::get_param_from_string("seasonal_peak_day_of_year", &seasonal_peak_day_of_year);
+    Params::get_param("seasonal_peak_day_of_year", &seasonal_peak_day_of_year);
 
     // setup seasonal multipliers
     Transmission::Seasonality_multiplier = new double [367];

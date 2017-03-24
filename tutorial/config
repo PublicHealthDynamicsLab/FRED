@@ -1,5 +1,5 @@
 ##################################################
 Baseline Parameter File: params.base
 Sweep Parameters:
-Name: R0 Min: 1.0 Max: 2.5 Inc: 0.5 Format: %0.1f
+Name: INF.R0 Min: 1.0 Max: 2.0 Inc: 0.5 Format: %0.1f
 ##################################################

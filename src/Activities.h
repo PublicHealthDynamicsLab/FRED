@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -22,20 +25,25 @@
 
 using namespace std;
 
-#include "Disease_List.h"
-#include "Epidemic.h"
+#include "Condition_List.h"
 #include "Global.h"
 #include "Person_Network_Link.h"
 #include "Person_Place_Link.h"
+#include "Relationships.h"    //mina added
 
 class Age_Map;
 class Activities_Tracking_Data;
+class Classroom;
 class Hospital;
+class Household;
 class Mixing_Group;
+class Neighborhood;
 class Network;
+class Office;
 class Person;
-class Person_Network_Link;
 class Place;
+class School;
+class Workplace;
 
 #define MAX_MOBILITY_AGE 100
 
@@ -73,6 +81,21 @@ class Place;
 #define PRIVATE_UNAV "Private_unav"
 #define UNINSURED_UNAV "Uninsured_unav"
 
+#define SICK_DAYS_PRESENT "sick_days_pres"
+#define SICK_DAYS_ABSENT "sick_days_abs"
+#define SCHL_SICK_DAYS_PRESENT "schl_sick_days_pres"
+#define SCHL_SICK_DAYS_ABSENT "schl_sick_days_abs"
+
+#define TOT_EMP_DAYS_USED_FOR_CHILD "tot_emp_days_used_for_child"
+#define TOT_EMP_SL_DAYS_USED_FOR_CHILD "tot_emp_sl_days_used_for_child"
+#define TOT_EMP_DAYS_USED "tot_emp_days_used"
+#define TOT_EMP_MISS_WORK "tot_emp_miss_work"
+#define TOT_EMP_SICK_DAYS_USED "tot_emp_sl_days_used"
+#define TOT_EMP_USING_SICK_LEAVE "tot_emp_using_sl"
+#define TOT_EMP_SICK_DAYS_PRES "tot_emp_sl_days_pres"
+#define TOT_EMP_SYMP_WORKDAYS "tot_emp_symp_workdays"
+#define TOT_EMP_SYMP_NONWORKDAYS "tot_emp_symp_nonworkdays"
+
 namespace Activity_index {
   enum e {
     HOUSEHOLD_ACTIVITY,
@@ -90,6 +113,14 @@ namespace Activity_index {
 class Activities {
 
 public:
+
+  /**
+   * Default constructor
+   */
+
+  Activities();
+
+  void setup(Person* self, Place* house, Place* school, Place* work);
 
   static const char* activity_lookup(int idx) {
     assert(idx >= 0);
@@ -137,7 +168,7 @@ public:
    *
    * @param day the simulation day
    */
-  void update_activities_of_infectious_person(int sim_day);
+  void update_daily_activities(int sim_day);
 
   /**
    * Perform the daily update to the schedule
@@ -145,21 +176,6 @@ public:
    * @param day the simulation day
    */
   void update_schedule(int sim_day);
-
-  /**
-   * Decide whether to stay home if symptomatic.
-   * May depend on availability of sick leave at work.
-   *
-   * @param sim_day the simulation day
-   */
-  void decide_whether_to_stay_home(int sim_day);
-
-  /**
-   * Decide whether to seek healthcare if symptomatic.
-   *
-   * @param sim_day the simulation day
-   */
-  void decide_whether_to_seek_healthcare(int sim_day);
 
   /**
    * Have agent begin stay in a hospital
@@ -175,13 +191,6 @@ public:
    * @param self this agent
    */
   void end_hospitalization();
-
-  /**
-   * Decide whether to stay home if symptomatic.
-   * If Enable_default_sick_leave_behavior is set, the decision is made only once,
-   * and the agent stays home for the entire symptomatic period, or never stays home.
-   */
-  bool default_sick_leave_behavior();
 
   /// returns string containing Activities schedule; does
   /// not include trailing newline
@@ -200,8 +209,6 @@ public:
    * Print out information about this object
    */
   void print();
-
-  unsigned char get_deme_id();
 
   Place* get_daily_activity_location(int i) {
     return this->link[i].get_place();
@@ -235,6 +242,9 @@ public:
 
   void set_school(Place* p) {
     set_daily_activity_location(Activity_index::SCHOOL_ACTIVITY, p);
+    if (p != NULL) {
+      set_last_school(p);
+    }
   }
 
   void set_classroom(Place* p) {
@@ -257,14 +267,11 @@ public:
     set_daily_activity_location(Activity_index::AD_HOC_ACTIVITY, p);
   }
 
-  void move_to_new_house(Place* house);
   void change_household(Place* place);
   void change_school(Place* place);
   void change_workplace(Place* place, int include_office = 1);
 
-  Place* get_stored_household() {
-    return this->stored_daily_activity_locations[Activity_index::HOUSEHOLD_ACTIVITY];
-  }
+  Household* get_stored_household();
 
   /**
    * @return a pointer to this agent's permanent Household
@@ -272,7 +279,7 @@ public:
    * If traveling, this is the Person's permanent residence,
    * NOT the household being visited
    */
-  Place* get_permanent_household() {
+  Household* get_permanent_household() {
     if(this->is_traveling && this->is_traveling_outside) {
       return get_stored_household();
     } else if(Global::Enable_Hospitals && this->is_hospitalized) {
@@ -285,51 +292,37 @@ public:
   /**
    * @return a pointer to this agent's Household
    */
-  Place* get_household() {
-    return get_daily_activity_location(Activity_index::HOUSEHOLD_ACTIVITY);
-  }
+  Household* get_household();
 
   /**
    * @return a pointer to this agent's Neighborhood
    */
-  Place* get_neighborhood() {
-    return get_daily_activity_location(Activity_index::NEIGHBORHOOD_ACTIVITY);
-  }
+  Neighborhood* get_neighborhood();
 
   /**
    * @return a pointer to this agent's School
    */
-  Place* get_school() {
-    return get_daily_activity_location(Activity_index::SCHOOL_ACTIVITY);
-  }
+  School* get_school();
 
   /**
    * @return a pointer to this agent's Classroom
    */
-  Place* get_classroom() {
-    return get_daily_activity_location(Activity_index::CLASSROOM_ACTIVITY);
-  }
+  Classroom* get_classroom();
 
   /**
    * @return a pointer to this agent's Workplace
    */
-  Place* get_workplace() {
-    return get_daily_activity_location(Activity_index::WORKPLACE_ACTIVITY);
-  }
+  Workplace* get_workplace();
 
   /**
    * @return a pointer to this agent's Office
    */
-  Place* get_office() {
-    return get_daily_activity_location(Activity_index::OFFICE_ACTIVITY);
-  }
+  Office* get_office();
 
   /**
    * @return a pointer to this agent's Hospital
    */
-  Place* get_hospital() {
-    return get_daily_activity_location(Activity_index::HOSPITAL_ACTIVITY);
-  }
+  Hospital* get_hospital();
 
   /**
    * @return a pointer to this agent's Ad Hoc location
@@ -384,7 +377,10 @@ public:
   /**
    * Update the agent's profile
    */
-  void update_profile();
+  void update_profile_after_changing_household();
+
+
+  void update_profile_based_on_age();
 
   /**
    * withdraw from all activities
@@ -427,17 +423,10 @@ public:
     return this->sick_leave_available;
   }
 
-  int get_sick_days_absent() {
-    return this->my_sick_days_absent;
-  }
-
-  int get_sick_days_present() {
-    return this->my_sick_days_present;
-  }
-
   static void update(int day);
   static void end_of_run();
   static void before_run();
+  static void report(int day);
 
   void set_profile(char _profile) {
     this->profile = _profile;
@@ -449,6 +438,10 @@ public:
 
   bool is_student() {
     return this->profile == STUDENT_PROFILE;
+  }
+
+  bool is_employed() {
+    return get_workplace() != NULL;
   }
 
   bool is_college_student() {
@@ -495,7 +488,7 @@ public:
     this->grade = n;
   }
 
-  int get_visiting_health_status(Place* place, int sim_day, int disease_id);
+  int get_visiting_health_status(Place* place, int sim_day, int condition_id);
 
   void set_return_from_travel_sim_day(int sim_day) {
     this->return_from_travel_sim_day = sim_day;
@@ -523,6 +516,8 @@ public:
 
   void join_network(Network* network);
 
+  void unenroll_network(Network* network);  //mina added
+
   bool is_enrolled_in_network(Network* network);
 
   void print_network(FILE* fp, Network* network);
@@ -533,13 +528,50 @@ public:
 
   int get_out_degree(Network* network);
 
+  int get_out_degree_sexual_acts(Network* network, Relationships* relationships); //mina added
+
   int get_in_degree(Network* network);
 
   void clear_network(Network* network);
   
   Person* get_end_of_link(int n, Network* network);
 
+  Person* get_beginning_of_link(int n, Network* network);    //mina added
+
+  void set_last_school(Place* school);
+
+  School* get_last_school() {
+    return last_school;
+  }
+
+  static int get_index_of_sick_leave_dist(Person* per);
+
+  bool lives_in_parents_home() {
+    return this->in_parents_home;
+  }
+
+  void unset_in_parents_home() {
+    this->in_parents_home = false;
+  }
+
+  void confine_to_household(int condition_id) {
+    is_confined_for_condition[condition_id] = true;
+    is_confined_due_to_contact_tracing = true;
+  }
+
+  bool is_confined_to_household(int condition_id) {
+    return is_confined_for_condition[condition_id];
+  }
+
+  bool is_confined_to_household() {
+    return is_confined_due_to_contact_tracing;
+  }
+
+  void clear_confinement_to_household(int condition_id);
+
 private:
+
+  friend class Person;
 
   // pointer to owner
   Person* myself;
@@ -561,15 +593,21 @@ private:
   Place* home_neighborhood;
 
   // daily activity schedule:
-  int schedule_updated;                       // date of last schedule update
-  bool is_traveling;                         // true if traveling
-  bool is_traveling_outside;                 // true if traveling outside modeled area
+  int schedule_updated;			 // date of last schedule update
+  bool is_traveling;				// true if traveling
+  bool is_traveling_outside;   // true if traveling outside modeled area
+
+  // am i subject to household confinement
+  bool* is_confined_for_condition;
+  bool is_confined_due_to_contact_tracing; // true if confined to household
 
   char profile;                              // activities profile type
   bool is_hospitalized;
-  bool is_isolated;
   int return_from_travel_sim_day;
   int sim_day_hospitalization_ends;
+
+  // school info
+  School* last_school;
   int grade;
 
   // Do I have paid sick leave
@@ -577,40 +615,21 @@ private:
   // Only matters if have sick_leave_available
   float sick_days_remaining;
 
-  // individual sick day variables
-  short int my_sick_days_absent;
-  short int my_sick_days_present;
-  short int my_unpaid_sick_days_absent;
-
   bool my_sick_leave_decision_has_been_made;
   bool my_sick_leave_decision;
+
+  // still in parents home?
+  bool in_parents_home;
 
   // static variables
   static bool is_initialized; // true if static arrays have been initialized
   static bool is_weekday;     // true if current day is Monday .. Friday
   static int day_of_week;     // day of week index, where Sun = 0, ... Sat = 6
-
-  // run-time parameters
-  static bool Enable_default_sick_behavior;
-  static double Default_sick_day_prob;
-//  // mean number of sick days taken if sick leave is available
-//  static double SLA_mean_sick_days_absent;
-//  // mean number of sick days taken if sick leave is unavailable
-//  static double SLU_mean_sick_days_absent;
-  // prob of staying home if sick leave is available
-  static double SLA_absent_prob;
-  // prob of staying home if sick leave is unavailable
-  static double SLU_absent_prob;
-  // extra sick days for flu
-  static double Flu_days;
-  
-  static int HAZEL_seek_hc_ramp_up_days;
-  static double HAZEL_seek_hc_ramp_up_mult;
+  static double Work_absenteeism;
+  static double School_absenteeism;
 
   static Age_Map* Hospitalization_prob;
   static Age_Map* Outpatient_healthcare_prob;
-  static double Hospitalization_visit_housemate_prob;
-  
   static Activities_Tracking_Data Tracking_data;
 
   // sick days statistics
@@ -620,10 +639,8 @@ private:
   static const int HH_INCOME_QTILE_DIST = 2;
   static int Sick_leave_dist_method;
   static std::vector<double> WP_size_sl_prob_vec;
+  static std::vector<double> WP_size_sl_days_vec;
   static std::vector<double> HH_income_qtile_sl_prob_vec;
-  static double WP_small_mean_sl_days_available;
-  static double WP_large_mean_sl_days_available;
-  static int WP_size_cutoff_sl_exception;
   static double HH_income_qtile_mean_sl_days_available;
 
   // Statistics for childhood presenteeism study
@@ -646,55 +663,46 @@ private:
   const char* get_daily_activity_location_label(int i);
   bool is_present(int sim_day, Place* place);
 
-  static int get_index_of_sick_leave_dist(Person* per);
-
-protected:
-
-  /**
-   * Default constructor
-   */
-  friend class Person;
-  Activities();
-  void setup(Person* self, Place* house, Place* school, Place* work);
-
 };
 
 struct Activities_Tracking_Data {
-  // Daily totals (reset each day)
-  int daily_sick_days_present;
-  int daily_sick_days_absent;
-  int daily_school_sick_days_present;
-  int daily_school_sick_days_absent;
   // Run-wide totals (cumulative)
   int total_employees_days_used;
-  int total_employees_taking_day_off;
+  int total_employees_missing_work;
   int total_employees_sick_leave_days_used;
   int total_employees_taking_sick_leave;
   int total_employees_sick_days_present;
+  int total_employees_symptomatic_workdays;
+  int total_employees_symptomatic_nonworkdays;
+  double total_employees_days_used_for_child;
+  double total_employees_sl_days_used_for_child;
 
   int entered_school;
   int left_school;
 
   // Statistics for presenteeism study
   // These are cumulative totals by sick leave groupings (e.g. workplace size level)
-  vector<int> employees_with_sick_leave;
-  vector<int> employees_without_sick_leave;
-  vector<int> employees_days_used;
-  vector<int> employees_taking_day_off;
-  vector<int> employees_sick_leave_days_used;
-  vector<int> employees_taking_sick_leave_day_off;
-  vector<int> employees_sick_days_present;
+  vector<double> employees_with_sick_leave;
+  vector<double> employees_without_sick_leave;
+  vector<double> employees_days_used;
+  vector<double> employees_taking_day_off;
+  vector<double> employees_sick_leave_days_used;
+  vector<double> employees_taking_sick_leave_day_off;
+  vector<double> employees_sick_days_present;
+  vector<double> employees_days_used_for_child;
+  vector<double> employees_sl_days_used_for_child;
+  vector<double> employees_days_at_work_with_symp_child_at_home;
 
   Activities_Tracking_Data() {
-    this->daily_sick_days_present = 0;
-    this->daily_sick_days_absent = 0;
-    this->daily_school_sick_days_present = 0;
-    this->daily_school_sick_days_absent = 0;
     this->total_employees_days_used = 0;
-    this->total_employees_taking_day_off = 0;
-    this->total_employees_taking_sick_leave = 0;
+    this->total_employees_missing_work = 0;
     this->total_employees_sick_leave_days_used = 0;
+    this->total_employees_taking_sick_leave = 0;
     this->total_employees_sick_days_present = 0;
+    this->total_employees_symptomatic_workdays = 0;
+    this->total_employees_symptomatic_nonworkdays = 0;
+    this->total_employees_days_used_for_child = 0.0;
+    this->total_employees_sl_days_used_for_child = 0.0;
 
     this->entered_school = 0;
     this->left_school = 0;
@@ -705,6 +713,9 @@ struct Activities_Tracking_Data {
     this->employees_sick_leave_days_used.clear();
     this->employees_taking_sick_leave_day_off.clear();
     this->employees_sick_days_present.clear();
+    this->employees_days_used_for_child.clear();
+    this->employees_sl_days_used_for_child.clear();
+    this->employees_days_at_work_with_symp_child_at_home.clear();
   }
 };
 

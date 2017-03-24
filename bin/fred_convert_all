@@ -1,0 +1,100 @@
+#!/bin/bash
+FRED_HOME=`printenv FRED_HOME`
+if [ x$FRED_HOME == x ]
+then
+  echo $0\: FRED_HOME env var not found
+  exit 1
+fi
+
+fips=`ls -d ${FRED_HOME}/populations/2010_ver1_*[0-9][0-9][0-9] | perl -ane '{$x=$_;$x=~s/.*2010_ver1_//;print $x}'`
+echo $0\: converting to new FRED population files:
+# for loc in $fips; do echo $loc; done
+# exit
+
+for loc in $fips 
+do
+
+ olddir=${FRED_HOME}/populations/2010_ver1_$loc
+ dir=${FRED_HOME}/data/country/usa/RTI_2010_ver1/$loc
+ cp ${FRED_HOME}/data/METADATA.txt  ${FRED_HOME}/data/country/usa/RTI_2010_ver1
+ echo converting  $olddir to $dir
+ rm -rf $dir
+ mkdir -pv $dir
+ cd $dir
+ cp $olddir/2010_*metadata.txt METADATA.txt
+
+ # convert people file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tsp_hh_id\tage\tsex\trace\trelate\tschool_id\twork_id\n"}
+ else {
+ hid=$2; 
+ sid=$10;
+ sex="F"; if ($6==1){sex="M"};
+ if (sid=="") { sid="X"};
+ wid=$11;
+ if (wid==""){wid="X"};
+ printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1,hid,$5,sex,$7,$9,sid,wid
+ }
+ }' $olddir/2010_ver1*_synth_people.txt > people.txt
+
+ # convert gq_people file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tsp_gq_id\tage\tsex\n"}
+ else {
+ gqid=$2;
+ sex="F"; if ($5==1){sex="M"};
+ printf "%s\t%s\t%s\t%s\n", $1,gqid,$4,sex}
+ }' $olddir/2010_ver1*_gq_people.txt > gq_people.txt
+
+ # convert household file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tstcotrbg\thh_race\thh_income\tlatitude\tlongitude\n"}
+ else {
+ hid=$1;
+ code=substr($3,2,length($3)-2);
+ printf "%s\t%s\t%s\t%s\t%s\t%s\n", hid,code,$4,$5,$8,$9}
+ }' $olddir/2010_ver1*_households.txt > households.txt
+
+ # convert gq file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tgq_type\tstcotrbg\tpersons\tlatitude\tlongitude\n"}
+ else {
+ gid=$1;
+ type=substr($2,2,length($2)-2);
+ capacity=$3;
+ code=substr($4,2,length($4)-2);
+ printf "%s\t%s\t%s\t%s\t%s\t%s\n", gid,type,code,capacity,$5,$6}
+ }' $olddir/2010_ver1*_gq.txt > gq.txt
+
+ # convert school file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tstco\tlatitude\tlongitude\n"}
+ else {
+ sid=$1;
+ code=substr($18,2,length($18)-2);
+ printf "%s\t%s\t%s\t%s\n",  sid,code,$15,$16}
+ }' $olddir/2010_ver1*_schools.txt > schools.txt
+
+ # convert workplaces file
+ awk -F ',' '{
+ if (NR==1) {printf "sp_id\tlatitude\tlongitude\n"}
+ else {
+ wid=$1;
+ printf "%s\t%s\t%s\n", wid,$3,$4}
+ }' $olddir/2010_ver1*_workplaces.txt > workplaces.txt
+
+ # convert hospital file
+ awk -F ',' '{
+ if (NR==1) {printf "hosp_id\tworkers\tphysicians\tbeds\tlatitude\tlongitude\n"}
+ else {
+ printf "%s\t%s\t%s\t%s\t%s\t%s\n", $1,$7,$8,$9,$10,$11}
+ }' $olddir/2010_ver1*_hospitals.txt > hospitals.txt
+
+ # list the files
+ ls -l
+ 
+done
+
+exit
+
+

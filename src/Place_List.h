@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -16,42 +19,26 @@
 #ifndef _FRED_PLACE_LIST_H
 #define _FRED_PLACE_LIST_H
 
-#include <cstring>
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <set>
 #include <unordered_map>
 #include <vector>
 using namespace std;
 
-#include "Global.h"
-#include "County.h"
-#include "Health.h"
-#include "Place.h"
-#include "Utils.h"
+#include "Census_Tract.h"
 #include "Household.h"
 #include "Neighborhood.h"
+#include "Place.h"
 #include "School.h"
-#include "Hospital.h"
 #include "Workplace.h"
+
 class Classroom;
+class County;
 class Office;
 
-#define GRADES 20
-
-typedef std::unordered_map<std::string, int> LabelMapT;
-
-// Helper class used during read_all_places/read_places; definition
-// after Place_List class
-class Place_Init_Data;
-
 class Place_List {
-  typedef std::set<Place_Init_Data> InitSetT;
-  typedef std::pair<InitSetT::iterator, bool> SetInsertResultT;
-  typedef std::map<char, int> TypeCountsMapT;
+
+  typedef std::unordered_map<std::string, int> LabelMapT;
   typedef std::map<char, std::string> TypeNameMapT;
-  typedef std::map<std::string, int> HouseholdHospitalIDMapT;
   typedef std::map<int, int> HospitalIDCountMapT;
 
 public:
@@ -60,44 +47,67 @@ public:
   Place_List() {
     this->load_completed = false;
     this->is_primary_care_assignment_initialized = false;
-    this->places.clear();
-    this->schools.clear();
-    this->workplaces.clear();
     this->next_place_id = 0;
     init_place_type_name_lookup_map();
-    this->place_label_map = new LabelMapT();
+    this->household_label_map = new LabelMapT();
+    this->school_label_map = new LabelMapT();
+    this->workplace_label_map = new LabelMapT();
+    this->households.clear();
+    this->neighborhoods.clear();
+    this->schools.clear();
+    this->workplaces.clear();
+    this->hospitals.clear();
+    for (int grade = 0; grade < Global::GRADES; grade++) {
+      schools_by_grade[grade].clear();
+    }
   }
 
   ~Place_List();
 
-  void read_all_places(const std::vector<Utils::Tokens> & Demes);
-  void read_places(const char* pop_dir, const char* pop_id, unsigned char deme_id, InitSetT &pids);
-
+  // initialization methods
+  void get_parameters();
+  void read_all_places();
+  void read_places(const char* pop_dir);
+  Place* add_place(char* label, char type, char subtype, fred::geo lon, fred::geo lat, long int census_tract);
+  void quality_control();
   void reassign_workers();
   void prepare();
-  void print_status_of_schools(int day);
-  void update(int day);
-  void quality_control();
-  void report_school_distributions(int day);
-  void report_household_distributions();
-  void get_parameters();
+  void setup_group_quarters();
+  void setup_households();
+  void setup_classrooms();
+  void setup_offices();
+  void setup_counties();
+  void setup_census_tracts();
+  void setup_household_childcare();
+  void setup_school_income_quartile_pop_sizes();
+  void setup_household_income_quartile_sick_days();
   int get_new_place_id() {
     int id = this->next_place_id;
     ++(this->next_place_id);
     return id;
   }
-
-  void setup_group_quarters();
-  void setup_households();
-  void setup_classrooms();
-  void setup_offices();
-  void setup_HAZEL_mobile_vans();
-  void setup_school_income_quartile_pop_sizes();
-  void setup_household_income_quartile_sick_days();
-  int get_min_household_income_by_percentile(int percentile);
-  Place* get_place_from_label(const char* s) const;
-  Place* get_random_workplace();
   void assign_hospitals_to_households();
+
+  // reporting methods
+  void report_school_distributions(int day);
+  void report_household_distributions();
+  void print_status_of_schools(int day);
+  Place* get_household_from_label(const char* s) const;
+  Place* get_school_from_label(const char* s) const;
+  Place* get_workplace_from_label(const char* s) const;
+  int get_housing_data(int* target_size, int* current_size);
+  void get_initial_visualization_data_from_households();
+  void get_visualization_data_from_households(int day, int condition_id, int output_code);
+  void get_census_tract_data_from_households(int day, int condition_id, int output_code);
+  void print_household_size_distribution(char* dir, char* date_string, int run);
+
+  // periodic updates
+  void update(int day);
+  void swap_houses(int house_index1, int house_index2);
+  void swap_houses(Household* h1, Household* h2);
+  void combine_households(int house_index1, int house_index2);
+  Place* get_random_workplace();
+  Place* get_random_school(int grade);
 
   /**
    * Uses a gravity model to find a random open hospital given the search parameters.
@@ -105,9 +115,8 @@ public:
    * @param sim_day the simulation day
    * @param per the person we are trying to match (need the agent's household for distance and possibly need the agent's insurance)
    * @param check_insurance whether or not to use the agent's insurance in the matching
-   * @param use_search_radius_limit whether or not to cap the search radius
    */
-  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance, bool use_search_radius_limit);
+  Hospital* get_random_open_hospital_matching_criteria(int sim_day, Person* per, bool check_insurance);
 
   /**
    * Uses a gravity model to find a random open healthcare location given the search parameters.
@@ -127,22 +136,10 @@ public:
    * @param use_search_radius_limit whether or not to cap the search radius
    */
   Hospital* get_random_primary_care_facility_matching_criteria(Person* per, bool check_insurance, bool use_search_radius_limit);
-  void print_household_size_distribution(char* dir, char* date_string, int run);
-  void report_shelter_stats(int day);
   void end_of_run();
 
-  int get_number_of_demes() {
-    return this->number_of_demes;
-  }
-
-  int get_housing_data(int* target_size, int* current_size);
-  void get_initial_visualization_data_from_households();
-  void get_visualization_data_from_households(int day, int disease_id, int output_code);
-  void get_census_tract_data_from_households(int day, int disease_id, int output_code);
-  void swap_houses(int house_index1, int house_index2);
-  void combine_households(int house_index1, int house_index2);
-
-  Place* select_school(int county_index, int grade);
+  // access methods
+  int get_min_household_income_by_percentile(int percentile);
 
   int get_number_of_counties() {
     return (int) this->counties.size();
@@ -153,75 +150,86 @@ public:
     return this->counties[index];
   }
 
-  int get_fips_of_county_with_index(int index) {
-    if(index < 0) {
-      return 99999;
+  int get_fips_of_county_with_index(int index);
+  int get_population_of_county_with_index(int index);
+  int get_population_of_county_with_index(int index, int age);
+  int get_population_of_county_with_index(int index, int age, char sex);
+  int get_population_of_county_with_index(int index, int age_min, int age_max, char sex);
+  void increment_population_of_county_with_index(int index, Person* person);
+  void decrement_population_of_county_with_index(int index, Person* person);
+  int get_index_of_county_with_fips(int fips) {
+    int index = -1;
+    try {
+      index = this->fips_to_county_map.at(fips);
     }
-    assert(index < this->counties.size());
-    return this->counties[index]->get_fips();
+    catch (const std::out_of_range& oor) {
+      Utils::fred_abort("No county found for fips code %d\n", fips);
+    }
+    return index;
   }
 
-  int get_population_of_county_with_index(int index) {
-    if(index < 0) {
-      return 0;
+  int get_index_of_census_tract_with_fips(long int fips) {
+    int index = -1;
+    try {
+      index = this->fips_to_census_tract_map.at(fips);
     }
-    assert(index < this->counties.size());
-    return this->counties[index]->get_tot_current_popsize();
+    catch (const std::out_of_range& oor) {
+      Utils::fred_abort("No census_tract found for fips code %ld\n", fips);
+    }
+    return index;
   }
 
-  int get_population_of_county_with_index(int index, int age) {
-    if(index < 0) {
-      return 0;
+  County* get_county(int fips) {
+    std::map<int,int>::iterator itr;
+    itr = this->fips_to_county_map.find(fips);
+    if (itr == this->fips_to_county_map.end()) {
+      return NULL;
+    } else {
+      return this->counties[itr->second];
     }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age);
-    return (retval < 0 ? 0 : retval);
   }
 
-  int get_population_of_county_with_index(int index, int age, char sex) {
-    if(index < 0) {
-      return 0;
+  Census_Tract* get_census_tract(long int fips) {
+    std::map<long int,int>::iterator itr;
+    itr = this->fips_to_census_tract_map.find(fips);
+    if (itr == this->fips_to_census_tract_map.end()) {
+      return NULL;
+    } else {
+      return this->census_tracts[itr->second];
     }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age, sex);
-    return (retval < 0 ? 0 : retval);
   }
 
-  int get_population_of_county_with_index(int index, int age_min, int age_max, char sex) {
-    if(index < 0) {
-      return 0;
-    }
-    assert(index < this->counties.size());
-    int retval = this->counties[index]->get_current_popsize(age_min, age_max, sex);
-    return (retval < 0 ? 0 : retval);
+  int get_population_of_county(int fips) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index);
   }
 
-  void increment_population_of_county_with_index(int index, Person* person) {
-    if(index < 0) {
-      return;
-    }
-    assert(index < this->counties.size());
-    int fips = this->counties[index]->get_fips();
-    bool test = this->counties[index]->increment_popsize(person);
-    assert(test);
-    return;
+  int get_population_of_county(int fips, int age) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age);
   }
 
-  void decrement_population_of_county_with_index(int index, Person* person) {
-    if(index < 0) {
-      return;
-    }
-    assert(index < this->counties.size());
-    bool test = this->counties[index]->decrement_popsize(person);
-    assert(test);
-    return;
+  int get_population_of_county(int fips, int age, char sex) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age, sex);
   }
 
-  void report_county_populations() {
-   for(int index = 0; index < this->counties.size(); ++index) {
-     this->counties[index]->report_county_population();
-   }
+  int get_population_of_county(int fips, int age_min, int age_max, char sex) {
+    int index = get_index_of_county_with_fips(fips);
+    return get_population_of_county_with_index(index, age_min, age_max, sex);
   }
+
+  void increment_population_of_county(int fips, Person* person) {
+    int index = get_index_of_county_with_fips(fips);
+    increment_population_of_county_with_index(index, person);
+  }
+
+  void decrement_population_of_county(int fips, Person* person) {
+    int index = get_index_of_county_with_fips(fips);
+    decrement_population_of_county_with_index(index, person);
+  }
+
+  void report_county_populations();
 
   int get_number_of_census_tracts() {
     return (int)this->census_tracts.size();
@@ -229,7 +237,15 @@ public:
 
   long int get_census_tract_with_index(int index) {
     assert(index < this->census_tracts.size());
-    return this->census_tracts[index];
+    return this->census_tracts[index]->get_fips();
+  }
+
+  long int get_census_tract_for_place(Place* place) {
+    return place->get_census_tract_fips();
+  }
+
+  int get_county_for_place(Place* place) {
+    return place->get_county_fips();
   }
 
   bool is_load_completed() {
@@ -242,128 +258,147 @@ public:
 
   void print_stats(int day);
 
-  static int get_HAZEL_disaster_start_sim_day();
-  static int get_HAZEL_disaster_end_sim_day();
   static void increment_hospital_ID_current_assigned_size_map(int hospital_id) {
     Place_List::Hospital_ID_current_assigned_size_map.at(hospital_id)++;
   }
 
   // access function for places by type
 
-  int get_number_of_places() {
-    return (int) this->places.size();
-  }
-
-  Place* get_place(int i) {
-    if(0 <= i && i < get_number_of_places()) {
-      return this->places[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_households() {
-    return (int) this->households.size();
+    return (int)this->households.size();
   }
 
-  Place* get_household(int i) {
-    if(0 <= i && i < get_number_of_households()) {
-      return this->households[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_neighborhoods() {
-    return (int) this->neighborhoods.size();
+    return (int)this->neighborhoods.size();
   }
 
-  Place* get_neighborhood(int i) {
-    if(0 <= i && i < get_number_of_neighborhoods()) {
-      return this->neighborhoods[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_schools() {
     return (int) this->schools.size();
   }
   
-  Place* get_school(int i) {
-    if(0 <= i && i < get_number_of_schools()) {
-      return this->schools[i];
-    } else {
-      return NULL;
-    }
-  }
-  
   int get_number_of_workplaces() {
-    return (int) this->workplaces.size();
-  }
-
-  Place* get_workplace(int i) {
-    if(0 <= i && i < get_number_of_workplaces()) {
-      return this->workplaces[i];
-    } else {
-      return NULL;
-    }
+    return (int)this->workplaces.size();
   }
 
   int get_number_of_hospitals() {
-    return (int) this->hospitals.size();
+    return (int)this->hospitals.size();
   }
 
-  Place* get_hospital(int i) {
-    if(0 <= i && i < get_number_of_hospitals()) {
-      return this->hospitals[i];
+  Household* get_household(int i) {
+    if(0 <= i && i < get_number_of_households()) {
+      return static_cast<Household*>(this->households[i]);
     } else {
       return NULL;
     }
   }
 
-  // access function for when we need a Household pointer
-  Household* get_household_ptr(int i) {
-    return static_cast<Household*>(get_household(i));
+  Neighborhood* get_neighborhood(int i) {
+    if(0 <= i && i < get_number_of_neighborhoods()) {
+      return static_cast<Neighborhood*>(this->neighborhoods[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Neighborhood pointer
-  Neighborhood* get_neighborhood_ptr(int i) {
-    return static_cast<Neighborhood*>(get_neighborhood(i));
+  School* get_school(int i) {
+    if(0 <= i && i < get_number_of_schools()) {
+      return static_cast<School*>(this->schools[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a School pointer
-  School* get_school_ptr(int i) {
-    return static_cast<School*>(get_school(i));
+  Workplace* get_workplace(int i) {
+    if(0 <= i && i < get_number_of_workplaces()) {
+      return static_cast<Workplace*>(this->workplaces[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Workplace pointer
-  Workplace* get_workplace_ptr(int i) {
-    return static_cast<Workplace*>(get_workplace(i));
+  Hospital* get_hospital(int i) {
+    if(0 <= i && i < get_number_of_hospitals()) {
+      return static_cast<Hospital*>(this->hospitals[i]);
+    } else {
+      return NULL;
+    }
   }
 
-  // access function for when we need a Hospital pointer
-  Hospital* get_hospital_ptr(int i) {
-    return static_cast<Hospital*>(get_hospital(i));
+  int get_number_of_location_ids() {
+    return location_id.size();
+  }
+
+  void get_population_directory(char* pop_dir, int i) {
+    assert (0 <= i && i < Place_List::location_id.size());
+    sprintf(pop_dir, "%s/%s/%s/%s",
+	    Place_List::Population_directory,
+	    Place_List::Country,
+	    Place_List::Population_version,
+	    get_location_id(i));
+  }
+
+  void get_country_directory(char* dir) {
+    sprintf(dir, "%s/%s",
+	    Place_List::Population_directory,
+	    Place_List::Country);
+  }
+
+  const char * get_location_id(int i) {
+    if (0 <= i && i < location_id.size()) {
+      return Place_List::location_id[i].c_str();
+    } else {
+      return NULL;
+    }
+  }
+
+  bool is_country_usa() {
+    return this->country_is_usa;
+  }
+
+  bool is_country_colombia() {
+    return this->country_is_colombia;
+  }
+
+  bool is_country_india() {
+    return this->country_is_india;
   }
 
 private:
 
+  // unique place id counter
+  int next_place_id;
+
+  // geo info
+  fred::geo min_lat, max_lat, min_lon, max_lon;
+  bool country_is_usa;
+  bool country_is_colombia;
+  bool country_is_india;
+
+  // map of place type names
+  TypeNameMapT place_type_name_lookup_map;
+  LabelMapT* household_label_map;
+  LabelMapT* school_label_map;
+  LabelMapT* workplace_label_map;
+
+  // set when all input files have been processed
+  bool load_completed;
+
   // lists of places by type
-  place_vector_t places;
   place_vector_t households;
   place_vector_t neighborhoods;
   place_vector_t schools;
-  place_vector_t schools_by_grade[GRADES];
+  place_vector_t schools_by_grade[Global::GRADES];
   place_vector_t workplaces;
   place_vector_t hospitals;
 
-  void read_household_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_workplace_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_hospital_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_school_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void read_group_quarters_file(unsigned char deme_id, char* location_file, InitSetT &pids);
-  void reassign_workers_to_places_of_type(char place_type, int fixed_staff, double resident_to_staff_ratio);
+  void read_household_file(char* location_file);
+  void read_workplace_file(char* location_file);
+  void read_school_file(char* location_file);
+  void read_hospital_file(char* location_file);
+  void read_group_quarters_file(char* location_file);
+
+  void reassign_workers_to_schools();
+  void reassign_workers_to_hospitals();
   void reassign_workers_to_group_quarters(char subtype, int fixed_staff, double resident_to_staff_ratio);
   void prepare_primary_care_assignment();
 
@@ -376,7 +411,6 @@ private:
    * @return a pointer to the Hospital that is assigned to the Household
    */
   Hospital* get_hospital_assigned_to_household(Household* hh);
-  int number_of_demes;
   bool is_primary_care_assignment_initialized;
 
   // input files
@@ -387,8 +421,22 @@ private:
   // list of counties
   std::vector<County*> counties;
 
+  // map from fips code to county
+  std::map<int,int> fips_to_county_map;
+
   // list of census_tracts
-  std::vector<long int> census_tracts;
+  std::vector<Census_Tract*> census_tracts;
+
+  // map from fips code to census tract
+  std::map<long int,int> fips_to_census_tract_map;
+
+  static bool Static_variables_set;
+
+  // population parameters
+  static char Population_directory[];
+  static char Country[];
+  static char Population_version[];
+  static vector<string> location_id;
 
   // mean size of "household" associated with group quarters
   static double College_dorm_mean_size;
@@ -406,18 +454,10 @@ private:
   static int Military_fixed_staff;
   static double Military_resident_to_staff_ratio;
 
-  // the following support household shelter:
-  static int Enable_copy_files;
-  static int Shelter_duration_mean;
-  static int Shelter_duration_std;
-  static int Shelter_delay_mean;
-  static int Shelter_delay_std;
-  static double Pct_households_sheltering;
-  static bool High_income_households_sheltering;
-  static double Early_shelter_rate;
-  static double Shelter_decay_rate;
-
   // Hospital support
+  std::map<std::string, std::string>  hh_label_hosp_label_map;
+  std::map<std::string, int>  hosp_label_hosp_id_map;
+
   static bool Household_hospital_map_file_exists;
   static int Hospital_fixed_staff;
   static double Hospital_worker_to_bed_ratio;
@@ -429,161 +469,30 @@ private:
   static HospitalIDCountMapT Hospital_ID_total_assigned_size_map;
   static HospitalIDCountMapT Hospital_ID_current_assigned_size_map;
   static int Hospital_overall_panel_size;
-
-  static int HAZEL_disaster_start_sim_day;
-  static int HAZEL_disaster_end_sim_day;
-  static int HAZEL_disaster_evac_start_offset;
-  static int HAZEL_disaster_evac_end_offset;
-  static int HAZEL_disaster_return_start_offset;
-  static int HAZEL_disaster_return_end_offset;
-  static double HAZEL_disaster_evac_prob_per_day;
-  static double HAZEL_disaster_return_prob_per_day;
-  static int HAZEL_mobile_van_max;
-
+  
   // School support
   static int School_fixed_staff;
   static double School_student_teacher_ratio;
 
-  bool load_completed;
+  // household income
   int min_household_income;
   int max_household_income;
   int median_household_income;
   int first_quartile_household_income;
   int third_quartile_household_income;
+
+  // private methods
+
   void report_household_incomes();
-  void select_households_for_shelter();
-  void shelter_household(Household* h);
   void select_households_for_evacuation();
   void evacuate_household(Household* h);
-
-  // For hospitalization
-  HouseholdHospitalIDMapT household_hospital_map;
-
-  void set_number_of_demes(int n) {
-    this->number_of_demes = n;
-  }
-
-  fred::geo min_lat, max_lat, min_lon, max_lon;
-
-  void parse_lines_from_stream(std::istream & stream, std::vector<Place_Init_Data> & pids);
-
-  TypeNameMapT place_type_name_lookup_map;
+  void update_geo_boundaries(fred::geo lat, fred::geo lon);
 
   void init_place_type_name_lookup_map();
 
   string lookup_place_type_name(char place_type) {
     assert(this->place_type_name_lookup_map.find(place_type) != this->place_type_name_lookup_map.end());
     return this->place_type_name_lookup_map[place_type];
-  }
-
-  bool add_place(Place* p);
-
-  template<typename Place_Type>
-    void add_preallocated_places(char place_type, Place::Allocator<Place_Type> & pal) {
-      // make sure that the expected number of places were allocated
-      assert(pal.get_number_of_contiguous_blocks_allocated() == 1);
-      assert(pal.get_number_of_remaining_allocations() == 0);
-
-      int places_added = 0;
-      Place_Type* place = pal.get_base_pointer();
-      int places_allocated = pal.size();
-
-      for(int i = 0; i < places_allocated; ++i) {
-        if(add_place(place)) {
-          ++(places_added);
-        }
-        ++(place);
-      }
-      FRED_STATUS(0, "Added %7d %16s places to Place_List\n", places_added,
-          lookup_place_type_name( place_type ).c_str());
-      FRED_CONDITIONAL_WARNING(places_added != places_allocated,
-          "%7d %16s places were added to the Place_List, but %7d were allocated\n", places_added,
-          lookup_place_type_name( place_type ).c_str(), places_allocated);
-      // update/set place_type_counts for this place_type
-      this->place_type_counts[place_type] = places_added;
-    }
-
-  // map to hold counts for each place type
-  TypeCountsMapT place_type_counts;
-
-  int next_place_id;
-
-  LabelMapT* place_label_map;
-};
-
-struct Place_Init_Data {
-
-  char s[80];
-  char place_type;
-  char place_subtype;
-  long int admin_id;
-  int income;
-  unsigned char deme_id;
-  fred::geo lat, lon;
-  bool is_group_quarters;
-  int county;
-  int census_tract_index;
-  int num_workers_assigned;
-  int group_quarters_units;
-  char gq_type[8];
-  char gq_workplace[32];
-
-  void setup(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-      unsigned char _deme_id, int _county, int _census_tract_index, const char* _income, bool _is_group_quarters,
-      int _num_workers_assigned, int _group_quarters_units, const char* _gq_type, const char* _gq_workplace) {
-    place_type = _place_type;
-    place_subtype = _place_subtype;
-    strcpy(s, _s);
-    sscanf(_lat, "%f", &lat);
-    sscanf(_lon, "%f", &lon);
-    county = _county;
-    census_tract_index = _census_tract_index;
-    sscanf(_income, "%d", &income);
-
-    if(!(lat >= -90 && lat <= 90) || !(lon >= -180 && lon <= 180)) {
-      printf("BAD LAT-LON: type = %c lat = %f  lon = %f  inc = %d  s = %s\n", place_type, lat, lon, income, s);
-      lat = 34.999999;
-    }
-    assert(lat >= -90 && lat <= 90);
-    assert(lon >= -180 && lon <= 180);
-
-    is_group_quarters = _is_group_quarters;
-    num_workers_assigned = _num_workers_assigned;
-    group_quarters_units = _group_quarters_units;
-    strcpy(gq_type, _gq_type);
-    strcpy(gq_workplace, _gq_workplace);
-  }
-
-  Place_Init_Data(char _s[], char _place_type, char _place_subtype, const char* _lat, const char* _lon,
-      unsigned char _deme_id, int _county = -1, int _census_tract = -1, const char* _income = "0",
-      bool _is_group_quarters = false, int _num_workers_assigned = 0, int _group_quarters_units = 0,
-      const char* gq_type = "X", const char* gq_workplace = "") {
-    setup(_s, _place_type, _place_subtype, _lat, _lon, _deme_id, _county, _census_tract, _income, _is_group_quarters,
-        _num_workers_assigned, _group_quarters_units, gq_type, gq_workplace);
-  }
-
-  bool operator<(const Place_Init_Data & other) const {
-
-    if(place_type != other.place_type) {
-      return place_type < other.place_type;
-    } else if(strcmp(s, other.s) < 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  const std::string to_string() const {
-    std::stringstream ss;
-    ss << "Place Init Data ";
-    ss << place_type << " ";
-    ss << lat << " ";
-    ss << lon << " ";
-    ss << census_tract_index << " ";
-    ss << s << " ";
-    ss << int(deme_id) << " ";
-    ss << num_workers_assigned << std::endl;
-    return ss.str();
   }
 
 };

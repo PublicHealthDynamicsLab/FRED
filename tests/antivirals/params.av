@@ -1,0 +1,46 @@
+
+# params file for a single vaccine
+AV.states = Unavailable Available Eligible Received Finished
+
+# STATE MODIFICATIONS
+INF.Is.changes_state_from.AV.Available = Eligible
+
+# TRANSITION PERIODS
+AV.Unavailable.transition_period = 0
+AV.Available.transition_period = 0
+AV.Eligible.transition_period = 1
+AV.Received.transition_period = 10
+AV.Finished.transition_period = 0
+
+AV.Received.reduces_susceptibility_to.INF = 0.3
+AV.Received.reduces_transmission_of.INF = 0.7
+AV.Received.reduces_symptoms_of.INF = 0.7
+
+# TRANSITION PROBABILITIES
+AV.transition_model = transition_matrix
+AV.transition_probability[Eligible][Received] = 1.0
+AV.transition_probability[Received][Finished] = 1.0
+
+# EXPOSED STATE
+AV.exposed_state = Available
+
+# availability
+AV.import_file = import_av.txt
+
+# INDICATIONS FOR AV
+
+# By default, no one is a candidate:
+AV.immunity.background_prob = 1.0
+
+# Permitted for ages 0-2 and 65+
+AV.immunity.age0-2 = -999
+AV.immunity.age65-69 = -999
+AV.immunity.age70-74 = -999
+AV.immunity.age75-79 = -999
+AV.immunity.age80-84 = -99
+AV.immunity.age85+ = -999
+
+# Permitted for American Indians/Alaska Natives
+AV.immunity.race_is_american_indian = -999
+AV.immunity.race_is_alaska_native = -999
+

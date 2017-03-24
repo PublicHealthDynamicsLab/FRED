@@ -1,2 +1,6 @@
 days = 100
-fips = 42065
+locations_file = loc.txt
+
+
+
+enable_visualization_layer = 1

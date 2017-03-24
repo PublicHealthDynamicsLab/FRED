@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -19,8 +22,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 
 //Private static variables that will be set by parameter lookups
 double Neighborhood::contacts_per_day = 0.0;
@@ -35,8 +38,8 @@ Neighborhood::Neighborhood(const char* lab, char _subtype, fred::geo lon, fred::
 }
 
 void Neighborhood::get_parameters() {
-  Params::get_param_from_string("neighborhood_contacts", &Neighborhood::contacts_per_day);
-  Params::get_param_from_string("neighborhood_same_age_bias", &Neighborhood::same_age_bias);
+  Params::get_param("neighborhood_contacts", &Neighborhood::contacts_per_day);
+  Params::get_param("neighborhood_same_age_bias", &Neighborhood::same_age_bias);
   int n = Params::get_param_matrix((char *)"neighborhood_trans_per_contact", &Neighborhood::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nNeighborhood_contact_prob:\n");
@@ -47,7 +50,7 @@ void Neighborhood::get_parameters() {
       printf("\n");
     }
   }
-  Params::get_param_from_string("weekend_contact_rate", &Neighborhood::weekend_contact_rate);
+  Params::get_param("weekend_contact_rate", &Neighborhood::weekend_contact_rate);
 
   if(Global::Verbose > 0) {
     printf("\nprob_transmission_per_contact before normalization:\n");
@@ -96,7 +99,7 @@ void Neighborhood::get_parameters() {
   }
 }
 
-int Neighborhood::get_group(int disease, Person* per) {
+int Neighborhood::get_group(int condition, Person* per) {
   int age = per->get_age();
   if(age < Global::ADULT_AGE) {
     return 0;
@@ -105,7 +108,7 @@ int Neighborhood::get_group(int disease, Person* per) {
   }
 }
 
-double Neighborhood::get_transmission_probability(int disease, Person* i, Person* s) {
+double Neighborhood::get_transmission_probability(int condition, Person* i, Person* s) {
   double age_i = i->get_real_age();
   double age_s = s->get_real_age();
   double diff = fabs(age_i - age_s);
@@ -113,16 +116,16 @@ double Neighborhood::get_transmission_probability(int disease, Person* i, Person
   return prob;
 }
 
-double Neighborhood::get_transmission_prob(int disease, Person* i, Person* s) {
+double Neighborhood::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Neighborhood::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Neighborhood::get_contacts_per_day(int disease) {
+double Neighborhood::get_contacts_per_day(int condition) {
   return Neighborhood::contacts_per_day;
 }
 

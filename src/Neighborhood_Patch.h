@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -33,7 +36,6 @@ class Neighborhood_Layer;
 class Neighborhood;
 class Household;
 
-#define GRADES 20
 
 class Neighborhood_Patch : public Abstract_Patch {
 public:
@@ -72,7 +74,7 @@ public:
   /**
    * Setup the neighborhood in this Neighborhood_Patch
    */
-  void make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator);
+  void make_neighborhood();
 
   /**
    * Add household to this Neighborhood_Patch's household vector
@@ -93,18 +95,6 @@ public:
    * @return a pointer to a random Household in this Neighborhood_Patch
    */
   Place* select_random_household();
-
-  /**
-   * @return a pointer to a random Workplace in this Neighborhood_Patch
-   */
-  Place* select_random_workplace();
-  Place* select_workplace();
-  Place* select_workplace_in_neighborhood();
-
-  Place* select_random_school(int age);
-  Place* select_school(int age);
-  Place* select_school_in_neighborhood(int age, double threshold);
-  void find_schools_for_age(int age, place_vector* schools);
 
   /**
    * @return a count of houses in this Neighborhood_Patch
@@ -158,7 +148,7 @@ public:
       return NULL;
     }
   }
-  
+
   int get_number_of_workplaces() {
     return (int) this->workplaces.size();
   }
@@ -196,6 +186,7 @@ protected:
   int popsize;
   double mean_household_income;
   int vector_control_status;
+  long int census_tract_fips;
 
   // lists of places by type
   place_vector_t households;
@@ -203,7 +194,7 @@ protected:
   place_vector_t workplaces;
   place_vector_t hospitals;
   place_vector_t schools_attended_by_neighborhood_residents;
-  place_vector_t schools_attended_by_neighborhood_residents_by_age[GRADES];
+  place_vector_t schools_attended_by_neighborhood_residents_by_age[Global::GRADES];
   place_vector_t workplaces_attended_by_neighborhood_residents;
 
 };

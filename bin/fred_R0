@@ -1,32 +1,58 @@
 #!/usr/bin/perl
-use warnings;
 use strict;
+use warnings;
 use Env;
-use Getopt::Std;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $usage = "usage: $0 -k key [ -d delay ]\n";
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
-my %options = ();
-getopts("k:d:", \%options);
-
+my $help = "";
 my $key = "";
-$key = $options{k} if exists $options{k};
-die "usage: $0 -k key\n" if not $key;
+my $dir = "OUT";
+my $delay = 20;
+my $median = 0;
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "d=i" => \$delay,
+			    "med=i" => \$median,
+);
 
-my $delay = 10;
-$delay = $options{d} if exists $options{d};
+my $usage = <<EOH;
+usage: $0 --help | [ -k key | -d $delay]
+    -k or --key   the key for a FRED job (no default)
+    -d            delay before measuring R0 (default = 20)
+EOH
 
-if ($key eq "") {
-  ($key, $delay) = @ARGV;
+die $usage if $help;
+
+my $lines = $delay+2;
+
+my $line = "";
+if ($key) {
+  $line = `$FRED/bin/fred_csv -k $key -v RR | head -$lines | tail -1 `;
 }
+else {
+  $line = `$FRED/bin/fred_csv -v RR | head -$lines | tail -1 `;
+}
+die "No data found for key = |$key| and delay = |$delay|\n$0: usage\n" if $line =~ /fred_csv/;
 
-die $usage if (not $key) or (not $delay);
+# data found:
+chomp $line;
+# print "$line\n";
 
-my $day = $delay+2;
-my $result = `fred_csv -k $key -v RR | head -$day | tail -1`;
-chomp $result;
-my ($mean,$std) = $result =~ /.*,.*,(.*),(.*)/;
-print "$mean $std\n";
+my @data = split ',', $line;
+my $med = $data[5];
+my ($mean,$std) = ($data[8], $data[9]);
+if ($median) {
+  printf "%0.2f %0.2f %0.2f\n", $data[4], $data[5],$data[6];
+}
+else {
+  printf "%.2f %.4f\n", $mean, $std;
+}
 exit;
 
 

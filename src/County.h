@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -18,15 +21,24 @@
 #define _FRED_COUNTY_H
 
 #include <vector>
-#include "Demographics.h"
-
-class Person;
-class Household;
-
 using namespace std;
+
+#include "Demographics.h"
+class Household;
+class Person;
+class Place;
+class School;
+class Workplace;
+
 
 // 2-d array of lists
 typedef std::vector<int> HouselistT;
+
+// number of age groups: 0-4, 5-9, ... 85+
+#define AGE_GROUPS 18
+
+// number of target years: 2010, 2015, ... 2040
+#define TARGET_YEARS 7
 
 class County {
 public:
@@ -34,11 +46,17 @@ public:
   County(int _fips);
   ~County();
 
+  void setup();
+
   int get_fips() {
     return this->fips;
   }
 
-  int get_tot_current_popsize() {
+  int get_number_of_households() {
+    return this->number_of_households;
+  }
+
+  int get_current_popsize() {
     return this->tot_current_popsize;
   }
 
@@ -74,42 +92,16 @@ public:
     return -1;
   }
 
-  int get_current_popsize(int age_min, int age_max, char sex) {
-    if(age_min < 0) {
-      age_min = 0;
-    }
-    if(age_max > Demographics::MAX_AGE) {
-      age_max = Demographics::MAX_AGE;
-    }
-    if(age_min > age_max) {
-      age_min = 0;
-    }
-    if(age_min >= 0 && age_max >= 0 && age_min <= age_max) {
-      if(sex == 'F' || sex == 'M') {
-        int temp_count = 0;
-        for(int i = age_min; i <= age_max; ++i) {
-          temp_count += (sex == 'F' ? this->female_popsize[i] : this->male_popsize[i]);
-        }
-        return temp_count;
-      }
-    }
-    return -1;
-  }
-
+  int get_current_popsize(int age_min, int age_max, char sex);
   bool increment_popsize(Person* person);
-
   bool decrement_popsize(Person* person);
+  void recompute_county_popsize();
 
   void add_household(Household* h) {
     this->households.push_back(h);
   }
   
   void update(int day);
-  void set_initial_popsize(int popsize) {
-    this->target_popsize = popsize;
-  }
-
-  void update_population_dynamics(int day);
   void get_housing_imbalance(int day);
   int fill_vacancies(int day);
   void update_housing(int day);
@@ -125,9 +117,10 @@ public:
   void report_ages(int day, int house_id);
   void swap_houses(int day);
   int find_fips_code(int n);
-  int get_housing_data(int* target_size, int* current_size);
+  void get_housing_data();
   void report_household_distributions();
   void report_county_population();
+
   double get_pregnancy_rate(int age) {
     return this->pregnancy_rate[age];
   }
@@ -148,6 +141,35 @@ public:
     }
   } 
 
+  // for selecting new workplaces
+  void set_workplace_probabilities();
+  Workplace* select_new_workplace();
+  void report_workplace_sizes();
+
+  // for selecting new schools
+  void set_school_probabilities();
+  School* select_new_school(int grade);
+  void report_school_sizes();
+
+  // county migration
+  void read_population_target_parameters();
+  void county_to_county_migration();
+  Household* get_household(int i) {
+    assert(0 <= i && i < this->households.size());
+    return this->households[i];
+  }
+  void migrate_household_to_county(Place* house, int dest);
+  Place* select_new_house_for_immigrants(int hszie);
+  void select_migrants(int day, int migrants, int lower_age, int upper_age, char sex, int dest_fips);
+  void add_immigrant(Person* person);
+  void add_immigrant(int age, char sex);
+  void migration_swap_houses();
+  void migrate_to_target_popsize();
+  void read_migration_parameters();
+  double get_migration_rate(int sex, int age, int src, int dst);
+  void group_population_by_sex_and_age(int reset);
+  void report();
+
 private:
   int fips;
   int tot_current_popsize;
@@ -155,7 +177,6 @@ private:
   int tot_male_popsize;
   int female_popsize[Demographics::MAX_AGE + 1];
   int tot_female_popsize;
-  int target_popsize;
 
   double male_mortality_rate[Demographics::MAX_AGE + 1];
   double female_mortality_rate[Demographics::MAX_AGE + 1];
@@ -175,12 +196,40 @@ private:
   int* beds;
   int* occupants;
   int max_beds;
-  int max_occupants;
   std::vector< pair<Person*, int> > ready_to_move;
+  int target_males[AGE_GROUPS][TARGET_YEARS];
+  int target_females[AGE_GROUPS][TARGET_YEARS];
+  std::vector<Person*> males_of_age[Demographics::MAX_AGE+1];
+  std::vector<Person*> females_of_age[Demographics::MAX_AGE+1];
 
   // pointers to households
   std::vector<Household*> households;
-  int houses;
+  int number_of_households;
+
+  // pointers to nursing homes
+  std::vector<Household*> nursing_homes;
+  int number_of_nursing_homes;
+
+  // schools attended by people in this county, with probabilities
+  std::vector<School*> schools_attended[Global::GRADES];
+  std::vector<double> school_probabilities[Global::GRADES];
+
+  // workplaces attended by people in this county, with probabilities
+  std::vector<Workplace*> workplaces_attended;
+  std::vector<double> workplace_probabilities;
+
+  std::vector<int> migration_households;  //vector of household IDs for migration
+ 
+  // static vars
+  static int enable_migration_to_target_popsize;
+  static int enable_county_to_county_migration;
+  static int enable_within_state_school_assignment;
+  static std::vector<int> migration_fips;
+  static double**** migration_rate;
+  static int migration_parameters_read;
+  static int population_target_parameters_read;
+  static int*** male_migrants;
+  static int*** female_migrants;
 
 };
 

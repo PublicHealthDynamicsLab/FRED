@@ -139,7 +139,7 @@ sub add_params_file {
       system "change_params $param $value $newparams > /dev/null";
     }
     else {
-      system "fred_set '$param' $value $newparams > /dev/null";
+      system "fred_set -- '$param' $value $newparams > /dev/null";
     }
   }
 }
@@ -176,7 +176,7 @@ Sweep Parameters:
 # the following read in a file of values, one per line
 # name: test file: my_test_values.txt
 #
-name: R0 min: 1.0 max: 2.5 inc: 0.5  format: %0.1f
+name: influenza.R0 min: 1.0 max: 2.5 inc: 0.5  format: %0.1f
 name: fips values: [42003, 42065]
 EOF
 }

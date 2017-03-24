@@ -1,0 +1,131 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Env;
+$| = 1;
+
+mkdir "LOGS" if not -d "LOGS";
+my $runs = 20;
+
+my ($loc) = @ARGV; 
+system "cp $FRED_HOME/data/country/usa/msa/$loc.txt loc.txt";
+system "echo >> loc.txt";
+my $pop = get_popsize();
+print "pop = $pop\n";
+# exit;
+$loc =~ s/\'//g;
+open OUT,">LOGS/$loc";
+my $locstr = $loc;
+$locstr =~ s/_/ /g;
+
+my $datestring;
+
+for my $im (0.80, 0.85, 0.90, 0.95) {
+  my $imm = sprintf("%0.2f", $im);
+
+  # report to log file
+  $datestring = localtime();
+  print OUT "========================================\n";
+  print OUT "$loc imm $imm started $datestring\n";
+
+  # set up params file
+  my $key = "measles-$loc-$imm";
+  system "cp params-$imm params";
+
+  # run fred
+  my @cases = ();
+  my $m = 4;
+  $m = 3 if $pop > 4000000;
+  $m = 2 if $pop > 5000000;
+  $m = 1 if $pop > 10000000;
+  my $cmd = "fred_delete -f -k $key; fred_job -k $key -n $runs -m $m";
+  system "$cmd";
+  for my $run (1..$runs) {
+    my $n = `fred_cases -k $key -n $run | awk '{print \$2}' `;
+    chomp $n;
+    print OUT "$key run $run had $n cases.\n";
+    push @cases, $n;
+  }
+
+  my ($median, $low, $high) = get_median_ci(@cases);
+  print OUT "$key median = $median  ci = ($low,$high)\n";
+
+  my $med_run = 0;
+  for my $run (1..$runs) {
+    my $n = `fred_cases -k $key -n $run | awk '{print \$2}' `;
+    chomp $n;
+    if ($n == $median) {
+      $med_run = $run;
+      print OUT "$key med_run $run had $n cases.\n";
+      last;
+    }
+  }
+
+  # make movie
+  my $coverage = sprintf("%d%%", int(100 * $imm));
+  my $ymin = 0;
+  
+  my $shapefile = 1;
+  $shapefile = 0 if $key =~ /FL/;
+  $shapefile = 0 if $key =~ /HI/;
+  my $par = $m * 10;
+  $cmd = "fred_make_movie --var 'R P' --color 'blue red' --ps '0.004 0.004' --pt '99 99' --bottom_right 'Blue = Recovered' --bottom_left 'Red = Current Cases' --bottom_colors 'red black blue' --key $key --run $med_run --int 4 --title 'Measles in $locstr' --subtitle 'Vaccine Coverage = $imm' --subsubtitle 'Median Cases = $median (CI=$low, $high)' --par 100 --shape $shapefile --show_names 1 --lw 1";
+  $datestring = localtime();
+  print OUT "starting movie $datestring:\n$cmd\n";
+  system $cmd;
+  $datestring = localtime();
+  print OUT "movie finished $datestring\n";
+
+  # stash movie
+  mkdir "MOVIES" if not -f "MOVIES";
+  mkdir "MOVIES/$loc" if not -f "MOVIES/$loc";
+  system "mv $key.mp4 MOVIES/$loc";
+
+  system "fred_delete -f -k $key";
+}
+exit;
+
+
+sub get_median_ci {
+  my @data = @_;
+  @data = sort {$a <=> $b} @data;
+  my $n = scalar @data;
+  for my $i (0..$n-1) {
+    print OUT "$i $data[$i]\n";
+  }
+
+  # this returns the data value less than or equal to true median
+  my $median = $data[int($n/2)];
+  $median = $data[int($n/2)-1] if $n % 2 == 0;
+
+  # see https://www.ucl.ac.uk/ich/short-courses-events/about-stats-courses/stats-rm/Chapter_8_Content/confidence_interval_single_median
+  my $lower = int ($n/2.0 - (1.96*sqrt($n)/2.0) + 0.5);
+  $lower = 1 if $lower < 1;
+  $lower = $n if $lower > $n;
+
+  my $upper = int (1.0 + $n/2.0 + (1.96*sqrt($n)/2.0) + 0.5);
+  $upper = 1 if $upper < 1;
+  $upper = $n if $upper > $n;
+
+  # convert to 0-based indices
+  return($median, $data[$lower-1], $data[$upper-1]);
+}
+
+sub get_popsize {
+  open POP, "loc.txt";
+  my $pop = 0;
+  while (my $fips = <POP>) {
+    chomp $fips;
+    last if not $fips;
+    # print "fips |$fips|\n";
+    # return 0;
+    my $popsize = `wc -l ~/FRED/data/country/usa/RTI_2010_ver1/$fips/people.txt`;
+    $popsize =~ s/^\s*//;
+    $popsize =~ s/\s.*//;
+    chomp $popsize;
+    print "|$fips| |$popsize|\n";
+    $pop += $popsize;
+  }
+  close POP;
+  return $pop;
+}

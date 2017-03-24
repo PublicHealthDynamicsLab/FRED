@@ -1,0 +1,8 @@
+Geo::GoogleMaps::FitBoundsZoomer;
+Geo::Proj4;
+Geo::ShapeFile;
+Getopt::Long;
+Getopt::Std;
+MIME::Lite;
+Scalar::Util qw(looks_like_number);
+Statistics::TTest;

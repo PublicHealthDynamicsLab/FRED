@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -20,8 +23,8 @@
 #include "Params.h"
 #include "Random.h"
 #include "Person.h"
-#include "Disease.h"
-#include "Disease_List.h"
+#include "Condition.h"
+#include "Condition_List.h"
 #include "Place_List.h"
 #include "Population.h"
 #include "Office.h"
@@ -57,7 +60,7 @@ Workplace::Workplace(const char* lab, char _subtype, fred::geo lon, fred::geo la
 
 void Workplace::get_parameters() {
   // people per office
-  Params::get_param_from_string("office_size", &Workplace::Office_size);
+  Params::get_param("office_size", &Workplace::Office_size);
 
   // workplace size limits
   Workplace::workplace_size_group_count = Params::get_param_vector((char*)"workplace_size_max", Workplace::workplace_size_max);
@@ -69,7 +72,7 @@ void Workplace::get_parameters() {
     Workplace::workers_by_workplace_size.push_back(0);
   }
 
-  Params::get_param_from_string("workplace_contacts", &Workplace::contacts_per_day);
+  Params::get_param("workplace_contacts", &Workplace::contacts_per_day);
   int n = Params::get_param_matrix((char *)"workplace_trans_per_contact", &Workplace::prob_transmission_per_contact);
   if(Global::Verbose > 1) {
     printf("\nWorkplace_contact_prob:\n");
@@ -140,16 +143,16 @@ void Workplace::prepare() {
   Place::prepare();
 }
 
-double Workplace::get_transmission_prob(int disease, Person* i, Person* s) {
+double Workplace::get_transmission_prob(int condition, Person* i, Person* s) {
   // i = infected agent
   // s = susceptible agent
-  int row = get_group(disease, i);
-  int col = get_group(disease, s);
+  int row = get_group(condition, i);
+  int col = get_group(condition, s);
   double tr_pr = Workplace::prob_transmission_per_contact[row][col];
   return tr_pr;
 }
 
-double Workplace::get_contacts_per_day(int disease) {
+double Workplace::get_contacts_per_day(int condition) {
   return Workplace::contacts_per_day;
 }
 
@@ -168,24 +171,20 @@ int Workplace::get_number_of_rooms() {
   return rooms;
 }
 
-void Workplace::setup_offices(Allocator<Office> &office_allocator) {
+void Workplace::setup_offices() {
   int rooms = get_number_of_rooms();
-
   FRED_STATUS(1, "workplace %d %s number %d rooms %d\n", this->get_id(), this->get_label(), this->get_size(), rooms);
-  
   for(int i = 0; i < rooms; ++i) {
-    char new_label[128];
-    sprintf(new_label, "%s-%03d", this->get_label(), i);
-    
-    Office* office = new(office_allocator.get_free())Office(new_label,
-							           Place::SUBTYPE_NONE,
-							           this->get_longitude(),
-							           this->get_latitude());
-
+    char label[128];
+    sprintf(label, "%s-%03d", this->get_label(), i);
+    Office* office = static_cast<Office *>(Global::Places.add_place(label, 
+								    Place::TYPE_OFFICE, 
+								    Place::SUBTYPE_NONE,
+								    this->get_longitude(),
+								    this->get_latitude(),
+								    this->get_census_tract_fips()));
     office->set_workplace(this);
-
     this->offices.push_back(office);
-
     FRED_STATUS(1, "workplace %d %s added office %d %s %d\n", this->get_id(), this->get_label(), i,
                 office->get_label(), office->get_id());
   }
@@ -216,3 +215,4 @@ Place* Workplace::assign_office(Person* per) {
   }
   return this->offices[i];
 }
+

@@ -1,7 +1,6 @@
-days = 20
-fips = 42065
-vaccine_tracefile = none
-tracefile = none
+days = 100
+locations_file = locations.txt
 quality_control = 0
 outdir = OUT.TEST
-track_infection_events = 1
+enable_health_records = 1
+

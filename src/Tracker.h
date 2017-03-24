@@ -1,9 +1,12 @@
 /*
   This file is part of the FRED system.
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
+  Copyright (c) 2013-2016, University of Pittsburgh, John Grefenstette,
+  David Galloway, Mary Krauland, Michael Lann, and Donald Burke.
+
+  Based in part on FRED Version 2.9, created in 2010-2013 by
+  John Grefenstette, Shawn Brown, Roni Rosenfield, Alona Fyshe, David
+  Galloway, Nathan Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
 
   Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
   more information.
@@ -152,20 +155,20 @@ public:
     int index_position = this->_index_pos(index);
     if(index_position == -1) {
       if(allow_add) {
-	index_position = this->add_index(index);
+	      index_position = this->add_index(index);
       } else {
-	stringstream ss;
-	ss << index;
-	ERROR_PRINT("Tracker.h::set)index_key_pair(int) there is no index %s\n", ss.str().c_str());
+	      stringstream ss;
+	      ss << index;
+	      ERROR_PRINT("Tracker.h::set)index_key_pair(int) there is no index %s\n", ss.str().c_str());
       }
     }
     
     string key_type = this->has_key(key_name);
     if(key_type != "int") {
       if(allow_add && key_type == "None") {
-	this->add_key(key_name, "int");
+	      this->add_key(key_name, "int");
       } else {
-	ERROR_PRINT("Tracker.h::set_index_key_pair with int, using a key that is not for integers");
+	      ERROR_PRINT("Tracker.h::set_index_key_pair with int, using a key that is not for integers");
       }
     }
     this->values_map_int[key_name][index_position] = value;
@@ -175,19 +178,19 @@ public:
     int index_position = this->_index_pos(index);
     if(index_position == -1) {
       if(allow_add) {
-	index_position = this->add_index(index);
+	      index_position = this->add_index(index);
       } else {
-	stringstream ss;
-	ss << index;
-	ERROR_PRINT("Tracker.h::set_index_key_pair (double) there is no index %s\n", ss.str().c_str());
+	      stringstream ss;
+	      ss << index;
+	      ERROR_PRINT("Tracker.h::set_index_key_pair (double) there is no index %s\n", ss.str().c_str());
       }
     }    
     string key_type = this->has_key(key_name);
     if(key_type != "double") {
       if(allow_add && key_type == "None") {
-	this->add_key(key_name, "double");
+	      this->add_key(key_name, "double");
       } else {
-	ERROR_PRINT("Tracker.h::set_index_key_pair with double, using a key that is not for integers");
+	      ERROR_PRINT("Tracker.h::set_index_key_pair with double, using a key that is not for integers");
       }
     }
     this->values_map_double[key_name][index_position] = value;
@@ -197,20 +200,20 @@ public:
     int index_position = this->_index_pos(index);
     if(index_position == -1) {
       if(allow_add) {
-	index_position = this->add_index(index);
+	      index_position = this->add_index(index);
       } else {
-	stringstream ss;
-	ss << index;
-	ERROR_PRINT("Tracker.h::set_index_key_pair (string) there is no index %s\n", ss.str().c_str());
+	      stringstream ss;
+	      ss << index;
+	      ERROR_PRINT("Tracker.h::set_index_key_pair (string) there is no index %s\n", ss.str().c_str());
       }
     }
     
     string key_type = this->has_key(key_name);
     if(key_type != "string") {
       if(allow_add && key_type == "None") {
-	this->add_key(key_name,"string");
+	      this->add_key(key_name,"string");
       } else {
-	ERROR_PRINT("Tracker.h::set_index_key_pair with string, using a key that is not for integers");
+	      ERROR_PRINT("Tracker.h::set_index_key_pair with string, using a key that is not for integers");
       }
     }
     this->values_map_string[key_name][index_position] = value;
@@ -268,7 +271,7 @@ public:
     if(index_position == -1) {
       stringstream ss;
       ss << index;
-      ERROR_PRINT("Tracker.h::increment_index_key_pair there is no index %s\n",  ss.str().c_str());
+      ERROR_PRINT("Tracker.h::increment_index_key_pair there is no index %s\n", ss.str().c_str());
     }
     
     string key_type = this->has_key(key_name);
@@ -290,16 +293,16 @@ public:
     if(index_position == -1) {
       stringstream ss;
       ss << index;
-      ERROR_PRINT("Tracker.h::increment_index_key_pair there is no index %s\n",ss.str().c_str());
+      ERROR_PRINT("Tracker.h::reset_index_all_key_pairs_to_zero there is no index %s\n",ss.str().c_str());
     }
     
     for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
-	iter != this->values_map_int.end(); ++iter) {
+	      iter != this->values_map_int.end(); ++iter) {
       (*iter).second[index_position] = 0;
     }
     
     for(map<string, vector<double> >::iterator iter=this->values_map_double.begin();
-	iter != this->values_map_double.end(); ++iter) {
+	      iter != this->values_map_double.end(); ++iter) {
       (*iter).second[index_position] = 0.0;
     }
     
@@ -316,7 +319,7 @@ public:
     for(int i = 0; i < this->indices.size(); ++i) {
       string key_type = this->has_key(key_name);
       if(key_type != "int") {
-	ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an integer and key %s is not an integer value", key_name.c_str());
+	      ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an integer and key %s is not an integer value", key_name.c_str());
       }
       this->set_index_key_pair(this->indices[i], key_name, value, false);
     }
@@ -326,7 +329,7 @@ public:
     for(int i = 0; i < this->indices.size(); ++i) {
       string key_type = this->has_key(key_name);
       if(key_type != "double") {
-	ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an double and key %s is not an double value", key_name.c_str());
+	      ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an double and key %s is not an double value", key_name.c_str());
       }
       this->set_index_key_pair(this->indices[i], key_name, value, false);
     }
@@ -336,7 +339,7 @@ public:
     for(int i = 0; i < this->indices.size(); ++i){
       string key_type = this->has_key(key_name);
       if(key_type != "string") {
-	ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an string and key %s is not an string value", key_name.c_str());
+	      ERROR_PRINT("Tracker.h::set_all_index_for_key, called with an string and key %s is not an string value", key_name.c_str());
       }
       this->set_index_key_pair(this->indices[i], key_name, value, false);
     }
@@ -352,10 +355,10 @@ public:
     for(int i=0; i < atypes.size(); ++i) {
       vector<string> keys = this->_get_keys(atypes[i]);
       if(keys.size() > 0) {
-	sList << "  " << atypes[i] << " Keys" << std::endl;
-	for(int i = 0; i < keys.size(); ++i) {
-	  sList << "\t" << keys[i] << std::endl;
-	}
+	      sList << "  " << atypes[i] << " Keys" << std::endl;
+	      for(int i = 0; i < keys.size(); ++i) {
+	        sList << "\t" << keys[i] << std::endl;
+	      }
       }
     }
     return sList.str();
@@ -374,34 +377,30 @@ public:
       ERROR_PRINT("Tracker.h::print_key_index_list requesting a key %s that does not exist\n", key_name.c_str());
     } else if(key_type == "int") {
       if(this->indices.size() != this->values_map_int[key_name].size()) {
-	ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n",
-		    key_name.c_str());
+	      ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n", key_name.c_str());
       }
       
       for(int i = 0; i < this->indices.size(); ++i) {
-	returnString << this->indices[i] << "\t\t" << this->values_map_int[key_name][i] << std::endl;
+	      returnString << this->indices[i] << "\t\t" << this->values_map_int[key_name][i] << std::endl;
       }
     } else if(key_type == "double") {
       if(this->indices.size() != values_map_double[key_name].size()) {
-	ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n",
-		    key_name.c_str());
+	      ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n", key_name.c_str());
       }
       
       for(int i = 0; i < this->indices.size(); ++i) {
-	returnString << this->indices[i] << "\t\t" << this->values_map_double[key_name][i] << std::endl;
+	      returnString << this->indices[i] << "\t\t" << this->values_map_double[key_name][i] << std::endl;
       }
     } else if(key_type == "string") {
       if(this->indices.size() != this->values_map_string[key_name].size()) {
-	ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n",
-		    key_name.c_str());
+	      ERROR_PRINT("Tracker.h::print_key_index_list there is something wrong with the counts number of indices != number of values for key %s\n", key_name.c_str());
       }
       
       for(int i = 0; i < this->indices.size(); ++i) {
-	returnString << this->indices[i] << "\t\t" << this->values_map_string[key_name][i] << std::endl;
+	      returnString << this->indices[i] << "\t\t" << this->values_map_string[key_name][i] << std::endl;
       }
     } else {
-      ERROR_PRINT("Tracker.h::print_key_index_list called with an unrecognized typename for key %s",
-		  key_name.c_str());
+      ERROR_PRINT("Tracker.h::print_key_index_list called with an unrecognized typename for key %s", key_name.c_str());
     }
     
     returnString << "--------------------------------------" << std::endl;
@@ -416,24 +415,41 @@ public:
       ERROR_PRINT("Tracker.h::print_inline_report_format_for_index asked for index that does not exist");
     }
     stringstream returnStringSt;
-    returnStringSt << this->index_name << " " << index << " ";
+
+    if (index == 0) {
+      returnStringSt << this->index_name;
+    
+      for(map<string, vector<string> >::iterator iter = this->values_map_string.begin();
+	  iter != this->values_map_string.end(); ++iter) {
+	returnStringSt << "," << (*iter).first;
+      }
+      for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
+	  iter != this->values_map_int.end(); ++iter){
+	returnStringSt << "," << (*iter).first;
+      }
+      for(map<string, vector<double> >::iterator iter = this->values_map_double.begin();
+	  iter != this->values_map_double.end(); ++iter){
+	returnStringSt << "," << (*iter).first;
+      }
+      returnStringSt << "\n";
+    }
+
+    returnStringSt << index;
     
     for(map<string, vector<string> >::iterator iter = this->values_map_string.begin();
-	iter != this->values_map_string.end(); ++iter) {
-      returnStringSt << (*iter).first << " " << (*iter).second[index_pos] << " ";
+	      iter != this->values_map_string.end(); ++iter) {
+      returnStringSt << "," << (*iter).second[index_pos];
     }
     for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
-	iter != this->values_map_int.end(); ++iter){
-      returnStringSt << (*iter).first << " " << (*iter).second[index_pos] << " ";
+	      iter != this->values_map_int.end(); ++iter){
+      returnStringSt << "," << (*iter).second[index_pos];
     }
     for(map<string, vector<double> >::iterator iter = this->values_map_double.begin();
-	iter != this->values_map_double.end(); ++iter){
-      returnStringSt << (*iter).first << " " << setprecision(2) << fixed << (*iter).second[index_pos] << " ";
+	      iter != this->values_map_double.end(); ++iter){
+      returnStringSt <<  "," << setprecision(2) << fixed << (*iter).second[index_pos];
     }
     
     string returnString = returnStringSt.str();
-    returnString.erase(returnString.size() - 1);
-    
     returnString.append("\n");
     
     return returnString;
@@ -474,15 +490,15 @@ public:
     stringstream returnString;
     returnString << index ;
     for(map<string, vector<string> >::iterator iter = this->values_map_string.begin();
-	iter != this->values_map_string.end(); ++iter) {
+	      iter != this->values_map_string.end(); ++iter) {
       returnString << "," << (*iter).second[index_pos];
     }
     for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
-	iter != this->values_map_int.end(); ++iter){
+	      iter != this->values_map_int.end(); ++iter){
       returnString << "," << (*iter).second[index_pos];
     }
     for(map<string, vector<double> >::iterator iter = this->values_map_double.begin();
-	iter != this->values_map_double.end(); ++iter) {
+	      iter != this->values_map_double.end(); ++iter) {
       returnString << "," << (*iter).second[index_pos];
     }
     returnString << "\n";
@@ -504,16 +520,16 @@ public:
     
     returnString << this->index_name;
     for(map<string, vector<string> >::iterator iter = this->values_map_string.begin();
-	iter != this->values_map_string.end(); ++iter) {
+	      iter != this->values_map_string.end(); ++iter) {
       returnString << "," << (*iter).first;
       
     }
     for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
-	iter != this->values_map_int.end(); ++iter){
+	      iter != this->values_map_int.end(); ++iter){
       returnString << "," << (*iter).first;
     }
     for(map<string, vector<double> >::iterator iter = this->values_map_double.begin();
-	iter != this->values_map_double.end(); ++iter){
+	      iter != this->values_map_double.end(); ++iter){
       returnString << "," << (*iter).first;
     }
     returnString << "\n";
@@ -555,25 +571,25 @@ private:
     }
      
     if(TypeName == "int") {
-      if(this->values_map_int.size() > 0){
-	for(map< string, vector<int> >::iterator iter = this->values_map_int.begin();
-	    iter != this->values_map_int.end(); ++iter){
-	  (*iter).second.push_back(0);
-	}
+      if(this->values_map_int.size() > 0) {
+	      for(map< string, vector<int> >::iterator iter = this->values_map_int.begin();
+	          iter != this->values_map_int.end(); ++iter){
+	        (*iter).second.push_back(0);
+	      }
       }
     } else if(TypeName == "double") {
       if(this->values_map_double.size() > 0) {
-	for(map< string, vector<double> >::iterator iter = this->values_map_double.begin();
-	    iter != this->values_map_double.end(); ++iter) {
-	  (*iter).second.push_back(0);
-	}
+	      for(map< string, vector<double> >::iterator iter = this->values_map_double.begin();
+	          iter != this->values_map_double.end(); ++iter) {
+	        (*iter).second.push_back(0);
+	      }
       }
     } else if(TypeName  == "string") {
       if(this->values_map_string.size() > 0) {
-	for(map< string, vector<string> >::iterator iter = this->values_map_string.begin();
-	    iter != this->values_map_string.end(); ++iter) {
-	  (*iter).second.push_back(" ");
-	}
+	      for(map< string, vector<string> >::iterator iter = this->values_map_string.begin();
+	          iter != this->values_map_string.end(); ++iter) {
+	        (*iter).second.push_back(" ");
+	      }
       }
     } else {
       ERROR_PRINT("Tracker.h::add_new_index has been called with unsupported TypeName %s, use double, int, or string\n",
@@ -589,15 +605,15 @@ private:
     
     if(TypeName == "int") {
       for(int i =0; i < this->indices.size(); ++i) {
-	this->values_map_int[key_name].push_back(0);
+	      this->values_map_int[key_name].push_back(0);
       }
     } else if(TypeName == "double") {
       for(int i =0; i < this->indices.size(); ++i) {
-	this->values_map_double[key_name].push_back(0.0);
+	      this->values_map_double[key_name].push_back(0.0);
       }
     } else if(TypeName == "string") {
       for(int i =0; i < this->indices.size(); ++i) {
-	this->values_map_string[key_name].push_back("A String");
+	      this->values_map_string[key_name].push_back("A String");
       }
     } else {
       ERROR_PRINT("Tracker.h::_add_new_key got a type name %s for key %s it doesn't know how to handle (use int,double,or string)",
@@ -619,30 +635,30 @@ private:
   
   vector<string> _get_keys(string TypeName) {
     if(this->is_allowed_type(TypeName) == false) {
-      ERROR_PRINT("Tracker.h::_get_keys has been called with unsupported TypeName %s, use double,int, or string\n",
+      ERROR_PRINT("Tracker.h::_get_keys has been called with unsupported TypeName %s, use double, int, or string\n",
 		  TypeName.c_str());
     }
     
-    vector<string> returnVec;
+    vector<string> return_vec;
     if(TypeName == "int") {
       for(map<string, vector<int> >::iterator iter = this->values_map_int.begin();
-	  iter != this->values_map_int.end(); ++iter) {
-	returnVec.push_back((*iter).first);
+	        iter != this->values_map_int.end(); ++iter) {
+        return_vec.push_back((*iter).first);
       }
     } else if (TypeName == "double") {
       for(map<string, vector<double> >::iterator iter = this->values_map_double.begin();
-	  iter != values_map_double.end(); ++iter) {
-	returnVec.push_back((*iter).first);
+	        iter != values_map_double.end(); ++iter) {
+        return_vec.push_back((*iter).first);
       }
     } else if(TypeName == "string") {
       for(map < string, vector< string > >::iterator iter = this->values_map_string.begin();
-	  iter != this->values_map_string.end(); ++iter) {
-	returnVec.push_back((*iter).first);
+	        iter != this->values_map_string.end(); ++iter) {
+        return_vec.push_back((*iter).first);
       }
     } else {
       ERROR_PRINT("Tracker.h::_get_keys called with an unrecognized TypeName %s\n", TypeName.c_str());
     }
-    return returnVec;
+    return return_vec;
   }  
 };
 

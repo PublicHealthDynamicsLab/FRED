@@ -1,0 +1,26 @@
+################################################# 
+# Sample FRED Experiment Space config file
+#
+# Lines that starts with # are ignored.
+# Otherwise, only change text after the first ":" on each line.
+#
+FRED Experiment Space Title: School Closure
+Baseline Parameter File: params.school_closure
+
+Sweep Parameters:
+# the following illustrates a loop using min, max and increment:
+Name: R0 Min: 1.0 Max: 3.5 Inc: 0.5
+# the following uses a comma-separated list of values,
+# which may be strings (with no spaces)
+Name: Cases Values: [1, 5, 10]
+Name: Weeks Values: [0, 1, 2, 4, 6, 8]
+
+Output Variables:
+# format: var = display string
+# where "var" is a variable that occurs in the FRED output file
+# and "display string" is how the variable should be displayed in FRED Navigator
+AR = Serologic Attack Rate
+CAR = Clinical Attack Rate
+C = Incidents
+CI = Clinical Incidents
+RR = Reproductive Rate

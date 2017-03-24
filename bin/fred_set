@@ -35,7 +35,7 @@ $params_file = "params" if not $params_file;
 # make sure given param is in the defaults file
 my $defaults = "defaults";
 if (not -e $defaults) {
-  $defaults = "$FRED/input_files/defaults";
+  $defaults = "$FRED/data/defaults";
 }
 if (not -e $defaults) {
   die "$0: could not find defaults file\n";

@@ -1,4 +1,3 @@
-TASKDIR/task.R0=1.0 > TASKDIR/task.R0=1.0.out
-TASKDIR/task.R0=1.5 > TASKDIR/task.R0=1.5.out
-TASKDIR/task.R0=2.0 > TASKDIR/task.R0=2.0.out
-TASKDIR/task.R0=2.5 > TASKDIR/task.R0=2.5.out
+TASKDIR/task.INF.R0=1.0 > TASKDIR/task.INF.R0=1.0.out
+TASKDIR/task.INF.R0=1.5 > TASKDIR/task.INF.R0=1.5.out
+TASKDIR/task.INF.R0=2.0 > TASKDIR/task.INF.R0=2.0.out
