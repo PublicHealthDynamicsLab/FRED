@@ -1,2 +1,0 @@
-#!/bin/csh
-cat OUT/AR.* | sort -n > AR.txt
