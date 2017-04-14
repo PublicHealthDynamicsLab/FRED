@@ -2246,7 +2246,6 @@ void Epidemic::print_visualization_data_for_active_infections(int day) {
   sprintf(filename, "%s/CF%s/households-%d.txt", Global::Visualization_directory, this->output_var_suffix, day);
   fp = fopen(filename, "r");
   if (fp == NULL) {
-    fclose(fp);
     // create an empty file
     fp = fopen(filename, "w");
   }
@@ -2443,7 +2442,7 @@ void Epidemic::update_state_of_person(Person* person, int day, int new_state) {
     if (transition_day == day) {
       transition_day++;
     }
-    FRED_VERBOSE(1, "UPDATE_STATE day %d adding person %d to state_transition_event_queue for day %d\n",
+    FRED_VERBOSE(0, "UPDATE_STATE day %d adding person %d to state_transition_event_queue for day %d\n",
 		 day, person->get_id(), transition_day);
     this->state_transition_event_queue.add_event(transition_day, person);
   }
