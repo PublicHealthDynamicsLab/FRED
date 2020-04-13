@@ -1510,7 +1510,7 @@ void Population::report_mean_hh_stats_per_income_category_per_census_tract() {
   }
 
   for(int i = Household_income_level_code::CAT_I; i < Household_income_level_code::UNCLASSIFIED; ++i) {
-    if(count_hh_per_income_cat > 0) {
+    if(count_hh_per_income_cat[i] > 0) {
       Global::Income_Category_Tracker->set_index_key_pair(i, "mean_household_income", (hh_income_per_income_cat[i] / (double)count_hh_per_income_cat[i]));
     } else {
       Global::Income_Category_Tracker->set_index_key_pair(i, "mean_household_income", (double)0.0);
