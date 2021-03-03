@@ -1,0 +1,118 @@
+# exclude everything other than FRED core directories
+/*
+!/LICENSE
+!/Makefile
+!/README.md
+!/VERSION
+!/bin/
+# !/calibration/
+!/data/
+!/doc/
+!/etc/
+!/models
+!/src/
+!/library
+!/library/contrib/
+!/library/user/
+!/library/*
+!/samples/
+!/tests/
+!/tutorial/
+src/METHODS 
+
+!/doc/*.pdf
+!/doc/*.fred
+
+data/country/*
+!data/config.fred
+!data/country/usa
+data/country/usa/*
+!data/country/usa/*.txt
+!data/country/usa/msa/
+!data/country/usa/projections/
+!data/country/usa/state/
+!data/country/usa/ADI/
+!data/country/usa/SHAPES/
+data/country/usa/SHAPES/CENSUS_TRACTS/
+!data/country/usa/MAPS/*
+
+# include only sample populations
+!data/country/usa/RTI_2010_ver1
+data/country/usa/RTI_2010_ver1/*
+!data/country/usa/RTI_2010_ver1/*.txt
+!data/country/usa/RTI_2010_ver1/42003
+!data/country/usa/RTI_2010_ver1/42065
+
+!data/country/usa/US_2010.v3
+data/country/usa/US_2010.v3/*
+!data/country/usa/US_2010.v3/*.txt
+!data/country/usa/US_2010.v3/METHODS
+!data/country/usa/US_2010.v3/elev.cc
+!data/country/usa/US_2010.v3/hosp.tar
+!data/country/usa/US_2010.v3/42003
+!data/country/usa/US_2010.v3/42065
+
+# exclude RESULTS
+RESULTS/**
+
+# exclude temporary files
+**/OLD/
+**/OUT/
+**/OUT[0-9]/
+**/OUT.TEST/
+**/OUT.RT/VIS/
+**/compare.test
+**/CHECK_PARAMETERS.txt
+src/params
+src/*.txt
+src/*.fred
+**/factors
+src/x*
+src/z*
+**/xx*
+**/zz*
+
+# exclude movie, plot and pdf files
+**/*.mp4
+**/*.plt
+**/*.pdf
+
+# exclude FRED executables
+src/FRED
+bin/FRED
+src/FRED_API
+bin/FRED_API
+bin/fred_make_maps.log
+src/FRED.md5
+src/FRED.tar.gz
+**/*.md5
+**/*.gz
+
+# exclude DEPENDS file created by make
+src/DEPENDS
+src/params*
+src/OUT*/
+src/fsz
+bin/fsz
+bin/fred_make_maps.log
+
+# ignore file that start with period
+**/\.*
+
+# include the .gitignore file
+!.gitignore
+
+# ignore file that end with tilde
+**/*~
+
+# ignore .o files
+**/*.o
+
+# ignore LOG files
+**/LOG
+**/log
+**/*.logs
+bin/fred_make_maps.logs
+
+# ignore all CVS directories
+**/CVS/
