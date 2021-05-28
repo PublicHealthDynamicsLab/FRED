@@ -1,5 +1,27 @@
 #!/bin/bash
 
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 # get current dir
 pwd=$(pwd)
 
@@ -35,8 +57,8 @@ fi
 cd $FRED_HOME/tests/$dir
 
 # sanity checks
-if [ ! -e params.test ]; then
-    echo No params.test file found
+if [ ! -e test.fred ]; then
+    echo No test.fred file found
     exit 1
 fi
 
@@ -62,15 +84,15 @@ echo -n run 1
 if [ x$par = "x-p" ]; then
   shift 
   echo -n " (in background) ... "
-  ($FRED params.test 1 OUT.TEST 2>&1 > OUT.TEST/LOG1) &
+  ($FRED -p test.fred -r 1 -d OUT.TEST 2>&1 > /dev/null) &
   R1=$!
 else
   echo -n " ... "
-  $FRED params.test 1 OUT.TEST 2>&1 > OUT.TEST/LOG1
+  $FRED -p test.fred -r 1 -d OUT.TEST 2>&1 > /dev/null
 fi
 
 echo -n "run 2 ..."
-$FRED params.test 2 OUT.TEST 2>&1 > OUT.TEST/LOG2
+$FRED -p test.fred -r 2 -d OUT.TEST 2>&1 > /dev/null
 if [ x$par = "x-p" ]; then
   wait $R1
 fi

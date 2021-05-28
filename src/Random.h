@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -36,10 +45,12 @@ public:
   int draw_from_distribution(int n, double *dist);
   double normal(double mu, double sigma);
   double lognormal(double mu, double sigma);
+  int geometric(double p) {
+    std::geometric_distribution<int> geometric_dist(p);
+    return geometric_dist(mt_engine);
+  }
   int draw_from_cdf(double *v, int size);
   int draw_from_cdf_vector(const std::vector <double>& v);
-  void build_binomial_cdf(double p, int n, std::vector<double> &cdf);
-  void build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf);
   void sample_range_without_replacement(int N, int s, int* result);
 
 private:
@@ -81,8 +92,8 @@ public:
   double lognormal(double mu, double sigma) {
     return thread_rng[fred::omp_get_thread_num()].lognormal(mu, sigma);
   }
-  void build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
-    thread_rng[fred::omp_get_thread_num()].build_binomial_cdf(p, n, cdf);
+  int geometric(double p) {
+    return thread_rng[fred::omp_get_thread_num()].geometric(p);
   }
   void sample_range_without_replacement(int N, int s, int* result) {
     thread_rng[fred::omp_get_thread_num()].sample_range_without_replacement(N, s, result);
@@ -115,6 +126,9 @@ public:
   static double draw_lognormal(double mu, double sigma) { 
     return Random_Number_Generator.lognormal(mu,sigma);
   }
+  static int draw_geometric(double p) { 
+    return Random_Number_Generator.geometric(p);
+  }
   static int draw_from_cdf(double *v, int size) { 
     return Random_Number_Generator.draw_from_cdf(v,size);
   }
@@ -123,9 +137,6 @@ public:
   }
   static int draw_from_distribution(int n, double *dist) { 
     return Random_Number_Generator.draw_from_distribution(n,dist);
-  }
-  static void build_binomial_cdf(double p, int n, std::vector<double> &cdf) { 
-    Random_Number_Generator.build_binomial_cdf(p,n,cdf);
   }
   static void sample_range_without_replacement(int N, int s, int *result) { 
     Random_Number_Generator.sample_range_without_replacement(N,s,result);

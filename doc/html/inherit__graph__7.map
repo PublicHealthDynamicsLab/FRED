@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" href="$class_decision.html" title="Decision" alt="" coords="5,132,88,159"/>
-<area shape="rect" href="$class_a_v___decision___allow___only___one.html" title="AV_Decision_Allow_Only_One" alt="" coords="172,5,401,32"/>
-<area shape="rect" href="$class_a_v___decision___begin___a_v___on___day.html" title="AV_Decision_Begin_AV_On_Day" alt="" coords="165,56,408,83"/>
-<area shape="rect" href="$class_a_v___decision___give___one___chance.html" title="AV_Decision_Give_One_Chance" alt="" coords="164,107,409,133"/>
-<area shape="rect" href="$class_a_v___decision___give__to___sympt.html" title="AV_Decision_Give_to_Sympt" alt="" coords="176,157,397,184"/>
-<area shape="rect" href="$class_vaccine___priority___decision___no___priority.html" title="Vaccine_Priority_Decision_No_Priority" alt="" coords="144,208,429,235"/>
-<area shape="rect" href="$class_vaccine___priority___decision___specific___age.html" title="Vaccine_Priority_Decision_Specific_Age" alt="" coords="136,259,437,285"/>
-</map>

@@ -1,0 +1,4 @@
+locations_file = $FRED_HOME/data/testloc.txt
+days = 1
+quality_control = 0
+verbose = 0

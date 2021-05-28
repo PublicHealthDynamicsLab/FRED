@@ -1,4 +1,0 @@
-PARAM NAME: av_reduce_symptomatic_period[0]
-DEFAULT VALUE: 0.7
-TYPE: int
-DEFINITION:

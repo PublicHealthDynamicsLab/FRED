@@ -1,5 +1,0 @@
-PARAM NAME: grid_small_cell_size
-DEFAULT VALUE: 0.1
-TYPE: float
-DEFINITION: Size of high resolution grid cells in km.
-

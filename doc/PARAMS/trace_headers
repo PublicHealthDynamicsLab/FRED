@@ -1,4 +1,0 @@
-PARAM NAME: trace_headers
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

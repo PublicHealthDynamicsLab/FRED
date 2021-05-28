@@ -1,209 +1,146 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
 // File: Network.cc
 //
 
+#include "Clause.h"
+#include "Condition.h"
 #include "Network.h"
-#include "Global.h"
-#include "Params.h"
-#include "Random.h"
+#include "Network_Type.h"
 #include "Person.h"
+#include "Property.h"
+#include "Random.h"
 
-#include "Population.h" // for test only
-
-char Network::TYPE_NETWORK = 'n';
-
-char Network::SUBTYPE_NONE = 'X';
-char Network::SUBTYPE_TRANSMISSION = 't';
-char Network::SUBTYPE_SEXUAL_PARTNER = 's';
-
-//Private static variables that will be set by parameter lookups
-double Network::contacts_per_day = 0.0;
-double** Network::prob_transmission_per_contact;
-
-Network::Network(const char* lab) : Mixing_Group(lab) {
-  this->set_type(Network::TYPE_NETWORK);
-  this->set_subtype(Network::SUBTYPE_NONE);
+Network::Network(const char* lab, int _type_id, Network_Type* net_type) : Group(lab, _type_id) {
+  this->network_type = net_type;
 }
 
-void Network::get_parameters() {
-
-  Params::get_param_from_string("network_contacts", &Network::contacts_per_day);
-  int n = Params::get_param_matrix((char*)"network_trans_per_contact", &Network::prob_transmission_per_contact);
-  if(Global::Verbose > 1) {
-    printf("\nNetwork_contact_prob:\n");
-    for(int i  = 0; i < n; ++i)  {
-      for(int j  = 0; j < n; ++j) {
-	      printf("%f ", Network::prob_transmission_per_contact[i][j]);
-      }
-      printf("\n");
-    }
-  }
-
-  // normalize contact parameters
-  // find max contact prob
-  double max_prob = 0.0;
-  for(int i  = 0; i < n; ++i)  {
-    for(int j  = 0; j < n; ++j) {
-      if(Network::prob_transmission_per_contact[i][j] > max_prob) {
-	      max_prob = Network::prob_transmission_per_contact[i][j];
+void Network::read_edges() {
+  pair_vector_t results = Property::get_edges(this->get_label());
+  for(int i = 0; i < results.size(); ++i) {
+    int p1 = results[i].first;
+    int p2 = results[i].second;
+    printf("%s.add_edge %d %d\n", this->get_label(), p1, p2);
+    Person* person1 = Person::get_person(p1);
+    Person* person2 = Person::get_person(p2);
+    if(p1 == p2) {
+      person1->join_network(this);
+    } else {
+      person1->join_network(this);
+      person2->join_network(this);
+      person1->add_edge_to(person2, this);
+      person2->add_edge_from(person1, this);
+      if(this->is_undirected()) {
+        person2->add_edge_to(person1, this);
+        person1->add_edge_from(person2, this);
       }
     }
   }
-
-  // convert max contact prob to 1.0
-  if(max_prob > 0) {
-    for(int i  = 0; i < n; ++i)  {
-      for(int j  = 0; j < n; ++j) {
-	      Network::prob_transmission_per_contact[i][j] /= max_prob;
-      }
-    }
-    // compensate contact rate
-    Network::contacts_per_day *= max_prob;
-  }
-
-  if(Global::Verbose > 0) {
-    printf("\nNetwork_contact_prob after normalization:\n");
-    for(int i  = 0; i < n; ++i)  {
-      for(int j  = 0; j < n; ++i) {
-	      printf("%f ", Network::prob_transmission_per_contact[i][j]);
-      }
-      printf("\n");
-    }
-    printf("\ncontact rate: %f\n", Network::contacts_per_day);
-  }
-  // end normalization
 }
 
-double Network::get_transmission_prob(int disease_id, Person* i, Person* s) {
-  // i = infected agent
-  // s = susceptible agent
-  int row = get_group(disease_id, i);
-  int col = get_group(disease_id, s);
-  double tr_pr = Network::prob_transmission_per_contact[row][col];
-  return tr_pr;
-}
+void Network::get_properties() {
 
-/////////////////////////////////////////
-//
-// Network-SPECIFIC TRANSMISSION DATA
-//
-/////////////////////////////////////////
+  // set optional properties
+  Property::disable_abort_on_failure();
 
-double Network::get_contacts_per_day(int disease_id) {
-  return Network::contacts_per_day;
-}
-
-double Network::get_contact_rate(int sim_day, int disease_id) {
-
-  Disease* disease = Global::Diseases.get_disease(disease_id);
-  // expected number of susceptible contacts for each infectious person
-  double contacts = get_contacts_per_day(disease_id) * disease->get_transmissibility();
-
-  return contacts;
-}
-
-int Network::get_contact_count(Person* infector, int disease_id, int sim_day, double contact_rate) {
-  // reduce number of infective contacts by infector's infectivity
-  double infectivity = infector->get_infectivity(disease_id, sim_day);
-  double infector_contacts = contact_rate * infectivity;
-
-  FRED_VERBOSE(1, "infectivity = %f, so ", infectivity);
-  FRED_VERBOSE(1, "infector's effective contacts = %f\n", infector_contacts);
-
-  // randomly round off the expected value of the contact counts
-  int contact_count = static_cast<int>(infector_contacts);
-  double r = Random::draw_random();
-  if(r < infector_contacts - contact_count) {
-    contact_count++;
-  }
-
-  FRED_VERBOSE(1, "infector contact_count = %d  r = %f\n", contact_count, r);
-
-  return contact_count;
+  // restore requiring properties
+  Property::set_abort_on_failure();
 }
 
 void Network::print() {
+  int day = Global::Simulation_Day;
   char filename[64];
-  sprintf(filename, "%s/%s.txt", Global::Simulation_directory, get_label());
-  FILE* link_fileptr = fopen(filename,"w");
-  sprintf(filename, "%s/%s-people.txt", Global::Simulation_directory, get_label());
-  FILE* people_fileptr = fopen(filename,"w");
+  sprintf(filename, "%s/RUN%d/%s-%d.txt", Global::Simulation_directory, Global::Simulation_run_number, this->get_label(), day);
+  FILE* fp = fopen(filename,"w");
   int size = this->get_size();
+  // fprintf(fp, "size of %s = %d\n", get_label(), size);
   for(int i = 0; i < size; ++i) {
-    Person* person = this->get_enrollee(i);
-    person->print_network(link_fileptr, this);
-    person->print(people_fileptr, 0);
-  }
-  fclose(link_fileptr);
-  fclose(people_fileptr);
-
-  if (strcmp(get_label(), "Transmission_Network") != 0) {
-    return;
-  }
-
-  int a[20][20];
-  for (int i = 0; i < 20; i++) {
-    for (int j = 0; j < 20; j++) {
-      a[i][j] = 0;
-    }
-  }
-
-  int total_out = 0;
-  int max = -1;
-  for(int i = 0; i < size; ++i) {
-    Person* person = this->get_enrollee(i);
-    int age_src = person->get_age();
-    if (age_src > 99) {
-      age_src = 99;
-    }
+    Person* person = this->get_member(i);
     int out_degree = person->get_out_degree(this);
-    for (int j = 0; j < out_degree; j++) {
-      int age_dest = person->get_end_of_link(j,this)->get_age();
-      if (age_dest > 99) {
-	age_dest = 99;
-      }
-      a[age_src/5][age_dest/5]++;
-      if (max < a[age_src/5][age_dest/5]) {
-	max = a[age_src/5][age_dest/5];
+    int in_degree = person->get_in_degree(this);
+    if(in_degree == 0 && out_degree == 0) {
+      fprintf(fp, "%s.add_edge = %d %d 0.0\n", this->get_label(), person->get_id(), person->get_id());
+    } else {
+      for(int j = 0; j < out_degree; ++j) {
+        Person* person2 = person->get_outward_edge(j,this);
+        fprintf(fp, "%s.add_edge = %d %d %f\n",
+            this->get_label(), person->get_id(), person2->get_id(), person->get_weight_to(person2,this));
       }
     }
-    total_out += out_degree;
   }
-  
-  sprintf(filename, "%s/source.dat", Global::Simulation_directory);
-  FILE* fileptr = fopen(filename,"w");
-  for (int i = 0; i < 20; i++) {
-    for (int j = 0; j < 20; j++) {
-      double x = max? (255.0 * (double) a[i][j] / (double) max) : 0.0;
-      fprintf(fileptr, "%d %d %3.0f\n", i, j, x);
-    }
-    fprintf(fileptr, "\n");
-  }
-  fclose(fileptr);
+  fclose(fp);
 
-}
-
-void Network::print_stdout() {
-  int size = this->get_size();
+  sprintf(filename, "%s/RUN%d/%s-%d.vna", Global::Simulation_directory, Global::Simulation_run_number, this->get_label(), day);
+  fp = fopen(filename,"w");
+  fprintf(fp, "*node data\n");
+  fprintf(fp, "ID age sex race\n");
   for(int i = 0; i < size; ++i) {
-    Person* person = this->get_enrollee(i);
-    person->print_network(stdout, this);
+    Person* person = this->get_member(i);
+    fprintf(fp, "%d %d %c %d\n", person->get_id(), person->get_age(), person->get_sex(),person->get_race());
   }
-  printf("mean degree = %0.2f\n", get_mean_degree());
-  printf("=======================\n\n");
-  fflush(stdout);
+  fprintf(fp, "*tie data\n");
+  fprintf(fp, "from to weight\n");
+  for(int i = 0; i < size; ++i) {
+    Person* person = this->get_member(i);
+    int out_degree = person->get_out_degree(this);
+    for(int j = 0; j < out_degree; ++j) {
+      Person* person2 = person->get_outward_edge(j,this);
+      if(is_undirected()) {
+        if(person->get_id() < person2->get_id()) {
+          fprintf(fp, "%d %d %f\n", person->get_id(), person2->get_id(), person->get_weight_to(person2,this));
+        }
+      } else {
+        fprintf(fp, "%d %d %f\n", person->get_id(), person2->get_id(), person->get_weight_to(person2,this));
+      }
+    }
+  }
+  fclose(fp);
+
+  return;
+
+  if(false) {
+    int day = Global::Simulation_Day;
+    char filename[64];
+    sprintf(filename, "%s/RUN%d/%s-%d.txt", Global::Simulation_directory, Global::Simulation_run_number, this->get_label(), day);
+    FILE* fp = fopen(filename,"w");
+    int size = this->get_size();
+    fprintf(fp, "size of %s = %d\n", this->get_label(), size);
+    for(int i = 0; i < size; ++i) {
+      Person* person = this->get_member(i);
+      int out_degree = person->get_out_degree(this);
+      int in_degree = person->get_in_degree(this);
+      fprintf(fp, "\nNETWORK %s day %d member %d person %d in_deg %d out_deg %d:\n",
+          this->get_label(), Global::Simulation_Day, i, person->get_id(), in_degree, out_degree);
+      for(int j = 0; j < out_degree; ++j) {
+        Person* person2 = person->get_outward_edge(j,this);
+        fprintf(fp, "NETWORK %s day %d person %d age %d sex %c race %d ",
+            this->get_label(), Global::Simulation_Day, person->get_id(), person->get_age(), person->get_sex(), person->get_race());
+        fprintf(fp, "other %d age %d sex %c race %d\n",
+            person2->get_id(), person2->get_age(), person2->get_sex(), person2->get_race());
+      }
+    }
+    fclose(fp);
+  }
 }
 
 bool Network::is_connected_to(Person* p1, Person* p2) {
@@ -217,8 +154,8 @@ bool Network::is_connected_from(Person* p1, Person* p2) {
 double Network::get_mean_degree() {
   int size = get_size();
   int total_out = 0;
-  for(int i = 0; i < size; i++) {
-    Person* person = get_enrollee(i);
+  for(int i = 0; i < size; ++i) {
+    Person* person = get_member(i);
     int out_degree = person->get_out_degree(this);
     total_out += out_degree;
   }
@@ -231,79 +168,106 @@ double Network::get_mean_degree() {
 
 void Network::test() {
   return;
-
-  for(int i = 0; i < 50; ++i) {
-    Person* p = Global::Pop.select_random_person();
-    p->join_network(Global::Transmission_Network);
-  }
-
-  printf("create_random_network(1.0)\n");
-  create_random_network(1.0);
-  print_stdout();
-  
-  printf("create_random_network(4.0)\n");
-  create_random_network(4.0);
-  print_stdout();
-  exit(0);
-
-  Person* p1 = Global::Pop.select_random_person();
-  printf("p1 %d\n", p1->get_id());
-  p1->join_network(Global::Transmission_Network);
-
-  Person* p2 = Global::Pop.select_random_person();
-  printf("p2 %d\n", p2->get_id());
-  p1->join_network(Global::Transmission_Network);
-
-  Person* p3 = Global::Pop.select_random_person();
-  printf("p3 %d\n", p3->get_id());
-  p1->join_network(Global::Transmission_Network);
-
-  printf("empty net:\n");
-  print_stdout();
-
-  printf("p1->create_network_link_to(p2, this);\np2->create_network_link_to(p3, this);\n");
-  p1->create_network_link_to(p2, this);
-  p2->create_network_link_to(p3, this);
-  print_stdout();
-
-  printf("p1->create_network_link_from(p3, this);\n");
-  p1->create_network_link_from(p3, this);
-  print_stdout();
-
-  printf("p2->destroy_network_link_from(p1, this);\n");
-  p2->destroy_network_link_from(p1, this);
-  print_stdout();
-
-  printf("p2->create_network_link_to(p1, this);\n");
-  p2->create_network_link_to(p1, this);
-  print_stdout();
 }
 
-void Network::create_random_network(double mean_degree) {
+bool Network::is_undirected() {
+  return this->network_type->is_undirected();
+}
+
+Network* Network::get_network(string name) {
+  Network_Type* network_type = Network_Type::get_network_type(name);
+  if(network_type == NULL) {
+    return NULL;
+  } else {
+    return network_type->get_network();
+  }
+}
+
+int Network::get_time_block(int day, int hour) {
+  return this->network_type->get_time_block(day, hour);
+}
+
+
+void Network::randomize(double mean_degree, int max_degree) {
   int size = this->get_size();
   if(size < 2) {
     return;
   }
   for(int i = 0; i < size; ++i) {
-    Person* person = get_enrollee(i);
+    Person* person = get_member(i);
     person->clear_network(this);
   }
   // print_stdout();
   int number_edges = mean_degree * size + 0.5;
-  printf("size = %d  edges = %d\n\n", size, number_edges);
-  int i = 0;
-  while(i < number_edges) {
+  FRED_DEBUG(0, "RANDOMIZE size = %d  edges = %d\n\n", size, number_edges);
+  int edges = 0;
+  int found = 1;
+  while(edges < number_edges && found==1) {
+    found = 0;
     int pos1 = Random::draw_random_int(0, size - 1);
-    Person* src = this->get_enrollee(pos1);
-    int pos2 = pos1;
-    while(pos2 == pos1) {
-      pos2 = Random::draw_random_int(0, size - 1);
+    Person* src = this->get_member(pos1);
+    while(src->get_degree(this) >= max_degree) {
+      FRED_DEBUG(0, "RANDOMIZE src degree = %d >= max_degree = %d\n", src->get_degree(this), max_degree);
+      pos1 = Random::draw_random_int(0, size - 1);
+      src = this->get_member(pos1);
     }
-    Person* dest = this->get_enrollee(pos2);
-    // printf("edge from %d to %d\n", src->get_id(), dest->get_id());
-    if(src->is_connected_to(dest, this) == false) {
-      src->create_network_link_to(dest, this);
-      ++i;
+    FRED_DEBUG(0, "RANDOMIZE src person %d sex %c\n", src->get_id(), src->get_sex());
+
+    // get a qualified destination
+
+    // shuffle the order of candidates
+    std::vector<int> shuffle_index;
+    shuffle_index.clear();
+    shuffle_index.reserve(size);
+    for(int i = 0; i < size; ++i) {
+      shuffle_index.push_back(i);
     }
+    FYShuffle<int>(shuffle_index);
+
+    int index = 0;
+    while(index < size && found == 0) {
+      int pos = shuffle_index[index];
+      Person* dest = get_member(pos);
+      if(dest == src) {
+        ++index;
+        continue;
+      }
+      if(dest->get_degree(this) >= max_degree) {
+        ++index;
+        continue;
+      }
+      if(src->is_connected_to(dest, this)) {
+        ++index;
+        continue;
+      }
+
+      // printf("RANDOMIZE ADD EDGE from person %d sex %c to person %d sex %c \n", src->get_id(), src->get_sex(), dest->get_id(), dest->get_sex());
+      src->add_edge_to(dest, this);
+      dest->add_edge_from(src, this);
+      if(this->is_undirected()) {
+        src->add_edge_from(dest, this);
+        dest->add_edge_to(src, this);
+      }
+      ++edges;
+      found = 1;
+    }
+  }
+  printf("RANDOMIZE size = %d  found = %d edges = %d  mean_degree = %f\n\n", size, found, edges, (edges*1.0)/size);
+}
+
+const char* Network::get_name() {
+  return this->network_type->get_name();
+}
+
+void Network::print_person(Person* person, FILE* fp) {
+  int out_degree = person->get_out_degree(this);
+  int in_degree = person->get_in_degree(this);
+  fprintf(fp, "\nNETWORK %s day %d person %d in_deg %d out_deg %d:\n", this->get_label(), Global::Simulation_Day, person->get_id(), in_degree, out_degree);
+  for(int j = 0; j < out_degree; ++j) {
+    Person* person2 = person->get_outward_edge(j,this);
+    fprintf(fp, "NETWORK %s day %d person %d age %d sex %c race %d ", this->get_label(),
+        Global::Simulation_Day, person->get_id(), person->get_age(), person->get_sex(), person->get_race());
+    fprintf(fp, "other %d age %d sex %c race %d\n",  person2->get_id(),
+        person2->get_age(), person2->get_sex(), person2->get_race());
   }
 }

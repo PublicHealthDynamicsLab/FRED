@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -15,6 +24,7 @@
 //
 #include "Random.h"
 #include <stdio.h>
+#include <float.h>
 
 Thread_RNG Random::Random_Number_Generator;
 
@@ -56,8 +66,14 @@ int RNG::draw_from_distribution(int n, double* dist) {
 }
 
 double RNG::exponential(double lambda) {
+  assert(lambda > 0.0);
   double u = random();
-  return (-log(u) / lambda);
+  if (u > 0.0) {
+    return (-log(u) / lambda);
+  }
+  else {
+    return DBL_MAX;
+  }
 }
 
 double RNG::normal(double mu, double sigma) {
@@ -65,10 +81,12 @@ double RNG::normal(double mu, double sigma) {
 }
 
 double RNG::lognormal(double mu, double sigma) {
+  // Notation as on https://en.wikipedia.org/wiki/Log-normal_distribution
+  // mu = log(median)
+  // sigma = log(dispersion)
   double z = normal(0.0,1.0);
   return exp(mu + sigma * z);
 }
-
 
 int RNG::draw_from_cdf(double* v, int size) {
   double r = random();
@@ -139,58 +157,6 @@ double binomial_coefficient(int n, int k) {
     c = c / (i + 1);
   }
   return c;
-}
-
-void RNG::build_binomial_cdf(double p, int n, std::vector<double> &cdf) {
-  for(int i = 0; i <= n; ++i) {
-    double prob = 0.0;
-    for(int j = 0; j <= i; ++j) {
-      prob += binomial_coefficient(n, i)
-        * pow(10, ((i * log10(p)) + ((n - 1) * log10(1 - p))));
-    }
-    if(i > 0) {
-      prob += cdf.back();
-    }
-    if(prob < 1) {
-      cdf.push_back(prob);
-    } else {
-      cdf.push_back(1.0);
-      break;
-    }
-  }
-  cdf.back() = 1.0;
-}
-
-void RNG::build_lognormal_cdf(double mu, double sigma, std::vector<double> &cdf) {
-  int maxval = -1;
-  int count[1000];
-  for(int i = 0; i < 1000; i++) {
-    count[i] = 0;
-  }
-  for(int i = 0; i < 1000; i++) {
-    double x = lognormal(mu, sigma);
-    int j = (int) x + 0.5;
-    if(j > 999) {
-      j = 999;
-    }
-    count[j]++;
-    if(j > maxval) {
-      maxval = j;
-    }
-  }
-  for(int i = 0; i <= maxval; ++i) {
-    double prob = (double) count[i] / 1000.0;
-    if(i > 0) {
-      prob += cdf.back();
-    }
-    if(prob < 1.0) {
-      cdf.push_back( prob );
-    } else {
-      cdf.push_back(1.0);
-      break;
-    }
-  }
-  cdf.back() = 1.0;
 }
 
 void RNG::sample_range_without_replacement(int N, int s, int* result) {

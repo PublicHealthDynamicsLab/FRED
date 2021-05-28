@@ -1,6 +1,0 @@
-PARAM NAME: debug
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: If set, print verbose debugging output to stdout. Higher
-values produce more output.

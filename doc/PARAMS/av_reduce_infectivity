@@ -1,4 +1,0 @@
-PARAM NAME: av_reduce_infectivity[0]
-DEFAULT VALUE: .70
-TYPE: int
-DEFINITION:

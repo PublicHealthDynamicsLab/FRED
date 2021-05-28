@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -15,13 +24,9 @@
 //
 
 #include "Utils.h"
+#include "Expression.h"
 #include "Global.h"
-#include <chrono>
-#include <stdlib.h>
-#include <string.h>
-
-using namespace std;
-using namespace std::chrono;
+#include "Person.h"
 
 static high_resolution_clock::time_point start_timer;
 static high_resolution_clock::time_point fred_timer;
@@ -32,18 +37,81 @@ static high_resolution_clock::time_point epidemic_timer;
 
 static char ErrorFilename[FRED_STRING_SIZE];
 
-void Utils::fred_abort(const char* format, ...){
+// helper method for sorting people in a list
+bool Utils::compare_id (Person* p1, Person* p2) {
+  return p1->get_id() < p2->get_id();
+}
+
+std::string Utils::delete_spaces(std::string &str) {
+  str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+  return str;
+}
+
+string_vector_t Utils::get_string_vector(std::string str, char delim) {
+  string_vector_t result;
+  std::stringstream ss(str);
+  while(ss.good()) {
+    std::string substr;
+    getline(ss, substr, delim);
+    if(substr != "") {
+      result.push_back(Utils::delete_spaces(substr));
+    }
+  }
+  return result;
+}
+
+bool Utils::is_number(std::string s) {
+  char* p;
+  strtod(s.c_str(), &p);
+  return *p == 0;
+}
+
+string_vector_t Utils::get_top_level_parse(std::string str, char delim) {
+  string_vector_t result;
+  str = delete_spaces(str);
+  char cstr[FRED_STRING_SIZE];
+  char tmp[FRED_STRING_SIZE];
+  strcpy(cstr, str.c_str());
+  // FRED_VERBOSE(0, "input string = |%s|\n", cstr);
+  int inside = 0;
+  char* s = cstr;
+  char* t = tmp;
+  *t = '\0';
+  while(*s != '\0') {
+    // printf("*s = |%c| tmp = |%s|\n", *s, tmp); fflush(stdout);
+    if(*s  ==  delim && !inside) {
+      // FRED_VERBOSE(0, "push_back |%s|\n", tmp);
+      result.push_back(string(tmp));
+      t = tmp;
+      *t = '\0';
+    } else {
+      if(*s == '(') {
+        inside++;
+      }
+      if(*s==')') {
+        inside--;
+      }
+      *t++ = *s;
+      *t = '\0';
+    }
+    s++;
+  }
+  result.push_back(string(tmp));
+  return result;
+}
+
+void Utils::fred_abort(const char* format, ...) {
 
   // open ErrorLog file if it doesn't exist
-  if(Global::ErrorLogfp == NULL){
+  if(Global::ErrorLogfp == NULL) {
     Global::ErrorLogfp = fopen(ErrorFilename, "w");
     if(Global::ErrorLogfp == NULL) {
       // output to stdout
-      printf("FRED ERROR: Can't open errorfile %s\n", ErrorFilename);
+      printf("\nFRED ERROR: Can't open errorfile %s\n", ErrorFilename);
       // current error message:
       va_list ap;
       va_start(ap,format);
-      printf("FRED ERROR: ");
+      printf("\nFRED ERROR: ");
       vprintf(format,ap);
       va_end(ap);
       fflush(stdout);
@@ -55,14 +123,14 @@ void Utils::fred_abort(const char* format, ...){
   // output to error file
   va_list ap;
   va_start(ap,format);
-  fprintf(Global::ErrorLogfp,"FRED ERROR: ");
+  fprintf(Global::ErrorLogfp,"\nFRED ERROR: ");
   vfprintf(Global::ErrorLogfp,format,ap);
   va_end(ap);
   fflush(Global::ErrorLogfp);
 
   // output to stdout
   va_start(ap,format);
-  printf("FRED ERROR: ");
+  printf("\nFRED ERROR: ");
   vprintf(format,ap);
   va_end(ap);
   fflush(stdout);
@@ -78,11 +146,11 @@ void Utils::fred_warning(const char* format, ...){
     Global::ErrorLogfp = fopen(ErrorFilename, "w");
     if(Global::ErrorLogfp == NULL) {
       // output to stdout
-      printf("FRED ERROR: Can't open errorfile %s\n", ErrorFilename);
+      printf("\nFRED ERROR: Can't open errorfile %s\n", ErrorFilename);
       // current error message:
       va_list ap;
       va_start(ap,format);
-      printf("FRED WARNING: ");
+      printf("\nFRED WARNING: ");
       vprintf(format,ap);
       va_end(ap);
       fflush(stdout);
@@ -94,14 +162,14 @@ void Utils::fred_warning(const char* format, ...){
   // output to error file
   va_list ap;
   va_start(ap,format);
-  fprintf(Global::ErrorLogfp,"FRED WARNING: ");
+  fprintf(Global::ErrorLogfp,"\nFRED WARNING: ");
   vfprintf(Global::ErrorLogfp,format,ap);
   va_end(ap);
   fflush(Global::ErrorLogfp);
 
   // output to stdout
   va_start(ap,format);
-  printf("FRED WARNING: ");
+  printf("\nFRED WARNING: ");
   vprintf(format,ap);
   va_end(ap);
   fflush(stdout);
@@ -111,89 +179,18 @@ void Utils::fred_open_output_files(){
   int run = Global::Simulation_run_number;
   char filename[FRED_STRING_SIZE];
   char directory[FRED_STRING_SIZE];
-  strcpy(directory, Global::Simulation_directory);
+  sprintf(directory, "%s/RUN%d", Global::Simulation_directory, run);
+  fred_make_directory(directory);
 
   // ErrorLog file is created at the first warning or error
   Global::ErrorLogfp = NULL;
-  sprintf(ErrorFilename, "%s/err%d.txt", directory, run);
+  sprintf(ErrorFilename, "%s/err.txt", directory);
 
-  sprintf(filename, "%s/out%d.txt", directory, run);
-  Global::Outfp = fopen(filename, "w");
-  if(Global::Outfp == NULL) {
-    Utils::fred_abort("Can't open %s\n", filename);
-  }
-  Global::Tracefp = NULL;
-  if (strcmp(Global::Tracefilebase, "none") != 0) {
-    sprintf(filename, "%s/trace%d.txt", directory, run);
-    Global::Tracefp = fopen(filename, "w");
-    if(Global::Tracefp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  Global::Infectionfp = NULL;
-  if(Global::Track_infection_events > 0) {
-    sprintf(filename, "%s/infections%d.txt", directory, run);
-    Global::Infectionfp = fopen(filename, "w");
-    if(Global::Infectionfp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  Global::VaccineTracefp = NULL;
-  if(strcmp(Global::VaccineTracefilebase, "none") != 0) {
-    sprintf(filename, "%s/vacctr%d.txt", directory, run);
-    Global::VaccineTracefp = fopen(filename, "w");
-    if(Global::VaccineTracefp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  Global::Birthfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
-    sprintf(filename, "%s/births%d.txt", directory, run);
-    Global::Birthfp = fopen(filename, "w");
-    if(Global::Birthfp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  Global::Deathfp = NULL;
-  if(Global::Enable_Population_Dynamics) {
-    sprintf(filename, "%s/deaths%d.txt", directory, run);
-    Global::Deathfp = fopen(filename, "w");
-    if(Global::Deathfp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  Global::Immunityfp = NULL;
-  if(strcmp(Global::Immunityfilebase, "none") != 0) {
-    sprintf(filename, "%s/immunity%d.txt", directory, run);
-    Global::Immunityfp = fopen(filename, "w");
-    if(Global::Immunityfp == NULL) {
-      Utils::fred_abort("Help! Can't open %s\n", filename);
-    }
-    Global::Report_Immunity = true;
-  }
-  Global::Householdfp = NULL;
-  if(Global::Print_Household_Locations) {
-    sprintf(filename, "%s/households.txt", directory);
-    Global::Householdfp = fopen(filename, "w");
-    if(Global::Householdfp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-
-  Global::Tractfp = NULL;
-  if(Global::Report_Epidemic_Data_By_Census_Tract) {
-    sprintf(filename,"%s/tracts%d.txt",directory,run);
-    Global::Tractfp = fopen(filename,"w");
-    if(Global::Tractfp == NULL) {
-      Utils::fred_abort("Can't open %s\n", filename);
-    }
-  }
-  
-  Global::IncomeCatfp = NULL;
-  if(Global::Report_Mean_Household_Stats_Per_Income_Category) {
-    sprintf(filename,"%s/income_category%d.txt",directory,run);
-    Global::IncomeCatfp = fopen(filename,"w");
-    if(Global::IncomeCatfp == NULL) {
+  Global::Recordsfp = NULL;
+  if(Global::Enable_Records > 0) {
+    sprintf(filename, "%s/health_records.txt", directory);
+    Global::Recordsfp = fopen(filename, "w");
+    if(Global::Recordsfp == NULL) {
       Utils::fred_abort("Can't open %s\n", filename);
     }
   }
@@ -202,51 +199,51 @@ void Utils::fred_open_output_files(){
 }
 
 void Utils::fred_make_directory(char* directory) {
+  struct stat info;
+  if(stat(directory, &info) == 0) {
+    // file already exists. verify that it is a directory
+    if(info.st_mode & S_IFDIR) {
+      // printf( "fred_make_directory: %s already exists\n", directory );
+      return;
+    } else {
+      Utils::fred_abort("fred_make_directory: %s exists but is not a directory\n", directory);
+      return;
+    }
+  }
+  // try to create the directory:
   mode_t mask;        // the user's current umask
   mode_t mode = 0777; // as a start
-  mask = umask(0); // get the current mask, which reads and sets...
-  umask(mask);     // so now we have to put it back
-  mode ^= mask;    // apply the user's existing umask
-  if(0!=mkdir(directory, mode) && EEXIST != errno) { // make it
+  mask = umask(0);    // get the current mask, which reads and sets...
+  umask(mask);        // so now we have to put it back
+  mode ^= mask;       // apply the user's existing umask
+  if(0 != mkdir(directory, mode) && EEXIST != errno) { // make it
     Utils::fred_abort("mkdir(%s) failed with %d\n", directory, errno); // or die
   }
 }
 
+void Utils::fred_end(void) {
 
-void Utils::fred_end(void){
   // This is a function that cleans up FRED and exits
-  if(Global::Outfp != NULL) {
-    fclose(Global::Outfp);
+  if(Global::Statusfp != NULL) {
+    fclose(Global::Statusfp);
   }
-  if(Global::Tracefp != NULL) {
-    fclose(Global::Tracefp);
+
+  if(Global::Birthfp != NULL) {
+    fclose(Global::Birthfp);
   }
-  if(Global::Infectionfp != NULL) {
-    fclose(Global::Infectionfp);
+
+  if(Global::Deathfp != NULL) {
+    fclose(Global::Deathfp);
   }
-  if(Global::VaccineTracefp != NULL) {
-    fclose(Global::VaccineTracefp);
+
+  if(Global::ErrorLogfp != NULL) {
+    fclose(Global::ErrorLogfp);
   }
-  if(Global::Prevfp != NULL) {
-    fclose(Global::Prevfp);
-  }
-  if(Global::Incfp != NULL) {
-    fclose(Global::Incfp);
-  }
-  if(Global::Immunityfp != NULL) {
-    fclose(Global::Immunityfp);
-  }
-  if(Global::Householdfp != NULL) {
-    fclose(Global::Householdfp);
-  }
-  if(Global::Tractfp != NULL) {
-    fclose(Global::Tractfp);
-  }
-  if(Global::IncomeCatfp != NULL) {
-    fclose(Global::IncomeCatfp);
+
+  if(Global::Recordsfp != NULL) {
+    fclose(Global::Recordsfp);
   }
 }
-
 
 void Utils::fred_print_wall_time(const char* format, ...) {
   time_t clock;
@@ -275,7 +272,7 @@ void Utils::fred_start_epidemic_timer() {
 void Utils::fred_print_epidemic_timer(string msg) {
   high_resolution_clock::time_point stop_timer = high_resolution_clock::now();
   double duration = 0.000001 * std::chrono::duration_cast<std::chrono::microseconds>( stop_timer - epidemic_timer ).count();
-  fprintf(Global::Statusfp, "%s took %f seconds\n\n", msg.c_str(), duration);
+  fprintf(Global::Statusfp, "%s took %f seconds\n", msg.c_str(), duration);
   fflush(Global::Statusfp);
   epidemic_timer = stop_timer;
 }
@@ -354,7 +351,7 @@ void Utils::fred_verbose(int verbosity, const char* format, ...) {
   }
 }
 
-void Utils::fred_verbose_statusfp(int verbosity, const char* format, ...) {
+void Utils::fred_status(int verbosity, const char* format, ...) {
   if(Global::Verbose > verbosity) {
     va_list ap;
     va_start(ap,format);
@@ -372,22 +369,19 @@ void Utils::fred_log(const char* format, ...) {
   fflush(Global::Statusfp);
 }
 
-void Utils::fred_report(const char* format, ...) {
-  va_list ap;
-  va_start(ap, format);
-  vfprintf(Global::Outfp, format, ap);
-  fflush(Global::Outfp);
-  va_start(ap, format);
-  vfprintf(Global::Statusfp, format, ap);
-  fflush(Global::Statusfp);
-  va_end(ap);
-}
-
 FILE* Utils::fred_open_file(char* filename) {
   FILE* fp;
   get_fred_file_name(filename);
   printf("fred_open_file: opening file %s for reading\n", filename);
   fp = fopen(filename, "r");
+  return fp;
+}
+
+FILE* Utils::fred_write_file(char* filename) {
+  FILE* fp;
+  get_fred_file_name(filename);
+  printf("fred_write_file: opening file %s for writing\n", filename);
+  fp = fopen(filename, "w");
   return fp;
 }
 
@@ -408,6 +402,8 @@ void Utils::get_fred_file_name(char* filename) {
 
 #include <sys/resource.h>
 /*
+  NOTE: FROM sys/resource.h ...
+
   #define   RUSAGE_SELF     0
   #define   RUSAGE_CHILDREN     -1
 
@@ -434,273 +430,52 @@ void Utils::get_fred_file_name(char* filename) {
 void Utils::fred_print_resource_usage(int day) {
   rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
-  printf("day %d maxrss %ld\n",
-	 day, r_usage.ru_maxrss);
+  printf("day %d maxrss %ld\n", day, r_usage.ru_maxrss);
+
+  printf("day %d cur_phys_mem_usage_gbs %0.4f\n", day, get_fred_phys_mem_usg_in_gb());
+
   fflush(stdout);
 }
 
-/********************************************************
- * Input: in_str is a csv string, possiblly ending with \n
- * Output out_str is a csv string with empty fields replaced
- * by replacement string.
- *
- * Notes: It is assumed that empty strings do not have white space
- * between commas. Newlines in the input string are ignored, so the
- * output string contains no newlines.
- *        
- */
-void Utils::replace_csv_missing_data(char* out_str, char* in_str, const char* replacement) {
-  // printf("in = |%s|replacement = %s\n",in_str,replacement);
-  int i = 0;
-  int j = 0;
-  int new_field = 1;
-  while(in_str[i] != '\0') {
-    if(in_str[i] == '\n') {
-      i++;
-    } else if(new_field && in_str[i] == ',') {
-      // field is missing, so insert replacement
-      int k = 0;
-      while (replacement[k] != '\0') { out_str[j++] = replacement[k++]; }
-      out_str[j++] = ',';
-      i++;
-      new_field = 1;
-    } else if (in_str[i] == ',') {
-      out_str[j++] = in_str[i++];
-      new_field = 1;
-    } else {
-      out_str[j++] = in_str[i++];
-      new_field = 0;
-    }
-  }
-  // printf("new_field = %d\n", new_field); fflush(stdout);
-  if(new_field) {
-    // last field is missing
-    int k = 0;
-    while(replacement[k] != '\0') {
-      out_str[j++] = replacement[k++];
-    }
-  }
-  out_str[j] = '\0';
-  // printf("out = |%s|\n",out_str); fflush(stdout);
+double Utils::get_daily_probability(double prob, int days) {
+  // p = total prob; d = daily prob; n = days
+  // prob of survival = 1-p = (1-d)^n
+  // log(1-p) = n*log(1-d)
+  // (1/n)*log(1-p) = log(1-d)
+  // (1-p)^(1/n) = 1-d
+  // d = 1-(1-p)^(1/n)
+  double daily = 1.0 - pow((1.0 - prob), (1.0 / days));
+  return daily;
 }
 
-
-void Utils::get_next_token(char* out_string, char** input_string) {
-  char* token;
-  token = strsep(input_string,",");
-
-  // if the field is empty, we report a value of "-1"
-  if(*token == '\0') {
-    strcpy(out_string,"-1");
-    return;
-  }
-
-  // token is non-empty
-  strcpy(out_string,token);
-
-  // if the token contains an opening quote but not closing quote, then
-  // it was truncated by an intervening comma, so we have to retrieve
-  // the remainder of the field:
-  if(*token == '"') {
-    char* c;
-    c = token;
-    c++;					// skip opening quote
-    while((*c != '"') && (*c != '\0')) {
-      c++;    // search for closing quote
-    }
-    if(*c == '\0') {				// no closing quote
-      char* remainder;
-      remainder = strsep(input_string, "\"");
-      // concatenate remainder of field onto out_string
-      (void)strncat(out_string, remainder, sizeof(out_string) - strlen(remainder) - 1);
-      // add closing quote
-      (void)strcat(out_string, "\"");
-      // retrieve rest of field up to next comma (and verify that this is empty)
-      remainder = strsep(input_string, ",");
-      assert(*remainder == '\0');
-    }
-  }
-  return;
+std::string Utils::str_tolower(std::string s) {
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+    return std::tolower(c);
+  });
+  return s;
 }
 
-// remove non-NULL char c from string s with length at most maxlen
-// string must be null-terminated.
-void Utils::delete_char(char* s, char c, int maxlen) {
-  int len = std::strlen(s);
-
-  // abort if greater than or equal to maximum length 
-  if(len >= maxlen) {
-    return;
-  }
-
-  // do not remove NULL characters
-  if(c == '\0') {
-    return;
-  }
-
-  char* new_s = s;
-  while(*s != '\0') {
-    if(*s != c) {
-      *new_s++ = *s;
-    }
-    s++;
-  }
-  *new_s = '\0';
+bool Utils::does_path_exist(const std::string &s) {
+  char filename[FRED_STRING_SIZE];
+  sprintf(filename, "%s", s.c_str());
+  Utils::get_fred_file_name(filename);
+  struct stat buffer;
+  return (stat (filename, &buffer) == 0);
 }
 
-// replace multiple white spaces with a single space in string s
-void Utils::normalize_white_space(char* s) {
-  char* new_s = s;
-  // printf("new_s = |%s|\n", new_s); fflush(stdout);
-  int started = 0;
-  char* token;
-  while((token = strsep(&s, " \t")) != NULL) {
-    if(*token != '\0') {
-      // printf("token = |%s|\n", token); fflush(stdout);
-      char* t = token;
-      if(started) {
-        *new_s++ = ' ';
-      }
-
-      while(*t != '\0') {
-        *new_s++ = *t++;
-      }
-      *new_s = '\0';
-      started = 1;
-      // printf("new_s = |%s|\n", new_s); fflush(stdout);
-    }
-  }
+void Utils::print_error(const std::string &msg) {
+  char error_file[FRED_STRING_SIZE];
+  sprintf(error_file, "%s/errors.txt", Global::Simulation_directory);
+  FILE* fp = fopen(error_file, "a");
+  fprintf(fp, "\nFRED Error (file %s) %s\n", Global::Program_file, msg.c_str());
+  fclose(fp);
+  Global::Error_found = true;
 }
 
-bool Utils::to_bool(string s) {
-  assert(s.size() == 1 && s[0] >= '0' && s[0] <= '1' );
-  bool b = (s[0] == '1');
-  return b;
+void Utils::print_warning(const std::string &msg) {
+  char warning_file[FRED_STRING_SIZE];
+  sprintf(warning_file, "%s/warnings.txt", Global::Simulation_directory);
+  FILE* fp = fopen(warning_file, "a");
+  fprintf(fp, "\nFRED Warning (file %s) %s\n", Global::Program_file, msg.c_str());
+  fclose(fp);
 }
-
-// TODO Utils::tokens class for split_by_delim
-//      - stores tokens internally as vector of strings
-//      - allows access to const char * with const operator[]
-//      - can be passed as refence to split methods (treated like vector)
-
-// splits a string by delimiter, loads into vector passed by reference
-Utils::Tokens &Utils::split_by_delim( const std::string &str,
-				      const char delim, Tokens & tokens,
-				      bool collapse_consecutive_delims ) {
-
-  std::stringstream ss(str);
-  std::string item;
-
-  std::string quoted_item;
-  quoted_item.clear();
-
-  int items = 0;
-  while(std::getline( ss, item, delim)) {
-    if(!item.empty()) {
-      while(!item.empty() && (item.at(item.size()-1) == '\n' || item.at(item.size()-1) == '\r')) {
-	item.resize(item.size()-1);
-      }
-      if(item.empty()) {
-	continue;
-      }
-      if(item.size() > 1 && (item.at(0) == '\"' || item.at(0) == '\'') && item.at(0) == item.at(item.size() - 1)) {
-	// printf("item = |%s|\n",item.c_str());
-	item.erase(item.size() - 1, 1);
-	item.erase(0, 1);
-	// printf("item = |%s|\n",item.c_str());
-      } else {
-	if(item.size() > 1 && ( item.at(0) == '\"' || item.at(0) == '\'')) {
-	  quoted_item = item;
-	  // printf("item is quoted = |%s|\n",quoted_item.c_str());
-	  continue;
-	} else if (!quoted_item.empty()) {
-	  if(item.at(item.size() - 1) != quoted_item.at(0)) {
-	    quoted_item = quoted_item + "," + item;
-	    continue;
-	  } else {
-	    item = quoted_item + "," + item;
-	    item.erase(0,1);
-	    item.erase(item.size()-1,1);
-	    quoted_item.clear();
-	  }
-	}
-      }
-    }
-    if(!item.empty() || !collapse_consecutive_delims) {
-      tokens.push_back( item );
-    }
-  }
-  int trim_size = tokens.back().size();
-  std::string::reverse_iterator rit = tokens.back().rbegin();
-  for( ; rit != tokens.back().rend(); ++rit) {
-    if((*rit) == '\n' || (*rit) == '\r') {
-      --( trim_size );
-    } else {
-      if(trim_size < tokens.back().size()) {
-        tokens.back().resize(trim_size);
-      }
-      break;
-    }
-  }
-  return tokens;
-}
-
-// splits a string by delimiter, returns result in a new vector
-Utils::Tokens Utils::split_by_delim(const std::string &str,
-				    const char delim, bool collapse_consecutive_delims) {
-
-  Tokens tokens;
-  return split_by_delim(str, delim, tokens, collapse_consecutive_delims);
-}
-
-Utils::Tokens & Utils::split_by_delim(const char* str,
-				      const char delim, Tokens & tokens,
-				      bool collapse_consecutive_delims) {
-
-  return split_by_delim(std::string(str), delim, tokens,
-			collapse_consecutive_delims);
-}
-
-Utils::Tokens Utils::split_by_delim(const char* str,
-				    const char delim, bool collapse_consecutive_delims) {
-
-  return split_by_delim(std::string(str), delim,
-			collapse_consecutive_delims);
-}
-
-
-void Utils::track_value(int day, char* key, int value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-  
-  
-void Utils::track_value(int day, char* key, double value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-  
-  
-void Utils::track_value(int day, char* key, string value, int id) {
-  char key_str[80];
-  if(id == 0) {
-    sprintf(key_str, "%s", key);
-  } else {
-    sprintf(key_str, "%s_%d", key, id);
-  }
-  Global::Daily_Tracker->set_index_key_pair(day, key_str, value);
-}
-
-
-
-

@@ -1,0 +1,9 @@
+#!/bin/tcsh
+foreach i (10 20 30 100)
+ cp d$i.txt import_doses.txt
+ fred_delete -f -k dose$i
+ fred_job -k dose$i -n 4 -m 4
+end
+fred_plot -k dose10 -k dose20 -k dose30 -k dose100 -v VAC.Receive
+cp d10.txt import_doses.txt
+

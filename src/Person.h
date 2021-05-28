@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -16,990 +25,1125 @@
 #ifndef _FRED_PERSON_H
 #define _FRED_PERSON_H
 
-#include "Global.h"
+#include <fstream>
+#include <iostream>
 #include <vector>
+#include <algorithm>
+#include <unistd.h>
+
 using namespace std;
 
-class Place;
-class Household;
-class Disease;
-class Infection;
-class Mixing_Group;
-class Network;
-class Population;
-
+#include "Date.h"
 #include "Demographics.h"
-#include "Health.h"
-#include "Behavior.h"
-#include "Activities.h"
-#include <map>
+#include "Global.h"
+#include "Link.h"
+#include "Network_Type.h"
+#include "Place_Type.h"
+#include "Group_Type.h"
+#include "Place.h"
+#include "Utils.h"
+
+class Activities_Tracking_Data;
+class Condition;
+class Expression;
+class Factor;
+class Group;
+class Hospital;
+class Household;
+class Infection;
+class Natural_History;
+class Network;
+class Place;
+class Population;
+class Preference;
+
+typedef struct {
+  int person_index;
+  int person_id;
+  Person* person;
+  Expression* expression;
+  std::vector<int> change_day;
+  std::vector<double> value_on_day;
+} report_t;
+
+
+typedef struct {
+  int state;
+  int last_transition_step;
+  int next_transition_step;
+
+  // transmission info
+  double susceptibility;
+  double transmissibility;
+  int exposure_day;
+  Person* source;
+  Group* group;
+  int number_of_hosts;
+
+  // time each state was last entered
+  int* entered;
+
+  // status flags
+  bool is_fatal;
+  bool sus_set;
+  bool trans_set;
+
+} condition_t;
+
+
+// The following enum defines symbolic names for Insurance Company Assignment.
+// The last element should always be UNSET.
+namespace Insurance_assignment_index {
+  enum e {
+    PRIVATE,
+    MEDICARE,
+    MEDICAID,
+    HIGHMARK,
+    UPMC,
+    UNINSURED,
+    UNSET
+  };
+};
+
+
+
+// household relationship codes (ver 2)
+/**
+ * The following enum defines symbolic names for an agent's relationship
+ * to the householder.  The last element should always be
+ * HOUSEHOLD_RELATIONSHIPS
+ */
+namespace Household_Relationship {
+  enum e {
+    HOUSEHOLDER = 0,
+    SPOUSE = 1,
+    CHILD = 2,
+    SIBLING = 3,
+    PARENT = 4,
+    GRANDCHILD = 5,
+    IN_LAW = 6,
+    OTHER_RELATIVE = 7,
+    BOARDER = 8,
+    HOUSEMATE = 9,
+    PARTNER = 10,
+    FOSTER_CHILD = 11,
+    OTHER_NON_RELATIVE = 12,
+    INSTITUTIONALIZED_GROUP_QUARTERS_POP = 13,
+    NONINSTITUTIONALIZED_GROUP_QUARTERS_POP = 14,
+    HOUSEHOLD_RELATIONSHIPS
+  };
+};
+
+/**
+ * The following enum defines symbolic names for an agent's race.  to
+ * the householder.  The last element should always be RACES
+ */
+
+namespace Race {
+  enum e {
+    UNKNOWN_RACE = -1,
+    WHITE = 1,
+    AFRICAN_AMERICAN,
+    AMERICAN_INDIAN,
+    ALASKA_NATIVE,
+    TRIBAL,
+    ASIAN,
+    HAWAIIAN_NATIVE,
+    OTHER_RACE,
+    MULTIPLE_RACE,
+    RACES
+  };
+};
+
+#define MAX_MOBILITY_AGE 100
+
+/**
+ * The following enum defines symbolic names an agent's activity
+ * profile.  The last element should always be ACTIVITY_PROFILE
+ */
+namespace Activity_Profile {
+  enum e {
+    INFANT,
+    PRESCHOOL,
+    STUDENT,
+    TEACHER,
+    WORKER,
+    WEEKEND_WORKER,
+    UNEMPLOYED,
+    RETIRED,
+    PRISONER,
+    COLLEGE_STUDENT,
+    MILITARY,
+    NURSING_HOME_RESIDENT,
+    UNDEFINED,
+    ACTIVITY_PROFILE
+  };
+};
+
+
+
 
 class Person {
 public:
 
   Person();
   ~Person();
-  
-  /**
-   * Make this agent unsusceptible to the given disease
-   * @param disease_id the id of the disease to reference
-   */
-  void become_unsusceptible(int disease_id) {
-    this->health.become_unsusceptible(disease_id);
-  }
-
-  /**
-   * Make this agent unsusceptible to the given disease
-   * @param disease the disease to reference
-   */
-  void become_unsusceptible(Disease* disease) {
-    this->health.become_unsusceptible(disease);
-  }
-
-  void become_exposed(int disease_id, Person* infector, Mixing_Group* mixing_group, int day) {
-    this->health.become_exposed(disease_id, infector, mixing_group, day);
-  }
-  /**
-   * Make this agent immune to the given disease
-   * @param disease the disease to reference
-   */
-  void become_immune(Disease* disease);
-
-  void print(FILE* fp, int disease_id);
-
-  void infect(Person* infectee, int disease_id, Mixing_Group* mixing_group, int day) {
-    this->health.infect(infectee, disease_id, mixing_group, day);
-  }
-
-  /**
-   * @param day the simulation day
-   * @see Demographics::update(int day)
-   */
-  void update_demographics(int day) {
-    this->demographics.update(day);
-  }
-
-  void update_infection(int day, int disease_id) {
-    this->health.update_infection(day, disease_id);
-  }
-
-  void update_health_interventions(int day) {
-    this->health.update_interventions(day);
-  }
-
-  /**
-   * @param day the simulation day
-   * @see Behavior::update(int day)
-   */
-  void update_behavior(int day) {
-    this->behavior.update(this, day);
-  }
-
-  /**
-   * @Activities::prepare()
-   */
-  void prepare_activities() {
-    this->activities.prepare();
-  }
-
-  bool is_present(int sim_day, Place *place) {
-    return this->activities.is_present(sim_day, place);
-  }
-
-  void update_schedule(int sim_day) {
-    this->activities.update_schedule(sim_day);
-  }
-
-  void update_activities_of_infectious_person(int sim_day) {
-    this->activities.update_activities_of_infectious_person(sim_day);
-  }
-
-  void update_enrollee_index(Mixing_Group* mixing_group, int pos) {
-    this->activities.update_enrollee_index(mixing_group, pos);
-  }
-
-  /**
-   * @Activities::update_profile()
-   */
-  void update_activity_profile() {
-    this->activities.update_profile();
-  }
-
-  void become_susceptible(int disease_id) {
-    this->health.become_susceptible(disease_id);
-  }
-
-  void become_susceptible_by_vaccine_waning(int disease_id) {
-    this->health.become_susceptible_by_vaccine_waning(disease_id);
-  }
-
-  void update_household_counts(int day, int disease_id);
-  void update_school_counts(int day, int disease_id);
-
-  /**
-   * This agent will become infectious with the disease
-   * @param disease a pointer to the Disease
-   */
-  void become_infectious(Disease* disease) {
-    this->health.become_infectious(disease);
-  }
-
-  void become_noninfectious(Disease* disease) {
-    this->health.become_noninfectious(disease);
-  }
-
-  /**
-   * This agent will become symptomatic with the disease
-   * @param disease a pointer to the Disease
-   */
-  void become_symptomatic(Disease* disease) {
-    this->health.become_symptomatic(disease);
-  }
-
-  void resolve_symptoms(Disease* disease) {
-    this->health.resolve_symptoms(disease);
-  }
-
-  /**
-   * This agent will recover from the disease
-   * @param disease a pointer to the Disease
-   */
-  void recover(int day, Disease* disease) {
-    this->health.recover(disease, day);
-  }
-
-  void become_case_fatality(int day, Disease* disease);
-
-  /**
-   * This agent creates a new agent
-   * @return a pointer to the new Person
-   */
-  Person* give_birth(int day);
-
-  /**
-   * Assign the agent to a Classroom
-   * @see Activities::assign_classroom()
-   */
-  void assign_classroom() {
-    if(this->activities.get_school()) {
-      this->activities.assign_classroom();
-    }
-  }
-
-  /**
-   * Assign the agent to an Office
-   * @see Activities::assign_office()
-   */
-  void assign_office() {
-    this->activities.assign_office();
-  }
-
-  /**
-   * Assign the agent a primary healthjare facility
-   * @see Activities::assign_primary_healthcare_facility()
-   */
-  void assign_primary_healthcare_facility() {
-    this->activities.assign_primary_healthcare_facility();
-  }
-
-  /**
-   * Will print out a person in a format similar to that read from population file
-   * (with additional run-time values inserted (denoted by *)):<br />
-   * (i.e Label *ID* Age Sex Married Occupation Household School *Classroom* Workplace *Office*)
-   * @return a string representation of this Person object
-   */
-  string to_string();
-
-  // access functions:
-  /**
-   * The id is generated at runtime
-   * @return the id of this Person
-   */
+  void setup(int index, int id, int age, char sex, int race, int rel,
+	     Place* house, Place* school, Place* work, int day,
+	     bool today_is_birthday);
+  void print(FILE* fp, int condition_id);
+  bool is_present(int sim_day, Group* group);
+  std::string to_string();
   int get_id() const {
     return this->id;
   }
-
-  /**
-   * @return a pointer to this Person's Demographics
-   */
-  Demographics* get_demographics() {
-    return &this->demographics;
-  }
-
-  /**
-   * @return the Person's age
-   * @see Demographics::get_age()
-   */
-  int get_age() {
-    return this->demographics.get_age();
-  }
-
-  /**
-   * @return the Person's initial age
-   * @see Demographics::get_init_age()
-   */
-  int get_init_age() const {
-    return this->demographics.get_init_age();
-  }
-
-  /**
-   * @return the Person's age as a double value based on the number of days alive
-   * @see Demographics::get_real_age()
-   */
-  double get_real_age() const {
-    return this->demographics.get_real_age();
-  }
-
-  /**
-   * @return the Person's sex
-   */
-  char get_sex() const {
-    return this->demographics.get_sex();
-  }
-
-  /**
-   * @return the Person's race
-   * @see Demographics::get_race()
-   */
-  int get_race() {
-    return this->demographics.get_race();
-  }
-
-  int get_relationship() {
-    return this->demographics.get_relationship();
-  }
-
-  void set_relationship(int rel) {
-    this->demographics.set_relationship(rel);
-  }
-
-  /**
-   * @return <code>true</code> if this agent is deceased, <code>false</code> otherwise
-   */
-  bool is_deceased() {
-    return this->demographics.is_deceased();
-  }
-
-  /**
-   * @return <code>true</code> if this agent is an adult, <code>false</code> otherwise
-   */
-  bool is_adult() {
-    return this->demographics.get_age() >= Global::ADULT_AGE;
-  }
-
-  /**
-   * @return <code>true</code> if this agent is a chiild, <code>false</code> otherwise
-   */
-  bool is_child() {
-    return this->demographics.get_age() < Global::ADULT_AGE;
-  }
-
-  /**
-   * @return a pointer to this Person's Health
-   */
-  Health* get_health() {
-    return &this->health;
-  }
-
-  /**
-   * @return <code>true</code> if this agent is symptomatic, <code>false</code> otherwise
-   * @see Health::is_symptomatic()
-   */
-  int is_symptomatic() {
-    return this->health.is_symptomatic();
-  }
-
-  int is_symptomatic(int disease_id) {
-    return this->health.is_symptomatic(disease_id);
-  }
-
-  int get_days_symptomatic() {
-    return this->health.get_days_symptomatic();
-  }
-
-  bool is_immune(int disease_id) {
-    return this->health.is_immune(disease_id);
-  }
-
-  /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is susceptible to disease, <code>false</code> otherwise
-   * @see Health::is_susceptible(int dis)
-   */
-  bool is_susceptible(int dis) {
-    return this->health.is_susceptible(dis);
-  }
-
-  /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is infectious with disease, <code>false</code> otherwise
-   * @see Health::is_infectious(int disease)
-   */
-  bool is_infectious(int dis) {
-    return this->health.is_infectious(dis);
-  }
-
-  bool is_recovered(int dis) {
-    return this->health.is_recovered(dis);
-  }
-
-  /**
-   * @param dis the disease to check
-   * @return <code>true</code> if this agent is infected with disease, <code>false</code> otherwise
-   * @see Health::is_infected(int disease)
-   */
-  bool is_infected(int dis) {
-    return this->health.is_infected(dis);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the specific Disease's susceptibility for this Person
-   * @see Health::get_susceptibility(int disease)
-   */
-  double get_susceptibility(int disease) const {
-    return this->health.get_susceptibility(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @param day the simulation day
-   * @return the specific Disease's infectivity for this Person
-   * @see Health::get_infectivity(int disease, int day)
-   */
-  double get_infectivity(int disease_id, int day) const {
-    return this->health.get_infectivity(disease_id, day);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @param day the simulation day
-   * @return the Symptoms for this Person
-   * @see Health::get_symptoms(int day)
-   */
-  double get_symptoms(int disease_id, int day) const {
-    return this->health.get_symptoms(disease_id, day);
-  }
-
-  /*
-   * Advances the course of the infection by moving the exposure date
-   * backwards
-   */
-  void advance_seed_infection(int disease_id, int days_to_advance) {
-    this->health.advance_seed_infection(disease_id, days_to_advance);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the simulation day that this agent became exposed to disease
-   */
-  int get_exposure_date(int disease) const {
-    return this->health.get_exposure_date(disease);
-  }
-
-  int get_infectious_start_date(int disease) const {
-    return this->health.get_infectious_start_date(disease);
-  }
-
-  int get_infectious_end_date(int disease) const {
-    return this->health.get_infectious_end_date(disease);
-  }
-
-  int get_symptoms_start_date(int disease) const {
-    return this->health.get_symptoms_start_date(disease);
-  }
-
-  int get_symptoms_end_date(int disease) const {
-    return this->health.get_symptoms_end_date(disease);
-  }
-
-  int get_immunity_end_date(int disease) const {
-    return this->health.get_immunity_end_date(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the Person who infected this agent with disease
-   */
-  Person* get_infector(int disease) const {
-    return this->health.get_infector(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the id of the location where this agent became infected with disease
-   */
-  int get_infected_mixing_group_id(int disease) const {
-    return this->health.get_infected_mixing_group_id(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the pointer to the Place where this agent became infected with disease
-   */
-  Mixing_Group* get_infected_mixing_group(int disease) const {
-    return this->health.get_infected_mixing_group(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the label of the location where this agent became infected with disease
-   */
-  char* get_infected_mixing_group_label(int disease) const {
-    return this->health.get_infected_mixing_group_label(disease);
-  }
-
-  /**
-   * @param disease the disease to check
-   * @return the type of the location where this agent became infected with disease
-   */
-  char get_infected_mixing_group_type(int disease) const {
-    return this->health.get_infected_mixing_group_type(disease);
-  }
-
-  /**
-   * @param disease the disease in question
-   * @return the infectees
-   * @see Health::get_infectees(int disease)
-   */
-  int get_infectees(int disease) const {
-    return this->health.get_infectees(disease);
-  }
-
-  /**
-   * @return a pointer to this Person's Activities
-   */
-  Activities* get_activities() {
-    return &this->activities;
-  }
-
-  /**
-   * @return the a pointer to this agent's Neighborhood
-   */
-  Place* get_neighborhood() {
-    return this->activities.get_neighborhood();
-  }
-
-  void reset_neighborhood() {
-    this->activities.reset_neighborhood();
-  }
-
-  /**
-   * @return a pointer to this Person's Household
-   * @see Activities::get_household()
-   */
-  Place* get_household() {
-    return this->activities.get_household();
-  }
-
-  int get_exposed_household_index() {
-    return this->exposed_household_index;
-  }
-
-  void set_exposed_household(int index_) {
-    this->exposed_household_index = index_;
-  }
-
-  Place* get_permanent_household() {
-    return this->activities.get_permanent_household();
-  }
-
-  unsigned char get_deme_id() {
-    return this->activities.get_deme_id();
-  }
-
-  bool is_householder() {
-    return this->demographics.is_householder();
-  }
-
-  void make_householder() {
-    this->demographics.make_householder();
-  }
-
-  /**
-   * @return a pointer to this Person's School
-   * @see Activities::get_school()
-   */
-  Place* get_school() {
-    return this->activities.get_school();
-  }
-
-  /**
-   * @return a pointer to this Person's Classroom
-   * @see Activities::get_classroom()
-   */
-  Place* get_classroom() {
-    return this->activities.get_classroom();
-  }
-
-  /**
-   * @return a pointer to this Person's Workplace
-   * @see Activities::get_workplace()
-   */
-  Place* get_workplace() {
-    return this->activities.get_workplace();
-  }
-
-  /**
-   * @return a pointer to this Person's Office
-   * @see Activities::get_office()
-   */
-  Place* get_office() {
-    return this->activities.get_office();
-  }
-
-  /**
-   * @return a pointer to this Person's Hospital
-   * @see Activities::get_hospital()
-   */
-  Place* get_hospital() {
-    return this->activities.get_hospital();
-  }
-
-  /**
-   * @return a pointer to this Person's Ad Hoc location
-   * @see Activities::get_ad_hoc()
-   */
-  Place* get_ad_hoc() {
-    return this->activities.get_ad_hoc();
-  }
-
-  /**
-   *  @return the number of other agents in an agent's neighborhood, school, and workplace.
-   *  @see Activities::get_degree()
-   */
-  int get_degree() {
-    return this->activities.get_degree();
-  }
-
-  int get_household_size() {
-    return this->activities.get_group_size(Activity_index::HOUSEHOLD_ACTIVITY);
-  }
-
-  int get_neighborhood_size() {
-    return this->activities.get_group_size(Activity_index::NEIGHBORHOOD_ACTIVITY);
-  }
-
-  int get_school_size() {
-    return this->activities.get_group_size(Activity_index::SCHOOL_ACTIVITY);
-  }
-
-  int get_classroom_size() {
-    return this->activities.get_group_size(Activity_index::CLASSROOM_ACTIVITY);
-  }
-
-  int get_workplace_size() {
-    return this->activities.get_group_size(Activity_index::WORKPLACE_ACTIVITY);
-  }
-
-  int get_office_size() {
-    return this->activities.get_group_size(Activity_index::OFFICE_ACTIVITY);
-  }
-
-  bool is_hospitalized() {
-    return this->activities.is_hospitalized;
-  }
-
-  /**
-   * Have this Person begin traveling
-   * @param visited the Person this agent will visit
-   * @see Activities::start_traveling(Person* visited)
-   */
-  void start_traveling(Person* visited) {
-    this->activities.start_traveling(visited);
-  }
-
-  /**
-   * Have this Person stop traveling
-   * @see Activities::stop_traveling()
-   */
-  void stop_traveling() {
-    this->activities.stop_traveling();
-  }
-
-  /**
-   * @return <code>true</code> if the Person is traveling, <code>false</code> if not
-   * @see Activities::get_travel_status()
-   */
-  bool get_travel_status() {
-    return this->activities.get_travel_status();
-  }
-
-  int get_num_past_infections(int disease) {
-    return this->health.get_num_past_infections(disease);
-  }
-
-  Past_Infection* get_past_infection(int disease, int i) {
-    return this->health.get_past_infection(disease, i);
-  }
-
-  void clear_past_infections(int disease) {
-    this->health.clear_past_infections(disease);
-  }
-
-  //void add_past_infection(int d, Past_Infection *pi){ health.add_past_infection(d, pi); }  
-  void add_past_infection(int strain_id, int recovery_date, int age_at_exposure, Disease* dis) {
-    this->health.add_past_infection(strain_id, recovery_date, age_at_exposure, dis);
-  }
-
-  void take_vaccine(Vaccine* vacc, int day, Vaccine_Manager* vm) {
-    this->health.take_vaccine(vacc, day, vm);
-  }
-
-  // set up and access health behaviors
-  void setup_behavior() {
-    this->behavior.setup(this);
-  }
-
-  bool is_health_decision_maker() {
-    return this->behavior.is_health_decision_maker();
-  }
-
-  Person* get_health_decision_maker() {
-    return this->behavior.get_health_decision_maker();
-  }
-
-  void set_health_decision_maker(Person* p) {
-    this->behavior.set_health_decision_maker(p);
-  }
-
-  void become_health_decision_maker(Person* self) {
-    this->behavior.become_health_decision_maker(self);
-  }
-
-  bool adult_is_staying_home() {
-    return this->behavior.adult_is_staying_home();
-  }
-
-  bool child_is_staying_home() {
-    return this->behavior.child_is_staying_home();
-  }
-
-  bool acceptance_of_vaccine() {
-    return this->behavior.acceptance_of_vaccine();
-  }
-
-  bool acceptance_of_another_vaccine_dose() {
-    return this->behavior.acceptance_of_another_vaccine_dose();
-  }
-
-  bool child_acceptance_of_vaccine() {
-    return this->behavior.child_acceptance_of_vaccine();
-  }
-
-  bool child_acceptance_of_another_vaccine_dose() {
-    return this->behavior.child_acceptance_of_another_vaccine_dose();
-  }
-
-  bool is_sick_leave_available() {
-    return this->activities.is_sick_leave_available();
-  }
-
-  double get_transmission_modifier_due_to_hygiene(int disease_id) {
-    return this->health.get_transmission_modifier_due_to_hygiene(disease_id);
-  }
-
-  double get_susceptibility_modifier_due_to_hygiene(int disease_id) {
-    return this->health.get_susceptibility_modifier_due_to_hygiene(disease_id);
-  }
-
-  bool is_case_fatality(int disease_id) {
-    return this->health.is_case_fatality(disease_id);
-  }
-
-  void terminate(int day);
-
   void set_pop_index(int idx) {
     this->index = idx;
   }
-
   int get_pop_index() {
     return this->index;
   }
-
-  void birthday(int day) {
-    this->demographics.birthday(this, day);
-  }
-
-  bool become_a_teacher(Place* school) {
-    return this->activities.become_a_teacher(school);
-  }
-
-  bool is_teacher() {
-    return this->activities.is_teacher();
-  }
-
-  bool is_student() {
-    return this->activities.is_student();
-  }
-
-  void move_to_new_house(Place* house) {
-    activities.move_to_new_house(house);
-  }
-
-  void change_school(Place* place) {
-    this->activities.change_school(place);
-  }
-
-  void change_workplace(Place* place) {
-    this->activities.change_workplace(place);
-  }
-
-  void change_workplace(Place* place, int include_office) {
-    this->activities.change_workplace(place, include_office);
-  }
-
-  int get_visiting_health_status(Place* place, int day, int disease_id) {
-    return this->activities.get_visiting_health_status(place, day, disease_id);
-  }
-
-  /**
-   * @return <code>true</code> if agent is asthmatic, <code>false</code> otherwise
-   * @see Health::is_asthmatic()
-   */
-  bool is_asthmatic() {
-    return this->health.is_asthmatic();
-  }
-
-  /**
-   * @return <code>true</code> if agent has COPD (Chronic Obstructive Pulmonary
-   * disease), <code>false</code> otherwise
-   * @see Health::has_COPD()
-   */
-  bool has_COPD() {
-    return this->health.has_COPD();
-  }
-
-  /**
-   * @return <code>true</code> if agent has chronic renal disease, <code>false</code> otherwise
-   * @see Health::has_chronic_renal_disease()
-   */
-  bool has_chronic_renal_disease() {
-    return this->health.has_chronic_renal_disease();
-  }
-
-  /**
-   * @return <code>true</code> if agent is diabetic, <code>false</code> otherwise
-   * @see Health::is_diabetic()
-   */
-  bool is_diabetic() {
-    return this->health.is_diabetic();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_heart_disease()
-   */
-  bool has_heart_disease() {
-    return this->health.has_heart_disease();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_hypertension()
-   */
-  bool has_hypertension() {
-    return this->health.has_hypertension();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_hypercholestrolemia()
-   */
-  bool has_hypercholestrolemia() {
-    return this->health.has_hypercholestrolemia();
-  }
-
-  /**
-   * @return <code>true</code> if agent has heart disease, <code>false</code> otherwise
-   *  @see Health::has_chronic_condition()
-   */
-  bool has_chronic_condition() {
-    return this->health.has_chronic_condition();
-  }
-
-  /**
-   * @return <code>true</code> if agent is alive, <code>false</code> otherwise
-   * @see Health::is_alive()
-   */
-  bool is_alive() {
-    return this->health.is_alive();
-  }
-
-  /**
-   * @return <code>true</code> if agent is dead, <code>false</code> otherwise
-   * @see Health::is_alive()
-   */
-  bool is_dead() {
-    return this->health.is_alive() == false;
-  }
-
+  void start_reporting(int condition_id, int state_id);
+  void start_reporting(Rule *rule);
   double get_x();
-
   double get_y();
+  bool is_alive() const {
+    return this->alive;
+  }
+  void terminate(int day);
 
+
+  // DEMOGRAPHICS
+  int get_birthday_sim_day() {
+    return birthday_sim_day;
+  }
+  int get_birth_year() {
+    return Date::get_year(this->birthday_sim_day);
+  }
+  double get_age_in_years() const;
+  int get_age_in_days() const;
+  int get_age_in_weeks() const;
+  int get_age_in_months() const;
+  double get_real_age() const;
+  int get_age() const;
+  short int get_init_age() const {
+    return this->init_age;
+  }
+  const char get_sex() const {
+    return this->sex;
+  }
+  short int get_race() const {
+    return this->race;
+  }
+  void set_number_of_children(int n) {
+    this->number_of_children = n;
+  }
+  int get_number_of_children() const {
+    return this->number_of_children;
+  }
+  void update_birth_stats(int day, Person* self);
+  bool is_adult() {
+    return get_age() >= Global::ADULT_AGE;
+  }
+  bool is_child() {
+    return get_age() < Global::ADULT_AGE;
+  }
+  bool is_white() {
+    return get_race()==Race::WHITE;
+  }
+  bool is_nonwhite() {
+    return get_race()!=Race::WHITE;
+  }
+  bool is_african_american() {
+    return get_race()==Race::AFRICAN_AMERICAN;
+  }
+  bool is_american_indian() {
+    return get_race()==Race::AMERICAN_INDIAN;
+  }
+  bool is_alaska_native() {
+    return get_race()==Race::ALASKA_NATIVE;
+  }
+  bool is_hawaiian_native() {
+    return get_race()==Race::HAWAIIAN_NATIVE;
+  }
+  bool is_tribal() {
+    return get_race()==Race::TRIBAL;
+  }
+  bool is_asian() {
+    return get_race()==Race::ASIAN;
+  }
+  bool is_other_race() {
+    return get_race()==Race::OTHER_RACE;
+  }
+  bool is_multiple_race() {
+    return get_race()==Race::MULTIPLE_RACE;
+  }
+  int get_income(); 
+  int get_adi_state_rank();
+  int get_adi_national_rank();
+  char* get_household_structure_label();
+  const bool is_deceased() const {
+    return this->deceased;
+  }
+  void set_deceased() {
+    this->deceased = true;
+  }
+  void set_household_relationship(int rel) {
+    this->household_relationship = rel;
+  }
+  const int get_household_relationship() const {
+    return this->household_relationship;
+  }
+  bool is_householder() {
+    return this->household_relationship == Household_Relationship::HOUSEHOLDER;
+  }
+  void make_householder() {
+    this->household_relationship = Household_Relationship::HOUSEHOLDER;
+  }
+
+
+  // PROFILE
+  int get_profile() {
+    return this->profile;
+  }
+  void set_profile(int _profile) {
+    this->profile = _profile;
+  }
+  void assign_initial_profile();
+  void update_profile_after_changing_household();
+  void update_profile_based_on_age();
+  bool become_a_teacher(Place* school);
+  bool is_teacher() {
+    return this->profile == Activity_Profile::TEACHER;
+  }
+  bool is_student() {
+    return this->profile == Activity_Profile::STUDENT;
+  }
+  bool is_retired() {
+    return this->profile == Activity_Profile::RETIRED;
+  }
+  bool is_employed() {
+    return get_workplace() != NULL;
+  }
+  bool is_college_student() {
+    return this->profile == Activity_Profile::COLLEGE_STUDENT;
+  }
   bool is_prisoner() {
-    return this->activities.is_prisoner();
+    return this->profile == Activity_Profile::PRISONER;
   }
-
   bool is_college_dorm_resident() {
-    return this->activities.is_college_dorm_resident();
+    return this->profile == Activity_Profile::COLLEGE_STUDENT;
   }
-
   bool is_military_base_resident() {
-    return this->activities.is_military_base_resident();
+    return this->profile == Activity_Profile::MILITARY;
   }
-
   bool is_nursing_home_resident() {
-    return this->activities.is_nursing_home_resident();
+    return this->profile == Activity_Profile::NURSING_HOME_RESIDENT;
   }
-
+  bool is_hospital_staff();
+  bool is_prison_staff();
+  bool is_college_dorm_staff();
+  bool is_military_base_staff();
+  bool is_nursing_home_staff();
   bool lives_in_group_quarters() {
     return (is_college_dorm_resident() || is_military_base_resident()
 	    || is_prisoner() || is_nursing_home_resident());
   }
+  bool lives_in_parents_home() {
+    return this->in_parents_home;
+  }
+  static std::string get_profile_name(int prof);
+  static int get_profile_from_name(std::string profile_name);
 
-  char get_profile() {
-    return this->activities.get_profile();
+
+  // ACTIVITIES
+  void setup_activities(Place* house, Place* school, Place* work);
+  void set_activity_group(int place_type_id, Group* group);
+  void prepare_activities() {}
+  void clear_activity_groups();
+  void unset_in_parents_home() {
+    this->in_parents_home = false;
+  }
+  void schedule_activity(int day, int place_type_id);
+  void cancel_activity(int day, int place_type_id);
+  void begin_membership_in_activity_group(int i);
+  void begin_membership_in_activity_groups();
+  void end_membership_in_activity_group(int i);
+  void end_membership_in_activity_groups();
+  void store_activity_groups();
+  void restore_activity_groups();
+  int get_activity_group_id(int i);
+  const char* get_activity_group_label(int i);
+  void update_activities(int sim_day);
+  void select_activity_of_type(int place_type_id);
+  std::string activities_to_string();
+  Group* get_activity_group(int i) {
+    if (0 <= i && i < Group_Type::get_number_of_group_types()) { 
+      return this->link[i].get_group();
+    }
+    else {
+      return NULL;
+    }
+  }
+  void set_household(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Household"), p);
+  }
+  void set_neighborhood(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Neighborhood"), p);
+  }
+  void set_school(Place* p) {
+    set_activity_group(Group_Type::get_type_id("School"), p);
+    if (p != NULL) {
+      set_last_school(p);
+    }
+  }
+  void set_last_school(Place* school);
+  void set_classroom(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Classroom"), p);
+  }
+  void set_workplace(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Workplace"), p);
+  }
+  void set_office(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Office"), p);
+  }
+  void set_hospital(Place* p) {
+    set_activity_group(Group_Type::get_type_id("Hospital"), p);
+  }
+  void terminate_activities();
+
+
+  // PLACES
+  void set_place_of_type(int type_id, Place* place);
+  Place* get_place_of_type(int type_id);
+  Group* get_group_of_type(int type_id);
+  int get_place_size(int type_id);
+  Network* get_network_of_type(int type_id);
+  int get_network_size(int type_id);
+  Household* get_stored_household();
+  void assign_school();
+  void assign_classroom();
+  void assign_workplace();
+  void assign_office();
+  Place* get_neighborhood() {
+    return static_cast<Place*>(get_activity_group(Place_Type::get_type_id("Neighborhood")));
+  }
+  Household* get_household();
+  Place* get_school() {
+    return static_cast<Place*>(get_activity_group(Place_Type::get_type_id("School")));
+  }
+  Place* get_classroom() {
+    return static_cast<Place*>(get_activity_group(Place_Type::get_type_id("Classroom")));
+  }
+  Place* get_workplace() {
+    return static_cast<Place*>(get_activity_group(Place_Type::get_type_id("Workplace")));
+  }
+  Place* get_office() {
+    return static_cast<Place*>(get_activity_group(Place_Type::get_type_id("Office")));
+  }
+  int get_household_size() {
+    return get_place_size(Place_Type::get_type_id("Household"));
+  }
+  int get_neighborhood_size() {
+    return get_place_size(Place_Type::get_type_id("Neighborhood"));
+  }
+  int get_school_size() {
+    return get_place_size(Place_Type::get_type_id("School"));
+  }
+  int get_classroom_size() {
+    return get_place_size(Place_Type::get_type_id("Classroom"));
+  }
+  int get_workplace_size() {
+    return get_place_size(Place_Type::get_type_id("Workplace"));
+  }
+  int get_office_size() {
+    return get_place_size(Place_Type::get_type_id("Office"));
+  }
+  int get_hospital_size() {
+    return get_place_size(Place_Type::get_type_id("Hospital"));
+  }
+  int get_place_elevation(int type);
+  int get_place_income(int type);
+  void start_hosting(int place_type_id);
+  void select_place_of_type(int place_type_id);
+  void quit_place_of_type(int place_type_id);
+  void join_network(int network_type_id);
+  void quit_network(int network_type_id);
+  void report_place_size(int place_type_id);
+  Place* get_place_with_type_id(int place_type_id);
+  person_vector_t get_placemates(int place_type_id, int maxn);
+  void run_action_rules(int condition_id, int state, rule_vector_t rules);
+
+  // SCHEDULE
+  std::string schedule_to_string(int sim_day);
+  void print_schedule(int sim_day);
+
+  // MIGRATION
+  bool is_eligible_to_migrate() {
+    return this->eligible_to_migrate;
+  }
+  void set_eligible_to_migrate() {
+    this->eligible_to_migrate = true;
+  }
+  void unset_eligible_to_migrate() {
+    this->eligible_to_migrate = false;
+  }
+  void change_household(Place* house);
+  void change_school(Place* place);
+  void change_workplace(Place* place, int include_office = 1);
+  void set_native() {
+    this->native = true;
+  }
+  void unset_native() {
+    this->native = false;
+  }
+  bool is_native() {
+    return this->native;
+  }
+  void set_original() {
+    this->original = true;
+  }
+  void unset_original() {
+    this->original = false;
+  }
+  bool is_original() {
+    return this->original;
   }
 
-  int get_number_of_children() {
-    return this->demographics.get_number_of_children();
+  // TRAVEL
+  Household* get_permanent_household() {
+    return get_household();
+    /*
+    if(this->is_traveling && this->is_traveling_outside) {
+      return get_stored_household();
+    } else if(Global::Enable_Hospitals && this->is_hospitalized) {
+      return get_stored_household();
+    } else {
+      return get_household();
+    }
+    */
+  }
+  void start_traveling(Person* visited);
+  void stop_traveling();
+  bool get_travel_status() {
+    return this->is_traveling;
+  }
+  void set_return_from_travel_sim_day(int sim_day) {
+    this->return_from_travel_sim_day = sim_day;
+  }
+  int get_return_from_travel_sim_day() {
+    return this->return_from_travel_sim_day;
+  }
+  // list of activity locations, stored while traveling
+  Group** stored_activity_groups;
+
+
+  // GROUPS
+  void update_member_index(Group* group, int pos);
+  int get_number_of_people_in_group_in_state(int type_id, int condition_id, int state_id);
+  int get_number_of_other_people_in_group_in_state(int type_id, int condition_id, int state_id);
+  int get_group_size(int index);
+  int get_group_size(string group_name) {
+    return get_group_size(Group_Type::get_type_id(group_name));
   }
 
-  int get_grade() {
-    return this->activities.get_grade();
+
+  // MATERNITY
+  Person* give_birth(int day);
+
+
+  // HEALTHCARE
+  void assign_hospital(Place* place);
+  void assign_primary_healthcare_facility();
+  Hospital* get_primary_healthcare_facility() {
+    return this->primary_healthcare_facility;
+  }
+  void start_hospitalization(int sim_day, int length_of_stay);
+  void end_hospitalization();
+  Hospital* get_hospital();
+  bool person_is_hospitalized() {
+    return this->is_hospitalized;
+  }
+  int get_visiting_health_status(Place* place, int day, int condition_id);
+
+
+  // NETWORKS
+  void join_network(Network* network);
+  void quit_network(Network* network);
+  int get_degree();
+  bool is_member_of_network(Network* network);
+  void add_edge_to(Person* person, Network* network);
+  void add_edge_from(Person* person, Network* network);
+  void delete_edge_to(Person* person, Network* network);
+  void delete_edge_from(Person* person, Network* network);
+  bool is_connected_to(Person* person, Network* network);
+  bool is_connected_from(Person* person, Network* network);
+  int get_id_of_max_weight_inward_edge_in_network(Network* network);
+  int get_id_of_max_weight_outward_edge_in_network(Network* network);
+  int get_id_of_min_weight_inward_edge_in_network(Network* network);
+  int get_id_of_min_weight_outward_edge_in_network(Network* network);
+  int get_id_of_last_inward_edge_in_network(Network* network);
+  int get_id_of_last_outward_edge_in_network(Network* network);
+  void set_weight_to(Person* person, Network* network, double value);
+  void set_weight_from(Person* person, Network* network, double value);
+  double get_weight_to(Person* person, Network* network);
+  double get_weight_from(Person* person, Network* network);
+  double get_timestamp_to(Person* person, Network* network);
+  double get_timestamp_from(Person* person, Network* network);
+  int get_out_degree(Network* network);
+  int get_in_degree(Network* network);
+  int get_degree(Network* network);
+  person_vector_t get_outward_edges(Network* network, int max_dist = 1);
+  person_vector_t get_inward_edges(Network* network, int max_dist = 1);
+  void clear_network(Network* network);
+  Person* get_outward_edge(int n, Network* network);
+  Person* get_inward_edge(int n, Network* network);
+
+  void print_activities();
+
+  // VARIABLES
+  double get_var(int index);
+  void set_var(int index, double value);
+  double_vector_t get_list_var(int index);
+  int get_list_size(int list_var_id);
+
+  static void include_variable(string name) {
+    int size = Person::var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::var_name[i]) {
+	return;
+      }
+    }
+    Person::var_name.push_back(name);
   }
 
-  void set_grade(int n) {
-    this->activities.set_grade(n);
+  static void exclude_variable(string name) {
+    int size = Person::var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::var_name[i]) {
+	for (int j = i+1; j < size; j++) {
+	  Person::var_name[j-1] = Person::var_name[j];	  
+	}
+	Person::var_name.pop_back();
+      }
+    }
   }
 
-  // convenience methods for Networks
-
-  void create_network_link_to(Person* person, Network* network) {
-    this->activities.create_network_link_to(person, network);
+  static void include_list_variable(string name) {
+    int size = Person::list_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::list_var_name[i]) {
+	return;
+      }
+    }
+    Person::list_var_name.push_back(name);
   }
 
-  void destroy_network_link_to(Person* person, Network* network) {
-    this->activities.destroy_network_link_to(person, network);
+  static void exclude_list_variable(string name) {
+    int size = Person::list_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::list_var_name[i]) {
+	for (int j = i+1; j < size; j++) {
+	  Person::list_var_name[j-1] = Person::list_var_name[j];	  
+	}
+	Person::list_var_name.pop_back();
+      }
+    }
   }
 
-  void create_network_link_from(Person* person, Network* network) {
-    this->activities.create_network_link_from(person, network);
+  static void include_global_variable(string name) {
+    int size = Person::global_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::global_var_name[i]) {
+	return;
+      }
+    }
+    Person::global_var_name.push_back(name);
   }
 
-  void destroy_network_link_from(Person* person, Network* network) {
-    this->activities.destroy_network_link_from(person, network);
+  static void exclude_global_variable(string name) {
+    int size = Person::global_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::global_var_name[i]) {
+	for (int j = i+1; j < size; j++) {
+	  Person::global_var_name[j-1] = Person::global_var_name[j];	  
+	}
+	Person::global_var_name.pop_back();
+      }
+    }
   }
 
-  void add_network_link_to(Person* person, Network* network) {
-    this->activities.add_network_link_to(person, network);
+  static void include_global_list_variable(string name) {
+    int size = Person::global_list_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::global_list_var_name[i]) {
+	return;
+      }
+    }
+    Person::global_list_var_name.push_back(name);
   }
 
-  void add_network_link_from(Person* person, Network* network) {
-    this->activities.add_network_link_from(person, network);
+  static void exclude_global_list_variable(string name) {
+    int size = Person::global_list_var_name.size();
+    for (int i = 0; i < size; i++) {
+      if (name == Person::global_list_var_name[i]) {
+	for (int j = i+1; j < size; j++) {
+	  Person::global_list_var_name[j-1] = Person::global_list_var_name[j];	  
+	}
+	Person::global_list_var_name.pop_back();
+      }
+    }
   }
 
-  void delete_network_link_to(Person* person, Network* network) {
-    this->activities.delete_network_link_to(person, network);
+  static int get_number_of_global_vars() {
+    return Person::number_of_global_vars;
+  }
+  static int get_number_of_global_list_vars() {
+    return Person::number_of_global_list_vars;
+  }
+  static std::string get_global_var_name(int index);
+  static std::string get_global_list_var_name(int index);
+  static int get_global_var_id(string var_name);
+  static int get_global_list_var_id(string var_name);
+  static double get_global_var(int index);
+  static double_vector_t get_global_list_var(int index);
+  static int get_global_list_size(int list_var_id);
+  static void push_back_global_list_var(int list_var_id, double value);
+
+
+  // CONDITIONS
+  void setup_conditions();
+  Natural_History* get_natural_history (int condition_id) const;
+  void initialize_conditions(int day);
+  void update_condition(int day, int condition_id);
+  void become_exposed(int condition_id, Person* source, Group* group, int day, int hour);
+  void become_case_fatality(int condition_id, int day);
+  void expose(Person* host, int source_condition_id, int condition_id, Group* group, int day, int hour);
+  void update_group_counts(int day, int condition_id, Group* group);
+  void terminate_conditions(int day);
+  void set_state(int condition_id, int state, int step);
+  int get_state(int condition_id) const {
+    return this->condition[condition_id].state;
+  }
+  int get_time_entered(int condition_id, int state) const {
+    return this->condition[condition_id].entered[state];
+  }
+  void set_last_transition_step(int condition_id, int step) {
+    this->condition[condition_id].last_transition_step = step;
+  }
+  int get_last_transition_step(int condition_id) const {
+    return this->condition[condition_id].last_transition_step;
+  }
+  void set_next_transition_step(int condition_id, int step) {
+    this->condition[condition_id].next_transition_step = step;
+  }
+  int get_next_transition_step(int condition_id) const {
+    return this->condition[condition_id].next_transition_step;
+  }
+  void set_exposure_day(int condition_id, int day) {
+    this->condition[condition_id].exposure_day = day;
+  }
+  int get_exposure_day(int condition_id) const {
+    return this->condition[condition_id].exposure_day;
+  }
+  double get_susceptibility(int condition_id) const;
+  double get_transmissibility(int condition_id) const;
+  int get_transmissions(int condition_id) const;
+  bool is_case_fatality(int condition_id) const {
+    return this->condition[condition_id].is_fatal;
+  }
+  void set_case_fatality(int condition_id) {
+    this->condition[condition_id].is_fatal = true;
+  }
+  void set_source(int condition_id, Person* source) {
+    this->condition[condition_id].source = source;
+  }
+  Person* get_source(int condition_id) const {
+    return this->condition[condition_id].source;
+  }
+  void set_group(int condition_id, Group* group) {
+    this->condition[condition_id].group = group;
+  }
+  Group* get_group(int condition_id) const {
+    return this->condition[condition_id].group;
+  }
+  int get_exposure_group_id(int condition_id) const {
+    return get_group_id(condition_id);
+  }
+  char* get_exposure_group_label(int condition_id) const {
+    return get_group_label(condition_id);
+  }
+  int get_exposure_group_type_id(int condition_id) const {
+    return get_group_type_id(condition_id);
+  }
+  int get_hosts(int condition_id) const {
+    return get_number_of_hosts(condition_id);
+  }
+  Group* get_exposure_group(int condition_id) const {
+    return get_group(condition_id);
+  }
+  int get_group_id(int condition) const;
+  char* get_group_label(int condition) const;
+  int get_group_type_id(int condition) const;
+  void increment_number_of_hosts(int condition_id) {
+    this->condition[condition_id].number_of_hosts++;
+  }
+  int get_number_of_hosts(int condition_id) const {
+    return this->condition[condition_id].number_of_hosts;
+  }
+  bool is_susceptible(int condition_id) const {
+    return get_susceptibility(condition_id) > 0.0;
+  }
+  bool is_transmissible(int condition_id) const {
+    return get_transmissibility(condition_id) > 0.0;
+  }
+  bool is_transmissible() const {
+    for (int i = 0; i < this->number_of_conditions; ++i) {
+      if (is_transmissible(i)) {
+	return true;
+      }
+    }
+    return false;
+  }
+  bool was_ever_exposed(int condition_id) {
+    return (0 <= get_exposure_day(condition_id));
+  }
+  bool was_exposed_externally(int condition_id) {
+    return was_ever_exposed(condition_id) && (get_group(condition_id)==NULL);
+  }
+  int get_days_in_health_state(int condition_id, int day) {
+    return (day - 24*get_last_transition_step(condition_id));
+  }
+  int get_new_health_state(int condition_id);
+  void request_external_updates(FILE* fp, int day);
+  void get_external_updates(FILE* fp, int day);
+  bool was_ever_in_state(int condition_id, int state) {
+    return this->condition[condition_id].entered[state] > -1;
   }
 
-  void delete_network_link_from(Person* person, Network* network) {
-    this->activities.delete_network_link_from(person, network);
+  // VACCINES
+  void set_vaccine_refusal() {
+    this->vaccine_refusal = true;
+  }
+  bool refuses_vaccines() {
+    return this->vaccine_refusal;
+  }
+  void set_ineligible_for_vaccine() {
+    this->ineligible_for_vaccine = true;
+  }
+  bool is_ineligible_for_vaccine() {
+    return this->ineligible_for_vaccine;
+  }
+  void set_received_vaccine() {
+    this->received_vaccine = true;
+  }
+  bool has_received_vaccine() {
+    return this->received_vaccine;
   }
 
-  void join_network(Network* network) {
-    this->activities.join_network(network);
-  }
 
-  void print_network(FILE* fp, Network* network) {
-    this->activities.print_network(fp, network);
+  // META AGENTS
+  bool is_meta_agent() {
+    return this->id < 0; 
   }
+  void set_admin_group(Group* group);
+  Group* get_admin_group();
+  bool has_closure();
 
-  bool is_connected_to(Person* person, Network* network) {
-    return this->activities.is_connected_to(person, network);
-  }
+  void get_record_string(char* result);
 
-  bool is_connected_from(Person* person, Network* network) {
-    return this->activities.is_connected_from(person, network);
-  }
+  //// STATIC METHODS
 
-  int get_out_degree(Network* network) {
-    return this->activities.get_out_degree(network);
+  static void get_population_properties();
+  static void get_activity_properties();
+  static void update(int sim_day);
+  static void initialize_static_variables();
+  static void initialize_static_activity_variables();
+  static void setup();
+  static void read_all_populations();
+  static void read_population(const char* pop_dir, const char* pop_type );
+  static void get_person_data(char* line, bool gq);
+  static Person* add_person_to_population(int age, char sex, int race, int rel, Place* house,
+					  Place* school, Place* work, int day, bool today_is_birthday);
+  static int get_population_size() {
+    return Person::pop_size;
   }
+  static Person* get_person(int p) {
+    if (p < Person::pop_size) {
+      return Person::people[p];
+    }
+    else {
+      return NULL;
+    }
+  }
+  static Person* get_person_with_id(int id) {
+    if (0 <= id && id < Person::id_map.size()) {
+      int pos = Person::id_map[id];
+      if (pos < 0) {
+	// person no longer in the population
+	return NULL;
+      }
+      else {
+	return Person::people[pos];
+      }
+    }
+    else if (id < 0) {
+      // meta agent
+      if (id== -1) {
+	return Person::get_import_agent();
+      }
+      else {
+	// admin agents have id -2 or less
+	int pos = -id-2;
+	if (pos < Person::admin_agents.size()) {
+	  return Person::admin_agents[pos];
+	}
+	else {
+	  // invalid meta-agent
+	  return NULL;
+	}
+      }
+    }
+    else {
+      // person never existed
+      return NULL;
+    }
+  }
+  static Person* select_random_person();
+  static void prepare_to_die(int day, Person* person);
+  static void remove_dead_from_population(int day);
+  static void prepare_to_migrate(int day, Person* person);
+  static void remove_migrants_from_population(int day);
+  static void delete_person_from_population(int day, Person *person);
+  static void assign_classrooms();
+  static void assign_partitions();
+  static void assign_primary_healthcare_facilities();
+  static void report(int day);
+  static void get_network_stats(char* directory);
+  static void print_age_distribution(char* dir, char* date_string, int run);
+  static void quality_control();
+  static void finish();
+  static void get_age_distribution(int* count_males_by_age, int* count_females_by_age);
+  static void initialize_activities();
+  static bool is_load_completed() {
+    return Person::load_completed;
+  }
+  static void initialize_health_insurance();
+  static void set_health_insurance(Person* p);
+  static void update_health_interventions(int day);
+  static void update_population_demographics(int day);
+  static void get_external_updates(int day);
+  static Person* get_import_agent() {
+    return Person::Import_agent;
+  }
+  static Person* create_meta_agent();
+  static Person* create_admin_agent();
+  static int get_number_of_admin_agents() {
+    return Person::admin_agents.size();
+  }
+  static Person* get_admin_agent(int p) {
+    if (p < get_number_of_admin_agents()) {
+      return Person::admin_agents[p];
+    }
+    else {
+      return NULL;
+    }
+  }
+  static std::string get_household_relationship_name(int rel);
+  static int get_household_relationship_from_name(std::string rel_name);
+  static std::string get_race_name(int race);
+  static int get_race_from_name(std::string name);
+  static int get_number_of_vars() {
+    return Person::number_of_vars;
+  }
+  static int get_number_of_list_vars() {
+    return Person::number_of_list_vars;
+  }
+  static std::string get_var_name(int index);
+  static int get_var_id(string var_name);
+  static std::string get_list_var_name(int index);
+  static int get_list_var_id(string var_name);
 
-  int get_in_degree(Network* network) {
-    return this->activities.get_in_degree(network);
-  }
+  // HEALTH INSURANCE
 
-  void clear_network(Network* network) {
-    return this->activities.clear_network(network);
+  Insurance_assignment_index::e get_insurance_type() const {
+    return this->insurance_type;
   }
-  
-  Person* get_end_of_link(int n, Network* network) {
-    return this->activities.get_end_of_link(n, network);
+  void set_insurance_type(Insurance_assignment_index::e insurance_type) {
+    this->insurance_type = insurance_type;
   }
+  static const char* insurance_lookup(Insurance_assignment_index::e idx) {
+    assert(idx >= Insurance_assignment_index::PRIVATE);
+    assert(idx <= Insurance_assignment_index::UNSET);
+    switch(idx) {
+    case Insurance_assignment_index::PRIVATE:
+      return "Private";
+    case Insurance_assignment_index::MEDICARE:
+      return "Medicare";
+    case Insurance_assignment_index::MEDICAID:
+      return "Medicaid";
+    case Insurance_assignment_index::HIGHMARK:
+      return "Highmark";
+    case Insurance_assignment_index::UPMC:
+      return "UPMC";
+    case Insurance_assignment_index::UNINSURED:
+      return "Uninsured";
+    case Insurance_assignment_index::UNSET:
+      return "UNSET";
+    default:
+      Utils::fred_abort("Invalid Health Insurance Type", "");
+    }
+    return NULL;
+  }
+  static Insurance_assignment_index::e get_insurance_type_from_int(int insurance_type) {
+    switch(insurance_type) {
+    case 0:
+      return Insurance_assignment_index::PRIVATE;
+    case 1:
+      return Insurance_assignment_index::MEDICARE;
+    case 2:
+      return Insurance_assignment_index::MEDICAID;
+    case 3:
+      return Insurance_assignment_index::HIGHMARK;
+    case 4:
+      return Insurance_assignment_index::UPMC;
+    case 5:
+      return Insurance_assignment_index::UNINSURED;
+    default:
+      return Insurance_assignment_index::UNSET;
+    }
+  }
+  static Insurance_assignment_index::e get_health_insurance_from_distribution();
 
-  int get_health_state(int disease_id) {
-    return this->health.get_health_state(disease_id);
-  }
-
-  void set_health_state(int disease_id, int s, int day) {
-    return this->health.set_health_state(disease_id, s, day);
-  }
-
-  int get_last_health_transition_day(int disease_id) {
-    return this->health.get_last_transition_day(disease_id);
-  }
-
-  int get_next_health_state(int disease_id) {
-    return this->health.get_next_health_state(disease_id);
-  }
-
-  void set_next_health_state(int disease_id, int s, int day) {
-    return this->health.set_next_health_state(disease_id, s, day);
-  }
-
-  int get_next_health_transition_day(int disease_id) {
-    return this->health.get_next_transition_day(disease_id);
-  }
-
-  void update_health_conditions(int day) {
-    this->health.update_health_conditions(day);
-  }
 
 private:
 
   // id: Person's unique identifier (never reused)
   int id;
+
   // index: Person's location in population container; once set, will be unique at any given time,
   // but can be reused over the course of the simulation for different people (after death/removal)
   int index;
-  int exposed_household_index;
-  Health health;
-  Demographics demographics;
-  Activities activities;
-  Behavior behavior;
 
-protected:
+  // demographics
+  int birthday_sim_day;		  // agent's birthday in simulation time
+  short int init_age;			     // Initial age of the agent
+  short int number_of_children;			// number of births
+  short int household_relationship; // relationship to the householder (see Global.h)
+  short int race;			  // see Global.h for race codes
+  char sex;					// male or female?
+  bool alive;
+  bool deceased;				// is the agent deceased
+  bool in_parents_home;			       // still in parents home?
+  Place* home_neighborhood;
+  Place* last_school;
 
-  friend class Population;
-  /**
-   * Constructor that sets all of the attributes of a Person object
-   * @param index the person id
-   * @param age
-   * @param sex (M or F)
-   * @param house pointer to this Person's Household
-   * @param school pointer to this Person's School
-   * @param work pointer to this Person's Workplace
-   * @param day the simulation day
-   * @param today_is_birthday true if this is a newborn
-   */
-  void setup(int index, int id, int age, char sex, int race, int rel,
-	     Place* house, Place* school, Place* work, int day,
-	     bool today_is_birthday);
+  // migration
+  bool eligible_to_migrate;
+  bool native;
+  bool original;
 
+  // vaccine
+  bool vaccine_refusal;
+  bool ineligible_for_vaccine;
+  bool received_vaccine;
+
+  // conditions
+  int number_of_conditions;
+  condition_t* condition;
+
+  //Insurance Type
+  Insurance_assignment_index::e insurance_type;
+
+  //Primary Care Location
+  Hospital* primary_healthcare_facility;
+
+  // previous infection serotype (for dengue)
+  int previous_infection_serotype;
+
+  // personal variables
+  double* var;
+  double_vector_t* list_var;
+
+  // links to groups
+  Link* link;
+
+  // activity schedule:
+  std::bitset<64> on_schedule; // true iff activity location is on schedule
+  int schedule_updated;			 // date of last schedule update
+  bool is_traveling;				// true if traveling
+  bool is_traveling_outside;   // true if traveling outside modeled area
+  short int profile;                              // activities profile type
+  bool is_hospitalized;
+  int return_from_travel_sim_day;
+  int sim_day_hospitalization_ends;
+
+  // STATIC VARIABLES
+
+  // population
+
+  static person_vector_t people;
+  static person_vector_t admin_agents;
+  static person_vector_t death_list;	  // list of agents to die today
+  static person_vector_t migrant_list; // list of agents to out migrate today
+  static int pop_size;
+  static int next_id;
+  static int next_meta_id;
+  static std::vector<int> id_map;
+
+  // personal variables
+  static int number_of_vars;
+  static std::vector<std::string> var_name;
+  static int number_of_list_vars;
+  static std::vector<std::string> list_var_name;
+  static double* var_init_value;
+
+  // global variables
+  static int number_of_global_vars;
+  static std::vector<std::string> global_var_name;
+  static int number_of_global_list_vars;
+  static std::vector<std::string> global_list_var_name;
+  static double* global_var;
+  static double_vector_t* global_list_var;
+
+  // meta_agents
+  static Person* Import_agent;
+
+  // used during input
+  static bool is_initialized;
+  static bool load_completed;
+  static int enable_copy_files;
+  static void parse_lines_from_stream(std::istream &stream, bool is_group_quarters_pop);
+  
+  // schedule
+  static bool is_weekday;     // true if current day is Monday .. Friday
+  static int day_of_week;     // day of week index, where Sun = 0, ... Sat = 6
+
+  // output
+  static int report_initial_population;
+  static int output_population;
+  static char pop_outfile[FRED_STRING_SIZE];
+  static char output_population_date_match[FRED_STRING_SIZE];
+  static void write_population_output_file(int day);
+  static int Popsize_by_age [Demographics::MAX_AGE+1];
+  static person_vector_t report_person;
+  static std::vector<report_t*> report_vec;
+  static int max_reporting_agents;
+
+  // counters
+  static double Sim_based_prob_stay_home_not_needed;
+  static double Census_based_prob_stay_home_not_needed;
+  static int entered_school;
+  static int left_school;
+
+  // health insurance probabilities
+  static double health_insurance_distribution[Insurance_assignment_index::UNSET];
+  static int health_insurance_cdf_size;
+
+  // admin lookup
+  static std::unordered_map<Person*, Group*> admin_group_map;
+
+  static bool record_location;
 };
 
 #endif // _FRED_PERSON_H

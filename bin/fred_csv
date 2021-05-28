@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Env;
@@ -13,225 +36,75 @@ $FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
 my $help = "";
 my $key = "";
 my $var = "";
-my $run = -1;
-my $dir = "";
-my $weekly = "";
-my $total = 0;
+my $run = 0;
+my $dir = "OUT";
 my $opt_result = GetOptions(
 			    "help" => \$help,
 			    "h" => \$help,
 			    "k=s" => \$key,
 			    "key=s" => \$key,
-			    "var=s" => \$var,
-			    "v=s" => \$var,
 			    "run=i" => \$run,
 			    "r=i" => \$run,
 			    "n=i" => \$run,
 			    "d=s" => \$dir,
-			    "total" => \$total,
-			    "t" => \$total,
-			    "weekly" => \$weekly,
-			    "w" => \$weekly,
+			    "v=s" => \$var,
 );
 
 my $usage = <<EOH;
-usage: $0 --help | -k key [-v variable ][-n run_number]
+usage: $0 --help | -k key [-n run_number]
     -k or --key   the key for a FRED job (no default)
-    -v or --var   if set, the variable to be reported. default: report all variables.
-    -n or --run   if set, report a specific run number. default: report mean and std over all runs.
+    -n or --run   if set, report a specific run number. default: --run 0
 EOH
 
 die $usage if $help;
 
-if ($dir eq "") {
-  die $usage if not $key;
+if ($key) {
   my $id = `fred_id $key`;
   chomp $id;
-  die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
-  $dir = "$FREDRESULTS/JOB/$id/DATA/TABLES";
-  if (not -e "$dir/VARS" or not -e "$dir/Weekly-1.txt") {
-    system "fred_post_process $FREDRESULTS/JOB/$id/DATA/OUT $FREDRESULTS/JOB/$id/DATA/TABLES $FREDRESULTS/JOB/$id/DATA/REPORTS";
-  }
+  die "$0: UNKNOWN key: $key\n$usage\n" if $id eq "UNKNOWN";
+  $dir = "$FREDRESULTS/JOB/$id/OUT";
 }
 
-my @vars = ();
-if ($var ne "") {
-  push @vars, $var;
-}
-else {
-  open FH,"$dir/VARS" or die "$0: ERROR OPENING $dir/VARS\n";
-  while (<FH>) {
-    chomp;
-    push @vars, $_;
-  }
-  close FH;
-}
-
-my @line = ();
-my $datafile;
-my $i = 0;
-
-if ($weekly) {
-  $weekly = "Weekly_";
-
-  # Add Week column in format YYYY-WK DAYS
-  $datafile = "$dir/Weekly-1.txt";
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  my $i = 0;
-  while (<FH>) {
-    chomp; 
-    my ($wk,$yr,$days) = split " ";
-    $line[$i++] = "$yr.$wk $days";
-  }
-}
-else {
-
-  # Add Day column
-  $datafile = "$dir/Day.txt";
-  die "$0: ERROR FINDING Day file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  my $i = 0;
-  while (<FH>) {
-    chomp; 
-    $line[$i++] = $_;
-  }
-  
-  # Add WkDay column
-  $datafile = "$dir/WkDay.txt";
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    $line[$i++] .= " $_";
-  }
-
-  # Add Date column
-  $datafile = "$dir/Date.txt";
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    $line[$i++] .= " $_";
-  }
-
-  # Add Week column
-  $datafile = "$dir/Week.txt";
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    $line[$i++] .= " $_";
-  }
-
-  # Add Year column
-  $datafile = "$dir/Year.txt";
-  die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  $i = 0;
-  while (<FH>) {
-    chomp; 
-    $line[$i++] .= " $_";
-  }
-
-}
-
-# Add Pop column
-$datafile = "$dir/${weekly}N.txt";
-$datafile = "$dir/${weekly}N-$run.txt" if $run > 0;
-die "$0: ERROR FINDING Pop file $datafile\n" if not -e $datafile;
-open FH, $datafile or die "$0: ERROR READING $datafile\n";
-$i = 0;
-while (<FH>) {
-  chomp; 
-  if ($run > 0) {
-    if ($i == 0) {
-      $line[$i++] .= " Run N";
-    } else {
-      $line[$i++] .= " $run $_";
+if ($var eq "") {
+  my $result = "fred_csv_$$.csv";
+  unlink $result;
+  if ($run == 0) {
+    # get run numbers
+    my @runs = ();
+    opendir DIR, $dir;
+    while (readdir DIR) {
+      my $entry = $_;
+      if ($entry =~ /^RUN/) {
+	my ($run) = $entry =~ /RUN(\d+)/;
+	push @runs, $run;
+      }
     }
-  } else {
-    my ($mean,$std,$runs) = split " ", $_;
-    if ($i > 0) {
-      $mean = cleanup($mean);
-      $std = cleanup($std);
+    closedir DIR;
+    my @runs_sorted = sort { $a <=> $b } @runs;
+    # get ech run
+    foreach $run (@runs_sorted) {
+      my $csv = "$dir/RUN$run/out.csv";
+      die "Can't find file |$csv|\n$usage\n" if not -e $csv;
+      system "echo ' ' >> $result";
+      system "echo Run,$run >> $result";
+      system "cat $csv >> $result";
     }
-    $line[$i++] .= " $runs $mean $std";
-  }
-}
-
-for my $v (@vars) {
-  next if $v eq "Day" or $v eq "Date" or $v eq "Week" or $v eq "Year" or $v eq "WkDay";
-  # print "v = |$v|\n";
-  if ($run > 0) {
-    $datafile = "$dir/$weekly$v-$run.txt";
-    $datafile = "$dir/$weekly$v\_0-$run.txt" if not -e $datafile;
   }
   else {
-    $datafile = "$dir/$weekly$v.txt";
-    $datafile = "$dir/$weekly$v\_0.txt" if not -e $datafile;
+    my $csv = "$dir/RUN$run/out.csv";
+    die "Can't find file |$csv|\n$usage\n" if not -e $csv;
+    system "echo ' ' >> $result";
+    system "echo Run,$run >> $result";
+    system "cat $csv >> $result";
   }
-
-  # Add data column
-  die "$0: ERROR FINDING $datafile\n" if not -e $datafile;
-  open FH, $datafile or die "$0: ERROR READING $datafile\n";
-  my $i = 0;
-  my $tot = 0;
-  while (my $in = <FH>) {
-    chomp $in; 
-    if ($run > 0) {
-      if ($total) {
-	if ($i == 0) {
-	  $line[$i++] .= " $in $in\_total";
-	}
-	else {
-	  $tot += $in;
-	  $line[$i++] .= " $in $tot";
-	}
-      }
-      else {
-	$line[$i++] .= " $in";
-      }
-    }
-    else {
-      my ($mean, $std) = split " ", $in;
-      if ($i > 0) {
-	$mean = cleanup($mean);
-	$std = cleanup($std);
-      }
-      if ($total) {
-	if ($i == 0) {
-	  $line[$i++] .= " $mean $std $mean\_total";
-	}
-	else {
-	  $tot += $mean;
-	  $line[$i++] .= " $mean $std $tot";
-	}
-      }
-      else {
-	$line[$i++] .= " $mean $std";
-    }
-    }
-  }
+  system "cat $result";
+  unlink $result;
 }
-  
-# replace spaces with commas
-for (my $i = 0; $i < scalar @line; $i++) {
-  $line[$i] =~ s/ /,/g;
+else {
+  my $file = $var;
+  my $csv = "$dir/PLOT/DAILY/$file.csv";
+  die "Can't find file |$file|\n$usage\n" if not -e $csv;
+  system "cat $csv";
 }
-
-# print lines
-print "$_\n" for @line;
 exit;
 
-
-sub cleanup {
-  my $x1 = shift;
-  my $x = sprintf("%0.5f", $x1);
-  $x =~ s/0*$//;
-  $x =~ s/\.$//;
-  return $x;
-}

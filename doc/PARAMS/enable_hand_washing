@@ -1,8 +1,0 @@
-PARAM NAME: enable_hand_washing
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: Enable hand washing.
-
-Note: This is an experimental feature. Users should not enable it unless
-they know what they are doing.

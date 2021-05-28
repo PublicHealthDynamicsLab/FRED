@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" href="$_vaccines_8h.html" title="Vaccines.h" alt="" coords="668,84,767,111"/>
-<area shape="rect" href="$_vaccine_8h.html" title="Vaccine.h" alt="" coords="632,161,723,188"/>
-<area shape="rect" href="$_vaccine___dose_8h.html" title="Vaccine_Dose.h" alt="" coords="359,84,492,111"/>
-<area shape="rect" href="$_age___map_8h.html" title="Age_Map.h" alt="" coords="471,161,569,188"/>
-<area shape="rect" href="$_random_8h.html" title="Random.h" alt="" coords="943,84,1039,111"/>
-<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="271,239,351,265"/>
-<area shape="rect" href="$_params_8h.html" title="Params.h" alt="" coords="476,239,564,265"/>
-</map>

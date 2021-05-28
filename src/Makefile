@@ -1,4 +1,21 @@
-##################### FRED Makefile ###########################
+################################### FRED Makefile ########################################
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed under BSD 3-Clause with Commons Clause license.  
+## See the file "LICENSE.md" for more information.
+##
+##########################################################################################
 
 ################   OS DEPENDENCIES   ###############################
 
@@ -16,56 +33,65 @@
 ## select OpenMP if desired
 OPENMP =
 NCPU = 1
+OSFLAGS =
+CSTD = -std=c++11
+#CSTD = -std=c++14
+#CSTD = -std=c++17
 # OPENMP = -fopenmp
+
+# Don't assume that uname is available on Windows
+ifeq ($(OS),Windows_NT)
+    OSFLAGS += -DWIN32
+    ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
+        OSFLAGS += -DAMD64
+    else
+        ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+            OSFLAGS += -DAMD64
+        endif
+        ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+            OSFLAGS += -DIA32
+        endif
+    endif
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        OSFLAGS += -DLINUX
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        OSFLAGS += -DOSX
+    endif
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+        OSFLAGS += -DAMD64
+    endif
+    ifneq ($(filter %86,$(UNAME_P)),)
+        OSFLAGS += -DIA32
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        OSFLAGS += -DARM
+    endif
+endif
 
 # Autodetect all available processors for linux or mac
 # Fall back to single-threaded operation
-OS := $(shell uname)
+### OS := $(shell uname)
 
-ifeq ($(OS),Linux)
+ifeq ($(UNAME_S),Linux)
 
 NCPU ?= $(shell grep -c ^processor /proc/cpuinfo)
 M64 = -m64
 
-else ifeq ($(shell echo $(OS) | cut -f1 -d_),CYGWIN)
+else ifeq ($(shell echo $(UNAME_S) | cut -f1 -d_),CYGWIN)
 
 NCPU ?=  $(shell grep -c ^processor /proc/cpuinfo)
 M64 =
 
-else ifeq ($(OS),Darwin)
-
+else ifeq ($(UNAME_S),Darwin)
 NCPU ?= $(shell sysctl -n hw.ncpu)
 M64 =-m64
+
 endif
 
-################   Snappy Compression  ###############################
-## Snappy can significantly improve FRED startup time by reading
-## compressed population files.  If you have snappy installed,
-## set the following flag to 1, and make sure the library locations
-## below are correct.
-SNAPPY = 0
-ifeq ($(SNAPPY),1)
-SNAPPY_DIR = /usr/local
-SNAPPY_INC_DIR = $(SNAPPY_DIR)/include
-SNAPPY_HDR = $(SNAPPY_INC_DIR)/snappy.h 
-INCLUDE_DIRS = -I$(SNAPPY_INC_DIR)
-SNAPPY_LIB_DIR = $(SNAPPY_DIR)/lib
-
-# location of library differs by OS
-OS := $(shell uname)
-ifeq ($(OS),Linux)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.so
-else ifeq ($(shell echo $(OS) | cut -f1 -d_),CYGWIN)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.la 
-else ifeq ($(OS),Darwin)
-SNAPPY_LIB = $(SNAPPY_LIB_DIR)/libsnappy.dylib
-endif
-
-SNAPPY_LFLAGS = $(SNAPPY_LIB_DIR)/libsnappy.a
-SNAPPY_LDFLAGS = -L$(SNAPPY_LIB_DIR)
-SNAPPY_OBJ = Compression.o
-FSZ = fsz
-endif
 
 #################  MD5 Program ##############################
 UNIX	:= $(shell uname)
@@ -85,6 +111,7 @@ FRED_memcheck: FRED_EXECUTABLE_NAME = FRED_memcheck
 SRC_DIR = $(shell pwd)
 
 CPP = g++
+# CPP = g++-7
 CXX = $(CPP)
 LDFLAGS =
 LFLAGS =
@@ -102,12 +129,15 @@ LOGGING_PRESET_3 = -DFREDVERBOSE -DFREDSTATUS -DFREDWARNING -DFREDDEBUG
 LOGGING_LEVEL = $(LOGGING_PRESET_3)
 
 ## recommended for development:
-# CPPFLAGS = -g -std=c++11 $(M64) -O2 $(LOGGING_PRESET_3) -Wall -DSNAPPY=$(SNAPPY)
+#CPPFLAGS = -g $(CSTD) $(M64) -O0 $(LOGGING_PRESET_3) -Wall
 
 ## recommended for production runs:
-CPPFLAGS = -std=c++11 $(M64) -O3 $(OPENMP) $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSNAPPY=$(SNAPPY) $(INCLUDE_DIRS)
+CPPFLAGS = $(CSTD) $(M64) -O3 $(OPENMP) $(OSFLAGS) $(LOGGING_LEVEL) -DNCPU=$(NCPU) $(INCLUDE_DIRS)
 
-FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -DNCPU=$(NCPU) -DSNAPPY=$(SNAPPY) -fno-omit-frame-pointer $(INCLUDE_DIRS)
+$(info CPPFLAGS: $(CPPFLAGS))
+$(info )
+
+FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 $(OPENMP) $(LOGGING_LEVEL) -DNCPU=$(NCPU) -fno-omit-frame-pointer $(INCLUDE_DIRS)
 
 
 ###############################################
@@ -115,37 +145,24 @@ FRED_memcheck: 	CPPFLAGS = -g -std=c++11 $(M64) -O0 -fopenmp $(LOGGING_LEVEL) -D
 %.o : %.cc %.h
 	$(CPP) $(CPPFLAGS) $(FRED_CLANG_FLAGS) -c $< $(INCLUDES)
 
-CORE_MODULE = Fred.o Global.o Age_Map.o Timestep_Map.o Utils.o Params.o Date.o Events.o \
-	Random.o Markov_Model.o $(SNAPPY_OBJ)
+CORE_MODULE = Fred.o Global.o Age_Map.o Utils.o Date.o Events.o Random.o State_Space.o \
+	Property.o Factor.o Expression.o Predicate.o Clause.o Rule.o
 
-ENVIRONMENTAL_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o County.o \
+GEO_MODULE = Geo.o Abstract_Grid.o Abstract_Patch.o \
+	Admin_Division.o State.o County.o Census_Tract.o Block_Group.o \
 	Neighborhood_Layer.o Neighborhood_Patch.o \
 	Regional_Layer.o Regional_Patch.o \
-	Visualization_Layer.o Visualization_Patch.o \
-	Seasonality_Timestep_Map.o Seasonality.o \
-	Vector_Layer.o Vector_Patch.o
+	Visualization_Layer.o Visualization_Patch.o
 
-AGENT_MODULE = Person.o Activities.o Person_Place_Link.o Demographics.o Health.o \
-	Behavior.o Intention.o Perceptions.o Travel.o Population.o Person_Network_Link.o
+AGENT_MODULE = Person.o Demographics.o Link.o Travel.o Preference.o
 
-DISEASE_MODULE = Disease.o Epidemic.o Infection.o \
-	Natural_History.o Transmission.o \
-	Respiratory_Transmission.o Sexual_Transmission.o Vector_Transmission.o \
-	Past_Infection.o Strain.o StrainTable.o Trajectory.o Disease_List.o \
-	HIV_Epidemic.o  HIV_Infection.o HIV_Natural_History.o  \
-	Markov_Epidemic.o Markov_Infection.o Markov_Natural_History.o
+EPIDEMIC_MODULE = Condition.o Epidemic.o Natural_History.o \
+	Transmission.o Environmental_Transmission.o Network_Transmission.o \
+	Proximity_Transmission.o
 
-PLACE_MODULE = Mixing_Group.o Place.o Household.o Neighborhood.o School.o Classroom.o \
-	Workplace.o Office.o Hospital.o Place_List.o Network.o Sexual_Transmission_Network.o
+MIXING_MODULE = Group_Type.o Place_Type.o Network_Type.o Group.o Place.o  Network.o Household.o Hospital.o
 
-INTERVENTION_MODULE = Decision.o Policy.o Manager.o \
-	Antiviral.o Antivirals.o AV_Decisions.o AV_Policies.o AV_Manager.o AV_Health.o \
-	Vaccine_Health.o Vaccine_Dose.o Vaccine.o Vaccines.o \
-	Vaccine_Priority_Decisions.o Vaccine_Priority_Policies.o Vaccine_Manager.o
-
-VIRAL_EVOLUTION_MODULE = EvolutionFactory.o Evolution.o	MSEvolution.o Piecewise_Linear.o
-
-OBJ = $(CORE_MODULE) $(ENVIRONMENTAL_MODULE) $(AGENT_MODULE) $(DISEASE_MODULE) $(PLACE_MODULE) $(INTERVENTION_MODULE) $(VIRAL_EVOLUTION_MODULE) 
+OBJ = $(CORE_MODULE) $(GEO_MODULE) $(AGENT_MODULE) $(EPIDEMIC_MODULE) $(MIXING_MODULE) 
 
 SRC = $(OBJ:.o=.cc)
 
@@ -153,35 +170,33 @@ HDR = $(OBJ:.o=.h)
 
 MD5 := FRED.md5
 
-all: FRED FRED.tar.gz $(FSZ) $(MD5)
+all: FRED FRED.tar.gz $(FSZ) $(MD5) FRED_API
 
 FRED: $(OBJ)
-	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(OBJ) $(LDFLAGS) $(SNAPPY_LFLAGS) -ldl
+	$(CPP) -o $(FRED_EXECUTABLE_NAME) $(CPPFLAGS) $(INCLUDE_DIRS) $(OBJ) $(LDFLAGS) -ldl
 	cp $(FRED_EXECUTABLE_NAME) ../bin
 
-Compression.o: $(SNAPPY_LIB)
-	$(CPP) -o Compression.o $(CPPFLAGS) $(SNAPPY_INCLUDE_DIRS) -c Compression.cc
-
-fsz: $(SNAPPY_LIB) $(SNAPPY_OBJ) Global.h fsz.cc
-	$(CPP) -o fsz $(CPPFLAGS) $(INCLUDE_FLAGS) $(SNAPPY_LDFLAGS) $(SNAPPY_OBJ) $(SNAPPY_LFLAGS) fsz.cc
-	cp fsz ../bin
-
 FRED_memcheck: FRED
-
-FRED_Unit_Tracker: 
-	cd TestSuite/Tracker; $(CPP) -std=c++11 -g -O0 -DUNIT_TEST=1 -I../../ Tracker_Unit_Test.cc -c -o Tracker_Unit_Test.o
-	cd TestSuite/Tracker; $(CPP) -std=c++11 -g -O0 -o FRED_Unit_Tracker -DUNIT_TEST=1 -I../../ Tracker_Unit_Test.o
 
 DEPENDS: $(SRC) $(HDR)
 	$(CPP) -std=c++11 -MM $(SRC) $(INCLUDE_DIRS) > DEPENDS
 
 include DEPENDS
 
-FRED.tar.gz:
+FRED.tar.gz: $(HDR) $(SRC) Makefile
 	tar -czvf FRED.tar.gz $(HDR) $(SRC) Makefile;
 
 FRED.md5: FRED.tar.gz
 	$(MD5SUM) $< > $@
+
+FRED_API: Fred_API.o
+	$(CPP) -o FRED_API $(CPPFLAGS) $(INCLUDE_DIRS) Fred_API.o $(LDFLAGS) -ldl
+	cp FRED_API ../bin
+
+VERSION:
+	awk -F '.' '(NR==1){printf "%s.%s.%s\n", $$1,$$2,$$3+1}' ../VERSION > ../VERSION.tmp
+	mv ../VERSION.tmp ../VERSION
+	cat ../VERSION
 
 ##############################################
 
@@ -189,8 +204,7 @@ print:
 	enscript $(SRC) $(HDR)
 
 clean:
-	rm -f *.o FRED FRED_Unit_Tracker ../bin/FRED fsz ../bin/fsz *~
-	(cd ../populations; make clean)
+	rm -f *.o FRED ../bin/FRED ../bin/FRED_API fsz ../bin/fsz *~
 	(cd ../tests; make clean)
 
 tags:

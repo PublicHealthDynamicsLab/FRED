@@ -1,4 +1,0 @@
-sick_day_prob
-days_symp[0]
-days_asymp[0]
-asymp_infectivity[0]

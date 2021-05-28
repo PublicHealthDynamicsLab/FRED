@@ -1,0 +1,30 @@
+use FRED::Influenza
+
+start_date = 2020-Jan-01
+days = 100
+locations_file = locations.txt
+enable_health_records = 1
+INF.enable_health_records = 1
+REPORT.enable_health_records = 1
+
+include_condition = REPORT
+REPORT.states = S E Child Adult R
+
+# SIDE EFFECTS
+if state(INF,E) then set_state(REPORT,S,E)
+if state(INF,R) then set_state(REPORT,Child,R)
+if state(INF,R) then set_state(REPORT,Adult,R)
+
+if state(REPORT,E) then wait(0)
+if state(REPORT,E) and(age < 15) then next(Child)
+if state(REPORT,E) then default(Adult)
+
+if state(REPORT,S) then wait()
+if state(REPORT,Child) then wait()
+if state(REPORT,Adult) then wait()
+if state(REPORT,R) then wait()
+
+REPORT.Child.is_dormant = 1
+REPORT.Adult.is_dormant = 1
+REPORT.R.is_dormant = 1
+

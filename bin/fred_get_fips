@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Env;
@@ -8,7 +31,9 @@ my $FRED = $ENV{FRED_HOME};
 die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
 my $help = "";
+my $single = 0;
 my $opt_result = GetOptions(
+			    "s" => \$single,
 			    "h" => \$help,
 			    "help" => \$help,
 			   );
@@ -16,89 +41,54 @@ my $opt_result = GetOptions(
 my $usage = <<EOH;
 usage: $0 location [ options ], where options include:
        -h: print this help message.
-       location: can be a state abbreviation, a city, or county.
-       Here are some examples (commas are optional):
-             state:  "PA"
-             county: "Allegheny County, PA"
-             city:   "Pittsburgh, PA"
+       -s: return only location with a single fips code
+           (usually a county but may be a city or census area).
 
-output: the fips code for the specified location.
+output: the locations matching the pattern and their associated fips codes.
+
+location can be a regular expression with special symbols escaped.
+Here are some examples:
+
+% fred_get_fips Pitts
+Pittsfield_MA 25003
+Pittsburg_County_OK 40121
+Pittsburgh_PA 42003 42005 42007 42019 42051 42125 42129
+Pittsylvania_County_VA 51143
+
+% fred_get_fips Pitts -s
+Pittsfield_MA 25003
+Pittsburg_County_OK 40121
+Pittsylvania_County_VA 51143
+
+% fred_get_fips Pitts\.\*County
+Pittsburg_County_OK 40121
+Pittsylvania_County_VA 51143
+
+% fred_get_fips Pitts\.\*\[MO\]
+Pittsfield_MA 25003
+Pittsburg_County_OK 40121
+
+% fred_get_fips \^PA
+PA 42001 42003 42005 42007 42009 42011 42013 42015 42017 42019 42021 42023 42025 42027 42029 42031 42033 42035 42037 42039 42041 42043 42045 42047 42049 42051 42053 42055 42057 42059 42061 42063 42065 42067 42069 42071 42073 42075 42077 42079 42081 42083 42085 42087 42089 42091 42093 42095 42097 42099 42101 42103 42105 42107 42109 42111 42113 42115 42117 42119 42121 42123 42125 42127 42129 42131 42133 
 
 EOH
 
 die $usage if $help;
 
-my $fipsfile = "$FRED/input_files/countries/usa/US_counties.txt";
-open FH, $fipsfile or die "$0: Can't find $fipsfile\n";
-
-my ($loc) = join " ", @ARGV;
-$loc =~ s/,/ /g;
-
-# strip leading and trailing blanks
-$loc =~ s/^\s+//;
-$loc =~ s/\s+$//;
-
-if (length $loc == 2) {
-  # assume a state abbreviation
-  my $state = $loc;
-  $state = uc $state;
-  while (<FH>) {
-    chomp;
-    my @a = split "\t";
-    if ($a[1] =~ /^$state$/i) {
-      my ($fips) = $a[3] =~ /(\d{2})/;
-      print "$fips\t$a[1]\n";
-      exit;
-    }
-  }
-  print "UNKNOWN\n";
-  exit;
+my $fipsfile = "$FRED/data/country/usa/locations.txt";
+my ($loc) = @ARGV;
+$loc =~ s/\./\\./g;
+$loc =~ s/\*/\\*/g;
+$loc =~ s/\[/\\[/g;
+$loc =~ s/\]/\\]/g;
+my $results = "";
+my $cmd = "grep -E $loc $fipsfile";
+if ($single) {
+  $results = `$cmd | awk '(NF==2)'`;
 }
-
-if ($loc !~ /\s/) {
-  # assume a state name
-  print "UNKNOWN UNKNOWN\n";
-  exit;
+else {
+  $results = `$cmd`;
 }
+print "$results";
 
-if ($loc =~ /\scounty\s/i) {
-  # assume a county name
-  my $county = $loc;
-  my ($state) = $county =~ /(..)$/;
-  $state = uc $state;
-  $county =~ s/\s+county\s*\S\S$//i;
-
-  while (<FH>) {
-    chomp;
-    my @a = split "\t";
-    if ($a[2] =~ /^$county$/i and $a[1] =~ /^$state$/i) {
-      my ($fips) = $a[3] =~ /(\d{5})/;
-      # print "loc_to_fips: state = |$a[1]| county = |$a[2]| fips = |$fips|\n";
-      print "$fips\t$a[2] County\t$a[1]\n";
-      exit;
-    }
-  }
-  print "UNKNOWN\n";
-  exit;
-}
-
-# assume "city state_abbr"
-my $city = $loc;
-my ($state) = $city =~ /(..)$/;
-$state = uc $state;
-$city =~ s/\s*\S\S$//;
-# print "city = |$city| state = |$state|\n";
-
-while (<FH>) {
-  chomp;
-  my @a = split "\t";
-  if ($a[0] =~ /^$city$/i and $a[1] =~ /^$state$/i) {
-    # print "$city, $state  county = $a[2]  fips = $a[3]\n";
-    my ($fips) = $a[3] =~ /(\d{5})/;
-    # print "city_to_fips: city = |$a[0]| state = |$a[1]| county = |$a[2]| fips = |$fips|\n";
-    print "$fips\t$a[0]\t$a[2] County\t$a[1]\n";
-    exit;
-  }
-}
-print "UNKNOWN\n";
 exit;

@@ -1,7 +1,0 @@
-PARAM NAME: birth_rate_multiplier
-DEFAULT VALUE: 1
-TYPE: int    
-
-DEFINITION: Multiplier to change the age-specific birth rates read from
-the birth-rate file.
-

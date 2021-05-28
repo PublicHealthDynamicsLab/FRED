@@ -1,5 +1,0 @@
-PARAM NAME: vaccine_offset
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: Deprecated. Has no effect.

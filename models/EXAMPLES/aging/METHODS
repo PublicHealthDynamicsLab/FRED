@@ -1,0 +1,16 @@
+
+date
+
+echo "fred_delete -f -k aging ; fred_job -p aging.fred -k aging -n 4 -m 2"
+fred_delete -f -k aging ; fred_job -p aging.fred -k aging -n 4 -m 2
+echo
+
+echo "fred_plot -k aging -t 'Total Births and Deaths' -v MATERNITY.totChildBirth,MORTALITY.totDeath --labels Births,Deaths"
+fred_plot -k aging -t 'Total Births and Deaths' -v MATERNITY.totChildBirth,MORTALITY.totDeath --labels Births,Deaths
+echo
+
+echo "fred_plot -k aging -v Popsize"
+fred_plot -k aging -v Popsize
+echo
+
+date

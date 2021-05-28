@@ -1,6 +1,0 @@
-PARAM NAME: start_date
-DEFAULT VALUE: 2012-01-02
-TYPE: string
-
-DEFINITION: The calendar date used as the start date for each simularion
-run. The format is YYYY-MM-DD.

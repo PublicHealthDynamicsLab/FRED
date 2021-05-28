@@ -1,5 +1,0 @@
-PARAM NAME: synthetic_population_directory
-DEFAULT VALUE: $FRED_HOME/populations
-TYPE:  string
-
-DEFINITION: Location of the synthetic population files.

@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+
+my ($dir, $run, $cond, $var, $fips) = @ARGV;
+die "$0: no fips code\n" if not $fips;
+
+my $datadir = "$dir/VIS/run$run/cond$cond/$var";
+die "$0: no directory $datadir\n" if not -d $datadir;
+
+my $len = length($fips);
+my $outfile = "$dir/$var.$fips";
+open OUT, ">$outfile";
+print OUT "$var\n";
+my $day = 0;
+while (1) {
+  my $count = 0;
+  my $datafile = "$datadir/households-$day.txt";
+  if (-e $datafile) {
+    open IN, $datafile;
+    while (my $line = <IN>) {
+      chomp $line;
+      my ($lat, $lon, $code) = split " ", $line;
+      $count++ if $fips eq substr($code,0,$len);
+    }
+    close IN;
+    print OUT "$count\n";
+    $day++;
+  }
+  else {
+    last;
+  }
+}

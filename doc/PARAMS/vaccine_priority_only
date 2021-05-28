@@ -1,5 +1,0 @@
-PARAM NAME: vaccine_priority_only
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: If set, then only vaccinate people in the priority groups.

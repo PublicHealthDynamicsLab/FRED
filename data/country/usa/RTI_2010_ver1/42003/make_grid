@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($minlat, $maxlat, $minlon, $maxlon) = @ARGV;
+
+my $dlat = 0.01*($maxlat - $minlat);
+my $dlon = 0.01*($maxlon - $minlon);
+
+for my $i (0..100) {
+  my $lat = $minlat + $i * $dlat;
+  for my $j (0..100) {
+    my $lon = $minlon + $j * $dlon;
+   printf "%0.6f,%0.6f\n", $lat, $lon;
+  }
+}
+

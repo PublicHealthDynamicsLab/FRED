@@ -1,0 +1,19 @@
+use FRED::Influenza
+
+start_date = 2020-Jan-01
+days = 100
+
+locations_file = locations.txt
+enable_health_records = 1
+
+include_condition = REPORT
+
+REPORT.states = Not Infectious
+
+if state(INF,Ia) then set_state(REPORT,Not,Infectious)
+if state(INF,Is) then set_state(REPORT,Not,Infectious)
+if state(INF,R) then set_state(REPORT,Infectious,Not)
+
+if state(REPORT,Not) then wait()
+if state(REPORT,Infectious) then wait()
+

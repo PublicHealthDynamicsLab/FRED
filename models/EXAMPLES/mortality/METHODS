@@ -1,0 +1,4 @@
+
+fred_delete -f -k mortality ; fred_job -k mortality -p model.fred -n 4 -m 4
+
+fred_plot -k mortality -v MORTALITY.Death -n -s 100 

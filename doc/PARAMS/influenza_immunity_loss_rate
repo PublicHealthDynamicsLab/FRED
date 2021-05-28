@@ -1,4 +1,0 @@
-PARAM NAME: influenza_immunity_loss_rate
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

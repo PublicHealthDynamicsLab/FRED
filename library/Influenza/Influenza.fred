@@ -1,0 +1,71 @@
+#####################################################
+# MODULE FRED::Influenza
+# Author: John Grefenstette
+# Date: 22 Jul 2019
+
+# CONDITIONS
+include_condition = INF
+
+# STATES
+INF.states = S E Is Ia R Import
+INF.import_start_state = Import
+
+# TRANSMISSION
+INF.transmission_mode = proximity
+INF.transmissibility = 1.0
+INF.R0_a = 0.0398238
+INF.R0_b = 0.611043
+
+# VISUALIZATION
+INF.S.is_dormant = 1
+INF.R.is_dormant = 1
+
+# RULES
+
+if exposed(INF) then next(E)
+
+if state(INF,S) then set_sus(INF,1)
+if state(INF,S) then wait()
+
+if state(INF,E) then set_sus(INF,0)
+if state(INF,E) then wait(24*lognormal(1.9,1.23))
+if state(INF,E) then next(Is) with prob(0.67)
+if state(INF,E) then next(Ia) with prob(0.33)
+
+if state(INF,Is) then set_trans(INF,1)
+if state(INF,Is) then wait(24* lognormal(5.0,1.5))
+if state(INF,Is) then next(R)
+
+if state(INF,Ia) then set_trans(INF,0.5)
+if state(INF,Ia) then wait( 24 * lognormal(5.0, 1.5) )
+if state(INF,Ia) then next(R)
+
+if state(INF,R) then set_trans(INF,0)
+if state(INF,R) then wait()
+
+### IMPORTED INFECTIONS
+if state(INF,Import) then import_count(10)
+if state(INF,Import) then wait()
+
+# AGENT BEHAVIOR
+include_condition = StayHome
+StayHome.states = Start Symptoms Yes No
+
+if state(StayHome,Start) then wait(0)
+if state(StayHome,Start) then next(No)
+
+if state(StayHome,Symptoms) then wait(0)
+if state(StayHome,Symptoms) then next(Yes) with prob(0.5)
+if state(StayHome.Symptoms) then default(No)
+
+if state(StayHome,Yes) then wait()
+if state(StayHome,Yes) then absent()
+if state(StayHome,Yes) then present(Household)
+
+if state(StayHome,No) then wait()
+
+# Side effects
+if state(INF,Is) then set_state(StayHome,No,Symptoms)
+if state(INF,R) then set_state(StayHome,Yes,No)
+
+

@@ -1,0 +1,97 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $help = "";
+my $key = "";
+my $dir = "OUT";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "d=s" => \$dir,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | [ -k key | -d $dir]
+    -k or --key   the key for a FRED job (no default)
+    -d            if no key, the OUT directory (default = OUT)
+EOH
+
+die $usage if $help;
+
+my $keystr = "";
+if ($key) {
+  my $id = `fred_id $key`;
+  chomp $id;
+  die "$0: UNKNOWN key: $key\n$usage\n" if $id eq "UNKNOWN";
+  $dir = "$FREDRESULTS/JOB/$id/OUT";
+  $keystr = "-k $key ";
+}
+
+my $count = 0;
+my $n = 0;
+my $popsize = 0;
+for my $i (1..100) {
+  my $file = "$dir/RUN$i/DAILY/INF.totIs.txt";
+  # print "file = |$file|\n";
+  if (-e $file) {
+    my $cmd = "fred_get_counts $keystr --run $i -v INF.totIs | tail -1";
+    # print "cmd = |$cmd|\n";
+    my $line = `$cmd`;
+    chomp $line;
+    my ($day, $data) = split " ", $line;
+    $count += $data;
+
+    $cmd = "fred_get_counts $keystr --run $i -v Popsize | tail -1";
+    $line = `$cmd`;
+    chomp $line;
+    ($day, $data) = split " ", $line;
+    $popsize += $data;
+
+    $n++;
+  }
+}
+
+my $ave = 0;
+my $CAR = 0.0;
+$ave = (1.0 * $count) / $n if $n;
+$popsize = (1.0 * $popsize) / $n if $n;
+$CAR = 100.0 * $ave / $popsize if $popsize;
+# print "CAR = $CAR  ave = $ave  popsize = $popsize n = $n\n";
+printf "%0.5f\n", $CAR;
+
+exit;
+

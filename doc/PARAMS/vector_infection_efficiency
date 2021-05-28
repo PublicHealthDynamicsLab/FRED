@@ -1,4 +1,0 @@
-PARAM NAME: vector_infection_efficiency
-DEFAULT VALUE: 0.2
-TYPE: int
-DEFINITION:

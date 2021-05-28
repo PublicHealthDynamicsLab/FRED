@@ -1,4 +1,0 @@
-PARAM NAME: disease_names
-DEFAULT VALUE: 1 influenza
-TYPE: int
-DEFINITION:

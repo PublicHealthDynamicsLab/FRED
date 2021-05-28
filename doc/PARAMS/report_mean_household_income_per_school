@@ -1,4 +1,0 @@
-PARAM NAME: report_mean_household_income_per_school
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

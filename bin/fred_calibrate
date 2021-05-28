@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use warnings;
 use strict;
 use Getopt::Long qw(:config no_ignore_case bundling);
@@ -19,8 +42,8 @@ my $Starget = 24.66;
 my $Wtarget = 12.34;
 my $CARtarget = 33.333;		# clinical attack rate
 my $oldparams = "";
-my $runs = 1;
-my $cores = 1;
+my $runs = 20;
+my $cores = 4;
 
 # stopping criteria
 my $threshold = 0.01;
@@ -72,73 +95,69 @@ my $paramsfile = "$oldparams-cal";
 my $paramsfinal = "$oldparams-calibrated";
 
 # get settings for calibration parameters from input file
-my $x = `grep household_contact $oldparams`;
+my $x = `grep Household.contact $oldparams`;
 my @tmp = split " ", $x;
 my $h = pop @tmp;
-$x = `grep neighborhood_contact $oldparams`;
+$x = `grep Neighborhood.contact $oldparams`;
 @tmp = split " ", $x;
 my $n = pop @tmp;
-$x = `grep school_contact $oldparams`;
+$x = `grep School.contact $oldparams`;
 @tmp = split " ", $x;
 my $s = pop @tmp;
-$x = `grep workplace_contact $oldparams`;
+$x = `grep Workplace.contact $oldparams`;
 @tmp = split " ", $x;
 my $w = pop @tmp;
 
 my $error = 20*$threshold;
+$error = 10;
 my $step = 0;
-while ($error > 10*$threshold) {
+# while ($error > 10*$threshold) {
+while ($error > 1.0) {
   $step++;
   my $time = localtime();
   my $paramsfile = "$oldparams-cal-$step";
   print "Creating paramsfile $paramsfile\n";
   open CAL, ">$paramsfile" or die "$0: Can't create paramsfile $paramsfile\n";
   print CAL @orig;
-  print CAL "track_infection_events = 0\n";
-  print CAL "report_place_of_infection = 1\n\n";
   print CAL "###  CALIBRATION PHASE I STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "household_contacts = %0.4f\n", $h;
-  printf CAL "neighborhood_contacts = %0.4f\n", $n;
-  printf CAL "school_contacts = %0.4f\n", $s;
-  printf CAL "workplace_contacts = %0.4f\n", $w;
-  printf CAL "classroom_contacts = %0.4f\n", 2*$s;
-  printf CAL "office_contacts = %0.4f\n", 2*$w;
+  printf CAL "Household.contacts = %0.5f\n", $h;
+  printf CAL "Neighborhood.contacts = %0.5f\n", $n;
+  printf CAL "School.contacts = %0.5f\n", $s;
+  printf CAL "Workplace.contacts = %0.5f\n", $w;
+  printf CAL "Classroom.contacts = %0.5f\n", 2*$s;
+  printf CAL "Office.contacts = %0.5f\n", 2*$w;
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
 
-  print "track_infection_events = 0\n";
-  print "report_place_of_infection = 1\n\n";
   print "###  CALIBRATION PHASE I STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "household_contacts = %0.4f\n", $h;
-  printf "neighborhood_contacts = %0.4f\n", $n;
-  printf "school_contacts = %0.4f\n", $s;
-  printf "workplace_contacts = %0.4f\n", $w;
-  printf "classroom_contacts = %0.4f\n", 2*$s;
-  printf "office_contacts = %0.4f\n", 2*$w;
+  printf "Household.contacts = %0.5f\n", $h;
+  printf "Neighborhood.contacts = %0.5f\n", $n;
+  printf "School.contacts = %0.5f\n", $s;
+  printf "Workplace.contacts = %0.5f\n", $w;
+  printf "Classroom.contacts = %0.5f\n", 2*$s;
+  printf "Office.contacts = %0.5f\n", 2*$w;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
-  my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
-  chomp $dir;
-
-  system "fred_get_places $dir";
+  system "fred_get_places -k $paramsfile";
 
   print "\n\ntargets:\n";
   print "X 0\n";
   print "H $Htarget\n";
   print "N $Ntarget\n";
-  print "S+C $Starget\n";
-  print "W+O $Wtarget\n\n";
+  print "S $Starget\n";
+  print "W $Wtarget\n\n";
 
   system "cat places.dat";
   $x = `cat places.dat`;
   chomp $x;
   my ($HH, $H, $NN, $N, $SS, $S, $WW, $W) = split " ", $x;
 
-  my $CAR = `fred_CAR -k $paramsfile | awk \'{print \$1}\'`;
+  # get clinical attack rate
+  my $CAR = `fred_get_CAR -k $paramsfile | awk \'{print \$1}\'`;
   chomp $CAR;
 
   my $eh = $H - $Htarget;
@@ -148,28 +167,33 @@ while ($error > 10*$threshold) {
   my $ea = $CAR - $CARtarget;;
 
   printf "CAR = %0.6f\n", $CAR;
-  printf "errors: EH = %0.4f EN = %0.4f  ES = %0.4f  EW = %0.4f  EA = %0.4f\n",
+  printf "errors: EH = %0.5f EN = %0.5f  ES = %0.5f  EW = %0.5f  EA = %0.5f\n",
     $eh, $en, $es, $ew, $ea;
 
-  $error = abs($eh) + abs($en) + abs($es) + abs($ew) + abs($ea);
-  printf "total error = %0.4f\n\n\n", $error;
+  # $error = abs($eh) + abs($en) + abs($es) + abs($ew) + abs($ea);
+  $error = abs($eh) + abs($en) + abs($es) + abs($ew);
+  printf "total error = %0.5f\n\n\n", $error;
   
-  if (abs($ea) < 1.0) {
-    $h *= $Htarget / $H if $H > 0;
-    $n *= $Ntarget / $N if $N > 0;
-    $s *= $Starget / $S if $S > 0;
-    $w *= $Wtarget / $W if $W > 0;
-    $error = abs($eh) + abs($en) + abs($es) + abs($ew);
-  }
-  else {
-    # adjust to achieve desired CAR 
-    my $ar_ratio = $CARtarget / $CAR;
-    $h *= $ar_ratio * $Htarget / $H if $H > 0;
-    $n *= $ar_ratio * $Ntarget / $N if $N > 0;
-    $s *= $ar_ratio * $Starget / $S if $S > 0;
-    $w *= $ar_ratio * $Wtarget / $W if $W > 0;
-  }
-  $h = 1.0 if $h > 1.0;
+  $h *= $Htarget / $H if $H > 0;
+  $n *= $Ntarget / $N if $N > 0;
+  $s *= $Starget / $S if $S > 0;
+  $w *= $Wtarget / $W if $W > 0;
+
+  # if (abs($ea) < 1.0) {
+  # $h *= $Htarget / $H if $H > 0;
+  # $n *= $Ntarget / $N if $N > 0;
+  # $s *= $Starget / $S if $S > 0;
+  # $w *= $Wtarget / $W if $W > 0;
+  # $error = abs($eh) + abs($en) + abs($es) + abs($ew);
+# }
+  # else {
+  # # adjust to achieve desired CAR 
+  # my $ar_ratio = $CARtarget / $CAR;
+  # $h *= $ar_ratio * $Htarget / $H if $H > 0;
+  # $n *= $ar_ratio * $Ntarget / $N if $N > 0;
+  # $s *= $ar_ratio * $Starget / $S if $S > 0;
+  # $w *= $ar_ratio * $Wtarget / $W if $W > 0;
+# }
   system "fred_delete -f -k $paramsfile &> /dev/null";
   unlink $paramsfile;
 }
@@ -183,58 +207,50 @@ while ($error > $threshold) {
 
   open CAL, ">$paramsfile";
   print CAL @orig;
-  print CAL "track_infection_events = 0\n";
-  print CAL "report_place_of_infection = 1\n\n";
   print CAL "###  CALIBRATION PHASE II STEP $step at $time\n";
   print CAL "###  runs = $runs  cores = $cores\n";
-  printf CAL "household_contacts = %0.4f\n", $h;
-  printf CAL "neighborhood_contacts = %0.4f\n", $n;
-  printf CAL "school_contacts = %0.4f\n", $s;
-  printf CAL "workplace_contacts = %0.4f\n", $w;
-  printf CAL "classroom_contacts = %0.4f\n", 2*$s;
-  printf CAL "office_contacts = %0.4f\n", 2*$w;
+  printf CAL "Household.contacts = %0.5f\n", $h;
+  printf CAL "Neighborhood.contacts = %0.5f\n", $n;
+  printf CAL "School.contacts = %0.5f\n", $s;
+  printf CAL "Workplace.contacts = %0.5f\n", $w;
+  printf CAL "Classroom.contacts = %0.5f\n", 2*$s;
+  printf CAL "Office.contacts = %0.5f\n", 2*$w;
   close CAL;
 
   system "cp $paramsfile $paramsfinal";
 
-  print "track_infection_events = 0\n";
-  print "report_place_of_infection = 1\n\n";
   print "###  CALIBRATION PHASE II STEP $step at $time\n";
   print "###  runs = $runs  cores = $cores\n";
-  printf "household_contacts = %0.4f\n", $h;
-  printf "neighborhood_contacts = %0.4f\n", $n;
-  printf "school_contacts = %0.4f\n", $s;
-  printf "workplace_contacts = %0.4f\n", $w;
-  printf "classroom_contacts = %0.4f\n", 2*$s;
-  printf "office_contacts = %0.4f\n", 2*$w;
+  printf "Household.contacts = %0.5f\n", $h;
+  printf "Neighborhood.contacts = %0.5f\n", $n;
+  printf "School.contacts = %0.5f\n", $s;
+  printf "Workplace.contacts = %0.5f\n", $w;
+  printf "Classroom.contacts = %0.5f\n", 2*$s;
+  printf "Office.contacts = %0.5f\n", 2*$w;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   system "fred_job -k $paramsfile -p $paramsfile -n $runs -m $cores";
-
-  my $dir = `fred_cd -k $paramsfile | awk \'{print \$2}\' `;
-  chomp $dir;
-
-  system "fred_get_places $dir";
+  system "fred_get_places -k $paramsfile";
 
   print "\n\ntargets:\n";
   print "X 0\n";
   print "H $Htarget\n";
   print "N $Ntarget\n";
-  print "S+C $Starget\n";
-  print "W+O $Wtarget\n\n";
+  print "S $Starget\n";
+  print "W $Wtarget\n\n";
 
   system "cat places.dat";
   $x = `cat places.dat`;
   chomp $x;
   my ($HH, $H, $NN, $N, $SS, $S, $WW, $W) = split " ", $x;
 
-  my $CAR = `fred_CAR -k $paramsfile | awk \'{print \$1}\'`;
+  my $CAR = `fred_get_CAR -k $paramsfile | awk \'{print \$1}\'`;
   chomp $CAR;
   my $ea = $CAR - $CARtarget;;
-  printf "CAR = %0.4f\n", $CAR;
-  printf "errors: EA = %0.4f\n", $ea;
+  printf "CAR = %0.5f\n", $CAR;
+  printf "errors: EA = %0.5f\n", $ea;
   $error = abs($ea);
-  printf "total error = %0.4f\n\n\n", $error;
+  printf "total error = %0.5f\n\n\n", $error;
   
   # adjust to achieve desired CAR 
   my $ar_ratio = $CARtarget / $CAR;
@@ -243,7 +259,7 @@ while ($error > $threshold) {
   $n *= $adjust;
   $s *= $adjust;
   $w *= $adjust;
-  $h = 1.0 if $h > 1.0;
+  # $h = 1.0 if $h > 1.0;
 
   system "fred_delete -f -k $paramsfile &> /dev/null";
   unlink $paramsfile;

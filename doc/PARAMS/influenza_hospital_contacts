@@ -1,4 +1,0 @@
-PARAM NAME: influenza_hospital_contacts
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

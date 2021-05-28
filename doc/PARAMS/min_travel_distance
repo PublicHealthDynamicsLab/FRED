@@ -1,4 +1,0 @@
-PARAM NAME: min_travel_distance
-DEFAULT VALUE: 100.0
-TYPE: int
-DEFINITION:

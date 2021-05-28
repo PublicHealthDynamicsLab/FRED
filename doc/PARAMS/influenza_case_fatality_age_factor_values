@@ -1,4 +1,0 @@
-PARAM NAME: influenza_case_fatality_age_factor_values
-DEFAULT VALUE: 1 1.0
-TYPE: int
-DEFINITION:

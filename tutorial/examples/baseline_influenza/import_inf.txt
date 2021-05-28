@@ -1,0 +1,33 @@
+########################################################################
+#
+# Import Map File
+#
+# Each data line must have the following format:
+#
+# start = %d end = %d max = %d per_cap = %f lat = %f lon = %f rad = %f fips = %ld min_age = %d max_age = %d
+#
+#
+# On each simulation day between start and end inclusive, a selected
+# number of susceptible people will be exposed.  If per_cap = 0, up to
+# max candidates will be selected at random.  If the total number of
+# candidates is less than max, then all candidates will be exposed.  If
+# per_cap > 0, max is ignored and the number selected will be
+# (per_cap*number_of_candidates).
+#
+# If fips = 0 and rad = 0, then all age-appropriate susceptible people
+# in the simulation region are candidates for exposure.  If fips > 0,
+# candidates will be selected from those residing in the given fips
+# code. If fips = 0 and rad > 0, the candidates will selected those
+# residing within rad km of the specified coordinates (lat,lon).
+#
+# Only individuals with min_age <= age and age < max_age will be
+# included in the set of candidates.  Both min_age and max_age are real
+# values. For example, setting min_age = 2.5 and max_age = 10 includes
+# only people who are at least 2.5 years old but less than 10 years old.
+# It is an error to specify max_age <= min_age.
+#
+########################################################################
+
+# Infect 10 people on day zero with no spatial or age restrictions:
+
+start = 0 end = 0 max = 10 per_cap = 0 lat = 0 lon = 0 rad = 0 fips = 0 min_age = 0 max_age = 999

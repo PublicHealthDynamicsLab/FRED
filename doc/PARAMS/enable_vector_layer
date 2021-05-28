@@ -1,8 +1,0 @@
-PARAM NAME: enable_vector_layer
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: Enable vector layer.
-
-Note: this is an experimental feature. Users should not enable it unless
-they know what they are doing.

@@ -1,4 +1,0 @@
-PARAM NAME: influenza_workplace_contacts
-DEFAULT VALUE: 1.6
-TYPE: int
-DEFINITION:

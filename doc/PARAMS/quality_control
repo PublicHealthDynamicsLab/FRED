@@ -1,6 +1,0 @@
-PARAM NAME: quality_control
-DEFAULT VALUE: 1
-TYPE: int
-
-DEFINITION: If set, information about the size and age distribution for
-the various types of places is printed out in the Log file.

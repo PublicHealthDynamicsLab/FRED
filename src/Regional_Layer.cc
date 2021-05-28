@@ -1,34 +1,42 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
 // File: Regional_Layer.cc
 //
-#include <utility>
 #include <list>
 #include <string>
+#include <utility>
+#include <vector>
 using namespace std;
 
-#include "Global.h"
 #include "Geo.h"
+#include "Global.h"
+#include "Household.h"
 #include "Regional_Layer.h"
 #include "Regional_Patch.h"
-#include "Place_List.h"
+#include "Property.h"
 #include "Place.h"
-#include "Params.h"
 #include "Random.h"
 #include "Utils.h"
-#include "Household.h"
-#include "Population.h"
 
 Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo maxlon, fred::geo maxlat) {
   this->min_lon = minlon;
@@ -44,7 +52,7 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
   }
 
   // read in the patch size for this layer
-  Params::get_param_from_string("regional_patch_size", &this->patch_size);
+  Property::get_property("regional_patch_size", &this->patch_size);
 
   // find the global x,y coordinates of SW corner of grid
   this->min_x = Geo::get_x(this->min_lon);
@@ -90,8 +98,7 @@ Regional_Layer::Regional_Layer(fred::geo minlon, fred::geo minlat, fred::geo max
     fprintf(Global::Statusfp, "Regional_Layer rows = %d  cols = %d\n", this->rows, this->cols);
     fprintf(Global::Statusfp, "Regional_Layer min_x = %f  min_y = %f\n", this->min_x, this->min_y);
     fprintf(Global::Statusfp, "Regional_Layer max_x = %f  max_y = %f\n", this->max_x, this->max_y);
-    fprintf(Global::Statusfp, "Regional_Layer global_col_min = %d  global_row_min = %d\n",
-	    this->global_col_min, this->global_row_min);
+    fprintf(Global::Statusfp, "Regional_Layer global_col_min = %d  global_row_min = %d\n", this->global_col_min, this->global_row_min);
     fflush(Global::Statusfp);
   }
 
@@ -141,9 +148,8 @@ Regional_Patch* Regional_Layer::get_patch_with_global_coords(int row, int col) {
 Regional_Patch* Regional_Layer::get_patch_from_id(int id) {
   int row = id / this->cols;
   int col = id % this->cols;
-  FRED_VERBOSE(4,
-	       "patch lookup for id = %d ... calculated row = %d, col = %d, rows = %d, cols = %d\n", id,
-	       row, col, rows, cols);
+  FRED_VERBOSE(4, "patch lookup for id = %d ... calculated row = %d, col = %d, rows = %d, cols = %d\n", id,
+      row, col, rows, cols);
   assert(this->grid[row][col].get_id() == id);
   return &(this->grid[row][col]);
 }
@@ -155,7 +161,7 @@ Regional_Patch* Regional_Layer::select_random_patch() {
 }
 
 void Regional_Layer::quality_control() {
-  if(Global::Verbose) {
+  if(Global::Verbose  > 0) {
     fprintf(Global::Statusfp, "grid quality control check\n");
     fflush(Global::Statusfp);
   }
@@ -188,7 +194,7 @@ void Regional_Layer::quality_control() {
     fclose(fp);
   }
 
-  if(Global::Verbose) {
+  if(Global::Verbose > 0) {
     fprintf(Global::Statusfp, "grid quality control finished\n");
     fflush(Global::Statusfp);
   }
@@ -197,42 +203,19 @@ void Regional_Layer::quality_control() {
 // Specific to Regional_Patch Regional_Layer:
 
 void Regional_Layer::set_population_size() {
-  for(int p = 0; p < Global::Pop.get_index_size(); ++p) {
-    Person* person = Global::Pop.get_person_by_index(p);
-    if(person != NULL) {
-      Place* hh = person->get_household();
-      if(hh == NULL) {
-        if(Global::Enable_Hospitals && person->is_hospitalized() && person->get_permanent_household() != NULL) {
-          hh = person->get_permanent_household();
-        }
-      }
-      assert(hh != NULL);
-      int row = get_row(hh->get_latitude());
-      int col = get_col(hh->get_longitude());
-      Regional_Patch* patch = get_patch(row, col);
-      patch->add_person(person);
-    }
-  }
-}
-
-void Regional_Layer::read_max_popsize() {
-  int r, c, n;
-  char filename[FRED_STRING_SIZE];
-  if(Global::Enable_Travel) {
-    Params::get_param_from_string("regional_patch_popfile", filename);
-    FILE* fp = Utils::fred_open_file(filename);
-    if(fp == NULL) {
-      Utils::fred_abort("Help! Can't open patch_pop_file %s\n", filename);
-    }
-    printf("reading %s\n", filename);
-    while(fscanf(fp, "%d %d %d ", &c, &r, &n) == 3) {
-      Regional_Patch* patch = get_patch_with_global_coords(r, c);
-      if(patch != NULL) {
-        patch->set_max_popsize(n);
+  for(int p = 0; p < Person::get_population_size(); ++p) {
+    Person* person = Person::get_person(p);
+    Place* hh = person->get_household();
+    if(hh == NULL) {
+      if(Global::Enable_Hospitals && person->person_is_hospitalized() && person->get_permanent_household() != NULL) {
+        hh = person->get_permanent_household();
       }
     }
-    fclose(fp);
-    printf("finished reading %s\n", filename);
+    assert(hh != NULL);
+    int row = get_row(hh->get_latitude());
+    int col = get_col(hh->get_longitude());
+    Regional_Patch* patch = get_patch(row, col);
+    patch->add_person_to_patch(person);
   }
 }
 
@@ -243,9 +226,18 @@ void Regional_Layer::add_workplace(Place* place) {
   }
 }
 
+void Regional_Layer::add_hospital(Place* place) {
+  // printf("REGIONAL LAYER ADD HOSP %s\n", place->get_label());
+  Regional_Patch* patch = this->get_patch(place);
+  if(patch != NULL) {
+    patch->add_hospital(place);
+  } else {
+    printf("REGIONAL LAYER NULL PATCH FOR HOSP %s lat %f lon %f\n", place->get_label(), place->get_latitude(), place->get_longitude());
 
-Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y, int min_staff,
-					    int max_staff, double* min_dist) {
+  }
+}
+
+Place* Regional_Layer::get_nearby_workplace(int row, int col, double x, double y, int min_staff, int max_staff, double* min_dist) {
   //find nearest workplace that has right number of employees
   Place* nearby_workplace = NULL;
   *min_dist = 1e99;
@@ -253,24 +245,60 @@ Place *Regional_Layer::get_nearby_workplace(int row, int col, double x, double y
     for(int j = col - 1; j <= col + 1; ++j) {
       Regional_Patch * patch = get_patch(i, j);
       if(patch != NULL) {
-	// printf("Looking for nearby workplace in row %d col %d\n", i, j); fflush(stdout);
-        Place* closest_workplace = patch->get_closest_workplace(x, y, min_staff, max_staff,
-								min_dist);
+        // printf("Looking for nearby workplace in row %d col %d\n", i, j); fflush(stdout);
+        Place* closest_workplace = patch->get_closest_workplace(x, y, min_staff, max_staff,min_dist);
         if(closest_workplace != NULL) {
           nearby_workplace = closest_workplace;
         } else {
-	  // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
-	}
+          // printf("No nearby workplace in row %d col %d\n", i, j); fflush(stdout);
+        }
       }
     }
   }
   return nearby_workplace;
 }
 
-void Regional_Layer::unenroll(fred::geo lat, fred::geo lon, Person* person) {
+std::vector<Place*> Regional_Layer::get_nearby_hospitals(int row, int col, double x, double y, int min_found) {
+  std::vector<Place*> ret_val;
+  ret_val.clear();
+  bool done = false;
+  int search_dist = 1;
+  while(!done) {
+    for(int i = row - search_dist; i <= row + search_dist; ++i) {
+      for(int j = col - search_dist; j <= col + search_dist; ++j) {
+        Regional_Patch* patch = get_patch(i, j);
+        if(patch != NULL) {
+          vector<Place*> hospitals = patch->get_hospitals();
+          if(static_cast<int>(hospitals.size()) > 0) {
+            for(std::vector<Place*>::iterator itr = hospitals.begin(); itr != hospitals.end(); ++itr) {
+              ret_val.push_back(*itr);
+            }
+          }
+        }
+      }
+    }
+
+    //Try to expand the search if we don't have enough hospitals and we CAN
+    if(static_cast<int>(ret_val.size() < min_found)) {
+      if((row + search_dist + 1 < this->rows || col + search_dist + 1 < this->cols) ||
+         (row - search_dist - 1 >= 0 || col - search_dist - 1 >= 0)) {
+        //Expand the search
+        ret_val.clear();
+        ++search_dist;
+      } else {
+        done = true;
+      }
+    } else {
+      done = true;
+    }
+  }
+  return ret_val;
+}
+
+void Regional_Layer::end_membership(fred::geo lat, fred::geo lon, Person* person) {
   Regional_Patch* regional_patch = this->get_patch(lat, lon);
   if(regional_patch != NULL) {
-    regional_patch->unenroll(person);
+    regional_patch->end_membership(person);
   }
 }
 

@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $key = "";
+my $person = -1;
+my $state = "";
+my $pattern = "";
+my $run = 1;
+my $dir = "OUT";
+
+my $opt_result = GetOptions(
+			    "g=s" => \$pattern,
+			    "k=s" => \$key,
+			    "p=i" => \$person,
+			    "r=i" => \$run,
+			    "s=s" => \$state,
+			    "d=s" => \$dir,
+			   );
+
+if ($key) {
+  $dir = `fred_find -k $key`; 
+  chomp $dir;
+  $dir = "$dir/OUT/RUN$run";
+}
+else {
+  $dir = "$dir/RUN$run";
+}
+
+my $usage = "usage: $0 [ -k key | -p person_id | -s state ]\n";
+die $usage if $dir eq "";
+
+my $filter = " grep ' ' ";
+$filter .= "| grep 'person $person ' " if $person > -1;
+$filter .= "| grep 'to $state' " if $state;
+$filter .= "| grep '$pattern' " if $pattern;
+# print "filter = |$filter|\n";
+my $cmd = "cat $dir/health_records.txt | $filter ";
+# print "cmd = |$cmd|\n";
+system "$cmd";
+
+

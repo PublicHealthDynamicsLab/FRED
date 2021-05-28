@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -15,49 +24,51 @@
 //
 
 #include "Events.h"
+#include "Global.h"
 #include "Utils.h"
 
 Events::Events() {
-
-  for (int day = 0; day < MAX_DAYS; ++day) {
-    clear_events(day);
+  this->event_queue_size = 24*Global::Simulation_Days;
+  this->events = new events_t [ event_queue_size ];
+  for (int step = 0; step < this->event_queue_size; ++step) {
+    clear_events(step);
   }
 
 }
 
-void Events::add_event(int day, event_t item) {
+void Events::add_event(int step, event_t item) {
 
-  if (day < 0 || MAX_DAYS <= day) {
+  if (step < 0 || this->event_queue_size <= step) {
     // won't happen during this simulation
     return;
   }
-  if(this->events[day].size() == this->events[day].capacity()) {
-    if(this->events[day].capacity() < 4) {
-      this->events[day].reserve(4);
+  if(this->events[step].size() == this->events[step].capacity()) {
+    if(this->events[step].capacity() < 4) {
+      this->events[step].reserve(4);
     }
-    this->events[day].reserve(2 * this->events[day].capacity());
+    this->events[step].reserve(2 * this->events[step].capacity());
   }
-  this->events[day].push_back(item);
-  // printf("\nadd_event day %d new size %d\n", day, get_size(day));
-  // print_events(day);
+  this->events[step].push_back(item);
+  // printf("\nadd_event step %d new size %d\n", step, get_size(step));
+  // print_events(step);
 }
 
-void Events::delete_event(int day, event_t item) {
+void Events::delete_event(int step, event_t item) {
 
-  if(day < 0 || MAX_DAYS <= day) {
+  if(step < 0 || this->event_queue_size <= step) {
     // won't happen during this simulation
     return;
   }
   // find item in the list
-  int size = get_size(day);
+  int size = get_size(step);
   for(int pos = 0; pos < size; ++pos) {
-    if(this->events[day][pos] == item) {
+    if(this->events[step][pos] == item) {
       // copy last item in list into this slot
-      this->events[day][pos] = this->events[day].back();
+      this->events[step][pos] = this->events[step].back();
       // delete last slot
-      this->events[day].pop_back();
-      // printf("\ndelete_event day %d final size %d\n", day, get_size(day));
-      // print_events(day);
+      this->events[step].pop_back();
+      // printf("\ndelete_event step %d final size %d\n", step, get_size(step));
+      // print_events(step);
       return;
     }
   }
@@ -66,40 +77,42 @@ void Events::delete_event(int day, event_t item) {
   assert(false);
 }
 
-void Events::clear_events(int day) {
-
-  assert(0 <= day && day < MAX_DAYS);
-  this->events[day] = events_t();
-  // printf("clear_events day %d size %d\n", day, get_size(day));
+void Events::clear_events(int step) {
+  assert(0 <= step && step < this->event_queue_size);
+  this->events[step] = events_t();
+  // printf("clear_events step %d size %d\n", step, get_size(step));
 }
 
-int Events::get_size(int day) {
-
-  assert(0 <= day && day < MAX_DAYS);
-  return static_cast<int>(this->events[day].size());
+int Events::get_size(int step) {
+  assert(0 <= step && step < this->event_queue_size);
+  return static_cast<int>(this->events[step].size());
 }
 
-event_t Events::get_event(int day, int i) {
-
-  assert(0 <= day && day < MAX_DAYS);
-  assert(0 <= i && i < static_cast<int>(this->events[day].size()));
-  return this->events[day][i];
+event_t Events::get_event(int step, int i) {
+  assert(0 <= step && step < this->event_queue_size);
+  if (0 <= i && i < static_cast<int>(this->events[step].size())) {
+    return this->events[step][i];
+  }
+  else {
+    Utils::fred_abort("get_event: i = %d size = %d\n",
+		      i, (int)this->events[step].size());
+    return NULL;
+  }
 }
 
 
-void Events::print_events(FILE* fp, int day) {
-
-  assert(0 <= day && day < MAX_DAYS);
-  events_itr_t itr_end = this->events[day].end();
-  fprintf(fp, "events[%d] = %d : ", day, get_size(day));
-  for(events_itr_t itr = this->events[day].begin(); itr != itr_end; ++itr) {
+void Events::print_events(FILE* fp, int step) {
+  assert(0 <= step && step < this->event_queue_size);
+  events_itr_t itr_end = this->events[step].end();
+  fprintf(fp, "events[%d] = %d : ", step, get_size(step));
+  for(events_itr_t itr = this->events[step].begin(); itr != itr_end; ++itr) {
     // fprintf(fp, "id %d age %d ", (*itr)->get_id(), (*itr)->get_age());
   }
   fprintf(fp,"\n");
   fflush(fp);
 }
 
-void Events::print_events(int day) {
-  print_events(stdout, day);
+void Events::print_events(int step) {
+  print_events(stdout, step);
 }
 

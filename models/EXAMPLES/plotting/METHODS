@@ -1,0 +1,50 @@
+#!/bin/bash
+
+echo -n 'METHODS started '
+date
+
+############# PART 1
+
+# delete any previous job with this name
+echo
+echo fred_delete -f -k plot1
+fred_delete -f -k plot1
+
+# FRED job with n runs on m cores
+echo
+echo fred_job -k plot1 -p plot1.fred -n 8 -m 4
+fred_job -k plot1 -p plot1.fred -n 8 -m 4
+
+# show Ia, Is and total Infectious
+echo fred_plot -k plot1 -v INF.Ia,INF.Is,REPORT.Infectious --labels Asympt,Sympt,Infectious --colors green,blue,red
+fred_plot -t 'Basic Influenza Model' -k plot1 -v INF.Ia,INF.Is,REPORT.Infectious --labels Asympt,Sympt,Infectious --colors green,blue,red
+
+# S-E-I-R plot
+echo fred_plot -k plot1 -t 'Basic Influenza Model' -v INF.S,INF.E,REPORT.Infectious,INF.R -l S,E,I,R -c green,orange,red,blue
+fred_plot -t 'Basic Influenza Model' -k plot1 -v INF.S,INF.E,REPORT.Infectious,INF.R -l S,E,I,R -c green,orange,red,blue
+
+############# PART 2
+
+# delete any previous job with this name
+echo
+echo fred_delete -f -k plot2
+fred_delete -f -k plot2
+
+# FRED job with n runs on m cores
+echo
+echo fred_job -k plot2 -p plot2.fred -n 8 -m 4
+fred_job -k plot2 -p plot2.fred -n 8 -m 4
+
+# plot the total breakdown of adults vs. children
+echo fred_plot -t 'Basic Influenza Model' -k plot2 -v INF.totE,REPORT.totAdult,REPORT.totChild -l Total,Adults,Children -c black,red,blue -o plot2-total
+fred_plot -t 'Basic Influenza Model' -k plot2 -v INF.totE,REPORT.totAdult,REPORT.totChild -l Total,Adults,Children -c black,red,blue -o plot2-total
+
+# plot the weekly breakdown of adults vs. children
+echo fred_plot -t 'Basic Influenza Model' -k plot2 -v INF.newE,REPORT.newAdult,REPORT.newChild -l Total,Adults,Children -c black,red,blue -w -o plot2-weekly
+fred_plot -t 'Basic Influenza Model' -k plot2 -v INF.newE,REPORT.newAdult,REPORT.newChild -l Total,Adults,Children -c black,red,blue -w -o plot2-weekly -Y 6500
+
+exit
+
+echo
+echo -n 'METHOD finished '
+date

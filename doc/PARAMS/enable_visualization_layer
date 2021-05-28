@@ -1,8 +1,0 @@
-PARAM NAME: enable_visualization_layer
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: If set, FRED activitates the visualization layer. This is
-required to create maps or movies.
-
-

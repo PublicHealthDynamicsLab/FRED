@@ -1,0 +1,22 @@
+########################################################################
+#
+# Import Map File
+#
+# Each data line must have the following format:
+#
+# start = %d end = %d max = %d per_cap = %f lat = %f lon = %f rad = %f fips = %ld
+#
+# On each simulation day between start and end inclusive, the specified
+# amount of resources will be delivered to the given location. If
+# per_cap = 0, max units will be delivered.  If per_cap > 0, max is
+# ignored and the amount delivered will be (per_cap*number_of_people).
+# If fips = 0 and rad = 0, then all people in the simulation region are
+# counted.  If fips > 0, then only those residing in the given fips code
+# will count. If fips = 0 and rad > 0, then people residing within rad
+# km of the specified coordinates (lat,lon) will be counted.
+#
+########################################################################
+
+# Vaccine doses for 100% of people on day zero with no spatial or age restrictions:
+
+start = 0 end = 0 max = 0 per_cap = 1.0 lat = 0 lon = 0 rad = 0 fips = 0

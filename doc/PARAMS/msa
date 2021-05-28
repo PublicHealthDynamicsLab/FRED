@@ -1,5 +1,0 @@
-PARAM NAME: msa
-DEFAULT VALUE: none
-TYPE: string
-DEFINITION: This parameter enables the use of Metropolitan and
-Micropolitan Statistical Areas. See explanation below.

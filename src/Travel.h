@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -17,11 +26,27 @@
 #ifndef _FRED_TRAVEL_H
 #define _FRED_TRAVEL_H
 
+typedef std::vector <Person*> pvec;		// vector of person ptrs
+
+// travel hub record:
+typedef struct hub_record {
+  int id;
+  double lat;
+  double lon;
+  pvec users;
+  int pop;
+  int pct;
+} hub_t;
+
+
 class Events;
 class Person;
+class Age_Map;
+
 
 class Travel {
 public:
+  static void get_properties();
   static void setup(char* directory);
   static void read_hub_file();
   static void read_trips_per_day_file();
@@ -40,9 +65,3 @@ private:
 };
 
 #endif // _FRED_TRAVEL_H
-
-
-
-
-
-

@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -22,12 +31,10 @@
 #include "Neighborhood_Patch.h"
 #include "Person.h"
 #include "Place.h"
-#include "Neighborhood.h"
-#include "Place_List.h"
+#include "Place_Type.h"
 #include "Random.h"
 #include "Household.h"
-#include "School.h"
-class Person;
+
 
 void insert_if_unique(place_vector* vec, Place* p) {
   for (place_vector::iterator itr = vec->begin(); itr != vec->end(); ++itr) {
@@ -49,14 +56,14 @@ Neighborhood_Patch::Neighborhood_Patch() {
   this->center_y = 0.0;
   this->center_x = 0.0;
   this->popsize = 0;
-  this->mean_household_income = 0.0;
   this->neighborhood = NULL;
+  this->admin_code = 0;
 }
 
 void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
   this->grid = grd;
   this->row = i;
-  this-> col = j;
+  this->col = j;
   double patch_size = grid->get_patch_size();
   double grid_min_x = grid->get_min_x();
   double grid_min_y = grid->get_min_y();
@@ -66,43 +73,76 @@ void Neighborhood_Patch::setup(Neighborhood_Layer* grd, int i, int j) {
   this->max_y = grid_min_y + (row+1)*patch_size;
   this->center_y = (min_y+max_y)/2.0;
   this->center_x = (min_x+max_x)/2.0;
-  this->households.clear();
-  this->schools.clear();
-  this->workplaces.clear();
-  this->hospitals.clear();
+  this->popsize = 0;
+  this->neighborhood = NULL;
+  this->admin_code = 0;
+  int number_of_place_types = Place_Type::get_number_of_place_types();
+  this->places = new place_vector_t [ number_of_place_types ];
+    for (int i = 0; i < number_of_place_types; i++) {
+    this->places[i].clear();
+  }
   this->schools_attended_by_neighborhood_residents.clear();
   this->workplaces_attended_by_neighborhood_residents.clear();
-  this->popsize = 0;
-  this->mean_household_income = 0.0;
-  this->neighborhood = NULL;
-  vector_control_status = 0;
 }
 
-void Neighborhood_Patch::make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator) {
-  char str[80];
-  sprintf(str, "N-%04d-%04d", this->row, this->col);
+void Neighborhood_Patch::prepare() {
+  this->neighborhood->prepare();
+  this->neighborhood->set_elevation(0.0);
+  int houses = get_number_of_households();
+  if (houses > 0) {
+    double sum = 0.0;
+    for(int i = 0; i < houses; ++i) {
+      double elevation = get_household(i)->get_elevation();
+      sum += elevation;
+    }
+    double mean = sum / (double) houses;
+    this->neighborhood->set_elevation(mean);
+  }
+
+  // find median income
+  int size = houses;
+  std::vector<int> income_list;
+  income_list.reserve(size);
+  for(int i = 0; i < houses; ++i) {
+    income_list[i] = get_household(i)->get_income();
+  }
+  std::sort(income_list.begin(), income_list.end());
+  int median = income_list[size/2];
+  this->neighborhood->set_income(median);
+
+}
+
+
+void Neighborhood_Patch::make_neighborhood(int type) {
+  char label[80];
+  sprintf(label, "N-%04d-%04d", this->row, this->col);
   fred::geo lat = Geo::get_latitude(this->center_y);
   fred::geo lon = Geo::get_longitude(this->center_x);
-
-  this->neighborhood = new (neighborhood_allocator.get_free())
-  Neighborhood(str, Place::SUBTYPE_NONE, lon, lat);
+  this->neighborhood = Place::add_place(label, type,
+						Place::SUBTYPE_NONE,
+						lon, lat, 0.0,
+						this->admin_code);
 }
 
-void Neighborhood_Patch::add_household(Household* p) {
-  this->households.push_back(p);
-  if (Global::Householdfp != NULL) {
-    fprintf(Global::Householdfp,"%s %.8f %.8f %f %f house_id: %d row = %d  col = %d  house_number = %d\n",
-	    p->get_label(),p->get_longitude(),p->get_latitude(),
-	    p->get_x(),p->get_y(), p->get_id(), row, col, get_number_of_households());
-    fflush(Global::Householdfp);
+void Neighborhood_Patch::add_place(Place* place) {
+  int type_id = place->get_type_id();
+  this->places[type_id].push_back(place);
+  if (this->admin_code == 0) {
+    this->admin_code = place->get_admin_code();
   }
+  FRED_VERBOSE(1, 
+	       "NEIGHBORHOOD_PATCH: add place %d %s type_id %d lat %.8f lon %.8f  row %d  col %d  place_number %d\n",
+	       place->get_id(), 
+	       place->get_label(), type_id,
+	       place->get_longitude(), place->get_latitude(),
+	       row, col, (int) this->places[type_id].size());
 }
 
-void Neighborhood_Patch::record_daily_activity_locations() {
+void Neighborhood_Patch::record_activity_groups() {
   Household* house;
   Person* per;
   Place* p;
-  School* s;
+  Place* s;
 
   // create lists of persons, workplaces, schools (by age)
   this->person.clear();
@@ -118,187 +158,67 @@ void Neighborhood_Patch::record_daily_activity_locations() {
   int houses = get_number_of_households();
   for(int i = 0; i < houses; ++i) {
     // printf("house %d of %d\n", i, houses); fflush(stdout);
-    house = static_cast<Household*>(households[i]);
-    house->record_profile();
-    this->mean_household_income += house->get_household_income();
+    house = static_cast<Household*>(get_household(i));
     int hsize = house->get_size();
     // fprintf(fp, "%d ", hsize);
+    // printf("hsize = %d \n", hsize); fflush(stdout);
     for(int j = 0; j < hsize; ++j) {
-      per = house->get_enrollee(j);
+      // printf("hsize = %d j = %d\n", hsize, j); fflush(stdout);
+      per = house->get_member(j);
       person.push_back(per);
-      p = per->get_activities()->get_workplace();
+      p = per->get_workplace();
       if (p != NULL) {
 	insert_if_unique(&workplaces_attended_by_neighborhood_residents,p);
       }
-      s = static_cast<School *>(per->get_activities()->get_school());
+      // printf("hsize = %d j = %d\n", hsize, j); fflush(stdout);
+      s = per->get_school();
       if(s != NULL) {
-	      insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
-	      for(int age = 0; age < Global::ADULT_AGE; ++age) {
-	        if(s->get_students_in_grade(age) > 0) {
-	          // school_by_age[age].push_back(s);
-	          insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
+	// printf("school %s size %d\n", s->get_label(), s->get_size());
+	insert_if_unique(&this->schools_attended_by_neighborhood_residents,s);
+	// printf("school %s size %d insert ok\n", s->get_label(), s->get_size());
+	for(int age = 0; age < Global::ADULT_AGE; ++age) {
+	  // printf("school %s size %d age %d size-age %d\n", s->get_label(), s->get_size(), age, s->get_original_size_by_age(age)); fflush(stdout);
+	  if(s->get_original_size_by_age(age) > 0) {
+	    insert_if_unique(&schools_attended_by_neighborhood_residents_by_age[age],s);
           }
-	      }
+	  // printf("school %s size %d age %d size-age %d insert ok\n", s->get_label(), s->get_size(), age, s->get_original_size_by_age(age)); fflush(stdout);
+	}
       }
+      // printf("hsize = %d j = %d\n", hsize, j); fflush(stdout);
     }
     // fprintf(fp, "\n");
   }
   // fclose(fp);
   this->popsize = static_cast<int>(this->person.size());
-  int households = get_number_of_households();
-  if(households > 0) {
-    this->mean_household_income /= households;
-  }
 }
-
-Person* Neighborhood_Patch::select_random_person() {
-  if(static_cast<int>(this->person.size()) == 0) {
-    return NULL;
-  }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->person.size())) - 1);
-  return this->person[i];
-}
-
 
 Place* Neighborhood_Patch::select_random_household() {
-  if(static_cast<int>(this->households.size()) == 0) {
+  int n = get_number_of_households(); 
+  if(n == 0) {
     return NULL;
   }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->households.size())) - 1);
-  return this->households[i];
-}
-
-
-Place* Neighborhood_Patch::select_random_workplace() {
-  if(static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size()) == 0) {
-    return NULL;
-  }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size())) - 1);
-  return this->workplaces_attended_by_neighborhood_residents[i];
-}
-
-
-Place *Neighborhood_Patch::select_random_school(int age) {
-  if(static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size()) == 0) {
-    return NULL;
-  }
-  int i = Random::draw_random_int(0, (static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size())) - 1);
-  return this->schools_attended_by_neighborhood_residents_by_age[age][i];
-}
-
-Place* Neighborhood_Patch::select_school(int age) {
-  return this->grid->select_school_in_area(age,row,col);
-}
-
-Place* Neighborhood_Patch::select_school_in_neighborhood(int age, double threshold) {
-  FRED_VERBOSE(1,"select_school_in_neighborhood entered age %d row %d col %d\n",age,row,col);
-  int size = static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size());
-  if(size == 0) {
-    FRED_VERBOSE(1,"Found no schools for age %d\n",age);
-    return NULL;
-  }
-  FRED_VERBOSE(1,"Found %d schools for age %d\n",size,age);
-  double max_vacancies = -9999999.0;
-  int max_vacancies_index = -1;
-  for(int i = 0; i < size; ++i) {
-    Place* p = this->schools_attended_by_neighborhood_residents_by_age[age][i];
-    School* s = static_cast<School*>(p);
-    double vacancies;
-    if(s->get_orig_students_in_grade(age) > 0) {
-      vacancies = (double)(s->get_orig_students_in_grade(age) - s->get_students_in_grade(age))/(double)s->get_orig_students_in_grade(age);
-    } else {
-      vacancies = -1.0 * s->get_students_in_grade(age);
-    }
-    // avoid moves into places that are already overfilled
-    if(vacancies > max_vacancies && vacancies > threshold) {
-      max_vacancies = vacancies;
-      max_vacancies_index = i;
-    }
-  }
-  if(max_vacancies_index < 0) {
-    FRED_VERBOSE(1,"select_school_in_neighborhood entered age %d row %d col %d\n",age,row,col);
-    FRED_VERBOSE(1,"Found no schools with vacancies for age %d\n",age);
-    return NULL;
-  }
-  Place* school = this->schools_attended_by_neighborhood_residents_by_age[age][max_vacancies_index];
-  School* s = static_cast<School*>(school);
-  FRED_VERBOSE(1,"SELECT_SCHOOL: age %d %s size %d orig_in_grade %d curr_in_grade %d max_vacancies %0.4f\n", 
-	       age, s->get_label(), s->get_size(), s->get_orig_students_in_grade(age),
-	       s->get_students_in_grade(age),max_vacancies);
-  return school;
-}
-
-
-void  Neighborhood_Patch::find_schools_for_age(int age, place_vector* schools) {
-  FRED_VERBOSE(1,"find_schools_for_age %d row %d col %d\n",age,row,col);
-  int size =static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size());
-  for (int i = 0; i < size; ++i) {
-    Place* p = this->schools_attended_by_neighborhood_residents_by_age[age][i];
-    insert_if_unique(schools, p);
-  }
-}
-
-
-Place* Neighborhood_Patch::select_workplace() {
-  return this->grid->select_workplace_in_area(row,col);
-}
-
-Place* Neighborhood_Patch::select_workplace_in_neighborhood() {
-  FRED_VERBOSE(1,"select_workplace_in_neighborhood entered row %d col %d\n",row,col);
-  int size = static_cast<int>(this->workplaces_attended_by_neighborhood_residents.size());
-  if(size == 0) {
-    FRED_VERBOSE(1,"Found no workplaces\n");
-    return NULL;
-  }
-  FRED_VERBOSE(1,"Found %d workplaces\n",size);
-  double max_vacancies = -9999999;
-  int max_vacancies_index = -1;
-  for(int i = 0; i < size; ++i) {
-    Place* p = this->workplaces_attended_by_neighborhood_residents[i];
-    double vacancies = 0.0;
-    if(p->get_orig_size() > 0) {
-      vacancies = (double)(p->get_orig_size() - p->get_size())/(double)p->get_orig_size();
-    } else {
-      vacancies = -1.0 * p->get_size();
-    }
-    
-    // avoid moves into places that are already 50% overfilled
-    if (vacancies > max_vacancies && vacancies > -0.5) {
-      max_vacancies = vacancies;
-      max_vacancies_index = i;
-    }
-  }
-  if(max_vacancies_index < 0) {
-    FRED_VERBOSE(1,"select_workplace_in_neighborhood entered row %d col %d\n",row,col);
-    FRED_VERBOSE(1,"Found no workplaces with vacancies\n");
-    return NULL;
-  }
-  assert(max_vacancies_index >= 0);
-  Place * p = workplaces_attended_by_neighborhood_residents[max_vacancies_index];
-  FRED_VERBOSE(1,"SELECT_WORKPLACE: %s orig %d curr %d max_vacancies %0.4f\n", 
-	       p->get_label(), p->get_orig_size(), p->get_size(), max_vacancies);
-  return p;
+  int i = Random::draw_random_int(0, n-1);
+  return get_household(i);
 }
 
 
 void Neighborhood_Patch::quality_control() {
-  return;
-  if(this->person.size() > 0) {
+  if(Global::Quality_control > 1 && this->person.size() > 0) {
     fprintf(Global::Statusfp,
 	    "PATCH row = %d col = %d  pop = %d  houses = %d work = %d schools = %d by_age ",
-	    this->row, this->col, static_cast<int>(this->person.size()), static_cast<int>(this->households.size()), static_cast<int>(this->workplaces.size()), static_cast<int>(this->schools.size()));
+	    this->row, this->col, static_cast<int>(this->person.size()), get_number_of_households(), get_number_of_workplaces(), get_number_of_schools());
     for(int age = 0; age < 20; ++age) {
       fprintf(Global::Statusfp, "%d ", static_cast<int>(this->schools_attended_by_neighborhood_residents_by_age[age].size()));
     }
     fprintf(Global::Statusfp, "\n");
     if(Global::Verbose > 0) {
       for(int i = 0; i < this->schools_attended_by_neighborhood_residents.size(); ++i) {
-	      School* s = static_cast<School*>(this->schools_attended_by_neighborhood_residents[i]);
-	      fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
-	      for(int a = 0; a < 19; ++a) {
-	        fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_students_in_grade(a), s->get_orig_students_in_grade(a));
-	      }
-	      fprintf(Global::Statusfp, "\n");
+	Place* s = this->schools_attended_by_neighborhood_residents[i];
+	fprintf(Global::Statusfp, "School %d: %s by_age: ", i, s->get_label());
+	for(int a = 0; a < 19; ++a) {
+	  fprintf(Global::Statusfp, " %d:%d,%d ", a, s->get_size_by_age(a), s->get_original_size_by_age(a));
+	}
+	fprintf(Global::Statusfp, "\n");
       }
       fflush(Global::Statusfp);
     }
@@ -306,22 +226,155 @@ void Neighborhood_Patch::quality_control() {
 }
 
 
-double Neighborhood_Patch::distance_to_patch(Neighborhood_Patch* p2) {
-  double x1 = this->center_x;
-  double y1 = this->center_y;
-  double x2 = p2->get_center_x();
-  double y2 = p2->get_center_y();
-  return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+double Neighborhood_Patch::get_elevation(double lat, double lon) {
+
+  int size = this->elevation_sites.size();
+  // printf("Patch %d %d elevation sites %d\n", this->row, this->col, size);
+  if (size > 0) {
+
+    // use FCC interpolation from
+    // http://www.softwright.com/faq/support/Terrain%20Elevation%20Interpolation.html
+
+    // find the four elevation points closest to the target point
+    elevation_t* A = NULL;
+    elevation_t* B = NULL;
+    elevation_t* C = NULL;
+    elevation_t* D = NULL;
+    for (int i = 1; i < size; i++) {
+      elevation_t* e = this->elevation_sites[i];
+      if ((lat <= e->lat && e->lon <= lon) && (A==NULL || (e->lat <= A->lat && A->lon <= e->lon))) {
+	A = e;
+      }
+      if ((lat <= e->lat && lon < e->lon) && (B==NULL || (e->lat <= B->lat && e->lon <= B->lon))) {
+	B = e;
+      }
+      if ((e->lat <= lat && e->lon <= lon) && (C==NULL || (C->lat <= e->lat && C->lon <= e->lon))) {
+	C = e;
+      }
+      if ((e->lat <= lat && lon < e->lon) && (D==NULL || (D->lat <= e->lat && e->lon <= D->lon))) {
+	D = e;
+      }
+    }  
+    assert(A!=NULL || B!=NULL || C!=NULL || D!=NULL);
+
+    // interpolate on the lines AB and CD
+    double elev_E = -9999;
+    double lat_E = -999;
+    if (A==NULL) {
+      if (B!=NULL) {
+	elev_E = B->elevation;
+	lat_E = B->lat;
+      }
+    }
+    else if (B==NULL) {
+      if (A!=NULL) {
+	elev_E = A->elevation;
+	lat_E = A->lat;
+      }
+    }
+    else {
+      elev_E = ((B->lon - lon)*A->elevation + (lon - A->lon)*B->elevation)/(B->lon - A->lon);
+      lat_E = A->lat;
+    }
+
+    double elev_F = -9999;
+    double lat_F = -999;
+    if (C==NULL) {
+      if (D!=NULL) {
+	elev_F = D->elevation;
+	lat_F = D->lat;
+      }
+    }
+    else if (D==NULL) {
+      if (C!=NULL) {
+	elev_F = C->elevation;
+	lat_F = C->lat;
+      }
+    }
+    else {
+      elev_F = ((D->lon - lon)*C->elevation + (lon - C->lon)*D->elevation)/(D->lon - C->lon);
+      lat_F = C->lat;
+    }
+
+    // interpolate on the line EF
+    double elev_G;
+    if (elev_E < 0) {
+      elev_G = elev_F;
+    }
+    else if (elev_F < 0) {
+      elev_G = elev_E;
+    }
+    else {
+      if (lat_E > lat_F) {
+	elev_G = ((lat_E - lat)*elev_F + (lat - lat_F)*elev_E)/(lat_E - lat_F);
+      }
+      else {
+	elev_G = elev_F;
+      }
+    }
+    if (elev_G < -9000) {
+      printf("HELP! lat_E %f lat_F %f elev_E %f elev_F %f elev_G %f\n", lat_E,lat_F,elev_E,elev_F,elev_G); fflush(stdout);
+      assert(elev_G >= -9000);
+    }
+    return elev_G;
+
+    // use closest elevation site
+    double min_dist = Geo::xy_distance(lat, lon, this->elevation_sites[0]->lat, this->elevation_sites[0]->lon);
+    int min_dist_index = 0;
+    for (int i = 1; i < size; i++) {
+      double dist = Geo::xy_distance(lat, lon, this->elevation_sites[i]->lat, this->elevation_sites[i]->lon);
+      if (dist < min_dist) {
+	min_dist = dist;
+	min_dist_index = i;
+      }
+    }
+    return this->elevation_sites[min_dist_index]->elevation;
+  }
+  else {
+    return 0.0;
+  }
 }
 
-void Neighborhood_Patch::register_place(Place* place) {
-  if(place->is_school()) {
-    this->schools.push_back(place);
+place_vector_t Neighborhood_Patch::get_places_at_distance(int type_id, int dist) {
+  place_vector_t results;
+  place_vector_t tmp;
+  results.clear();
+  tmp.clear();
+  Neighborhood_Patch* next_patch;
+
+  if (dist == 0) {
+    int r = this->row;
+    int c = this->col;
+    FRED_VERBOSE(1, "get_patch X %d Y %d | dist = %d | x %d y %d\n", this->col, this->row, dist, c, r);
+    next_patch = Global::Neighborhoods->get_patch(r, c);
+    if (next_patch != NULL) {
+      tmp = next_patch->get_places(type_id);
+      // append results from one patch to overall results
+      results.insert(std::end(results), std::begin(tmp), std::end(tmp));
+    }
+    return results;
   }
-  if(place->is_workplace()) {
-    this->workplaces.push_back(place);
+
+  for (int c = this->col - dist; c <= this->col + dist; c++) {
+    int r = this->row - (dist - abs(c - this->col));;
+    FRED_VERBOSE(1, "get_patch X %d Y %d | dist = %d | x %d y %d\n", this->col, this->row, dist, c, r);
+    next_patch = Global::Neighborhoods->get_patch(r, c);
+    if (next_patch != NULL) {
+      tmp = next_patch->get_places(type_id);
+      // append results from one patch to overall results
+      results.insert(std::end(results), std::begin(tmp), std::end(tmp));
+    }
+
+    if (dist > abs(c - this->col)) {
+      r = this->row + (dist - abs(c - this->col));;
+      FRED_VERBOSE(1, "get_patch X %d Y %d | dist = %d | x %d y %d\n", this->col, this->row, dist, c, r);
+      next_patch = Global::Neighborhoods->get_patch(r, c);
+      if (next_patch != NULL) {
+	tmp = next_patch->get_places(type_id);
+	// append results from one patch to overall results
+	results.insert(std::end(results), std::begin(tmp), std::end(tmp));
+      }
+    }
   }
-  if(place->is_hospital()) {
-    this->hospitals.push_back(place);
-  }
+  return results;
 }

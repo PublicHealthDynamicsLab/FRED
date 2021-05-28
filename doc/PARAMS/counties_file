@@ -1,6 +1,0 @@
-PARAM NAME: counties_file
-DEFAULT VALUE: $FRED_HOME/input_files/countries/usa/US_counties.txt
-TYPE: string
-
-DEFINITION: Location of counties file.
-

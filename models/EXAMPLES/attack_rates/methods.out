@@ -1,0 +1,26 @@
+METHODS started Wed Jul 24 10:50:03 EDT 2019
+
+fred_delete -f -k attack_rate
+/Users/gref/FRED/bin/fred_delete: KEY = attack_rate  JOB = 330
+/Users/gref/FRED/bin/fred_delete: /Users/gref/FRED/RESULTS/JOB/330 deleted
+
+fred_job -k attack_rate -p attack_rates.fred -n 4 -m 4
+fred_compile attack_rates.fred ...
+No errors found.
+No warnings.
+
+attack_rate 331
+(export OMP_NUM_THREADS=1 ; FRED -p /Users/gref/FRED/RESULTS/JOB/331/WORK/attack_rates.fred -r 1 -d /Users/gref/FRED/RESULTS/JOB/331/OUT 2>&1 > /Users/gref/FRED/RESULTS/JOB/331/OUT/RUN1/LOG)
+(export OMP_NUM_THREADS=1 ; FRED -p /Users/gref/FRED/RESULTS/JOB/331/WORK/attack_rates.fred -r 2 -d /Users/gref/FRED/RESULTS/JOB/331/OUT 2>&1 > /Users/gref/FRED/RESULTS/JOB/331/OUT/RUN2/LOG)
+(export OMP_NUM_THREADS=1 ; FRED -p /Users/gref/FRED/RESULTS/JOB/331/WORK/attack_rates.fred -r 3 -d /Users/gref/FRED/RESULTS/JOB/331/OUT 2>&1 > /Users/gref/FRED/RESULTS/JOB/331/OUT/RUN3/LOG)
+(export OMP_NUM_THREADS=1 ; FRED -p /Users/gref/FRED/RESULTS/JOB/331/WORK/attack_rates.fred -r 4 -d /Users/gref/FRED/RESULTS/JOB/331/OUT 2>&1 > /Users/gref/FRED/RESULTS/JOB/331/OUT/RUN4/LOG)
+fred_plot -k attack_rate -t Incidence -v REPORT.newPreSchool,REPORT.newSchoolAge,REPORT.newAdult,REPORT.newOlder,INF.newE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar
+fred_plot: source_file = plot-ar.plt  image_file = ar.pdf
+fred_plot -k attack_rate -t Prevalence -v REPORT.PreSchool,REPORT.SchoolAge,REPORT.Adult,REPORT.Older -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-prev
+fred_plot: source_file = plot-ar-prev.plt  image_file = ar-prev.pdf
+fred_plot -k attack_rate -t Cumulative -v REPORT.totPreSchool,REPORT.totSchoolAge,REPORT.totAdult,REPORT.totOlder,INF.totE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot -n -s 100 -Y 100
+fred_plot: source_file = plot-ar-tot.plt  image_file = ar-tot.pdf
+fred_plot -k attack_rate -t 'Cumulative Normalized' -v REPORT.totPreSchool/POPSIZE.PreSchool,REPORT.totSchoolAge/POPSIZE.SchoolAge,REPORT.totAdult/POPSIZE.Adult,REPORT.totOlder/POPSIZE.Older,INF.totE/Popsize -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot-norm --ylabel 'Percent of Sub-population'
+fred_plot: source_file = plot-ar-tot-norm.plt  image_file = ar-tot-norm.pdf
+
+METHOD finished Wed Jul 24 10:50:26 EDT 2019

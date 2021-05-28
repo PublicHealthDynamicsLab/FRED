@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -25,8 +34,6 @@ using namespace std;
 
 class Person;
 
-#define MAX_DAYS (100*366)
-
 // type definitions:
 typedef Person* event_t;
 typedef std::vector<event_t> events_t;
@@ -39,16 +46,17 @@ public:
   Events();
   ~Events(){}
 
-  void add_event(int day, event_t item);
-  void delete_event(int day, event_t item);
-  void clear_events(int day);
-  int get_size(int day);
-  event_t get_event(int day, int i);
-  void print_events(FILE* fp, int day);
-  void print_events(int day);
+  void add_event(int step, event_t item);
+  void delete_event(int step, event_t item);
+  void clear_events(int step);
+  int get_size(int step);
+  event_t get_event(int step, int i);
+  void print_events(FILE* fp, int step);
+  void print_events(int step);
 
 private:
-  events_t events[MAX_DAYS];
+  int event_queue_size;
+  events_t* events;
 };
 
 

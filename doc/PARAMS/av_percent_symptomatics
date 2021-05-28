@@ -1,4 +1,0 @@
-PARAM NAME: av_percent_symptomatics[0]
-DEFAULT VALUE: 0.50
-TYPE: int
-DEFINITION:

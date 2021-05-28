@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -27,13 +36,14 @@ typedef std::vector<Place *> place_vector;
 #include "Abstract_Patch.h"
 #include "Global.h"
 #include "Place.h"
+#include "Neighborhood_Layer.h"
+
 
 class Person;
 class Neighborhood_Layer;
 class Neighborhood;
 class Household;
 
-#define GRADES 20
 
 class Neighborhood_Patch : public Abstract_Patch {
 public:
@@ -44,167 +54,128 @@ public:
   Neighborhood_Patch();
   ~Neighborhood_Patch() {}
 
-  /**
-   * Set all of the attributes for the Neighborhood_Patch
-   *
-   * @param grd the Neighborhood_Layer to which this patch belongs
-   * @param i the row of this Neighborhood_Patch in the Neighborhood_Layer
-   * @param j the column of this Neighborhood_Patch in the Neighborhood_Layer
-   *
-   */
   void setup(Neighborhood_Layer* grd, int i, int j);
 
-  /**
-   * Used during debugging to verify that code is functioning properly.
-   *
-   */
+  void setup(int phase);
+  void prepare();
+
   void quality_control();
 
-  /**
-   * Determines distance from this Neighborhood_Patch to another.  Note, that it is distance from the
-   * <strong>center</strong> of this Neighborhood_Patch to the <strong>center</strong> of the Neighborhood_Patch in question.
-   *
-   * @param the patch to check against
-   * @return the distance from this patch to the one in question
-   */
-  double distance_to_patch(Neighborhood_Patch* patch2);
+  void make_neighborhood(int type);
 
-  /**
-   * Setup the neighborhood in this Neighborhood_Patch
-   */
-  void make_neighborhood(Place::Allocator<Neighborhood> &neighborhood_allocator);
+  void record_activity_groups();
 
-  /**
-   * Add household to this Neighborhood_Patch's household vector
-   */
-  void add_household(Household* p);
-
-  /**
-   * Create lists of persons, workplaces, schools (by age)
-   */
-  void record_daily_activity_locations();
-
-  /**
-   * @return a pointer to a random Person in this Neighborhood_Patch
-   */
-  Person* select_random_person();
-
-  /**
-   * @return a pointer to a random Household in this Neighborhood_Patch
-   */
   Place* select_random_household();
 
-  /**
-   * @return a pointer to a random Workplace in this Neighborhood_Patch
-   */
-  Place* select_random_workplace();
-  Place* select_workplace();
-  Place* select_workplace_in_neighborhood();
-
-  Place* select_random_school(int age);
-  Place* select_school(int age);
-  Place* select_school_in_neighborhood(int age, double threshold);
-  void find_schools_for_age(int age, place_vector* schools);
-
-  /**
-   * @return a count of houses in this Neighborhood_Patch
-   */
   int get_houses() { 
-    return this->households.size();
+    return get_number_of_households();
   }
 
-  /**
-   * @return a pointer to this Neighborhood_Patch's Neighborhood
-   */
   Place* get_neighborhood() {
     return this->neighborhood;
   }
 
-  int enroll(Person* per) {
-    return this->neighborhood->enroll(per);
+  int begin_membership(Person* per) {
+    return this->neighborhood->begin_membership(per);
   }
 
-  /**
-   * @return the popsize
-   */
   int get_popsize() { 
     return this->popsize;
   }
 
-  double get_mean_household_income() { 
-    return this->mean_household_income;
-  }
-
   int get_number_of_households() {
-    return static_cast<int>(this->households.size());
+    return (int) this->places[Place_Type::get_type_id("Household")].size();
   }
 
   Place* get_household(int i) {
-    if(0 <= i && i < get_number_of_households()) {
-      return this->households[i];
-    } else {
-      return NULL;
-    }
+    return get_place(Place_Type::get_type_id("Household"), i);
   }
   
   int get_number_of_schools() {
-    return (int) this->schools.size();
+    return (int) this->places[Place_Type::get_type_id("School")].size();
   }
   
   Place* get_school(int i) {
-    if(0 <= i && i < get_number_of_schools()) {
-      return this->schools[i];
-    } else {
-      return NULL;
-    }
+    return get_place(Place_Type::get_type_id("School"), i);
   }
-  
+
   int get_number_of_workplaces() {
-    return (int) this->workplaces.size();
+    return (int) this->places[Place_Type::get_type_id("Workplace")].size();
   }
 
   Place* get_workplace(int i) {
     if(0 <= i && i < get_number_of_workplaces()) {
-      return this->workplaces[i];
+      return get_place(Place_Type::get_type_id("Workplace"), i);
     } else {
       return NULL;
     }
   }
 
   int get_number_of_hospitals() {
-    return (int) this->hospitals.size();
+    return (int) this->places[Place_Type::get_type_id("Hospital")].size();
   }
 
   Place* get_hospital(int i) {
     if(0 <= i && i < get_number_of_hospitals()) {
-      return this->hospitals[i];
+      return get_place(Place_Type::get_type_id("Hospital"), i);
     } else {
       return NULL;
     }
   }
 
-  void register_place(Place* place);
 
-  void set_vector_control_status(int v_s){this->vector_control_status = v_s;}
+  int get_number_of_places(int type_id) {
+    if (0 <= type_id && type_id < Place_Type::get_number_of_place_types()) {
+      return (int) this->places[type_id].size();
+    }
+    else {
+      return 0;
+    }
+  }
 
-  int get_vector_control_status(){return this->vector_control_status;}
+  Place* get_place(int type_id, int i) {
+    if(0 <= i && i < get_number_of_places(type_id)) {
+      return this->places[type_id][i];
+    } else {
+      return NULL;
+    }
+  }
 
-protected:
+  void add_elevation_site(double lat, double lon, double elev) {
+    elevation_t *elevation_ptr = new elevation_t;
+    elevation_ptr->lat = lat;
+    elevation_ptr->lon = lon;
+    elevation_ptr->elevation = elev;
+    this->elevation_sites.push_back(elevation_ptr);
+  }
+
+  void add_elevation_site(elevation_t *esite) {
+    this->elevation_sites.push_back(esite);
+  }
+
+  double get_elevation(double lat, double lon);
+
+  void add_place(Place* place);
+
+  place_vector_t get_places(int type_id) {
+    return places[type_id];
+  }
+  
+  place_vector_t get_places_at_distance(int type_id, int dist);
+
+private:
   Neighborhood_Layer* grid;
   Place* neighborhood;
-  std::vector<Person*> person;
+  person_vector_t person;
   int popsize;
-  double mean_household_income;
-  int vector_control_status;
+  long long int admin_code;
+  std::vector<elevation_t*> elevation_sites;
 
   // lists of places by type
-  place_vector_t households;
-  place_vector_t schools;
-  place_vector_t workplaces;
-  place_vector_t hospitals;
   place_vector_t schools_attended_by_neighborhood_residents;
-  place_vector_t schools_attended_by_neighborhood_residents_by_age[GRADES];
+  place_vector_t schools_attended_by_neighborhood_residents_by_age[Global::GRADES];
   place_vector_t workplaces_attended_by_neighborhood_residents;
+  place_vector_t* places;
 
 };
 

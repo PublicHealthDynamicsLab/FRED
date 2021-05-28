@@ -1,0 +1,29 @@
+
+# MODELING THE EFFECTS OF SCHOOL CLOSURE DURING AN EPIDEMIC
+
+# POLICY: Close schools based on global prevalence
+
+# include the school administrator module
+include breaks.fred
+
+#### CONDITIONS
+
+## add the influenza module
+use FRED::Influenza
+
+#### OUTPUT OPTIONS
+enable_health_records = 1
+INF.enable_health_records = 1
+
+#### Rule to start a school closure:
+if state(ADMIN,Open) and(time_since_entering_ADMIN.Close < 0,current_count_of_INF.Is > 5) then next(Close)
+
+
+
+
+
+
+
+
+
+

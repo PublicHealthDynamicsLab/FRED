@@ -1,9 +1,0 @@
-PARAM NAME: enable_viral_evolution
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION:  If set, FRED activates viral_evolution.
-
-Note: this is an experimental feature. Users should not enable it unless
-they know what they are doing.
-

@@ -1,4 +1,0 @@
-PARAM NAME: school_absenteeism
-DEFAULT VALUE: 0.0
-TYPE: int
-DEFINITION:

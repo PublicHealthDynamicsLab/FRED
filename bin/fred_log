@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Env;
@@ -28,15 +51,15 @@ die "NOT_FOUND\n" if $id eq "";
 
 print "STARTED:  ";
 system "cat $dir/JOB/$id/META/START";
-print "FINISHED: ";
-system "cat $dir/JOB/$id/META/FINISHED";
-if (-e "$dir/JOB/$id/DATA/OUT/LOG$n") {
-  print "tail $o LOG$n:\n";
-  system "tail $o $dir/JOB/$id/DATA/OUT/LOG$n";
+if (-e "$dir/JOB/$id/META/FINISHED") {
+  print "FINISHED: ";
+  system "cat $dir/JOB/$id/META/FINISHED";
 }
-elsif (-e "$dir/JOB/$id/META/LOG.$n") {
-  print "tail $o LOG.$n:\n";
-  system "tail $o $dir/JOB/$id/META/LOG.$n";
+print "\n";
+
+if (-e "$dir/JOB/$id/OUT/RUN$n/LOG") {
+  print "tail $o LOG:\n";
+  system "tail $o $dir/JOB/$id/OUT/RUN$n/LOG";
 }
 
 exit;

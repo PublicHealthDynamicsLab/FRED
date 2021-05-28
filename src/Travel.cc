@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -17,58 +26,48 @@
 #include <vector>
 using namespace std;
 
+#include "Age_Map.h"
 #include "Global.h"
 #include "Events.h"
-#include "Params.h"
+#include "Property.h"
 #include "Random.h"
 #include "Utils.h"
 #include "Geo.h"
 #include "Travel.h"
 #include "Person.h"
-#include "Place_List.h"
 #include "Household.h"
 
-// #include <stdio.h>
-static double mean_trip_duration;		// mean days per trip
-typedef std::vector <Person*> pvec;		// vector of person ptrs
 
 Events * Travel::return_queue = new Events;
 
-// runtime parameters
-static double* Travel_Duration_Cdf;		// cdf for trip duration
-static int max_Travel_Duration = 0;		// number of days in cdf
-Age_Map* travel_age_prob;
-
-// travel hub record:
-typedef struct hub_record {
-  int id;
-  double lat;
-  double lon;
-  pvec users;
-  int pop;
-  int pct;
-} hub_t;
-
-// list of trave hubs
+// static variables
+char trips_per_day_file[FRED_STRING_SIZE];
+char hub_file[FRED_STRING_SIZE];
+double mean_trip_duration = 0;			// mean days per trip
+double* Travel_Duration_Cdf = NULL;		// cdf for trip duration
+int max_Travel_Duration = 0;			// number of days in cdf
+Age_Map* travel_age_prob = NULL;
 std::vector<hub_t> hubs;
-int num_hubs;
-
+int num_hubs = 0;
 // a matrix containing the number of trips per day
 // between hubs, read from an external file
 int** trips_per_day;
+
+void Travel::get_properties() {
+  Property::get_property("travel_hub_file", hub_file);
+  Property::get_property("trips_per_day_file", trips_per_day_file);
+}
 
 void Travel::setup(char* directory) {
   assert(Global::Enable_Travel);
   read_hub_file();
   read_trips_per_day_file();
   setup_travelers_per_hub();
-  travel_age_prob = new Age_Map("Travel Age Probability");
-  travel_age_prob->read_from_input("travel_age_prob");
+  travel_age_prob = new Age_Map();
+  travel_age_prob->read_properties("travel_age_prob");
 }
 
 void Travel::read_hub_file() {
-  char hub_file[FRED_STRING_SIZE];
-  Params::get_param_from_string("travel_hub_file", hub_file);
   FILE* fp = Utils::fred_open_file(hub_file);
   if(fp == NULL) {
     Utils::fred_abort("Help! Can't open travel_hub_file %s\n", hub_file);
@@ -93,8 +92,7 @@ void Travel::read_hub_file() {
 }
 
 void Travel::read_trips_per_day_file() {
-  char trips_per_day_file[FRED_STRING_SIZE];
-  Params::get_param_from_string("trips_per_day_file", trips_per_day_file);
+  Property::get_property("trips_per_day_file", trips_per_day_file);
   FILE*fp = Utils::fred_open_file(trips_per_day_file);
   if(fp == NULL) {
     Utils::fred_abort("Help! Can't open trips_per_day_file %s\n", trips_per_day_file);
@@ -126,16 +124,14 @@ void Travel::read_trips_per_day_file() {
 }
 
 void Travel::setup_travelers_per_hub() {
-  int households = Global::Places.get_number_of_households();
+  int households = Place::get_number_of_households();
   FRED_VERBOSE(0,"Preparing to set households: %li \n",households);
   for(int i = 0; i < households; ++i) {
-    Household* h = Global::Places.get_household_ptr(i);
+    Household* h = Place::get_household(i);
     double h_lat = h->get_latitude();
     double h_lon = h->get_longitude();
-    int census_tract_index = h->get_census_tract_index();
-    long int h_id = Global::Places.get_census_tract_with_index(census_tract_index);
-    int c = h->get_county_index();
-    int h_county = Global::Places.get_fips_of_county_with_index(c);
+    long long int h_id = h->get_census_tract_admin_code();
+    int h_county = h->get_county_admin_code();
     FRED_VERBOSE(2,"h_id: %li h_county: %i \n", h_id, h_county);
     // find the travel hub closest to this household
     double max_distance = 166.0;		// travel at most 100 miles to nearest airport
@@ -156,9 +152,9 @@ void Travel::setup_travelers_per_hub() {
     if(closest > -1) {
       FRED_VERBOSE(1,"h_id: %li from county: %i  assigned to the airport: %i, distance:  %f\n", h_id, h_county,hubs[closest].id,min_dist);
       // add everyone in the household to the user list for this hub
-      int housemates = h->get_size();
-      for(int k = 0; k < housemates; ++k) {
-	Person* person = h->get_enrollee(k);
+      int Housemates = h->get_size();
+      for(int k = 0; k < Housemates; ++k) {
+	Person* person = h->get_member(k);
 	hubs[closest].users.push_back(person);
       }
     }
@@ -201,7 +197,7 @@ void Travel::update_travel(int day) {
       int count = (trips_per_day[i][j] * hubs[i].pct + 0.5) / 100;
       FRED_VERBOSE(1,"TRIPCOUNT day %d i %d j %d count %d\n", day, i, j, count);
       for(int t = 0; t < count; ++t) {
-	// select a potential traveler determined by travel_age_prob param
+	// select a potential traveler determined by travel_age_prob property
 	Person* traveler = NULL;
 	Person* host = NULL;
 	int attempts = 0;
@@ -216,7 +212,7 @@ void Travel::update_travel(int day) {
 	  attempts++;
 	}
 	if(traveler != NULL) {
-	  // select a potential travel host determined by travel_age_prob param
+	  // select a potential travel host determined by travel_age_prob property
 	  attempts = 0;
 	  while(host == NULL && attempts < 100) {
 	    // select a random member of the destination hub's user group
@@ -241,7 +237,7 @@ void Travel::update_travel(int day) {
 	    int duration = Random::draw_from_distribution(max_Travel_Duration, Travel_Duration_Cdf);
 	    int return_sim_day = day + duration;
 	    Travel::add_return_event(return_sim_day, traveler);
-	    traveler->get_activities()->set_return_from_travel_sim_day(return_sim_day);
+	    traveler->set_return_from_travel_sim_day(return_sim_day);
 	    FRED_STATUS(1, "RETURN_FROM_TRAVEL EVENT ADDED today %d duration %d returns %d id %d age %d\n",
 			day, duration, return_sim_day, traveler->get_id(),traveler->get_age());
 	    successful_trips++;
@@ -264,21 +260,21 @@ void Travel::update_travel(int day) {
 }
 
 void Travel::find_returning_travelers(int day) {
-  int size = return_queue->get_size(day);
+  int size = return_queue->get_size(24*day);
   for (int i = 0; i < size; i++) {
-    Person * person = return_queue->get_event(day, i);
+    Person * person = return_queue->get_event(24*day, i);
     FRED_STATUS(1, "RETURNING FROM TRAVEL today %d id %d age %d\n",
 		day, person->get_id(),person->get_age());
     person->stop_traveling();
   }
-  return_queue->clear_events(day);
+  return_queue->clear_events(24*day);
 }
 
 void Travel::terminate_person(Person* person) {
   if(!person->get_travel_status()) {
     return;
   }
-  int return_day = person->get_activities()->get_return_from_travel_sim_day();
+  int return_day = person->get_return_from_travel_sim_day();
   assert(Global::Simulation_Day <= return_day);
   Travel::delete_return_event(return_day, person);
 }
@@ -287,10 +283,10 @@ void Travel::quality_control(char* directory) {
 }
 
 void Travel::add_return_event(int day, Person* person) {
-  Travel::return_queue->add_event(day, person);
+  Travel::return_queue->add_event(24*day, person);
 }
 
 void Travel::delete_return_event(int day, Person* person) {
-  Travel::return_queue->delete_event(day, person);
+  Travel::return_queue->delete_event(24*day, person);
 }
 

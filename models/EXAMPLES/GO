@@ -1,0 +1,8 @@
+#!/bin/csh
+foreach i (aging attack_rates baseline maternity mortality plotting school_closure vaccine)
+echo $i
+cd $i
+METHODS
+cd ..
+end
+

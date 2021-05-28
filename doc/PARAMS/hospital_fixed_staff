@@ -1,4 +1,0 @@
-PARAM NAME: hospital_fixed_staff
-DEFAULT VALUE: 20
-TYPE: int
-DEFINITION:

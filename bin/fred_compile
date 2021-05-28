@@ -1,0 +1,137 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Cwd;
+use Fcntl qw(:flock);
+use Getopt::Std;
+$| = 1;  # AUTO_FLUSH
+
+# File: fred_compile
+# Author: John Grefenstette
+# Updated: Apr 8, 2019
+
+# get current working directory
+my $cwd = getcwd();
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $usage = "usage: $0 -d dir -p model.fred\n";
+
+# get command line arguments
+my %options = ();
+getopts("d:p:", \%options);
+
+my $program = "";
+$program = $options{p} if exists $options{p};
+$program = "model.fred" if not $program;
+$program = "params" if not -e $program;
+die $usage if $program =~ /[\"\';]/;
+if (not(-e $program)) {
+  print "$0: fred program file $program not found\n";
+  die $usage;
+}
+
+my $dir = "";
+$dir = $options{d} if exists $options{d};
+die $usage if $dir =~ /[\"\';]/;
+if ($dir eq "") {
+  # $dir = get_param_value("outdir", $program);
+  $dir = ".FRED_compiler";
+}
+if (not -d $dir) { mkdir $dir }
+if (not -d "$dir/RUN1") { mkdir "$dir/RUN1" }
+
+`cp $program $dir` if $dir ne ".";
+
+my $r = 1;
+my $cmd = "FRED -p $program -r $r -d $dir -c 2>&1 > $dir/RUN1/LOG";
+system "echo $cmd > $dir/COMMAND_LINE";
+print "fred_compile $program ...\n";
+system $cmd;
+if (-e "$dir/errors.txt") {
+  system "cat $dir/errors.txt";
+  print "Please fix these errors before proceeding.\n"
+}
+else {
+  print "No errors found.\n";
+  if (-e "$dir/warnings.txt") {
+    system "cat $dir/warnings.txt";
+  }
+  else {
+    print "No warnings.\n";
+  }
+}
+print "\n";
+exit;
+
+
+sub get_param_value {
+  my ($param, $program) = @_;
+  # print "get_param_value: $param $program\n";
+
+  # get last line from params files that starts with the given parameter
+
+  # find config file
+  my $config = "config.fred";
+  if (not -e $config) {
+    $config = "$FRED/data/config.fred";
+  }
+  if (not -e $config) {
+    die "$0: could not find config file\n";
+  }
+
+  # add escape characters so that grep work for indexed parameters
+  $param =~ s/\[/\\[/g;
+  $param =~ s/\-/\\-/g;
+
+  my $val = "";
+  open PAR,"$config" or die "$0: ERROR READING $config\n";
+  while (my $line = <PAR>) {
+    if ($line =~ /^$param\s*=/) {
+      ($val) = $line =~ /=\s*(.*?)\s*$/; 
+      $val =~ s/\s*\#.*//;
+      $val =~ s/\s*;.*//g;
+      chomp $val;
+    }
+  }
+  close PAR;
+
+  open PAR,"$program" or die "$0: ERROR READING $program\n";
+  while (my $line = <PAR>) {
+    if ($line =~ /^$param\s*=/) {
+      ($val) = $line =~ /=\s*(.*?)\s*$/; 
+      $val =~ s/\s*\#.*//;
+      $val =~ s/\s*;.*//g;
+      chomp $val;
+    }
+  }
+  close PAR;
+  # print "$param val = |$val|\n";
+  return $val;
+}
+

@@ -1,4 +1,0 @@
-PARAM NAME: influenza_weekend_contact_rate
-DEFAULT VALUE: 1.5
-TYPE: int
-DEFINITION:

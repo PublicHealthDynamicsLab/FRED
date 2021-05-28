@@ -1,0 +1,13 @@
+use FRED::mortality
+
+start_date = 2010-Jan-01
+days = 2000
+
+locations_file = loc.txt
+enable_health_records = 1
+MORTALITY.enable_health_records = 1
+
+
+
+
+

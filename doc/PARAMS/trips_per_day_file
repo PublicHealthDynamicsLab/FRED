@@ -1,4 +1,0 @@
-PARAM NAME: trips_per_day_file
-DEFAULT VALUE: $FRED_HOME/input_files/countries/usa/trips_per_day.txt
-TYPE: int
-DEFINITION:

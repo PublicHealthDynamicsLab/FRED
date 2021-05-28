@@ -1,436 +1,433 @@
-#!/usr/local/bin/gnuplot
+#!/usr/bin/perl
 
-# default parameters
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
 
-if (!exists("google")) {
-   google = 0
-}
-if (!exists("api_key")) {
-   api_key = "none"
-}
-if (!exists("lightness")) {
-   lightness = 0
-}
-if (!exists("my_title")) {
-   my_title = "FRED Simulation"
-}
-if (!exists("my_subtitle")) {
-   my_subtitle = " "
-}
-if (!exists("day")) {
-   day = 1
-}
-if (!exists("terminal")) {
-  terminal = "png"
-}
-if (!exists("mapname")) {
-  mapname = "map" . terminal
-}
-if (!exists("show_all_households")) {
-  show_all_households = 0
-}
-if (!exists("show_incidence")) {
-  show_incidence = 1
-}
-if (!exists("show_infectious")) {
-  show_infectious = 1
-}
-if (!exists("show_recovered")) {
-  show_recovered = 1
-}
-if (!exists("show_case_fatalities")) {
-  show_case_fatalities = 0
-}
-if (!exists("show_total_case_fatalities")) {
-  show_total_case_fatalities = 0
-}
-if (!exists("show_hc_unav")) {
-  show_hc_unav = 0
-}
-if (!exists("show_primary_hc_unav")) {
-  show_primary_hc_unav = 0
-}
-if (!exists("show_accept_insr_hc_unav")) {
-  show_accept_insr_hc_unav = 0
-}
-if (!exists("show_hc_deficit")) {
-  show_hc_deficit = 0
-}
-if (!exists("filled")) {
-  filled = 0
-}
-if (!exists("linewidth")) {
-  linewidth = 1.0
-}
-if (!exists("max")) {
-  max = 10
-}
-print sprintf("max = %f", max);
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+$| = 1;
 
-if (!exists("force_xmin")) {
-  force_xmin = 0
-}
-if (!exists("force_xmax")) {
-  force_xmax = 0
-}
-if (!exists("force_ymin")) {
-  force_ymin = 0
-}
-if (!exists("force_ymax")) {
-  force_ymax = 0
+# define line styles
+my %ls = ( 
+	  "blue", 1,
+	  "skyblue", 2,
+	  "sea-green", 3,
+	  "green", 4,
+	  "greenyellow", 5,
+	  "yellow", 6,
+	  "orange", 7,
+	  "orange-red", 8,
+	  "red", 9,
+	  "beige", 10,
+	  "light-goldenrod", 11,
+	  "medium-blue", 12,
+	  "dark-green", 13,
+	  "gray", 14,
+	  "gray10", 15,
+	  "black", 16,
+	  "white", 17,
+	  "dark-blue", 18,
+	  "purple", 19
+	 );
+
+# use default api_key if it exists
+my $api_key = $ENV{FRED_API_KEY};
+$api_key = "none" if not $api_key;
+# print "api_key = '$api_key'\n";
+
+my $background = "";
+my $cmd = "";
+my $datafiles = "";
+my $display = 1;
+my $ls_list = "1";
+my $ps = "0.5";
+my $pt = "5";
+my $colors = "blue red green black";
+my $country = "usa";
+my $help = 0;
+my $key = "";
+my $lightness = 0;
+my $term = "png";
+my $mapname = 'map.' . $term;
+my $title = "FRED Simulation";
+my $subtitle = " ";
+my $subsubtitle = " ";
+my $day = 0;
+my $date = "";
+my $linewidth = 2;
+my $xmin = 0;
+my $xmax = 0;
+my $ymin = 0;
+my $ymax = 0;
+my $grid = 0;
+my $border = 0;
+my $google = 1;
+my $use_shapefile = 1;
+my $left_caption = "";
+my $center_caption = "";
+my $right_caption = "";
+my $caption_colors = "black black black";
+my $show_names = 0;
+
+my $opt_result = GetOptions(
+			    "datafiles=s" => \$datafiles,
+			    "display=i" => \$display,
+			    "ps=s" => \$ps,
+			    "pt=s" => \$pt,
+			    "color_list=s" => \$colors,
+			    "colors=s" => \$colors,
+			    "api_key=s" => \$api_key,
+			    "border=i" => \$border,
+			    "left_caption=s" => \$left_caption,
+			    "center_caption=s" => \$center_caption,
+			    "right_caption=s" => \$right_caption,
+			    "caption_colors=s" => \$caption_colors,
+			    "country=s" => \$country,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "google=i" => \$google,
+			    "grid=i" => \$grid,
+			    "g=i" => \$grid,
+			    "lightness=i" => \$lightness,
+			    "term=s" => \$term,
+			    "mapname=s" => \$mapname,
+			    "title=s" => \$title,
+			    "subtitle=s" => \$subtitle,
+			    "show_names=i" => \$show_names,
+			    "subsubtitle=s" => \$subsubtitle,
+			    "day=i" => \$day,
+			    "date=s" => \$date,
+			    "shapefile=i" => \$use_shapefile,
+			    "lw=f" => \$linewidth,
+			    "x=f" => \$xmin,
+			    "X=f" => \$xmax,
+			    "y=f" => \$ymin,
+			    "Y=f" => \$ymax,
+			   );
+
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+  --api_key <key>: if set, use this api_key to obtain Google maps ["none"]
+  --border 0/1: if set, display border around map with lat-lon labels [0]
+  --color "color1 color2 ..." : list of colors for datafiles
+  --country <name> : plot the named country [usa]
+  --datafiles 'file1 files2 ...' [""] (REQUIRED)
+  --day day-counters : simulation day [0]
+  --date <str> : simulation date [""]
+  --display 0/1: if set, display the map [1]
+  --google : if set, use a google map as a background image [1]
+  --grid <0/1>: if set, show grid. [0]
+  --help: print this help message
+  --lw <n> : use linewidth n to outline counties [2]
+  --max <val> : use the given value as the maximum for color plots [10]
+  --ps "point-size1 point-size2 ..." : list of point sizes for datafiles
+  --pt "point-type1 point-type2 ..." : list of point types for datafiles
+  --shapefile <0/1> : if set, draw the shapefile for each fips code
+  --show_names <0/1>: if set, show local place names
+  --subtitle <str> : subtitle for each map [" "]
+  --term <type> : plot using the specified terminal type [png]
+  --title <str> : title for each map ["FRED Simulation"]
+  -x <xmin> : min value for x axis 
+  -X <xmax> : max value for x axis 
+  -y <ymin> : min value for y axis
+  -Y <xmax> : max value for x axis
+EOH
+
+die $usage if $help;
+die "$0: datafiles not specified\n$usage" if not $datafiles;
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my @fips = ();
+my $shapefiles = "";
+system "rm -f $mapname";
+
+my $fipsfile = "FIPS";
+open FIPS, $fipsfile or die "$0: Can't find location code file $fipsfile\n";
+@fips = <FIPS>;
+close FIPS;
+
+# log activity
+system "echo ================================ >> fred_make_maps.log; date >> fred_make_maps.log";
+
+if ($country eq "usa") {
+
+  # get list of fips codes
+  my $shapefiledir ="$FRED/data/country/$country/SHAPES";
+
+  # get the list of shapefiles for the indicated FIPS
+  for my $f (@fips) {
+    chomp $f;
+    my $shapefile = "$shapefiledir/$f.txt";
+    if (length($f) > 5) {
+      $shapefile = "$shapefiledir/CENSUS_TRACTS/$f.txt";
+    }
+    die "Can't find shapefile $shapefile" if not -e $shapefile;
+    $shapefiles .= "$shapefile ";
+  }
+  # system "echo shapefiles = $shapefiles >> fred_make_maps.log";
 }
 
-if (!exists("household_locations")) {
-  household_locations = "households.txt"
-}
-if (!exists("household_incidence")) {
-  household_incidence = "household_incidence.txt"
-}
-if (!exists("infectious_households")) {
-  infectious_households = "infectious_households.txt"
-}
-if (!exists("recovered_households")) {
-  recovered_households = "recovered_households.txt"
-}
-if (!exists("case_fatalities_households")) {
-  case_fatalities_households = "case_fatalities_households.txt"
-}
-if (!exists("total_case_fatalities_households")) {
-  total_case_fatalities_households = "total_case_fatalities_households.txt"
-}
-if (!exists("fipsfile")) {
-  fipsfile = "FIPS"
-}
-if (!exists("pctfile")) {
-  valuefile = "PCT"
-}
-if (!exists("use_shapefile")) {
-  use_shapefile = 1
-}
-if (!exists("shapefile_dir")) {
-  shapefile_dir = "SHAPES"
-}
-# print "shapefile_dir = " . shapefile_dir . " fipsfile = " . fipsfile
-if (!exists("show_grid")) {
-   show_grid = 0
-}
-if (!exists("show_border")) {
-   show_border = 0
-}
-if (!exists("point_size")) {
-   point_size = 0.5
-}
-if (!exists("hazel")) {
-   hazel = 0
-}
-set palette maxcolors 10
-set palette defined ( 0 "blue", 1 "skyblue", 2 "sea-green", 3 "green", 4 "greenyellow", 5 "yellow", 6 "orange", 7 "orange-red", 8 "red", 9 "red")
+my $force_xmin = $xmin;
+my $force_xmax = $xmax;
+my $force_ymin = $ymin;
+my $force_ymax = $ymax;
 
-set style line 1 lc rgb "blue" lt 1 lw 0.2
-set style line 2 lc rgb "skyblue" lt 1 lw 0.2
-set style line 3 lc rgb "sea-green" lt 1 lw 0.2
-set style line 4 lc rgb "green" lt 1 lw 0.2
-set style line 5 lc rgb "greenyellow" lt 1 lw 0.2
-set style line 6 lc rgb "yellow" lt 1 lw 0.2
-set style line 7 lc rgb "orange" lt 1 lw 0.2
-set style line 8 lc rgb "orange-red" lt 1 lw 0.2
-set style line 9 lc rgb "red" lt 1 lw 0.2
-set style line 10 lc rgb "red" lt 1 lw 0.2
-set style line 11 lc rgb "red" lt 1 lw 0.2
-set style line 12 lc rgb "beige" lt 1 lw 0.2
-set style line 13 lc rgb "light-goldenrod" lt 1 lw 0.2
-set style line 14 lc rgb "medium-blue" lt 1 lw 0.2
-set style line 15 lc rgb "dark-green" lt 1 lw 0.2
+my $force = (($force_xmin != 0) or ($force_xmax != 0) or ($force_ymin != 0) or ($force_ymax != 0));
 
-set style line 999 lc rgb 'white' lt 1 lw 1
-set style line 99 lc rgb 'gray' lt 1 lw 1
-set style line 98 lc rgb 'gray10' lt 1 lw 1
-set style line 100 lc rgb 'black' lt 1 lw 1
+if ((scalar @fips eq 1) and $google and not -e "googlemap.png" and not $force) {
+  system "echo $0: using existing background image >> fred_make_maps.log";
+  # use background image if it already exists
+  my $loc = sprintf("%05d", $fips[0]);
+  my $state = substr($loc,0,2);
+  my $mapsdir = "$FRED/data/country/$country/MAPS/$state";
+  # system "echo $mapsdir; ls -l $mapsdir";
+  my $mapname = "$loc.png";
+  my $background_map = "$mapsdir/$mapname";
+  # print "|$background_map|\n";
 
-unset key; unset tics;
-
-# read in a list of FIPS codes
-fips = system("cat " . fipsfile)
-# print "fips = " . fips
-
-# associate a region with each FIPS code
-region(n) = word(fips,n)
-
-# name of the file containing boundaries for the region
-filename(n) = sprintf("%s/%s.txt", shapefile_dir, region(n))
-
-values = ""
-if (filled) {
-  cmd = "cat " . pctfile
-  # print cmd
-  values = system(cmd)
+  if (-e $background_map) {
+    system "cp $background_map googlemap.png";
+    system "echo cp $background_map googlemap.png >> fred_make_maps.log";
+    system "cp $mapsdir/$loc.bbox BBOX";
+    system "echo cp $mapsdir/$loc.bbox BBOX >> fred_make_maps.log";
+    # $use_shapefile = 0;
+  }
 }
-# print "values =" . values
 
-# get the line style associate with a FIPS code
-get_raw(n) =  1 + int((10.0*word(values,n))/max)
-get_ls(n) = (get_raw(n) <= 10) ? get_raw(n) : 10
-
-# read BBOX file if it exists
-bbox = system("perl -e 'if(-e \"BBOX\"){print \"1\"}else{print \"0\"}' ")
-print "bbox = " . bbox
-if (bbox) {
- # read in previously computed values for bounding box: xmin, xmax, ymin and ymax
- load 'BBOX'
+if (not -e "BBOX") {
+  # create a bounding box based on the shapefiles and write coordinates to file BBOX
+  make_bbox();
 }
-else {
 
- # create a fake plot in order to gather the x and y bbox
- set term unknown
- plot for [n=1:words(fips)] filename(n) u ($2):($1) ls 99 w filledcurve notitle
- 
- # initialize the new x and y boundaries
- xmin = GPVAL_DATA_X_MIN
- xmax = GPVAL_DATA_X_MAX
- ymin = GPVAL_DATA_Y_MIN
- ymax = GPVAL_DATA_Y_MAX
- # print xmin, xmax, ymin, ymax
- 
- # find the x and y bbox in the data
- xrng = xmax - xmin
- yrng = ymax - ymin
- 
- # add some space on each side
- xmin = xmin - 0.075*xrng
- xmax = xmax + 0.075*xrng
- ymin = ymin - 0.025*yrng
- ymax = ymax + 0.025*yrng
- print xmin, xmax, ymin, ymax
- 
- if (force_xmin) { xmin = force_xmin }
- if (force_xmax) { xmax = force_xmax }
- if (force_ymin) { ymin = force_ymin }
- if (force_ymax) { ymax = force_ymax }
- # print xmin, xmax, ymin, ymax
-
- # earth geometry
- km_per_deg_lat = 111.325
- mean_lat = (ymax + ymin) / 2.0
- km_per_deg_lon = cos(mean_lat * pi / 180.0) * km_per_deg_lat
- lat_lon_ratio = 0.9 * km_per_deg_lon / km_per_deg_lat
- 
- # print sprintf("mean latitude = %0.5f", mean_lat)
- # print sprintf("km_per_deg_lat = %0.5f", km_per_deg_lat)
- # print sprintf("km_per_deg_lon = %0.5f", km_per_deg_lon)
- # print sprintf("lat_lon_ratio = %0.5f", lat_lon_ratio)
- 
- do for [i=1:5] {
-   # find the x and y bbox
-   xrng = xmax - xmin
-   yrng = ymax - ymin
-   
-   # adjust the x range if too small
-   xtarg = yrng / lat_lon_ratio
-   xxtra = (xrng < xtarg)? (xtarg - xrng)*0.5 : 0
-   xmin = xmin - xxtra
-   xmax = xmax + xxtra
-   
-   # adjust the y range if too small
-   ytarg = lat_lon_ratio * xrng
-   yxtra = (yrng < ytarg)? (ytarg - yrng)*0.5 : 0
-   ymin = ymin - yxtra
-   ymax = ymax + yxtra
-   # print xmin, xmax, ymin, ymax
- }
- 
- # save the bbox to a file
- print "writing bbox to  BBOX"
- print xmin, xmax, ymin, ymax
- set print "BBOX"
- print sprintf("ymin = %f",ymin)
- print sprintf("xmin = %f",xmin)
- print sprintf("ymax = %f",ymax)
- print sprintf("xmax = %f",xmax)
- set print
+if ($google and not -e "googlemap.png") {
+  $cmd = "fred_get_googlemap $api_key $lightness $show_names 2> /dev/null";
+  # print "$0: $cmd\n";
+  system "echo $cmd >> fred_make_maps.log";
+  system "$cmd";
+  # sleep 2;
+  # make sure googlemap.png exists
+  if (not -e "googlemap.png") {
+    `date > FAILED; echo $0 >> FAILED`;
+    print "$0: FAILED TO CREATE googlemap.png";
+    system "echo FAILED TO CREATE googlemap.png >> fred_make_maps.log";
+    exit;
+  }
 }
- 
-if (google) {
-  # check if googlemap already exists
-  ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
-  if (ok == 0) {
-    cmd = sprintf("fred_get_googlemap %s %d", api_key, lightness)
-    print cmd
-    system(cmd)
-    # make sure googlemap.png exists
-    ok = system("perl -e 'if(-e \"googlemap.png\"){print \"1\"}else{print \"0\"}' ")
-    if (ok == 0) {
-      system("echo 1 > FAILED");    
-      print "FAILED TO CREATE googlemap.png"
-      exit;
+
+if ($google) {
+  $background = "googlemap.png";
+  # store this googlemap for future use
+  if (scalar @fips == 1 and not $force) {
+    my $loc = sprintf("%05d", $fips[0]);
+    my $mapname = "$loc.png";
+    my $state = substr($mapname,0,2);
+    my $statemapsdir = "$FRED/data/country/$country/MAPS/$state";
+    system "mkdir -p $statemapsdir";
+    system "cp googlemap.png $statemapsdir/$mapname" if not -e "$statemapsdir/$mapname";
+    system "cp BBOX $statemapsdir/$loc.bbox" if not -e "$statemapsdir/$loc.bbox";
+  }
+}
+
+
+$ls_list = get_ls_list($colors);
+my $bottom_color_list = get_ls_list($caption_colors);
+# print "ls_list = |$ls_list|\n"; exit;
+
+# at this point we have a BBOX file and a googlemap.png file if $google == 1
+
+$title =~ s/_/\\_/g;
+$subtitle =~ s/_/\\_/g;
+$subsubtitle =~ s/_/\\_/g;
+
+# create fred_map_params.txt file
+my $paramsfile = "fred_map_params_day_$day.txt";
+open PARAM, ">$paramsfile";
+print PARAM "my_title = '$title'\n";
+print PARAM "my_subtitle = '$subtitle'\n";
+print PARAM "my_subsubtitle = '$subsubtitle'\n";
+print PARAM "show_subsubtitle = '$subsubtitle'\n";
+print PARAM "left_caption = '$left_caption'\n";
+print PARAM "center_caption = '$center_caption'\n";
+print PARAM "right_caption = '$right_caption'\n";
+print PARAM "caption_colors = '$bottom_color_list'\n";
+print PARAM "day = $day\n";
+print PARAM "my_date = '$date'\n";
+print PARAM "terminal = '$term'\n";
+print PARAM "mapname = '$mapname'\n";
+print PARAM "background_image = '$background'\n";
+print PARAM "use_shapefile = $use_shapefile\n";
+print PARAM "linewidth = $linewidth\n";
+print PARAM "show_grid = $grid\n";
+print PARAM "show_border = $border\n";
+print PARAM "datafiles = '$datafiles'\n";
+print PARAM "shapefiles = '$shapefiles'\n";
+print PARAM "ls_list = '$ls_list'\n";
+print PARAM "ps_list = '$ps'\n";
+print PARAM "pt_list = '$pt'\n";
+close PARAM;
+
+system "echo >> fred_make_maps.log";
+system "cat $paramsfile >> fred_make_maps.log";
+system "echo >> fred_make_maps.log";
+
+$cmd = "gnuplot -e \'load \"$paramsfile\" \' $FRED/bin/fred_map 2\>\> fred_make_maps.log"; 
+system "echo $cmd >> fred_make_maps.log";
+system "$cmd";
+system "echo >> fred_make_maps.log";
+
+if ($display) {
+  system "open $mapname";
+}
+
+exit;
+
+##################################################
+
+sub get_ls_list {
+  my $color_list = shift;
+  $color_list =~ s/,/ /g;
+  my $ls_list = "";
+  my @x = split " ", $color_list;
+  for my $c (@x) {
+    #  print "c = |$c|\n";
+    $ls_list .= "$ls{$c} " if exists $ls{$c};
+    $ls_list .= "1 " if not exists $ls{$c};
+  }
+  return $ls_list;
+}
+
+##################################################
+
+
+sub make_bbox {
+  my $bbfiles = "$shapefiles $datafiles";
+  $xmin = 9999;
+  $ymin = 9999;
+  $xmax = -999;
+  $ymax = -999;
+  if ($shapefiles eq "") {
+    open FH, "../BBOX" or die "$0: Can't open file VIS/BBOX";
+    my $line = <FH>;
+    chomp $line;
+    ($ymin) = $line =~ /= (.*)/;
+    $line = <FH>;
+    chomp $line;
+    ($xmin) = $line =~ /= (.*)/;
+    $line = <FH>;
+    chomp $line;
+    ($ymax) = $line =~ /= (.*)/;
+    $line = <FH>;
+    chomp $line;
+    ($xmax) = $line =~ /= (.*)/;
+    close FH;
+  }
+  else {
+    my @files = split " ", $bbfiles;
+    for my $file (@files) {
+      return if not (-e $file);
+      open FH, $file or die "$0: Can't open file $file\n";
+      while (my $line = <FH>) {
+	chomp $line;
+	next if not $line;
+	my ($y, $x) = split " ", $line;
+	next if not $x or not $y;
+	# die "bad format in file $file : |$line|" if not $x or not $y;
+	# print "$file: x = |$x| y = |$y|\n";
+	$xmin = $x if $x < $xmin;
+	$xmax = $x if $x > $xmax;
+	$ymin = $y if $y < $ymin;
+	$ymax = $y if $y > $ymax;
+      }
+      close FH;
     }
   }
-}
+  # print "11 $xmin $xmax $ymin $ymax\n";
+  
+  my $xrng = $xmax - $xmin;
+  my $yrng = $ymax - $ymin;
+  
+  # add some space on each side;
+  $xmin = $xmin - 0.075*$xrng;
+  $xmax = $xmax + 0.075*$xrng;
+  $ymin = $ymin - 0.025*$yrng;
+  $ymax = $ymax + 0.025*$yrng;
+  # print "22 $xmin $xmax $ymin $ymax\n";
+  
+  # constrain user requests to zoom in
+  if ($force_xmin <= $xmin or $xmax <= $force_xmin) { $force_xmin = 0.0 };
+  if ($force_xmax <= $xmin or $xmax <= $force_xmax) { $force_xmax = 0.0 };
+  if ($force_ymin <= $ymin or $ymax <= $force_ymin) { $force_ymin = 0.0 };
+  if ($force_ymax <= $ymin or $ymax <= $force_ymax) { $force_ymax = 0.0 };
+  $force = (($force_xmin != 0) or ($force_xmax != 0) or ($force_ymin != 0) or ($force_ymax != 0));
 
-# ready for the actual plot:
+  if ($force_xmin) { $xmin = $force_xmin };
+  if ($force_xmax) { $xmax = $force_xmax };
+  if ($force_ymin) { $ymin = $force_ymin };
+  if ($force_ymax) { $ymax = $force_ymax };
+  # print "33 $xmin $xmax $ymin $ymax\n";
 
-# set the title
-title_string = sprintf("%s\n%s\nDay %d\n", my_title, my_subtitle, day)
-# day_string = sprintf("Day %d", day)
+  # earth geometry;
+  my $pi = 3.14159265358979;
+  my $km_per_deg_lat = 111.325;
+  my $mean_lat = ($ymax + $ymin) / 2.0;
+  my $km_per_deg_lon = cos($mean_lat * $pi / 180.0) * $km_per_deg_lat;
+  my $lat_lon_ratio = 0.9 * $km_per_deg_lon / $km_per_deg_lat;
 
-if (terminal eq "png") {
-  set term pngcairo enhanced font "arial,12" size 640,640
-  set title title_string offset 0,-2 font "Arial, 16"
-}
-if (terminal eq "pdf") {
-  set term pdf enhanced font "Helvetica,18" size 8.888,8.888
-  set title title_string offset 0,-2 font "Helvetica,24"
-}
+  # printf "x mean latitude = %0.5f\n", $mean_lat;
+  # printf "x km_per_deg_lat = %0.5f\n", $km_per_deg_lat;
+  # printf "x km_per_deg_lon = %0.5f\n", $km_per_deg_lon;
+  # printf "x lat_lon_ratio = %0.5f\n", $lat_lon_ratio;
 
-# set the ranges for the axes
-set xrange [ xmin:xmax ]
-set yrange [ ymin:ymax ]
-
-# get the center of the map
-xcenter = (xmin+xmax)/2.0
-ycenter = (ymin+ymax)/2.0
-xsize = xmax-xmin
-ysize = ymax-ymin
-
-# set plot margins
-set lmargin 0
-set rmargin 0
-set tmargin 6
-set bmargin 2
-
-unset xlabel
-unset ylabel
-unset xtics
-unset ytics
-unset grid
-unset border
-
-if (show_border) {
-   set xlabel "Longitude\n" offset 0,0
-   set ylabel "\nLatitude" offset 1.5,0
-   set xtics font "arial,10"
-   set ytics font "arial,10"
-   if (show_grid) {
-    set grid back
-   }
-   else {
-    unset grid
-   }
-}
-
-if (filled) {
-  set colorbox
-  set colorbox horiz user origin .3,.035 size .4,0.02 front
-  whole_max = sprintf("%.1f", max)
-  half_max = sprintf("%.1f", max / 2.0)
-  no_max = "0.0"
-  print "whole_max = " . whole_max . "  half_max = " . half_max
-  # set cbtics axis nomirror out scale 0.5 offset 0,0.5 (no_max . "%%" 0, half_max."%%" (42*max), whole_max."%%" (84*max)) font "arial,12"
-  set cbtics axis nomirror out scale 0.5 offset 0,0.5 (no_max . "%%" 0, half_max."%%" 128, whole_max."%%" 255) font "arial,12"
-  show cbtics
-  # set cbtics axis nomirror out scale 0.5 offset 0,0.5 font "arial,12"
-}
-else {
-	if (hazel == 0) {
-	# set label "Red Dot = Infectious Case" at graph 0.1, character 1 left tc ls 9
-	# set label "Blue Dot = Recovered Case" at graph 0.9, character 1 right tc ls 1
-	}
-}
-
-
-set output mapname
-
-set multiplot
-
-# plot the background map
-if (google) {
-  plot 'googlemap.png' binary filetype=png center=(xcenter,ycenter) dx=xsize/640 dy=ysize/498 with rgbimage notitle
-}
-else{
-  plot for [n=1:words(fips)] filename(n) u 2:1 t '' ls 12 w filledcurve
-}
-unset title
-
-if (filled) {
-  replot for [n=1:words(fips)] filename(n) u 2:1 t '' ls get_ls(n) w filledcurve, '' u 1:2:3 t '' w p palette ps 0 pt 5
-}
-
-if (show_all_households) {
-  replot household_locations u 2:1 t '' wi po ls 99 pt 5 ps 0.1
-}
-
-if (show_recovered) {
-  if (point_size > 0) {
-   replot recovered_households u 2:1 t '' wi po ls 1 pt 5 ps point_size
+  for my $i (1..5) {
+    # find the x and y bbox;
+    $xrng = $xmax - $xmin;
+    $yrng = $ymax - $ymin;
+    
+    # adjust the x range if too small;
+    my $xtarg = $yrng / $lat_lon_ratio;
+    my $xxtra = ($xrng < $xtarg)? ($xtarg - $xrng)*0.5 : 0;
+    $xmin = $xmin - $xxtra;
+    $xmax = $xmax + $xxtra;
+    
+    # adjust the y range if too small;
+    my $ytarg = $lat_lon_ratio * $xrng;
+    my $yxtra = ($yrng < $ytarg)? ($ytarg - $yrng)*0.5 : 0;
+    $ymin = $ymin - $yxtra;
+    $ymax = $ymax + $yxtra;
+    # print "44 $xmin $xmax $ymin $ymax\n";
   }
-  else {
-   replot recovered_households u 2:1 t '' wi dots ls 1
-  }
+
+  # save the bbox to a file;
+  # print "writing bbox to  BBOX";
+  # print $xmin, $xmax, $ymin, $ymax;
+  open FH,">BBOX";
+  printf FH "ymin = %0.6f\n", $ymin;
+  printf FH "xmin = %0.6f\n", $xmin;
+  printf FH "ymax = %0.6f\n", $ymax;
+  printf FH "xmax = %0.6f\n", $xmax;
+  close FH;
 }
 
-if (show_case_fatalities) {
-  if (point_size > 0) {
-   replot case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
-  }
-  else {
-   replot case_fatalities_households u 2:1 t '' wi dots ls 9
-  }
-}
-
-if (show_total_case_fatalities) {
-  if (point_size > 0) {
-   replot total_case_fatalities_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
-  }
-  else {
-   replot total_case_fatalities_households u 2:1 t '' wi dots ls 9
-  }
-}
-
-if (show_infectious) {
-  if (point_size > 0) {
-   replot infectious_households u 2:1 t '' wi po ls 9 pt 5 ps point_size
-  }
-  else {
-   replot infectious_households u 2:1 t '' wi dots ls 9
-  }
-}
-
-if (show_incidence) {
-  if (point_size > 0) {
-   replot household_incidence u 2:1 t '' wi po ls 9 pt 5 ps (2*point_size)
-  }
-  else {
-   replot household_incidence u 2:1 t '' wi dots ls 9
-  }
-}
-if (show_hc_unav) {
-  if (point_size > 0) {
-   replot hc_unav_households u 2:1 t '' wi po ls 1 pt 5 ps 0.1
-  }
-  else {
-   replot hc_unav_households u 2:1 t '' wi dots ls 15
-  }
-}
-if (show_primary_hc_unav) {
-  if (point_size > 0) {
-   replot primary_hc_unav_household u 2:1 t '' wi po ls 3 pt 5 ps 0.1
-  }
-  else {
-   replot primary_hc_unav_household u 2:1 t '' wi dots ls 15
-  }
-}
-if (show_accept_insr_hc_unav) {
-  if (point_size > 0) {
-   replot accept_insr_hc_unav_incidence u 2:1 t '' wi po ls 100 pt 5 ps 0.1
-  }
-  else {
-   replot accept_insr_hc_unav_incidence u 2:1 t '' wi dots ls 15
-  }
-}
-if (use_shapefile) {
-  # draw outlines
-  replot for [n=1:words(fips)] filename(n) u 2:1 t '' w l lt -1 lw linewidth
-}
-
-unset multiplot
-# system("open " . outfile)
-exit

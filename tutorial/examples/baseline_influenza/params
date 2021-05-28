@@ -1,0 +1,54 @@
+
+locations_file = locations.txt
+start_date = 2017-01-01
+days = 100
+enable_visualization_layer = 1
+
+# INFLUENZA PARAMETERS
+conditions = INF
+INF.natural_history_model = markov
+INF.transmission_mode = respiratory
+INF.states = S E Is Ia R
+INF.exposed_state = E
+INF.R.is_recovered = 1
+
+### TRANSMISSIBILITY
+INF.transmissibility = 1.0
+INF.R0_a = -0.00570298
+INF.R0_b = 0.693071
+INF.R0 = -1.0
+
+INF.S.transition_period = -1
+INF.E.transition_period = 1.9
+INF.E.transition_period_dispersion = 1.51
+INF.Is.transition_period = 5.0
+INF.Is.transition_period_dispersion = 1.5
+INF.Ia.transition_period = 5.0
+INF.Ia.transition_period_dispersion = 1.5
+INF.R.transition_period = -1
+
+INF.transition_matrix[E][Is] = 0.67
+INF.transition_matrix[E][Ia] = 0.33
+INF.transition_matrix[Ia][R] = 1
+INF.transition_matrix[Is][R] = 1
+
+### INFECTIVITY OF STATES
+INF.Is.infectivity = 1.0
+INF.Ia.infectivity = 0.5
+
+### SYMPTOMS
+INF.Is.symptoms_level = moderate
+
+### SICK DAYS
+INF.Is.probability_of_household_confinement = 0.5
+INF.Is.decide_household_confinement_daily = 0
+
+### NO CASE FATALITY
+INF.case_fatality.background = 0.0
+
+### NO IMMUNITY
+INF.immunity.background = 0
+INF.immunity_loss_rate = 0
+
+### IMPORTED INFECTIONS (SEEDS)
+INF.import_file = import_inf.txt

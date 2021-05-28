@@ -1,7 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" href="$_health_8cc.html" title="Health.cc" alt="" coords="5,84,93,111"/>
-<area shape="rect" href="$_vaccine_8cc.html" title="Vaccine.cc" alt="" coords="117,84,216,111"/>
-<area shape="rect" href="$_vaccine___health_8cc.html" title="Vaccine_Health.cc" alt="" coords="240,84,392,111"/>
-<area shape="rect" href="$_vaccine___manager_8cc.html" title="Vaccine_Manager.cc" alt="" coords="416,84,584,111"/>
-<area shape="rect" href="$_vaccines_8cc.html" title="Vaccines.cc" alt="" coords="608,84,712,111"/>
-</map>

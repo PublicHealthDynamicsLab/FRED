@@ -1,4 +1,0 @@
-PARAM NAME: influenza_seasonality_multiplier_Ka
-DEFAULT VALUE: -180
-TYPE: int
-DEFINITION:

@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -17,17 +26,21 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#include <string>
-#include <cstring>
-#include <sstream>
-#include <stdarg.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <vector>
-#include <chrono>
+#include "Global.h"
+#include <stack>
 
-using namespace std;
-using namespace std::chrono;
+// Conditional includes
+#ifdef LINUX
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <string.h>
+#elif OSX
+  #include <mach/mach.h>
+#elif WIN32
+  // Not implemented
+#endif
+
+
 
 ////// LOGGING MACROS
 ////// gcc recognizes a signature without variadic args: (verbosity, format) as well as
@@ -35,101 +48,65 @@ using namespace std::chrono;
 ////// To ensure compatibility, always provide at least one varg (which may be an empty string,
 ////// eg: (vebosity, format, "")
 
-// FRED_VERBOSE and FRED_CONDITIONAL_VERBOSE print to the stout using Utils::fred_verbose
+// FRED_VERBOSE prints to the stdout using Utils::fred_verbose
 #ifdef FREDVERBOSE
-#define FRED_VERBOSE(verbosity, format, ...){				\
-    if ( Global::Verbose > verbosity ) {				\
-      Utils::fred_verbose(verbosity, "FRED_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
-    }									\
+#define FRED_VERBOSE(verbosity, format, ...) {    \
+    if(Global::Verbose > verbosity) {    \
+      Utils::fred_verbose(verbosity, "FRED_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);    \
+    }    \
   }
 
 #else
 #define FRED_VERBOSE(verbosity, format, ...){}\
 
 #endif
-// FRED_CONDITIONAL_VERBOSE prints to the stout if the verbose level is exceeded and the supplied conditional is true
-#ifdef FREDVERBOSE
-#define FRED_CONDITIONAL_VERBOSE(verbosity, condition, format, ...){	\
-    if ( Global::Verbose > verbosity && condition ) {			\
-      Utils::fred_verbose(verbosity, "FRED_CONDITIONAL_VERBOSE: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
-    }									\
-  }
 
-#else
-#define FRED_CONDITIONAL_VERBOSE(verbosity, condition, format, ...){}\
-
-#endif
-
-// FRED_STATUS and FRED_CONDITIONAL_STATUS print to Global::Statusfp using Utils::fred_verbose_statusfp
+// FRED_STATUS prints to Global::Statusfp using Utils::fred_status
 // If Global::Verbose == 0, then abbreviated output is produced
 #ifdef FREDSTATUS
-#define FRED_STATUS(verbosity, format, ...){				\
-    if ( verbosity == 0 && Global::Verbose <= 1 ) {			\
-      Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);	\
-    }									\
-    else if ( Global::Verbose > verbosity ) {				\
-      Utils::fred_verbose_statusfp(verbosity, "FRED_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
-    }									\
+#define FRED_STATUS(verbosity, format, ...){    \
+    if(verbosity == 0 && Global::Verbose <= 1) {    \
+      Utils::fred_status(verbosity, format, ## __VA_ARGS__);    \
+    } else if(Global::Verbose > verbosity) {    \
+      Utils::fred_status(verbosity, "FRED_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);     \
+    }    \
   }
 
 #else
 #define FRED_STATUS(verbosity, format, ...){}\
 
 #endif
-// FRED_CONDITIONAL_STATUS prints to Global::Statusfp if the verbose level is exceeded and the supplied conditional is true
-#ifdef FREDSTATUS
-#define FRED_CONDITIONAL_STATUS(verbosity, condition, format, ...){	\
-    if ( verbosity == 0 && Global::Verbose <= 1 && condition ) {	\
-      Utils::fred_verbose_statusfp(verbosity, format, ## __VA_ARGS__);	\
-    }									\
-    else if ( Global::Verbose > verbosity && condition ) {		\
-      Utils::fred_verbose_statusfp(verbosity, "FRED_CONDITIONAL_STATUS: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
-    }									\
-  }
 
-#else
-#define FRED_CONDITIONAL_STATUS(verbosity, condition, format, ...){}\
-
-#endif
-
-// FRED_DEBUG prints to Global::Statusfp using Utils::fred_verbose_statusfp
+// FRED_DEBUG prints to Global::Statusfp using Utils::fred_status
 #ifdef FREDDEBUG
-#define FRED_DEBUG(verbosity, format, ...){				\
-    if ( Global::Debug >= verbosity ) {					\
-      Utils::fred_verbose_statusfp(verbosity, "FRED_DEBUG: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);	\
-    }									\
+#define FRED_DEBUG(verbosity, format, ...){    \
+    if(Global::Debug >= verbosity) {    \
+      Utils::fred_status(verbosity, "FRED_DEBUG: <%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);    \
+    }    \
   }
 
 #else
-#define FRED_DEBUG(verbosity, format, ...){}\
+#define FRED_DEBUG(verbosity, format, ...){}    \
 
 #endif
 
-// FRED_WARNING and FRED_CONDITIONAL_WARNING print to both stdout and the Global::ErrorLogfp using Utils::fred_warning
+// FRED_WARNING prints to both stdout and the Global::ErrorLogfp using Utils::fred_warning
 #ifdef FREDWARNING
-#define FRED_WARNING(format, ...){					\
-    Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__); \
+#define FRED_WARNING(format, ...){    \
+    Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);    \
   }
 
 #else
-#define FRED_WARNING(format, ...){}\
+#define FRED_WARNING(format, ...){}    \
 
 #endif
-// FRED_CONDITIONAL_WARNING prints only if supplied conditional is true
-#ifdef FREDWARNING
-#define FRED_CONDITIONAL_WARNING(condition, format, ...){		\
-    if (condition) {							\
-      Utils::fred_warning("<%s, LINE:%d> " format, __FILE__, __LINE__, ## __VA_ARGS__);	\
-    }									\
-  }
-
-#else
-#define FRED_CONDITIONAL_WARNING(condition, format, ...){}\
-
-#endif
-
 
 namespace Utils {
+  bool compare_id (Person* p1, Person* p2);
+  std::string delete_spaces(std::string &str);
+  string_vector_t get_string_vector(std::string str, char delim);
+  string_vector_t get_top_level_parse(std::string str, char delim);
+  bool is_number(std::string s);
   void fred_abort(const char* format, ...);
   void fred_warning(const char* format, ...);
   void fred_open_output_files();
@@ -149,96 +126,73 @@ namespace Utils {
   void fred_print_lap_time(const char* format, ...);
   void fred_print_lap_time(high_resolution_clock::time_point* start_lap_time, const char* format, ...);
   void fred_verbose(int verbosity, const char* format, ...);
-  void fred_verbose_statusfp(int verbosity, const char* format, ...);
+  void fred_status(int verbosity, const char* format, ...);
   void fred_log(const char* format, ...);
-  void fred_report(const char* format, ...);
   FILE *fred_open_file(char* filename);
+  FILE *fred_write_file(char* filename);
   void get_fred_file_name(char* filename);
   void fred_print_resource_usage(int day);
-  void replace_csv_missing_data(char* out_str, char* in_str, const char* replacement);
-  void get_next_token(char* out_string, char** input_string);
-  void delete_char(char* s, char c, int maxlen);
-  void normalize_white_space(char* s);
-  bool to_bool(string s);
+  double get_daily_probability(double prob, int days);
+  std::string str_tolower(std::string s);
+  bool does_path_exist(const std::string &s);
+  void print_error(const std::string &msg);
+  void print_warning(const std::string &msg);
 
-  class Tokens {
-    std::vector<std::string> tokens;
-    
-  public:
+  // anonymous namespace allows for private methods
+  namespace
+  {
+    int parse_line(char* line) {
+      // This assumes that a digit will be found and the line ends in " Kb".
+      int i = strlen(line);
+      const char* p = line;
+      while (*p <'0' || *p > '9') {
+        p++;
+      }
+      line[i-3] = '\0';
+      i = atoi(p);
+      return i;
+    }
 
-    std::string &back() {
-      return this->tokens.back();
-    }
-    std::string &front() {
-      return this->tokens.front();
-    }
+    double get_fred_phys_mem_usg_in_gb() { //Note: this value is in GB!
+      double result = -1.0;
 
-    void clear() {
-      this->tokens.clear();
-    }
-    
-    void push_back( std::string str ) {
-      this->tokens.push_back(str);
-    }
-    
-    void push_back(const char* cstr) {
-      this->tokens.push_back(std::string(cstr));
-    }
-    
-    const char* operator[] (int i) const {
-      return this->tokens[i].c_str();
-    }
-    
-    void fill_empty_with(const char* c) {
-      std::vector< std::string >::iterator itr = this->tokens.begin();
-      for( ; itr != this->tokens.end(); ++itr) {
-        if((*itr).empty()) {
-          (*itr).assign(c);
+#ifdef LINUX
+
+      FILE* file = fopen("/proc/self/status", "r");
+      char line[128];
+
+      while(fgets(line, 128, file) != NULL) {
+        if(strncmp(line, "VmRSS:", 6) == 0) {
+          result = (double)parse_line(line); //KB
+          result /= 1024.0; //MB
+          result /= 1024.0; //GB
+          break;
         }
       }
-    }
-    
-    void assign(int i, int j) {
-      this->tokens.at(i) = this->tokens.at(j);
-    }
+      fclose(file);
 
-    size_t size() const {
-      return this->tokens.size();
-    }
-    
-    const char* join(const char* delim) {
-      if(this->tokens.size() == 0) {
-        return "";
+#elif OSX
+
+      struct task_basic_info t_info;
+      mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+      if(KERN_SUCCESS != task_info(mach_task_self(), TASK_BASIC_INFO,
+          (task_info_t)&t_info, &t_info_count)) {
+          result = -1.0;
       } else {
-        std::stringstream ss;
-        ss << this->tokens[0];
-        for(int i = 1; i < this->tokens.size(); ++i) {
-          ss << delim << this->tokens[ i ];
-        }
-        return ss.str().c_str();
+        int temp_int = t_info.resident_size;
+        result = (double)temp_int;
+        result /= 1024.0; // KB
+        result /= 1024.0; // MB
+        result /= 1024.0; // GB
       }
+#elif WIN32
+
+#endif
+
+      return result;
     }
-  };
-
-
-  Tokens &split_by_delim(const std::string &str,
-			 const char delim, Tokens & tokens,
-			 bool collapse_consecutive_delims = true);
-
-  Tokens split_by_delim(const std::string &str,
-			const char delim, bool collapse_consecutive_delims = true);
-
-  Tokens & split_by_delim(const char* str,
-			  const char delim, Tokens &tokens,
-			  bool collapse_consecutive_delims = true);
-
-  Tokens split_by_delim(const char* str,
-			const char delim, bool collapse_consecutive_delims = true);
-
-  void track_value(int day, char* key, int value, int id = 0);
-  void track_value(int day, char* key, double value, int id = 0);
-  void track_value(int day, char* key, string value, int id = 0);
-
+  }
 }
 
 #endif /* UTILS_H_ */

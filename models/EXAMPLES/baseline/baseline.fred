@@ -1,0 +1,29 @@
+##################################################
+#
+# FRED Model: Pandemic Influenza
+#
+# Date: 9 Sep 2019
+# Author: John Grefenstette
+#
+##################################################
+
+### Test File for Baseline Model 
+
+##### SIMULATED LOCATION
+locations = Allegheny_County_PA
+
+##### SIMULATED TIMEFRAME:
+start_date = 2019-Nov-01
+end_date = 2020-Apr-01
+
+##### OUTPUT OPTIONS
+enable_visualization_layer = 1
+INF.E.visualize = 1
+INF.Is.visualize = 1
+INF.Ia.visualize = 1
+INF.R.visualize = 1
+
+##### CONDITIONS
+use FRED::Influenza
+
+

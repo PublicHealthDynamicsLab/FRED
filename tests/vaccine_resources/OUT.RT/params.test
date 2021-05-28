@@ -1,0 +1,13 @@
+days = 20
+locations_file = locations.txt
+outdir = OUT.TEST
+enable_health_records = 1
+VAC.enable_health_records = 1
+
+conditions = INF VAC
+
+resources = DOSES
+DOSES.import_file = import_doses.txt
+
+include params.vac
+

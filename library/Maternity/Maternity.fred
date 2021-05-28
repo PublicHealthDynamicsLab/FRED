@@ -1,0 +1,216 @@
+#####################################################
+# MODULE FRED::Maternity
+# Author: John Grefenstette
+# Date: 15 Apr 2019
+#
+# RULES:
+#
+# 1. The Start state divides agents into Male and Female by sex.
+#
+# 2. The Male state is dormant.
+#
+# 3. All females less than 15 are assumed to be not pregnant at start
+# (InitNotPregnant).
+#
+# 4. All females age 50+ are consider post-reproductive
+# (PostReproductive).  PostReproductive is a dormant state.
+#
+# 5. All other females are assumed to be initially pregnant
+# (InitPregnant) with 75% of the agent's age-specific annual probability
+# of pregnancy.
+#
+# 6. The InitPregnant state has a duration of 1..280 days with a uniform
+# distribution in order to spread out the initial delivery dates.
+#
+# 7. The InitPregnant state always transitions to ChildBirth.
+#
+# 8. The InitNotPregnant state has a duration of 1..365 days with a
+# uniform distribution in order to spread out subsequent pregnancies.
+#
+# 9. After the InitNotPregnant state, the agent changes to the
+# Screening state.
+#
+# 10. The Screening state branches to Pregnant, NotPregnant or
+# PostReproductive based on the agent's age-specific annual probability
+# of pregnancy.
+#
+# 11. The NotPregnant state has a duration of 365 day, after which
+# the agent has its annual Screening.
+#
+# 12. Pregnancy has a duration of between 259 and 294, drawn from a
+# normal distribution with mean 280 days and std dev 7 days.
+#
+# 13. Pregnancy always transitions to ChildBirth.
+#
+# 14. ChildBirth lasts 1 day and leads to the PostPartum
+# state. ChildBirth generates a maternity event (a new agent).
+#
+# 15. The PostPartum period duration is drawn from a normal distribution
+# with mean 30 days and a std dev of 15 days, with a lower bound of 10
+# days.
+#
+# 16. The PostPartum state transitions to the Screening state, resulting
+# in either pregnancy or a new annual screening cycle.
+#
+#####################################################
+
+# CONDITIONS:
+include_condition = MATERNITY
+
+##### OPTIONS:
+# enable_health_records = 1
+# MATERNITY.enable_health_records = 1
+
+# REQUIRED PARAMETERS:
+
+# This condition only makes sense if people age
+
+enable_population_dynamics = 1
+
+#####################################################
+
+# STATES:
+
+MATERNITY.states = Start Female Male InitNotPregnant InitPregnant Screening NotPregnant Pregnant ChildBirth PostPartum PostReproductive
+
+#####################################################
+
+# RULES:
+
+# 1. Exclude males
+
+if state(MATERNITY,Start) then wait(0)
+if state(MATERNITY,Start) and(sex == male) then next(Male)
+if state(MATERNITY,Start) and(sex == female) then next(Female)
+
+#####################################################
+
+# 2. The Male state is dormant.
+
+if state(MATERNITY,Male) then wait()
+MATERNITY.Male.is_dormant = 1
+
+#####################################################
+
+# 3. All females less than 15 are assumed to be not pregnant at start
+
+if state(MATERNITY,Female) then wait(0)
+if state(MATERNITY,Female) and(age<15) then next(InitNotPregnant)
+
+#####################################################
+
+# 4. All females age 50+ are consider post-reproductive
+# (PostReproductive).  PostReproductive is a dormant state.
+
+if state(MATERNITY,Female) and(50<=age) then next(PostReproductive)
+
+if state(MATERNITY,PostReproductive) then wait()
+MATERNITY.PostReproductive.is_dormant = 1
+
+#####################################################
+
+# 5. All other females are assumed to be initially pregnant
+# (InitPregnant) with 75% of the agent's age-specific annual probability
+# of pregnancy.
+
+if state(MATERNITY,Female) and(range(age,15,19)) then next(InitPregnant) with prob(0.016)
+if state(MATERNITY,Female) and(range(age,20,24)) then next(InitPregnant) with prob(0.073)
+if state(MATERNITY,Female) and(range(age,25,29)) then next(InitPregnant) with prob(0.075)
+if state(MATERNITY,Female) and(range(age,30,34)) then next(InitPregnant) with prob(0.075)
+if state(MATERNITY,Female) and(range(age,35,39)) then next(InitPregnant) with prob(0.045)
+if state(MATERNITY,Female) and(range(age,40,44)) then next(InitPregnant) with prob(0.014)
+if state(MATERNITY,Female) and(range(age,45,49)) then next(InitPregnant) with prob(0.000525)
+if state(MATERNITY,Female) then default(InitNotPregnant)
+
+#####################################################
+
+# 6. The InitPregnant state has a duration of 1..280 days with a uniform
+# distribution in order to spread out the initial delivery dates.
+
+if state(MATERNITY,InitPregnant) then wait(24*uniform(1,280))
+
+#####################################################
+
+# 7. The InitPregnant state always transitions to ChildBirth.
+
+if state(MATERNITY,InitPregnant) then next(ChildBirth)
+
+#####################################################
+
+# 8. The InitNotPregnant state has a duration of 1..365 days with a
+# uniform distribution in order to spread out subsent pregnancies.
+
+if state(MATERNITY,InitNotPregnant) then wait(24*uniform(1,365))
+
+#####################################################
+
+# 9. After the InitNotPregnant state, the agent changes to the
+# Screening state.
+
+if state(MATERNITY,InitNotPregnant) then next(Screening)
+
+#####################################################
+
+# 10. The Screening state branches to Pregnant, NotPregnant or
+# PostReproductive based on the agent's age-specific annual probability
+# of pregnancy.
+
+if state(MATERNITY,Screening) then wait(0)
+
+if state(MATERNITY,Screening) and(range(age,15,19)) then next(Pregnant) with prob(0.0214)
+if state(MATERNITY,Screening) and(range(age,20,24)) then next(Pregnant) with prob(0.0791)
+if state(MATERNITY,Screening) and(range(age,25,29)) then next(Pregnant) with prob(0.1033)
+if state(MATERNITY,Screening) and(range(age,30,34)) then next(Pregnant) with prob(0.1032)
+if state(MATERNITY,Screening) and(range(age,35,39)) then next(Pregnant) with prob(0.0595)
+if state(MATERNITY,Screening) and(range(age,40,44)) then next(Pregnant) with prob(0.0188)
+if state(MATERNITY,Screening) and(range(age,45,49)) then next(Pregnant) with prob(0.00069)
+if state(MATERNITY,Screening) and(50<=age)          then next(PostReproductive) with prob(1)
+if state(MATERNITY,Screening) then default(NotPregnant)
+
+#####################################################
+
+# 11. The NotPregnant state has a duration of 365 day, after which
+# the agent has its annual Screening.
+
+if state(MATERNITY,NotPregnant) then wait(24*365)
+if state(MATERNITY,NotPregnant) then next(Screening)
+
+#####################################################
+
+# 12. Pregnancy has a duration of between 259 and 294, drawn from a
+# normal distribution with mean 280 days and std dev 7 days.
+
+if state(MATERNITY,Pregnant) then wait(24*max(259,min(294,normal(280,7))))
+
+#####################################################
+
+# 13. Pregnancy always transitions to ChildBirth.
+
+if state(MATERNITY,Pregnant) then next(ChildBirth)
+
+#####################################################
+
+# 14. ChildBirth lasts 1 day and leads to the PostPartum
+# state. ChildBirth generates a maternity event (a new agent).
+
+if state(MATERNITY,ChildBirth) then give_birth()
+if state(MATERNITY,ChildBirth) then wait(24)
+if state(MATERNITY,ChildBirth) then next(PostPartum)
+
+#####################################################
+
+# 15. The PostPartum period duration is drawn from a normal distribution
+# with mean 30 days and a std dev of 15 days, with a lower bound of 10
+# days.
+
+if state(MATERNITY,PostPartum) then wait(24*max(10,normal(30,15)))
+
+#####################################################
+
+# 16. The PostPartum state transitions to the Screening state, resulting
+# in either pregnancy or a new annual screening cycle.
+
+if state(MATERNITY,PostPartum) then next(Screening)
+
+#####################################################
+

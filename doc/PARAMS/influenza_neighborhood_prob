@@ -1,4 +1,0 @@
-PARAM NAME: influenza_neighborhood_prob
-DEFAULT VALUE: 4 0.0048 0.0048 0.0048 0.0048
-TYPE: int
-DEFINITION:

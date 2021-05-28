@@ -74,13 +74,11 @@ KEY = Immunization=0.3 JOB = 1729 STATUS = FINISHED Mon Sep 29 21:28:30 2014
 When all the jobs are finished, we can use fred_plot to compare results
 across the jobs. To see the differences in attack rate, use the command:
 
-% fred_plot -v AR -T "Immunization Study" -k Immunization=0.0 \
-  	    -k Immunization=0.1 -k Immunization=0.2 -k Immunization=0.3
+% fred_plot -v AR -T "Immunization Study" -k Immunization=0.0 -k Immunization=0.1 -k Immunization=0.2 -k Immunization=0.3
 
 To see the incidence curves, use the command:
 
-% fred_plot -v C --week -T "Immunization Study" -k Immunization=0.0 \
-  	    -k Immunization=0.1 -k Immunization=0.2 -k Immunization=0.3
+% fred_plot -v C --week -T "Immunization Study" -k Immunization=0.0 -k Immunization=0.1 -k Immunization=0.2 -k Immunization=0.3
 
 Challenge: Find out which of the jobs has the most variation in attack
 rate across the runs. What is a possible source of the variation?

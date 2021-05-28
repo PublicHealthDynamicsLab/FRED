@@ -1,4 +1,0 @@
-PARAM NAME: hospital_worker_to_bed_ratio
-DEFAULT VALUE: 1.0
-TYPE: int
-DEFINITION:

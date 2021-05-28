@@ -1,7 +1,0 @@
-PARAM NAME: days
-DEFAULT VALUE: 240
-TYPE: int
-
-DEFINITION: The number of days in a single simulation run. FRED runs for
-the given number of days regardless of the epidemic state (that is, FRED
-does not stop early if no one is currently infected.)

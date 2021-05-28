@@ -1,4 +1,0 @@
-PARAM NAME: influenza_infection_immunity_prob_ages
-DEFAULT VALUE: 2 0 110
-TYPE: int
-DEFINITION:

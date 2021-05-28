@@ -1,1 +1,120 @@
-fred_rt
+#!/bin/bash
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+# get current dir
+pwd=$(pwd)
+
+# look for the FRED binary
+if [ x$FRED_HOME == x ]; then
+   echo "Please define FRED_HOME environment variable before running tests"
+   exit 1
+fi 
+FRED="$FRED_HOME/bin/FRED"
+if [ ! -x $FRED ]; then
+    echo "No FRED binary found"
+    echo ">>> You must either build FRED or properly define FRED_HOME"
+    exit 1
+fi
+
+par=""
+if [ "$1" = "-p" ]; then
+    par=-p
+    shift
+fi
+
+dir="base"
+if [ x"$1" != x ]; then
+    dir=$1
+    shift
+fi
+
+if [ ! -d $FRED_HOME/tests/$dir ]; then
+    echo No such directory: $FRED_HOME/tests/$dir
+    exit 1
+fi
+
+cd $FRED_HOME/tests/$dir
+
+# sanity checks
+if [ ! -e test.fred ]; then
+    echo No test.fred file found
+    exit 1
+fi
+
+if [ ! -x compare ]; then
+    echo No executable compare file found
+    exit 1
+fi
+
+# create TEST directory if necessary
+if [ ! -d OUT.TEST ]; then
+    mkdir -p OUT.TEST
+fi
+
+# clear the test directory
+rm -rf OUT.TEST/*
+
+# run single-threaded
+export OMP_NUM_THREADS=1
+
+# run the regression test
+echo FRED regression test: $dir
+echo -n run 1
+if [ x$par = "x-p" ]; then
+  shift 
+  echo -n " (in background) ... "
+  ($FRED -p test.fred -r 1 -d OUT.TEST 2>&1 > /dev/null) &
+  R1=$!
+else
+  echo -n " ... "
+  $FRED -p test.fred -r 1 -d OUT.TEST 2>&1 > /dev/null
+fi
+
+echo -n "run 2 ..."
+$FRED -p test.fred -r 2 -d OUT.TEST 2>&1 > /dev/null
+if [ x$par = "x-p" ]; then
+  wait $R1
+fi
+
+echo
+echo comparing results ...
+./compare > compare.test
+# test if files are the same
+cmp -s compare.test compare.out
+if [ $? -eq 0 ]; then
+    echo regression test passed.
+    echo
+else
+    echo regression test failed with output:
+    cat compare.test
+    echo
+fi
+
+
+# done
+# echo regression test finished.
+
+
+cd $pwd
+

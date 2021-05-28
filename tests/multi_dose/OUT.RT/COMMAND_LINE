@@ -1,1 +1,0 @@
-run_fred -p params.test -d OUT.TEST -n 2

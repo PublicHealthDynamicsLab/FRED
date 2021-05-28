@@ -1,4 +1,0 @@
-PARAM NAME: vector_patch_size
-DEFAULT VALUE: 1.0
-TYPE: int
-DEFINITION:

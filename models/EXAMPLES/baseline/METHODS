@@ -1,0 +1,48 @@
+#!/bin/bash
+echo -n 'METHODS started '
+date
+
+# delete any previous job with this name
+echo
+echo fred_delete -f -k baseline
+fred_delete -f -k baseline
+
+# FRED job with n runs on m cores
+echo
+echo fred_job -k baseline -n 5 -m 4 -p baseline.fred
+fred_job -k baseline -n 5 -m 4 -p baseline.fred
+
+# some plots
+
+# record that available plot variables for future reference
+echo
+echo fred_plot -k baseline -V > .PLOT_VARS
+fred_plot -k baseline -V > .PLOT_VARS
+
+# plot the exposures using bar graph by week, normalize
+echo
+echo fred_plot -k baseline -v INF.newE --label Incidence -b -w -n -t \"Influenza in Allegheny County, PA\"
+fred_plot -k baseline -v INF.newE --label Incidence -b -w -n -t "Influenza in Allegheny County, PA"
+
+
+# plot the exposures, showing all runs, and name output file
+echo
+echo fred_plot -k baseline -v INF.totE --label \'Cummulative Incidence\' --legend bottom -a -o plot-all  -t \'Influenza in Allegheny County, PA\' -n -s 100
+fred_plot -k baseline -v INF.totE --label 'Cummulative Incidence' --legend bottom -a -o plot-all  -t "Influenza in Allegheny County, PA" -n -s 100
+
+# use errorbars
+echo
+echo fred_plot -k baseline -v INF.Is --label Sympt -a -e
+fred_plot -k baseline -v INF.Is --label Sympt -a -e  -t "Influenza in Allegheny County, PA"
+
+# create a movie with some common options
+# (run fred_make_movie -h for full list of options)
+echo
+
+echo fred_make_movie --key baseline --title \'Influenza in Allegheny County, PA\' --vars INF.R,INF.Is,INF.Ia,INF.newE --colors skyblue,blue,blue,red --left Prevalence --center Incidence --right Recovered --caption_colors \'blue red skyblue\' --period 0,1,1,1 --interval 5 --display 1 --out baseline.mp4
+
+fred_make_movie --key baseline --title 'Influenza in Allegheny County, PA' --vars INF.R,INF.Is,INF.Ia,INF.newE --colors skyblue,blue,blue,red --left Prevalence --center Incidence --right Recovered --caption_colors 'blue red skyblue' --period 0,1,1,1 --interval 5 --display 1 --out baseline.mp4
+
+echo -n 'METHOD finished '
+date
+

@@ -1,6 +1,0 @@
-PARAM NAME: rr_delay
-DEFAULT VALUE: 10
-TYPE: int
-DEFINITION: Identifies the number of days between the definition of a
-cohort and the reporting of that cohort's reproductive rate in the
-output file.

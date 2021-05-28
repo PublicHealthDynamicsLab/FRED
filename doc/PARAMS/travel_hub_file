@@ -1,4 +1,0 @@
-PARAM NAME: travel_hub_file
-DEFAULT VALUE: $FRED_HOME/input_files/countries/usa/msa_hubs.txt
-TYPE: int
-DEFINITION:

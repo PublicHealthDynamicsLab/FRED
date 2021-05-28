@@ -1,5 +1,0 @@
-#!/bin/csh
-mkdir -p OUT
-set key = $1
-echo -n "$key " > OUT/AR.$key
-fred_AR -k $key >> OUT/AR.$key

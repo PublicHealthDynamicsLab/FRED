@@ -1,0 +1,63 @@
+
+##### CONDITIONS
+use FRED::Influenza
+
+##### Simulated Location
+locations = Jefferson_County_PA
+
+##### Simulated Timeframe
+start_date = 2020-Jan-01
+end_date = 2020-Apr-15
+
+##### Output Options
+enable_health_records = 1
+
+# VISUALIZATION
+enable_visualization_layer = 1
+INF.Is.visualize = 1
+INF.Ia.visualize = 1
+VAC.Immune.visualize = 1
+VAC.Immune.is_dormant = 1
+VAC.Failed.is_dormant = 1
+
+# SINGLE VACCINE
+
+include_condition = VAC
+VAC.states = Unavail Avail Receive Immune Failed ImportStart ImportVaccine
+VAC.import_start_state = ImportStart
+
+# RULES
+
+if state(VAC,Unavail) then sus(1.0)
+if state(VAC,Unavail) then wait()
+
+if exposed(VAC) then next(Avail)
+
+# agents take vaccine 5-20 days after its availablea
+if state(VAC,Avail) then wait(24*lognormal(10,2))
+if state(VAC,Avail) then next(Receive)
+
+# vaccine takes 14 days to become effective
+if state(VAC,Receive) then wait(24*14)
+
+# vaccine is 80% effective
+if state(VAC,Receive) then next(Immune) with prob(0.8)
+if state(VAC,Receive) then default(Failed)
+
+# immunity reduces susceptibility to 0
+if state(VAC,Immune) then set_sus(INF,0.0)
+if state(VAC,Immune) then wait()
+if state(VAC,Failed) then wait()
+
+# META STATES FOR AVAILABILITY
+
+# vaccine available immediately
+if state(VAC,ImportStart) then wait(0)
+if state(VAC,ImportStart) then next(ImportVaccine)
+
+# import enough vaccine for 30% of population
+if state(VAC,ImportVaccine) then import_per_capita(0.30)
+if state(VAC,ImportVaccine) then wait()
+
+
+

@@ -1,0 +1,23 @@
+
+##### CONDITIONS
+use FRED::Influenza
+include vac.fred
+
+##### Simulated Location
+locations = Jefferson_County_PA
+
+##### Simulated Timeframe
+start_date = 2020-Jan-01
+days = 20
+
+##### Output Options
+quality_control = 0
+outdir = OUT.TEST
+enable_health_records = 1
+VAC.enable_health_records = 1
+
+##### RESOURCES
+resources = DOSES
+DOSES.import_file = import_doses.txt
+
+

@@ -1,0 +1,14 @@
+use FRED::Maternity
+use FRED::Mortality
+
+start_date = 2020-Jan-01
+days = 2000
+
+locations = Jefferson_County_PA
+
+enable_health_records = 1
+MATERNITY.enable_health_records = 1
+MORTALITY.enable_health_records = 1
+
+
+

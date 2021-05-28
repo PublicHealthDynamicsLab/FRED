@@ -1,4 +1,0 @@
-PARAM NAME: school_student_teacher_ratio
-DEFAULT VALUE: 15.5
-TYPE: int
-DEFINITION:

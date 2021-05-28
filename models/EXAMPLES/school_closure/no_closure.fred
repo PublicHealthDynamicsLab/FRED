@@ -1,0 +1,25 @@
+
+# MODELING THE EFFECTS OF SCHOOL CLOSURE DURING AN EPIDEMIC
+
+# BASE CASE: NO CLOSURE
+
+# include the school administrator module
+include breaks.fred
+
+#### CONDITIONS
+
+## add the influenza module
+use FRED::Influenza
+
+#### OUTPUT OPTIONS
+enable_health_records = 1
+INF.enable_health_records = 1
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+
+#### ANTIVIRAL MODEL
+#### Assumes availability of antivirals for entire population
+
+##### CONDITIONS
+use FRED::Influenza
+
+include_condition = AV
+AV.states = Start Eligible Indicated Received Finished Ineligible
+
+# RULES
+
+if state(AV,Start) then wait(0)
+if state(AV,Start) and(age<2) then next(Eligible)
+if state(AV,Start) and(age >= 65) then next(Eligible)
+if state(AV,Start) and(race==american_indian) then next(Eligible)
+if state(AV,Start) and(race==alaska_native) then next(Eligible)
+if state(AV,Start) then default(Ineligible)
+
+if state(AV,Eligible) then wait()
+
+# if not eligible, just do nothing
+if state(AV,Ineligible) then wait()
+
+# antivirals are indicated if an eligible person contracts influenza
+if state(INF,Is) then set_state(AV,Eligible,Indicated)
+
+# take AVs when indiated
+if state(AV,Indicated) then wait(0)
+if state(AV,Indicated) then next(Received)
+
+# AVs effective after 24 hours
+if state(AV,Received) then wait(24)
+if state(AV,Received) then next(Finished)
+
+# finished taking AVs
+if state(AV,Finished) then wait()
+
+# side effects
+if state(AV,Finished) then set_sus(INF,susceptibility_to_INF*0.7)
+if state(AV,Finished) then set_trans(INF,transmissibility_for_INF*0.3)
+
+
+

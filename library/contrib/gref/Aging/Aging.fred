@@ -1,0 +1,11 @@
+#####################################################
+# MODULE FRED::Aging
+# Author: John Grefenstette
+# Date: 15 Apr 2019
+
+use FRED::Maternity
+use FRED::Mortality
+
+
+
+

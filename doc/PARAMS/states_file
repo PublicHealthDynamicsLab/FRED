@@ -1,6 +1,0 @@
-PARAM NAME: states_file
-DEFAULT VALUE: $FRED_HOME/input_files/countries/usa/US_states.txt
-TYPE: string
-
-DEFINITION: Locaton of the states file.
-

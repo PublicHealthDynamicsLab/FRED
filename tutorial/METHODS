@@ -17,7 +17,7 @@ echo running tasks
 tasks
 echo
 echo creating plot file
-fred_plot -v C -b -n -w -X 10 -t "Comparing Epidemics" -k R0=1.0 -k R0=1.5 -k R0=2.0 -k R0=2.5 -d 0
+fred_plot -v C -n -w -X 18 -t "Comparing Epidemics" -k R0=1.0 -k R0=1.5 -k R0=2.0 -d 0
 echo
 echo printing plot file
 lp plot-C.pdf

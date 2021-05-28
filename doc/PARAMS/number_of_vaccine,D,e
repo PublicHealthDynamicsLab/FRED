@@ -1,4 +1,0 @@
-PARAM NAME: number_of_vaccine,D,e
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

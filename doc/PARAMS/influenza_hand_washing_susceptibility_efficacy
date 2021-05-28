@@ -1,4 +1,0 @@
-PARAM NAME: influenza_hand_washing_susceptibility_efficacy
-DEFAULT VALUE: 0.21
-TYPE: int
-DEFINITION:

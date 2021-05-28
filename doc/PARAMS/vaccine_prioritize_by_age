@@ -1,7 +1,0 @@
-PARAM NAME: vaccine_prioritize_by_age
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: Enables prioritization of vaccination by age group. The age
-groups will be defined by the parameters vaccine_priority_age_low and
-vaccine_priority_age_high.

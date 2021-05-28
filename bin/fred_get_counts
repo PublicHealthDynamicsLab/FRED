@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $help = "";
+my $key = "";
+my $var = "";
+my $run = 1;
+my $dir = "OUT";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "run=i" => \$run,
+			    "r=i" => \$run,
+			    "n=i" => \$run,
+			    "d=s" => \$dir,
+			    "v=s" => \$var,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | -v var -k key [-n run_number]
+    -v            the variable to get counts for
+    -k or --key   the key for a FRED job (default => look in local OUT dir)
+    -n or --run   the specific run number. default: --run 1
+EOH
+
+die $usage if $help;
+die $usage if not $var;
+
+my $keystr = "";
+if ($key) {
+  my $id = `fred_id $key`;
+  chomp $id;
+  die "$0: UNKNOWN key: $key\n$usage\n" if $id eq "UNKNOWN";
+  $dir = "$FREDRESULTS/JOB/$id/OUT";
+  $keystr = "-k $key";
+}
+
+my $file = "$dir/RUN$run/DAILY/$var.txt";
+die "Can't find file |$file|\n$usage\n" if not -e $file;
+system "cat $file";
+
+

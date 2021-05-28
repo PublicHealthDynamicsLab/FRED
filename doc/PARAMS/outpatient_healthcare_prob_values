@@ -1,4 +1,0 @@
-PARAM NAME: outpatient_healthcare_prob_values
-DEFAULT VALUE: 1 0.0
-TYPE: int
-DEFINITION:

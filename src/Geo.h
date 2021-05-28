@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -22,6 +31,12 @@
 
 using namespace std;
 
+typedef struct {
+  fred::geo lat;
+  fred::geo lon;
+  double elevation;
+} elevation_t;
+
 
 class Geo{
 public:
@@ -33,35 +48,35 @@ public:
   /**
    * Sets the kilometers per degree longitude at a given latitiude
    *
-   * @param lat the latitude to set KM / degree
+   * @property lat the latitude to set KM / degree
    */
   static void set_km_per_degree(fred::geo lat);
 
   /**
-   * @param lon1
-   * @param lat1
-   * @param lon2
-   * @param lat2
+   * @property lon1
+   * @property lat1
+   * @property lon2
+   * @property lat2
    *
    * @return the haversine distance between the two points on the Earth's surface
    */
   static double haversine_distance (fred::geo lon1, fred::geo lat1, fred::geo lon2, fred::geo lat2);
 
   /**
-   * @param lon1
-   * @param lat1
-   * @param lon2
-   * @param lat2
+   * @property lon1
+   * @property lat1
+   * @property lon2
+   * @property lat2
    *
    * @return the spherical cosine distance between the two points on the Earth's surface
    */
   static double spherical_cosine_distance (fred::geo lon1, fred::geo lat1, fred::geo lon2, fred::geo lat2);
 
   /**
-   * @param lon1
-   * @param lat1
-   * @param lon2
-   * @param lat2
+   * @property lon1
+   * @property lat1
+   * @property lon2
+   * @property lat2
    *
    * @return the spherical projection distance between the two points on the Earth's surface
    */

@@ -1,0 +1,9 @@
+
+include vaccine.fred
+
+# no vaccine for 10 days
+if state(VAC,ImportStart) then wait(24*10)
+
+
+
+

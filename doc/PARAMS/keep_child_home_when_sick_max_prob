@@ -1,4 +1,0 @@
-PARAM NAME: keep_child_home_when_sick_max_prob
-DEFAULT VALUE: 1
-TYPE: int
-DEFINITION:

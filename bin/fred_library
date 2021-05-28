@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $FRED = $ENV{FRED_HOME};
+die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
+
+my $help = "";
+my $list = "";
+my $prog = "";
+my $doc = "";
+my $opt_result = GetOptions(
+			    "d=s" => \$doc,
+			    "doc=s" => \$doc,
+			    "h" => \$help,
+			    "help" => \$help,
+			    "l" => \$list,
+			    "list" => \$list,
+			    "prog=s" => \$prog,
+			    "p=s" => \$prog,
+);
+
+my $usage = <<EOH;
+usage: $0 [ options ], where options include:
+       -h, --help: print this help message.
+       -l, --list: list the available libraries.
+       -p=LIB, --prog=LIB: print the LIB program segment.
+       -d=LIB, --doc=LIB: print the documentation for LIB.
+EOH
+
+die $usage if $help;
+
+if ($list) {
+  my $dirname = "$FRED/library";
+  opendir ( DIR, $dirname ) || die "Error in opening dir $dirname\n";
+  while( (my $filename = readdir(DIR))) {
+    next if $filename =~ /^\./;
+    next if $filename eq "user";
+    next if $filename eq "contrib";
+    print("$filename\n");
+  }
+  closedir(DIR);
+  exit;
+}
+
+if ($doc) {
+  if (not -d "$FRED/library/$doc") {
+    print "Can not find FRED library $doc\n";
+    exit;
+  }
+  my $file = "$FRED/library/$doc/README.txt";
+  if (-e $file) {
+    system "cat $file";
+    exit;
+  }
+  else {
+    print "No README file found for library $doc\n";
+    exit;
+  }
+}
+
+if ($prog) {
+  if (not -d "$FRED/library/$prog") {
+    print "Can not find FRED library $prog\n";
+    exit;
+  }
+  my $file = "$FRED/library/$prog/$prog.fred";
+  if (-e $file) {
+    system "cat $file";
+    exit;
+  }
+  else {
+    print "File $prog.fred not found\n";
+    exit;
+  }
+}
+
+die $usage if $help;
+die $usage;
+
+

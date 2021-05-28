@@ -1,0 +1,59 @@
+METHODS started Wed Jul 24 10:27:54 EDT 2019
+
+fred_delete -f -k baseline
+/Users/gref/FRED/bin/fred_delete: KEY = baseline  JOB = 303
+/Users/gref/FRED/bin/fred_delete: /Users/gref/FRED/RESULTS/JOB/303 deleted
+
+fred_job -k baseline -n 8 -m 4 -p baseline.fred
+fred_compile baseline.fred ...
+No errors found.
+FRED Warning (file /Users/gref/FRED/library/influenza/influenza.fred, line 50) Unrecognized property statement: StayHome.states = Start Symptoms Yes No
+  Is StayHome a missing condition?
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if enter(StayHome,Start) then wait(0)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if state(StayHome,Start) then next(No)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if enter(StayHome,Symptoms) then wait(0)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if state(StayHome,Symptoms) then next(Yes) with prob(0.5)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if state(StayHome.Symptoms) then default(No)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if enter(StayHome,Yes) then wait()
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if state(StayHome,Yes) then absent()
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if state(StayHome,Yes) then present(Household)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if enter(INF,Is) then change(StayHome,No,Symptoms)
+FRED Warning (file baseline.fred) Ignoring rule (may need to check spelling):
+  if enter(INF,R) then change(StayHome,Yes,No)
+
+baseline 329
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 1 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN1/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 2 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN2/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 3 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN3/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 4 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN4/LOG)
+run_set 0 completed at Wed Jul 24 10:28:00 EDT 2019
+
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 5 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN5/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 6 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN6/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 7 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN7/LOG)
+(export OMP_NUM_THREADS=1; /Users/gref/FRED/bin/FRED -p /Users/gref/FRED/RESULTS/JOB/329/WORK/baseline.fred -r 8 /Users/gref/FRED/RESULTS/JOB/329/OUT > /Users/gref/FRED/RESULTS/JOB/329/OUT/RUN8/LOG)
+run_set 1 completed at Wed Jul 24 10:28:04 EDT 2019
+
+
+
+fred_plot -k baseline -v INF.newE --label Incidence -b -w -n
+fred_plot: source_file = plot-baseline-INF.newE.plt  image_file = plot-baseline-INF.newE.pdf
+
+fred_plot -k baseline -v INF.newE --label Incidence -a -o plot-all
+fred_plot: source_file = plot-plot-all.plt  image_file = plot-all.pdf
+
+fred_plot -k baseline -v INF.Is --label Sympt -a -e
+fred_plot: source_file = plot-baseline-INF.Is.plt  image_file = plot-baseline-INF.Is.pdf
+
+fred_make_movie --key baseline --title 'Influenza in Jefferson County, PA' --vars INF.R,INF.Is,INF.Ia,INF.newE --colors skyblue,blue,blue,red --left Prevalence --center Incidence --right Recovered --caption_colors 'blue red skyblue' --period 0,1,1,1 --interval 5 --display 1 --out baseline.mp4
+making maps .................... done
+METHOD finished Wed Jul 24 10:28:42 EDT 2019

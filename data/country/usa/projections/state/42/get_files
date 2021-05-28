@@ -1,0 +1,9 @@
+#!/bin/tcsh
+grep Pennsylvania Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=6;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > 42-males.txt
+grep Pennsylvania Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=7;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > 42-females.txt
+grep Pennsylvania Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=8;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > 42-total.txt
+foreach i ( `cat FIPS` )
+grep $i Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=6;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > $i-males.txt
+grep $i Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=7;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > $i-females.txt
+grep $i Projections_2010-2040.txt | perl -ne '$x=$_;$x=~s/ County//;$x=~s/\"//g;$x=~s/,//g;print $x' | perl -ane 'for(0..2){print "$F[$_]\t";}for($i=8;$i<27;$i+=3){print "$F[$i]\t";}print"\n";' > $i-total.txt
+end

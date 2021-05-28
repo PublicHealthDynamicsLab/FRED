@@ -1,0 +1,36 @@
+
+# SINGLE VACCINE MODULE
+
+include_condition = VAC
+VAC.states = Unwilling Willing Receive Immune Failed
+
+# RULES
+
+if enter(VAC,Unwilling) then sus(1.0)
+if enter(VAC,Unwilling) then wait()
+
+if enter(VAC,Willing) then wait(24)
+if state(VAC,Willing) then next(Receive)
+
+if enter(VAC,Receive) then wait(24*14)
+if state(VAC,Receive) then next(Immune) with prob(0.8)
+if state(VAC,Receive) then default(Failed)
+
+if enter(VAC,Immune) then change_sus(INF,0.0)
+
+# SUSCEPTIBILITY
+
+# EXPOSED STATE
+if exposed(VAC) then next(Willing)
+
+# DORMANT STATES
+VAC.Immune.is_dormant = 1
+VAC.Failed.is_dormant = 1
+
+# IMPORT Willingness
+VAC.import_file = import_vaccines.txt
+
+# RESOURCES
+VAC.Receive.resource = DOSES
+VAC.Receive.resources_required = 1
+

@@ -1,4 +1,0 @@
-PARAM NAME: accept_vaccine_for_child_enabled
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

@@ -1,0 +1,29 @@
+
+# Show how many schools are closed during a year
+
+fred_delete -f -k breaks
+fred_job -k breaks -p breaks.fred -n 1 -m 1
+fred_plot -t "Number of Schools Closed During Breaks" -k breaks -v ADMIN.SpringBreak,ADMIN.SummerBreak,ADMIN.WinterBreak -l Spring,Summer,Winter --ylabel "Schools" --legend outside
+
+# Compare effects of school closure policies
+
+# Baseline: No Closure
+
+fred_delete -f -k no_closure
+fred_job -k no_closure -p no_closure.fred -n 5
+fred_plot -k no_closure -v INF.totE -n -s 100
+
+fred_delete -f -k local_incidence
+fred_job -k local_incidence -p local_incidence.fred -n 5
+fred_plot -t "Number of Schools Closed -- Local Incidence" -k local_incidence -v ADMIN.Close,ADMIN.SpringBreak,ADMIN.SummerBreak,ADMIN.WinterBreak -l Epidemic,Spring,Summer,Winter --ylabel "Schools"
+
+fred_delete -f -k global_incidence
+fred_job -k global_incidence -p global_incidence.fred -n 5
+fred_plot -t "Number of Schools Closed -- Global Incidence" -k global_incidence -v ADMIN.Close,ADMIN.SpringBreak,ADMIN.SummerBreak,ADMIN.WinterBreak -l Epidemic,Spring,Summer,Winter --ylabel "Schools"
+
+fred_plot -k no_closure,local_incidence,global_incidence -v INF.totE,INF.totE,INF.totE -l 'No Closure','Local Incidence','Global Incidence' -n -s 100
+
+exit
+
+
+

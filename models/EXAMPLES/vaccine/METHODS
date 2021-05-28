@@ -1,0 +1,45 @@
+#!/bin/bash
+
+echo -n 'METHODS started '
+date
+
+# delete any previous job with this name
+echo
+echo fred_delete -f -k vaccine10
+fred_delete -f -k vaccine10
+
+# FRED job with n runs on m cores
+echo
+echo fred_job -k vaccine10 -n 8 -m 4
+fred_job -k vaccine10 -p vaccine10.fred -n 8 -m 4
+
+# plot the distribution of time before receiving the vaccine
+fred_plot -t "Vaccine for 30\% at 10 Days" -k vaccine10 -v VAC.newReceive --labels Receive --legend 'center right'
+
+fred_plot -t "Vaccine for 30\% at 10 Days" -k vaccine10 -v INF.Is,VAC.newReceive,VAC.totImmune --labels Sympt,Receive,Immune --legend 'center right' -n -s 100
+
+# a sample movie
+# fred_make_movie -k vaccine10 --title 'Influenza with Vaccination in Jefferson County, PA' --vars VAC.Immune,INF.Is,INF.Ia --period 0,1 --center 'Prevalence' --left 'Immune' --interval 10 --disp 1 --colors 'blue red red'
+
+# delete any previous job with this name
+echo
+echo fred_delete -f -k vaccine30
+fred_delete -f -k vaccine30
+
+# FRED job with n runs on m cores
+echo
+echo fred_job -k vaccine30 -n 8 -m 4
+fred_job -k vaccine30 -p vaccine30.fred -n 8 -m 4
+
+# plot the distribution of time before receiving the vaccine
+fred_plot -t "Vaccine for 30\% at 30 Days" -k vaccine30 -v VAC.newReceive --labels Receive --legend 'center right'
+
+fred_plot -t "Vaccine for 30\% at 30 Days" -k vaccine30 -v INF.Is,VAC.newReceive,VAC.totImmune --labels Sympt,Receive,Immune --legend 'center right' -n -s 100
+
+# a sample plot
+fred_plot -t "Vaccine for 30\% at 10 Days vs 30 Days" -k vaccine30,vaccine10 -v INF.totE,INF.totE --labels "30 days","10 days" -n -s 100 --legend 'center right'
+
+
+echo
+echo -n 'METHOD finished '
+date

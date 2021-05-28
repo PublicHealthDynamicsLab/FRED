@@ -1,4 +1,0 @@
-PARAM NAME: report_incidence_by_census_tract
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

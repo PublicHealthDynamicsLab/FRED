@@ -1,4 +1,0 @@
-PARAM NAME: influenza_transmissibility
-DEFAULT VALUE: 1
-TYPE: int
-DEFINITION:

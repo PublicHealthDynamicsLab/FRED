@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Getopt::Long qw(:config no_ignore_case bundling);
@@ -10,28 +33,29 @@ my $dir = `pwd`;
 $dir = `basename $dir`;
 chomp $dir;
 my $oldparams = "";
-my $usage = "usage: $0 -p oldparams [ -h | -r runs | -m cores | -M cpus ]\n";
+my $usage = "usage: $0 -p oldparams [ -h | -r runs | -m cores | -M cpus | -C condition_name ]\n";
 my $help = "";
 my $cpus = 0;
+my $cond = "INF";
 my $opt_result = GetOptions(
 			    "h" => \$help,
 			    "p=s" => \$oldparams,
 			    "r=i" => \$runs,
 			    "M=i" => \$cpus,
+			    "C=s" => \$cond,
 			    "m=i" => \$cores
 );
 die $usage if $help;
 die $usage if not $oldparams;
 
 open FH, ">R0.txt";
-for (my $tr = 0.6; $tr <= 4.0; $tr += 0.2) {
+for (my $tr = 0.5; $tr <= 6.0; $tr += 0.5) {
   $tr = sprintf "%.1f", $tr;
   my $label = "get_coeff-$dir-tr=$tr";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "fred_set 'influenza_transmissibility' $tr $params";
-  system "fred_set days 11 $params";
-  system "fred_set track_infection_events 0 $params";
+  system "fred_set -- '$cond.transmissibility' $tr $params 1";
+  system "fred_set -- days 24 $params 1";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {
@@ -41,10 +65,10 @@ for (my $tr = 0.6; $tr <= 4.0; $tr += 0.2) {
     system "fred_job -p $params -k $label -n $runs -m $cores";
   }
   system "date";
-  my $r0 = `fred_R0 -k $label -d 10`;
+  my $r0 = `fred_R0 -k $label -v INF`;
   chomp $r0;
   print FH "$tr $r0\n";
-  # system "fred_delete -f -k $label";
+  system "fred_delete -f -k $label";
   unlink $params;
 }
 close FH;
@@ -52,26 +76,26 @@ close FH;
 open PLT, ">R0.plt" or die "Can't write file R0.plt\n";
 my $date = scalar localtime();
 print PLT <<EOF;
-# set term aqua font 'Arial Bold, 18'
+# set term aqua font 'Arial Bold, 14'
 # set terminal png medium
 set output 'R0.png'
-set term png font 'Arial Bold, 18'
-set title 'R0 vs transmissibility\\n$runs runs with 100 seeds'
+set term png font 'Arial Bold, 14'
+set title 'R0 vs transmissibility: $runs runs with 100 seeds'
 set ylabel 'R0' offset character 2,0
 set xlabel 'Trans' offset character 0,1.5
 set ytics nomirror 1 out offset character 0.5,0
 set xtics nomirror 1 out offset character 0,0.5
 set grid
-set xrange [0.5:6.25]
+set xrange [0:7]
 set yrange [0:*]
 set key bottom right
 f(x) = a*x*x + b*x
 g(x) = c*x*x + d*x
-fit f(x) 'R0.txt' us 1:2 via a, b
-fit g(x) 'R0.txt' us 2:1 via c, d
+fit f(x) 'R0.txt' us 1:9 via a, b
+fit g(x) 'R0.txt' us 9:1 via c, d
 set label 'generated on $date' at 0.25,-0.75 left font 'Arial,11'
-set label sprintf(\"R0 = %f*trans - %f*trans^2\\ntrans = %f*R0 + %f*R0^2\", b, -a, d, c) at 0.75,5.5
-plot 'R0.txt' us 1:2 title "R0" wi linespo pt 5 ps 1.5 lw 3, '' using 1:2:3 notitle wi err lt 1 lw 1, '' us 1:(a*\$1*\$1 + b*\$1) title 'Fit' with li lt -1 lw 3
+set label sprintf(\"R0 = %f*trans - %f*trans^2\\ntrans = %f*R0 + %f*R0^2\", b, -a, d, c) at 0.75,6.0
+plot 'R0.txt' us 1:9 title "R0" wi linespo pt 5 ps 1.5 lw 3, '' using 1:9:11 notitle wi err lt 1 lw 1, '' us 1:(a*\$1*\$1 + b*\$1) title 'Fit' with li lt -1 lw 3
 EOF
 close PLT;
 
@@ -84,19 +108,18 @@ chomp $c;
 my $d = `grep 'd *=' gnuplot.out | tail -1 | awk '{print \$3}'`;
 chomp $d;
 print "d = $d c = $c\n";
-system "fred_set R0_a $c $oldparams";
-system "fred_set R0_b $d $oldparams";
+system "fred_set -- $cond.R0_a '$c' $oldparams 1";
+system "fred_set -- $cond.R0_b '$d' $oldparams 1";
 
 # run test of specifying input R0
 open FH, ">R0-test.txt";
-for (my $r = 1.0; $r <= 6; $r += 0.5) {
+for (my $r = 0.5; $r <= 6; $r += 0.5) {
   $r = sprintf "%.1f", $r;
   my $label = "get_coeff-$dir-R0=$r";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "fred_set 'R0' $r $params";
-  system "fred_set days 11 $params";
-  system "fred_set track_infection_events 0 $params";
+  system "fred_set -- '$cond.R0' $r $params 1";
+  system "fred_set -- days 24 $params 1";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {
@@ -106,7 +129,7 @@ for (my $r = 1.0; $r <= 6; $r += 0.5) {
     system "fred_job -p $params -k $label -n $runs -m $cores";
   }
   system "date";
-  my $r0 = `fred_R0 -k $label -d 10`;
+  my $r0 = `fred_R0 -k $label -v INF`;
   chomp $r0;
   print FH "$r $r0\n";
   system "fred_delete -f -k $label";
@@ -117,9 +140,8 @@ for (my $r = 11.0; $r <= 10.0; $r += 1.0) {
   my $label = "get_coeff-$dir-R0=$r";
   my $params = "params.$label";
   system "cp $oldparams $params";
-  system "fred_set 'R0' $r $params";
-  system "fred_set days 11 $params";
-  system "fred_set track_infection_events 0 $params";
+  system "fred_set -- '$cond.R0' $r $params 1";
+  system "fred_set -- days 24 $params 1";
   system "date";
   system "fred_delete -f -k $label";
   if ($cpus) {
@@ -129,7 +151,7 @@ for (my $r = 11.0; $r <= 10.0; $r += 1.0) {
     system "fred_job -p $params -k $label -n $runs -m $cores";
   }
   system "date";
-  my $r0 = `fred_R0 -k $label -d 10`;
+  my $r0 = `fred_R0 -k $label -v INF`;
   chomp $r0;
   print FH "$r $r0\n";
   system "fred_delete -f -k $label";
@@ -141,18 +163,18 @@ close FH;
 open PLT, ">R0-test.plt";
 print PLT <<EOF;
 set output 'R0-test.png'
-set term png font 'Arial Bold, 18'
+set term png font 'Arial Bold, 14'
 set title "R0 Input Test: $runs runs"
 set ylabel "R0 Observed" offset character 2,0
 set xlabel "R0 Input" offset character 0,1.5
 set ytics nomirror 1 out offset character 0.5,0
 set xtics nomirror 1 out offset character 0,0.5
 set grid
-set xrange [0:*]
-set yrange [0:*]
+set xrange [0:6.5]
+set yrange [0:6.5]
 set key bottom right
 set label "generated on $date" at 0,-1.75 left font "Arial,11"
-plot 'R0-test.txt' us 1:2 notitle wi lines lt 1 lw 3, '' using 1:2:3 notitle wi err lt 1 lw 1, '' us 1:1 notitle with li lt -1 lw 3
+plot 'R0-test.txt' us 1:9 notitle wi lines lt 1 lw 3, '' using 1:9:11 notitle wi err lt 1 lw 1, '' us 1:1 notitle with li lt -1 lw 3
 EOF
 close PLT;
 system "gnuplot R0-test.plt";

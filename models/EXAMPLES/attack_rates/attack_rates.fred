@@ -1,0 +1,61 @@
+
+# SIMULATION DATES
+start_date = 2010-Jan-01
+end_date = 2010-Jul-19
+
+# SIMULATION LOCATION
+# locations = Allegheny_County_PA
+locations = Jefferson_County_PA
+
+# CONDITIONS
+use FRED::Influenza
+include_condition = REPORT
+
+REPORT.states = S E PreSchool SchoolAge Adult Older R
+
+if state(REPORT,S) then wait()
+if state(REPORT,E) then wait(0)
+if state(REPORT,E) and(range(age,0,4)) then next(PreSchool)
+if state(REPORT,E) and(range(age,5,18)) then next(SchoolAge)
+if state(REPORT,E) and(range(age,19,64)) then next(Adult)
+
+if state(REPORT,E) and(gte(age,65)) then next(Older)
+
+if state(REPORT,PreSchool) then wait()
+if state(REPORT,SchoolAge) then wait()
+if state(REPORT,Adult) then wait()
+if state(REPORT,Older) then wait()
+if state(REPORT,R) then wait()
+
+REPORT.PreSchool.is_dormant = 1
+REPORT.SchoolAge.is_dormant = 1
+REPORT.Adult.is_dormant = 1
+REPORT.Older.is_dormant = 1
+REPORT.R.is_dormant = 1
+
+# SIDE EFFECTS
+if state(INF,E) then set_state(REPORT,S,E)
+if state(INF,R) then set_state(REPORT,PreSchool,R)
+if state(INF,R) then set_state(REPORT,SchoolAge,R)
+if state(INF,R) then set_state(REPORT,Adult,R)
+if state(INF,R) then set_state(REPORT,Older,R)
+if state(INF,R) then set_state(REPORT,Adult,R)
+
+include_condition = POPSIZE
+POPSIZE.states = Start PreSchool SchoolAge Adult Older
+
+if state(POPSIZE,Start) then wait(0)
+if state(POPSIZE,Start) and(range(age,0,4)) then next(PreSchool)
+if state(POPSIZE,Start) and(range(age,5,18)) then next(SchoolAge)
+if state(POPSIZE,Start) and(range(age,19,64)) then next(Adult)
+if state(POPSIZE,Start) and(gte(age,65)) then next(Older)
+if state(POPSIZE,PreSchool) then wait()
+if state(POPSIZE,SchoolAge) then wait()
+if state(POPSIZE,Adult) then wait()
+if state(POPSIZE,Older) then wait()
+
+POPSIZE.PreSchool.is_dormant = 1
+POPSIZE.SchoolAge.is_dormant = 1
+POPSIZE.Adult.is_dormant = 1
+POPSIZE.Older.is_dormant = 1
+

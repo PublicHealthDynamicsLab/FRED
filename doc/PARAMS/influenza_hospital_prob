@@ -1,4 +1,0 @@
-PARAM NAME: influenza_hospital_prob
-DEFAULT VALUE: 4 0.0 0.01 0.01 0.0575
-TYPE: int
-DEFINITION:

@@ -1,0 +1,5 @@
+fred_delete -f -k test_av
+fred_job -k test_av -p params.test -n 4 -m 4
+fred_plot -k test_av -v AV.Finished -n -s 100
+fred_plot -k test_av -v INF.newIs -v AV.newFinished -n -s 100
+

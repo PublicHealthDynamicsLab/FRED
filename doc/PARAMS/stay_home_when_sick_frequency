@@ -1,4 +1,0 @@
-PARAM NAME: stay_home_when_sick_frequency
-DEFAULT VALUE: 1
-TYPE: int
-DEFINITION:

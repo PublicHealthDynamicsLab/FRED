@@ -1,0 +1,4 @@
+
+fred_delete -f -k maternity; fred_job -p model.fred -k maternity -n 4 -m 4
+
+fred_plot -k maternity -v MATERNITY.totChildBirth -n -s 100 

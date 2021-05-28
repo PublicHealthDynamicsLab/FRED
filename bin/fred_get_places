@@ -1,31 +1,83 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Env;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $FRED = $ENV{FRED_HOME};
 die "Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
-my ($dir) = @ARGV;
-$dir = "OUT" if not $dir;
+my $FREDRESULTS = $ENV{FRED_RESULTS};
+$FREDRESULTS = "$ENV{FRED_HOME}/RESULTS" if not $FREDRESULTS;
 
-my @places = qw/X H Nbr Sch Cls Wrk Off/;
-my @names = qw/X H N S C W O/;
+my $help = "";
+my $key = "";
+my $dir = "OUT";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "d=s" => \$dir,
+);
+
+my $usage = <<EOH;
+usage: $0 --help | [ -k key | -d $dir]
+    -k or --key   the key for a FRED job (no default)
+    -d            if no key, the OUT directory (default = OUT)
+EOH
+
+die $usage if $help;
+
+my $keystr = "";
+if ($key) {
+  my $id = `fred_id $key`;
+  chomp $id;
+  die "$0: UNKNOWN key: $key\n$usage\n" if $id eq "UNKNOWN";
+  $dir = "$FREDRESULTS/JOB/$id/OUT";
+  $keystr = "-k $key ";
+}
+
+my @places = qw/X H N S W/;
 my @counts = ();
 my @ave = ();
 my $n = 0;
 
-for my $j (0..6) {
-  my $p = "$places[$j]";
+for my $j (0..4) {
   my $pcount = 0;
   for my $i (1..100) {
-    my $outfile = "$dir/out$i.txt";
-    if (-e $outfile) {
-      my $first_line = `head -1 $outfile`;
-      next if $first_line !~ / $p /;
-      my $count = `perl -ane '(\$x) = /$p\\s(\\d+)/; \$tot += \$x; END {print \$tot;}' $outfile`;
-      chomp $count;
-      $pcount += $count;
+    my $file = "$dir/RUN$i/DAILY/PLACE.$places[$j].txt";
+    # print "file = |$file|\n";
+    if (-e $file) {
+      my $cmd = "fred_get_counts $keystr --run $i -v PLACE.$places[$j] | tail -1";
+      # print "cmd = |$cmd|\n";
+      my $line = `$cmd`;
+      chomp $line;
+      my ($day, $data) = split " ", $line;
+      $pcount += $data;
     }
   }
   $counts[$j] = $pcount;
@@ -33,20 +85,18 @@ for my $j (0..6) {
 }
 close FH;
 
-for my $j (0..6) {
+for my $j (0..4) {
   $ave[$j] = 0;
   $ave[$j] = 100.0 * $counts[$j] / $n if $n > 0;
 }
 
 print "\nobserved:\n";
-for my $j (0..6) {
-  printf "%s %0.2f %d\n", $names[$j], $ave[$j], $counts[$j];
+for my $j (0..4) {
+  printf "%s %0.2f %d\n", $places[$j], $ave[$j], $counts[$j];
 }
-# printf "S+C %0.2f %d\n", $ave[3]+$ave[4], $counts[3]+$counts[4];
-# printf "W+O %0.2f %d\n", $ave[5]+$ave[6], $counts[5]+$counts[6];
 
 open FH, ">places.dat";
-printf FH "H %0.2f N %0.2f S %0.2f W %0.2f\n", $ave[1], $ave[2], $ave[3]+$ave[4], $ave[5]+$ave[6];
+printf FH "H %0.2f N %0.2f S %0.2f W %0.2f\n", $ave[1], $ave[2], $ave[3], $ave[4];
 close FH;
 exit;
 

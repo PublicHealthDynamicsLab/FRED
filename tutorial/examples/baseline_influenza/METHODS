@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# remove any old job
+fred_delete -f -k baseline_influenza
+
+# run 4 simulations in parallel
+fred_job -k baseline_influenza -n 4 -m 4
+
+# make some plots
+fred_plot -k baseline_influenza -t "Baseline Influenza" -v P -b -w -e
+fred_plot -k baseline_influenza -t "Baseline Influenza Attack Rate" -v AR -a
+
+# make a movie
+fred_make_movie -k baseline_influenza --title "Baseline Influenza" --subtitle "Jefferson County, PA" --vars "P C" --ps "0.2 0.4" --pt "5 5" --colors "blue red" --bottom_left "Blue = Prevalence" --bottom_right "Red = Incidence" --bottom_colors "blue red red" --par 20
+open baseline_influenza.mp4
+
+
+
+

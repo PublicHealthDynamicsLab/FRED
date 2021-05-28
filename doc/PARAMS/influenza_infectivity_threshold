@@ -1,4 +1,0 @@
-PARAM NAME: influenza_infectivity_threshold
-DEFAULT VALUE: 0.0
-TYPE: int
-DEFINITION:

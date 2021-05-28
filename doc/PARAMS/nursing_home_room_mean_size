@@ -1,4 +1,0 @@
-PARAM NAME: nursing_home_room_mean_size
-DEFAULT VALUE: 1.5
-TYPE: int
-DEFINITION:

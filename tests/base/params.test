@@ -1,7 +1,0 @@
-days = 20
-fips = 42065
-vaccine_tracefile = none
-tracefile = none
-quality_control = 0
-outdir = OUT.TEST
-track_infection_events = 1

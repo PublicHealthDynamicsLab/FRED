@@ -1,4 +1,0 @@
-PARAM NAME: influenza_enable_case_fatality
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

@@ -1,8 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" href="$_global_8h.html" title="Global.h" alt="" coords="205,316,285,343"/>
-<area shape="rect" href="$_behavior_8h.html" title="Behavior.h" alt="" coords="136,239,235,265"/>
-<area shape="rect" href="$_health_8h.html" title="Health.h" alt="" coords="324,84,407,111"/>
-<area shape="rect" href="$_infection_8h.html" title="Infection.h" alt="" coords="256,161,355,188"/>
-<area shape="rect" href="$_strain_8h.html" title="Strain.h" alt="" coords="379,161,456,188"/>
-<area shape="rect" href="$_epidemic_8h.html" title="Epidemic.h" alt="" coords="360,239,461,265"/>
-</map>

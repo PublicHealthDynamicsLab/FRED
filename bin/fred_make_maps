@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
 use warnings;
 use Env;
@@ -10,9 +33,14 @@ my $api_key = $ENV{FRED_API_KEY};
 $api_key = "none" if not $api_key;
 # print "api_key = '$api_key'\n";
 
+my $vars = "none";
+my $ps = "0.001 0.001 0.001 0.001 0.001 0.001";
+my $pt = "99 99 99 99 99 99";
+my $colors = "blue red black green orange purple";
+my $caption_colors = "blue red black";
+my $period = "";
 my $census_tracts = 0;
 my $country = "usa";
-my $disease_id = 0;
 my $filled = 0;
 my $help = 0;
 my $key = "";
@@ -23,14 +51,7 @@ my $run = 1;
 my $term = "png";
 my $title = "FRED Simulation";
 my $subtitle = " ";
-my $show_all_households = 0;
-my $show_incidence = 0;
-my $show_infectious = 1;
-my $show_recovered = 1;
-my $show_hc_unav = 0;
-my $show_primary_hc_unav = 0;
-my $show_hc_deficit = 0;
-my $show_accept_insr_hc_unav = 0;
+my $subsubtitle = " ";
 my $linewidth = 2;
 my $xmin = 0;
 my $xmax = 0;
@@ -43,21 +64,24 @@ my $finish = 0;
 my $interval = 1;
 my $google = 1;
 my $use_shapefile = 1;
-my $point_size = 0.5;
-my $hazel = 0;
-my $case_fatalities = 0;
-my $total_case_fatalities = 0;
+my $left_caption = "";
+my $center_caption = "";
+my $right_caption = "";
+my $show_names = 0;
 
 my $opt_result = GetOptions(
 			    "api_key=s" => \$api_key,
 			    "border=i" => \$border,
+			    "left_caption=s" => \$left_caption,
+			    "center_caption=s" => \$center_caption,
+			    "right_caption=s" => \$right_caption,
+			    "colors=s" => \$colors,
+			    "caption_colors=s" => \$caption_colors,
 			    "start=i" => \$start,
+			    "period=s" => \$period,
 			    "interval=i" => \$interval,
 			    "census_tracts=i" => \$census_tracts,
-			    "cf=i" => \$case_fatalities,
-			    "tcf=i" => \$total_case_fatalities,
 			    "country=s" => \$country,
-			    "disease=i" => \$disease_id,
 			    "filled=i" => \$filled,
 			    "finish=i" => \$finish,
 			    "h" => \$help,
@@ -67,23 +91,17 @@ my $opt_result = GetOptions(
 			    "g=i" => \$grid,
 			    "key=s" => \$key,
 			    "lightness=i" => \$lightness,
-			    "max=f" => \$max,
 			    "parallelism=i" => \$parallelism,
-			    "point_size=f" => \$point_size,
+			    "ps=s" => \$ps,
+			    "pt=s" => \$pt,
 			    "run=i" => \$run,
+			    "show_names=i" => \$show_names,
+			    "subtitle=s" => \$subtitle,
+			    "subsubtitle=s" => \$subsubtitle,
 			    "term=s" => \$term,
 			    "title=s" => \$title,
-			    "subtitle=s" => \$subtitle,
-			    "households=i" => \$show_all_households,
-			    "incidence=i" => \$show_incidence,
-			    "infectious=i" => \$show_infectious,
-			    "recovered=i" => \$show_recovered,
-			    "hc_unav=i" => \$show_hc_unav,
-			    "hc_deficit=i" =>\$show_hc_deficit,
-				"primary_hc_unav=i" => \$show_primary_hc_unav,
-				"accept_insr_hc_unav=i" => \$show_accept_insr_hc_unav,
+			    "vars=s" => \$vars,
 			    "shapefile=i" => \$use_shapefile,
-			    "hazel=i" => \$hazel,
 			    "lw=f" => \$linewidth,
 			    "x=f" => \$xmin,
 			    "X=f" => \$xmax,
@@ -98,33 +116,23 @@ usage: $0 [ options ], where options include:
   --census_tracts 0/1: plot census tracts [0]
   --cf 0/1: plot daily case_fatalities [0]
   --country <name> : plot the named country [usa]
-  --disease <id> : plot results for the disease id [0]
   --display <0/1> : if set, play the movie after it is made [0]
   --filled <0/1>:  if set, plot filled curves [0]
   --google : if set, use a google map as a background image [1]
   --grid <0/1>: if set, show grid. [0]
   --help: print this help message
-  --households <0/1> : plot all households [0]
-  --incidence <0/1> : if set and dots is set, plot households with incidence [0]
-  --infectious <0/1> : if set and dots is set, plot households with infectious members [1]
   --interval <n> : movie include every nth day [1] 
   --key <id> : plot the job with given id [none - must be specified]
   --lw <n> : use linewidth n to outline counties [2]
   --max <val> : use the given value as the maximum for color plots [10]
   --movie_format <str> : use the specified movie format [mp4]
   --parallelism <n> : plot n maps in parallel [10]
-  --recovered <0/1> :  if set and dots is set, plot households with recovered members [1]
-  --hc_unav <0/1> : plot all households with health care unavailable[0]
-  --primary_hc_unav <0/1> : plot all households with primary health care unavailable [0]
-  --accept_insr_hc_unav <0/1> : plot all households with health care accepting their insurance unavailable [0]
-  --hc_deficit <0/1> : plot households whose primary healthcare is unavailable by census tract
-  --hazel <0/1> : make hazel specific maps [0]
   --run <n> : plot results of run n [1]
   --shapefile <0/1> : if set, draw the shapefile for each fips code
+  --show_names <0/1>: if set, show local place names
   --start day: start movie on specified day [0]
   --subtitle <str> : subtitle for each map [" "]
   --term <type> : plot using the specified terminal type [png]
-  --tcf 0/1: plot total case_fatalities [0]
   --title <str> : title for each map ["FRED Simulation"]
   -x <xmin> : min value for x axis 
   -X <xmax> : max value for x axis 
@@ -146,20 +154,41 @@ my $id = `$bindir/fred_id $key`;
 chomp $id;
 die "$0: UNKNOWN key: $key\n" if $id eq "UNKNOWN";
 
-my $outdir = "$FREDRESULTS/JOB/$id/DATA/OUT";
+my $outdir = "$FREDRESULTS/JOB/$id/OUT";
 chdir $outdir or die "Can't chdir to $outdir\n";
 # print "CWD = $outdir\n";
-my $days = `wc -l out1.txt`;
-chomp $days;
-$days--;
+
+# get dates
+my @dates  = ();
+my $datefile = "$FREDRESULTS/JOB/$id/OUT/RUN$run/DAILY/Date.txt";
+if (-e $datefile) {
+  open FH, $datefile;
+  while (my $line = <FH>) {
+    chomp $line;
+    my ($n, $date) = split " ", $line;
+    push @dates, $date;
+  }
+  close FH;
+}
+else {
+  die "$0: Can't file $datefile";
+}
+# print "dates:\n"; print "$_\n" for @dates; print "XXX\n";
+
+# determine number of days
+my $days = scalar @dates;
 $days = $finish if (0 < $finish and $finish < $days);
-$parallelism = $days if ($days < $parallelism);
 # print "days = $days\n";
 
-my $vis = "$outdir/VIS/run$run/dis$disease_id";
-chdir $vis or die "Can't chdir to $vis\n";
-# print "CWD = $vis\n";
+# limit parallelism to number of days
+$parallelism = $days if ($days < $parallelism);
 
+# find visualization dir
+my $vis = "$outdir/RUN$run/VIS";
+chdir $vis or die "Can't chdir to $vis\n";
+# print "CWD vis = $vis\n";
+
+# make MAPS if needed
 if (not -d "MAPS") {
   system "mkdir -p MAPS";
   die "Can't mkdir MAPS\n" if not -d "MAPS";
@@ -168,69 +197,72 @@ else {
    # print "MAPS already exists\n";
 }
 
-# get the population for each fips code
-my @fips = ();
-my %pop = ();
-my $fipspopfile ="$FRED/input_files/countries/$country/fips_pop.txt";
-open IN,$fipspopfile or die "ERROR: no file $fipspopfile\n";
-while (<IN>) {
-  chomp;
-  my ($fips,$n) = split " ";
-  $pop{$fips} = $n;
-  # print "pop of $fips = $pop{$fips}\n";
-}
-close IN;
+# clear out old data
+chdir "MAPS" or die "$0: Can't chdir to MAPS";
+system "rm -f BBOX FAILED googlemap.png map* fred_map_param* tl_* *.log data*";
 
-my $shapefiledir ="$FRED/input_files/countries/$country/SHAPES";
-my $max_ar = 0.0;
-my @ar = ();
-
-if ($country eq "usa" and $census_tracts eq 1) {
-  make_census_tract_map_data();
-  }
-  elsif ( $hazel eq 1) {
-	#print "make hazel map\n";
-	make_hazel_map_data();
-	}
-	#}
-	else {
-	#print "make county map\n";
-  	make_county_map_data($run);
-	}
-	$max_ar = $max if $max;
-	# print "max_ar = $max_ar\n";
-	chdir "MAPS";
-	system "rm -f BBOX FAILED googlemap.png map* load* fred_make_maps.log";
-if ((scalar @fips eq 1) and $google) {
-  # print "using existing county image\n";
-  # use background image if it already exists
-  my $loc = sprintf("%05d", $fips[0]);
-  my $mapsdir = "$FRED/input_files/countries/$country/MAPS";
-  # system "echo $mapsdir; ls -l $mapsdir";
-  my $background_map = "$mapsdir/$loc.png";
-  # print "|$background_map|\n";
-  if (-e $background_map) {
-    system "cp $background_map googlemap.png";
-    system "cp $mapsdir/$loc.bbox BBOX";
-    $use_shapefile = 0;
-  }
-}
+# get the fips codes
+die "$0: Can't find $vis/COUNTIES" if not -e "$vis/COUNTIES"; 
+system "cp $vis/COUNTIES FIPS";
+my $logfile = "fred_make_maps.log";
 
 # get census tract shapefiles if needed
+system "echo checking census_tract shapefiles for $country $census_tracts  >> $logfile";
 if ($country eq "usa" and $census_tracts eq 1) {
   my $shapedir = "$FRED/SHAPEFILES/2010";
-  my $shapefile = "x";
-  $shapefiledir ="SHAPES";
-  if (not -d "SHAPES") {
-    # get county
-    open FH, "FIPS";
-    my $county = <FH>;
-    close FH;
-    $county = substr($county,0,5);
-    $shapefile = "tl_2010_$county\_tract10";
-    system "unzip $shapedir/$shapefile >> fred_make_maps.log ";
-    system "mkdir -p SHAPES";
-    system "$bindir/fred_read_shapefile $shapefile SHAPES >> fred_make_maps.log";
+  my $zipfile = "x";
+  my $shapefiledir ="$FRED/data/country/$country/SHAPES";
+  if (not -d $shapefiledir) {
+    system "mkdir -p $shapefiledir";
+  }
+  $shapefiledir ="$shapefiledir/CENSUS_TRACTS";
+  if (not -d $shapefiledir) {
+    system "mkdir -p $shapefiledir";
+  }
+  my @fips = ();
+  my $fipsfile = "$vis/COUNTIES";
+  open FIPS, $fipsfile or die "$0: Can't find location code file $fipsfile\n";
+  @fips = <FIPS>;
+  close FIPS;
+  for my $county (@fips) {
+    chomp $county;
+    system "echo getting census_tract shapefiles for $county >> $logfile";
+    $zipfile = "tl_2010_$county\_tract10";
+    system "echo unzip $shapedir/$zipfile >> $logfile ";
+    system "unzip $shapedir/$zipfile >> $0.logs";
+    system "echo $bindir/fred_read_shapefile $zipfile $shapefiledir >> $logfile";
+    system "$bindir/fred_read_shapefile $zipfile $shapefiledir >> $logfile";
+  }
+  # get the census tract fips codes
+  die "$0: Can't find $vis/CENSUS_TRACTS" if not -e "$vis/CENSUS_TRACTS";
+  system "echo cp $vis/CENSUS_TRACTS FIPS >> $logfile";
+  system "cp $vis/CENSUS_TRACTS FIPS";
+}
+
+# prepare for cumulative CFs if needed
+my @v = split " ", $vars;
+if (grep(/TCF/,@v)) {
+  my $dir = "$vis/CF";
+  if (-e $dir) {
+    for (my $day = 0; $day <= $days; $day++) {
+      if ($day==0) {
+	if (-e "$dir/loc-0.txt") {
+	  system "cp $dir/loc-0.txt $dir/total-0.txt";
+	}
+	else {
+	  system "cp $dir/hh-0.txt $dir/total-0.txt";
+	}
+      }
+      else {
+	my $prev = $day-1;
+	if (-e "$dir/loc-$day.txt") {
+	  system "cat $dir/total-$prev.txt $dir/loc-$day.txt > $dir/total-$day.txt";
+	}
+	else {
+	  system "cat $dir/total-$prev.txt $dir/hh-$day.txt > $dir/total-$day.txt";
+	}
+      }
+    }  
   }
 }
 
@@ -242,70 +274,28 @@ my $started = 0;
 my @cmds = ();
 my @wait = ();
 my $index = 0;
-for (my $day = $start; $day <= $days; $day += $interval) {
+my @period_list = split " ", $period;
+while (scalar @period_list < scalar @v) {
+  push @period_list, 1;
+}
+for (my $day = $start; $day < $days; $day += $interval) {
+
   my $mapname = sprintf("map%04d.$term",$index);
   push @wait, $mapname;
   $index++;
-  # print "make_map $mapname\n";
-  my $loadfile = "load-run=$run-dis=$disease_id-day=$day.plt";
-  open LD, ">$loadfile";
-  print LD "my_title = \"$title\"\n";
-  print LD "my_subtitle = \"$subtitle\"\n";
-  print LD "day = $day\n";
-  print LD "google = $google\n";
-  print LD "terminal = '$term'\n";
-  print LD "mapname = '$mapname'\n";
-  print LD "show_all_households = $show_all_households\n";
-  print LD "show_incidence = $show_incidence\n";
-  print LD "show_infectious = $show_infectious\n";
-  print LD "show_recovered = $show_recovered\n";
-  print LD "show_case_fatalities = $case_fatalities\n";
-  print LD "show_total_case_fatalities = $total_case_fatalities\n";
-  print LD "show_hc_unav = $show_hc_unav\n"; 
-  print LD "show_primary_hc_unav = $show_primary_hc_unav\n"; 
-  print LD "show_accept_insr_hc_unav = $show_accept_insr_hc_unav\n";
-  print LD "show_hc_deficit = $show_hc_deficit\n";
-  print LD "filled = $filled\n";
-  print LD "max = $max_ar\n";
-  print LD "household_locations = '$vis/households.txt'\n";
-  print LD "household_incidence = '$vis/C/households-$day.txt'\n";
-  print LD "infectious_households = '$vis/I/households-$day.txt'\n";
-  print LD "recovered_households = '$vis/R/households-$day.txt'\n";
-  print LD "case_fatalities_households = '$vis/CF/households-$day.txt'\n";
-  print LD "total_case_fatalities_households = '$vis/TCF/households-$day.txt'\n";
-  print LD "primary_hc_unav_household = '$vis/HH_primary_hc_unav/households-$day.txt'\n";;
-  print LD "accept_insr_hc_unav_incidence = '$vis/HH_accept_insr_hc_unav/households-$day.txt'\n";
-  print LD "hc_unav_households = '$vis/HH_hc_unav/households-$day.txt'\n";
-  print LD "hc_deficit_data = '$vis/HC_DEFICIT/census_tracts-$day.txt'\n";
-  print LD "fipsfile = '$vis/MAPS/FIPS'\n";
-  print LD "rawfile = '$vis/MAPS/RAW-$disease_id.$day'\n";
-  print LD "pctfile = '$vis/MAPS/PCT-$disease_id.$day'\n";
-  print LD "use_shapefile = $use_shapefile\n";
-  print LD "shapefile_dir = '$shapefiledir'\n";
-  print LD "linewidth = $linewidth\n";
-  print LD "force_xmin = $xmin\n";
-  print LD "force_xmax = $xmax\n";
-  print LD "force_ymin = $ymin\n";
-  print LD "force_ymax = $ymax\n";
-  print LD "show_grid = $grid\n";
-  print LD "show_border = $border\n";
-  print LD "api_key = '$api_key'\n";
-  print LD "lightness =  $lightness\n";
-  print LD "point_size =  $point_size\n";
-  close LD;
 
-  my $cmd = "gnuplot -e \'load \"$loadfile\" \' $bindir/fred_make_map 2\>\> fred_make_maps.log"; 
-  system "echo ================================ >> fred_make_maps.log; echo $cmd >> fred_make_maps.log";
-  system("($cmd; touch .done.$day)&");
+  # print "make_map $mapname\n";
+  make_map($day, $mapname, $vars);
+
   # print "$mapname\n";
   print ".";
+
   $started++;
   if (($day eq $start) or ($started eq $parallelism)) {
     for my $file (@wait) {
       while (not -s $file) {
 	if (-e "FAILED") {
-	  system "mv FIPS FIPS.failed";
-	  die "$0: fred_make_map failed\n";
+	  die "$0 failed\n";
 	}
 	sleep 1;
       }
@@ -324,179 +314,44 @@ exit;
 
 ##################################################
 
-sub make_county_map_data {
-  my $run = shift;
-  # print "make_county_map_data\n";
-  my $filename = "$outdir/out$run.txt";
-  die "$0: outfile $filename not found\n" if not -e "$filename";
-
-  @fips = ();
-  my $first = 1;
-  open FH, $filename or die "ERROR: $0 can't open file $filename\n";
-  while (<FH>) {
-    chomp;
-    my @a = split " ";
-    my $day = $a[1];
-    my @values_0 = ();
-    my @values_1 = ();
-    my @values_2 = ();
-    my @values_3 = ();
-    while (@a) {
-      my $key = shift @a;
-      my $val = shift @a;
-      if ($key =~ /^County_/) {
-	my $code = "";
-	my $dis = 0;
-	if ($key =~ /^County_(\d+)_(\d+)/) {
-	  ($code, $dis) = $key =~ /^County_(\d+)_(\d+)/;
-	}
-	else {
-	  ($code) = $key =~ /^County_(\d+)/;
-	  $dis = 0;
-	}
-	if ($dis == 0 and $day == 0) {
-	  $code = sprintf("%05d", $code);
-	  push @fips, $code;
-	}
-	push @values_0, $val if $dis == 0;
-	push @values_1, $val if $dis == 1;
-	push @values_2, $val if $dis == 2;
-	push @values_3, $val if $dis == 3;
+sub make_map {
+  my ($day, $mapname, $vars) = @_;
+  my @x = split " ", $vars;
+  my $size = scalar @x;
+  my $datafiles = "";
+  for my $i (0..$#x) {
+    my $datafile = "data-$day-$i-$$";
+    system "cat /dev/null > $datafile";
+    my $v = $x[$i];
+    my $start_day = 0;
+    if ($period_list[$i] > 0) {
+      $start_day = $day - ($period_list[$i]-1);
+    }
+    $start_day = 0 if $start_day < 0;
+    for my $d ($start_day..$day) {
+      if (-e "$vis/$v/loc-$d.txt") {
+	system "cat $vis/$v/loc-$d.txt >> $datafile";
+      }
+      else {
+	system "cat $vis/$v/hh-$d.txt >> $datafile";
       }
     }
-    exit if not @fips;
-    if ($first) {
-      # print "fips = @fips\n";
-      my $outfile = "MAPS/FIPS";
-      open OUT,">$outfile";
-      print OUT "$_\n" for @fips;
-      close OUT;
-      for my $i (0..$#values_0) {
-	$ar[$i] = 0.0;
-      }
-      $first = 0;
-    }
-    if ($filled) {
-      write_values_to_file(0,$day, @values_0);
-      write_values_to_file(1,$day, @values_1);
-      write_values_to_file(2,$day, @values_2);
-      write_values_to_file(3,$day, @values_3);
-    }
+    system "echo 0 0 > $datafile" if -z $datafile;
+    $datafiles .= "$datafile ";
   }
-  close FH;
+  my $var = shift @x;
+  my $my_date = "";
+  if (@dates) {
+    $my_date = "";
+    # print "day = $day\n";
+    $my_date = $dates[$day] if $day < scalar @dates;
+    chomp $my_date;
+    $my_date =~ s/^.*? //;
+  }
+
+  my $cmd = "$bindir/fred_make_map --day $day --date '$my_date' --datafile '$datafiles' --api_key $api_key --country $country --term $term --title '$title' --subtitle '$subtitle' --subsubtitle '$subsubtitle' --lw $linewidth -x $xmin -X $xmax -y $ymin -Y $ymax --grid $grid --border $border --google $google --shapefile $use_shapefile --lightness $lightness --ps '$ps' --pt '$pt' --colors '$colors' --caption_colors '$caption_colors' --mapname '$mapname' --display 0  --left_caption '$left_caption' --center_caption '$center_caption' --right_caption '$right_caption' --show_names $show_names ";
+  # print "$command\n"; exit;
+
+  system("($cmd; touch .done.$day)&");
 }
 
-sub write_values_to_file {
-  my ($dis,$day, @values) = @_;
-  return if not @values;
-  my $rawfile = "RAW-$dis.$day";
-  my $pctfile = "PCT-$dis.$day";
-  open RAW,">MAPS/$rawfile";
-  open PCT,">MAPS/$pctfile";
-  for my $i (0..$#values) {
-    my $f = sprintf("%05d", $fips[$i]);
-    die "$0: can't find pop for fips = |$fips[$i]|\n" if not exists $pop{$f};
-    die "$0: zero pop for fips = |$fips[$i]|\n" if not $pop{$f};
-    my $pct = 100.0 * $values[$i] / $pop{$f};
-    $ar[$i] += $pct;
-    $max_ar = $ar[$i] if $ar[$i] > $max_ar;
-    print RAW "$values[$i] $pop{$f}\n";
-    print PCT "$ar[$i]\n";
-  }
-  close RAW;
-  close PCT;
-}
-
-sub make_census_tract_map_data {
-  open FIPS,">MAPS/FIPS";
-  my @ar = ();
-  
-  for my $day (0..$days) {
-    my $file;
-    if ($hazel) {
-      $file = "HC_DEFICIT/census_tracts-$day.txt";
-      #print "file $file\n";
-    }
-    else {
-      $file = "C/census_tracts-$day.txt";
-    }
-    die "$0: ERROR file $file not found\n" if not -e $file;
-    open CT,$file or die "$0: ERROR reading file $file\n";
-    my $rawfile = "RAW-$disease_id.$day";
-    my $pctfile = "PCT-$disease_id.$day";
-    if ($filled) {
-      open RAW,">MAPS/$rawfile";
-      open PCT,">MAPS/$pctfile";
-    }
-    my $line = <CT>; # skip header line
-    my $i = 0;
-    while ($line = <CT>) {
-      chomp $line;
-      #print "line $line\n";
-      my ($tract,$count,$pop) = split " ", $line;
-      #print "data $tract $count $pop\n";
-      if ($day == 0) {
-	  my $format = "\%05d\n";
-	  my $str = "x$tract";
-	  $format = "\%011d\n" if length($str) > 6;
-	  printf FIPS $format, $tract;
-	  $ar[$i] = 0.0;
-       }
-      my $pct = 0.0;
-      #print "in $count $pop \n";
-      $pct = 100.0 * $count / $pop if $pop;
-      #print "percent $pct\n";
-      $ar[$i] = $pct;
-      #print "ar[$i]  $ar[$i]\n";
-      $max_ar = $ar[$i] if $ar[$i] > $max_ar;
-      #print "maps $count $pop $ar[$i]\n";
-      print RAW "$count $pop\n" if $filled;
-      print PCT "$ar[$i]\n" if $filled;
-      $i++;
-    }
-    close CT;
-    close RAW if $filled;
-    close PCT if $filled;
-  }
-  close FIPS;
-  return;
-}
-
-sub make_hazel_map_data {
-  my $run = 1;
-  my $filename = "$outdir/out$run.txt";
-  die "$0: outfile $filename not found\n" if not -e "$filename";
-  @fips = ();
-  my $first = 1;
-  open FH, $filename or die "ERROR: $0 can't open file $filename\n";
-  while (<FH>) { 
-    chomp;
-    my @a = split " ";
-    my $day = $a[1];
-    my @values_0 = ();   
-    while (@a) {
-      my $key = shift @a;
-      my $val = shift @a;
-	  my $code = "36081";
-	  my $dis = 0;
-	  if ($dis == 0 and $day == 0) {
-	    $code = sprintf("%05d", $code);
-	    push @fips, $code;
-	  }
-	  push @values_0, $val if $dis == 0;
-     }
-     exit if not @fips;
-     if ($first) {
-      #print "fips = @fips\n";
-      my $outfile = "MAPS/FIPS";
-      open OUT,">$outfile";
-      print OUT "$_\n" for @fips;
-      close OUT;
-      $first = 0;
-     }
-    if ($filled) {
-      write_values_to_file(0,$day, @values_0);
-   }
-  }
-  close FH;
-}

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+echo -n 'METHODS started '
+date
+
+# delete any previous job with this name
+echo
+echo "fred_delete -f -k attack_rate"
+fred_delete -f -k attack_rate
+
+# FRED job with n runs on m cores
+echo
+echo "fred_job -k attack_rate -p attack_rates.fred -n 4 -m 4"
+fred_job -k attack_rate -p attack_rates.fred -n 4 -m 1
+
+# plot the breakdown of attack_rates
+echo "fred_plot -k attack_rate -t Incidence -v REPORT.newPreSchool,REPORT.newSchoolAge,REPORT.newAdult,REPORT.newOlder,INF.newE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar"
+fred_plot -k attack_rate -t Incidence -v REPORT.newPreSchool,REPORT.newSchoolAge,REPORT.newAdult,REPORT.newOlder,INF.newE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar
+
+# plot the breakdown of attack_rates
+echo "fred_plot -k attack_rate -t Prevalence -v REPORT.PreSchool,REPORT.SchoolAge,REPORT.Adult,REPORT.Older -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-prev"
+fred_plot -k attack_rate -t Prevalence -v REPORT.PreSchool,REPORT.SchoolAge,REPORT.Adult,REPORT.Older -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-prev
+
+# plot the total attack_rates
+echo "fred_plot -k attack_rate -t Cumulative -v REPORT.totPreSchool,REPORT.totSchoolAge,REPORT.totAdult,REPORT.totOlder,INF.totE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot -n -s 100 -Y 100"
+fred_plot -k attack_rate -t Cumulative -v REPORT.totPreSchool,REPORT.totSchoolAge,REPORT.totAdult,REPORT.totOlder,INF.totE -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot -n -s 100 -Y 100
+
+# plot the normalized total attack_rates
+echo "fred_plot -k attack_rate -t 'Cumulative Normalized' -v REPORT.totPreSchool/POPSIZE.PreSchool,REPORT.totSchoolAge/POPSIZE.SchoolAge,REPORT.totAdult/POPSIZE.Adult,REPORT.totOlder/POPSIZE.Older,INF.totE/Popsize -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot-norm --ylabel 'Percent of Sub-population'"
+fred_plot -k attack_rate -t 'Cumulative Normalized' -v REPORT.totPreSchool/POPSIZE.PreSchool,REPORT.totSchoolAge/POPSIZE.SchoolAge,REPORT.totAdult/POPSIZE.Adult,REPORT.totOlder/POPSIZE.Older,INF.totE/Popsize -l PreSchool,School,Adults,Older,Total -c orange,red,dark-green,blue,black -o ar-tot-norm --ylabel 'Percent of Sub-population'
+
+echo
+echo -n 'METHOD finished '
+date
+

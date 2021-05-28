@@ -1,0 +1,330 @@
+#####################################################
+# MODULE FRED::Mortality
+# Author: John Grefenstette
+# Date: 15 Apr 2019
+#
+# RULES:
+#
+# 1. Each agent begins in a Wait period that lasts randomly between 1
+# and 365 days, in order to spread out mortality events uniformly in the
+# population. The Wait state leads to the Screening state.
+#
+# 2. The Screening state immediately leads to either the Male or Female
+# state depending on the sex of the agent.
+# 
+# 3. The Female state leads immediately leads to either Survival or
+# Death according to the agent's age-specific annual probability of
+# mortality for females (citation).
+#
+# 4. The Male state leads immediately leads to either Survival or Death
+# according to the agent's age-specific annual probability of mortality
+# for males (citation).
+#
+# 5. The Survival state lasts 365 days, leading to the agent's annual
+# Screening.
+#
+# 6. The Death state is a fatal state.
+#
+#####################################################
+
+# CONDITIONS:
+
+include_condition = MORTALITY
+
+# OPTIONAL PARAMETERS:
+
+# enable_health_records = 1
+# MORTALITY.enable_health_records = 1
+
+# REQUIRED PARAMETERS:
+
+# This condition only makes sense if people age
+
+enable_population_dynamics = 1
+
+#####################################################
+
+# STATES:
+
+MORTALITY.states = Wait Screening Female Male Survival Death
+
+#####################################################
+
+# RULES:
+
+#####################################################
+
+# 1. Each agent begins in a Wait period that lasts randomly between 1
+# and 365 days, in order to spread out mortality events uniformly in the
+# population. The Wait state leads to the Screening state.
+
+if state(MORTALITY,Wait) then wait(mult(24,uniform(1,365)))
+if state(MORTALITY,Wait) then next(Screening)
+
+#####################################################
+
+# 2. The Screening state immediately leads to either the Male or Female
+# state depending on the sex of the agent.
+
+if state(MORTALITY,Screening) then wait(0)
+if state(MORTALITY,Screening) and(sex == male) then next(Male)
+if state(MORTALITY,Screening) and(sex == female) then next(Female)
+
+#####################################################
+
+# 3. The Female state leads immediately leads to either Survival or
+# Death according to the agent's age-specific annual probability of
+# mortality for females (citation).
+
+if state(MORTALITY,Female) then wait(0)
+if state(MORTALITY,Female) then default(Survival)
+
+if state(MORTALITY,Female) and(age == 0) then next(Death) with prob(0.00564000)
+if state(MORTALITY,Female) and(age == 1) then next(Death) with prob(0.00041400)
+if state(MORTALITY,Female) and(age == 2) then next(Death) with prob(0.00022100)
+if state(MORTALITY,Female) and(age == 3) then next(Death) with prob(0.00016800)
+if state(MORTALITY,Female) and(age == 4) then next(Death) with prob(0.00013500)
+if state(MORTALITY,Female) and(age == 5) then next(Death) with prob(0.00010500)
+if state(MORTALITY,Female) and(age == 6) then next(Death) with prob(0.00010600)
+if state(MORTALITY,Female) and(age == 7) then next(Death) with prob(0.00009800)
+if state(MORTALITY,Female) and(age == 8) then next(Death) with prob(0.00010600)
+if state(MORTALITY,Female) and(age == 9) then next(Death) with prob(0.00009100)
+if state(MORTALITY,Female) and(age == 10) then next(Death) with prob(0.00009700)
+if state(MORTALITY,Female) and(age == 11) then next(Death) with prob(0.00011100)
+if state(MORTALITY,Female) and(age == 12) then next(Death) with prob(0.00012200)
+if state(MORTALITY,Female) and(age == 13) then next(Death) with prob(0.00012100)
+if state(MORTALITY,Female) and(age == 14) then next(Death) with prob(0.00015400)
+if state(MORTALITY,Female) and(age == 15) then next(Death) with prob(0.00017500)
+if state(MORTALITY,Female) and(age == 16) then next(Death) with prob(0.00024500)
+if state(MORTALITY,Female) and(age == 17) then next(Death) with prob(0.00027100)
+if state(MORTALITY,Female) and(age == 18) then next(Death) with prob(0.00032600)
+if state(MORTALITY,Female) and(age == 19) then next(Death) with prob(0.00037900)
+if state(MORTALITY,Female) and(age == 20) then next(Death) with prob(0.00039600)
+if state(MORTALITY,Female) and(age == 21) then next(Death) with prob(0.00043800)
+if state(MORTALITY,Female) and(age == 22) then next(Death) with prob(0.00044900)
+if state(MORTALITY,Female) and(age == 23) then next(Death) with prob(0.00045600)
+if state(MORTALITY,Female) and(age == 24) then next(Death) with prob(0.00050600)
+if state(MORTALITY,Female) and(age == 25) then next(Death) with prob(0.00050600)
+if state(MORTALITY,Female) and(age == 26) then next(Death) with prob(0.00052800)
+if state(MORTALITY,Female) and(age == 27) then next(Death) with prob(0.00052400)
+if state(MORTALITY,Female) and(age == 28) then next(Death) with prob(0.00060100)
+if state(MORTALITY,Female) and(age == 29) then next(Death) with prob(0.00062700)
+if state(MORTALITY,Female) and(age == 30) then next(Death) with prob(0.00066500)
+if state(MORTALITY,Female) and(age == 31) then next(Death) with prob(0.00068200)
+if state(MORTALITY,Female) and(age == 32) then next(Death) with prob(0.00073800)
+if state(MORTALITY,Female) and(age == 33) then next(Death) with prob(0.00074500)
+if state(MORTALITY,Female) and(age == 34) then next(Death) with prob(0.00080600)
+if state(MORTALITY,Female) and(age == 35) then next(Death) with prob(0.00086000)
+if state(MORTALITY,Female) and(age == 36) then next(Death) with prob(0.00097800)
+if state(MORTALITY,Female) and(age == 37) then next(Death) with prob(0.00100900)
+if state(MORTALITY,Female) and(age == 38) then next(Death) with prob(0.00108800)
+if state(MORTALITY,Female) and(age == 39) then next(Death) with prob(0.00117200)
+if state(MORTALITY,Female) and(age == 40) then next(Death) with prob(0.00123700)
+if state(MORTALITY,Female) and(age == 41) then next(Death) with prob(0.00140800)
+if state(MORTALITY,Female) and(age == 42) then next(Death) with prob(0.00151700)
+if state(MORTALITY,Female) and(age == 43) then next(Death) with prob(0.00168700)
+if state(MORTALITY,Female) and(age == 44) then next(Death) with prob(0.00187600)
+if state(MORTALITY,Female) and(age == 45) then next(Death) with prob(0.00196400)
+if state(MORTALITY,Female) and(age == 46) then next(Death) with prob(0.00233400)
+if state(MORTALITY,Female) and(age == 47) then next(Death) with prob(0.00249800)
+if state(MORTALITY,Female) and(age == 48) then next(Death) with prob(0.00269300)
+if state(MORTALITY,Female) and(age == 49) then next(Death) with prob(0.00294000)
+if state(MORTALITY,Female) and(age == 50) then next(Death) with prob(0.00318900)
+if state(MORTALITY,Female) and(age == 51) then next(Death) with prob(0.00346900)
+if state(MORTALITY,Female) and(age == 52) then next(Death) with prob(0.00380100)
+if state(MORTALITY,Female) and(age == 53) then next(Death) with prob(0.00397200)
+if state(MORTALITY,Female) and(age == 54) then next(Death) with prob(0.00434000)
+if state(MORTALITY,Female) and(age == 55) then next(Death) with prob(0.00441500)
+if state(MORTALITY,Female) and(age == 56) then next(Death) with prob(0.00496700)
+if state(MORTALITY,Female) and(age == 57) then next(Death) with prob(0.00518400)
+if state(MORTALITY,Female) and(age == 58) then next(Death) with prob(0.00569900)
+if state(MORTALITY,Female) and(age == 59) then next(Death) with prob(0.00610200)
+if state(MORTALITY,Female) and(age == 60) then next(Death) with prob(0.00641800)
+if state(MORTALITY,Female) and(age == 61) then next(Death) with prob(0.00713200)
+if state(MORTALITY,Female) and(age == 62) then next(Death) with prob(0.00764600)
+if state(MORTALITY,Female) and(age == 63) then next(Death) with prob(0.00862800)
+if state(MORTALITY,Female) and(age == 64) then next(Death) with prob(0.00976900)
+if state(MORTALITY,Female) and(age == 65) then next(Death) with prob(0.01010100)
+if state(MORTALITY,Female) and(age == 66) then next(Death) with prob(0.01118100)
+if state(MORTALITY,Female) and(age == 67) then next(Death) with prob(0.01215800)
+if state(MORTALITY,Female) and(age == 68) then next(Death) with prob(0.01356400)
+if state(MORTALITY,Female) and(age == 69) then next(Death) with prob(0.01470900)
+if state(MORTALITY,Female) and(age == 70) then next(Death) with prob(0.01600600)
+if state(MORTALITY,Female) and(age == 71) then next(Death) with prob(0.01757200)
+if state(MORTALITY,Female) and(age == 72) then next(Death) with prob(0.01927800)
+if state(MORTALITY,Female) and(age == 73) then next(Death) with prob(0.02113700)
+if state(MORTALITY,Female) and(age == 74) then next(Death) with prob(0.02312700)
+if state(MORTALITY,Female) and(age == 75) then next(Death) with prob(0.02572000)
+if state(MORTALITY,Female) and(age == 76) then next(Death) with prob(0.02872300)
+if state(MORTALITY,Female) and(age == 77) then next(Death) with prob(0.03120400)
+if state(MORTALITY,Female) and(age == 78) then next(Death) with prob(0.03508400)
+if state(MORTALITY,Female) and(age == 79) then next(Death) with prob(0.03774300)
+if state(MORTALITY,Female) and(age == 80) then next(Death) with prob(0.04230500)
+if state(MORTALITY,Female) and(age == 81) then next(Death) with prob(0.04741800)
+if state(MORTALITY,Female) and(age == 82) then next(Death) with prob(0.05298000)
+if state(MORTALITY,Female) and(age == 83) then next(Death) with prob(0.05939900)
+if state(MORTALITY,Female) and(age == 84) then next(Death) with prob(0.06719700)
+if state(MORTALITY,Female) and(age == 85) then next(Death) with prob(0.07391670)
+if state(MORTALITY,Female) and(age == 86) then next(Death) with prob(0.08130837)
+if state(MORTALITY,Female) and(age == 87) then next(Death) with prob(0.08943921)
+if state(MORTALITY,Female) and(age == 88) then next(Death) with prob(0.09838313)
+if state(MORTALITY,Female) and(age == 89) then next(Death) with prob(0.10822140)
+if state(MORTALITY,Female) and(age == 90) then next(Death) with prob(0.11904360)
+if state(MORTALITY,Female) and(age == 91) then next(Death) with prob(0.13094790)
+if state(MORTALITY,Female) and(age == 92) then next(Death) with prob(0.14404270)
+if state(MORTALITY,Female) and(age == 93) then next(Death) with prob(0.15844700)
+if state(MORTALITY,Female) and(age == 94) then next(Death) with prob(0.17429170)
+if state(MORTALITY,Female) and(age == 95) then next(Death) with prob(0.19172090)
+if state(MORTALITY,Female) and(age == 96) then next(Death) with prob(0.21089300)
+if state(MORTALITY,Female) and(age == 97) then next(Death) with prob(0.23198230)
+if state(MORTALITY,Female) and(age == 98) then next(Death) with prob(0.25518050)
+if state(MORTALITY,Female) and(age == 99) then next(Death) with prob(0.28069850)
+if state(MORTALITY,Female) and(age == 100) then next(Death) with prob(0.30876840)
+if state(MORTALITY,Female) and(age == 101) then next(Death) with prob(0.33964520)
+if state(MORTALITY,Female) and(age == 102) then next(Death) with prob(0.37360980)
+if state(MORTALITY,Female) and(age == 103) then next(Death) with prob(0.41097070)
+if state(MORTALITY,Female) and(age == 104) then next(Death) with prob(0.45206780)
+if state(MORTALITY,Female) and(age == 105) then next(Death) with prob(0.49727460)
+if state(MORTALITY,Female) and(age == 106) then next(Death) with prob(0.54700210)
+if state(MORTALITY,Female) and(age == 107) then next(Death) with prob(0.60170230)
+if state(MORTALITY,Female) and(age == 108) then next(Death) with prob(0.66187250)
+if state(MORTALITY,Female) and(age == 109) then next(Death) with prob(0.72805970)
+if state(MORTALITY,Female) and(age >= 110) then next(Death) with prob(1)
+
+#####################################################
+
+# 4. The Male state leads immediately leads to either Survival or Death
+# according to the agent's age-specific annual probability of mortality
+# for males (citation).
+
+if state(MORTALITY,Male) then wait(0)
+if state(MORTALITY,Male) then default(Survival)
+
+if state(MORTALITY,Male) and(age == 0) then next(Death) with prob(0.00680200)
+if state(MORTALITY,Male) and(age == 1) then next(Death) with prob(0.00045700)
+if state(MORTALITY,Male) and(age == 2) then next(Death) with prob(0.00031500)
+if state(MORTALITY,Male) and(age == 3) then next(Death) with prob(0.00024000)
+if state(MORTALITY,Male) and(age == 4) then next(Death) with prob(0.00017600)
+if state(MORTALITY,Male) and(age == 5) then next(Death) with prob(0.00014100)
+if state(MORTALITY,Male) and(age == 6) then next(Death) with prob(0.00012300)
+if state(MORTALITY,Male) and(age == 7) then next(Death) with prob(0.00013000)
+if state(MORTALITY,Male) and(age == 8) then next(Death) with prob(0.00012400)
+if state(MORTALITY,Male) and(age == 9) then next(Death) with prob(0.00011900)
+if state(MORTALITY,Male) and(age == 10) then next(Death) with prob(0.00010900)
+if state(MORTALITY,Male) and(age == 11) then next(Death) with prob(0.00014100)
+if state(MORTALITY,Male) and(age == 12) then next(Death) with prob(0.00014600)
+if state(MORTALITY,Male) and(age == 13) then next(Death) with prob(0.00018000)
+if state(MORTALITY,Male) and(age == 14) then next(Death) with prob(0.00024100)
+if state(MORTALITY,Male) and(age == 15) then next(Death) with prob(0.00032200)
+if state(MORTALITY,Male) and(age == 16) then next(Death) with prob(0.00049600)
+if state(MORTALITY,Male) and(age == 17) then next(Death) with prob(0.00065000)
+if state(MORTALITY,Male) and(age == 18) then next(Death) with prob(0.00094700)
+if state(MORTALITY,Male) and(age == 19) then next(Death) with prob(0.00102900)
+if state(MORTALITY,Male) and(age == 20) then next(Death) with prob(0.00111800)
+if state(MORTALITY,Male) and(age == 21) then next(Death) with prob(0.00128800)
+if state(MORTALITY,Male) and(age == 22) then next(Death) with prob(0.00126800)
+if state(MORTALITY,Male) and(age == 23) then next(Death) with prob(0.00129600)
+if state(MORTALITY,Male) and(age == 24) then next(Death) with prob(0.00136000)
+if state(MORTALITY,Male) and(age == 25) then next(Death) with prob(0.00132000)
+if state(MORTALITY,Male) and(age == 26) then next(Death) with prob(0.00137000)
+if state(MORTALITY,Male) and(age == 27) then next(Death) with prob(0.00132300)
+if state(MORTALITY,Male) and(age == 28) then next(Death) with prob(0.00138200)
+if state(MORTALITY,Male) and(age == 29) then next(Death) with prob(0.00139000)
+if state(MORTALITY,Male) and(age == 30) then next(Death) with prob(0.00139400)
+if state(MORTALITY,Male) and(age == 31) then next(Death) with prob(0.00150400)
+if state(MORTALITY,Male) and(age == 32) then next(Death) with prob(0.00146400)
+if state(MORTALITY,Male) and(age == 33) then next(Death) with prob(0.00153000)
+if state(MORTALITY,Male) and(age == 34) then next(Death) with prob(0.00150100)
+if state(MORTALITY,Male) and(age == 35) then next(Death) with prob(0.00154500)
+if state(MORTALITY,Male) and(age == 36) then next(Death) with prob(0.00165500)
+if state(MORTALITY,Male) and(age == 37) then next(Death) with prob(0.00174200)
+if state(MORTALITY,Male) and(age == 38) then next(Death) with prob(0.00184200)
+if state(MORTALITY,Male) and(age == 39) then next(Death) with prob(0.00196000)
+if state(MORTALITY,Male) and(age == 40) then next(Death) with prob(0.00200600)
+if state(MORTALITY,Male) and(age == 41) then next(Death) with prob(0.00228700)
+if state(MORTALITY,Male) and(age == 42) then next(Death) with prob(0.00250400)
+if state(MORTALITY,Male) and(age == 43) then next(Death) with prob(0.00264800)
+if state(MORTALITY,Male) and(age == 44) then next(Death) with prob(0.00300000)
+if state(MORTALITY,Male) and(age == 45) then next(Death) with prob(0.00320300)
+if state(MORTALITY,Male) and(age == 46) then next(Death) with prob(0.00365200)
+if state(MORTALITY,Male) and(age == 47) then next(Death) with prob(0.00401200)
+if state(MORTALITY,Male) and(age == 48) then next(Death) with prob(0.00434700)
+if state(MORTALITY,Male) and(age == 49) then next(Death) with prob(0.00482500)
+if state(MORTALITY,Male) and(age == 50) then next(Death) with prob(0.00510200)
+if state(MORTALITY,Male) and(age == 51) then next(Death) with prob(0.00564700)
+if state(MORTALITY,Male) and(age == 52) then next(Death) with prob(0.00612300)
+if state(MORTALITY,Male) and(age == 53) then next(Death) with prob(0.00675600)
+if state(MORTALITY,Male) and(age == 54) then next(Death) with prob(0.00715500)
+if state(MORTALITY,Male) and(age == 55) then next(Death) with prob(0.00771600)
+if state(MORTALITY,Male) and(age == 56) then next(Death) with prob(0.00853800)
+if state(MORTALITY,Male) and(age == 57) then next(Death) with prob(0.00914300)
+if state(MORTALITY,Male) and(age == 58) then next(Death) with prob(0.00982200)
+if state(MORTALITY,Male) and(age == 59) then next(Death) with prob(0.01062300)
+if state(MORTALITY,Male) and(age == 60) then next(Death) with prob(0.01094400)
+if state(MORTALITY,Male) and(age == 61) then next(Death) with prob(0.01169000)
+if state(MORTALITY,Male) and(age == 62) then next(Death) with prob(0.01250800)
+if state(MORTALITY,Male) and(age == 63) then next(Death) with prob(0.01358200)
+if state(MORTALITY,Male) and(age == 64) then next(Death) with prob(0.01549900)
+if state(MORTALITY,Male) and(age == 65) then next(Death) with prob(0.01583500)
+if state(MORTALITY,Male) and(age == 66) then next(Death) with prob(0.01722200)
+if state(MORTALITY,Male) and(age == 67) then next(Death) with prob(0.01850600)
+if state(MORTALITY,Male) and(age == 68) then next(Death) with prob(0.02062300)
+if state(MORTALITY,Male) and(age == 69) then next(Death) with prob(0.02244100)
+if state(MORTALITY,Male) and(age == 70) then next(Death) with prob(0.02391500)
+if state(MORTALITY,Male) and(age == 71) then next(Death) with prob(0.02571800)
+if state(MORTALITY,Male) and(age == 72) then next(Death) with prob(0.02842500)
+if state(MORTALITY,Male) and(age == 73) then next(Death) with prob(0.03103000)
+if state(MORTALITY,Male) and(age == 74) then next(Death) with prob(0.03397600)
+if state(MORTALITY,Male) and(age == 75) then next(Death) with prob(0.03720800)
+if state(MORTALITY,Male) and(age == 76) then next(Death) with prob(0.04164500)
+if state(MORTALITY,Male) and(age == 77) then next(Death) with prob(0.04481400)
+if state(MORTALITY,Male) and(age == 78) then next(Death) with prob(0.04943400)
+if state(MORTALITY,Male) and(age == 79) then next(Death) with prob(0.05369500)
+if state(MORTALITY,Male) and(age == 80) then next(Death) with prob(0.05996800)
+if state(MORTALITY,Male) and(age == 81) then next(Death) with prob(0.06694900)
+if state(MORTALITY,Male) and(age == 82) then next(Death) with prob(0.07431800)
+if state(MORTALITY,Male) and(age == 83) then next(Death) with prob(0.08149500)
+if state(MORTALITY,Male) and(age == 84) then next(Death) with prob(0.09239400)
+if state(MORTALITY,Male) and(age == 85) then next(Death) with prob(0.10163340)
+if state(MORTALITY,Male) and(age == 86) then next(Death) with prob(0.11179670)
+if state(MORTALITY,Male) and(age == 87) then next(Death) with prob(0.12297640)
+if state(MORTALITY,Male) and(age == 88) then next(Death) with prob(0.13527410)
+if state(MORTALITY,Male) and(age == 89) then next(Death) with prob(0.14880150)
+if state(MORTALITY,Male) and(age == 90) then next(Death) with prob(0.16368160)
+if state(MORTALITY,Male) and(age == 91) then next(Death) with prob(0.18004980)
+if state(MORTALITY,Male) and(age == 92) then next(Death) with prob(0.19805470)
+if state(MORTALITY,Male) and(age == 93) then next(Death) with prob(0.21786020)
+if state(MORTALITY,Male) and(age == 94) then next(Death) with prob(0.23964620)
+if state(MORTALITY,Male) and(age == 95) then next(Death) with prob(0.26361090)
+if state(MORTALITY,Male) and(age == 96) then next(Death) with prob(0.28997200)
+if state(MORTALITY,Male) and(age == 97) then next(Death) with prob(0.31896910)
+if state(MORTALITY,Male) and(age == 98) then next(Death) with prob(0.35086610)
+if state(MORTALITY,Male) and(age == 99) then next(Death) with prob(0.38595270)
+if state(MORTALITY,Male) and(age == 100) then next(Death) with prob(0.42454790)
+if state(MORTALITY,Male) and(age == 101) then next(Death) with prob(0.46700270)
+if state(MORTALITY,Male) and(age == 102) then next(Death) with prob(0.51370300)
+if state(MORTALITY,Male) and(age == 103) then next(Death) with prob(0.56507330)
+if state(MORTALITY,Male) and(age == 104) then next(Death) with prob(0.62158060)
+if state(MORTALITY,Male) and(age == 105) then next(Death) with prob(0.68373870)
+if state(MORTALITY,Male) and(age == 106) then next(Death) with prob(0.75211260)
+if state(MORTALITY,Male) and(age == 107) then next(Death) with prob(0.82732380)
+if state(MORTALITY,Male) and(age == 108) then next(Death) with prob(0.91005620)
+if state(MORTALITY,Male) and(age == 109) then next(Death) with prob(1.00000000)
+if state(MORTALITY,Male) and(age >= 110) then next(Death) with prob(1.00000000)
+
+#####################################################
+
+# 5. The Survival state lasts 365 days, leading to the agent's annual
+# Screening.
+
+if state(MORTALITY,Survival) then wait(24*365)
+if state(MORTALITY,Survival) then next(Screening)
+
+#####################################################
+
+# 6. The Death state is a fatal state.
+
+if state(MORTALITY,Death) then die()
+if state(MORTALITY,Death) then wait()
+
+#####################################################

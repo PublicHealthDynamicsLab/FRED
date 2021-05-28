@@ -1,4 +1,0 @@
-PARAM NAME: influenza_office_prob
-DEFAULT VALUE: 1 0.0575
-TYPE: int
-DEFINITION:

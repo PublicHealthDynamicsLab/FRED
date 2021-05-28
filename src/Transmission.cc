@@ -1,13 +1,22 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 //
 //
@@ -17,29 +26,37 @@
 #include <math.h>
 
 #include "Transmission.h"
-#include "Respiratory_Transmission.h"
-#include "Sexual_Transmission.h"
-#include "Vector_Transmission.h"
-#include "Params.h"
+#include "Condition.h"
+#include "Epidemic.h"
+#include "Group.h"
+#include "Person.h"
+#include "Environmental_Transmission.h"
+#include "Network_Transmission.h"
+#include "Proximity_Transmission.h"
+#include "Property.h"
+#include "Random.h"
 #include "Utils.h"
-
-#define PI 3.14159265359
-double Transmission::Seasonal_Reduction = 0.0;
-double* Transmission::Seasonality_multiplier = NULL;
-
 
 Transmission* Transmission::get_new_transmission(char* transmission_mode) {
   
-  if(strcmp(transmission_mode, "respiratory") == 0) {
-    return new Respiratory_Transmission();
+  if(strcmp(transmission_mode, "respiratory")==0 || strcmp(transmission_mode, "proximity")==0) {
+    printf("new Proximity_Transmission\n");
+    return new Proximity_Transmission();
   }
   
-  if(strcmp(transmission_mode, "vector") == 0) {
-    return new Vector_Transmission();
+  if(strcmp(transmission_mode, "network") == 0) {
+    printf("new Network_Transmission\n");
+    return new Network_Transmission();
   }
 
-  if(strcmp(transmission_mode, "sexual") == 0) {
-    return new Sexual_Transmission();
+  if(strcmp(transmission_mode, "environmental") == 0) {
+    printf("new Environmental_Transmission\n");
+    return new Environmental_Transmission();
+  }
+  
+  if(strcmp(transmission_mode, "none") == 0) {
+    printf("new Null_Transmission\n");
+    return new Null_Transmission();
   }
 
   Utils::fred_abort("Unknown transmission_mode (%s).\n", transmission_mode);
@@ -47,27 +64,42 @@ Transmission* Transmission::get_new_transmission(char* transmission_mode) {
 }
 
 
+bool Transmission::attempt_transmission(double transmission_prob, Person* source, Person* dest,
+					int condition_id, int condition_to_transmit, int day, int hour, Group* group) {
+  
+  assert(dest->is_susceptible(condition_to_transmit));
+  FRED_STATUS(1, "source %d -- dest %d is susceptible\n", source->get_id(), dest->get_id());
 
-void Transmission::get_parameters() {
+  double susceptibility = dest->get_susceptibility(condition_to_transmit);
 
-  // all-disease seasonality reduction
-  Params::get_param_from_string("seasonal_reduction", &Transmission::Seasonal_Reduction);
-  // setup seasonal multipliers
+  FRED_VERBOSE(2, "susceptibility = %f\n", susceptibility);
 
-  if(Transmission::Seasonal_Reduction > 0.0) {
-    int seasonal_peak_day_of_year; // e.g. Jan 1
-    Params::get_param_from_string("seasonal_peak_day_of_year", &seasonal_peak_day_of_year);
+  double r = Random::draw_random();
+  double infection_prob = transmission_prob * susceptibility;
 
-    // setup seasonal multipliers
-    Transmission::Seasonality_multiplier = new double [367];
-    for(int day = 1; day <= 366; ++day) {
-      int days_from_peak_transmissibility = abs(seasonal_peak_day_of_year - day);
-      Transmission::Seasonality_multiplier[day] = (1.0 - Transmission::Seasonal_Reduction) +
-	      Transmission::Seasonal_Reduction * 0.5 * (1.0 + cos(days_from_peak_transmissibility * (2 * PI / 365.0)));
-      if(Transmission::Seasonality_multiplier[day] < 0.0) {
-	      Transmission::Seasonality_multiplier[day] = 0.0;
-      }
-      // printf("Seasonality_multiplier[%d] = %e %d\n", day, Transmission::Seasonality_multiplier[day], days_from_peak_transmissibility);
+  if(r < infection_prob) {
+    // successful transmission; create a new infection in dest
+    source->expose(dest, condition_id, condition_to_transmit, group, day, hour);
+
+    // FRED_VERBOSE(1, "transmission succeeded: r = %f  prob = %f\n", r, infection_prob);
+    if (source->get_exposure_day(condition_id) == 0) {
+      // FRED_VERBOSE(1, "SEED infection day %i from %d to %d\n", day, source->get_id(), dest->get_id());
     }
+    else {
+      // FRED_VERBOSE(1, "infection day %i of condition %i from %d to %d prob %f\n",
+      // day, condition_to_transmit, source->get_id(), dest->get_id(), transmission_prob);
+    }
+    if (infection_prob > 1) {
+      // FRED_VERBOSE(0, "infection_prob exceeded unity! trans %f susc %f\n", transmission_prob, susceptibility);
+    }
+
+    // notify the epidemic
+    Condition::get_condition(condition_to_transmit)->get_epidemic()->become_exposed(dest, day, hour);
+
+    return true;
+  } else {
+    // FRED_VERBOSE(1, "transmission failed: r = %f  prob = %f\n", r, infection_prob);
+    return false;
   }
 }
+

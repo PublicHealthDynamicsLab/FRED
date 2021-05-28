@@ -1,4 +1,0 @@
-PARAM NAME: days_to_wear_face_masks
-DEFAULT VALUE: 2
-TYPE: int
-DEFINITION:

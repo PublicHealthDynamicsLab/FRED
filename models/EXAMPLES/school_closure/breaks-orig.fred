@@ -1,0 +1,74 @@
+
+##### Simulated Location
+locations = Jefferson_County_PA
+
+##### Simulated Timeframe
+start_date = 2020-08-01
+end_date = 2022-07-31
+
+##### OUTPUT OPTIONS
+enable_health_records = 1
+
+##### School Administrators decide when to close schools
+School.has_administrator = 1
+
+##### CONDITIONS
+
+include_condition = ADMIN
+ADMIN.states = Start Check Open Close WinterBreak SpringBreak SummerBreak Excluded
+ADMIN.enable_health_records = 1
+
+# RULES FOR ADMIN CONDITION
+
+# Administrators go to Check; everyone else is Excluded
+if state(ADMIN,Start) then wait(0)
+if state(ADMIN,Start) and(admin(School)) then next(Check)
+if state(ADMIN,Start) then default(Excluded)
+
+# If we start in the middle of a break, go to the correct break state
+if state(ADMIN,Check) then wait(0)
+if state(ADMIN,Check) and(date_range(Dec-20,Jan-02)) then next(WinterBreak) 
+if state(ADMIN,Check) and(date_range(Mar-10,Mar-15)) then next(SpringBreak)
+if state(ADMIN,Check) and(date_range(Jun-15,Aug-25)) then next(SummerBreak)
+if state(ADMIN,Check) then default(Open)
+
+# Rules for starting a school break (check each day)
+if state(ADMIN,Open) then wait(24)
+if state(ADMIN,Open) and(date_range(Dec-20,Jan-02)) then next(WinterBreak) 
+if state(ADMIN,Open) and(date_range(Mar-10,Mar-15)) then next(SpringBreak)
+if state(ADMIN,Open) and(date_range(Jun-15,Aug-25)) then next(SummerBreak)
+if state(ADMIN,Open) then default(Open)
+
+# Rules for WinterBreak
+if state(ADMIN,WinterBreak) then close(School)
+if state(ADMIN,WinterBreak) then wait(24)
+if state(ADMIN,WinterBreak) and(date(Jan-03)) then next(Open)
+if state(ADMIN,WinterBreak) then default(WinterBreak)
+
+# Rules for SpringBreak
+if state(ADMIN,SpringBreak) then close(School)
+if state(ADMIN,SpringBreak) then wait(24)
+if state(ADMIN,SpringBreak) and(date(Mar-16)) then next(Open)
+if state(ADMIN,SpringBreak) then default(SpringBreak)
+
+# Rules for SummerBreak
+if state(ADMIN,SummerBreak) then close(School)
+if state(ADMIN,SummerBreak) then wait(24)
+if state(ADMIN,SummerBreak) and(date(Aug-26)) then next(Open)
+if state(ADMIN,SummerBreak) then default(SummerBreak)
+
+# Rules for Closure due to an Epidemic
+
+# If the administrator closes a school, it stays closed for 28 days.
+if state(ADMIN,Close) then close(School)
+if state(ADMIN,Close) then wait(24*28)
+
+# After the closure, open the school and check for scheduled breaks
+if state(ADMIN,Close) then next(Check)
+
+# Rules for Excluded
+
+if state(ADMIN,Excluded) then wait()
+
+
+

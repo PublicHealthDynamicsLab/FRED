@@ -1,8 +1,0 @@
-PARAM NAME: enable_seasonality
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: Enable seasonality.
-
-Note: This is an experimental feature. Users should not enable it unless
-they know what they are doing.

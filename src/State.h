@@ -1,102 +1,61 @@
 /*
-  This file is part of the FRED system.
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
-
+//
 //
 // File: State.h
 //
 
+
 #ifndef _FRED_STATE_H
 #define _FRED_STATE_H
 
-/*
- * A template class that abstracts the notion of thread-local storage
- * and thread-specific execution.
- *
- * J. DePasse <jvd10@pitt.edu> 
- *
- * 2012 08 15
- *
- */
+#include <vector>
+#include <unordered_map>
+using namespace std;
 
-#include "Global.h"
+#include "Admin_Division.h"
 
-// Template parameters:
-//  Typ => the object type
-//  Dim => the number of dimensions (threads)
-
-template< class Typ >
-class State {
-
-  int Dim;
-  Typ * state_array;
-
+class State : public Admin_Division {
 public:
 
-  State( int dim ) {
-    Dim = dim;
-    state_array = new Typ[ dim ];
+  State(long long int _admin_code);
+
+  ~State();
+
+  static int get_number_of_states() {
+    return State::states.size();
   }
 
-  State() { };
-
-  ~State() { }
-
-  Typ & operator() ( int dim_num ) {
-    return state_array[ dim_num ];
+  static State* get_state_with_index(int i) {
+    return State::states[i];
   }
 
-  Typ & operator() (             ) {
-    return state_array[ fred::omp_get_thread_num() % Dim ];
-  }
+  static State* get_state_with_admin_code(long long int state_code);
 
-  int size() {
-    return Dim;
-  }
+private:
 
-  // applies supplied functor to each state in array; main 
-  // intended use is as a reduction/aggregation operation
-  template< typename Fnc >
-  void apply( Fnc & fnc ) {
-    for ( int i = 0; i < Dim; ++i ) {
-      fnc( state_array[ i ] );
-    }
-  }
-
-  // concurrently applies supplied functor to each state in array
-  // intended use is as a reduction/aggregation operation
-  template< typename Fnc >
-  void parallel_apply( Fnc & fnc ) {
-#pragma omp parallel for
-    for ( int i = 0; i < Dim; ++i ) {
-      fnc( state_array[ i ] );
-    }
-  }
-
-  // these methods must be implemented in the Typ class
-  void clear() {
-    for ( int i = 0; i < Dim; ++i ) {
-      state_array[ i ].clear();
-    }
-  }
-
-  void reset() {
-    for ( int i = 0; i < Dim; ++i ) {
-      state_array[ i ].reset();
-    }
-  }
+  // static variables
+  static std::vector<State*> states;
+  static std::unordered_map<long long int,State*> lookup_map;
 
 };
 
-
-
-
-
-#endif
+#endif // _FRED_STATE_H

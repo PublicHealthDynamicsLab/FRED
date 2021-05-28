@@ -1,6 +1,0 @@
-PARAM XAME: vaccine_strains[X]
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFIXITIOX:  Number of strains prevented by vaccine X.
-

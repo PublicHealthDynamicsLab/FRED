@@ -1,4 +1,0 @@
-PARAM NAME: influenza_household_contacts
-DEFAULT VALUE: 0.202
-TYPE: int
-DEFINITION:

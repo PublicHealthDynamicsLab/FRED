@@ -1,8 +1,0 @@
-PARAM NAME: enable_density_transmission_maximum_infectees
-DEFAULT VALUE: 1
-TYPE: int
-
-DEFINITION: Enable density transmission maximum infectees.
-
-Note: This is an experimental feature. Users should not enable it unless
-they know what they are doing.

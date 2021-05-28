@@ -1,4 +1,0 @@
-PARAM NAME: SLA_absent_prob
-DEFAULT VALUE: 0.72
-TYPE: int
-DEFINITION:

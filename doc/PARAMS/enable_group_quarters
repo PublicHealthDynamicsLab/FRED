@@ -1,8 +1,0 @@
-PARAM NAME: enable_group_quarters
-DEFAULT VALUE: 1
-TYPE: int    
-
-DEFINITION: Support for group quarters (dormitories, barracks, etc.).
-On by default.
-
-

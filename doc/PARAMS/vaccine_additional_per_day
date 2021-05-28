@@ -1,7 +1,0 @@
-PARAM NAME: vaccine_additional_per_day[X]
-DEFAULT VALUE: 1000000
-TYPE: int
-
-DEFINITION: The amount of vaccine X produced each day and made available
-to the system. The amount of vaccine produced cannot exceed
-vaccine_total_avail[X], for the entire simulation.

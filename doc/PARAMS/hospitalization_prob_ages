@@ -1,4 +1,0 @@
-PARAM NAME: hospitalization_prob_ages
-DEFAULT VALUE: 2 0 120
-TYPE: int
-DEFINITION:

@@ -1,5 +1,0 @@
-PARAM NAME: rotate_start_date
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION: If set, rotate through 7 successive start dates on multiple
-runs

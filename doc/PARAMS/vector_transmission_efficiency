@@ -1,4 +1,0 @@
-PARAM NAME: vector_transmission_efficiency
-DEFAULT VALUE: 0.3
-TYPE: int
-DEFINITION:

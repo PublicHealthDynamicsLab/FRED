@@ -1,4 +1,0 @@
-PARAM NAME: military_resident_to_staff_ratio
-DEFAULT VALUE: 10.0
-TYPE: int
-DEFINITION:

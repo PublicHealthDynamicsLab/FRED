@@ -1,4 +1,0 @@
-PARAM NAME: seed_age_upper_bound
-DEFAULT VALUE: 120
-TYPE: int
-DEFINITION:

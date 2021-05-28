@@ -1,4 +1,0 @@
-PARAM NAME: report_distance_of_infection
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION:

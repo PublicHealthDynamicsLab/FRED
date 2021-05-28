@@ -1,4 +1,0 @@
-PARAM NAME: influenza_case_fatality_prob_by_day
-DEFAULT VALUE: 4 0.0000715 0.0000715 0.0000715 0.0000715
-TYPE: int
-DEFINITION:

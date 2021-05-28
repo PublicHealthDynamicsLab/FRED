@@ -1,4 +1,0 @@
-PARAM NAME: memory_decay
-DEFAULT VALUE: 2 0 0 
-TYPE: int
-DEFINITION:

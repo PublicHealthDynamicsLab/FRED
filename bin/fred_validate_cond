@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
+use strict;
+use warnings;
+use Env;
+use Cwd;
+use Fcntl qw(:flock);
+use Getopt::Std;
+$| = 1;  # AUTO_FLUSH
+
+# File: fred_validate
+# Author: John Grefenstette
+# Updated: Aug 15, 2019
+
+# get current working directory
+my $cwd = getcwd();
+
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
+
+my $program = $ARGV[0];
+die "$0: usage $0 cond.fred" if not $program;
+
+system "cat $FRED/bin/control.fred $program > tmp$$.fred";
+system "fred_compile -p tmp$$.fred";

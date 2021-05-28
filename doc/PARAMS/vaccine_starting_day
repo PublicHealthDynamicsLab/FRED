@@ -1,6 +1,0 @@
-PARAM NAME: vaccine_starting_day[X]
-DEFAULT VALUE: 0
-TYPE: int
-
-DEFINITION: The day to start producing vaccine X at the rate defined by
-vaccine_additional_per_day[X].

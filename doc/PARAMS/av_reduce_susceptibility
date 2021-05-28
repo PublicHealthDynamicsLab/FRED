@@ -1,4 +1,0 @@
-PARAM NAME: av_reduce_susceptibility[0]
-DEFAULT VALUE: 0.30
-TYPE: int
-DEFINITION:

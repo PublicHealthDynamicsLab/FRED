@@ -1,4 +1,0 @@
-PARAM NAME: influenza_min_symptoms_for_case_fatality
-DEFAULT VALUE: 1.0
-TYPE: int
-DEFINITION:

@@ -1,4 +1,0 @@
-PARAM NAME: school_closure_threshold
-DEFAULT VALUE: 10.0
-TYPE: int
-DEFINITION:

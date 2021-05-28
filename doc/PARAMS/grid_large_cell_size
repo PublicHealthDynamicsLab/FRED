@@ -1,4 +1,0 @@
-PARAM NAME: grid_large_cell_size
-DEFAULT VALUE: 20.0
-TYPE: float
-DEFINITION: Size of large-scale grid cells in km.

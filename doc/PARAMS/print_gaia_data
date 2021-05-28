@@ -1,4 +1,0 @@
-PARAM NAME: print_gaia_data
-DEFAULT VALUE: 0
-TYPE: int
-DEFINITION: If set, generates data for use by Gaia.

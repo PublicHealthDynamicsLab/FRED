@@ -1,6 +1,27 @@
-##################### FRED Makefile ###########################
+################################### FRED Makefile ########################################
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
 
-DIRS = bin doc input_files src populations tests
+DIRS = bin doc src tests
 FRED_HOME = $(CURDIR)
 
 all:
@@ -19,15 +40,13 @@ clean:
 		(cd $$i; make clean); \
 	done
 
-VER = 2.8.0
-
+VER := $(shell cat VERSION)
 release:
 	make clean
-	(cd ..; tar cvzf FRED-V${VER}-`date +"%Y-%m-%d"`.tgz \
-	--exclude CVS --exclude '*~' --exclude '\.*' --exclude DEPENDS \
-	FRED/Makefile FRED/LICENSE FRED/bin FRED/doc FRED/input_files \
-	FRED/populations/2010_ver1_42003.zip FRED/populations/2010_ver1_42065.zip \
-	FRED/populations/Makefile FRED/src FRED/tests)
+	(cd ..; tar cvzf FRED-VER_${VER}.tgz \
+	--exclude CVS --exclude '*~' --exclude '\.*' --exclude DEPENDS --exclude 'FRED/data/country/*' --exclude 'FRED/src/*.fred' --exclude 'FRED/src/*.txt' --exclude 'FRED/src/*.mp4' --exclude 'people.txt' --exclude 'household.txt' --exclude 'schools.txt' \
+	FRED/Makefile FRED/LICENSE FRED/bin FRED/doc FRED/data FRED/models \
+	FRED/src FRED/tests)
 
 
 

@@ -1,0 +1,195 @@
+##################################################
+#
+# FRED Model: Pandemic Influenza
+#
+# Date: 12 Mar 2019
+# Author: John Grefenstette
+#
+##################################################
+
+use FRED;
+
+##### SIMULATED LOCATION
+country = USA;
+locations = Jefferson_County_PA;
+
+##### SIMULATED TIMEFRAME
+start_date = 2020-Jan-01;
+end_date = 2020-Apr-09;
+
+##### OUTPUT OPTIONS
+verbose = 1;
+enable_health_records = 0;
+enable_visualization_layer = 0;
+visualization_run = 1;
+check_parameters = 0;
+
+##### PLACES
+places = Household Neighborhood School Classroom Workplace Office;
+
+### PLACE SCHEDULES
+Household.starts_at_hour_6_on_weekdays = 1;
+Household.starts_at_hour_6_on_weekends = 1;
+Classroom.starts_at_hour_9_on_weekdays = 1;
+Office.starts_at_hour_9_on_weekdays = 1;
+Office.starts_at_hour_9_on_weekends = 1;
+School.starts_at_hour_13_on_weekdays = 1;
+Workplace.starts_at_hour_13_on_weekdays = 1;
+Workplace.starts_at_hour_13_on_weekends = 1;
+Neighborhood.starts_at_hour_16_on_weekdays = 1;
+Neighborhood.starts_at_hour_16_on_weekends = 1;
+
+### PLACE PARTITIONS
+School.partition = Classroom;
+School.partition_basis = age;
+School.partition_size = 40;
+School.partition_max_age = 21;
+Workplace.partition = Office;
+Workplace.partition_basis = random;
+Workplace.partition_size = 50;
+Workplace.absenteeism = 0.0;
+
+### PLACE CONTACTS
+Household.contacts = 0.3421;
+Neighborhood.contacts = 0.7495;
+School.contacts = 0.4159;
+Workplace.contacts = 0.0679;
+Classroom.contacts = 0.8318;
+Office.contacts = 0.1358;
+Household.same_age_bias = 0.05;
+Neighborhood.same_age_bias = 0.1;
+Neighborhood.weekend_contact_rate = 1.5;
+
+##### CONDITIONS
+conditions = INF;
+INF.states = S E Is Ia R Import;
+
+### TRANSMISSIBILITY
+INF.transmission_mode = respiratory;
+INF.transmissibility = 1.0;
+INF.R0_a = 0.0309557;
+INF.R0_b = 0.729365;
+INF.seasonal_peak_day_of_year = 1;
+INF.seasonal_reduction = 0;
+INF.exposed_state = E;
+
+### STATE PROPERTIES
+INF.S.is_dormant = 1;
+INF.R.is_dormant = 1;
+INF.Is.transmissibility = 1.0;
+INF.Ia.transmissibility = 0.5;
+INF.S.susceptibility = 1.0;
+INF.S.duration = -1;
+INF.E.duration_distribution = lognormal;
+INF.E.duration_median = 1.9;
+INF.E.duration_dispersion = 1.23;
+INF.Is.duration_distribution = lognormal;
+INF.Is.duration_median = 5.0;
+INF.Is.duration_dispersion = 1.5;
+INF.Ia.duration_distribution = lognormal;
+INF.Ia.duration_median = 5.0;
+INF.Ia.duration_dispersion = 1.5;
+INF.R.duration = -1;
+
+### IMPORTING CASES
+INF.import_start_state = Import;
+INF.Import.import_max_cases = 10;
+
+### AGENT BEHAVIOR
+INF.Is.probability_of_Household_confinement = 0.5;
+INF.Is.decide_Household_confinement_daily = 0;
+
+### STATE TRANSITION RULES
+if current(INF.E) then next(Is) with prob(0.67);
+if current(INF.E) then next(Ia) with prob(0.33);
+if current(INF.Ia) then next(R);
+if current(INF.Is) then next(R);
+
+##################################################
+
+# Expert Options
+population_directory = $FRED_HOME/data/country;
+population_version = RTI_2010_ver1;
+# locations_file = $FRED_HOME/data/locations.txt;
+enable_adi_rank = 0;
+update_elevation = 0;
+elevation_data_directory = none;
+adi_file = $FRED_HOME/data/country/usa/ADI/us_bg_v1.5.txt;
+seed = 123456;
+reseed_day = -1;
+enable_fixed_order_condition_updates = 1;
+use_mean_latitude = 1;
+regional_patch_size = 20.0;
+Neighborhood.patch_size = 1.0;
+debug = 1;
+test = 0;
+outdir = OUT;
+track_age_distribution = 0;
+track_network_stats = 0;
+report_contacts = 0;
+report_serial_interval = 0;
+quality_control = 1;
+report_initial_population = 0;
+output_population = 0;
+pop_outfile = pop_out;
+output_population_date_match = 01-01-*;
+assign_teachers = 1;
+School_fixed_staff = 5;
+School_student_teacher_ratio = 15.5;
+enable_School_vaccination_rates = 0;
+default_School_vaccination_rate = 95.0;
+School_medical_vacc_exempt_rate = 0.002;
+School.absenteeism = 0.0;
+enable_new_transmission_model = 0;
+enable_local_Workplace_assignment = 0;
+enable_group_quarters = 1;
+college_dorm_mean_size = 2.5;
+college_fixed_staff = 2;
+college_resident_to_staff_ratio = 5.0;
+military_barracks_mean_size = 8.0;
+military_fixed_staff = 5;
+military_resident_to_staff_ratio = 10.0;
+prison_cell_mean_size = 1.5;
+prison_fixed_staff = 5;
+prison_resident_to_staff_ratio = 10.0;
+nursing_home_room_mean_size = 1.5;
+nursing_home_fixed_staff = 5;
+nursing_home_resident_to_staff_ratio = 10.0;
+enable_travel = 0;
+travel_hub_file = $FRED_HOME/data/country/usa/msa_hubs.txt;
+trips_per_day_file = $FRED_HOME/data/country/usa/trips_per_day.txt;
+Neighborhood.max_distance = 25;
+Neighborhood.max_destinations = 100;
+Neighborhood.min_distance = 4.0;
+Neighborhood.distance_exponent = 3.0;
+Neighborhood.population_exponent = 1.0;
+enable_transmission_bias = 1;
+resources = none;
+Neighborhood_density_transmission = 0;
+enable_density_transmission_maximum_hosts = 1;
+density_transmission_maximum_hosts = 10;
+enable_vector_layer = 0;
+enable_vector_transmission = 0;
+report_vector_population = 0;
+enable_within_state_School_assignment = 1;
+enable_population_dynamics = 0;
+enable_migration_to_target_popsize = 0;
+enable_county_to_county_migration = 0;
+enable_aging = 0;
+mortality_rate_file = $FRED_HOME/data/country/usa/mortality_rates.txt;
+migration_file = $FRED_HOME/data/migration-42003.txt;
+college_departure_rate = 0.25;
+military_departure_rate = 0.25;
+prison_departure_rate = 0.5;
+youth_home_departure_rate = 0.2;
+enable_Hospitals = 0;
+Hospital_contacts = 0;
+Hospital_fixed_staff = 20;
+Hospital_worker_to_bed_ratio = 1.0;
+hospitalization_radius = 25.0;
+Household_Hospital_map_file_directory = $FRED_HOME/data/country/usa/;
+Household_Hospital_map_file = none;
+enable_health_insurance = 0;
+days = 0;
+
+

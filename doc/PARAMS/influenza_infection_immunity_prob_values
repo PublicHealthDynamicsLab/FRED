@@ -1,4 +1,0 @@
-PARAM NAME: influenza_infection_immunity_prob_values
-DEFAULT VALUE: 1 1.0
-TYPE: int
-DEFINITION:

@@ -1,32 +1,59 @@
 #!/usr/bin/perl
-use warnings;
+
+##########################################################################################
+## 
+##  This file is part of the FRED system.
+##
+## Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+## Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+## Anuroop Sriram, and Donald Burke
+## All rights reserved.
+##
+## Copyright (c) 2013-2021, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+## David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+## All rights reserved.
+##
+## FRED is distributed on the condition that users fully understand and agree to all terms of the 
+## End User License Agreement.
+##
+## FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+##
+## See the file "LICENSE" for more information.
+##
+##########################################################################################
+
 use strict;
+use warnings;
 use Env;
-use Getopt::Std;
+use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $usage = "usage: $0 -k key [ -d delay ]\n";
+my $FRED = $ENV{FRED_HOME};
+die "$0: Please set environmental variable FRED_HOME to location of FRED home directory\n" if not $FRED;
 
-my %options = ();
-getopts("k:d:", \%options);
-
+my $help = "";
 my $key = "";
-$key = $options{k} if exists $options{k};
-die "usage: $0 -k key\n" if not $key;
+my $var = "";
+my $opt_result = GetOptions(
+			    "help" => \$help,
+			    "h" => \$help,
+			    "k=s" => \$key,
+			    "key=s" => \$key,
+			    "v=s" => \$var
+);
 
-my $delay = 10;
-$delay = $options{d} if exists $options{d};
+my $usage = <<EOH;
+usage: $0 --help | -v var [ -k key ]
+    -v var        the condition variable to be reported
+    -k or --key   the key for a FRED job (no default)
+EOH
 
-if ($key eq "") {
-  ($key, $delay) = @ARGV;
-}
+die $usage if not $var;
+die $usage if $help;
 
-die $usage if (not $key) or (not $delay);
+my $line = `fred_csv -k $key -v $var.RR | head -2 | tail -1 | awk -F ',' '{print "N=", \$2, "MIN=", \$4, "25\%=", \$5, "MED=", \$6, "75\%=", \$7, "MAX=", \$8, "MEAN=", \$9, "STD=", \$10}' `;
+chomp $line;
+print "$line\n";
 
-my $day = $delay+2;
-my $result = `fred_csv -k $key -v RR | head -$day | tail -1`;
-chomp $result;
-my ($mean,$std) = $result =~ /.*,.*,(.*),(.*)/;
-print "$mean $std\n";
 exit;
 
 

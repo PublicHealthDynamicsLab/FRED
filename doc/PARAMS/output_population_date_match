@@ -1,6 +1,0 @@
-PARAM NAME: output_population_date_match
-DEFAULT VALUE: 01-01-*
-TYPE: string
-DEFINITION: If output_population is set, dump the population on any date
-that matches this string. The format is DD-MM-YY, with * matching any
-value.

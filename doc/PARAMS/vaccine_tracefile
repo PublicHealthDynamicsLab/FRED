@@ -1,7 +1,0 @@
-PARAM NAME: vaccine_tracefile
-DEFAULT VALUE: none
-TYPE: string
-
-DEFINITION: If enable_vaccines=1 and this parameter is set to a string
-other than "none", FRED writes detailed informationa about each person
-vaccinated to the vaccine tracefile.

@@ -1,13 +1,23 @@
 /*
-  This file is part of the FRED system.
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
 
 //
 //
@@ -17,340 +27,221 @@
 #ifndef _FRED_EPIDEMIC_H
 #define _FRED_EPIDEMIC_H
 
-#include <set>
-#include <map>
-#include <vector>
-#include <set>
-
-using namespace std;
-
 #include "Global.h"
+#include "Events.h"
+#include "Person.h"
+#include "Place.h"
 
-#define SEED_USER 'U'
-#define SEED_RANDOM 'R'
-#define SEED_EXPOSED 'E'
-#define SEED_INFECTIOUS 'I'
+class Group;
+class Condition;
+class Natural_History;
+
+struct person_id_compare {
+  bool operator()(const Person* x, const Person* y) const {
+    return x->get_id() < y->get_id();
+  }
+};
+
+struct place_id_compare {
+  bool operator()(const Place* x, const Place* y) const {
+    return x->get_id() < y->get_id();
+  }
+};
+
+typedef  std::set<Person*, person_id_compare> person_set_t;
+typedef  person_set_t::iterator person_set_iterator;
+
+typedef  std::set<Place*, place_id_compare> place_set_t;
+typedef  place_set_t::iterator place_set_iterator;
+
+typedef std::unordered_map<Group*,int> group_counter_t;
 
 
-class Disease;
-class Events;
-class Person;
-class Place;
 
-struct Time_Step_Map {
-  int sim_day_start;
-  int sim_day_end;
-  int num_seeding_attempts;
-  int disease_id;
-  double seeding_attempt_prob;
-  int min_num_successful;
+class VIS_Location {
+public:
+  VIS_Location(double _lat, double _lon) {
+    lat = _lat;
+    lon = _lon;
+  }
+  double get_lat() { return this->lat;}
+  double get_lon() { return this->lon;}
+private:
   double lat;
   double lon;
-  double radius;
-  const std::string to_string() const {
-    std::stringstream ss;
-    ss << "Time Step Map ";
-    ss << " sim_day_start " << sim_day_start;
-    ss << " sim_day_end " << sim_day_end;
-    ss << " num_seeding_attempts " << num_seeding_attempts;
-    ss << " disease_id " << disease_id;
-    ss << " seeding_attempt_prob " << seeding_attempt_prob;
-    ss << " min_num_successful " << min_num_successful;
-    ss << " lat " << lat;
-    ss << " lon " << lon;
-    ss << " radius " << radius;
-    ss << std::endl;
-    return ss.str();
-  }
 };
 
-struct Disease_Count_Info {
-  int tot_ppl_evr_inf;
-  int tot_ppl_evr_sympt;
-  int tot_chldrn_evr_inf;
-  int tot_chldrn_evr_sympt;
-  int tot_sch_age_chldrn_evr_inf;
-  int tot_sch_age_chldrn_ever_sympt;
-  int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
-  int tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
-
-  const std::string to_string() const {
-    std::stringstream ss;
-    ss << "Disease Count Info ";
-    ss << " tot_ppl_evr_inf " << tot_ppl_evr_inf;
-    ss << " tot_ppl_evr_sympt " << tot_ppl_evr_sympt;
-    ss << " tot_chldrn_evr_inf " << tot_chldrn_evr_inf;
-    ss << " tot_chldrn_evr_sympt " << tot_chldrn_evr_sympt;
-    ss << " tot_sch_age_chldrn_evr_inf " << tot_sch_age_chldrn_evr_inf;
-    ss << " tot_sch_age_chldrn_ever_sympt " << tot_sch_age_chldrn_ever_sympt;
-    ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_inf;
-    ss << " tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt " << tot_sch_age_chldrn_w_home_adlt_crgvr_evr_sympt;
-    ss << std::endl;
-    return ss.str();
-  }
-};
+typedef std::vector<VIS_Location*> vis_loc_vec_t;
 
 class Epidemic {
 public:
 
   /**
    * This static factory method is used to get an instance of a specific
-   * Epidemic Model.  Depending on the model parameter, it will create a
+   * Epidemic Model.  Depending on the model property, it will create a
    * specific Epidemic Model and return a pointer to it.
    *
-   * @param a string containing the requested Epidemic model type
+   * @property a string containing the requested Epidemic model type
    * @return a pointer to a Epidemic model
    */
-  static Epidemic* get_epidemic(Disease* disease);
+  static Epidemic* get_epidemic(Condition* condition);
 
-  Epidemic(Disease* disease);
-  virtual ~Epidemic();
+  Epidemic(Condition* condition);
+  ~Epidemic();
  
-  virtual void setup();
-  virtual void prepare() {}
+  void setup();
+  void prepare_to_track_counts();
+  void prepare();
+  void initialize_person(Person* person, int day);
+  void create_visualization_data_directories();
+  void report(int day);
   void print_stats(int day);
-  void report_age_of_infection(int day);
-  void report_distance_of_infection(int day);
-  void report_transmission_by_age_group(int day);
-  void report_transmission_by_age_group_to_file(int day);
-  void report_incidence_by_county(int day);
-  void report_incidence_by_census_tract(int day);
-  void report_symptomatic_incidence_by_census_tract(int day);
-  void report_place_of_infection(int day);
-  void report_presenteeism(int day);
-  void report_school_attack_rates_by_income_level(int day);
-  void report_infections_by_workplace_size(int day);
+  void print_visualization_data(int day);
   void report_serial_interval(int day);
-  void report_household_income_stratified_results(int day);
-  void report_census_tract_stratified_results(int day);
-  void report_group_quarters_incidence(int day);
-  virtual void report_disease_specific_stats(int day) {}
-  void read_time_step_map();
-  void track_value(int day, char* key, int value);
-  void track_value(int day, char* key, double value);
-  void track_value(int day, char* key, string value);
 
-  virtual void get_imported_infections(int day);
-  void become_exposed(Person* person, int day);
+  void get_imported_list(double_vector_t id_list);
+  void select_imported_cases(int day, int max_imported, double per_cap, double lat, double lon, double radius, long long int admin_code, double min_age, double max_age, bool count_all);
+  void become_exposed(Person* person, int day, int hour);
+  void become_active(Person* person, int day);
+  void inactivate(Person* person, int day, int hour);
 
-  virtual void update(int day);
-  virtual void markov_updates(int day) {}
+  void update(int day, int hour);
+  void prepare_for_new_day(int day);
+  void update_state(Person* person, int day, int hour, int new_state, int loop_counter);
 
-  void find_active_places_of_type(int day, int place_type);
-  void spread_infection_in_active_places(int day);
+  void update_proximity_transmissions(int day, int hour);
+  void find_active_places_of_type(int day, int hour, int place_type);
+  void transmission_in_active_places(int day, int hour, int time_block);
 
-  int get_susceptible_people() {
-    return this->susceptible_people;
-  }
+  void update_network_transmissions(int day, int hour);
 
-  int get_exposed_people() {
-    return this->exposed_people;
-  }
-
-  int get_infectious_people() {
-    return this->infectious_people;
-  }
-
-  int get_removed_people() {
-    return this->removed_people;
-  }
-
-  int get_immune_people() {
-    return this->immune_people;
-  }
-
-  int get_people_becoming_infected_today() {
-    return this->people_becoming_infected_today;
-  }
-
-  int get_total_people_ever_infected() {
-    return this->population_infection_counts.tot_ppl_evr_inf;
-  }
-
-  int get_people_becoming_symptomatic_today() {
-    return this->people_becoming_symptomatic_today;
-  }
-
-  int get_people_with_current_symptoms() {
-    return this->people_with_current_symptoms;
-  }
-
-  int get_daily_case_fatality_count() {
-    return this->daily_case_fatality_count;
-  }
-
-  int get_total_case_fatality_count() {
-    return this->total_case_fatality_count;
+  int get_number_of_transmissible_people() {
+    return this->transmissible_people_list.size();
   }
 
   double get_RR() {
     return this->RR;
   }
 
-  double get_attack_rate() {
-    return this->attack_rate;
-  }
-
-  double get_symptomatic_attack_rate() {
-    return this->symptomatic_attack_rate;
-  }
-
-  double get_symptomatic_prevalence() {
-    return static_cast<double>(this->people_with_current_symptoms) / static_cast<double>(this->N);
-  }
-
-  int get_incidence() {
-    return this->incidence;
-  }
-
-  int get_symptomatic_incidence() {
-    return this->symptomatic_incidence;
-  }
-
-  int get_symptomatic_incidence_by_tract_index(int index_);
-
-  int get_prevalence_count() {
-    return this->prevalence_count;
-  }
-
-  double get_prevalence() {
-    return this->prevalence;
-  }
-
-  int get_incident_infections() {
-    return get_incidence();
-  }
-
-  void increment_cohort_infectee_count(int cohort_day) {
+  void increment_cohort_host_count(int cohort_day) {
     ++(this->number_infected_by_cohort[cohort_day]);
   }
-
-  void become_immune(Person* person, bool susceptible, bool infectious, bool symptomatic);
 
   int get_id() {
     return this->id;
   }
 
-  virtual void transition_person(Person* person, int day, int state) {}
+  double get_attack_rate();
 
-  // events processing
-  void process_infectious_start_events(int day);
-  void process_infectious_end_events(int day);
-  void recover(Person* person, int day);
-  void process_symptoms_start_events(int day);
-  void process_symptoms_end_events(int day);
-  void process_immunity_start_events(int day);
-  void process_immunity_end_events(int day);
-  void cancel_symptoms_start(int day, Person* person);
-  void cancel_symptoms_end(int day, Person* person);
-  void cancel_infectious_start(int day, Person* person);
-  void cancel_infectious_end(int day, Person* person);
-  void cancel_immunity_start(int day, Person* person);
-  void cancel_immunity_end(int day, Person* person);
-  virtual void end_of_run() {}
-  virtual void terminate_person(Person* person, int day);
+  void delete_from_epidemic_lists(Person* person);
+
+  int get_incidence_count(int state) {
+    if (Global::Simulation_Day < 1) {
+      return 0;
+    }
+    return this->daily_incidence_count[state][Global::Simulation_Day-1];
+  }
+
+  int get_current_count(int state) {
+    return this->current_count[state];
+  }
+
+  int get_total_count(int state) {
+    return this->total_count[state];
+  }
+
+  void track_group_state_counts(int type_id, int state) {
+    if (type_id < 0) {
+      return;
+    }
+    if (type_id < Group_Type::get_number_of_group_types()) {
+      this->track_counts_for_group_state[state][type_id] = true;
+    }
+  }
+  void increment_group_state_count(int place_type_id, Group* group, int state);
+  void decrement_group_state_count(int place_type_id, Group* group, int state);
+  void inc_state_count(Person* person, int state);
+  void dec_state_count(Person* person, int state);
+  int get_group_state_count(Group* group, int state);
+  int get_total_group_state_count(Group* group, int state);
+  bool health_records_are_enabled() {
+    return this->enable_health_records;
+  }
+
+  void finish();
+  void terminate_person(Person* person, int day);
 
 protected:
-  Disease* disease;
+  Condition* condition;
+  char name[FRED_STRING_SIZE];
   int id;
-  int N;          // current population size
-  int N_init;     // initial population size
   
+  // boolean flags
   bool report_generation_time;
-  bool report_transmission_by_age;
 
-  // event queues
-  Events* infectious_start_event_queue;
-  Events* infectious_end_event_queue;
-  Events* symptoms_start_event_queue;
-  Events* symptoms_end_event_queue;
-  Events* immunity_start_event_queue;
-  Events* immunity_end_event_queue;
+  // prevalence lists of people
+  person_set_t active_people_list;
+  person_set_t transmissible_people_list;
 
-  // active sets
-  std::set<Person*> infected_people;
-  std::set<Person*> potentially_infectious_people;
-  std::vector<Person*> actually_infectious_people;
-  std::set<Place*> active_places;
-  std::vector<Place*> active_place_vec;
+  // list of people with new status
+  person_vector_t new_exposed_people_list;
 
-  // seeding imported cases
-  std::vector<Time_Step_Map*> imported_cases_map;
-  bool import_by_age;
-  double import_age_lower_bound;
-  double import_age_upper_bound;
+  // places attended today by transmissible people:
+  place_set_t active_places_list;
 
-  // valid seeding types are:
-  // "user_specified" => SEED_USER 'U'
-  // "random" => SEED_RANDOM 'R'
-  // see Epidemic::advance_seed_infection"
-  char seeding_type_name[FRED_STRING_SIZE];
-  char seeding_type;
-  double fraction_seeds_infectious; 
+  // visualization data
+  char visualization_directory[FRED_STRING_SIZE];
 
-  /// advances infection either to the first infetious day (SEED_INFECTIOUS)
-  /// or to a random day in the trajectory (SEED_RANDOM)
-  /// this is accomplished by moving the exposure date back as appropriate;
-  /// (ultimately done in Infection::advance_infection)
-  void advance_seed_infection(Person* person);
+  // list of household locations of case_fatalities for each day
+  vis_loc_vec_t vis_case_fatality_loc_list;
 
-  vector<Person*> daily_infections_list;
-  vector<Person*> daily_symptomatic_list;
+  // list of household locations of dormant states for each day
+  vis_loc_vec_t* vis_dormant_loc_list;
 
-  static int get_age_group(int age);
+  // visualization data
+  bool* visualize_state;	  // if true, collect visualization data
+  int* visualize_state_place_type; // place_type id of loc to visualize
+  bool enable_visualization;
+
+  // import agent
+  Person* import_agent;
 
   // population health state counters
-  int susceptible_people;
-  int exposed_people;
-  int infectious_people;
-  int removed_people;
-  int immune_people;
-  int vaccinated_people;
+  int total_cases;
+  int susceptible_count;
 
-  int people_becoming_infected_today;
-  struct Disease_Count_Info population_infection_counts;
-
-  //Values for household income based stratification
-  std::map<int, struct Disease_Count_Info> household_income_infection_counts_map;
-  std::map<int, struct Disease_Count_Info> census_tract_infection_counts_map;
-
-  //Values for school income based stratification
-  std::map<int, struct Disease_Count_Info> school_income_infection_counts_map;
-
-  int people_becoming_symptomatic_today;
-  int people_with_current_symptoms;
-
-  int daily_case_fatality_count;
-  int total_case_fatality_count;
+  // epidemic counters for each state of the condition
+  int* incidence_count;		// number of people entering state today
+  int* total_count;	       // number of people ever entering
+  int* current_count;	  // number of people currently in state
+  int** daily_incidence_count; // number of people entering state each day
+  int** daily_current_count;	// number of people currently in state each day
+  std::vector<group_counter_t> group_state_count;
+  std::vector<group_counter_t> total_group_state_count;
+  bool** track_counts_for_group_state;
 
   // used for computing reproductive rate:
   double RR;
   int* daily_cohort_size;
   int* number_infected_by_cohort;
 
-  // attack rates
-  double attack_rate;
-  double symptomatic_attack_rate;
-
   // serial interval
   double total_serial_interval;
   int total_secondary_cases;
 
-  // used for maintining quantities from previous day;
-  int incidence;
-  int symptomatic_incidence;
-  int prevalence_count;
-  double prevalence;
-  int case_fatality_incidence;
+  // link to natural history
+  Natural_History* natural_history;
 
-  // used for incidence counts by county
-  int counties;
-  int* county_incidence;
+  // event queues
+  int number_of_states;
+  Events state_transition_event_queue;
+  Events meta_agent_transition_event_queue;
 
-  // used for incidence counts by census_tracts
-  int census_tracts;
-  int* census_tract_incidence;
-  int* census_tract_symp_incidence;
+  // report detailed changes in health records for this epidemic
+  bool enable_health_records;
+
+  // networks that support transmission of this condition
+  network_vector_t transmissible_networks;
 
 };
 

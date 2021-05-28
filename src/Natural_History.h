@@ -1,257 +1,289 @@
 /*
-  This file is part of the FRED system.
-
-  Copyright (c) 2010-2015, University of Pittsburgh, John Grefenstette,
-  Shawn Brown, Roni Rosenfield, Alona Fyshe, David Galloway, Nathan
-  Stone, Jay DePasse, Anuroop Sriram, and Donald Burke.
-
-  Licensed under the BSD 3-Clause license.  See the file "LICENSE" for
-  more information.
-*/
+ * This file is part of the FRED system.
+ *
+ * Copyright (c) 2010-2012, University of Pittsburgh, John Grefenstette, Shawn Brown, 
+ * Roni Rosenfield, Alona Fyshe, David Galloway, Nathan Stone, Jay DePasse, 
+ * Anuroop Sriram, and Donald Burke
+ * All rights reserved.
+ *
+ * Copyright (c) 2013-2019, University of Pittsburgh, John Grefenstette, Robert Frankeny,
+ * David Galloway, Mary Krauland, Michael Lann, David Sinclair, and Donald Burke
+ * All rights reserved.
+ *
+ * FRED is distributed on the condition that users fully understand and agree to all terms of the 
+ * End User License Agreement.
+ *
+ * FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
+ *
+ * See the file "LICENSE" for more information.
+ */
 
 #ifndef _FRED_NATURAL_HISTORY_H
 #define _FRED_NATURAL_HISTORY_H
 
-#include <string>
-using namespace std;
+#include "Global.h"
 
-class Age_Map;
-class Disease;
-class Evolution;
+class Condition;
+class Expression;
+class Preference;
 class Person;
-class Regional_Layer;
-class Infection;
+class State_Space;
+class Rule;
+
+typedef long long int longint;
 
 class Natural_History {
+
 public:
-  
-  static const int NEVER = -1;
-  static const int LOGNORMAL = 0;
-  static const int OFFSET_FROM_START_OF_SYMPTOMS = 1;
-  static const int OFFSET_FROM_SYMPTOMS = 2;
-  static const int CDF = 3;
 
-  virtual ~Natural_History();
+  Natural_History();
 
-  /**
-   * This static factory method is used to get an instance of a specific Natural_History Model.
-   * Depending on the model parameter, it will create a specific Natural_History Model and return
-   * a pointer to it.
-   *
-   * @param a string containing the requested Natural_History model type
-   * @return a pointer to a specific Natural_History model
-   */
+  ~Natural_History();
 
-  static Natural_History* get_new_natural_history(char* natural_history_model);
+  void setup(Condition *condition);
 
-  /*
-   * The Natural History base class implements an SEIR(S) model.
-   * For other models, define a derived class and redefine the following
-   * virtual methods as needed.
-   */
+  void get_properties();
 
-  virtual void setup(Disease* disease);
+  void setup(int phase);
 
-  virtual void get_parameters();
+  void prepare();
 
-  virtual void prepare() {}
+  void prepare_rules();
 
-  // called from Infection
+  void compile_rules();
 
-  virtual void update_infection(int day, Person* host, Infection* infection) {}
+  void print();
 
-  virtual bool do_symptoms_coincide_with_infectiousness() {
-    return true;
+  Expression* get_duration_expression(int state) {
+    return this->duration_expression[state];
   }
 
-  virtual double get_probability_of_symptoms(int age);
-
-  virtual int get_latent_period(Person* host);
-
-  virtual int get_duration_of_infectiousness(Person* host);
-
-  virtual int get_duration_of_immunity(Person* host);
-
-  virtual double get_real_incubation_period(Person* host);
-
-  virtual double get_symptoms_duration(Person* host);
-
-  virtual double get_real_latent_period(Person* host);
-
-  virtual double get_infectious_duration(Person* host);
-
-  virtual double get_infectious_start_offset(Person* host);
-
-  virtual double get_infectious_end_offset(Person* host);
-
-  virtual int get_incubation_period(Person* host);
-
-  virtual int get_duration_of_symptoms(Person* host);
-
-  virtual double get_asymptomatic_infectivity() {
-    return this->asymptomatic_infectivity;
+  Expression* get_edge_expression(int state) {
+    return this->edge_expression[state];
   }
 
-  virtual Evolution* get_evolution() {
-    return this->evol;
+  char* get_name();
+
+  int get_number_of_states() {
+    return this->number_of_states;
   }
 
-  virtual double get_infectivity_threshold() {
-    return this->infectivity_threshold;
-  }
-  
-  virtual double get_symptomaticity_threshold() {
-    return this->symptomaticity_threshold;
-  }
+  std::string get_state_name(int i);
 
-  virtual void init_prior_immunity();
+  int get_next_state(Person* person, int state);
 
-  // case fatality
+  int select_next_state(int state, double* transition_prob);
 
-  virtual bool is_case_fatality_enabled() {
-    return this->enable_case_fatality;
+  int get_next_transition_step(Person* person, int state, int day, int hour);
+
+  int get_exposed_state() {
+    return this->exposed_state;
   }
 
-  virtual bool is_fatal(double real_age, double symptoms, int days_symptomatic);
-
-  virtual bool is_fatal(Person* per, double symptoms, int days_symptomatic);
-
-  // immunity after infection
-
-  virtual bool gen_immunity_infection(double real_age);
-
-  // support for viral evolution
-
-  virtual void initialize_evolution_reporting_grid(Regional_Layer* grid);
-
-  virtual void end_of_run() {}
-
-  /*
-  virtual int get_use_incubation_offset() {
-    return 0;
-  }
-  */
-
-  virtual int get_number_of_states() {
-    return 1;
+  bool is_maternity_state(int state) {
+    return this->maternity_state[state];
   }
 
-  virtual double get_transition_probability(int i, int j) {
-    return 0.0;
+  bool is_fatal_state(int state) {
+    return this->fatal_state[state];
   }
 
-  virtual std::string get_state_name(int i) {
-    return "";
+  bool is_dormant_state(int state) {
+    return (this->state_is_dormant[state] == 1);
   }
 
-  virtual int get_initial_state() {
-    return 0;
+  double get_transmissibility() {
+    return this->transmissibility;
   }
 
-  virtual double get_infectivity(int state) {
-    return 0.0;
+  int get_condition_to_transmit(int state) {
+    return this->condition_to_transmit[state];
   }
 
-  virtual double get_symptoms(int state) {
-    return 0.0;
+  bool is_external_update_enabled() {
+    return this->enable_external_update;
   }
 
-  virtual bool is_fatal(int state) {
-    return false;
+  bool state_gets_external_updates(int state) {
+    return this->update_vars_externally[state];
   }
 
-  int get_symptoms_distribution_type() {
-    return this->symptoms_distribution_type;
+  int get_place_type_to_join(int state) {
+    return this->place_type_to_join[state];
   }
 
-  int get_infectious_distribution_type() {
-    return this->infectious_distribution_type;
+  int get_place_type_to_quit(int state) {
+    return this->place_type_to_quit[state];
   }
 
-  double get_full_symptoms_start() {
-    return this->full_symptoms_start;
+  rule_vector_t get_action_rules(int state) {
+    return this->action_rules[state];
   }
 
-  double get_full_symptoms_end() {
-    return this->full_symptoms_end;
+  int get_network_type(int state) {
+    return this->network_type[state];
   }
 
-  double get_full_infectivity_start() {
-    return this->full_infectivity_start;
+  double get_network_mean_degree(int state) {
+    return this->network_mean_degree[state];
   }
 
-  double get_full_infectivity_end() {
-    return this->full_infectivity_end;
+  int get_network_max_degree(int state) {
+    return this->network_max_degree[state];
   }
 
+  int should_start_hosting(int state) {
+    return this->start_hosting[state];
+  }
+  void finish() {}
+
+  int get_place_type_to_transmit() {
+    return this->place_type_to_transmit;
+  }
+
+  int get_import_start_state() {
+    return this->import_start_state;
+  }
+
+  int get_import_count(int state) {
+    return this->import_count[state];
+  }
+
+  double get_import_per_capita_transmissions(int state) {
+    return this->import_per_capita_transmissions[state];
+  }
+
+  double get_import_latitude(int state) {
+    return this->import_latitude[state];
+  }
+
+  double get_import_longitude(int state) {
+    return this->import_longitude[state];
+  }
+
+  double get_import_radius(int state) {
+    return this->import_radius[state];
+  }
+
+  double get_import_min_age(int state) {
+    return this->import_min_age[state];
+  }
+
+  double get_import_max_age(int state) {
+    return this->import_max_age[state];
+  }
+
+  longint get_import_admin_code(int state) {
+    return this->import_admin_code[state];
+  }
+
+  bool is_absent(int state, int group_type_id);
+
+  bool is_closed(int state, int group_type_id);
+
+  Rule* get_import_count_rule(int state) {
+    return this->import_count_rule[state];
+  }
+
+  Rule* get_import_per_capita_rule(int state) {
+    return this->import_per_capita_rule[state];
+  }
+
+  Rule* get_import_ages_rule(int state) {
+    return this->import_ages_rule[state];
+  }
+
+  Rule* get_import_location_rule(int state) {
+    return this->import_location_rule[state];
+  }
+
+  Rule* get_import_admin_code_rule(int state) {
+    return this->import_admin_code_rule[state];
+  }
+
+  Rule* get_import_list_rule(int state) {
+    return this->import_list_rule[state];
+  }
+
+  bool all_import_attempts_count(int state) {
+    return this->count_all_import_attempts[state];
+  }
 
 protected:
-  Disease* disease;
-  // prob of getting symptoms
-  double probability_of_symptoms;
-  // relative infectivity if asymptomatic
-  double asymptomatic_infectivity;
 
-  // distributions for symptoms and infectiousness
-  char symptoms_distributions[32];
-  char infectious_distributions[32];
-  int symptoms_distribution_type;
-  int infectious_distribution_type;
+  Condition* condition;
+  char name[FRED_STRING_SIZE];
+  int id;
 
-  // CDFs
-  int max_days_incubating;
-  int max_days_symptomatic;
-  double* days_incubating;
-  double* days_symptomatic;
+  // STATE MODEL
+  State_Space* state_space;
+  int number_of_states;
 
-  int max_days_latent;
-  int max_days_infectious;
-  double* days_latent;
-  double* days_infectious;
+  // RULES
+  rule_vector_t* action_rules;
+  Rule** wait_rule;
+  Rule* exposure_rule;
+  rule_vector_t** next_rules;
+  Rule** default_rule;
 
-  Age_Map* age_specific_prob_symptoms;
-  double immunity_loss_rate;
+  // STATE SIDE EFFECTS
+  Rule** susceptibility_rule;
+  Rule** transmissibility_rule;
+  Expression** edge_expression;
+  int* condition_to_transmit;
+  int* place_type_to_join;
+  int* place_type_to_quit;
+  int* network_action;
+  int* network_type;
+  double* network_mean_degree;
+  int* network_max_degree;
+  int* start_hosting;
+  bool* maternity_state;
+  bool* fatal_state;
 
-  // parameters for incubation and infectious periods and offsets
-  double incubation_period_median;
-  double incubation_period_dispersion;
-  double incubation_period_upper_bound;
+  // PERSONAL VARIABLES
+  bool* update_vars;
+  bool* update_vars_externally;
+  bool enable_external_update;
 
-  double symptoms_duration_median;
-  double symptoms_duration_dispersion;
-  double symptoms_duration_upper_bound;
+  // IMPORT STATE
+  int import_start_state;
+  int* import_count;
+  double* import_per_capita_transmissions;
+  double* import_latitude;
+  double* import_longitude;
+  double* import_radius;
+  longint* import_admin_code;
+  double* import_min_age;
+  double* import_max_age;
+  Rule** import_count_rule;
+  Rule** import_per_capita_rule;
+  Rule** import_ages_rule;
+  Rule** import_location_rule;
+  Rule** import_admin_code_rule;
+  Rule** import_list_rule;
+  bool* count_all_import_attempts;
 
-  double latent_period_median;
-  double latent_period_dispersion;
-  double latent_period_upper_bound;
+  // STATE CONTACT RESTRICTIONS
+  bool** absent_groups;
+  bool** close_groups;
 
-  double infectious_duration_median;
-  double infectious_duration_dispersion;
-  double infectious_duration_upper_bound;
+  // TRANSMISSIBILITY
+  double transmissibility;
+  double R0;
+  double R0_a;
+  double R0_b;
+  int place_type_to_transmit;
+  int exposed_state;
 
-  double infectious_start_offset;
-  double infectious_end_offset;
-
-  // thresholds used in Infection class to determine if an agent is
-  // infectious/symptomatic at a given time point
-  double infectivity_threshold;
-  double symptomaticity_threshold;
-
-  // fraction of periods with full symptoms or infectivity
-  double full_symptoms_start;
-  double full_symptoms_end;
-  double full_infectivity_start;
-  double full_infectivity_end;
-  
-  // case fatality parameters
-  int enable_case_fatality;
-  double min_symptoms_for_case_fatality;
-  Age_Map* age_specific_prob_case_fatality;
-  double* case_fatality_prob_by_day;
-  int max_days_case_fatality_prob;
-
-  Age_Map* age_specific_prob_infection_immunity;
-  Evolution* evol;
+  // TRANSITION MODEL
+  Expression** duration_expression;
+  int* transition_day;
+  std::string* transition_date;
+  int* transition_days;
+  int* transition_hour;
+  int* default_next_state;
+  int* state_is_dormant;
 
 };
 

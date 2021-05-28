@@ -1,6 +1,0 @@
-PARAM NAME: yearly_mobility_rate_file
-DEFAULT VALUE: none
-TYPE: string
-
-DEFINITION: File of age-specific rates at which households move out of
-the simulation region.
