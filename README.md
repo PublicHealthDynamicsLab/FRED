@@ -5,13 +5,13 @@ An agent-based modeling framework developed by the University of Pittsburgh [Pub
 #### Version Information
 This is the University of Pittsburgh's public version of the FRED Modeling Framework. This version will always be several check-ins behind the private version used by the University of Pittsburgh's Public Health Dynamics Laboratory.
 
+The official commercial version of FRED is now owned, maintained, and updated by [Epistemix](https://www.epistemix.com "Epistemix website"). That version will have the most up-to-date features and cutting edge development. Please feel free to [contact Epistemix](https://www.epistemix.com/contact-us "Epistemix Contact Page") for more information.
+
 #### License Information
 FRED is distributed on the condition that users fully understand and agree to all terms of the End User License Agreement.
 FRED is intended FOR NON-COMMERCIAL, EDUCATIONAL OR RESEARCH PURPOSES ONLY.
 
 See the file "LICENSE" for more information.
-
-The official commercial version of FRED is now owned, maintained, and updated by [Epistemix](https://www.epistemix.com "Epistemix website"). That version will have the most up-to-date features and cutting edge development. Please feel free to [contact Epistemix](https://www.epistemix.com/contact-us "Epistemix Contact Page") for more information.
 
 #### Synthetic Populations
 The FRED platform uses synthetic populations as the basis for creating realistic spatial population distributions and mixing group patterns. 
